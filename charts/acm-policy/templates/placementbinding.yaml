@@ -1,0 +1,18 @@
+{{- if not .Values.placement.create }}
+{{ $placementName := required "Placement name is required when no placement is created" .Values.placement.name }}
+{{- end }}
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: {{ include "acm-policy.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "acm-policy.labels" . | nindent 4 }}
+placementRef:
+  name: {{ .Values.placement.name | default (include "acm-policy.fullname" .) }}
+  kind: Placement
+  apiGroup: cluster.open-cluster-management.io
+subjects:
+  - name: {{ include "acm-policy.fullname" . }}
+    kind: Policy
+    apiGroup: policy.open-cluster-management.io

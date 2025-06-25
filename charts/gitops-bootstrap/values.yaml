@@ -1,0 +1,29 @@
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+# uses following global variables
+global: # to be overridden by helmfile global meta environment
+  apc:
+    repoURL: ~
+    repoTargetRevision: ~
+    cluster:
+      name: hub # to be overridden by helmfile global meta environment
+
+# if bootstrap is enabled, github repo credentials secret is created, otherwise skipped
+bootstrap: false
+
+repo:
+  url: ~ # URL of the git repository to bootstrap from App of Apps
+  targetRevision: main # Branch or tag to use in the git repository
+  credentials: # Github app credentials # see <https://github.com/gr8it/privatecloud/blob/develop/docs/openshift/gitops.md>
+    app_id: ~
+    installation_id: ~
+    private_key: ~
+
+# As no shared mechanism exists to get parameters of argocd-app-of-apps application from the argocd-app-of-apps chart, we use manual settings here
+# will be overriden by argocd-app-of-apps settings from repo anyway
+syncPolicy:
+  enabled: true
+  selfHeal: true
+  prune: false

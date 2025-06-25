@@ -1,0 +1,10 @@
+{{/* because this chart is used in bootstrap, we need to create namespace as well */}}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Release.Namespace }}
+  labels:
+    {{- include "acm-instance.labels" $ | nindent 4 }}
+    {{- if hasPrefix "apc-" .Release.Namespace }}
+      apc.namespace.type: platform
+    {{- end }}

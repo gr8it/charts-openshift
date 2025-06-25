@@ -1,0 +1,33 @@
+complianceType: musthave # musthave, mustnothave
+remediationAction: enforce # inform, enforce
+severity: medium # low, medium, high
+upgradeApproval: None # automatic, None
+
+operatorGroup:
+  name: ~
+  namespace: ~
+  targetNamespaces: []
+
+subscription:
+  channel: ~
+  name: ~
+  namespace: ~
+  source: ~
+  sourceNamespace: ~
+  # source: redhat-operators
+  # sourceNamespace: openshift-marketplace
+  startingCSV: ~
+
+versions: []
+
+removalBehavior:
+  operatorGroups: DeleteIfUnused
+  subscriptions: Delete
+  clusterServiceVersions: Delete
+  customResourceDefinitions: Keep
+
+complianceConfig:
+  catalogSourceUnhealthy: Compliant
+  deploymentsUnavailable: NonCompliant
+  upgradesAvailable: Compliant
+  # deprecationsPresent: Compliant

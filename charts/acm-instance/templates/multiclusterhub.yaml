@@ -1,0 +1,12 @@
+apiVersion: operator.open-cluster-management.io/v1
+kind: MultiClusterHub
+metadata:
+  name: {{ include "acm-instance.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "acm-instance.labels" . | nindent 4 }}
+spec:
+  availabilityConfig: {{ .Values.availabilityConfig }}
+  {{- if .Values.customCACertificates }}
+  customCAConfigmap: ca-certificates
+  {{- end }}

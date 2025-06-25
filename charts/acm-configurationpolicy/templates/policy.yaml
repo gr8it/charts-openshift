@@ -1,0 +1,17 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: ConfigurationPolicy
+metadata:
+  name: {{ include "acm-configurationpolicy.fullname" $ }}
+  namespace: open-cluster-management-policies
+  labels:
+    {{- include "acm-configurationpolicy.labels" . | nindent 4 }}
+spec:
+  remediationAction: {{ .Values.remediationAction | default "inform" }}
+  severity: {{ .Values.severity | default "low" }}
+  pruneObjectBehavior: {{ .Values.pruneObjectBehavior | default "None" }}
+  object-templates:
+  {{- range $objectTemplate := .Values.objectTemplates }}
+    - complianceType: {{ $objectTemplate.complianceType | default "musthave" }}
+      objectDefinition:
+        {{- $objectTemplate.objectDefinition | toYaml | nindent 8 }}
+  {{- end }}

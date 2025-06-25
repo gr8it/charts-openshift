@@ -1,0 +1,27 @@
+{{- if .Values.placement.create }}
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: {{ include "acm-policy.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "acm-policy.labels" . | nindent 4 }}
+spec:
+{{- $clusterSets := include "acm-policy.clusterSets" . | fromYamlArray }}
+  {{- if $clusterSets }}
+  clusterSets:
+    {{- $clusterSets | toYaml | nindent 4 }}
+  {{- end }}
+  {{- if or .Values.placement.clusterName .Values.placement.labelSelectors }}
+  predicates:
+    - requiredClusterSelector:
+        labelSelector:
+          matchLabels:
+          {{- if .Values.placement.clusterName }}
+            name: {{ .Values.placement.clusterName }}
+          {{- end }}
+          {{- if .Values.placement.labelSelectors }}
+            {{- .Values.placement.labelSelectors | toYaml | nindent 12 }}
+          {{- end }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,11 @@
+{{- if .Values.customCACertificates }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ca-certificates
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "acm-instance.labels" . | nindent 4 }}
+data:
+{{- .Values.customCACertificates | toYaml | nindent 2 }}
+{{- end }}
