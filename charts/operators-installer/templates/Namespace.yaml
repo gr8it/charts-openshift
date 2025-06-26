@@ -8,7 +8,7 @@ metadata:
   labels:
     {{- include "operators-installer.labels" $ | nindent 4 }}
     {{- if hasPrefix "apc-" $.Release.Namespace }}
-      apc.namespace.type: platform
+    apc.namespace.type: platform
     {{- end }}
   annotations:
     argocd.argoproj.io/sync-wave: "-60"
