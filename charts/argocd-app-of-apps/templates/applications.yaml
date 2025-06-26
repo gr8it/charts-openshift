@@ -69,6 +69,11 @@ spec:
       prune: true
       {{- end }}
 
+    {{- if  $application.managedNamespaceMetadata }}
+    managedNamespaceMetadata:
+      {{- $application.managedNamespaceMetadata | toYaml | nindent 6 }}
+    {{- end }}
+
     {{- $applicationSyncPolicyRetry := ($application.syncPolicyRetry) | default dict }}
     {{- $defaultSyncPolicyRetry := ((($.Values.default).application).syncPolicyRetry) | default dict }}
     {{- $syncPolicyRetry := merge $applicationSyncPolicyRetry $defaultSyncPolicyRetry }}

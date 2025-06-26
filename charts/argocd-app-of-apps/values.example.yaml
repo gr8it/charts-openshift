@@ -226,3 +226,12 @@ applications:
       argocd.argoproj.io/sync-wave: '51'
     source:
       path: tenants/product-catalog/argocd/applicationset/base
+
+  namespace-labels:
+    source:
+      path: components/apps/namespace-labels
+    enableAutoSync: true
+    managedNamespaceMetadata:
+      foo: bar
+    syncOptions:
+      - CreateNamespace=true
