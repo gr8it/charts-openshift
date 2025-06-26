@@ -66,7 +66,7 @@ Create the name of the service account to use
 {{- end }}
 
 {{- define "gitops-bootstrap.targetRevision" -}}
-{{- .Values.repo.targetRevision | default .Values.global.apc.repoTargetRevision }}
+{{- .Values.repo.targetRevision | default .Values.global.apc.repoTargetRevision | default "main" }}
 {{- end }}
 
 {{- define "gitops-bootstrap.repoShort" -}}
