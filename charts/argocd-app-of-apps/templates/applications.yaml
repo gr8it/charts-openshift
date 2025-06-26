@@ -59,24 +59,35 @@ spec:
   project: {{ $project }}
 
   {{- $defaultAutoSyncEnabled := ((($.Values.default).application).enableAutoSync) | default false }}
-  {{- if (hasKey $application "enableAutoSync" | ternary $application.enableAutoSync $defaultAutoSyncEnabled) }}
-  syncPolicy:
-    automated:
-      selfHeal: true
+  {{- $autoSyncEnabled := (hasKey $application "enableAutoSync" | ternary $application.enableAutoSync $defaultAutoSyncEnabled) }}
 
-      {{- $defaultAutoPruneEnabled := ((($.Values.default).application).autoSyncPrune) | default false }}
-      {{- if (hasKey $application "autoSyncPrune" | ternary $application.autoSyncPrune $defaultAutoPruneEnabled) }}
-      prune: true
+  {{- $defaultAutoPruneEnabled := ((($.Values.default).application).autoSyncPrune) | default false }}
+  {{- $autoPruneEnabled := (hasKey $application "autoSyncPrune" | ternary $application.autoSyncPrune $defaultAutoPruneEnabled) }}
+
+  {{- $applicationSyncPolicyRetry := ($application.syncPolicyRetry) | default dict }}
+  {{- $defaultSyncPolicyRetry := ((($.Values.default).application).syncPolicyRetry) | default dict }}
+  {{- $syncPolicyRetry := merge $applicationSyncPolicyRetry $defaultSyncPolicyRetry }}
+
+  {{- if or $autoSyncEnabled $autoPruneEnabled ($application.managedNamespaceMetadata) $syncPolicyRetry (hasKey $application "syncOptions") }}
+  syncPolicy:
+    
+    {{- if or $autoSyncEnabled $autoPruneEnabled }}
+    automated:
+
+      {{- if $autoSyncEnabled }}
+      selfHeal: true
       {{- end }}
 
-    {{- if  $application.managedNamespaceMetadata }}
+      {{- if $autoPruneEnabled }}
+      prune: true
+      {{- end }}
+    {{- end }}
+
+    {{- if ($application.managedNamespaceMetadata) }}
     managedNamespaceMetadata:
       {{- $application.managedNamespaceMetadata | toYaml | nindent 6 }}
     {{- end }}
 
-    {{- $applicationSyncPolicyRetry := ($application.syncPolicyRetry) | default dict }}
-    {{- $defaultSyncPolicyRetry := ((($.Values.default).application).syncPolicyRetry) | default dict }}
-    {{- $syncPolicyRetry := merge $applicationSyncPolicyRetry $defaultSyncPolicyRetry }}
     {{- with $syncPolicyRetry }}
     retry:
       {{- toYaml . | nindent 6 }}
