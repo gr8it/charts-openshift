@@ -51,6 +51,7 @@ spec:
                 metadata:
                   name: openshift-gitops
                   namespace: openshift-gitops
+
     - extraDependencies:
         - name: {{ include "gitops-bootstrap.fullname" . }}-argocd-exists
           namespace: ""
@@ -199,6 +200,7 @@ spec:
                           end
                         end
                         return hs
+
     - extraDependencies:
         - name: {{ include "gitops-bootstrap.fullname" . }}-operator
           namespace: ""
@@ -372,7 +374,7 @@ spec:
                       prune: {{ .Values.syncPolicy.prune }}
                   {{- end }}
                   source:
-                    path: gitops/rendered/{{"{{"}}hub .ManagedClusterName | replace "local-cluster" "{{ .Values.global.apc.cluster.name }}" hub{{"}}"}}/argocd-app-of-apps
+                    path: gitops/rendered/{{"{{"}}hub .ManagedClusterName | replace "local-cluster" "{{ .Values.cluster.name | default .Values.global.apc.cluster.name }}" hub{{"}}"}}/argocd-app-of-apps
                     {{/* assumption is, that the bootstrap is run from hub cluster = cluster.name contains the hub cluster name */}}
                     repoURL: {{ include "gitops-bootstrap.repoUrl" . }}
                     targetRevision: {{ include "gitops-bootstrap.targetRevision" . }}

@@ -62,11 +62,11 @@ Create the name of the service account to use
 {{- end }}
 
 {{- define "gitops-bootstrap.repoUrl" -}}
-{{- default .Values.repo.url .Values.global.apc.repoURL }}
+{{- .Values.repo.url | default .Values.global.apc.repoURL }}
 {{- end }}
 
 {{- define "gitops-bootstrap.targetRevision" -}}
-{{- default .Values.repo.targetRevision .Values.global.apc.repoTargetRevision }}
+{{- .Values.repo.targetRevision | default .Values.global.apc.repoTargetRevision }}
 {{- end }}
 
 {{- define "gitops-bootstrap.repoShort" -}}

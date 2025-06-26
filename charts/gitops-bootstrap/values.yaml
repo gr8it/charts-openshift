@@ -8,7 +8,10 @@ global: # to be overridden by helmfile global meta environment
     repoURL: ~
     repoTargetRevision: ~
     cluster:
-      name: hub # to be overridden by helmfile global meta environment
+      name: hub # to be overridden by helmfile global meta environment / cluster.name below
+
+cluster:
+  name: ~ # name of the hub cluster, to be used in argocd-app-of-apps rendered path
 
 # if bootstrap is enabled, github repo credentials secret is created, otherwise skipped
 bootstrap: false
