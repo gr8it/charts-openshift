@@ -3,10 +3,11 @@ apiVersion: policy.open-cluster-management.io/v1
 kind: Policy
 metadata:
   name: {{ include "gitops-bootstrap.fullname" . }}
-  # namespace: open-cluster-management-global-set
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "gitops-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    policy.open-cluster-management.io/description: A policy to bootstrap APC Gitops on all managed clusters, i.e. Gitops operator / instance, repo credentials, repository, and app-of-apps application
 spec:
   disabled: false
   policy-templates:
