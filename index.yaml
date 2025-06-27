@@ -1,0 +1,129 @@
+apiVersion: v1
+entries:
+  acm-configurationpolicy:
+  - apiVersion: v2
+    appVersion: v1
+    created: "2025-06-26T22:43:28.122212711+02:00"
+    description: A Helm chart to install ACM configurationpolicy CR using external
+      tools, i.e. directly on managed clusters only (no placement decisions!)
+    digest: 10e39e446598e219977e2794a1371f7850c8b479c3321c6700c41f55451b15c2
+    name: acm-configurationpolicy
+    type: application
+    urls:
+    - packaged_charts/acm-configurationpolicy-1.0.0.tgz
+    version: 1.0.0
+  acm-instance:
+  - apiVersion: v2
+    appVersion: v2.12.1
+    created: "2025-06-26T22:43:28.12285275+02:00"
+    description: A Helm chart to create ACM instance CR
+    digest: 6a3e36904d929817c3e5b72f19a43c662620ba7057196eb48a9e8e19b6390132
+    name: acm-instance
+    type: application
+    urls:
+    - packaged_charts/acm-instance-1.0.0.tgz
+    version: 1.0.0
+  acm-operator:
+  - apiVersion: v2
+    appVersion: v2.12.1
+    created: "2025-06-26T22:43:28.124227296+02:00"
+    dependencies:
+    - name: operators-installer
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/main/
+      version: 3.2.4
+    description: A Helm chart to install ACM operator using operators-installer helm
+      chart
+    digest: f44cc41c3ec1a8e8b31c9751c7397172a4547e5332acd812742595045da46a46
+    name: acm-operator
+    type: application
+    urls:
+    - packaged_charts/acm-operator-1.0.0.tgz
+    version: 1.0.0
+  acm-operatorpolicy:
+  - apiVersion: v2
+    appVersion: v1beta1
+    created: "2025-06-26T22:43:28.12518062+02:00"
+    description: A Helm chart to install operators using ACM operatorpolicy CR with
+      external tools, i.e. on managed clusters only (no placement decisions!)
+    digest: 18be0840bc39f54d66aaa0369fcdfc69ff93e8ffe0488ff017b121d64858e51a
+    icon: https://raw.githubusercontent.com/operator-framework/olm-docs/ea9cd734aa7a6bf2d24f273322ed9aec3ffcb02a/content/en/images/logo-sm.svg
+    name: acm-operatorpolicy
+    type: application
+    urls:
+    - packaged_charts/acm-operatorpolicy-1.0.0.tgz
+    version: 1.0.0
+  acm-policy:
+  - apiVersion: v2
+    appVersion: v1
+    created: "2025-06-26T22:43:28.125804703+02:00"
+    description: A Helm chart to install ACM policy using ACM policy framework, i.e.
+      on hub cluster with placement decisions = deployed to selected managed clusters
+    digest: 058b6b30af5c5d353c5dddbff11431f3fa1f48750e879e84c1873b089837e996
+    name: acm-policy
+    type: application
+    urls:
+    - packaged_charts/acm-policy-1.0.0.tgz
+    version: 1.0.0
+  argocd-app-of-apps:
+  - apiVersion: v2
+    appVersion: v1alpha1
+    created: "2025-06-26T22:43:28.126481488+02:00"
+    description: A Helm chart for creating series of Argo CD Applications and AppProjects
+    digest: b5d05e6845b489bbbde25fcefaee3a174a509706b584de88300f8b4ab312f6e9
+    name: argocd-app-of-apps
+    type: application
+    urls:
+    - packaged_charts/argocd-app-of-apps-1.0.0.tgz
+    version: 1.0.0
+  gitops-bootstrap:
+  - apiVersion: v2
+    appVersion: v1
+    created: "2025-06-26T22:43:28.127924436+02:00"
+    description: A Helm chart to bootstrap APC GitOps using ACM policies
+    digest: f60e739848b1fde0dd5e752566d8596dae6d62662c3181ac7540c761a2e633cd
+    name: gitops-bootstrap
+    type: application
+    urls:
+    - packaged_charts/gitops-bootstrap-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
+    appVersion: v1
+    created: "2025-06-26T22:43:28.12714904+02:00"
+    description: A Helm chart to bootstrap APC GitOps using ACM policies
+    digest: 009129f44488c00ef3f7236abe053a51d586836a05a846e2855cf6f6743fc6ac
+    name: gitops-bootstrap
+    type: application
+    urls:
+    - packaged_charts/gitops-bootstrap-1.0.0.tgz
+    version: 1.0.0
+  operators-installer:
+  - apiVersion: v2
+    created: "2025-06-26T22:43:28.130617606+02:00"
+    description: Installs a given list of operators either using Automatic or Manual
+      InstallPlans. If Manual then version of operator can be controlled declarativly.
+    digest: 1e3a7fa333b0aed687ab404db2fe3e132e8da143f7c2b39733baf6a20db80b22
+    icon: https://raw.githubusercontent.com/operator-framework/olm-docs/ea9cd734aa7a6bf2d24f273322ed9aec3ffcb02a/content/en/images/logo-sm.svg
+    keywords:
+    - olm
+    - operators
+    name: operators-installer
+    type: application
+    urls:
+    - packaged_charts/operators-installer-3.2.4.tgz
+    version: 3.2.4
+  remove-kubeadmin:
+  - apiVersion: v2
+    created: "2025-06-26T22:43:28.131370591+02:00"
+    dependencies:
+    - name: acm-configurationpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/main/
+      version: 1.0.0
+    description: A Helm chart to remove kube admin secret using ACM configuration
+      policy
+    digest: b882089a3eeee21e4a851a76fff2db3c9f31eaa34f7e25ec86402c8dd4232838
+    name: remove-kubeadmin
+    type: application
+    urls:
+    - packaged_charts/remove-kubeadmin-1.0.0.tgz
+    version: 1.0.0
+generated: "2025-06-26T22:43:28.120141106+02:00"

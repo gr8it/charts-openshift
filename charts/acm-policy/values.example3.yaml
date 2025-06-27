@@ -1,0 +1,16 @@
+disabled: false # optional, default = false
+policyTemplates:
+- remediationAction: inform
+  severity: low
+  objectTemplates:
+  - complianceType: mustnothave
+    objectDefinition:
+      kind: Secret
+      apiVersion: v1
+      metadata:
+        name: kubeadmin
+        namespace: kube-system
+
+placement:
+  create: false
+  name: example

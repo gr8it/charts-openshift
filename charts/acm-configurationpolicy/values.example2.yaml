@@ -1,0 +1,32 @@
+remediationAction: inform
+severity: low
+pruneObjectBehavior: DeleteIfCreated
+objectTemplates:
+  - objectDefinition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        labels:
+          argocd.argoproj.io/secret-type: repository
+        name: default-gr8it-conf-socpoist
+        namespace: openshift-gitops
+      type: Opaque
+      stringData:
+        name: default-gr8it-conf-socpoist
+        type: git
+        url: ~
+        project: default
+  - objectDefinition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        labels:
+          argocd.argoproj.io/secret-type: repository
+        name: cluster-config-gr8it-conf-socpoist
+        namespace: openshift-gitops
+      type: Opaque
+      stringData:
+        name: cluster-config-gr8it-conf-socpoist
+        type: git
+        url: ~
+        project: cluster-config
