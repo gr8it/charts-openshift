@@ -1,0 +1,11 @@
+acm-configurationpolicy:
+  remediationAction: enforce
+  severity: low
+  objectTemplates:
+  - complianceType: mustnothave
+    objectDefinition:
+      kind: Secret
+      apiVersion: v1
+      metadata:
+        name: kubeadmin
+        namespace: kube-system

@@ -1,0 +1,26 @@
+nameOverride: ~
+fullnameOverride: ~
+
+disabled: false
+policyTemplates: []
+  # kind: ConfigurationPolicy # [ConfigurationPolicy]
+  # remediationAction: inform # [inform, enforce]
+  # severity: low # [low, high, critical]
+  # pruneObjectBehavior: None # [DeleteIfCreated, DeleteAll, None]
+  # objectTemplates: []
+  # - complianceType: musthave # [musthave, mustonlyhave, mustnothave]
+  #   objectDefinition: {}
+
+
+placement:
+  create: true
+  name: ~ # if placement is not to be created (set to false), placement name must be specified to use for placement binding
+  # if none of the below are specified, clusterSet = global = all clusters
+  clusterName: ~
+  clusterSets: []
+  labelSelectors: {}
+
+# when using placement.clusterSets, these must be allowed in the current namespace
+# if clusterSets are not used => won't be created
+managedClusterSetBinding:
+  create: true

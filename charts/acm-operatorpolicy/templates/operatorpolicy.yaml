@@ -1,0 +1,48 @@
+apiVersion: policy.open-cluster-management.io/v1beta1
+kind: OperatorPolicy
+metadata:
+  name: {{ include "acm-operatorpolicy.fullname" . }}
+  namespace: open-cluster-management-policies
+  labels:
+    {{- include "acm-operatorpolicy.labels" . | nindent 4 }}
+spec:
+  complianceType: {{ .Values.complianceType }}
+  remediationAction: {{ .Values.remediationAction }}
+  severity: {{ .Values.severity }}
+  upgradeApproval: {{ .Values.upgradeApproval }}
+  {{- if and .Values.operatorGroup.name .Values.operatorGroup.namespace }}
+  operatorGroup:
+    name:  {{ .Values.operatorGroup.name }}
+    namespace: {{ .Values.operatorGroup.namespace }}
+    targetNamespaces:
+      {{- toYaml .Values.operatorGroup.targetNamespaces | nindent 6 }}
+  {{- end }}
+  subscription:
+    {{- if .Values.subscription.channel }}
+    channel: {{ .Values.subscription.channel }}
+    {{- end }}
+    name: {{ .Values.subscription.name }}
+    {{- if .Values.subscription.namespace }}
+    namespace: {{ .Values.subscription.namespace }}
+    {{- end }}
+    {{- if .Values.subscription.source }}
+    source: {{ .Values.subscription.source }}
+    {{- end }}
+    {{- if .Values.subscription.sourceNamespace }}
+    sourceNamespace: {{ .Values.subscription.sourceNamespace }}
+    {{- end }}
+    {{- if .Values.subscription.startingCSV }}
+    startingCSV: {{ .Values.subscription.startingCSV }}
+    {{- end }}
+  removalBehavior:
+    operatorGroups: {{ .Values.removalBehavior.operatorGroups }}
+    subscriptions: {{ .Values.removalBehavior.subscriptions }}
+    clusterServiceVersions: {{ .Values.removalBehavior.clusterServiceVersions }}
+    customResourceDefinitions: {{ .Values.removalBehavior.customResourceDefinitions }}
+  complianceConfig:
+    catalogSourceUnhealthy: {{ .Values.complianceConfig.catalogSourceUnhealthy }}
+    deploymentsUnavailable: {{ .Values.complianceConfig.deploymentsUnavailable }}
+    upgradesAvailable: {{ .Values.complianceConfig.upgradesAvailable }}
+    # deprecationsPresent: {{ .Values.complianceConfig.deprecationsPresent }}
+  versions:
+{{- toYaml .Values.versions | nindent 4 }}
