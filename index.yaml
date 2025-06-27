@@ -3,7 +3,7 @@ entries:
   acm-configurationpolicy:
   - apiVersion: v2
     appVersion: v1
-    created: "2025-06-26T22:43:28.122212711+02:00"
+    created: "2025-06-27T15:31:37.591981074+02:00"
     description: A Helm chart to install ACM configurationpolicy CR using external
       tools, i.e. directly on managed clusters only (no placement decisions!)
     digest: 10e39e446598e219977e2794a1371f7850c8b479c3321c6700c41f55451b15c2
@@ -15,7 +15,7 @@ entries:
   acm-instance:
   - apiVersion: v2
     appVersion: v2.12.1
-    created: "2025-06-26T22:43:28.12285275+02:00"
+    created: "2025-06-27T15:31:37.592140773+02:00"
     description: A Helm chart to create ACM instance CR
     digest: 6a3e36904d929817c3e5b72f19a43c662620ba7057196eb48a9e8e19b6390132
     name: acm-instance
@@ -26,7 +26,7 @@ entries:
   acm-operator:
   - apiVersion: v2
     appVersion: v2.12.1
-    created: "2025-06-26T22:43:28.124227296+02:00"
+    created: "2025-06-27T15:31:37.592772326+02:00"
     dependencies:
     - name: operators-installer
       repository: https://raw.githubusercontent.com/gr8it/charts-openshift/main/
@@ -42,7 +42,7 @@ entries:
   acm-operatorpolicy:
   - apiVersion: v2
     appVersion: v1beta1
-    created: "2025-06-26T22:43:28.12518062+02:00"
+    created: "2025-06-27T15:31:37.593004819+02:00"
     description: A Helm chart to install operators using ACM operatorpolicy CR with
       external tools, i.e. on managed clusters only (no placement decisions!)
     digest: 18be0840bc39f54d66aaa0369fcdfc69ff93e8ffe0488ff017b121d64858e51a
@@ -55,7 +55,7 @@ entries:
   acm-policy:
   - apiVersion: v2
     appVersion: v1
-    created: "2025-06-26T22:43:28.125804703+02:00"
+    created: "2025-06-27T15:31:37.593182322+02:00"
     description: A Helm chart to install ACM policy using ACM policy framework, i.e.
       on hub cluster with placement decisions = deployed to selected managed clusters
     digest: 058b6b30af5c5d353c5dddbff11431f3fa1f48750e879e84c1873b089837e996
@@ -67,7 +67,7 @@ entries:
   argocd-app-of-apps:
   - apiVersion: v2
     appVersion: v1alpha1
-    created: "2025-06-26T22:43:28.126481488+02:00"
+    created: "2025-06-27T15:31:37.593383256+02:00"
     description: A Helm chart for creating series of Argo CD Applications and AppProjects
     digest: b5d05e6845b489bbbde25fcefaee3a174a509706b584de88300f8b4ab312f6e9
     name: argocd-app-of-apps
@@ -75,10 +75,54 @@ entries:
     urls:
     - packaged_charts/argocd-app-of-apps-1.0.0.tgz
     version: 1.0.0
+  crossplane-helm:
+  - apiVersion: v2
+    appVersion: 1.19.2
+    created: "2025-06-27T15:31:37.594304459+02:00"
+    dependencies:
+    - name: crossplane
+      repository: https://charts.crossplane.io/stable
+      version: 1.19.2
+    description: A Helm chart to install Crossplane
+    digest: f67e25414cc073d88bf81a595f0f6db95ba67f7e2a89aaddd75ab1cae0c1d49f
+    name: crossplane-helm
+    type: application
+    urls:
+    - packaged_charts/crossplane-helm-1.0.0.tgz
+    version: 1.0.0
+  crossplane-vault-provider:
+  - apiVersion: v2
+    created: "2025-06-27T15:31:37.594413894+02:00"
+    description: A Helm chart to deploy Crossplane Vault provider
+    digest: 1a3b9d0b0448dfbf6d5e6e521757adb5a0a26764c4b3f83041b8a85c9e6a1cd4
+    name: crossplane-vault-provider
+    type: application
+    urls:
+    - packaged_charts/crossplane-vault-provider-1.0.0.tgz
+    version: 1.0.0
+  crossplane-vault-provider-config:
+  - apiVersion: v2
+    created: "2025-06-27T15:31:37.59544621+02:00"
+    description: A Helm chart to deploy Crossplane Vault provider configuration
+    digest: 96253693a3f065c80b5df14b9a2f8dabb8d78fe8453c74f53b46b3fcfb09f952
+    name: crossplane-vault-provider-config
+    type: application
+    urls:
+    - packaged_charts/crossplane-vault-provider-config-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
+    created: "2025-06-27T15:31:37.594539512+02:00"
+    description: A Helm chart to deploy Crossplane Vault provider configuration
+    digest: 9fdc7cbcb01f88e7c78ad36f0367d152bc05bd294f6358e2f8a918fc9e85cb2c
+    name: crossplane-vault-provider-config
+    type: application
+    urls:
+    - packaged_charts/crossplane-vault-provider-config-1.0.0.tgz
+    version: 1.0.0
   gitops-bootstrap:
   - apiVersion: v2
     appVersion: v1
-    created: "2025-06-26T22:43:28.127924436+02:00"
+    created: "2025-06-27T15:31:37.595869846+02:00"
     description: A Helm chart to bootstrap APC GitOps using ACM policies
     digest: f60e739848b1fde0dd5e752566d8596dae6d62662c3181ac7540c761a2e633cd
     name: gitops-bootstrap
@@ -88,7 +132,7 @@ entries:
     version: 1.0.1
   - apiVersion: v2
     appVersion: v1
-    created: "2025-06-26T22:43:28.12714904+02:00"
+    created: "2025-06-27T15:31:37.595669827+02:00"
     description: A Helm chart to bootstrap APC GitOps using ACM policies
     digest: 009129f44488c00ef3f7236abe053a51d586836a05a846e2855cf6f6743fc6ac
     name: gitops-bootstrap
@@ -98,7 +142,7 @@ entries:
     version: 1.0.0
   operators-installer:
   - apiVersion: v2
-    created: "2025-06-26T22:43:28.130617606+02:00"
+    created: "2025-06-27T15:31:37.596307045+02:00"
     description: Installs a given list of operators either using Automatic or Manual
       InstallPlans. If Manual then version of operator can be controlled declarativly.
     digest: 1e3a7fa333b0aed687ab404db2fe3e132e8da143f7c2b39733baf6a20db80b22
@@ -111,9 +155,24 @@ entries:
     urls:
     - packaged_charts/operators-installer-3.2.4.tgz
     version: 3.2.4
+  quay-operator:
+  - apiVersion: v2
+    appVersion: v0.11.0
+    created: "2025-06-27T15:31:37.596575975+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/SPEXAPC-3919/
+      version: 1.0.0
+    description: A Helm chart to install Quay Operator using ACM operator policy
+    digest: cd2226413c5d9c484bcd27590cc284a631d40d07969705a47f30e12705debe3f
+    name: quay-operator
+    type: application
+    urls:
+    - packaged_charts/quay-operator-1.0.0.tgz
+    version: 1.0.0
   remove-kubeadmin:
   - apiVersion: v2
-    created: "2025-06-26T22:43:28.131370591+02:00"
+    created: "2025-06-27T15:31:37.596810708+02:00"
     dependencies:
     - name: acm-configurationpolicy
       repository: https://raw.githubusercontent.com/gr8it/charts-openshift/main/
@@ -126,4 +185,4 @@ entries:
     urls:
     - packaged_charts/remove-kubeadmin-1.0.0.tgz
     version: 1.0.0
-generated: "2025-06-26T22:43:28.120141106+02:00"
+generated: "2025-06-27T15:31:37.591668554+02:00"
