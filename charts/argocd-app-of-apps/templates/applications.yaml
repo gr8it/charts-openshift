@@ -1,0 +1,137 @@
+{{- range $applicationName,$application := .Values.applications }}
+
+{{- $defaultEnabled := ((($.Values.default).application).enabled) | default false }}
+{{- if (hasKey $application "enabled" | ternary $application.enabled $defaultEnabled) }}
+{{- if not (has $applicationName $.Values.skippedApplications) }}
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ $applicationName }}
+  namespace: {{ $.Release.Namespace }}
+
+  {{- $applicationLabels := ($application.labels) | default dict }}
+  {{- $defaultLabels := ((($.Values.default).application).labels) | default dict }}
+  {{- $labels := merge $applicationLabels $defaultLabels }}
+  {{- if $labels }}
+  labels:
+    {{- with $labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
+
+  {{- $applicationAnnotations := ($application.annotations) | default dict }}
+  {{- $defaultAnnotations := ((($.Values.default).application).annotations) | default dict }}
+  {{- $annotations := merge $applicationAnnotations $defaultAnnotations }}
+  {{- if $annotations }}
+  annotations:
+    {{- with $annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
+spec:
+  destination:
+
+    {{- $applicationNamespace := (($application.destination).namespace) }}
+    {{- $defaultNamespace := (((($.Values.default).application).destination).namespace) | default $.Release.Namespace }}
+    namespace: {{ coalesce $applicationNamespace $defaultNamespace }}
+
+    {{- $applicationDestinationName := (($application.destination).name) }}
+    {{- $defaultDestinationName := (((($.Values.default).application).destination).name) }}
+    {{- $destinationName := coalesce $applicationDestinationName $defaultDestinationName }}
+
+    {{- $applicationDestinationServer := (($application.destination).server) }}
+    {{- $defaultDestinationServer := (((($.Values.default).application).destination).server) }}
+    {{- $destinationServer := coalesce $applicationDestinationServer $defaultDestinationServer }}
+    
+    {{- if $destinationName }}
+    name: {{ $destinationName }}
+    {{- else if $destinationServer }}
+    server: {{ $destinationServer }}
+    {{- else}}
+      {{- false | required (printf "No destination.server or destination.name specified for %s" $applicationName ) }}
+    {{- end}}
+
+  {{- $applicationProject := ($application.project) }}
+  {{- $defaultProject := ((($.Values.default).application).project) }}
+  {{- $project := coalesce $applicationProject $defaultProject | required (printf "No project specified for %s" $applicationName ) }}
+  project: {{ $project }}
+
+  {{- $defaultAutoSyncEnabled := ((($.Values.default).application).enableAutoSync) | default false }}
+  {{- $autoSyncEnabled := (hasKey $application "enableAutoSync" | ternary $application.enableAutoSync $defaultAutoSyncEnabled) }}
+
+  {{- $defaultAutoPruneEnabled := ((($.Values.default).application).autoSyncPrune) | default false }}
+  {{- $autoPruneEnabled := (hasKey $application "autoSyncPrune" | ternary $application.autoSyncPrune $defaultAutoPruneEnabled) }}
+
+  {{- $applicationSyncPolicyRetry := ($application.syncPolicyRetry) | default dict }}
+  {{- $defaultSyncPolicyRetry := ((($.Values.default).application).syncPolicyRetry) | default dict }}
+  {{- $syncPolicyRetry := merge $applicationSyncPolicyRetry $defaultSyncPolicyRetry }}
+
+  {{- if or $autoSyncEnabled $autoPruneEnabled ($application.managedNamespaceMetadata) $syncPolicyRetry (hasKey $application "syncOptions") }}
+  syncPolicy:
+    
+    {{- if or $autoSyncEnabled $autoPruneEnabled }}
+    automated:
+
+      {{- if $autoSyncEnabled }}
+      selfHeal: true
+      {{- end }}
+
+      {{- if $autoPruneEnabled }}
+      prune: true
+      {{- end }}
+    {{- end }}
+
+    {{- if ($application.managedNamespaceMetadata) }}
+    managedNamespaceMetadata:
+      {{- $application.managedNamespaceMetadata | toYaml | nindent 6 }}
+    {{- end }}
+
+    {{- with $syncPolicyRetry }}
+    retry:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+
+    {{- if hasKey $application "syncOptions" }}
+    syncOptions:
+      {{- with $application.syncOptions }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+  source:
+    {{- $applicationPath := (($application.source).path) }}
+    {{- $defaultPath := (((($.Values.default).application).source).path) }}
+    {{- $path := coalesce $applicationPath $defaultPath | required (printf "No path specified for %s" $applicationName ) }}
+    {{- /* add application name, so it can be referred to in the path template */}}
+    path: {{ tpl $path (merge . (dict "name" $applicationName ))}}
+
+    {{- $applicationRepoURL := (($application.source).repoURL) }}
+    {{- $defaultRepoURL := (((($.Values.default).application).source).repoURL) }}
+    {{- $repoURL := coalesce $applicationRepoURL $defaultRepoURL | required (printf "No repoURL specified for %s" $applicationName ) }}
+    repoURL: {{ $repoURL }}
+    
+    {{- $applicationTargetRevision := (($application.source).targetRevision) }}
+    {{- $defaultTargetRevision := (((($.Values.default).application).source).targetRevision) | default "HEAD" }}
+    {{- $targetRevision := coalesce $applicationTargetRevision $defaultTargetRevision }}
+    targetRevision: {{ $targetRevision }}
+    directory:
+      recurse: true
+
+    {{- $applicationExtraSourceFields := (($application.source).extraSourceFields) | default dict }}
+    {{- $defaultExtraSourceFields := (((($.Values.default).application).source).extraSourceFields) | default dict }}
+    {{- $extraSourceFields := merge $applicationExtraSourceFields $defaultExtraSourceFields }}
+    {{- with $extraSourceFields }}
+    {{ toYaml . | nindent 4 }}
+    {{- end }}
+
+  {{- if $application.extraFields }}
+  {{ tpl $application.extraFields $ | indent 2 }}
+  {{- else if $.Values.default.application.extraFields }}
+  {{ tpl $.Values.default.application.extraFields $ | indent 2 }}
+  {{- end }}
+
+{{- end }}
+{{- end }}
+{{- end }}

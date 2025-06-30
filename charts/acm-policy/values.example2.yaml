@@ -1,0 +1,98 @@
+disabled: false
+policyTemplates:
+# argocd operator
+- remediationAction: inform
+  severity: low
+  pruneObjectBehavior: DeleteIfCreated
+  objectTemplates:
+  - objectDefinition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: openshift-gitops-operator
+        labels:
+          openshift.io/cluster-monitoring: "true"
+  - objectDefinition:
+      apiVersion: operators.coreos.com/v1
+      kind: OperatorGroup
+      metadata:
+        name: openshift-gitops-operator
+        namespace: openshift-gitops-operator
+      spec:
+        upgradeStrategy: Default
+  - objectDefinition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: Subscription
+      metadata:
+        name: openshift-gitops-operator
+        namespace: openshift-gitops-operator
+        labels:
+          operators.coreos.com/openshift-gitops-operator.openshift-gitops-operator: ''
+      spec:
+        channel: gitops-1.16
+        name: openshift-gitops-operator
+        source: redhat-operators
+        sourceNamespace: openshift-marketplace
+        installPlanApproval: Automatic
+
+# argocd instance
+# - remediationAction: inform
+#   severity: low
+#   pruneObjectBehavior: DeleteIfCreated
+#   objectTemplates:
+#     - objectDefinition:
+
+# github credentials
+- remediationAction: inform
+  severity: low
+  pruneObjectBehavior: DeleteIfCreated
+  objectTemplates:
+    - objectDefinition:
+        apiVersion: v1
+        data:  '{{ "{{hub copySecretData \"apc-bootstrap\" \"gr8it-conf-socpoist\" hub}}" }}'
+        kind: Secret
+        metadata:
+          name: main-secret
+          namespace: openshift-gitops
+          labels:
+            argocd.argoproj.io/secret-type: repo-creds
+        type: Opaque
+
+# argocd repositories
+- remediationAction: inform
+  severity: low
+  pruneObjectBehavior: DeleteIfCreated
+  objectTemplates:
+    - objectDefinition:
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          labels:
+            argocd.argoproj.io/secret-type: repository
+          name: default-gr8it-conf-socpoist
+          namespace: openshift-gitops
+        type: Opaque
+        stringData:
+          name: default-gr8it-conf-socpoist
+          type: git
+          url: ~
+          project: default
+    - objectDefinition:
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          labels:
+            argocd.argoproj.io/secret-type: repository
+          name: cluster-config-gr8it-conf-socpoist
+          namespace: openshift-gitops
+        type: Opaque
+        stringData:
+          name: cluster-config-gr8it-conf-socpoist
+          type: git
+          url: ~
+          project: cluster-config
+
+## if not specified, clusterSet global is used
+# placement:
+#   clusterSets:
+#     - global

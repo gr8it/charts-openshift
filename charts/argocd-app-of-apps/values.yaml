@@ -1,0 +1,64 @@
+default:
+  project: {}
+
+  application:
+    enabled: false
+    project: null
+    labels: {}
+    annotations: {}
+    destination:
+      namespace: null
+      server: null
+    source:
+      path: null
+      repoURL: null
+      targetRevision: HEAD
+    enableAutoSync: false
+    autoSyncPrune: false
+    helmfile: {}
+
+applications: {}
+
+  # - argocd-app-of-apps:
+  #     enabled: true
+  #     labels:
+  #       foo: bar
+  #       label: false
+  #     render:
+  #       chart: ../charts/argocd-app-of-apps
+  #       chartVersion: ""
+  #     source:
+  #       path: gitops/rendered/{{ .Environment.Name }}/argocd-app-of-apps
+  #     destination:
+  ##       namespace: apc-gitops
+  #       namespace: openshift-gitops
+  #     enableAutoSync: true
+  #     autoSyncPrune: true
+
+projects: {}
+  # cluster-config:
+  #   description: Project for overall cluster configuration
+  #   namespace: openshift-gitops
+  #   sourceRepos:
+  #   - https://github.com/gr8it/gitops
+  #   destinations: |
+  #     - namespace: '*'
+  #       server: https://kubernetes.default.svc
+  #   extraFields: |
+  #     clusterResourceWhitelist:
+  #     - group: '*'
+  #       kind: '*'
+  #   roles:
+  #     - description: Tenat Admins
+  #       name: user
+  #       groups:
+  #         - ocp_admins_hub # TODO doplnit templating  .Values.metaEnvironment
+  #       policies:
+  #         - p, proj:cluster-config:user, applications, get, tenants/*, allow
+  #         - p, proj:cluster-config:user, applications, sync, tenants/*, allow
+
+# which applications to skip = not generate application CR for
+# this option is overriden during gitops-bootstrap to generate the argocd-app-of-apps application
+skippedApplications:
+  # managed by ACM policy
+  - argocd-app-of-apps

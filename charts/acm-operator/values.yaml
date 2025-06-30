@@ -1,0 +1,23 @@
+operators-installer:
+  # approveManualInstallPlanViaHook: true
+  # installPlanApproverAndVerifyJobsImage: registry.redhat.io/openshift4/ose-cli:v4.15@sha256:bc35a9fc663baf0d6493cc57e89e77a240a36c43cf38fb78d8e61d3b87cf5cc5
+  # installPlanApproverAndVerifyJobsImagePullSecret:
+  # installRequiredPythonLibraries: true
+  # pythonIndexURL: https://pypi.org/simple/
+  # pythonExtraIndexURL: https://pypi.org/simple/
+
+  operators:
+  - channel: release-2.12
+    name: advanced-cluster-management
+    source: redhat-operators
+    csv: advanced-cluster-management.v2.12.1
+    namespace: open-cluster-management
+    installPlanApproval: Manual
+
+  operatorGroups:
+  - name: open-cluster-management
+    createNamespace: true
+    targetOwnNamespace: true
+    # otherTargetNamespaces:
+
+  # commonLabels:

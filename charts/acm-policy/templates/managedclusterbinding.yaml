@@ -1,0 +1,22 @@
+{{- $clusterSetsExtended := include "acm-policy.clusterSets" . | fromYamlArray }}
+{{- if not $clusterSetsExtended }}
+  {{- if eq .Values.placement.clusterName "local-cluster" }}
+    {{- $clusterSetsExtended = list "default" }}
+  {{- else }}
+    {{- $clusterSetsExtended = list "global" }}
+  {{- end }}
+{{- end }}
+{{- if and .Values.managedClusterSetBinding.create .Values.placement.create $clusterSetsExtended }}
+{{- range $clusterSet := $clusterSetsExtended }}
+---
+apiVersion: cluster.open-cluster-management.io/v1beta2
+kind: ManagedClusterSetBinding
+metadata:
+  name: {{ $clusterSet }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "acm-policy.labels" $ | nindent 4 }}
+spec:
+  clusterSet: {{ $clusterSet }}
+{{- end }}
+{{- end }}
