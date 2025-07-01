@@ -1,5 +1,7 @@
 # Openshift helm charts repository
 
+For best practices / contributing rules see [CONTRIBUTING.md](.github/CONTRIBUTING.md)
+
 ## Requirements
 
 - Helm
@@ -77,11 +79,6 @@ helm template ad https://github.com/gr8it/charts/raw/main/active-directory-auth-
 or replace main branch, with feature branch of your choice
 
 > Note: to get the URL, navigate to this repo on github.com, select particular chart .tgz stored in packaged_charts/ directory, right click raw icon and select Copy link address (or similar)
-
-## Operational guides for charting
-
-- [How to update, create and publish charts](/docs/update_create_publish_charts.md)
-- [How to test helm charts](/docs/test_charts.md)
 
 ## TODO
 
