@@ -22,7 +22,7 @@ Use simple component names with no prefix, e.g. remove-kubeadmin, crossplane, ky
 
 ## Best practices
 
-1) Namespace should be specified in all manifests because of rendered manifest pattern usage, where it is preferred, that the rendered manifests contain namespace information
+1) Namespace should be specified in all manifests because of rendered manifest pattern usage - <https://github.com/helm/helm/issues/3553> 
 
    - prefer usage of Release namespace
    - templates/*.yaml
