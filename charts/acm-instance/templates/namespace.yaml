@@ -1,4 +1,4 @@
-{{/* because this chart is used in bootstrap, we need to create namespace as well */}}
+{{- if .Values.bootstrap }}
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -8,3 +8,4 @@ metadata:
     {{- if hasPrefix "apc-" .Release.Namespace }}
     apc.namespace.type: platform
     {{- end }}
+{{- end }}

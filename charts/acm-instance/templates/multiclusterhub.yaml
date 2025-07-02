@@ -8,5 +8,5 @@ metadata:
 spec:
   availabilityConfig: {{ .Values.availabilityConfig }}
   {{- if (.Values.customCACertificates | default .Values.global.apc.caCertificates) }}
-  customCAConfigmap: ca-certificates
+  customCAConfigmap: {{ include "acm-instance.fullname" . }}-ca-certificates
   {{- end }}

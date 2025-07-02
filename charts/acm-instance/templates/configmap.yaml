@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: ca-certificates
+  name: {{ include "acm-instance.fullname" . }}-ca-certificates
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "acm-instance.labels" . | nindent 4 }}
