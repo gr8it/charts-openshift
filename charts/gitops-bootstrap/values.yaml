@@ -2,19 +2,24 @@
 nameOverride: ""
 fullnameOverride: ""
 
+# if bootstrap is enabled, github repo credentials secret is created, otherwise skipped
+bootstrap: false
+
+instanceName: apc-argocd
+namespace: apc-gitops # where to install custom ArgoCD instance
+
 # uses following global variables
 global: # to be overridden by helmfile global meta environment
   apc:
     repoURL: ~
     repoTargetRevision: ~
     cluster:
-      name: hub # to be overridden by helmfile global meta environment / cluster.name below
+      name: hub
+      appsDomain: ~
 
 cluster:
   name: ~ # name of the hub cluster, to be used in argocd-app-of-apps rendered path
-
-# if bootstrap is enabled, github repo credentials secret is created, otherwise skipped
-bootstrap: false
+  appsDomain: ~ # domain to be added to the route
 
 repo:
   url: ~ # URL of the git repository to bootstrap from App of Apps
