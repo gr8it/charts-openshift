@@ -116,7 +116,9 @@ spec:
                   rbac:
                     defaultPolicy: role:none
                     policy: |-
-                      g, system:cluster-admins, role:admin
+                      {{- range .Values.adminGroups }}
+                      g, {{ . }}, role:admin
+                      {{- end }}
 
     - extraDependencies:
         - name: {{ include "gitops-bootstrap.fullname" . }}-operator
@@ -279,8 +281,6 @@ spec:
                   href: https://{{ .Values.instanceName }}-server-{{ .Values.namespace }}.{{"{{"}}hub "{{ $clusterAppsDomain }}" | replace "{{ $clusterName }}" (.ManagedClusterName | replace "local-cluster" "{{ $clusterName }}") hub{{"}}"}}
                   location: ApplicationMenu
                   text: Cluster Argo CD
-                  # .{{"{{"}}hub "{{ $clusterAppsDomain }}" | replace "{{ $clusterName }}" (.ManagedClusterName | replace "local-cluster" "{{ $clusterName }}") hub{{"}}"}}
-                  # .{{"{{"}}hub fromClusterClaim "version.openshift.io" | replace "{{ $clusterName }}" (.ManagedClusterName | replace "local-cluster" "{{ $clusterName }}") hub{{"}}"}}
 
 ---
 apiVersion: cluster.open-cluster-management.io/v1beta1
