@@ -99,7 +99,7 @@ appVersion: "v0.11.0"
 dependencies:
   - name: acm-operatorpolicy
     version: "1.0.0"
-    repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/SPEXAPC-3919/
+    repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
 ```
 
 - values.yaml
