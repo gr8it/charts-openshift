@@ -14,7 +14,7 @@ spec:
         description: "CNPG operator pod has been down for more than 5 minutes"
         summary: "CNPG operator is not running"
       expr: |
-        absent(up{job="{{ .Release.Namespace }}/cnpg-controller-manager"}) == 1
+        absent(up{job="{{ .Release.Namespace }}/{{ include "cnpg-operator.fullname" . }}"}) == 1
       for: 5m
       labels:
         severity: warning
@@ -25,7 +25,7 @@ spec:
         description: "CNPG operator has reconciliation errors"
         summary: "CNPG reconciliation errors detected"
       expr: |
-        increase(controller_runtime_reconcile_errors_total{job="{{ .Release.Namespace }}/cnpg-controller-manager"}[15m]) > 0
+        increase(controller_runtime_reconcile_errors_total{job="{{ .Release.Namespace }}/{{ include "cnpg-operator.fullname" . }}"}[15m]) > 0
       for: 5m
       labels:
         severity: warning
@@ -37,7 +37,7 @@ spec:
         description: "CNPG operator is experiencing webhook errors for {{"{{"}} $labels.webhook {{"}}"}}"
         summary: "CNPG operator webhook errors detected"
       expr: |
-        increase(controller_runtime_webhook_requests_total{job="{{ .Release.Namespace }}/cnpg-controller-manager", code="500"}[15m]) > 0
+        increase(controller_runtime_webhook_requests_total{job="{{ .Release.Namespace }}/{{ include "cnpg-operator.fullname" . }}", code="500"}[15m]) > 0
       for: 5m
       labels:
         severity: warning
