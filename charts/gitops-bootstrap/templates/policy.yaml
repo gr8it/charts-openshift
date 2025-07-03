@@ -44,6 +44,30 @@ spec:
         apiVersion: policy.open-cluster-management.io/v1
         kind: ConfigurationPolicy
         metadata:
+          name: {{ include "gitops-bootstrap.fullname" . }}-operator-namespace-monitoring-fix
+        spec:
+          remediationAction: enforce
+          severity: high
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: v1
+                kind: Namespace
+                metadata:
+                  name: openshift-gitops-operator
+                  labels:
+                    openshift.io/cluster-monitoring: "true"
+
+    - extraDependencies:
+        - name: {{ include "gitops-bootstrap.fullname" . }}-operator
+          namespace: ""
+          apiVersion: policy.open-cluster-management.io/v1beta1
+          kind: OperatorPolicy
+          compliance: Compliant
+      objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
           name: {{ include "gitops-bootstrap.fullname" . }}-namespace
         spec:
           remediationAction: enforce
@@ -98,10 +122,10 @@ spec:
                     resources:
                       limits:
                         cpu: '2'
-                        memory: 2Gi
+                        memory: 4Gi
                       requests:
                         cpu: 250m
-                        memory: 1Gi
+                        memory: 2Gi
                   sso:
                     dex:
                       openShiftOAuth: true
