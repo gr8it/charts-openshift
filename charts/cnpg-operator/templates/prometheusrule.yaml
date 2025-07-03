@@ -1,0 +1,45 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "cnpg-operator.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cnpg-operator.labels" . | nindent 4 }}
+spec:
+  groups:
+  - name: cnpg-operator.rules
+    rules:
+    - alert: CNPGOperatorDown
+      annotations:
+        description: "CNPG operator pod has been down for more than 5 minutes"
+        summary: "CNPG operator is not running"
+      expr: |
+        absent(up{job="{{ .Release.Namespace }}/cnpg-controller-manager"}) == 1
+      for: 5m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+    - alert: CNPGOperatorReconciliationErrors
+      annotations:
+        description: "CNPG operator has reconciliation errors"
+        summary: "CNPG reconciliation errors detected"
+      expr: |
+        increase(controller_runtime_reconcile_errors_total{job="{{ .Release.Namespace }}/cnpg-controller-manager"}[15m]) > 0
+      for: 5m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+
+    - alert: CNPGOperatorWebhookErrors
+      annotations:
+        description: "CNPG operator is experiencing webhook errors for {{"{{"}} $labels.webhook {{"}}"}}"
+        summary: "CNPG operator webhook errors detected"
+      expr: |
+        increase(controller_runtime_webhook_requests_total{job="{{ .Release.Namespace }}/cnpg-controller-manager", code="500"}[15m]) > 0
+      for: 5m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
