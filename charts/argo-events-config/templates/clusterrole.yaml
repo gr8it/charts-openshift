@@ -1,0 +1,62 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "argo-events-config.fullname" . }}-event-source
+  labels:
+  {{- include "argo-events-config.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - user.openshift.io
+  resources:
+  - groups
+  verbs:
+  - list
+  - get
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "argo-events-config.fullname" . }}-sensor
+  labels:
+  {{- include "argo-events-config.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs:
+  - create
+  - update
+  - get
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "argo-events-config.fullname" . }}-sensor
+  labels:
+  {{- include "argo-events-config.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: '{{ include "argo-events-config.fullname" . }}-sensor'
+subjects:
+- kind: ServiceAccount
+  name: '{{ include "argo-events-config.fullname" . }}-sensor'
+  namespace: '{{ .Release.Namespace }}'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "argo-events-config.fullname" . }}-event-source
+  labels:
+  {{- include "argo-events-config.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: '{{ include "argo-events-config.fullname" . }}-event-source'
+subjects:
+- kind: ServiceAccount
+  name: '{{ include "argo-events-config.fullname" . }}-event-source'
+  namespace: '{{ .Release.Namespace }}'
