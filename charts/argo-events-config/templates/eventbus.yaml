@@ -1,0 +1,15 @@
+apiVersion: argoproj.io/v1alpha1
+kind: EventBus
+metadata:
+  name: {{ include "argo-events-config.fullname" . }}-project-setup
+  namespace: {{ .Release.Namespace }}
+  labels:
+  {{- include "argo-events-config.labels" . | nindent 4 }}
+spec:
+  nats:
+    native:
+      auth: token
+      persistence:
+        accessMode: ReadWriteOnce
+        volumeSize: 1Gi
+      replicas: 3
