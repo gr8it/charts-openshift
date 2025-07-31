@@ -10,7 +10,6 @@ spec:
   - eventName: addgroup
     eventSourceName: addgroup
     filters:
-      exprLogicalOperator: ""
       exprs:
       - expr: a =~ "^APC-{{ .Values.environmentShort | default .Values.global.apc.environmentShort | default "" | upper }}-.*-PJA$"
         fields:
