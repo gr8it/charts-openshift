@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ (index .Values "community-operator").operator.name }}-rules
+  namespace: {{ .Release.Namespace }}
+spec:
+  groups:
+    - name: {{ (index .Values "community-operator").operator.name }}.rules
+      rules:
+        - alert: MongodbKubernetesOperatorPodDown
+          expr: absent(kube_pod_status_phase{namespace="{{ .Release.Namespace }}",phase="Running",pod=~"{{ (index .Values "community-operator").operator.deploymentName }}-.*"} == 1) or sum(kube_pod_status_phase{namespace="{{ .Release.Namespace }}",phase="Running",pod=~"{{ (index .Values "community-operator").operator.deploymentName }}-.*"}) == 0
+          for: 5m
+          labels:
+            severity: warning
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: "Mongodb Kubernetes Operator pod is down or missing"
+            description: "The Mongodb Kubernetes Operator pod in namespace {{`{{ $labels.namespace }}`}} is down for more than 5 minutes."
