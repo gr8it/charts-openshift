@@ -12,13 +12,13 @@ spec:
     filters:
       exprLogicalOperator: ""
       exprs:
-      - expr: a =~ "^APC-{{ .Values.environmentShort | default .Values.global.apc.environmentShort | upper }}-.*-PJA$"
+      - expr: a =~ "^APC-{{ .Values.environmentShort | default .Values.global.apc.environmentShort | default "" | upper }}-.*-PJA$"
         fields:
         - name: a
           path: groupname
     name: addgroup
     transform:
-      jq: '{ groupname: (.body.metadata.name), name: (.body.metadata.name | sub("^APC-{{ .Values.environmentShort | default .Values.global.apc.environmentShort | upper }}-";
+      jq: '{ groupname: (.body.metadata.name), name: (.body.metadata.name | sub("^APC-{{ .Values.environmentShort | default .Values.global.apc.environmentShort | default "" | upper }}-";
         "") | sub("-PJA$"; "") | ascii_downcase) }'
   eventBusName: project-setup
   template:

@@ -12,7 +12,7 @@ spec:
       eventTypes:
       - ADD
       filter:
-        prefix: APC-{{ .Values.environmentShort | default .Values.global.apc.environmentShort | upper }}-
+        prefix: APC-{{ .Values.environmentShort | default .Values.global.apc.environmentShort | default "" | upper }}-
       group: user.openshift.io
       namespace: ""
       resource: groups
