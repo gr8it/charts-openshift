@@ -1,10 +1,10 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Sensor
 metadata:
-  name: {{ include "argo-events-config.fullname" . }}-createnamespace
+  name: {{ include "argo-events-project-setup.fullname" . }}-createnamespace
   namespace: {{ .Release.Namespace }}
   labels:
-  {{- include "argo-events-config.labels" . | nindent 4 }}
+  {{- include "argo-events-project-setup.labels" . | nindent 4 }}
 spec:
   dependencies:
   - eventName: addgroup

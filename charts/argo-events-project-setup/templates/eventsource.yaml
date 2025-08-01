@@ -1,10 +1,10 @@
 apiVersion: argoproj.io/v1alpha1
 kind: EventSource
 metadata:
-  name: {{ include "argo-events-config.fullname" . }}-addgroup
+  name: {{ include "argo-events-project-setup.fullname" . }}-addgroup
   namespace: {{ .Release.Namespace }}
   labels:
-  {{- include "argo-events-config.labels" . | nindent 4 }}
+  {{- include "argo-events-project-setup.labels" . | nindent 4 }}
 spec:
   eventBusName: project-setup
   resource:

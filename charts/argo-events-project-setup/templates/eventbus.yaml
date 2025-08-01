@@ -1,10 +1,10 @@
 apiVersion: argoproj.io/v1alpha1
 kind: EventBus
 metadata:
-  name: {{ include "argo-events-config.fullname" . }}-project-setup
+  name: {{ include "argo-events-project-setup.fullname" . }}-project-setup
   namespace: {{ .Release.Namespace }}
   labels:
-  {{- include "argo-events-config.labels" . | nindent 4 }}
+  {{- include "argo-events-project-setup.labels" . | nindent 4 }}
 spec:
   nats:
     native:
