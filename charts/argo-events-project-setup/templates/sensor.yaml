@@ -1,0 +1,54 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: {{ include "argo-events-project-setup.fullname" . }}-createnamespace
+  namespace: {{ .Release.Namespace }}
+  labels:
+  {{- include "argo-events-project-setup.labels" . | nindent 4 }}
+spec:
+  dependencies:
+  - eventName: addgroup
+    eventSourceName: addgroup
+    filters:
+      exprs:
+      - expr: a =~ "^APC-{{ .Values.environmentShort | default .Values.global.apc.environmentShort | default "" | upper }}-.*-PJA$"
+        fields:
+        - name: a
+          path: groupname
+    name: addgroup
+    transform:
+      jq: '{ groupname: (.body.metadata.name), name: (.body.metadata.name | sub("^APC-{{ .Values.environmentShort | default .Values.global.apc.environmentShort | default "" | upper }}-";
+        "") | sub("-PJA$"; "") | ascii_downcase) }'
+  eventBusName: {{ include "argo-events-project-setup.fullname" . }}
+  template:
+    container:
+      env:
+      - name: LOG_LEVEL
+        value: debug
+    serviceAccountName: {{ include "argo-events-project-setup.fullname" . }}-sensor
+  triggers:
+  - template:
+      k8s:
+        operation: create
+        parameters:
+        - dest: metadata.name
+          src:
+            dataKey: name
+            dependencyName: addgroup
+        source:
+          resource:
+            apiVersion: v1
+            kind: Namespace
+            metadata:
+              labels:
+                apc.namespace.type: application
+              name: dummy
+      name: createnamespace
+      policy:
+        k8s:
+          backoff:
+            duration: 10s
+            factor: 2
+            jitter: 0.1
+            steps: 5
+          errorOnBackoffTimeout: true

@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: EventSource
+metadata:
+  name: {{ include "argo-events-project-setup.fullname" . }}-addgroup
+  namespace: {{ .Release.Namespace }}
+  labels:
+  {{- include "argo-events-project-setup.labels" . | nindent 4 }}
+spec:
+  eventBusName: {{ include "argo-events-project-setup.fullname" . }}
+  resource:
+    addgroup:
+      eventTypes:
+      - ADD
+      filter:
+        prefix: APC-{{ .Values.environmentShort | default .Values.global.apc.environmentShort | default "" | upper }}-
+      group: user.openshift.io
+      namespace: ""
+      resource: groups
+      version: v1
+  template:
+    container:
+      env:
+      - name: LOG_LEVEL
+        value: info
+    serviceAccountName:  {{ include "argo-events-project-setup.fullname" . }}-event-source
