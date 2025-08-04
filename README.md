@@ -23,14 +23,28 @@ For best practices / contributing rules see [CONTRIBUTING.md](.github/CONTRIBUTI
 - components
   - [Remove kubeadmin](charts/remove-kubeadmin/)
 
-## Build a new helm chart package
+## Build a new/updated helm chart package
 
+> [!TIP]  
 > Don't forget to update helm chart version in Chart.yaml! Otherwise the helm Chart won't be build
 
 Run:
 
 ```bash
 make -C scripts/ build
+```
+
+### Cleanup of old packaged charts
+
+During the build process, previously packaged Helm charts are retained in the [packaged-charts](./packaged_charts/) folder and remain referenced in the [index](index.yaml) file. This behavior is intentional, as it ensures that older chart versions remain accessible for compatibility and historical purposes.
+
+To remove specific older chart versions or decommission charts entirely, delete the necessary files in [packaged-charts](./packaged_charts/) and [charts](./charts/) folders respectively and rebuild the index.
+
+> [!IMPORTANT]  
+> This will rebuild the complete helm repository index removing any unlinked references and fixing any potential issues with the file. This also has an unintended consequence of updating the `created` timestamp of all the remaining charts in the repository.
+
+```bash
+make -C scripts/ reindex
 ```
 
 ### Publish to Github (raw)
@@ -66,7 +80,8 @@ helm search repo gr8it -l
 
 or replace main branch, with feature branch of your choice
 
-> Note: to get the URL, navigate to this repo on github.com, select README.md file, right click raw icon and select Copy link address (or similar) and remove the README.md part.
+> [!NOTE]  
+> to get the URL, navigate to this repo on github.com, select README.md file, right click raw icon and select Copy link address (or similar) and remove the README.md part.
 
 ### Helm chart from remote location
 
@@ -78,7 +93,8 @@ helm template ad https://github.com/gr8it/charts/raw/main/active-directory-auth-
 
 or replace main branch, with feature branch of your choice
 
-> Note: to get the URL, navigate to this repo on github.com, select particular chart .tgz stored in packaged_charts/ directory, right click raw icon and select Copy link address (or similar)
+> [!NOTE]  
+> to get the URL, navigate to this repo on github.com, select particular chart .tgz stored in packaged_charts/ directory, right click raw icon and select Copy link address (or similar)
 
 ## TODO
 
