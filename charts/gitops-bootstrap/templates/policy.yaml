@@ -154,6 +154,37 @@ spec:
         apiVersion: policy.open-cluster-management.io/v1
         kind: ConfigurationPolicy
         metadata:
+          name: {{ include "gitops-bootstrap.fullname" . }}-proxy-netpol
+        spec:
+          remediationAction: enforce
+          severity: low
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: networking.k8s.io/v1
+                kind: NetworkPolicy
+                metadata:
+                  name: allow-proxy
+                  namespace: {{ .Values.namespace }}
+                spec:
+                  egress:
+                  - to:
+                    - ipBlock:
+                        cidr: 10.1.1.7/32
+                  podSelector: {}
+                  policyTypes:
+                  - Egress
+
+    - extraDependencies:
+        - name: {{ include "gitops-bootstrap.fullname" . }}-operator
+          namespace: ""
+          apiVersion: policy.open-cluster-management.io/v1beta1
+          kind: OperatorPolicy
+          compliance: Compliant
+      objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
           name: {{ include "gitops-bootstrap.fullname" . }}-rbac
         spec:
           remediationAction: enforce
