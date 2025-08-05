@@ -60,8 +60,8 @@ make -C scripts/ publish
 Refers to the Git repo as a helm repository:
 
 ```bash
-helm repo add gr8it https://raw.githubusercontent.com/gr8it/charts-openshift/main/
-helm search repo gr8it -l
+helm repo add gr8it-openshift https://raw.githubusercontent.com/gr8it/charts-openshift/main/
+helm search repo gr8it-openshift -l
 ```
 
 or replace main branch, with feature branch of your choice
