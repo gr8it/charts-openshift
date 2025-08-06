@@ -1,5 +1,9 @@
 SHELL := /bin/bash
 
+# override yq binary path if necessary
+YQ := $(shell echo $${YQ:-yq})
+
+# setup path variables
 ifeq ($(strip $(CHARTFOLDER)),)
   CHARTFOLDER := $(CURDIR)
   CHARTFOLDERS := $(wildcard $(CHARTFOLDER)/../charts/*/)
@@ -17,6 +21,7 @@ debug:
 	@echo "$${REPO_USERNAME}"
 	@echo "$${REPO_TOKEN}"
 	@echo ${REPO_URL}
+	@echo "$(YQ)"
 
 lint:
 	@echo -e "\033[0;36m~> Starting helm lint checks on all chart folders ...\033[0m"
@@ -73,14 +78,14 @@ package:
 	@rm -rf $(TEMP_DIR)
 
 check-yq:
-	@if (command -v yq >/dev/null 2>&1); then \
-		version=$$(yq --version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "0"); \
+	@if (command -v $(YQ) >/dev/null 2>&1); then \
+		version=$$($(YQ) --version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "0"); \
 	else \
-		echo -e "\033[0;31myq not found; please install it.\033[0m"; \
+		echo -e "\033[0;31myq (mikefarah) not found; please install it.\033[0m"; \
 		exit 1; \
 	fi; \
 	if test "4" -ne "$${version%%.*}"; then \
-		echo -e "\033[0;31myq version 4 is required; found version $${version}.\033[0m"; \
+		echo -e "\033[0;31myq version 4 (mikefarah) is required; found version $${version}.\033[0m"; \
 		exit 1; \
 	fi
 
@@ -98,12 +103,12 @@ publish:
 
 clean: check-yq
 	@echo -e "\033[0;36m~> Cleanup of orphaned helm packages and index references ...\033[0m"
-	$(eval CHARTS_LIST := $(shell yq eval '(.entries | keys)[]' $(INDEX_FILE)))
   # Cleanup all references and artefacts for charts that are no logner available
 	@declare -a package_cleanup=(); \
-	for chart_name in $(CHARTS_LIST); do \
+	charts_list=$$($(YQ) eval '(.entries | keys)[]' $(INDEX_FILE)); \
+	for chart_name in $${charts_list}; do \
 		test -n "$$(ls -A $(CHARTS_DIR)/$${chart_name} 2>/dev/null)" && continue; \
-		tgz_urls=$$(yq eval "(.entries.$${chart_name}[].urls)[]" $(INDEX_FILE) | grep -e '\.tgz$$'); \
+		tgz_urls=$$($(YQ) eval "(.entries.$${chart_name}[].urls)[]" $(INDEX_FILE) | grep -e '\.tgz$$'); \
 		while IFS= read -r tgz_file; do \
 			if test -f "$(INDEX_ROOT)/$${tgz_file:-notfound}"; then \
 				package_cleanup+=("$$tgz_file"); \
@@ -115,40 +120,40 @@ clean: check-yq
 			echo -e "Removing orphaned file \033[0;31m$(INDEX_ROOT)/$${package_url}\033[0m and updating index."; \
 			git rm -f --quiet --ignore-unmatch "$(INDEX_ROOT)/$$package_url"; \
 			rm -f "$(INDEX_ROOT)/$$package_url"; \
-			yq eval "(.entries[].[] | select(.urls[] == \"$${package_url}\").urls) -= [\"$${package_url}\"]" -i $(INDEX_FILE); \
+			$(YQ) eval "(.entries[].[] | select(.urls[] == \"$${package_url}\").urls) -= [\"$${package_url}\"]" -i $(INDEX_FILE); \
 		done; \
 	fi
   # Remove all chart packages that have no reference in index
 	@for pkg_file in "$(OUTPUT_DIR)"/*.tgz; do \
 		pkg_relative=$$(echo "$$pkg_file" | sed "s|^$(INDEX_ROOT)/||"); \
-		if ! yq eval --exit-status ".entries.*[].urls | contains([\"$${pkg_relative:-notfound}\"])" $(INDEX_FILE) >/dev/null 2>&1; then \
+		if ! $(YQ) eval --exit-status ".entries.*[].urls | contains([\"$${pkg_relative:-notfound}\"])" $(INDEX_FILE) >/dev/null 2>&1; then \
 			echo -e "Removing orphaned file \033[0;31m$(INDEX_ROOT)/$${pkg_relative}\033[0m not found in index."; \
 			git rm -f --quiet --ignore-unmatch "$(INDEX_ROOT)/$$pkg_relative"; \
 			rm -f "$(INDEX_ROOT)/$$pkg_relative"; \
 		fi; \
 	done
   # Cleanup index and remove orphaned references to packaged charts
-	$(eval PKGURL_LIST := $(shell yq eval '.entries.*[].urls|.[]' $(INDEX_FILE)))
-	@for package_url in $(PKGURL_LIST); do \
+	@package_url_list=$$($(YQ) eval '.entries.*[].urls|.[]' $(INDEX_FILE)); \
+	for package_url in $${package_url_list}; do \
 		if test ! -f "$(INDEX_ROOT)/$${package_url}"; then \
 			echo -e "Removing orphaned url reference \033[0;31m$${package_url}\033[0m from index."; \
-			yq eval "(.entries[].[] | select(.urls[] == \"$${package_url}\").urls) -= [\"$${package_url}\"]" -i $(INDEX_FILE); \
+			$(YQ) eval "(.entries[].[] | select(.urls[] == \"$${package_url}\").urls) -= [\"$${package_url}\"]" -i $(INDEX_FILE); \
 		fi; \
 	done
   # Remove version references with empty urls from the index
-	@if yq --exit-status eval '.entries[].[] | select(.urls[] == null)' $(INDEX_FILE) >/dev/null 2>&1; then \
+	@if $(YQ) --exit-status eval '.entries[].[] | select(.urls[] == null)' $(INDEX_FILE) >/dev/null 2>&1; then \
 		echo "Removing all unlinked version references from index."; \
-		yq eval 'del(.entries[].[] | select(.urls[] == null))' -i $(INDEX_FILE) >/dev/null 2>&1; \
+		$(YQ) eval 'del(.entries[].[] | select(.urls[] == null))' -i $(INDEX_FILE) >/dev/null 2>&1; \
 	fi
   # Remove empty helm chart references with no versions from the index
-	@if yq --exit-status eval '.entries | to_entries[] | select(.value[] == null) | .key' $(INDEX_FILE) >/dev/null 2>&1; then \
+	@if $(YQ) --exit-status eval '.entries | to_entries[] | select(.value[] == null) | .key' $(INDEX_FILE) >/dev/null 2>&1; then \
 		echo "Removing all empty chart references from index."; \
-		yq eval 'del(.entries[] | select(length == 0))' -i $(INDEX_FILE); \
+		$(YQ) eval 'del(.entries[] | select(length == 0))' -i $(INDEX_FILE); \
 	fi
   # Update the 'generated' timestamp if index file has been modified in the last minute
 	@if test -n "$$(find $(INDEX_FILE) -mmin -1)"; then \
 		echo "Updating index timestamp."; \
-		yq eval ".generated |= \"$$(date -u +'%Y-%m-%dT%H:%M:%SZ')\"" -i $(INDEX_FILE); \
+		$(YQ) eval ".generated |= \"$$(date -u +'%Y-%m-%dT%H:%M:%SZ')\"" -i $(INDEX_FILE); \
 	fi
 
 build: gitpull lint package
