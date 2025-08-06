@@ -1,14 +1,17 @@
 SHELL := /bin/bash
 
 ifeq ($(strip $(CHARTFOLDER)),)
-	CHARTFOLDER := $(CURDIR)
-	CHARTFOLDERS := $(wildcard $(CHARTFOLDER)/../charts/*/)
+  CHARTFOLDER := $(CURDIR)
+  CHARTFOLDERS := $(wildcard $(CHARTFOLDER)/../charts/*/)
 else
-	CHARTFOLDERS := $(addprefix $(CURDIR)/../charts/, $(CHARTFOLDER))
+  CHARTFOLDERS := $(addprefix $(CURDIR)/../charts/, $(CHARTFOLDER))
 endif
 
-CHARTS_DIR := $(CURDIR)/../charts
-OUTPUT_DIR := $(CURDIR)/../packaged_charts
+ROOT_DIR   := $(shell realpath $(CURDIR)/..)
+CHARTS_DIR := $(shell realpath $(ROOT_DIR)/charts)
+OUTPUT_DIR := $(shell realpath $(ROOT_DIR)/packaged_charts)
+INDEX_FILE := $(shell realpath $(ROOT_DIR)/index.yaml)
+INDEX_ROOT := $(shell dirname $(INDEX_FILE))
 
 debug:
 	@echo "$${REPO_USERNAME}"
@@ -51,15 +54,15 @@ package:
 			echo -e "$${chart_name}-$${chart_version}: \033[0;32mdone - Chart package has been created\033[0m"; \
 			touch $(TEMP_DIR)/.index; \
 		else \
-			echo -e "\033[0;31mPackaging cahrt $${chart_name}-$${chart_version} has failed.\033[0m"; \
+			echo -e "\033[0;31mPackaging chart $${chart_name}-$${chart_version} has failed.\033[0m"; \
 			echo "$$out"; \
 			exit 1; \
 		fi \
 	done
-	@if test -f $(TEMP_DIR)/.index  &&  out=$$(helm repo index --merge $(CURDIR)/../index.yaml $(TEMP_DIR) 2>&1); then \
+	@if test -f $(TEMP_DIR)/.index  &&  out=$$(helm repo index --merge $(INDEX_FILE) $(TEMP_DIR) 2>&1); then \
 		echo -e "\033[0;36m~> Updating index file and moving new packaged charts to $$(realpath $(OUTPUT_DIR)) ...\033[0m"; \
 		mv -vf $(TEMP_DIR)/packaged_charts/*.tgz $(OUTPUT_DIR)/; \
-		mv -vf $(TEMP_DIR)/index.yaml $(CURDIR)/../index.yaml; \
+		mv -vf $(TEMP_DIR)/index.yaml $(INDEX_FILE); \
 	elif (test ! -f $(TEMP_DIR)/.index); then \
 		echo -e "\033[0;33mNo new helm packages found.\033[0m"; \
 	else \
@@ -69,11 +72,21 @@ package:
 	fi
 	@rm -rf $(TEMP_DIR)
 
-reindex:
+check-yq:
+	@if (command -v yq >/dev/null 2>&1); then \
+		version=$$(yq --version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "0"); \
+	else \
+		echo -e "\033[0;31myq not found; please install it.\033[0m"; \
+		exit 1; \
+	fi; \
+	if test "4" -ne "$${version%%.*}"; then \
+		echo -e "\033[0;31myq version 4 is required; found version $${version}.\033[0m"; \
+		exit 1; \
+	fi
+
+reset-index:
 	@echo "Regenerating charts index file ... "
 	@helm repo index $(CURDIR)/..
-
-build: gitpull lint package
 
 publish:
 	@echo "Charts publish ... "
@@ -83,4 +96,59 @@ publish:
 		helm cm-push $${name} helm_charts_repo; \
 	done
 
-clean:
+clean: check-yq
+	@echo -e "\033[0;36m~> Cleanup of orphaned helm packages and index references ...\033[0m"
+	$(eval CHARTS_LIST := $(shell yq eval '(.entries | keys)[]' $(INDEX_FILE)))
+  # Cleanup all references and artefacts for charts that are no logner available
+	@declare -a package_cleanup=(); \
+	for chart_name in $(CHARTS_LIST); do \
+		test -n "$$(ls -A $(CHARTS_DIR)/$${chart_name} 2>/dev/null)" && continue; \
+		tgz_urls=$$(yq eval "(.entries.$${chart_name}[].urls)[]" $(INDEX_FILE) | grep -e '\.tgz$$'); \
+		while IFS= read -r tgz_file; do \
+			if test -f "$(INDEX_ROOT)/$${tgz_file:-notfound}"; then \
+				package_cleanup+=("$$tgz_file"); \
+			fi; \
+		done <<<"$$tgz_urls"; \
+	done; \
+	if test $${#package_cleanup[@]} -gt 0; then \
+		for package_url in $${package_cleanup[@]}; do \
+			echo -e "Removing orphaned file \033[0;31m$(INDEX_ROOT)/$${package_url}\033[0m and updating index."; \
+			git rm -f --quiet --ignore-unmatch "$(INDEX_ROOT)/$$package_url"; \
+			rm -f "$(INDEX_ROOT)/$$package_url"; \
+			yq eval "(.entries[].[] | select(.urls[] == \"$${package_url}\").urls) -= [\"$${package_url}\"]" -i $(INDEX_FILE); \
+		done; \
+	fi
+  # Remove all chart packages that have no reference in index
+	@for pkg_file in "$(OUTPUT_DIR)"/*.tgz; do \
+		pkg_relative=$$(echo "$$pkg_file" | sed "s|^$(INDEX_ROOT)/||"); \
+		if ! yq eval --exit-status ".entries.*[].urls | contains([\"$${pkg_relative:-notfound}\"])" $(INDEX_FILE) >/dev/null 2>&1; then \
+			echo -e "Removing orphaned file \033[0;31m$(INDEX_ROOT)/$${pkg_relative}\033[0m not found in index."; \
+			git rm -f --quiet --ignore-unmatch "$(INDEX_ROOT)/$$pkg_relative"; \
+			rm -f "$(INDEX_ROOT)/$$pkg_relative"; \
+		fi; \
+	done
+  # Cleanup index and remove orphaned references to packaged charts
+	$(eval PKGURL_LIST := $(shell yq eval '.entries.*[].urls|.[]' $(INDEX_FILE)))
+	@for package_url in $(PKGURL_LIST); do \
+		if test ! -f "$(INDEX_ROOT)/$${package_url}"; then \
+			echo -e "Removing orphaned url reference \033[0;31m$${package_url}\033[0m from index."; \
+			yq eval "(.entries[].[] | select(.urls[] == \"$${package_url}\").urls) -= [\"$${package_url}\"]" -i $(INDEX_FILE); \
+		fi; \
+	done
+  # Remove version references with empty urls from the index
+	@if yq --exit-status eval '.entries[].[] | select(.urls[] == null)' $(INDEX_FILE) >/dev/null 2>&1; then \
+		echo "Removing all unlinked version references from index."; \
+		yq eval 'del(.entries[].[] | select(.urls[] == null))' -i $(INDEX_FILE) >/dev/null 2>&1; \
+	fi
+  # Remove empty helm chart references with no versions from the index
+	@if yq --exit-status eval '.entries | to_entries[] | select(.value[] == null) | .key' $(INDEX_FILE) >/dev/null 2>&1; then \
+		echo "Removing all empty chart references from index."; \
+		yq eval 'del(.entries[] | select(length == 0))' -i $(INDEX_FILE); \
+	fi
+  # Update the 'generated' timestamp if index file has been modified in the last minute
+	@if test -n "$$(find $(INDEX_FILE) -mmin -1)"; then \
+		echo "Updating index timestamp."; \
+		yq eval ".generated |= \"$$(date -u +'%Y-%m-%dT%H:%M:%SZ')\"" -i $(INDEX_FILE); \
+	fi
+
+build: gitpull lint package
