@@ -4,9 +4,10 @@ For best practices / contributing rules see [CONTRIBUTING.md](.github/CONTRIBUTI
 
 ## Requirements
 
-- Helm
-- [Helm push plugin](https://github.com/chartmuseum/helm-push)
-- Access to repository and Token
+- [helm cli >=3.8](https://github.com/helm/helm/releases)
+- [git cli](https://git-scm.com)
+- [yq v4 (mikefarah) ](https://github.com/mikefarah/yq/releases)
+- Optional: Write access to registry (`write:packages` in case of ghcr.io)
 
 ### List of helm chart packages provided
 
@@ -34,14 +35,22 @@ Run:
 make -C scripts/ build
 ```
 
-### Cleanup of old packaged charts
+### Cleanup of decommission charts
 
 During the build process, previously packaged Helm charts are retained in the [packaged-charts](./packaged_charts/) folder and remain referenced in the [index](index.yaml) file. This behavior is intentional, as it ensures that older chart versions remain accessible for compatibility and historical purposes.
 
-To remove specific older chart versions or decommission charts entirely, delete the necessary files in [packaged-charts](./packaged_charts/) and [charts](./charts/) folders respectively and rebuild the index.
+To remove specific older chart versions or decommission charts entirely, delete the necessary files in [packaged-charts](./packaged_charts/) and/or [charts](./charts/) folders respectively and run the `clean` target.
+
+```bash
+make -C scripts/ clean
+```
+
+### Regenerate Index
+
+If there's any problem with the index file, it is possible to regenerate it from scratch.
 
 > [!IMPORTANT]  
-> This will rebuild the complete helm repository index removing any unlinked references and fixing any potential issues with the file. This also has an unintended consequence of updating the `created` timestamp of all the remaining charts in the repository.
+> This will rebuild the helm repository index removing any unlinked references and fixing any potential issues with the file. This also has an unintended consequence of updating the `created` timestamp of all the remaining charts in the repository.
 
 ```bash
 make -C scripts/ reindex
@@ -51,17 +60,18 @@ make -C scripts/ reindex
 
 Everything required has been created on filesystem (index.yaml + packaged_charts/*.tgz), just push your changes to the main branch (via pull request)
 
-### Publish to a helm repository (Gitlab, Harbor, Artifactory)
+### Publish to oci registry
 
-To publish the all (local) charts to a remote helm repository such as Gitlab, Harbor, Artifactory, .. be sure to export environment variables for repo URL, user and password:
+To publish all local charts to a remote oci registry (such as ghcr, quay, ..), be sure to export environment variables for registry user and password.
+The variable for registry url is optional and defaults to `ghcr.io/<git-remote-repo>`  (git-remote-repo is derived from the output of `git config --get remote.origin.url`)
 
 ```bash
-export REPO_URL="https://github.com/gr8it/charts-openshift/"
-export REPO_USERNAME="chartpusher"
-export REPO_TOKEN="asd1e41123h12ey8haodasd"
+export REGISTRY_USER="registry-user"
+export REGISTRY_TOKEN="ghp_E6pjd ..... jweUO71"
+export REGISTRY_URL="my-custom-registry.io:5000/helm-charts"
 ```
 
-and run:
+To push packaged charts as oci images to a registry, run:
 
 ```bash
 make -C scripts/ publish
@@ -98,4 +108,4 @@ or replace main branch, with feature branch of your choice
 
 ## TODO
 
-- publish charts to OCI repo (ghcr.io)
+- figure out a publishing process for the oci registry

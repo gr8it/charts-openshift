@@ -17,10 +17,15 @@ OUTPUT_DIR := $(shell realpath $(ROOT_DIR)/packaged_charts)
 INDEX_FILE := $(shell realpath $(ROOT_DIR)/index.yaml)
 INDEX_ROOT := $(shell dirname $(INDEX_FILE))
 
+# oci registry variables
+REGISTRY_USER  := $(shell echo $${REGISTRY_USER:-})
+REGISTRY_TOKEN := $(shell echo $${REGISTRY_TOKEN:-})
+REGISTRY_URL   := $(shell echo $${REGISTRY_URL:-ghcr.io/$$(git config --get remote.origin.url | sed -E 's#(git@github.com:|https://github.com/)##;s#.git##')})
+
 debug:
-	@echo "$${REPO_USERNAME}"
-	@echo "$${REPO_TOKEN}"
-	@echo ${REPO_URL}
+	@echo "$(REGISTRY_USER)"
+	@echo "$(REGISTRY_TOKEN)"
+	@echo "$(REGISTRY_URL)"
 	@echo "$(YQ)"
 
 lint:
@@ -89,16 +94,41 @@ check-yq:
 		exit 1; \
 	fi
 
+check-helm:
+	@if (command -v helm >/dev/null 2>&1); then \
+		version=$$(helm version --short 2>/dev/null | grep -oE '[0-9]+\.[0-9]+' || echo "0" ); \
+		required_major=3; \
+		required_minor=8; \
+		found_major=$${version%%.*}; \
+		found_minor=$${version##*.}; \
+	else \
+		echo -e "\033[0;31mhelm cli not found; please install it.\033[0m"; \
+		exit 1; \
+	fi; \
+	if test "$$found_major" -lt "$$required_major"; then \
+		echo -e "\033[0;31mhelm version >=3.8 is required; found version $${version}.\033[0m"; \
+		exit 1; \
+	elif test "$$found_major" -eq "$$required_major" -a "$$found_minor" -lt "$$required_minor"; then \
+		echo -e "\033[0;31mhelm version >=3.8 is required; found version $${version}.\033[0m"; \
+		exit 1; \
+	fi
+
 reset-index:
-	@echo "Regenerating charts index file ... "
+	@echo -e "\033[0;36m~> Regenerating charts index file ...\033[0m"
 	@helm repo index $(CURDIR)/..
 
-publish:
-	@echo "Charts publish ... "
-	@helm repo add --force-update --username $${REPO_USERNAME} --password $${REPO_TOKEN} helm_charts_repo ${REPO_URL}
-	@for name in $(CURDIR)/../*.tgz; do\
-		echo $${name}; \
-		helm cm-push $${name} helm_charts_repo; \
+publish: check-helm
+	@echo -e "\033[0;36m~> Pushing charts to oci://$(REGISTRY_URL) ...\033[0m"
+  # check env variables
+	@if test -z "$(REGISTRY_USER)" -o -z "$(REGISTRY_TOKEN)"; then \
+		echo -e "\033[0;31mError: REGISTRY_USER and/or REGISTRY_TOKEN environment variables not set.\033[0m"; \
+		exit 1; \
+	fi
+  # login to registry
+	@echo "$(REGISTRY_TOKEN)" | helm registry login "$(REGISTRY_URL)" -u "$(REGISTRY_USER)" --password-stdin
+  # push packaged charts
+	@for pkg_file in "$(OUTPUT_DIR)"/*.tgz; do \
+		helm push "$$pkg_file" oci://$(REGISTRY_URL); \
 	done
 
 clean: check-yq
