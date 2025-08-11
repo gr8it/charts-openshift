@@ -284,6 +284,57 @@ spec:
         apiVersion: policy.open-cluster-management.io/v1
         kind: ConfigurationPolicy
         metadata:
+          name: {{ include "gitops-bootstrap.fullname" . }}-prometheus-rules
+        spec:
+          remediationAction: enforce
+          severity: low
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: monitoring.coreos.com/v1
+                kind: PrometheusRule
+                metadata:
+                  name: argocd-app-sync-status-alert
+                  namespace: {{ .Values.namespace }}
+                spec:
+                  groups:
+                  - name: ArgoCDAppSyncAlerts
+                    rules:
+                    - alert: ArgoCDAppSyncUnknownAlert
+                      annotations:
+                        description: Argo CD application {{"{{"}} $labels.name {{"}}"}} sync status is Unknown.
+                        summary: Argo CD application sync status is Unknown
+                      expr: argocd_app_info{namespace="{{ .Values.namespace }}",sync_status="Unknown"} > 0
+                      for: 5m
+                      labels:
+                        severity: warning
+
+                    - alert: ArgoCDAppsSyncMajorityUnknownAlert
+                      expr: |
+                        (
+                          count(argocd_app_info{namespace="{{ .Values.namespace }}", sync_status="Unknown"})
+                          /
+                          clamp_min(count(argocd_app_info{namespace="{{ .Values.namespace }}"}), 1)
+                        ) > 0.5
+                      for: 15m
+                      labels:
+                        severity: warning
+                      annotations:
+                        description: | 
+                          {{"{{"}} $value | humanizePercentage {{"}}"}} of Argo CD applications in namespace "{{ .Values.namespace }}" sync status is Unknown.
+                          Maybe a problem with connectivity to repo?
+                        summary: Majority of Argo CD applications sync status is Unknown
+
+    - extraDependencies:
+        - name: {{ include "gitops-bootstrap.fullname" . }}-operator
+          namespace: ""
+          apiVersion: policy.open-cluster-management.io/v1beta1
+          kind: OperatorPolicy
+          compliance: Compliant
+      objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
           name: {{ include "gitops-bootstrap.fullname" . }}-console-link
         spec:
           remediationAction: enforce
