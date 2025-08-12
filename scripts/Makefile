@@ -1,4 +1,5 @@
 SHELL := /bin/bash
+.ONESHELL:
 
 # override yq binary path if necessary
 YQ := $(shell echo $${YQ:-yq})
@@ -134,7 +135,8 @@ publish: check-helm
 clean: check-yq
 	@echo -e "\033[0;36m~> Cleanup of orphaned helm packages and index references ...\033[0m"
   # Cleanup all references and artefacts for charts that are no logner available
-	@declare -a package_cleanup=(); \
+	@YQ_USED=0; \
+	declare -a package_cleanup=(); \
 	charts_list=$$($(YQ) eval '(.entries | keys)[]' $(INDEX_FILE)); \
 	for chart_name in $${charts_list}; do \
 		test -n "$$(ls -A $(CHARTS_DIR)/$${chart_name} 2>/dev/null)" && continue; \
@@ -151,6 +153,7 @@ clean: check-yq
 			git rm -f --quiet --ignore-unmatch "$(INDEX_ROOT)/$$package_url"; \
 			rm -f "$(INDEX_ROOT)/$$package_url"; \
 			$(YQ) eval "(.entries[].[] | select(.urls[] == \"$${package_url}\").urls) -= [\"$${package_url}\"]" -i $(INDEX_FILE); \
+			YQ_USED=1; \
 		done; \
 	fi
   # Remove all chart packages that have no reference in index
@@ -162,28 +165,61 @@ clean: check-yq
 			rm -f "$(INDEX_ROOT)/$$pkg_relative"; \
 		fi; \
 	done
-  # Cleanup index and remove orphaned references to packaged charts
+	# Cleanup index and remove orphaned references to packaged charts
 	@package_url_list=$$($(YQ) eval '.entries.*[].urls|.[]' $(INDEX_FILE)); \
 	for package_url in $${package_url_list}; do \
 		if test ! -f "$(INDEX_ROOT)/$${package_url}"; then \
 			echo -e "Removing orphaned url reference \033[0;31m$${package_url}\033[0m from index."; \
 			$(YQ) eval "(.entries[].[] | select(.urls[] == \"$${package_url}\").urls) -= [\"$${package_url}\"]" -i $(INDEX_FILE); \
+			YQ_USED=1; \
 		fi; \
 	done
-  # Remove version references with empty urls from the index
+	# Remove version references with empty urls from the index
 	@if $(YQ) --exit-status eval '.entries[].[] | select(.urls[] == null)' $(INDEX_FILE) >/dev/null 2>&1; then \
 		echo "Removing all unlinked version references from index."; \
 		$(YQ) eval 'del(.entries[].[] | select(.urls[] == null))' -i $(INDEX_FILE) >/dev/null 2>&1; \
+		YQ_USED=1; \
 	fi
-  # Remove empty helm chart references with no versions from the index
+	# Remove empty helm chart references with no versions from the index
 	@if $(YQ) --exit-status eval '.entries | to_entries[] | select(.value[] == null) | .key' $(INDEX_FILE) >/dev/null 2>&1; then \
 		echo "Removing all empty chart references from index."; \
 		$(YQ) eval 'del(.entries[] | select(length == 0))' -i $(INDEX_FILE); \
+		YQ_USED=1; \
 	fi
-  # Update the 'generated' timestamp if index file has been modified in the last minute
-	@if test -n "$$(find $(INDEX_FILE) -mmin -1)"; then \
-		echo "Updating index timestamp."; \
-		$(YQ) eval ".generated |= \"$$(date -u +'%Y-%m-%dT%H:%M:%SZ')\"" -i $(INDEX_FILE); \
+	$(eval TEMP_DIR := $(shell mktemp -d))
+	@if test $${YQ_USED:-0} -eq 1; then \
+		echo "Deindenting index.yaml after yq modifications ..."; \
+		helm repo index --merge $(INDEX_FILE) $(TEMP_DIR); \
+		mv -vf $(TEMP_DIR)/index.yaml $(INDEX_FILE); \
 	fi
+	rm -rf $(TEMP_DIR);
+
+# 	@if test -f $(TEMP_DIR)/.index  &&  out=$$(helm repo index --merge $(INDEX_FILE) $(TEMP_DIR) 2>&1); then \
+# 		echo -e "\033[0;36m~> Updating index file and moving new packaged charts to $$(realpath $(OUTPUT_DIR)) ...\033[0m"; \
+# 		mv -vf $(TEMP_DIR)/packaged_charts/*.tgz $(OUTPUT_DIR)/; \
+# 		mv -vf $(TEMP_DIR)/index.yaml $(INDEX_FILE); \
+# 	elif (test ! -f $(TEMP_DIR)/.index); then \
+# 		echo -e "\033[0;33mNo new helm packages found.\033[0m"; \
+# 	else \
+# 		echo -e "\033[0;31mGenerating index file has failed.\033[0m"; \
+# 		echo "$$out"; \
+# 		exit 1; \
+# 	fi
+
+# 		awk '{ \
+# 			match($$0,/^ */); oi=RLENGTH; \
+# 			isdash = ($$0 ~ /^ *- /); \
+# 			if (in_sublist && (oi < sub_base || (oi == sub_base && !isdash))) in_sublist=0; \
+# 			if (in_block && (oi < blk_base || (oi == blk_base && !isdash))) in_block=0; \
+# 			if (in_block && oi > blk_base) sub(/^  /, ""); \
+# 			if (isdash) sub(/^  /, ""); \
+# 			if (in_sublist && !isdash && oi > sub_base) sub(/^  /, ""); \
+# 			if (isdash) { \
+# 				if (!in_block) { blk_base = oi; in_block=1; } \
+# 				else if (oi > blk_base) { sub_base = oi; in_sublist=1; } \
+# 			} \
+# 			print \
+# 		}' $(INDEX_FILE) > $(INDEX_FILE).tmp && mv -f $(INDEX_FILE).tmp $(INDEX_FILE); \
+# 	fi
 
 build: gitpull lint package
