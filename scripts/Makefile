@@ -192,34 +192,6 @@ clean: check-yq
 		helm repo index --merge $(INDEX_FILE) $(TEMP_DIR); \
 		mv -vf $(TEMP_DIR)/index.yaml $(INDEX_FILE); \
 	fi
-	rm -rf $(TEMP_DIR);
+	@rm -rf $(TEMP_DIR);
 
-# 	@if test -f $(TEMP_DIR)/.index  &&  out=$$(helm repo index --merge $(INDEX_FILE) $(TEMP_DIR) 2>&1); then \
-# 		echo -e "\033[0;36m~> Updating index file and moving new packaged charts to $$(realpath $(OUTPUT_DIR)) ...\033[0m"; \
-# 		mv -vf $(TEMP_DIR)/packaged_charts/*.tgz $(OUTPUT_DIR)/; \
-# 		mv -vf $(TEMP_DIR)/index.yaml $(INDEX_FILE); \
-# 	elif (test ! -f $(TEMP_DIR)/.index); then \
-# 		echo -e "\033[0;33mNo new helm packages found.\033[0m"; \
-# 	else \
-# 		echo -e "\033[0;31mGenerating index file has failed.\033[0m"; \
-# 		echo "$$out"; \
-# 		exit 1; \
-# 	fi
-
-# 		awk '{ \
-# 			match($$0,/^ */); oi=RLENGTH; \
-# 			isdash = ($$0 ~ /^ *- /); \
-# 			if (in_sublist && (oi < sub_base || (oi == sub_base && !isdash))) in_sublist=0; \
-# 			if (in_block && (oi < blk_base || (oi == blk_base && !isdash))) in_block=0; \
-# 			if (in_block && oi > blk_base) sub(/^  /, ""); \
-# 			if (isdash) sub(/^  /, ""); \
-# 			if (in_sublist && !isdash && oi > sub_base) sub(/^  /, ""); \
-# 			if (isdash) { \
-# 				if (!in_block) { blk_base = oi; in_block=1; } \
-# 				else if (oi > blk_base) { sub_base = oi; in_sublist=1; } \
-# 			} \
-# 			print \
-# 		}' $(INDEX_FILE) > $(INDEX_FILE).tmp && mv -f $(INDEX_FILE).tmp $(INDEX_FILE); \
-# 	fi
-
-build: gitpull lint package
+build: lint package
