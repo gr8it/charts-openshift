@@ -339,7 +339,8 @@ spec:
                       for: 5m
                       labels:
                         severity: warning
-
+                        team: platform
+                        vendor: aspecta
                     - alert: ArgoCDAppsSyncMajorityUnknownAlert
                       expr: |
                         (
@@ -350,6 +351,8 @@ spec:
                       for: 15m
                       labels:
                         severity: warning
+                        team: platform
+                        vendor: aspecta
                       annotations:
                         description: | 
                           {{"{{"}} $value | humanizePercentage {{"}}"}} of Argo CD applications in namespace "{{ .Values.namespace }}" sync status is Unknown.
