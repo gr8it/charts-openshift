@@ -21,7 +21,8 @@ INDEX_ROOT := $(shell dirname $(INDEX_FILE))
 # oci registry variables
 REGISTRY_USER  := $(shell echo $${REGISTRY_USER:-})
 REGISTRY_TOKEN := $(shell echo $${REGISTRY_TOKEN:-})
-REGISTRY_URL   := $(shell echo $${REGISTRY_URL:-ghcr.io/$$(git config --get remote.origin.url | sed -E 's#(git@github.com:|https://github.com/)##;s#.git##')})
+REPO_PATH      := $(shell echo $$(git config --get remote.origin.url | git config --get remote.origin.url | sed -E 's!(git@github.com:|https://github.com/)!!;s!\.git$$!!' || echo "notfound"))
+REGISTRY_URL   := $(shell echo $${REGISTRY_URL:-ghcr.io/$(REPO_PATH)})
 
 debug:
 	@echo "$(REGISTRY_USER)"
