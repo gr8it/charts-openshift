@@ -1,4 +1,5 @@
 SHELL := /bin/bash
+.ONESHELL:
 
 # override yq binary path if necessary
 YQ := $(shell echo $${YQ:-yq})
@@ -20,7 +21,8 @@ INDEX_ROOT := $(shell dirname $(INDEX_FILE))
 # oci registry variables
 REGISTRY_USER  := $(shell echo $${REGISTRY_USER:-})
 REGISTRY_TOKEN := $(shell echo $${REGISTRY_TOKEN:-})
-REGISTRY_URL   := $(shell echo $${REGISTRY_URL:-ghcr.io/$$(git config --get remote.origin.url | sed -E 's#(git@github.com:|https://github.com/)##;s#.git##')})
+REPO_PATH      := $(shell echo $$(git config --get remote.origin.url | git config --get remote.origin.url | sed -E 's!(git@github.com:|https://github.com/)!!;s!\.git$$!!' || echo "notfound"))
+REGISTRY_URL   := $(shell echo $${REGISTRY_URL:-ghcr.io/$(REPO_PATH)})
 
 debug:
 	@echo "$(REGISTRY_USER)"
@@ -134,7 +136,8 @@ publish: check-helm
 clean: check-yq
 	@echo -e "\033[0;36m~> Cleanup of orphaned helm packages and index references ...\033[0m"
   # Cleanup all references and artefacts for charts that are no logner available
-	@declare -a package_cleanup=(); \
+	@YQ_USED=0; \
+	declare -a package_cleanup=(); \
 	charts_list=$$($(YQ) eval '(.entries | keys)[]' $(INDEX_FILE)); \
 	for chart_name in $${charts_list}; do \
 		test -n "$$(ls -A $(CHARTS_DIR)/$${chart_name} 2>/dev/null)" && continue; \
@@ -151,6 +154,7 @@ clean: check-yq
 			git rm -f --quiet --ignore-unmatch "$(INDEX_ROOT)/$$package_url"; \
 			rm -f "$(INDEX_ROOT)/$$package_url"; \
 			$(YQ) eval "(.entries[].[] | select(.urls[] == \"$${package_url}\").urls) -= [\"$${package_url}\"]" -i $(INDEX_FILE); \
+			YQ_USED=1; \
 		done; \
 	fi
   # Remove all chart packages that have no reference in index
@@ -162,28 +166,33 @@ clean: check-yq
 			rm -f "$(INDEX_ROOT)/$$pkg_relative"; \
 		fi; \
 	done
-  # Cleanup index and remove orphaned references to packaged charts
+	# Cleanup index and remove orphaned references to packaged charts
 	@package_url_list=$$($(YQ) eval '.entries.*[].urls|.[]' $(INDEX_FILE)); \
 	for package_url in $${package_url_list}; do \
 		if test ! -f "$(INDEX_ROOT)/$${package_url}"; then \
 			echo -e "Removing orphaned url reference \033[0;31m$${package_url}\033[0m from index."; \
 			$(YQ) eval "(.entries[].[] | select(.urls[] == \"$${package_url}\").urls) -= [\"$${package_url}\"]" -i $(INDEX_FILE); \
+			YQ_USED=1; \
 		fi; \
 	done
-  # Remove version references with empty urls from the index
+	# Remove version references with empty urls from the index
 	@if $(YQ) --exit-status eval '.entries[].[] | select(.urls[] == null)' $(INDEX_FILE) >/dev/null 2>&1; then \
 		echo "Removing all unlinked version references from index."; \
 		$(YQ) eval 'del(.entries[].[] | select(.urls[] == null))' -i $(INDEX_FILE) >/dev/null 2>&1; \
+		YQ_USED=1; \
 	fi
-  # Remove empty helm chart references with no versions from the index
+	# Remove empty helm chart references with no versions from the index
 	@if $(YQ) --exit-status eval '.entries | to_entries[] | select(.value[] == null) | .key' $(INDEX_FILE) >/dev/null 2>&1; then \
 		echo "Removing all empty chart references from index."; \
 		$(YQ) eval 'del(.entries[] | select(length == 0))' -i $(INDEX_FILE); \
+		YQ_USED=1; \
 	fi
-  # Update the 'generated' timestamp if index file has been modified in the last minute
-	@if test -n "$$(find $(INDEX_FILE) -mmin -1)"; then \
-		echo "Updating index timestamp."; \
-		$(YQ) eval ".generated |= \"$$(date -u +'%Y-%m-%dT%H:%M:%SZ')\"" -i $(INDEX_FILE); \
+	$(eval TEMP_DIR := $(shell mktemp -d))
+	@if test $${YQ_USED:-0} -eq 1; then \
+		echo "Deindenting index.yaml after yq modifications ..."; \
+		helm repo index --merge $(INDEX_FILE) $(TEMP_DIR); \
+		mv -vf $(TEMP_DIR)/index.yaml $(INDEX_FILE); \
 	fi
+	@rm -rf $(TEMP_DIR);
 
-build: gitpull lint package
+build: lint package
