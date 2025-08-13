@@ -333,13 +333,14 @@ spec:
                     rules:
                     - alert: ArgoCDAppSyncUnknownAlert
                       annotations:
-                        description: Argo CD application {{"{{"}} $labels.name {{"}}"}} sync status is Unknown.
+                        description: Argo CD application {{ "{{ \"{{ $labels.name }}\" }}" }} sync status is Unknown.
                         summary: Argo CD application sync status is Unknown
                       expr: argocd_app_info{namespace="{{ .Values.namespace }}",sync_status="Unknown"} > 0
                       for: 5m
                       labels:
                         severity: warning
-
+                        team: platform
+                        vendor: aspecta
                     - alert: ArgoCDAppsSyncMajorityUnknownAlert
                       expr: |
                         (
@@ -350,11 +351,34 @@ spec:
                       for: 15m
                       labels:
                         severity: warning
+                        team: platform
+                        vendor: aspecta
                       annotations:
                         description: | 
-                          {{"{{"}} $value | humanizePercentage {{"}}"}} of Argo CD applications in namespace "{{ .Values.namespace }}" sync status is Unknown.
+                          {{ "{{ \"{{ $value | humanizePercentage }}\" }}" }} of Argo CD applications in namespace "{{ .Values.namespace }}" sync status is Unknown.
                           Maybe a problem with connectivity to repo?
                         summary: Majority of Argo CD applications sync status is Unknown
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: monitoring.coreos.com/v1
+                kind: PrometheusRule
+                metadata:
+                  name: argocd-app-health-status-alert
+                  namespace: {{ .Values.namespace }}
+                spec:
+                  groups:
+                  - name: ArgoCDAppUnhealthyAlerts
+                    rules:
+                    - alert: ArgocdServiceUnhealthy
+                      expr: argocd_app_info{health_status!="Healthy"} != 0
+                      for: 1h
+                      labels:
+                        severity: warning
+                        team: platform
+                        vendor: aspecta
+                      annotations:
+                        summary: ArgoCD service unhealthy (instance {{ "{{ \"{{ $labels.instance }}\" }}" }})
+                        description: Service {{ "{{ \"{{ $labels.name }}\" }}" }} run by argo is currently not healthy.\n  VALUE = {{ "{{ \"{{ $value }}\" }}" }}\n  LABELS = {{ "{{ \"{{ $labels }}\" }}" }}
 
     - extraDependencies:
         - name: {{ include "gitops-bootstrap.fullname" . }}-operator
