@@ -333,7 +333,7 @@ spec:
                     rules:
                     - alert: ArgoCDAppSyncUnknownAlert
                       annotations:
-                        description: Argo CD application {{"{{"}} $labels.name {{"}}"}} sync status is Unknown.
+                        description: Argo CD application {{ "{{ \"{{ $labels.name }}\" }}" }} sync status is Unknown.
                         summary: Argo CD application sync status is Unknown
                       expr: argocd_app_info{namespace="{{ .Values.namespace }}",sync_status="Unknown"} > 0
                       for: 5m
@@ -341,23 +341,23 @@ spec:
                         severity: warning
                         team: platform
                         vendor: aspecta
-                    - alert: ArgoCDAppsSyncMajorityUnknownAlert
-                      expr: |
-                        (
-                          count(argocd_app_info{namespace="{{ .Values.namespace }}", sync_status="Unknown"})
-                          /
-                          clamp_min(count(argocd_app_info{namespace="{{ .Values.namespace }}"}), 1)
-                        ) > 0.5
-                      for: 15m
-                      labels:
-                        severity: warning
-                        team: platform
-                        vendor: aspecta
-                      annotations:
-                        description: | 
-                          {{"{{"}} $value | humanizePercentage {{"}}"}} of Argo CD applications in namespace "{{ .Values.namespace }}" sync status is Unknown.
-                          Maybe a problem with connectivity to repo?
-                        summary: Majority of Argo CD applications sync status is Unknown
+                    # - alert: ArgoCDAppsSyncMajorityUnknownAlert
+                    #   expr: |
+                    #     (
+                    #       count(argocd_app_info{namespace="{{ .Values.namespace }}", sync_status="Unknown"})
+                    #       /
+                    #       clamp_min(count(argocd_app_info{namespace="{{ .Values.namespace }}"}), 1)
+                    #     ) > 0.5
+                    #   for: 15m
+                    #   labels:
+                    #     severity: warning
+                    #     team: platform
+                    #     vendor: aspecta
+                    #   annotations:
+                    #     description: | 
+                    #       {{"{{"}} $value | humanizePercentage {{"}}"}} of Argo CD applications in namespace "{{ .Values.namespace }}" sync status is Unknown.
+                    #       Maybe a problem with connectivity to repo?
+                    #     summary: Majority of Argo CD applications sync status is Unknown
             # - complianceType: musthave
             #   objectDefinition:
             #     apiVersion: monitoring.coreos.com/v1
