@@ -16,6 +16,7 @@ Dependency helm chart operators-installer has no proxy support => add environmen
       jsonPatches:
       - target:
           version: v1
+          group: batch
           kind: Job
         patch:
         - op: add

@@ -20,6 +20,7 @@ Helm chart has no proxy support => add environment variables using jsonPatch fea
       jsonPatches:
       - target:
           version: v1
+          group: batch
           kind: Job
         patch:
         - op: add
