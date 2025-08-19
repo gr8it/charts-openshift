@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "keycloak-operator.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "keycloak-operator.labels" . | nindent 4 }}
+spec:
+  groups:
+    - name: rhbk-operator.rules
+      rules:
+        - alert: RhbkOperatorPodDown
+          annotations:
+            description: "The RHBK Operator pod in namespace {{ `{{ $labels.namespace }}` }} is down for more than 5 minutes."
+            summary: RHBK Operator pod is down
+          expr: 'absent(kube_pod_status_phase{namespace="{{ .Release.Namespace }}", pod=~"rhbk-operator-.*", phase="Running"} == 1) or sum(kube_pod_status_phase{namespace="{{ .Release.Namespace }}", pod=~"rhbk-operator-.*", phase="Running"}) == 0'
+          for: 5m
+          labels:
+            severity: warning
+            team: platform
+            vendor: aspecta
