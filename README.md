@@ -70,7 +70,7 @@ Github note:
 ```bash
 export REGISTRY_USER="registry-user"
 export REGISTRY_TOKEN="ghp_E6pjd ..... jweUO71"
-export REGISTRY_URL="my-custom-registry.io:5000/helm-charts"
+export REGISTRY_URL="ghcr.io/gr8it/charts-openshift"
 ```
 
 To push packaged charts as oci images to a registry, run:
