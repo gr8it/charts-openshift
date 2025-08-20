@@ -63,7 +63,9 @@ Everything required has been created on filesystem (index.yaml + packaged_charts
 ### Publish to oci registry
 
 To publish all local charts to a remote oci registry (such as ghcr, quay, ..), be sure to export environment variables for registry user and password.
-The variable for registry url is optional and defaults to `ghcr.io/<git-remote-repo>`  (git-remote-repo is derived from the output of `git config --get remote.origin.url`)
+The variable for registry url is optional and defaults to `ghcr.io/<git-remote-repo>`  (git-remote-repo is derived from the output of `git config --get remote.origin.url`).
+Github note:
+- GitHub Packages only supports authentication using a personal access token (classic). For more information, see [documentation](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry).
 
 ```bash
 export REGISTRY_USER="registry-user"
