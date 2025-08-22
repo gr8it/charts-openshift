@@ -8,7 +8,7 @@ metadata:
 spec:
   dependencies:
   - eventName: addgroup
-    eventSourceName: addgroup
+    eventSourceName: {{ include "argo-events-project-setup.fullname" . }}-addgroup
     filters:
       exprs:
       - expr: a =~ "^APC-{{ .Values.environmentShort | default .Values.global.apc.environmentShort | default "" | upper }}-.*-PJA$"
