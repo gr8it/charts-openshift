@@ -1,0 +1,136 @@
+{{- if (hasKey .Values "createApplicationPolicies" | ternary .Values.createApplicationPolicies (hasKey .Values.global.apc.cluster "runsApps" | ternary .Values.global.apc.cluster.runsApps true)) }}
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: app-project-networkpolicy
+  annotations:
+    policies.kyverno.io/title: Create default networkpolicy in namespace
+    policies.kyverno.io/category: networkpolicy 
+    policies.kyverno.io/subject: project
+    policies.kyverno.io/minversion: 1.13.0
+  labels:
+    {{- include "default-network-policies.labels" . | nindent 4 }}
+spec:
+  background: true
+  generateExisting: true
+  validationFailureAction: Audit
+  rules:
+    - name: app-project-networkpolicy
+      match:
+        any:
+          - resources:
+              kinds:
+              - Namespace
+      preconditions:
+        all:
+        - key: '{{ "{{ request.object.metadata.labels.\"apc.namespace.type\" }}" }}'
+          operator: Equals
+          value: application
+      generate:
+        apiVersion: networking.k8s.io/v1
+        kind: NetworkPolicy
+        name: '{{ "{{ request.object.metadata.name }}-allow-from-same-namespace" }}'
+        namespace: '{{ "{{ request.object.metadata.name }}" }}'
+        synchronize: false
+        data:
+          spec:
+            podSelector: {}
+            ingress:
+            - from:
+              - podSelector: {}
+    # AdminNetworkPolicy can't be used on host-networked pods => standard NetworkPolicy must be used for traffic from ingress pods
+    - name: app-project-networkpolicy-ingress
+      match:
+        any:
+        - resources:
+            kinds:
+            - Namespace
+      preconditions:
+        all:
+        - key: '{{ "{{ request.object.metadata.labels.\"apc.namespace.type\" }}" }}'
+          operator: Equals
+          value: application
+      generate:
+        apiVersion: networking.k8s.io/v1
+        data:
+          spec:
+            ingress:
+            - from:
+              - namespaceSelector:
+                  matchLabels:
+                    network.openshift.io/policy-group: ingress
+            podSelector: {}
+        kind: NetworkPolicy
+        name: '{{ "{{ request.object.metadata.name }}-allow-from-openshift-ingress" }}'
+        namespace: '{{ "{{ request.object.metadata.name }}" }}'
+        synchronize: false
+---
+{{- end }}
+{{- if .Values.createPlatformPolicies }}
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: platform-project-networkpolicy
+  annotations:
+    policies.kyverno.io/title: Create default networkpolicy in namespace
+    policies.kyverno.io/category: networkpolicy 
+    policies.kyverno.io/subject: project
+    policies.kyverno.io/minversion: 1.13.0
+  labels:
+    {{- include "default-network-policies.labels" . | nindent 4 }}
+spec:
+  background: true
+  generateExisting: true
+  validationFailureAction: Audit
+  rules:
+    - name: platform-project-networkpolicy
+      match:
+        any:
+          - resources:
+              kinds:
+              - Namespace
+      preconditions:
+        all:
+        - key: '{{ "{{ request.object.metadata.labels.\"apc.namespace.type\" }}" }}'
+          operator: Equals
+          value: platform
+      generate:
+        apiVersion: networking.k8s.io/v1
+        kind: NetworkPolicy
+        name: '{{ "{{ request.object.metadata.name }}-allow-from-same-namespace" }}'
+        namespace: '{{ "{{ request.object.metadata.name }}" }}'
+        synchronize: false
+        data:
+          spec:
+            podSelector: {}
+            ingress:
+            - from:
+              - podSelector: {}
+    # AdminNetworkPolicy can't be used on host-networked pods => standard NetworkPolicy must be used for traffic from ingress pods
+    - name: platform-project-networkpolicy-ingress
+      match:
+        any:
+        - resources:
+            kinds:
+            - Namespace
+      preconditions:
+        all:
+        - key: '{{ "{{ request.object.metadata.labels.\"apc.namespace.type\" }}" }}'
+          operator: Equals
+          value: platform
+      generate:
+        apiVersion: networking.k8s.io/v1
+        data:
+          spec:
+            ingress:
+            - from:
+              - namespaceSelector:
+                  matchLabels:
+                    network.openshift.io/policy-group: ingress
+            podSelector: {}
+        kind: NetworkPolicy
+        name: '{{ "{{ request.object.metadata.name }}-allow-from-openshift-ingress" }}'
+        namespace: '{{ "{{ request.object.metadata.name }}" }}'
+        synchronize: false
+---
+{{- end }}
