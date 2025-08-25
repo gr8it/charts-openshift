@@ -1,0 +1,30 @@
+apiVersion: policy.networking.k8s.io/v1alpha1
+kind: BaselineAdminNetworkPolicy
+metadata:
+  name: default
+  labels:
+    {{- include "default-network-policies.labels" . | nindent 4 }}
+spec:
+  subject:
+    namespaces:
+      matchExpressions:
+        - key: apc.namespace.type
+          operator: In
+          values:
+            {{- if (hasKey .Values "createApplicationPolicies" | ternary .Values.createApplicationPolicies (hasKey .Values.global.apc.cluster "runsApps" | ternary .Values.global.apc.cluster.runsApps true)) }}
+            - application
+            {{- end }}
+            - platform
+  ingress:
+    - name: "default-zero-trust-policy"
+      action: Deny
+      from:
+      - namespaces: {}
+  {{- if .Values.proxyIPs }}
+  egress:
+  - action: Deny
+    name: deny-to-proxy
+    to:
+    - networks:
+      {{- toYaml .Values.proxyIPs | nindent 6 }}
+  {{- end }}
