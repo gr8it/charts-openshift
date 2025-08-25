@@ -1,4 +1,4 @@
-{{- if (hasKey .Values "createApplicationPolicies" | ternary .Values.createApplicationPolicies (hasKey .Values.global.apc.cluster "runsApps" | ternary .Values.global.apc.cluster.runsApps true)) }}
+{{- if (include "booleanDefault" (list .Values.createApplicationPolicies .Values.global.apc.cluster.runsApps true)) }}
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:

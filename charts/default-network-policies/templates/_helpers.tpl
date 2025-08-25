@@ -60,3 +60,20 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Helper function to work around helm limitation while using the default function, where false and null / nil are handled the same.
+This function returns value of 1st argument if exists (ano not null), or the fallback = default (3rd argument).
+*/}}
+{{- define "booleanDefault" -}}
+{{- $value := index . 0 -}}
+{{- $global := index . 1 -}}
+{{- $default := index . 2 -}}
+{{- if kindIs "boolean" $value -}}
+  {{ $value }}
+{{- else if kindIs "boolean" $global -}}
+  {{ $global }}
+{{- else -}}
+  {{ $default }}
+{{- end -}}
+{{- end -}}
