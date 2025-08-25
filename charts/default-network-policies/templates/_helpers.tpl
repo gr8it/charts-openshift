@@ -65,13 +65,13 @@ Create the name of the service account to use
 Helper function to work around helm limitation while using the default function, where false and null / nil are handled the same.
 This function returns value of 1st argument if exists (ano not null), or the fallback = default (3rd argument).
 */}}
-{{- define "booleanDefault" -}}
+{{- define "boolDefault" -}}
 {{- $value := index . 0 -}}
 {{- $global := index . 1 -}}
 {{- $default := index . 2 -}}
-{{- if kindIs "boolean" $value -}}
+{{- if kindIs "bool" $value -}}
   {{ $value }}
-{{- else if kindIs "boolean" $global -}}
+{{- else if kindIs "bool" $global -}}
   {{ $global }}
 {{- else -}}
   {{ $default }}
