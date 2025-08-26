@@ -1,26 +1,15 @@
-operators-installer:
-  # approveManualInstallPlanViaHook: true
-  # installPlanApproverAndVerifyJobsImage: registry.redhat.io/openshift4/ose-cli:v4.15@sha256:bc35a9fc663baf0d6493cc57e89e77a240a36c43cf38fb78d8e61d3b87cf5cc5
-  # installPlanApproverAndVerifyJobsImagePullSecret:
-  # installRequiredPythonLibraries: true
-  # pythonIndexURL: https://pypi.org/simple/
-  # pythonExtraIndexURL: https://pypi.org/simple/
-
-  operators:
-  - channel: stable-v26.0
+acm-operatorpolicy:
+  subscription:
+    channel: stable-v26.0
     name: rhbk-operator
     source: redhat-operators
-    csv: rhbk-operator.v26.0.10-opr.1
+    sourceNamespace: openshift-marketplace
+    startingCSV: rhbk-operator.v26.0.10-opr.1
+  versions:
+    - rhbk-operator.v26.0.10-opr.1
+
+
+  operatorGroup: 
+    name: apc-keycloak
     namespace: apc-keycloak
-    installPlanApproval: Manual
 
-  operatorGroups:
-  - name: apc-keycloak
-    # during bootstrap => createNamespace is to be set to true
-    createNamespace: false
-    targetOwnNamespace: true
-    # otherTargetNamespaces:
-
-  commonLabels:
-    operators.coreos.com/rhbk-operator.keycloak: ''
-    operators.coreos.com/rhbk-operator.apc-keycloak: ''    
