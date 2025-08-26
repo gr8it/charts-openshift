@@ -1,4 +1,4 @@
-{{- if eq "true" (include "boolDefault" (list .Values.createApplicationPolicies .Values.global.apc.cluster.runsApps true)) }}
+{{- if eq "true" (include "default-network-policies.boolDefaults" (list .Values.createApplicationPolicies .Values.global.apc.cluster.runsApps true)) }}
 apiVersion: policy.networking.k8s.io/v1alpha1
 kind: AdminNetworkPolicy
 metadata:
