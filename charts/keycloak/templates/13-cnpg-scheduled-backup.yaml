@@ -1,0 +1,14 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: {{ include "keycloak.fullname" . }}-backup-keycloak-db
+  labels:
+  {{- include "keycloak.labels" . | nindent 4 }}
+spec:
+  backupOwnerReference: none
+  cluster:
+    name: keycloak-db
+  immediate: true
+  method: barmanObjectStore
+  schedule: 0 0 0 * * SAT
+  suspend: false

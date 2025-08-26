@@ -1,0 +1,37 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ include "keycloak.fullname" . }}-admin-ingress
+  labels:
+    app: keycloak
+  {{- include "keycloak.labels" . | nindent 4 }}
+spec:
+  host: keycloak.apps.dev01.cloud.socpoist.sk
+  port:
+    targetPort: https
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: passthrough
+  to:
+    kind: Service
+    name: keycloak-service
+    weight: 100
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ include "keycloak.fullname" . }}-ingress
+  labels:
+    app: keycloak
+  {{- include "keycloak.labels" . | nindent 4 }}
+spec:
+  host: login.apps.dev01.cloud.socpoist.sk
+  port:
+    targetPort: https
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: passthrough
+  to:
+    kind: Service
+    name: keycloak-service
+    weight: 100

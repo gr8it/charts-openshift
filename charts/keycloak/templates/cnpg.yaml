@@ -1,0 +1,68 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ include "keycloak.fullname" . }}-db
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: keycloak
+  {{- include "keycloak.labels" . | nindent 4 }}
+spec:
+  affinity:
+    podAntiAffinityType: preferred
+  backup:
+    barmanObjectStore:
+      destinationPath: s3://{{ include "keycloak.fullname" . }}-backup
+      endpointURL: http://s3.openshift-storage.svc
+      s3Credentials:
+        accessKeyId:
+          key: access_key_id
+          name: {{ include "keycloak.fullname" . }}-backup-allinfo
+        secretAccessKey:
+          key: access_key_secret
+          name: {{ include "keycloak.fullname" . }}-backup-allinfo
+      wal:
+        compression: bzip2
+        maxParallel: 4
+    retentionPolicy: 2w
+    target: prefer-standby
+  bootstrap:
+    initdb:
+      dataChecksums: true
+      database: keycloak
+      encoding: UTF8
+      localeCType: en_US.utf8
+      localeCollate: en_US.utf8
+      owner: keycloak
+      secret:
+        name: {{ include "keycloak.fullname" . }}-db-auth
+      walSegmentSize: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.4
+  instances: 2
+  maxSyncReplicas: 1
+  minSyncReplicas: 0
+  monitoring:
+    enablePodMonitor: true
+  postgresql:
+    parameters:
+      max_slot_wal_keep_size: 500MB
+      shared_buffers: 256MB
+      wal_keep_size: "200"
+    syncReplicaElectionConstraint:
+      enabled: false
+      nodeLabelsAntiAffinity:
+      - topology.kubernetes.io/zone
+  primaryUpdateMethod: switchover
+  primaryUpdateStrategy: unsupervised
+  replicationSlots:
+    updateInterval: 30
+  resources:
+    limits:
+      cpu: "1"
+      memory: 500Mi
+    requests:
+      cpu: "0.1"
+      memory: 500Mi
+  storage:
+    size: 1Gi
+  walStorage:
+    size: 1Gi

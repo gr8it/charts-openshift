@@ -1,0 +1,11 @@
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: {{ include "keycloak.fullname" . }}-backup
+  namespace: {{ .Release.Namespace }}
+  labels:
+  {{- include "keycloak.labels" . | nindent 4 }}
+spec:
+  additionalConfig:
+  bucketName: {{ include "keycloak.fullname". }}-backup
+  storageClassName: openshift-storage.noobaa.io
