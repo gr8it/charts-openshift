@@ -11,7 +11,7 @@ spec:
         - key: apc.namespace.type
           operator: In
           values:
-            {{- if (include "boolDefault" (list .Values.createApplicationPolicies .Values.global.apc.cluster.runsApps true)) }}
+            {{- if eq "true" (include "boolDefault" (list .Values.createApplicationPolicies .Values.global.apc.cluster.runsApps true)) }}
             - application
             {{- end }}
             - platform
