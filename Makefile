@@ -7,7 +7,7 @@ YQ := $(shell echo $${YQ:-yq})
 # setup path variables
 ifeq ($(strip $(CHARTFOLDER)),)
   CHARTFOLDER := $(CURDIR)
-  CHARTFOLDERS := $(wildcard $(CHARTFOLDER)/charts/*/)
+  CHARTFOLDERS := $(shell dirname $(wildcard $(CHARTFOLDER)/charts/*/Chart.yaml))
 else
   CHARTFOLDERS := $(addprefix $(CURDIR)/charts/, $(CHARTFOLDER))
 endif
@@ -33,16 +33,14 @@ debug:
 lint:
 	@echo -e "\033[0;36m~> Starting helm lint checks on all chart folders ...\033[0m"
 	@for folder in $(CHARTFOLDERS); do \
-	  if test -f $${folder}/Chart.yaml; then \
-			echo -n "$$(basename $${folder}): Lint check "; \
-			if out=$$(helm lint $$folder --quiet 2>&1); then \
-				echo -e "\033[0;32mOK\033[0m."; \
-				if test -n "$$out"; then echo "$$out"; fi; \
-			else \
-				echo -e "\033[0;31mFAILED\033[0m."; \
-				echo "$$out"; \
-				exit 1; \
-			fi; \
+		echo -n "$$(basename $${folder}): Lint check "; \
+		if out=$$(helm lint $$folder --quiet 2>&1); then \
+			echo -e "\033[0;32mOK\033[0m."; \
+			if test -n "$$out"; then echo "$$out"; fi; \
+		else \
+			echo -e "\033[0;31mFAILED\033[0m."; \
+			echo "$$out"; \
+			exit 1; \
 		fi; \
 	done
 
@@ -60,19 +58,17 @@ package:
 	@mkdir -p $(TEMP_DIR)/packaged_charts
 	@echo -e "\033[0;33mTemp folder set to $(TEMP_DIR)\033[0m"
 	@for folder in $(CHARTFOLDERS); do \
-	  if test -f $${folder}/Chart.yaml; then \
-			chart_name=$$(basename $${folder}); \
-			chart_version=$$(grep '^version:' $${folder}/Chart.yaml | awk '{print $$2}'); \
-			if [ -f $(OUTPUT_DIR)/$${chart_name}-$${chart_version}.tgz ]; then \
-				echo -e "$${chart_name}-$${chart_version}: \033[0;33mskipped\033[0m - Chart package already exists"; \
-			elif out=$$(helm package $${folder} --version $${chart_version} --destination $(TEMP_DIR)/packaged_charts 2>&1); then \
-				echo -e "$${chart_name}-$${chart_version}: \033[0;32mdone - Chart package has been created\033[0m"; \
-				touch $(TEMP_DIR)/.index; \
-			else \
-				echo -e "\033[0;31mPackaging chart $${chart_name}-$${chart_version} has failed.\033[0m"; \
-				echo "$$out"; \
-				exit 1; \
-			fi \
+		chart_name=$$(basename $${folder}); \
+		chart_version=$$(grep '^version:' $${folder}/Chart.yaml | awk '{print $$2}'); \
+		if [ -f $(OUTPUT_DIR)/$${chart_name}-$${chart_version}.tgz ]; then \
+			echo -e "$${chart_name}-$${chart_version}: \033[0;33mskipped\033[0m - Chart package already exists"; \
+		elif out=$$(helm package $${folder} --version $${chart_version} --destination $(TEMP_DIR)/packaged_charts 2>&1); then \
+			echo -e "$${chart_name}-$${chart_version}: \033[0;32mdone - Chart package has been created\033[0m"; \
+			touch $(TEMP_DIR)/.index; \
+		else \
+			echo -e "\033[0;31mPackaging chart $${chart_name}-$${chart_version} has failed.\033[0m"; \
+			echo "$$out"; \
+			exit 1; \
 		fi \
 	done
 	@if test -f $(TEMP_DIR)/.index  &&  out=$$(helm repo index --merge $(INDEX_FILE) $(TEMP_DIR) 2>&1); then \
