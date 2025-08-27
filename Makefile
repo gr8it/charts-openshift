@@ -7,12 +7,12 @@ YQ := $(shell echo $${YQ:-yq})
 # setup path variables
 ifeq ($(strip $(CHARTFOLDER)),)
   CHARTFOLDER := $(CURDIR)
-  CHARTFOLDERS := $(wildcard $(CHARTFOLDER)/../charts/*/)
+  CHARTFOLDERS := $(shell dirname $(wildcard $(CHARTFOLDER)/charts/*/Chart.yaml))
 else
-  CHARTFOLDERS := $(addprefix $(CURDIR)/../charts/, $(CHARTFOLDER))
+  CHARTFOLDERS := $(addprefix $(CURDIR)/charts/, $(CHARTFOLDER))
 endif
 
-ROOT_DIR   := $(shell realpath $(CURDIR)/..)
+ROOT_DIR   := $(shell realpath $(CURDIR))
 CHARTS_DIR := $(shell realpath $(ROOT_DIR)/charts)
 OUTPUT_DIR := $(shell realpath $(ROOT_DIR)/packaged_charts)
 INDEX_FILE := $(shell realpath $(ROOT_DIR)/index.yaml)
