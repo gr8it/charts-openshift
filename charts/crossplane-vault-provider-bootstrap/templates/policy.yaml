@@ -316,15 +316,8 @@ metadata:
   name: {{ include "crossplane-vault-provider-bootstrap.fullname" . }}
   namespace: {{ .Release.Namespace }}
 spec:
-  # clusterSets:
-  # - global
-  ################################## VYMAZAT ################################
-  predicates:
-  - requiredClusterSelector:
-      labelSelector:
-        matchLabels:
-          name: ocpdemo-spoke1
-  ################################## VYMAZAT ################################
+  clusterSets:
+  - global
   # tolerations:
   #   - key: cluster.open-cluster-management.io/unreachable
   #     operator: Exists
