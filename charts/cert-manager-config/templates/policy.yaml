@@ -5,7 +5,7 @@ metadata:
 spec:
   forProvider:
     name: {{ include "cert-manager-config.clusterName" .  }}--{{ .Values.vaultKubeAuthRole }}
-
+    ## https://github.com/cert-manager/cert-manager/issues/6150
     policy: |
 
       path "{{ .Values.vaultPkiPath }}/sign/{{ include "cert-manager-config.vaultPkiRole" . }}" {
@@ -18,55 +18,3 @@ spec:
 
   providerConfigRef:
     name: {{ include "cert-manager-config.kubeVaultProviderConfigName" . }}
-## FROM orig
-      # path "auth/token/create" {
-      #   capabilities = ["create", "update"]
-      # }
-
-      # path "sys/mounts/v1/auth/kubernetes" {
-      #   capabilities = ["read"]
-      # }
-
-      # path "{{ .Values.vaultPkiPath }}/*" {
-      #   capabilities = ["read", "list"]
-      # }
-
-      # path "{{ .Values.vaultPkiPath }}/roles/{{ include "cert-manager-config.vaultPkiRole" . }}" {
-      #   capabilities = ["create", "update", "read", "list"]
-      # }
-
-      # path "{{ .Values.vaultPkiPath }}/issuer/*" {
-      #   capabilities = ["read"]
-      # }
-
-
-
-      # path "{{ .Values.vaultPkiPath }}/issue/{{ include "cert-manager-config.vaultPkiRole" . }}" {
-      #   capabilities = ["create", "update", "read", "list"]
-      # }
-
-
-## POLICY pki-int-gr8it.cloud
-# path "pki-int-gr8it.cloud/issue/*" {
-#   capabilities = ["create", "update"]
-# }
-# path "pki-int-gr8it.cloud/issuer/*" {
-#   capabilities = ["read"]
-# }
-# path "pki-int-gr8it.cloud/roles/*" {
-#   capabilities = ["list", "read"]
-# }
-
-## https://github.com/cert-manager/cert-manager/issues/6150
-# "path "dev-pki/*" {
-#   capabilities = ["read", "list"]
-# }
-# path "dev-pki/roles/dev-int1-cert-manager" {
-#   capabilities = ["create", "update"]
-# }
-# path "dev-pki/sign/dev-int1-cert-manager" {
-#   capabilities = ["create", "update"]
-# }
-# path "dev-pki/issue/dev-int1-cert-manager" {
-#   capabilities = ["create", "update", "read", "list"]
-# }"
