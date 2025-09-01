@@ -84,7 +84,7 @@ From VaultURL = hostname, or override if specified
 Create the Vault URL
 */}}
 {{- define "cert-manager-config.vaultUrl" -}}
-{{- .Values.vaultUrl | default .Values.global.apc.services.vault.url -}}
+{{- .Values.vaultUrl | default .Values.global.apc.services.vault.url | required "Vault URL is required" -}}
 {{- end }}
 
 {{/*
