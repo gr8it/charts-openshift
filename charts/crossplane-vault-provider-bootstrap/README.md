@@ -68,17 +68,18 @@ The chart is implemented as an ACM policy and does following:
 
 ## Token Secret generation
 
-1) Admin creates a token
+1) Admin creates a token using `vault token create -ttl=15m --renewable=false`
 
    ```bash
-   vault token create -ttl=15m
-   Key                Value
-   ---                -----
-   token              fdb90d58-af87-024f-fdcd-9f95039e353a
-   token_accessor     4cd9177c-034b-a004-c62d-54bc56c0e9bd
-   token_duration     10m
-   token_renewable    false
-   token_policies     [root]
+   Key                  Value
+   ---                  -----
+   token                hvs.CAESFrBiuq2OJ4J1Vcr6-tiEyY0kZVeDQzTXh9fpiBVt1BBmnxEFWGh4KHGh2cy42R2IGmpsTXBOZ0xJYkZuQ25kemg
+   token_accessor       wpVWsKklJhRTIEE374JbeyF7
+   token_duration       15m
+   token_renewable      false
+   token_policies       ["admin" "default"]
+   identity_policies    []
+   policies             ["admin" "default"]
    ```
 
 > [!NOTE]  
