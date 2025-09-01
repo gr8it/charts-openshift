@@ -1,0 +1,19 @@
+apiVersion: kubernetes.vault.upbound.io/v1alpha1
+kind: AuthBackendRole
+metadata:
+  name: {{ include "cert-manager-config.clusterName" . }}-{{ .Values.vaultKubeAuthRole }}
+spec:
+  forProvider:
+    audience: vault://{{ include "cert-manager-config.clusterIssuerName" . }}
+    backend: {{ include "cert-manager-config.vaultKubeAuthMountPath" . }}
+    boundServiceAccountNames:
+      - {{ .Values.kubeServiceAccount }}
+    boundServiceAccountNamespaces:
+      - {{ .Release.Namespace }}
+    roleName: {{ .Values.vaultKubeAuthRole }}
+    tokenPolicies:
+      - default
+      - {{ include "cert-manager-config.clusterName" . }}--{{ .Values.vaultKubeAuthRole }}
+    tokenTtl: 3600
+  providerConfigRef:
+    name: {{ include "cert-manager-config.kubeVaultProviderConfigName" . }}
