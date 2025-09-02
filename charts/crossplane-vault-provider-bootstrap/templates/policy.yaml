@@ -192,8 +192,8 @@ spec:
                     backend: '{{"{{"}}hub "{{ .Values.vaultKubeAuthPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}'
                     disableLocalCaJwt: true
                     kubernetesHost: '{{`{{ fromClusterClaim "apiserverurl.openshift.io" }}`}}'
-                    kubernetesCaCert:
-                      {{- .Values.customCACertificates | default .Values.global.apc.caCertificates | toYaml | nindent 22 }}
+                    kubernetesCaCert: |
+                      {{- include "crossplane-vault-provider-bootstrap.caCertificates" . | nindent 22 }}
                   providerConfigRef:
                     name: {{ $vaultProviderConfigName }}
 

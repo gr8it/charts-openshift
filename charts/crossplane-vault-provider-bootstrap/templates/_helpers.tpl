@@ -60,3 +60,14 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+
+{{- define "crossplane-vault-provider-bootstrap.caCertificates" -}}
+{{- if .Values.customCACertificates }}
+{{- .Values.customCACertificates }}
+{{- else }}
+{{- range $i, $item := (.Values.global.apc.caCertificates | values) }}
+{{- $item }}
+{{- end }}
+{{- end }}
+{{- end }}
