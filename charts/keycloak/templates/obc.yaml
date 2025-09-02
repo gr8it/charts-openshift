@@ -6,6 +6,5 @@ metadata:
   labels:
   {{- include "keycloak.labels" . | nindent 4 }}
 spec:
-  additionalConfig:
-  bucketName: {{ include "keycloak.fullname". }}-backup
-  storageClassName: openshift-storage.noobaa.io
+  bucketName: {{ .Values.bucketName | default (print (include "keycloak.fullname" .) "-backup") }}
+  storageClassName: {{ .Values.storageClassName | default "openshift-storage.noobaa.io" }}

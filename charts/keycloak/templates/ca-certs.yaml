@@ -2,9 +2,9 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: {{ include "keycloak.fullname" . }}-ca-certs
+  namespace: {{ .Release.Namespace }}
   labels:
   {{- include "keycloak.labels" . | nindent 4 }}
 stringData:
-  RootCA-Sp2.crt: {{ required "caCerts.rootCASp2Crt is required" .Values.caCerts.rootCASp2Crt
-    | quote }}
+  RootCA-Sp2.crt: {{ .Values.caCertificates.rootCASp2Crt | default .Values.global.apc.caCertificates.rootCASp2Crt  }}
 type: Opaque

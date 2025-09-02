@@ -39,7 +39,7 @@ helm.sh/chart: {{ include "keycloak.chart" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/managed-by: {{ .Values.releaseServiceOverride | default .Values.global.releaseServiceOverride | default .Release.Service}}
 {{- end }}
 
 {{/*
@@ -59,4 +59,28 @@ Create the name of the service account to use
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
+{{- end }}
+
+
+{{/*
+Create the name of URL for login
+*/}}
+{{- define "keycloak.loginURL" -}}
+login.{{ .Values.cluster.appsDomain | default .Values.global.apc.cluster.appsDomain }}
+{{- end }}
+
+{{/*
+Create the name of URL for admin service
+*/}}
+{{- define "keycloak.adminURL" -}}
+keycloak.{{ .Values.cluster.appsDomain | default .Values.global.apc.cluster.appsDomain }}
+{{- end }}
+
+
+{{/*
+Create the OBC storageClassName
+*/}}
+
+{{- define "obc.Create the OBC storageClassName" -}}
+keycloak.{{ .Values.cluster.appsDomain | default .Values.global.apc.cluster.appsDomain }}
 {{- end }}

@@ -1,18 +1,86 @@
+global: # to be overridden by helmfile global meta environment
+  apc:
+    cluster:
+      name: ~
+      appsDomain: ~
+    caCertificates:
+      sp2-root-ca.crt: ~
+    environmentShort: ~
+    services:
+      certManager:
+        defaultClusterIssuer: ~
+  
+  releaseServiceOverride: ~
+
+
+services:
+  certManager:
+    defaultClusterIssuer: ~
+
+cluster:
+  appsDomain: ~
+  name: ~
+caCertificates:
+  sp2-root-ca.crt: ~
+environmentShort: ~
+
+releaseServiceOverride: ~
+
+
+  
 nameOverride: ""
 fullnameOverride: ""
 
 caCerts:
   rootCASp2Crt: ""
 dbAuth:
-  password: ""
-  username: ""
+  username: "keycloak"
 kubernetesClusterDomain: cluster.local
 tlsSecret:
   tlsCrt: ""
   tlsKey: ""
 
+cnpg:
+  cluster:
+    instances: 2
+    image:
+      name: ghcr.io/cloudnative-pg/postgresql
+      tag: 16.4
+    backup:
+      retentionPolicy: 2w
+    #resources:
+    storage:
+      size: ~
+    walStorage:
+      size: ~
 
-storageClassName: noobaa-default-bucket-class
+
+keycloak:
+  additionalOptions:
+  - name: metrics-enabled
+    value: "true"
+  - name: health-enabled
+    value: "true"
+  - name: cache-metrics-histograms-enabled
+    value: "true"
+  - name: http-metrics-histograms-enabled
+    value: "true"
+  - name: http-metrics-slos
+    value: 5,10,25,50,250,500,1000,2500,5000,10000
+  - name: log-console-output
+    value: json
+  - name: log-level
+    value: INFO,org.keycloak.events:DEBUG,org.keycloak.services.error:DEBUG,org.keycloak.services.resources.admin:DEBUG
+  instances: 2
+  resources:
+    limits:
+      cpu: 2
+      memory: 2Gi
+    requests:
+      cpu: 100m
+      memory: 1Gi
+      
+storageClassName: "openshift-storage.noobaa.io" 
 bucketName: ~
 
 dbAuth:

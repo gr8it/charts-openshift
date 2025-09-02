@@ -1,54 +1,37 @@
 apiVersion: k8s.keycloak.org/v2alpha1
 kind: Keycloak
 metadata:
-  name: {{ include "keycloak.fullname" . }}-keycloak
+  name: {{ include "keycloak.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     app: keycloak
   {{- include "keycloak.labels" . | nindent 4 }}
 spec:
   additionalOptions:
-  - name: metrics-enabled
-    value: "true"
-  - name: health-enabled
-    value: "true"
-  - name: cache-metrics-histograms-enabled
-    value: "true"
-  - name: http-metrics-histograms-enabled
-    value: "true"
-  - name: http-metrics-slos
-    value: 5,10,25,50,250,500,1000,2500,5000,10000
-  - name: log-console-output
-    value: json
-  - name: log-level
-    value: INFO,org.keycloak.events:DEBUG,org.keycloak.services.error:DEBUG,org.keycloak.services.resources.admin:DEBUG
+  {{ toYaml .Values.keycloak.additionalOptions | nindent 4 }}
   db:
-    host: keycloak-db-rw
+    host: {{ include "keycloak.fullname" . }}-db-rw
     passwordSecret:
       key: password
-      name: keycloak-db-auth
+      name: {{ include "keycloak.fullname" . }}-db-auth
     usernameSecret:
       key: username
-      name: keycloak-db-auth
+      name: {{ include "keycloak.fullname" . }}-db-auth
     vendor: postgres
   hostname:
-    admin: https://keycloak.apps.dev01.cloud.socpoist.sk
-    hostname: https://login.apps.dev01.cloud.socpoist.sk
+    admin: https://{{ include "keycloak.adminURL" . }}
+    hostname: https://{{ include "keycloak.loginURL" . }}
   http:
-    tlsSecret: keycloak-tls-secret
+    tlsSecret: {{ include "keycloak.fullname" . }}-tls-secret
   ingress:
     enabled: false
-  instances: 2
+  instances: {{ .Values.keycloak.instances }}
   resources:
-    limits:
-      cpu: 2
-      memory: 2Gi
-    requests:
-      cpu: 100m
-      memory: 1Gi
+  {{ toYaml .Values.keycloak.resources | nindent 4 }}
   truststores:
     ca-cert-truststore:
       secret:
-        name: ca-certs
+        name: {{ include "keycloak.fullname" . }}-ca-certs
   unsupported:
     podTemplate:
       spec:

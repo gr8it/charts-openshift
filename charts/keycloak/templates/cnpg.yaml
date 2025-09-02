@@ -23,7 +23,7 @@ spec:
       wal:
         compression: bzip2
         maxParallel: 4
-    retentionPolicy: 2w
+    retentionPolicy: {{ .Values.cnpg.cluster.backup.retentionPolicy | default "2w" }}
     target: prefer-standby
   bootstrap:
     initdb:
@@ -36,8 +36,8 @@ spec:
       secret:
         name: {{ include "keycloak.fullname" . }}-db-auth
       walSegmentSize: 1
-  imageName: ghcr.io/cloudnative-pg/postgresql:16.4
-  instances: 2
+  imageName: {{ .Values.cnpg.cluster.image.name }}:{{ .Values.cnpg.cluster.image.tag  }}
+  instances: {{ .Values.cnpg.cluster.instances }}
   maxSyncReplicas: 1
   minSyncReplicas: 0
   monitoring:
@@ -56,13 +56,17 @@ spec:
   replicationSlots:
     updateInterval: 30
   resources:
+    {{ if .Values.cnpg.cluster.resources }}
+    {{ toYaml .Values.cnpg.cluster.resources | indent 4 }}
+    {{ else }}
     limits:
       cpu: "1"
       memory: 500Mi
     requests:
       cpu: "0.1"
       memory: 500Mi
+    {{ end }}  
   storage:
-    size: 1Gi
+    size: {{ .Values.cnpg.cluster.storage.size | default "1Gi" }}
   walStorage:
-    size: 1Gi
+    size: {{ .Values.cnpg.cluster.walStorage.size | default "1Gi" }}
