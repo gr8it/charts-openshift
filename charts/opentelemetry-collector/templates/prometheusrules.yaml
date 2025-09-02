@@ -1,0 +1,22 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: opentelemetry-operator-custom-prometheus-rules
+  namespace: {{ (index .Values "acm-operatorpolicy").subscription.namespace | default "openshift-opentelemetry-operator" }}
+  labels:
+    {{- include "opentelemetry-collector.labels" . | nindent 4 }}
+spec:
+  groups:
+    - name: opentelemetry-operator-custom-monitoring.rules
+      rules:
+        - alert: OpentelemetryOperatorDown
+          annotations:
+            description: "Opentelemetry operator pod has been down for more than 5 minutes"
+            summary: "Opentelemetry operator is not running"
+          expr: |
+            absent(up{job="opentelemetry-operator-controller-manager-metrics-service"}) == 1
+          for: 5m
+          labels:
+            severity: warning
+            {{- include "opentelemetry-collector.monitoringLabels" . | nindent 12 }}
