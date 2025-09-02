@@ -68,7 +68,13 @@ Create the mount path
 Create the mount path
 */}}
 {{- define "cert-manager-config.caCertificates" -}}
-{{- .Values.caCertificates | default .Values.global.apc.caCertificates -}}
+{{- if .Values.caCertificates }}
+{{- .Values.caCertificates }}
+{{- else }}
+{{- range $i, $item := (.Values.global.apc.caCertificates | values) }}
+{{- $item }}
+{{- end }}
+{{- end }}
 {{- end }}
 
 {{/*

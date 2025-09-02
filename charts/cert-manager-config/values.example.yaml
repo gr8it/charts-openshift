@@ -1,44 +1,78 @@
-# global:
-#   apc:
-#     cluster:
-#       name: test01
-#       appsDomain: apps.test01.cloud.socpoist.sk
-#     caCertificates: |
-#       -----BEGIN CERTIFICATE-----
-#       MIIFeDCCA2CgAwIBAgIQOwdgFGGlYrpEM2DY1GNmezANBgkqhkiG9w0BAQsFADBD
-#       MRIwEAYKCZImiZPyLGQBGRYCc2sxGDAWBgoJkiaJk/IsZAEZFghzb2Nwb2lzdDET
-#       MBEGA1UEAxMKUm9vdENBLVNwMjAgFw0xNjAyMDIwOTUxNTNaGA8yMDU2MDIwMjEw
-#       MDE0NlowQzESMBAGCgmSJomT8ixkARkWAnNrMRgwFgYKCZImiZPyLGQBGRYIc29j
-#       cG9pc3QxEzARBgNVBAMTClJvb3RDQS1TcDIwggIiMA0GCSqGSIb3DQEBAQUAA4IC
-#       DwAwggIKAoICAQCfiXTYc128MltTevG81TROBLk0nleICvvz2SKhP4Um2vGmHMky
-#       +7Dn7cvSf9G6yY3X8mu2gW018usLrMjGbzgJVBZr2C/2ZHSeof5FmSuZ3GUW2DVN
-#       nt4UHydnF8glN2yo3ODyof1/+HJn5jF7CJvDJQvPI5XvB3sWDdIG6yWJLR3qsEv0
-#       4rvjDFWYWVOOYb/w86PrlB1jew+BLii7O2xlfAAtNbPEFkCEBHlWm3Lsy9ixIpaG
-#       5JNNt7auiXLKxOvreG3TUIYx+aVX4lEVxQQ/wahBEH0d0edzgtklghWckFi+nsSS
-#       HyMZpV+/cCdlmRlRXP1MpN/SimN9AP0o7+cPhzpWs7sOO2ADm5tpLoh1vM9e4DmY
-#       cOxQ2p/G0J3F70nlScpHwRlfjtr1iaS6krtMFGbagwYrWmivNiS14LvgYA/YeYzl
-#       jcNGD6yKaLXSI2O786LnytBeBHpK22F1Oc4+XBa44hWdEZjvKCshSJm43mJCOPIP
-#       4nUaZPhoflBYkp+qAjEuGD7ikijJ2NX3iKZSUe1SgwUI9asIoarIr7AsO/AQUJiJ
-#       LkRsiwILQ3wBa0NvnhlZU0mcHVmIMz+SIilTLx2dheyzrjRvu96biZ/y73U171ac
-#       5VBcSkPCkoOZTuaGPI6RtoXtIypSd/uhlS/rYkcRWbKxmlo/lj16uz7rwQIDAQAB
-#       o2YwZDATBgkrBgEEAYI3FAIEBh4EAEMAQTALBgNVHQ8EBAMCAYYwDwYDVR0TAQH/
-#       BAUwAwEB/zAdBgNVHQ4EFgQUUtDt5QcMwPgNb3ca9cPMVuPDoN4wEAYJKwYBBAGC
-#       NxUBBAMCAQAwDQYJKoZIhvcNAQELBQADggIBAAxSLu9i564zgofSayVNvm8PeRBx
-#       o+wGgJTQXmihoqowN0x+nieoq1zBURGbYs6yYtrK9pp2x9gOo76a5HgT/Wj02aR1
-#       e2UMPVMSk0LErmcVGmziMFfnxtkcwRRVFp9YUysU2JVOIj1qNYgrBph7bGK3AZwv
-#       KGxNNTWSmrWNyAbx6LGRI39JMlz012nRK7XOSwmw0Mh89nzURIAMfpOLB0tobZMD
-#       l8/J37ZAteIDlQ37EdI0jNH0yCaR1AkSlugVIAWe7ed7J0PQxRNqOsBqZZt0lltr
-#       LyXZ8olycukKEUO8HNmCqIttw3Wppi4/wXfSP9yTdp+36oyVmfLVsrPS63kDijGL
-#       qHtyJZmZAIs67FcwzAqe+eY0CAiax7r/NJLeYr17mR96/FeN7R5/n0ZL+icmEtEp
-#       7JiAzW/pAZ1RsTaDuPsRVRyWehAFOY/fKJmoUkLORQgRh/j7DsWGuApuLB+CtBga
-#       C1RvjSVgV4b3wM5KLJyc8akthKUoMzcMMvfztIjp4iZAkDKSfQcFML9LPZijobe9
-#       EGk2fSV1RcDLgqiw+F0vK32W8D7ncxNhNHekcuSjxqRxoMW6FU+MJ0ZQEaLhHALd
-#       eBhV/NO5Fc3j7X0Sosja7rJBpvoN07b7W4v8Nxmi685nw/Qh3nVWVU3MNTeBdB1C
-#       IdiAPCAYoq4mhRNe
-#       -----END CERTIFICATE-----
-#     services:
-#       vault:
-#         url: https://vault.apps.hub01.cloud.socpoist.sk
+global:
+  apc:
+    cluster:
+      name: test01
+      appsDomain: apps.test01.cloud.socpoist.sk
+    caCertificates:
+      root-ca.crt: |
+        -----BEGIN CERTIFICATE-----
+        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
+        IdiAPCAYoq4mhRNe
+        -----END CERTIFICATE-----
+      root-ca2.crt: |
+        -----BEGIN CERTIFICATE-----
+        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
+        IdiAPCAYoq4mhRNe
+        -----END CERTIFICATE-----
+    services:
+      vault:
+        url: https://vault.apps.hub01.cloud.socpoist.sk
 
 clusterName: ocpdemo-spoke1
 # CA to validate Vault cert. If not specified, defaults to global.apc.caCertificates
