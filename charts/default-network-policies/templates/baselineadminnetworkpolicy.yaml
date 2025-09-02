@@ -20,7 +20,7 @@ spec:
       action: Deny
       from:
       - namespaces: {}
-  {{- if (include "default-network-policies.proxyIPs" .) }}
+  {{- if (include "default-network-policies.proxyIPs" . | fromJsonArray) }}
   egress:
   - action: Deny
     name: deny-to-proxy

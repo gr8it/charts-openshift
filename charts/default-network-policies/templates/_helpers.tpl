@@ -89,5 +89,7 @@ Creates proxyIPs list. If not specified, uses global value
 {{- $proxyIPs := .Values.proxyIPs | default .Values.global.apc.proxyIPs -}}
 {{- if $proxyIPs -}}
 {{ $proxyIPs | toJson }}
+{{- else -}}
+{{ list }}
 {{- end -}}
 {{- end -}}

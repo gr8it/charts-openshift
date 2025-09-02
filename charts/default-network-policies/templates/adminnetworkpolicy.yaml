@@ -67,7 +67,7 @@ spec:
       to:
       - namespaces: {}
       - nodes: {}
-    {{- if (include "default-network-policies.proxyIPs" .) }}
+    {{- if (include "default-network-policies.proxyIPs" . | fromJsonArray) }}
     - name: pass-egress-to-proxy
       action: Pass
       to:
@@ -184,7 +184,7 @@ spec:
       to:
       - namespaces: {}
       - nodes: {}
-    {{- if (include "default-network-policies.proxyIPs" .) }}
+    {{- if (include "default-network-policies.proxyIPs" . | fromJsonArray) }}
     - name: pass-egress-to-proxy
       action: Pass
       to:
