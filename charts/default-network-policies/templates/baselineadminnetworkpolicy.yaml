@@ -20,11 +20,11 @@ spec:
       action: Deny
       from:
       - namespaces: {}
-  {{- if .Values.proxyIPs }}
+  {{- if (include "default-network-policies.proxyIPs" .) }}
   egress:
   - action: Deny
     name: deny-to-proxy
     to:
     - networks:
-      {{- toYaml .Values.proxyIPs | nindent 6 }}
+      {{- toYaml (include "default-network-policies.proxyIPs" . | fromJsonArray) | nindent 6 }}
   {{- end }}

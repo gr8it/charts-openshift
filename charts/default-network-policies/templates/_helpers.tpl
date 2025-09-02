@@ -81,3 +81,13 @@ This function:
   {{- $default -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Creates proxyIPs list. If not specified, uses global value
+*/}}
+{{- define "default-network-policies.proxyIPs" -}}
+{{- $proxyIPs := .Values.proxyIPs | default .Values.global.apc.proxyIPs -}}
+{{- if $proxyIPs -}}
+{{ $proxyIPs | toJson }}
+{{- end -}}
+{{- end -}}

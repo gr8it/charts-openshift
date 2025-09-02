@@ -67,12 +67,12 @@ spec:
       to:
       - namespaces: {}
       - nodes: {}
-    {{- if .Values.proxyIPs }}
+    {{- if (include "default-network-policies.proxyIPs" .) }}
     - name: pass-egress-to-proxy
       action: Pass
       to:
       - networks:
-        {{- toYaml .Values.proxyIPs | nindent 8 }}
+        {{- toYaml (include "default-network-policies.proxyIPs" . | fromJsonArray ) | nindent 8 }}
     {{- end }}
     - name: allow-all-private-cidrs-for-cluster-external-traffic
       action: Allow
@@ -184,12 +184,12 @@ spec:
       to:
       - namespaces: {}
       - nodes: {}
-    {{- if .Values.proxyIPs }}
+    {{- if (include "default-network-policies.proxyIPs" .) }}
     - name: pass-egress-to-proxy
       action: Pass
       to:
       - networks:
-        {{- toYaml .Values.proxyIPs | nindent 8 }}
+        {{- toYaml (include "default-network-policies.proxyIPs" . | fromJsonArray) | nindent 8 }}
     {{- end }}
     - name: allow-all-private-cidrs-for-cluster-external-traffic
       action: Allow
