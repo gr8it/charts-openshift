@@ -109,6 +109,32 @@ entries:
     urls:
     - packaged_charts/argocd-app-of-apps-1.0.0.tgz
     version: 1.0.0
+  cert-manager-config:
+  - apiVersion: v2
+    created: "2025-09-03T10:49:26.023345473+02:00"
+    description: A Helm chart to install Cert Manager Operator configuration
+    digest: 4e657316ca00d5ea17c141def21b5d868fb96aa3bfaaf956e6d51ff2fceda6b6
+    name: cert-manager-config
+    type: application
+    urls:
+    - packaged_charts/cert-manager-config-1.0.0.tgz
+    version: 1.0.0
+  cert-manager-operator:
+  - apiVersion: v2
+    appVersion: v1.15.1
+    created: "2025-09-01T21:21:22.143986341+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.0
+    description: A Helm chart to install Cert Manager Operator using ACM operator
+      policy
+    digest: c68fa1658068a1f455cc55cada8d872e80f1d05c101b5f9bff7663f53f748635
+    name: cert-manager-operator
+    type: application
+    urls:
+    - packaged_charts/cert-manager-operator-1.0.0.tgz
+    version: 1.0.0
   cert-utils-operator:
   - apiVersion: v2
     appVersion: v1.3.12
@@ -185,6 +211,16 @@ entries:
   crossplane-vault-provider:
   - apiVersion: v2
     appVersion: v2.1.1
+    created: "2025-08-28T21:37:30.566621773+02:00"
+    description: A Helm chart to deploy Crossplane Vault provider
+    digest: 60cdcf25645c8051564b5251eccf3e60ffa9d0be42f952e026d87da82de507de
+    name: crossplane-vault-provider
+    type: application
+    urls:
+    - packaged_charts/crossplane-vault-provider-1.2.0.tgz
+    version: 1.2.0
+  - apiVersion: v2
+    appVersion: v2.1.1
     created: "2025-08-01T14:48:21.435931229+02:00"
     description: A Helm chart to deploy Crossplane Vault provider
     digest: 1fe5fd6b3559ce370c8ec4df15431d1f3826c6be3210474dd3f6881d8f65d6de
@@ -201,6 +237,16 @@ entries:
     type: application
     urls:
     - packaged_charts/crossplane-vault-provider-1.0.0.tgz
+    version: 1.0.0
+  crossplane-vault-provider-bootstrap:
+  - apiVersion: v2
+    created: "2025-09-02T23:48:19.29922574+02:00"
+    description: A Helm chart for Kubernetes
+    digest: 04f89f5fd3d98e5abbb420b9e88030996b832ec2778f03d4863e2ccad86bafb1
+    name: crossplane-vault-provider-bootstrap
+    type: application
+    urls:
+    - packaged_charts/crossplane-vault-provider-bootstrap-1.0.0.tgz
     version: 1.0.0
   crossplane-vault-provider-config:
   - apiVersion: v2
@@ -221,6 +267,17 @@ entries:
     urls:
     - packaged_charts/crossplane-vault-provider-config-1.0.0.tgz
     version: 1.0.0
+  default-network-policies:
+  - apiVersion: v2
+    created: "2025-09-03T13:37:43.051097395+02:00"
+    description: A Helm chart to apply default network policies for platform and application
+      namespaces.
+    digest: fbdc99657c9f65a5dda0f289001327470fba502bb65132d0f612f468a5f5317d
+    name: default-network-policies
+    type: application
+    urls:
+    - packaged_charts/default-network-policies-1.0.0.tgz
+    version: 1.0.0
   gitops-bootstrap:
   - apiVersion: v2
     appVersion: v1
@@ -234,9 +291,9 @@ entries:
     version: 1.7.0
   - apiVersion: v2
     appVersion: v1
-    created: "2025-09-02T22:39:59.844896346+02:00"
+    created: "2025-09-02T15:38:12.318371725+02:00"
     description: A Helm chart to bootstrap APC GitOps using ACM policies
-    digest: 41d907f76a4dd16bc4af50b3f0d2afd870879b29883c7b711735fe82a82bfbf4
+    digest: 8a4a4b4d67da23dbe7581c4397fc4f2c28c833778d2a5e6c43dd712b0a7373df
     name: gitops-bootstrap
     type: application
     urls:
@@ -282,6 +339,27 @@ entries:
     urls:
     - packaged_charts/gitops-bootstrap-1.4.0.tgz
     version: 1.4.0
+  keycloak:
+  - apiVersion: v2
+    appVersion: v26.0
+    created: "2025-09-03T12:20:56.641014558+02:00"
+    description: A Helm chart for APC keycloak
+    digest: ed4ee138832134aa0ddf519e68af3732c98219a8d449c71c89aa44fbf829da1b
+    name: keycloak
+    type: application
+    urls:
+    - packaged_charts/keycloak-1.0.0.tgz
+    version: 1.0.0
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2025-09-02T14:15:19.500666421+02:00"
+    description: A Helm chart for APC keycloak
+    digest: 0360ffd5dd3ef8e9c89fc980ac975960415f02db471cb4360b3f9dfb43a79c1b
+    name: keycloak
+    type: application
+    urls:
+    - packaged_charts/keycloak-0.1.0.tgz
+    version: 0.1.0
   keycloak-operator:
   - apiVersion: v2
     appVersion: v26.0
@@ -389,4 +467,4 @@ entries:
     urls:
     - packaged_charts/strimzi-kafka-operator-1.0.0.tgz
     version: 1.0.0
-generated: "2025-09-02T22:48:19.829355719+02:00"
+generated: "2025-09-03T13:37:43.050776733+02:00"

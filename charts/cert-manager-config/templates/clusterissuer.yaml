@@ -1,0 +1,19 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ include "cert-manager-config.defaultClusterIssuer" . }}
+  labels:
+    {{- include "cert-manager-config.labels" . | nindent 4 }}
+spec:
+  vault:
+    auth:
+      kubernetes:
+        mountPath: /v1/auth/{{ include "cert-manager-config.vaultKubeAuthMountPath" . }}
+        role: {{ .Values.vaultKubeAuthRole }}
+        serviceAccountRef:
+          name: {{ .Values.kubeServiceAccount }}
+          audiences:
+            - "https://kubernetes.default.svc"
+    caBundle: {{ (include "cert-manager-config.caCertificates" .) | b64enc }}
+    path: {{ .Values.vaultPkiPath }}/sign/{{ include "cert-manager-config.vaultPkiRole" . }}
+    server: {{ include "cert-manager-config.vaultUrl" . }}
