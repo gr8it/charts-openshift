@@ -1,0 +1,68 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "keycloak.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+  {{- include "keycloak.labels" . | nindent 4 }}
+spec:
+  groups:
+  - name: apc-keycloak.rules
+    rules:
+    - alert: APC Keycloak down
+      annotations:
+        description: No keycloak pods up for more than 5 minutes
+        summary: Keycloak is not running
+      expr: |
+        absent(up{job="keycloak-service",namespace="{{ .Release.Namespace }}"}) == 1
+      for: 5m
+      labels:
+        severity: warning
+        team: platform
+        vendor: aspecta
+    - alert: APC Keycloak degraded
+      annotations:
+        description: Keycloak degraded for more than 5 minutes
+        summary: Keycloak is degraded
+      expr: |
+        sum(up{container="keycloak", namespace="{{ .Release.Namespace }}"}) < 2
+      for: 5m
+      labels:
+        severity: warning
+        team: platform
+        vendor: aspecta
+    - alert: APC Keycloak high latency
+      annotations:
+        description: Keycloak - Response time for authentication related HTTP requests
+          is higher than 250ms for more than 5 minutes
+        summary: Keycloak  - Response time for authentication related HTTP requests
+          is higher than 250ms for more than 5 minutes. 95% of all authentication
+          related requests should be faster than 250 ms within a 5-minute-range.
+      expr: "(\nsum(\n  rate(\n    http_server_requests_seconds_bucket{\n      uri=~\"/admin|/admin/{realm}/console|/realms/{realm}/protocol/{protocol}.*|/realms/{realm}/login-actions.*\",
+        \n      le=\"0.25\", \n      container=\"keycloak\", \n      namespace=\"{{ .Release.Namespace }}\"}\n
+        \   [5m] \n  )\n) without (le,uri,status,outcome,method,pod,instance) \n/\nsum(\n
+        \ rate(\n    http_server_requests_seconds_count{\n      uri=~\"/admin|/admin/{realm}/console|/realms/{realm}/protocol/{protocol}.*|/realms/{realm}/login-actions.*\",
+        \n      container=\"keycloak\",\n      namespace=\"{{ .Release.Namespace }}\"}\n    [5m]
+        \n  )\n) without (le,uri,status,outcome,method,pod,instance)\n) < 0.95\n"
+      for: 5m
+      labels:
+        severity: warning
+        team: platform
+        vendor: aspecta
+    - alert: APC Keycloak high failed authentication requests
+      annotations:
+        description: Keycloak - Failed authentication requests due to server problems
+        summary: Keycloak  - Failed authentication requests due to server problems.
+          The rate of errors due to server problems for authentication requests should
+          be less than 0.1% within a 5-minute-range.
+      expr: "(\nsum(\n  rate(\n    http_server_requests_seconds_count{\n      uri=~\"/admin|/admin/{realm}/console|/realms/{realm}/protocol/{protocol}.*|/realms/{realm}/login-actions.*\",
+        \n      outcome=\"SERVER_ERROR\", \n      container=\"keycloak\", \n      namespace=\"{{ .Release.Namespace }}\"}\n
+        \   [5m] \n  )\n) without (le,uri,status,outcome,method,pod,instance)  \n/\nsum(\n
+        \ rate(\n    http_server_requests_seconds_count{\n      uri=~\"/admin|/admin/{realm}/console|/realms/{realm}/protocol/{protocol}.*|/realms/{realm}/login-actions.*\",
+        \n      container=\"keycloak\", \n      namespace=\"{{ .Release.Namespace }}\"}\n    [5m]
+        \n  )\n) without (le,uri,status,outcome,method,pod,instance)\n) < 0.9999\n"
+      for: 5m
+      labels:
+        severity: warning
+        team: platform
+        vendor: aspecta
