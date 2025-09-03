@@ -11,5 +11,5 @@ spec:
     name: {{ include "keycloak.fullname" . }}-db
   immediate: true
   method: barmanObjectStore
-  schedule: 0 0 0 * * SAT
+  schedule: {{ .Values.cnp.backup.schedule | default "0 0 0 * * *"}}
   suspend: false
