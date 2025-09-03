@@ -7,7 +7,7 @@ spec:
   secretName: wildcard-apps-{{ include "cert-manager-config.clusterName" . }}-cert
   issuerRef: 
     kind: ClusterIssuer
-    name: {{ include "cert-manager-config.clusterIssuerName" . }}
+    name: {{ include "cert-manager-config.defaultClusterIssuer" . }}
   commonName: {{ include "cert-manager-config.ingressCertCommonName" . }}
   dnsNames:
   {{- range include "cert-manager-config.ingressCertDnsNames" . | fromJsonArray }}

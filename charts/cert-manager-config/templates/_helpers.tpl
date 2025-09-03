@@ -90,14 +90,14 @@ From VaultURL = hostname, or override if specified
 Create the Vault URL
 */}}
 {{- define "cert-manager-config.vaultUrl" -}}
-{{- .Values.vaultUrl | default .Values.global.apc.services.vault.url | required "Vault URL is required" -}}
+{{- .Values.vaultUrl | default .Values.global.apc.services.vault.url | required "Vault URL is required" }}
 {{- end }}
 
 {{/*
 Create the Vault PKI role to use for signing certs
 */}}
 {{- define "cert-manager-config.vaultPkiRole" -}}
-{{- .Values.vaultPkiRole | default .Values.global.apc.cluster.appsDomain -}}
+{{- .Values.vaultPkiRole | default .Values.global.apc.cluster.appsDomain }}
 {{- end }}
 
 {{/*
@@ -110,9 +110,15 @@ Create the vault provider config name
 {{/*
 Create the cert-manager cluster issuer name
 */}}
-{{- define "cert-manager-config.clusterIssuerName" -}}
-{{- $vaultName := regexReplaceAll "https?://([^:/]+).*" (.Values.vaultUrl | default .Values.global.apc.services.vault.url) "${1}" | required "Vault URL/Name is required" -}}
+{{- define "cert-manager-config.defaultClusterIssuer" -}}
+{{- if .Values.defaultClusterIssuer }}
+{{- .Values.defaultClusterIssuer }}
+{{- else if  .Values.global.apc.services.certManager.defaultClusterIssuer -}}
+{{- .Values.global.apc.services.certManager.defaultClusterIssuer }}
+{{- else -}}
+{{- $vaultName := regexReplaceAll "https?://([^:/]+).*" (include "cert-manager-config.vaultUrl" .) "${1}" | required "Vault URL/Name is required" -}}
 vault-{{ include "cert-manager-config.vaultName" . }}-issuer
+{{- end }}
 {{- end }}
 
 {{/*
