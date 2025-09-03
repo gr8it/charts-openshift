@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "gitops-bootstrap.name" -}}
+{{- define "default-network-policies.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "gitops-bootstrap.fullname" -}}
+{{- define "default-network-policies.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "gitops-bootstrap.chart" -}}
+{{- define "default-network-policies.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "gitops-bootstrap.labels" -}}
-helm.sh/chart: {{ include "gitops-bootstrap.chart" . }}
-{{ include "gitops-bootstrap.selectorLabels" . }}
+{{- define "default-network-policies.labels" -}}
+helm.sh/chart: {{ include "default-network-policies.chart" . }}
+{{ include "default-network-policies.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,41 +45,50 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "gitops-bootstrap.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "gitops-bootstrap.name" . }}
+{{- define "default-network-policies.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "default-network-policies.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "gitops-bootstrap.serviceAccountName" -}}
+{{- define "default-network-policies.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "gitops-bootstrap.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "default-network-policies.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
 
-{{- define "gitops-bootstrap.repoUrl" -}}
-{{- .Values.repo.url | default .Values.global.apc.repoURL }}
-{{- end }}
+{{/*
+Helper function to work around helm limitation while using the default function, where false and null / nil are handled the same.
+This function:
+- returns value (1st argument) if the value is a boolean or string "true" or "false"
+- if not, it returns global value (2nd argument) if it is a boolean or string "true" or "false"
+- otherwise it returns the fallback value = default (3rd argument)
+*/}}
 
-{{- define "gitops-bootstrap.targetRevision" -}}
-{{- .Values.repo.targetRevision | default .Values.global.apc.repoTargetRevision | default "main" }}
-{{- end }}
-
-{{- define "gitops-bootstrap.repoShort" -}}
-{{- mustRegexReplaceAll "^https://github.com/([^/]+)/([^/.]+)(.git|/)?$" (include "gitops-bootstrap.repoUrl" .) "${1}-${2}" }}
-{{- end }}
+{{- define "default-network-policies.boolDefaults" -}}
+{{- $value := index . 0 -}}
+{{- $global := index . 1 -}}
+{{- $default := index . 2 -}}
+{{- if or (kindIs "bool" $value) (and (kindIs "string" $value) (or (eq $value "true") (eq $value "false"))) -}}
+  {{- $value -}}
+{{- else if or (kindIs "bool" $global) (and (kindIs "string" $global) (or (eq $global "true") (eq $global "false"))) -}}
+  {{ $global }}
+{{- else -}}
+  {{- $default -}}
+{{- end -}}
+{{- end -}}
 
 {{/*
 Creates proxyIPs list. If not specified, uses global value
 */}}
-{{- define "gitops-bootstrap.proxyIPs" -}}
+{{- define "default-network-policies.proxyIPs" -}}
 {{- $proxyIPs := .Values.proxyIPs | default .Values.global.apc.proxyIPs -}}
 {{- if $proxyIPs -}}
-{{- $proxyIPs | toJson -}}
+{{ $proxyIPs | toJson }}
 {{- else -}}
 {{ list }}
 {{- end -}}

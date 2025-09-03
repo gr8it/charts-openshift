@@ -8,14 +8,15 @@ bootstrap: false
 instanceName: apc-argocd
 namespace: apc-gitops # where to install custom ArgoCD instance
 
-# uses following global variables
-global: # to be overridden by helmfile global meta environment
+# uses following global values => do not set here
+global:
   apc:
     repoURL: ~
     repoTargetRevision: ~
     cluster:
       name: hub
       appsDomain: ~
+    proxyIPs: []
 
 cluster:
   name: ~ # name of the hub cluster, to be used in argocd-app-of-apps rendered path
@@ -28,6 +29,15 @@ repo:
     app_id: ~
     installation_id: ~
     private_key: ~
+
+# operator subs to install
+subscription:
+  channel: gitops-1.17
+  # first version is used as startingCSV
+  versions:
+    - openshift-gitops-operator.v1.16.1
+    - openshift-gitops-operator.v1.16.2
+    - openshift-gitops-operator.v1.17.0
 
 # As no shared mechanism exists to get parameters of argocd-app-of-apps application from the argocd-app-of-apps chart, we use manual settings here
 # will be overriden by argocd-app-of-apps settings from repo anyway
@@ -43,3 +53,5 @@ adminGroups:
 - ocp_admins_prod
 - ocp_admins_test
 - ocp_admins_dev
+
+proxyIPs: [] # if set, communication to these IP will be allowed

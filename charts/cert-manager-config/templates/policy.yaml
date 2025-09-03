@@ -1,0 +1,20 @@
+apiVersion: vault.vault.upbound.io/v1alpha1
+kind: Policy
+metadata:
+  name: {{ include "cert-manager-config.clusterName" .  }}--{{ .Values.vaultKubeAuthRole }}
+spec:
+  forProvider:
+    name: {{ include "cert-manager-config.clusterName" .  }}--{{ .Values.vaultKubeAuthRole }}
+    ## https://github.com/cert-manager/cert-manager/issues/6150
+    policy: |
+
+      path "{{ .Values.vaultPkiPath }}/sign/{{ include "cert-manager-config.vaultPkiRole" . }}" {
+        capabilities = ["create", "update"]
+      }
+
+      path "{{ .Values.vaultPkiPath }}/issue/{{ include "cert-manager-config.vaultPkiRole" . }}" {
+        capabilities = ["create", "update"]
+      }
+
+  providerConfigRef:
+    name: {{ include "cert-manager-config.kubeVaultProviderConfigName" . }}

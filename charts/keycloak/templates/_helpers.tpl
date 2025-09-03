@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "gitops-bootstrap.name" -}}
+{{- define "keycloak.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "gitops-bootstrap.fullname" -}}
+{{- define "keycloak.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,61 +26,61 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "gitops-bootstrap.chart" -}}
+{{- define "keycloak.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "gitops-bootstrap.labels" -}}
-helm.sh/chart: {{ include "gitops-bootstrap.chart" . }}
-{{ include "gitops-bootstrap.selectorLabels" . }}
+{{- define "keycloak.labels" -}}
+helm.sh/chart: {{ include "keycloak.chart" . }}
+{{ include "keycloak.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/managed-by: {{ .Values.releaseServiceOverride | default .Values.global.releaseServiceOverride | default .Release.Service}}
 {{- end }}
 
 {{/*
 Selector labels
 */}}
-{{- define "gitops-bootstrap.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "gitops-bootstrap.name" . }}
+{{- define "keycloak.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "keycloak.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "gitops-bootstrap.serviceAccountName" -}}
+{{- define "keycloak.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "gitops-bootstrap.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "keycloak.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
 
-{{- define "gitops-bootstrap.repoUrl" -}}
-{{- .Values.repo.url | default .Values.global.apc.repoURL }}
-{{- end }}
 
-{{- define "gitops-bootstrap.targetRevision" -}}
-{{- .Values.repo.targetRevision | default .Values.global.apc.repoTargetRevision | default "main" }}
-{{- end }}
-
-{{- define "gitops-bootstrap.repoShort" -}}
-{{- mustRegexReplaceAll "^https://github.com/([^/]+)/([^/.]+)(.git|/)?$" (include "gitops-bootstrap.repoUrl" .) "${1}-${2}" }}
+{{/*
+Create the name of URL for login
+*/}}
+{{- define "keycloak.loginURL" -}}
+login.{{ .Values.cluster.appsDomain | default .Values.global.apc.cluster.appsDomain }}
 {{- end }}
 
 {{/*
-Creates proxyIPs list. If not specified, uses global value
+Create the name of URL for admin service
 */}}
-{{- define "gitops-bootstrap.proxyIPs" -}}
-{{- $proxyIPs := .Values.proxyIPs | default .Values.global.apc.proxyIPs -}}
-{{- if $proxyIPs -}}
-{{- $proxyIPs | toJson -}}
-{{- else -}}
-{{ list }}
-{{- end -}}
-{{- end -}}
+{{- define "keycloak.adminURL" -}}
+keycloak.{{ .Values.cluster.appsDomain | default .Values.global.apc.cluster.appsDomain }}
+{{- end }}
+
+
+{{/*
+Create the OBC storageClassName
+*/}}
+
+{{- define "obc.Create the OBC storageClassName" -}}
+keycloak.{{ .Values.cluster.appsDomain | default .Values.global.apc.cluster.appsDomain }}
+{{- end }}

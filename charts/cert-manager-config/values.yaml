@@ -1,0 +1,33 @@
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+# uses following global values => do not set here
+global:
+  apc:
+    cluster:
+      name: ~
+      appsDomain: ~
+    caCertificates: ~
+    services:
+      vault:
+        url: ""
+      certManager:
+        defaultClusterIssuer: ~
+
+clusterName: ~ # if not specified, defaults to global.apc.cluster.name
+caCertificates: ~ # CAs to validate Vault cert. String of concatenated PEM encoded certs as opposed to the global value, which is a dictionary of strings. If not specified, defaults to global.apc.caCertificates.
+defaultClusterIssuer: # if not specified, defaults to global.apc.services.certManager.defaultClusterIssuer, or vault-{{ "vaultName" }}-issuer
+
+vaultUrl: ~ # if not specified, defaults to global.apc.services.vault.url
+vaultName: ~ # if not specified, extracted hostname from vaultUrl
+vaultKubeAuthMountPath: ~ # mount path of the clusters kubernetes auth. If not specified, defaults to clusterName
+vaultKubeAuthRole: cert-manager # role name to assume during kubernetes auth
+vaultPkiPath: pki # required. Path to the PKI secrets engine mount
+vaultPkiRole: ~ # PKI role to use for signing certificates. If not specified, defaults to global.apc.cluster.appsDomain
+
+kubeVaultProviderConfigName: ~ # Vault providerconfig to use. If not specified, defaults to the vault name extracted from vaultUrl
+kubeServiceAccount: cert-manager # service account used for kubernetes authentication
+
+ingressCertCommonName: ~ # common name of the created ingress certificate. If not specified, defaults to global.apc.cluster.appsDomain
+ingressCertDnsNames: [] # subject alternative names of the created ingress certificate. If not specified, defaults to *.global.apc.cluster.appsDomain
