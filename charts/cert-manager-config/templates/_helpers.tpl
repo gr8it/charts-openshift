@@ -54,14 +54,14 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Create the cluster name
 */}}
 {{- define "cert-manager-config.clusterName" -}}
-{{- .Values.clusterName | default .Values.global.apc.cluster.name -}}
+{{- .Values.clusterName | default .Values.global.apc.cluster.name }}
 {{- end }}
 
 {{/*
 Create the mount path
 */}}
 {{- define "cert-manager-config.vaultKubeAuthMountPath" -}}
-{{ .Values.vaultKubeAuthMountPath | default (include "cert-manager-config.clusterName" .) }}
+{{- .Values.vaultKubeAuthMountPath | default (include "cert-manager-config.clusterName" .) }}
 {{- end }}
 
 {{/*
@@ -82,7 +82,7 @@ Create the Vault name
 From VaultURL = hostname, or override if specified
 */}}
 {{- define "cert-manager-config.vaultName" -}}
-{{- $vaultName := regexReplaceAll "https?://([^:/]+).*" (.Values.vaultUrl | default .Values.global.apc.services.vault.url) "${1}" | required "Vault URL/Name is required" }}
+{{- $vaultName := regexReplaceAll "https?://([^:/]+).*" (include "cert-manager-config.vaultUrl" .) "${1}" | required "Vault URL/Name is required" }}
 {{- .Values.vaultName | default $vaultName }}
 {{- end }}
 
@@ -113,10 +113,9 @@ Create the cert-manager cluster issuer name
 {{- define "cert-manager-config.defaultClusterIssuer" -}}
 {{- if .Values.defaultClusterIssuer }}
 {{- .Values.defaultClusterIssuer }}
-{{- else if  .Values.global.apc.services.certManager.defaultClusterIssuer -}}
+{{- else if  .Values.global.apc.services.certManager.defaultClusterIssuer }}
 {{- .Values.global.apc.services.certManager.defaultClusterIssuer }}
 {{- else -}}
-{{- $vaultName := regexReplaceAll "https?://([^:/]+).*" (include "cert-manager-config.vaultUrl" .) "${1}" | required "Vault URL/Name is required" -}}
 vault-{{ include "cert-manager-config.vaultName" . }}-issuer
 {{- end }}
 {{- end }}

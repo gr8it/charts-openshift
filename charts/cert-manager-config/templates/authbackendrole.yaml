@@ -4,7 +4,7 @@ metadata:
   name: {{ include "cert-manager-config.clusterName" . }}-{{ .Values.vaultKubeAuthRole }}
 spec:
   forProvider:
-    audience: vault://{{ include "cert-manager-config.defaultClusterIssuer" . }} 
+    audience: vault://{{ include "cert-manager-config.defaultClusterIssuer" . }}
     backend: {{ include "cert-manager-config.vaultKubeAuthMountPath" . }}
     boundServiceAccountNames:
       - {{ .Values.kubeServiceAccount }}
