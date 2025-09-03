@@ -11,7 +11,7 @@ spec:
     podAntiAffinityType: preferred
   backup:
     barmanObjectStore:
-      destinationPath: s3://{{ include "keycloak.fullname" . }}-backup
+      destinationPath: s3://{{ .Values.bucketName | default (print (include "keycloak.fullname" .) "-backup") }}
       endpointURL: http://s3.openshift-storage.svc
       s3Credentials:
         accessKeyId:
