@@ -25,7 +25,7 @@ spec:
     tlsSecret: {{ include "keycloak.fullname" . }}-tls-secret
   ingress:
     enabled: false
-  instances: {{ .Values.keycloak.instances }}
+  instances: {{ .Values.keycloak.instances | default 3 }}
   resources:
   {{ toYaml .Values.keycloak.resources | nindent 4 }}
   truststores:
