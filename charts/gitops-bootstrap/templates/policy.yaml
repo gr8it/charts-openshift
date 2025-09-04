@@ -145,7 +145,7 @@ spec:
                       {{- end }}
 
                   resourceTrackingMethod: annotation
-                  # according to release notes, defaults from argocd 3 are not applied withing Openshift Gitops 1.17 - https://docs.redhat.com/en/documentation/red_hat_openshift_gitops/1.17/html/release_notes/gitops-release-notes
+                  # according to release notes, defaults from argocd 3 (https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml#L326) are not applied withing Openshift Gitops 1.17 - https://docs.redhat.com/en/documentation/red_hat_openshift_gitops/1.17/html/release_notes/gitops-release-notes
                   resourceExclusions: |
                     ### Network resources created by the Kubernetes control plane and excluded to reduce the number of watched events and UI clutter
                     - apiGroups:
