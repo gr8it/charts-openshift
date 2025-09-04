@@ -21,12 +21,13 @@ INDEX_ROOT := $(shell dirname $(INDEX_FILE))
 # oci registry variables
 REGISTRY_USER  := $(shell echo $${REGISTRY_USER:-})
 REGISTRY_TOKEN := $(shell echo $${REGISTRY_TOKEN:-})
-REPO_PATH      := $(shell echo $$(git config --get remote.origin.url | git config --get remote.origin.url | sed -E 's!(git@github.com:|https://github.com/)!!;s!\.git$$!!' || echo "notfound"))
+REPO_PATH      := $(shell echo $$(git config --get remote.origin.url | sed -E 's!(git@github.com:|https://github.com/)!!;s!\.git$$!!' || echo "notfound"))
 REGISTRY_URL   := $(shell echo $${REGISTRY_URL:-ghcr.io/$(REPO_PATH)})
 
 debug:
 	@echo "$(REGISTRY_USER)"
 	@echo "$(REGISTRY_TOKEN)"
+	@echo "$(REPO_PATH)"
 	@echo "$(REGISTRY_URL)"
 	@echo "$(YQ)"
 
@@ -150,9 +151,24 @@ publish: check-helm
 	fi
   # login to registry
 	@echo "$(REGISTRY_TOKEN)" | helm registry login "$(REGISTRY_URL)" -u "$(REGISTRY_USER)" --password-stdin
-  # push packaged charts
-	@for pkg_file in "$(OUTPUT_DIR)"/*.tgz; do \
-		helm push "$$pkg_file" oci://$(REGISTRY_URL); \
+  # check if package already exists = we don't want to overwrite existing packages (could indicate conflict, i.e. originate from other pushes!)
+	@for folder in $(CHARTFOLDERS); do \
+		chart_name=$$(basename $${folder}); \
+		echo "$${chart_name}"; \
+		for pkg_file in "$(OUTPUT_DIR)/$${chart_name}-"*.tgz; do \
+		  oci_package=$$(basename "$${pkg_file}" | sed "s/.tgz//" | sed -E "s/(.*)-(.*)/\1:\2/"); \
+			chart_oci_url="oci://$(REGISTRY_URL)/$${oci_package}"; \
+			if helm show chart "$${chart_oci_url}" 2>/dev/null 1>/dev/null; then \
+				echo -e "  \033[0;33mskipped\033[0m - Chart version $${chart_oci_url} already present in registry"; \
+			else \
+			  echo "  Pushing chart.."
+			  if helm push "$$pkg_file" oci://$(REGISTRY_URL) 2>/dev/null 1>/dev/null; then \
+					echo -e "    \033[0;32mDONE\033[0m - Chart $${oci_package} successfully pushed"; \
+				else \
+					echo -e "    \033[0;31mFAILED\033[0m - Chart $${oci_package} push failed"; \
+				fi \
+			fi \
+		done \
 	done
 
 clean: check-yq
