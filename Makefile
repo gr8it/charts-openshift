@@ -64,15 +64,33 @@ package:
 	@for folder in $(CHARTFOLDERS); do \
 		chart_name=$$(basename $${folder}); \
 		chart_version=$$(grep '^version:' $${folder}/Chart.yaml | awk '{print $$2}'); \
+		chart_name_version=$${chart_name}-$${chart_version}; \
+		echo -n "$${chart_name_version}: "; \
+		whitespaces=$$(echo "$${chart_name_version}: " | sed "s/./ /g")
 		if [ -f $(OUTPUT_DIR)/$${chart_name}-$${chart_version}.tgz ]; then \
-			echo -e "$${chart_name}-$${chart_version}: \033[0;33mskipped\033[0m - Chart package already exists"; \
-		elif out=$$(helm package $${folder} --version $${chart_version} --destination $(TEMP_DIR)/packaged_charts 2>&1); then \
-			echo -e "$${chart_name}-$${chart_version}: \033[0;32mdone - Chart package has been created\033[0m"; \
-			touch $(TEMP_DIR)/.index; \
+			echo -e "\033[0;33mskipped\033[0m - Chart package already exists"; \
 		else \
-			echo -e "\033[0;31mPackaging chart $${chart_name}-$${chart_version} has failed.\033[0m"; \
-			echo "$$out"; \
-			exit 1; \
+		  echo -n "lint "; \
+			if [ -f $${folder}/values.lint.yaml ]; then \
+				helm_args="--values $${folder}/values.lint.yaml"; \
+			fi; \
+			if out=$$(helm lint $$folder --quiet 2>&1 $$helm_args); then \
+				echo -e "\033[0;32mOK\033[0m "; \
+				if test -n "$$out"; then echo "$$out"; fi; \
+			else \
+				echo -e "\033[0;31mFAILED\033[0m "; \
+				echo "$$out"; \
+				exit 1; \
+			fi; \
+			echo -n "$${whitespaces}package "; \
+			if out=$$(helm package $${folder} --version $${chart_version} --destination $(TEMP_DIR)/packaged_charts 2>&1); then \
+				echo -e "\033[0;32mDONE\033[0m - chart package has been created"; \
+				touch $(TEMP_DIR)/.index; \
+			else \
+				echo -e "\033[0;31mFAILED - packaging chart $${chart_name_version} has failed.\033[0m"; \
+				echo "$$out"; \
+				exit 1; \
+			fi \
 		fi \
 	done
 	@if test -f $(TEMP_DIR)/.index  &&  out=$$(helm repo index --merge $(INDEX_FILE) $(TEMP_DIR) 2>&1); then \
@@ -199,4 +217,4 @@ clean: check-yq
 	fi
 	@rm -rf $(TEMP_DIR);
 
-build: lint package
+build: package
