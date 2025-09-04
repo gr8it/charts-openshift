@@ -109,6 +109,32 @@ entries:
     urls:
     - packaged_charts/argocd-app-of-apps-1.0.0.tgz
     version: 1.0.0
+  cert-manager-config:
+  - apiVersion: v2
+    created: "2025-09-03T10:49:26.023345473+02:00"
+    description: A Helm chart to install Cert Manager Operator configuration
+    digest: 4e657316ca00d5ea17c141def21b5d868fb96aa3bfaaf956e6d51ff2fceda6b6
+    name: cert-manager-config
+    type: application
+    urls:
+    - packaged_charts/cert-manager-config-1.0.0.tgz
+    version: 1.0.0
+  cert-manager-operator:
+  - apiVersion: v2
+    appVersion: v1.15.1
+    created: "2025-09-01T21:21:22.143986341+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.0
+    description: A Helm chart to install Cert Manager Operator using ACM operator
+      policy
+    digest: c68fa1658068a1f455cc55cada8d872e80f1d05c101b5f9bff7663f53f748635
+    name: cert-manager-operator
+    type: application
+    urls:
+    - packaged_charts/cert-manager-operator-1.0.0.tgz
+    version: 1.0.0
   cert-utils-operator:
   - apiVersion: v2
     appVersion: v1.3.12
@@ -156,6 +182,20 @@ entries:
   crossplane-helm:
   - apiVersion: v2
     appVersion: 1.19.2
+    created: "2025-09-02T23:01:04.5964831+02:00"
+    dependencies:
+    - name: crossplane
+      repository: https://charts.crossplane.io/stable
+      version: 1.19.2
+    description: A Helm chart to install Crossplane
+    digest: 06fb999500f8370200f13db5c3cf91397172f8ecffed8ddd0843c78f768a0fe0
+    name: crossplane-helm
+    type: application
+    urls:
+    - packaged_charts/crossplane-helm-1.2.0.tgz
+    version: 1.2.0
+  - apiVersion: v2
+    appVersion: 1.19.2
     created: "2025-08-04T10:39:44.564370633+02:00"
     dependencies:
     - name: crossplane
@@ -185,6 +225,16 @@ entries:
   crossplane-vault-provider:
   - apiVersion: v2
     appVersion: v2.1.1
+    created: "2025-08-28T21:37:30.566621773+02:00"
+    description: A Helm chart to deploy Crossplane Vault provider
+    digest: 60cdcf25645c8051564b5251eccf3e60ffa9d0be42f952e026d87da82de507de
+    name: crossplane-vault-provider
+    type: application
+    urls:
+    - packaged_charts/crossplane-vault-provider-1.2.0.tgz
+    version: 1.2.0
+  - apiVersion: v2
+    appVersion: v2.1.1
     created: "2025-08-01T14:48:21.435931229+02:00"
     description: A Helm chart to deploy Crossplane Vault provider
     digest: 1fe5fd6b3559ce370c8ec4df15431d1f3826c6be3210474dd3f6881d8f65d6de
@@ -201,6 +251,16 @@ entries:
     type: application
     urls:
     - packaged_charts/crossplane-vault-provider-1.0.0.tgz
+    version: 1.0.0
+  crossplane-vault-provider-bootstrap:
+  - apiVersion: v2
+    created: "2025-09-02T23:48:19.29922574+02:00"
+    description: A Helm chart for Kubernetes
+    digest: 04f89f5fd3d98e5abbb420b9e88030996b832ec2778f03d4863e2ccad86bafb1
+    name: crossplane-vault-provider-bootstrap
+    type: application
+    urls:
+    - packaged_charts/crossplane-vault-provider-bootstrap-1.0.0.tgz
     version: 1.0.0
   crossplane-vault-provider-config:
   - apiVersion: v2
@@ -221,7 +281,38 @@ entries:
     urls:
     - packaged_charts/crossplane-vault-provider-config-1.0.0.tgz
     version: 1.0.0
+  default-network-policies:
+  - apiVersion: v2
+    created: "2025-09-03T13:37:43.051097395+02:00"
+    description: A Helm chart to apply default network policies for platform and application
+      namespaces.
+    digest: fbdc99657c9f65a5dda0f289001327470fba502bb65132d0f612f468a5f5317d
+    name: default-network-policies
+    type: application
+    urls:
+    - packaged_charts/default-network-policies-1.0.0.tgz
+    version: 1.0.0
   gitops-bootstrap:
+  - apiVersion: v2
+    appVersion: v1
+    created: "2025-09-03T15:34:35.940328268+02:00"
+    description: A Helm chart to bootstrap APC GitOps using ACM policies
+    digest: 163016e2d7c479d79026af1270f3df5a182f84b2426b76797b0f82d12a5d7de6
+    name: gitops-bootstrap
+    type: application
+    urls:
+    - packaged_charts/gitops-bootstrap-1.7.0.tgz
+    version: 1.7.0
+  - apiVersion: v2
+    appVersion: v1
+    created: "2025-09-02T15:38:12.318371725+02:00"
+    description: A Helm chart to bootstrap APC GitOps using ACM policies
+    digest: 8a4a4b4d67da23dbe7581c4397fc4f2c28c833778d2a5e6c43dd712b0a7373df
+    name: gitops-bootstrap
+    type: application
+    urls:
+    - packaged_charts/gitops-bootstrap-1.6.0.tgz
+    version: 1.6.0
   - apiVersion: v2
     appVersion: v1
     created: "2025-08-14T10:18:58.471864071+02:00"

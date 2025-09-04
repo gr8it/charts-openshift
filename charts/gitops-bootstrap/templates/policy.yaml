@@ -20,11 +20,11 @@ spec:
           complianceType: musthave
           remediationAction: enforce
           severity: high
-          upgradeApproval: None
+          upgradeApproval: Automatic
           subscription:
-            channel: gitops-1.16
+            channel: {{ .Values.subscription.channel }}
             name: openshift-gitops-operator
-            startingCSV: openshift-gitops-operator.v1.16.1
+            startingCSV: {{ .Values.subscription.versions | first }}
             config:
               env:
                 - name: DISABLE_DEFAULT_ARGOCD_INSTANCE
@@ -32,7 +32,7 @@ spec:
                 - name: ARGOCD_CLUSTER_CONFIG_NAMESPACES
                   value: {{ .Values.namespace }}
           versions:
-            - openshift-gitops-operator.v1.16.1
+            {{- .Values.subscription.versions | toYaml | nindent 12 }}
 
     - extraDependencies:
         - name: {{ include "gitops-bootstrap.fullname" . }}-operator
@@ -204,6 +204,7 @@ spec:
                         health_status.message = "An install plan for a subscription is pending installation"
                         return health_status
 
+    {{- if (include "gitops-bootstrap.proxyIPs" . | fromJsonArray ) }}
     - extraDependencies:
         - name: {{ include "gitops-bootstrap.fullname" . }}-operator
           namespace: ""
@@ -228,12 +229,15 @@ spec:
                   namespace: {{ .Values.namespace }}
                 spec:
                   egress:
+                  {{- range (include "gitops-bootstrap.proxyIPs" . | fromJsonArray ) }}
                   - to:
                     - ipBlock:
-                        cidr: 10.1.1.7/32
+                        cidr: {{ . }}
+                  {{- end }}
                   podSelector: {}
                   policyTypes:
                   - Egress
+    {{- end }}
 
     - extraDependencies:
         - name: {{ include "gitops-bootstrap.fullname" . }}-operator

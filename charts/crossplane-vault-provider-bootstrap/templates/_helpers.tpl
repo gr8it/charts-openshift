@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "gitops-bootstrap.name" -}}
+{{- define "crossplane-vault-provider-bootstrap.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "gitops-bootstrap.fullname" -}}
+{{- define "crossplane-vault-provider-bootstrap.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "gitops-bootstrap.chart" -}}
+{{- define "crossplane-vault-provider-bootstrap.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "gitops-bootstrap.labels" -}}
-helm.sh/chart: {{ include "gitops-bootstrap.chart" . }}
-{{ include "gitops-bootstrap.selectorLabels" . }}
+{{- define "crossplane-vault-provider-bootstrap.labels" -}}
+helm.sh/chart: {{ include "crossplane-vault-provider-bootstrap.chart" . }}
+{{ include "crossplane-vault-provider-bootstrap.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,42 +45,29 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "gitops-bootstrap.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "gitops-bootstrap.name" . }}
+{{- define "crossplane-vault-provider-bootstrap.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "crossplane-vault-provider-bootstrap.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "gitops-bootstrap.serviceAccountName" -}}
+{{- define "crossplane-vault-provider-bootstrap.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "gitops-bootstrap.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "crossplane-vault-provider-bootstrap.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
 
-{{- define "gitops-bootstrap.repoUrl" -}}
-{{- .Values.repo.url | default .Values.global.apc.repoURL }}
-{{- end }}
 
-{{- define "gitops-bootstrap.targetRevision" -}}
-{{- .Values.repo.targetRevision | default .Values.global.apc.repoTargetRevision | default "main" }}
+{{- define "crossplane-vault-provider-bootstrap.caCertificates" -}}
+{{- if .Values.customCACertificates }}
+{{- .Values.customCACertificates }}
+{{- else }}
+{{- range $i, $item := (.Values.global.apc.caCertificates | values) }}
+{{- $item }}
 {{- end }}
-
-{{- define "gitops-bootstrap.repoShort" -}}
-{{- mustRegexReplaceAll "^https://github.com/([^/]+)/([^/.]+)(.git|/)?$" (include "gitops-bootstrap.repoUrl" .) "${1}-${2}" }}
 {{- end }}
-
-{{/*
-Creates proxyIPs list. If not specified, uses global value
-*/}}
-{{- define "gitops-bootstrap.proxyIPs" -}}
-{{- $proxyIPs := .Values.proxyIPs | default .Values.global.apc.proxyIPs -}}
-{{- if $proxyIPs -}}
-{{- $proxyIPs | toJson -}}
-{{- else -}}
-{{ list }}
-{{- end -}}
-{{- end -}}
+{{- end }}
