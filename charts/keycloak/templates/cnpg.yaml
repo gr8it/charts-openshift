@@ -37,9 +37,9 @@ spec:
         name: {{ include "keycloak.fullname" . }}-db-auth
       walSegmentSize: 1
   imageName: {{ .Values.cnpg.cluster.image.name }}:{{ .Values.cnpg.cluster.image.tag  }}
-  instances: {{ .Values.cnpg.cluster.instances }}
-  maxSyncReplicas: {{ .Values.cnpg.cluster.maxSyncReplicas | default 1 }}
-  minSyncReplicas: {{ .Values.cnpg.cluster.minSyncReplicas | default 0 }}
+  instances: {{ .Values.cnpg.cluster.instances | default 3 }}
+  maxSyncReplicas: {{ .Values.cnpg.cluster.maxSyncReplicas | default 2 }}
+  minSyncReplicas: {{ .Values.cnpg.cluster.minSyncReplicas | default 1 }}
   monitoring:
     enablePodMonitor: true
   postgresql:

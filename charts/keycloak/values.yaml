@@ -41,9 +41,9 @@ tlsSecret:
 
 cnpg:
   cluster:
-    instances: 2
-    maxSyncReplicas: 1
-    minSyncReplicas: 0
+    instances: 3
+    maxSyncReplicas: 2
+    minSyncReplicas: 1
     image:
       name: ghcr.io/cloudnative-pg/postgresql
       tag: 16.4
@@ -74,7 +74,7 @@ keycloak:
     value: json
   - name: log-level
     value: INFO,org.keycloak.events:DEBUG,org.keycloak.services.error:DEBUG,org.keycloak.services.resources.admin:DEBUG
-  instances: 2
+  instances: 3
   resources:
     limits:
       cpu: 2
