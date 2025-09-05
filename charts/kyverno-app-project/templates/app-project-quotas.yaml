@@ -1,0 +1,202 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: app-project-quotas
+  labels:
+  {{- include "kyverno-app-project.labels" . | nindent 4 }}
+  annotations:
+    policies.kyverno.io/title: Create quotas for namespace
+    policies.kyverno.io/category: quota 
+    policies.kyverno.io/subject: project
+    policies.kyverno.io/minversion: 1.13.0
+spec:
+  background: true
+  generateExisting: true
+  validationFailureAction: Audit
+  rules:
+    - name: app-project-default-resource-quota
+      match:
+        any:
+          - resources:
+              kinds:
+              - Namespace
+      preconditions:
+        all:
+        - key: '{{ `{{ request.object.metadata.labels.\"apc.namespace.type\" }}` }}'
+          operator: Equals
+          value: application
+      generate:
+        apiVersion: v1
+        kind: ResourceQuota
+        name: "default-resource-quota"
+        namespace: '{{ `{{request.object.metadata.name}}` }}'
+        synchronize: false
+        data:
+          spec:
+            hard:
+              {{- with .Values.defaultResourceQuota }}
+              count/cronjobs.batch: {{ .cronjobsBatch | quote }}                                      # Maximum number of CronJobs
+              count/daemonsets.apps: {{ .daemonsetsApps | quote }}                                    # Maximum number of DaemonSets (standard useers must not be able to run any workloads that require DaemonSets)
+              count/deployments.apps: {{ .deploymentsApps | quote }}                                  # Maximum number of Deployments
+              count/ingresses.networking.k8s.io: {{ .ingressesNetworkingK8sIo | quote }}              # Maximum number of Ingresses
+              count/routes.route.openshift.io: {{ .routesRouteOpenshiftIo | quote }}                  # Maximum number of Routes
+              count/jobs.batch: {{ .jobsBatch | quote }}                                              # Maximum number of Jobs
+              count/networkpolicies.networking.k8s.io: {{ .networkpoliciesNetworkingK8sIo | quote }}  # Maximum number ofNetwork Policies
+              count/replicasets.apps: {{ .replicasetsApps | quote }}                                  # Maximum number of ReplicaSets
+              count/serviceaccounts: {{ .serviceaccounts | quote }}                                   # Maximum number of ServiceAccounts
+              count/services: {{ .services | quote }}                                                 # Maximum number of Services
+              count/statefulsets.apps: {{ .statefulsetsApps | quote }}                                # Maximum number of StatefulSets
+              requests.cpu: {{ .requestsCpu | quote }}                                                # Total requested CPU for all pods
+              requests.memory: {{ .requestsMemory | quote }}                                          # Total requested memory for all pods
+              limits.cpu: {{ .limitsCpu | quote }}                                                    # Maximum CPU allowed for all pods
+              limits.memory: {{ .limitsMemory | quote }}                                              # Maximum memory allowed for all pods
+              pods: {{ .pods | quote }}                                                               # Maximum number of pods
+              persistentvolumeclaims: {{ .persistentvolumeclaims | quote }}                           # Maximum PVCs allowed
+              requests.storage: {{ .requestsStorage | quote }}                                        # Total requested storage for all pods
+              services.loadbalancers: {{ .servicesLoadbalancers | quote }}                            # Maximum number of services of a LoadBalancer type
+              {{- end }}
+    - name: app-project-cnpg-custom-resource-quota
+      match:
+        any:
+          - resources:
+              kinds:
+              - Namespace
+      preconditions:
+        all:
+        - key: '{{ `{{ request.object.metadata.labels.\"apc.namespace.type\" }}` }}'
+          operator: Equals
+          value: application
+      generate:
+        apiVersion: v1
+        kind: ResourceQuota
+        name: "cnpg-custom-resource-quota"
+        namespace: '{{ `{{request.object.metadata.name}}` }}'
+        synchronize: false
+        data:
+          spec:
+            hard:
+              {{- with .Values.cpngCustomResourceQuota }}
+              count/clusters.postgresql.cnpg.io: {{ .clustersPostgresqlCpngIo | quote }}                     # Maximum number of PostgreSQL clusters
+              count/backups.postgresql.cnpg.io: {{ .backupsPostgresqlCpngIo | quote }}                       # Maximum number of PostgreSQL backups
+              count/scheduledbackups.postgresql.cnpg.io: {{ .scheduledbackupsPostgresqlCpngIo | quote }}     # Maximum number of PostgreSQL scheduled backups
+              {{- end }}
+    - name: app-project-monitoring-quota
+      match:
+        any:
+          - resources:
+              kinds:
+              - Namespace
+      preconditions:
+        all:
+        - key: '{{ `{{ request.object.metadata.labels.\"apc.namespace.type\" }}` }}'
+          operator: Equals
+          value: application
+      generate:
+        apiVersion: v1
+        kind: ResourceQuota
+        name: "monitoring-quota"
+        namespace: '{{ `{{request.object.metadata.name}}` }}'
+        synchronize: false
+        data:
+          spec:
+            hard:
+              {{- with .Values.monitoringQuota }}
+              count/alertmanagerconfigs.monitoring.coreos.com: {{ .alertmanagerconfigsMonitoringCoreosCom | quote }}  # Maximum number of AlertmanagerConfigs (for configuring alertmanager instances)
+              count/alertmanagers.monitoring.coreos.com: {{ .alertmanagersMonitoringCoreosCom | quote }}              # Maximum number of Alertmanagers (for creating alertmanager instances)
+              count/podmonitors.monitoring.coreos.com: {{ .podmonitorsMonitoringCoreosCom | quote }}                  # Maximum number of PodMonitors (for defining pod-level metrics collection)
+              count/probes.monitoring.coreos.com: {{ .probesMonitoringCoreosCom | quote }}                            # Maximum number of Probes (for defining liveness and readiness probes)
+              count/prometheuses.monitoring.coreos.com: {{ .prometheusesMonitoringCoreosCom | quote }}                # Maximum number of Prometheuses (for creating Prometheus instances)
+              count/prometheusrules.monitoring.coreos.com: {{ .prometheusrulesMonitoringCoreosCom | quote }}          # Maximum number of PrometheusRules (for Prometheus alerting rules)
+              count/servicemonitors.monitoring.coreos.com: {{ .servicemonitorsMonitoringCoreosCom | quote }}          # Maximum number of ServiceMonitors (for defining service-level metrics collections
+              count/thanosrulers.monitoring.coreos.com: {{ .thanosrulersMonitoringCoreosCom | quote }}                # Maximum number of ThanosRulers (for creating Thanos ruler instances for Prometheus)
+              {{- end }}
+    - name: app-project-grafana-quota
+      match:
+        any:
+          - resources:
+              kinds:
+              - Namespace
+      preconditions:
+        all:
+        - key: '{{ `{{ request.object.metadata.labels.\"apc.namespace.type\" }}` }}'
+          operator: Equals
+          value: application
+      generate:
+        apiVersion: v1
+        kind: ResourceQuota
+        name: "grafana-quota"
+        namespace: '{{ `{{request.object.metadata.name}}` }}'
+        synchronize: false
+        data:
+          spec:
+            hard:
+              {{- with .Values.grafanaQuota }}
+              count/alertingrules.loki.grafana.com: {{ .alertingrulesLokiGrafanaCom | quote }}                                               # Maximum number of Loki alerting rules (for defining alerting conditions in Loki)
+              count/grafanaalertrulegroups.grafana.integreatly.org: {{ .grafanaalertrulegroupsGrafanaIntegreatlyOrg | quote }}               # Maximum number of Grafana alert rule groups (for organizing alert rules in Grafana)
+              count/grafanacontactpoints.grafana.integreatly.org: {{ .grafanacontactpointsGrafanaIntegreatlyOrg | quote }}                   # Maximum number of Grafana contact points (for defining notification channels in Grafana)
+              count/grafanadashboards.grafana.integreatly.org: {{ .grafanadashboardsGrafanaIntegreatlyOrg | quote }}                         # Maximum number of Grafana dashboards (for visualizing metrics in Grafana)
+              count/grafanadatasources.grafana.integreatly.org: {{ .grafanadatasourcesGrafanaIntegreatlyOrg | quote }}                       # Maximum number of Grafana data sources (for connecting to external data systems)
+              count/grafanafolders.grafana.integreatly.org: {{ .grafanafoldersGrafanaIntegreatlyOrg | quote }}                               # Maximum number of Grafana folders (for organizing dashboards in Grafana)
+              count/grafananotificationpolicies.grafana.integreatly.org: {{ .grafananotificationpoliciesGrafanaIntegreatlyOrg | quote }}     # Maximum number of Grafana notification policies (for defining alert handling policies)
+              count/grafanas.grafana.integreatly.org: {{ .grafanasGrafanaIntegreatlyOrg | quote }}                                           # Maximum number of Grafana instances (for deploying separate Grafana instances)
+              count/lokistacks.loki.grafana.com: {{ .lokistacksLokiGrafanaCom | quote }}                                                     # Maximum number of Loki stacks (for managing log storage and aggregation in Loki)
+              count/recordingrules.loki.grafana.com: {{ .recordingrulesLokiGrafanaCom | quote }}                                             # Maximum number of Loki recording rules (for precomputing and storing log query results)
+              count/rulerconfigs.loki.grafana.com: {{ .rulerconfigsLokiGrafanaCom | quote }}                                                 # Maximum number of Loki ruler configurations (for configuring alerting in Loki's ruler)\
+              {{- end }}
+    - name: app-project-kubevirt-cr-quota
+      match:
+        any:
+          - resources:
+              kinds:
+              - Namespace
+      preconditions:
+        all:
+        - key: '{{ `{{ request.object.metadata.labels.\"apc.namespace.type\" }}` }}'
+          operator: Equals
+          value: application
+      generate:
+        apiVersion: v1
+        kind: ResourceQuota
+        name: "kubevirt-cr-quota"
+        namespace: '{{ `{{request.object.metadata.name}}` }}'
+        synchronize: false
+        data:
+          spec:
+            hard:
+              {{- with .Values.kubevirtCrQuota }}
+              count/aaqs.aaq.kubevirt.io: {{ .aaqsAaqKubevirtIo | quote }}                                                                                        # Limit on 'AAQ' resources
+              count/cdiconfigs.cdi.kubevirt.io: {{ .cdiconfigsCdiKubevirtIo | quote }}                                                                            # Limit on CDI configuration objects
+              count/cdis.cdi.kubevirt.io: {{ .cdisCdiKubevirtIo | quote }}                                                                                        # Limit on CDI custom resources
+              count/dataimportcrons.cdi.kubevirt.io: {{ .dataimportcronsCdiKubevirtIo | quote }}                                                                  # Reduced maximum scheduled DataImportCron jobs
+              count/datasources.cdi.kubevirt.io: {{ .datasourcesCdiKubevirtIo | quote }}                                                                          # Reduced maximum DataSources for DataVolumes
+              count/datavolumes.cdi.kubevirt.io: {{ .datavolumesCdiKubevirtIo | quote }}                                                                          # Reduced maximum number of DataVolumes
+              count/hostpathprovisioners.hostpathprovisioner.kubevirt.io: {{ .hostpathprovisionersHostpathprovisionerKubevirtIo | quote }}                        # Limit on HostPath provisioners
+              count/hyperconvergeds.hco.kubevirt.io: {{ .hyperconvergedsHcoKubevirtIo | quote }}                                                                  # Maximum number of HyperConverged objects
+              count/kubevirts.kubevirt.io: {{ .kubevirtsKubevirtIo | quote }}                                                                                     # Limit on KubeVirt configurations
+              count/migrationpolicies.migrations.kubevirt.io: {{ .migrationpoliciesMigrationsKubevirtIo | quote }}                                                # Limit on migration policies
+              count/mtqs.mtq.kubevirt.io: {{ .mtqsMtqKubevirtIo | quote }}                                                                                        # Limit on MTQ custom resources
+              count/networkaddonsconfigs.networkaddonsoperator.network.kubevirt.io: {{ .networkaddonsconfigsNetworkaddonsoperatorNetworkKubevirtIo | quote }}     # Limit on Network Add-Ons configurations
+              count/objecttransfers.cdi.kubevirt.io: {{ .objecttransfersCdiKubevirtIo | quote }}                                                                  # Maximum number of ObjectTransfers
+              count/openstackvolumepopulators.forklift.cdi.kubevirt.io: {{ .openstackvolumepopulatorsForkliftCdiKubevirtIo | quote }}                             # Limit on OpenStack volume populators
+              count/ovirtvolumepopulators.forklift.cdi.kubevirt.io: {{ .ovirtvolumepopulatorsForkliftCdiKubevirtIo | quote }}                                     # Limit on oVirt volume populators
+              count/ssps.ssp.kubevirt.io: {{ .sspsSspKubevirtIo | quote }}                                                                                        # Limit on SSP custom resources
+              count/storageprofiles.cdi.kubevirt.io: {{ .storageprofilesCdiKubevirtIo | quote }}                                                                  # Limit on storage profiles
+              count/virtualmachineclones.clone.kubevirt.io: {{ .virtualmachineclonesCloneKubevirtIo | quote }}                                                    # Reduced maximum number of VirtualMachine clones
+              count/virtualmachineclusterinstancetypes.instancetype.kubevirt.io: {{ .virtualmachineclusterinstancetypesInstancetypeKubevirtIo | quote }}          # Limit on cluster-wide instance types for VMs
+              count/virtualmachineclusterpreferences.instancetype.kubevirt.io: {{ .virtualmachineclusterpreferencesInstancetypeKubevirtIo | quote }}              # Limit on cluster-wide instance type preferences
+              count/virtualmachineexports.export.kubevirt.io: {{ .virtualmachineexportsExportKubevirtIo | quote }}                                                # Reduced limit on VirtualMachine exports
+              count/virtualmachineinstancemigrations.kubevirt.io: {{ .virtualmachineinstancemigrationsKubevirtIo | quote }}                                       # Reduced maximum number of VirtualMachineInstance migrations
+              count/virtualmachineinstancepresets.kubevirt.io: {{ .virtualmachineinstancepresetsKubevirtIo | quote }}                                             # Reduced limit on instance presets for VMs
+              count/virtualmachineinstancereplicasets.kubevirt.io: {{ .virtualmachineinstancereplicasetsKubevirtIo | quote }}                                     # Reduced maximum number of VM ReplicaSets
+              count/virtualmachineinstances.kubevirt.io: {{ .virtualmachineinstancesKubevirtIo | quote }}                                                         # Maximum number of running VirtualMachineInstances (VMIs)
+              count/virtualmachineinstancetypes.instancetype.kubevirt.io: {{ .virtualmachineinstancetypesInstancetypeKubevirtIo | quote }}                        # Reduced limit on namespace-scoped instance types
+              count/virtualmachinepools.pool.kubevirt.io: {{ .virtualmachinepoolsPoolKubevirtIo | quote }}                                                        # Reduced maximum number of VirtualMachine pools
+              count/virtualmachinepreferences.instancetype.kubevirt.io: {{ .virtualmachinepreferencesInstancetypeKubevirtIo | quote }}                            # Reduced limit on namespace-scoped instance type preferences
+              count/virtualmachinerestores.snapshot.kubevirt.io: {{ .virtualmachinerestoresSnapshotKubevirtIo | quote }}                                          # Reduced limit on VirtualMachine restores
+              count/virtualmachines.kubevirt.io: {{ .virtualmachinesKubevirtIo | quote }}                                                                         # Maximum number of VirtualMachines
+              count/virtualmachinesnapshotcontents.snapshot.kubevirt.io: {{ .virtualmachinesnapshotcontentsSnapshotKubevirtIo | quote }}                          # Reduced limit on VirtualMachineSnapshot contents
+              count/virtualmachinesnapshots.snapshot.kubevirt.io: {{ .virtualmachinesnapshotsSnapshotKubevirtIo | quote }}                                        # Reduced maximum number of VirtualMachineSnapshots
+              count/volumeclonesources.cdi.kubevirt.io: {{ .volumeclonesourcesCdiKubevirtIo | quote }}                                                            # Reduced limit on volume clone sources
+              count/volumeimportsources.cdi.kubevirt.io: {{ .volumeimportsourcesCdiKubevirtIo | quote }}                                                          # Reduced limit on volume import sources
+              count/volumeuploadsources.cdi.kubevirt.io: {{ .volumeuploadsourcesCdiKubevirtIo | quote }}                                                          # Reduced limit on volume upload sources
+              {{- end }}
