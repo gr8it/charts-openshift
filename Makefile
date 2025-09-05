@@ -21,12 +21,13 @@ INDEX_ROOT := $(shell dirname $(INDEX_FILE))
 # oci registry variables
 REGISTRY_USER  := $(shell echo $${REGISTRY_USER:-})
 REGISTRY_TOKEN := $(shell echo $${REGISTRY_TOKEN:-})
-REPO_PATH      := $(shell echo $$(git config --get remote.origin.url | git config --get remote.origin.url | sed -E 's!(git@github.com:|https://github.com/)!!;s!\.git$$!!' || echo "notfound"))
+REPO_PATH      := $(shell echo $$(git config --get remote.origin.url | sed -E 's!(git@github.com:|https://github.com/)!!;s!\.git$$!!' || echo "notfound"))
 REGISTRY_URL   := $(shell echo $${REGISTRY_URL:-ghcr.io/$(REPO_PATH)})
 
 debug:
 	@echo "$(REGISTRY_USER)"
 	@echo "$(REGISTRY_TOKEN)"
+	@echo "$(REPO_PATH)"
 	@echo "$(REGISTRY_URL)"
 	@echo "$(YQ)"
 
@@ -64,15 +65,33 @@ package:
 	@for folder in $(CHARTFOLDERS); do \
 		chart_name=$$(basename $${folder}); \
 		chart_version=$$(grep '^version:' $${folder}/Chart.yaml | awk '{print $$2}'); \
+		chart_name_version=$${chart_name}-$${chart_version}; \
+		echo -n "$${chart_name_version}: "; \
+		whitespaces=$$(echo "$${chart_name_version}: " | sed "s/./ /g")
 		if [ -f $(OUTPUT_DIR)/$${chart_name}-$${chart_version}.tgz ]; then \
-			echo -e "$${chart_name}-$${chart_version}: \033[0;33mskipped\033[0m - Chart package already exists"; \
-		elif out=$$(helm package $${folder} --version $${chart_version} --destination $(TEMP_DIR)/packaged_charts 2>&1); then \
-			echo -e "$${chart_name}-$${chart_version}: \033[0;32mdone - Chart package has been created\033[0m"; \
-			touch $(TEMP_DIR)/.index; \
+			echo -e "\033[0;33mskipped\033[0m - Chart package already exists"; \
 		else \
-			echo -e "\033[0;31mPackaging chart $${chart_name}-$${chart_version} has failed.\033[0m"; \
-			echo "$$out"; \
-			exit 1; \
+		  echo -n "lint "; \
+			if [ -f $${folder}/values.lint.yaml ]; then \
+				helm_args="--values $${folder}/values.lint.yaml"; \
+			fi; \
+			if out=$$(helm lint $$folder --quiet 2>&1 $$helm_args); then \
+				echo -e "\033[0;32mOK\033[0m "; \
+				if test -n "$$out"; then echo "$$out"; fi; \
+			else \
+				echo -e "\033[0;31mFAILED\033[0m "; \
+				echo "$$out"; \
+				exit 1; \
+			fi; \
+			echo -n "$${whitespaces}package "; \
+			if out=$$(helm package $${folder} --version $${chart_version} --destination $(TEMP_DIR)/packaged_charts 2>&1); then \
+				echo -e "\033[0;32mDONE\033[0m - chart package has been created"; \
+				touch $(TEMP_DIR)/.index; \
+			else \
+				echo -e "\033[0;31mFAILED - packaging chart $${chart_name_version} has failed.\033[0m"; \
+				echo "$$out"; \
+				exit 1; \
+			fi \
 		fi \
 	done
 	@if test -f $(TEMP_DIR)/.index  &&  out=$$(helm repo index --merge $(INDEX_FILE) $(TEMP_DIR) 2>&1); then \
@@ -132,9 +151,24 @@ publish: check-helm
 	fi
   # login to registry
 	@echo "$(REGISTRY_TOKEN)" | helm registry login "$(REGISTRY_URL)" -u "$(REGISTRY_USER)" --password-stdin
-  # push packaged charts
-	@for pkg_file in "$(OUTPUT_DIR)"/*.tgz; do \
-		helm push "$$pkg_file" oci://$(REGISTRY_URL); \
+  # check if package already exists = we don't want to overwrite existing packages (could indicate conflict, i.e. originate from other pushes!)
+	@for folder in $(CHARTFOLDERS); do \
+		chart_name=$$(basename $${folder}); \
+		echo "$${chart_name}"; \
+		for pkg_file in "$(OUTPUT_DIR)/$${chart_name}-"*.tgz; do \
+		  oci_package=$$(basename "$${pkg_file}" | sed "s/.tgz//" | sed -E "s/(.*)-(.*)/\1:\2/"); \
+			chart_oci_url="oci://$(REGISTRY_URL)/$${oci_package}"; \
+			if helm show chart "$${chart_oci_url}" 2>/dev/null 1>/dev/null; then \
+				echo -e "  \033[0;33mskipped\033[0m - Chart version $${chart_oci_url} already present in registry"; \
+			else \
+			  echo "  Pushing chart.."
+			  if helm push "$$pkg_file" oci://$(REGISTRY_URL) 2>/dev/null 1>/dev/null; then \
+					echo -e "    \033[0;32mDONE\033[0m - Chart $${oci_package} successfully pushed"; \
+				else \
+					echo -e "    \033[0;31mFAILED\033[0m - Chart $${oci_package} push failed"; \
+				fi \
+			fi \
+		done \
 	done
 
 clean: check-yq
@@ -199,4 +233,4 @@ clean: check-yq
 	fi
 	@rm -rf $(TEMP_DIR);
 
-build: lint package
+build: package
