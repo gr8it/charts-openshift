@@ -1,0 +1,296 @@
+kyverno:
+  features:
+    backgroundScan:
+      skipResourceFilters: false
+      backgroundScanInterval: 5m
+  backgroundController:
+    serviceMonitor:
+      enabled: true
+    replicas: 2
+    rbac:
+      coreClusterRole:
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # !!! CONSIDER USING AGGREGATED CLUSTER ROLES FOR ACCESS CONTROL                    !!!
+        # !!! https://kyverno.io/docs/installation/customization/#customizing-permissions   !!!
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        extraResources:
+          - apiGroups:
+            - networking.k8s.io
+            resources:
+            - ingresses
+            - ingressclasses
+            - networkpolicies
+            verbs:
+            - create
+            - update
+            - patch
+            - delete
+          - apiGroups:
+            - rbac.authorization.k8s.io
+            resources:
+            - rolebindings
+            - roles
+            verbs:
+            - create
+            - delete
+            - get
+            - list
+            - patch
+            - update
+            - watch
+          - apiGroups:
+            - rbac.authorization.k8s.io
+            resources:
+            - clusterroles
+            verbs:
+            - bind
+          - apiGroups:
+            - ''
+            resources:
+            - configmaps
+            - resourcequotas
+            - limitranges
+            verbs:
+            - create
+            - update
+            - patch
+            - delete
+          - apiGroups:
+            - ""
+            - project.openshift.io
+            resources:
+            - projectrequests
+            - projects
+            verbs:
+            - create
+            - get
+          - apiGroups:
+            - user.openshift.io
+            resources:
+            - groups
+            verbs:
+            - list
+            - get
+          - apiGroups:
+              - ''
+            resources:
+              - secrets
+            verbs:
+              - get
+              - list
+              - create
+              - update
+              - delete
+              - watch
+          - apiGroups:
+              - 'objectbucket.io'
+            resources:
+              - ObjectBucketClaim
+            verbs:
+              - get
+              - list
+              - watch
+          - apiGroups:
+            - k8s.ovn.org
+            resources:
+            - egressips
+            verbs:
+            - create
+            - delete
+            - get
+            - list
+            - patch
+            - update
+            - watch
+          - apiGroups:
+            - metallb.io
+            resources:
+            - L2Advertisement
+            verbs:
+            - get
+            - list
+            - patch
+            - update
+            - watch
+          - apiGroups:
+            - postgresql.cnpg.io
+            resources:
+            - backups
+            verbs:
+            - get
+            - list
+            - patch
+            - update
+            - watch
+    resources:
+      limits:
+        memory: 500Mi
+        cpu: 700m
+  config:
+    enableDefaultRegistryMutation: false
+  admissionController:
+    replicas: 3
+    serviceMonitor:
+      enabled: true
+    rbac:
+      coreClusterRole:
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # !!! CONSIDER USING AGGREGATED CLUSTER ROLES FOR ACCESS CONTROL                    !!!
+        # !!! https://kyverno.io/docs/installation/customization/#customizing-permissions   !!!
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        extraResources:
+          - apiGroups:
+              - ''
+            resources:
+              - secrets
+              - configmaps
+            verbs:
+              - get
+              - list
+              - create
+              - update
+              - delete
+              - watch
+          - apiGroups:
+              - 'objectbucket.io'
+            resources:
+              - ObjectBucketClaim
+            verbs:
+              - get
+              - list
+              - watch
+    container:
+      resources:
+        limits:
+          memory: 384Mi
+          cpu: 100m
+        requests:
+          cpu: 50m
+          memory: 128Mi
+  cleanupController:
+    replicas: 2
+    serviceMonitor:
+      enabled: true
+    rbac:
+      clusterRole:
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # !!! CONSIDER USING AGGREGATED CLUSTER ROLES FOR ACCESS CONTROL                    !!!
+        # !!! https://kyverno.io/docs/installation/customization/#customizing-permissions   !!!
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        extraResources:
+          - apiGroups:
+            - k8s.ovn.org
+            resources:
+            - egressips
+            verbs:
+            - create
+            - delete
+            - get
+            - list
+            - patch
+            - update
+            - watch
+          - apiGroups:
+            - postgresql.cnpg.io
+            resources:
+            - backups
+            verbs:
+            - get
+            - list
+            - patch
+            - update
+            - watch
+            - delete
+    resources:
+      limits:
+        memory: 128Mi
+        cpu: 50m
+      requests:
+        cpu: 10m
+        memory: 64Mi
+  reportsController:
+    replicas: 2
+    serviceMonitor:
+      enabled: true
+    rbac:
+      coreClusterRole:
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # !!! CONSIDER USING AGGREGATED CLUSTER ROLES FOR ACCESS CONTROL                    !!!
+        # !!! https://kyverno.io/docs/installation/customization/#customizing-permissions   !!!
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        extraResources:
+          - apiGroups:
+            - k8s.ovn.org
+            resources:
+            - egressips
+            verbs:
+            - get
+            - list
+            - watch
+    resources:
+      limits:
+        memory: 256Mi
+        cpu: 800m
+  webhooksCleanup:
+    securityContext:
+      runAsUser:
+      runAsGroup:
+      runAsNonRoot: true
+      privileged: false
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+        - ALL
+      seccompProfile:
+        type: RuntimeDefault
+  policyReportsCleanup:
+    securityContext:
+      runAsUser:
+      runAsGroup:
+      runAsNonRoot: true
+      privileged: false
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+        - ALL
+      seccompProfile:
+        type: RuntimeDefault
+  crds:
+    migration:
+      securityContext:
+        runAsUser:
+        runAsGroup:
+        runAsNonRoot: true
+        privileged: false
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop:
+          - ALL
+        seccompProfile:
+          type: RuntimeDefault
+
+  test:
+    securityContext:
+      runAsUser:
+      runAsGroup:
+      runAsNonRoot: true
+      privileged: false
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+        - ALL
+      seccompProfile:
+        type: RuntimeDefault
+
+  metricsConfig:
+    metricsExposure:
+      # Counter disabled
+      kyverno_policy_rule_info_total:
+        enabled: true
+      # Histogram disabled
+      kyverno_admission_review_duration_seconds:
+        enabled: true
