@@ -1,0 +1,53 @@
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata:
+  name: {{ include "keycloak.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: keycloak
+  {{- include "keycloak.labels" . | nindent 4 }}
+spec:
+  additionalOptions:
+  {{ toYaml .Values.keycloak.additionalOptions | nindent 4 }}
+  db:
+    host: {{ include "keycloak.fullname" . }}-db-rw
+    passwordSecret:
+      key: password
+      name: {{ include "keycloak.fullname" . }}-db-auth
+    usernameSecret:
+      key: username
+      name: {{ include "keycloak.fullname" . }}-db-auth
+    vendor: postgres
+  hostname:
+    admin: https://{{ include "keycloak.adminURL" . }}
+    hostname: https://{{ include "keycloak.loginURL" . }}
+  http:
+    tlsSecret: {{ include "keycloak.fullname" . }}-tls-secret
+  ingress:
+    enabled: false
+  instances: {{ .Values.keycloak.instances | default 3 }}
+  resources:
+  {{ toYaml .Values.keycloak.resources | nindent 4 }}
+  truststores:
+    ca-cert-truststore:
+      secret:
+        name: {{ include "keycloak.fullname" . }}-ca-certs
+  unsupported:
+    podTemplate:
+      spec:
+        affinity:
+          podAntiAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: keycloak
+              topologyKey: kubernetes.io/hostname
+        containers:
+        - securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
