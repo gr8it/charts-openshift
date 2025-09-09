@@ -1,0 +1,192 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: {{ include "application-gitops.fullname" . }}
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
+    policies.kyverno.io/title: Generate ArgoCD appproject, serviceaccount and rolebinding
+    policies.kyverno.io/category: gitops
+    policies.kyverno.io/subject: Generate application gitops resources
+    policies.kyverno.io/minversion: 1.13.0
+  labes:
+    {{- include "application-gitops.labels" . | nindent 4 }}
+spec:
+  background: true
+  generateExisting: true
+  validationFailureAction: Audit
+  rules:
+    - name: generate-argocd-appproject
+      match:
+        any:
+          - resources:
+              kinds:
+                - argoproj.io/*/Application
+              namespaceSelector:
+                matchLabels:
+                  apc.namespace.type: application
+      generate:
+        orphanDownstreamOnPolicyDelete: true
+        synchronize: true
+        generateExisting: true
+        apiVersion: argoproj.io/v1alpha1
+        kind: AppProject
+        name: {{`"{{ request.object.metadata.namespace }}"`}}
+        namespace: {{ .Values.gitopsNamespace }}
+        data:
+          metadata:
+            ownerReferences:
+            - apiVersion: v1
+              kind: Service
+              name: {{`"{{request.object.metadata.name}}"`}}
+              uid: {{`"{{request.object.metadata.uid}}"`}}
+          spec:
+            description: "{{`{{ request.object.metadata.namespace }}`}} namespace project"
+            orphanedResources:
+              warn: false
+            destinationServiceAccounts:
+              - defaultServiceAccount: {{ include "application-gitops.fullname" . }}
+                namespace: {{`"{{ request.object.metadata.namespace }}"`}}
+                server: https://kubernetes.default.svc
+            destinations:
+            - namespace: {{`"{{ request.object.metadata.namespace }}"`}}
+              # name: in-cluster
+              server: https://kubernetes.default.svc
+            sourceNamespaces:
+              - {{`"{{ request.object.metadata.namespace }}"`}}
+            sourceRepos:
+              - 'https://gitlab.socpoist.sk/*'
+            roles:
+              - description: "{{`{{ request.object.metadata.namespace }}`}} project admin access"
+                groups:
+                  - APC-{{ include "application-gitops.environmentShort" . }}-{{`{{ to_upper(request.object.metadata.namespace) }}`}}-PJA
+                name: admin
+                policies:
+                  # manage repositories (CLI / GUI only)
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:admin, repositories, *, {{`{{ request.object.metadata.namespace }}`}}/https://gitlab.socpoist.sk/*, allow
+                  # manage applications
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:admin, applications, *, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  # exec into pods
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:admin, exec, create, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  # access logs
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:admin, logs, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+
+              - description: "{{`{{ request.object.metadata.namespace }}`}} project Operator access"
+                groups:
+                  - APC-{{ include "application-gitops.environmentShort" . }}-{{`{{ to_upper(request.object.metadata.namespace) }}`}}-OPR
+                name: operator
+                policies:
+                  # manage repositories (CLI / GUI only)
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:operator, repositories, *, {{`{{ request.object.metadata.namespace }}`}}/https://gitlab.socpoist.sk/*, allow
+                  # manage applications
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:operator, applications, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:operator, applications, update, {{`{{ request.object.metadata.namespace }}`}}/*, deny
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:operator, applications, update/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:operator, applications, delete, {{`{{ request.object.metadata.namespace }}`}}/*, deny
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:operator, applications, delete/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:operator, applications, sync, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:operator, applications, action/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  # exec into pods
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:operator, exec, create, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  # access logs
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:operator, logs, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+
+              - description: "{{`{{ request.object.metadata.namespace }}`}} project Tester access"
+                groups:
+                  - APC-{{ include "application-gitops.environmentShort" . }}-{{`{{ to_upper(request.object.metadata.namespace) }}`}}-TES
+                name: tester
+                policies:
+                  # manage applications
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:tester, applications, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:tester, applications, update, {{`{{ request.object.metadata.namespace }}`}}/*, deny
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:tester, applications, update/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:tester, applications, delete, {{`{{ request.object.metadata.namespace }}`}}/*, deny
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:tester, applications, delete/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:tester, applications, sync, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:tester, applications, action/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  # exec into pods
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:tester, exec, create, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  # access logs
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:tester, logs, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+
+              - description: "{{`{{ request.object.metadata.namespace }}`}} project Developer access"
+                groups:
+                  - APC-{{ include "application-gitops.environmentShort" . }}-{{`{{ to_upper(request.object.metadata.namespace) }}`}}-DEV
+                name: developer
+                policies:
+                  # manage applications
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, applications, *, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, applications, update, {{`{{ request.object.metadata.namespace }}`}}/*, deny
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, applications, update/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, applications, delete, {{`{{ request.object.metadata.namespace }}`}}/*, deny
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, applications, delete/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, applications, sync, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  # exec into pods
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, applications, action/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, exec, create, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  # access logs
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, logs, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+
+              - description: "{{`{{ request.object.metadata.namespace }}`}} project Viewer access"
+                groups:
+                  - APC-{{ include "application-gitops.environmentShort" . }}-{{`{{ to_upper(request.object.metadata.namespace) }}`}}-VIE
+                name: viewer
+                policies:
+                  # manage applications
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:viewer, applications, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+
+    - name: generate-argocd-serviceaccount
+      match:
+        any:
+          - resources:
+              kinds:
+                - argoproj.io/*/Application
+              namespaceSelector:
+                matchLabels:
+                  apc.namespace.type: application
+      generate:
+        orphanDownstreamOnPolicyDelete: true
+        synchronize: false
+        generateExisting: true
+        apiVersion: v1
+        kind: ServiceAccount
+        name: {{ include "application-gitops.fullname" . }}
+        namespace: {{`"{{ request.object.metadata.namespace }}"`}}
+        data:
+          metadata:
+            ownerReferences:
+            - apiVersion: v1
+              kind: Service
+              name: {{`"{{request.object.metadata.name}}"`}}
+              uid: {{`"{{request.object.metadata.uid}}"`}}
+
+    - name: generate-argocd-rolebinding
+      match:
+        any:
+          - resources:
+              kinds:
+                - argoproj.io/*/Application
+              namespaceSelector:
+                matchLabels:
+                  apc.namespace.type: application
+      generate:
+        orphanDownstreamOnPolicyDelete: true
+        synchronize: true
+        generateExisting: true
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: RoleBinding
+        name: {{ include "application-gitops.fullname" . }}
+        namespace: {{`"{{ request.object.metadata.namespace }}"`}}
+        data:
+          metadata:
+            ownerReferences:
+            - apiVersion: v1
+              kind: Service
+              name: {{`"{{request.object.metadata.name}}"`}}
+              uid: {{`"{{request.object.metadata.uid}}"`}}
+          roleRef:
+            apiGroup: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: {{ .Values.adminRole }}
+          subjects:
+          - kind: ServiceAccount
+            name: {{ include "application-gitops.fullname" . }}
+            namespace: {{`"{{ request.object.metadata.namespace }}"`}}
