@@ -35,7 +35,7 @@ spec:
   destinations:
     {{- tpl $project.destinations $ | nindent 4 }}
   {{- end }}
-  {{- $projectOrphanedResources := ($application.orphanedResources) | default dict }}
+  {{- $projectOrphanedResources := ($project.orphanedResources) | default dict }}
   {{- $defaultOrphanedResources := ((($.Values.default).project).orphanedResources) | default dict }}
   {{- $orphanedResources := merge $projectOrphanedResources $defaultOrphanedResources }}
   {{- with $orphanedResources }}
