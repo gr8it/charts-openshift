@@ -72,3 +72,15 @@ Create the name of the service account to use
 {{- define "gitops-bootstrap.repoShort" -}}
 {{- mustRegexReplaceAll "^https://github.com/([^/]+)/([^/.]+)(.git|/)?$" (include "gitops-bootstrap.repoUrl" .) "${1}-${2}" }}
 {{- end }}
+
+{{/*
+Creates proxyIPs list. If not specified, uses global value
+*/}}
+{{- define "gitops-bootstrap.proxyIPs" -}}
+{{- $proxyIPs := .Values.proxyIPs | default .Values.global.apc.proxyIPs -}}
+{{- if $proxyIPs -}}
+{{- $proxyIPs | toJson -}}
+{{- else -}}
+{{ list }}
+{{- end -}}
+{{- end -}}

@@ -34,7 +34,11 @@ lint:
 	@echo -e "\033[0;36m~> Starting helm lint checks on all chart folders ...\033[0m"
 	@for folder in $(CHARTFOLDERS); do \
 		echo -n "$$(basename $${folder}): Lint check "; \
-		if out=$$(helm lint $$folder --quiet 2>&1); then \
+		helm_args=""; \
+		if [ -f $${folder}/values.lint.yaml ]; then \
+			helm_args="--values $${folder}/values.lint.yaml"; \
+		fi; \
+		if out=$$(helm lint $$folder --quiet 2>&1 $$helm_args); then \
 			echo -e "\033[0;32mOK\033[0m."; \
 			if test -n "$$out"; then echo "$$out"; fi; \
 		else \

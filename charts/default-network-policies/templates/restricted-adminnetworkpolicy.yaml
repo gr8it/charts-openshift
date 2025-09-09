@@ -1,0 +1,26 @@
+{{- if .Values.createRestrictedPolicies }}
+apiVersion: policy.networking.k8s.io/v1alpha1
+kind: AdminNetworkPolicy
+metadata:
+  # name: cluster-wide-restricted-policy
+  name: cluster-wide-restricted-policy
+  labels:
+    {{- include "default-network-policies.labels" . | nindent 4 }}
+spec:
+  priority: 10
+  subject:
+    namespaces:
+      matchLabels:
+        security: restricted
+  ingress:
+  - name: "deny-ingress-to-restricted"
+    action: "Deny"
+    from:
+    - namespaces: {}
+  egress:
+  - name: "deny-egress-from-restricted"
+    action: "Deny"
+    to:
+    - namespaces: {}
+---
+{{- end }}

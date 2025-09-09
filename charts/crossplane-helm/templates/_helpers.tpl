@@ -72,3 +72,15 @@ Create the name of the service account to use
 {{- define "crossplane-helm.repoShort" -}}
 {{- mustRegexReplaceAll "^https://github.com/([^/]+)/([^/.]+)(.git|/)?$" (include "crossplane-helm.repoUrl" .) "${1}-${2}" }}
 {{- end }}
+
+{{/*
+Creates proxyIPs list. If not specified, uses global value
+*/}}
+{{- define "crossplane-helm.proxyIPs" -}}
+{{- $proxyIPs := .Values.proxyIPs | default .Values.global.apc.proxyIPs -}}
+{{- if $proxyIPs -}}
+{{- $proxyIPs | toJson -}}
+{{- else -}}
+{{ list }}
+{{- end -}}
+{{- end -}}
