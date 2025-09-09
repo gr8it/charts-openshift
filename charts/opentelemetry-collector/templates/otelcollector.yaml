@@ -1,0 +1,77 @@
+---
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: {{ .Values.instanceNameOverride | default (include "opentelemetry-collector.fullname" .) }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "opentelemetry-collector.labels" . | nindent 4 }}
+spec:
+  mode: deployment
+  serviceAccount: {{ include "opentelemetry-collector.fullname" . }}-deployment
+  observability:
+    metrics:
+      enableMetrics: true
+  config:
+    extensions:
+      bearertokenauth:
+        filename: "/var/run/secrets/kubernetes.io/serviceaccount/token"
+    receivers:
+      jaeger:
+        protocols:
+          grpc: {}
+          thrift_binary: {}
+          thrift_compact: {}
+          thrift_http: {}
+      otlp:
+        protocols:
+          grpc: {}
+          http: {}
+      zipkin: {}
+    processors:
+      batch: {}
+      k8sattributes:
+        extract:
+          metadata: [k8s.namespace.name]
+      memory_limiter:
+        check_interval: 1s
+        limit_percentage: 50
+        spike_limit_percentage: 30
+      resourcedetection:
+        detectors: [openshift]
+    exporters:
+      otlp/application:
+        endpoint: {{ .Values.tracesEndpoint | required "Traces endpoint is required!" }}
+        auth: { authenticator: bearertokenauth }
+        headers: { X-Scope-OrgID: "application" }
+        tls:
+          insecure: false
+          ca_file: "/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt"
+      otlphttp/loki:
+        endpoint: {{ .Values.logsEndpoint | required "Logs endpoint is required!" }}
+        auth: { authenticator: bearertokenauth }
+        tls:
+          insecure: false
+          ca_file: "/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt"
+      prometheus:
+        endpoint: {{ .Values.metricsEndpoint | required "Metrics endpoint is required!" }}
+        resource_to_telemetry_conversion:
+          enabled: true
+    service:
+      telemetry:
+        metrics:
+          address: ":8888"
+      extensions: [bearertokenauth]
+      pipelines:
+        traces:
+          receivers: [jaeger,otlp,zipkin]
+          processors: [memory_limiter, k8sattributes, resourcedetection, batch]
+          exporters: [otlp/application]
+        metrics:
+          receivers: [otlp]
+          processors: [memory_limiter, k8sattributes, resourcedetection, batch]
+          exporters: [prometheus]
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, k8sattributes, resourcedetection, batch]
+          exporters: [otlphttp/loki]

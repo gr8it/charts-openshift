@@ -1,0 +1,17 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "opentelemetry-collector.fullname" . }}
+  labels:
+    {{- include "opentelemetry-collector.labels" . | nindent 4 }}
+rules:
+- apiGroups: ["","config.openshift.io"]
+  resources: ["pods","namespaces","infrastructures","infrastructures/status"]
+  verbs:     ["get","list","watch"]
+- apiGroups: ["apps"]
+  resources: ["replicasets"]
+  verbs:     ["get","list","watch"]
+- apiGroups: ["extensions"]
+  resources: ["replicasets"]
+  verbs:     ["get","list","watch"]
