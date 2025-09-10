@@ -12,7 +12,6 @@ metadata:
     {{- include "application-gitops.labels" . | nindent 4 }}
 spec:
   background: true
-  generateExisting: true
   validationFailureAction: Audit
   rules:
     - name: generate-argocd-appproject
@@ -24,6 +23,11 @@ spec:
               namespaceSelector:
                 matchLabels:
                   apc.namespace.type: application
+      preconditions:
+        all:
+        - key: {{`"{{ request.object.metadata.name }}"`}}
+          operator: Equals
+          value: {{`"{{ request.object.metadata.namespace }}"`}}
       generate:
         orphanDownstreamOnPolicyDelete: true
         synchronize: true
@@ -33,12 +37,6 @@ spec:
         name: {{`"{{ request.object.metadata.namespace }}"`}}
         namespace: {{ .Values.gitopsNamespace }}
         data:
-          metadata:
-            ownerReferences:
-            - apiVersion: v1
-              kind: Service
-              name: {{`"{{request.object.metadata.name}}"`}}
-              uid: {{`"{{request.object.metadata.uid}}"`}}
           spec:
             description: "{{`{{ request.object.metadata.namespace }}`}} namespace project"
             orphanedResources:
@@ -73,7 +71,7 @@ spec:
 
               - description: "{{`{{ request.object.metadata.namespace }}`}} project Operator access"
                 groups:
-                  - APC-{{ include "application-gitops.environmentShort" . }}-{{`{{ to_upper(request.object.metadata.namespace) }}`}}-OPR
+                  - APC-{{ include "application-gitops.environmentShort" . | upper }}-{{`{{ to_upper(request.object.metadata.namespace) }}`}}-OPR
                 name: operator
                 policies:
                   # manage repositories (CLI / GUI only)
@@ -94,7 +92,7 @@ spec:
 
               - description: "{{`{{ request.object.metadata.namespace }}`}} project Tester access"
                 groups:
-                  - APC-{{ include "application-gitops.environmentShort" . }}-{{`{{ to_upper(request.object.metadata.namespace) }}`}}-TES
+                  - APC-{{ include "application-gitops.environmentShort" . | upper }}-{{`{{ to_upper(request.object.metadata.namespace) }}`}}-TES
                 name: tester
                 policies:
                   # manage applications
@@ -113,7 +111,7 @@ spec:
 
               - description: "{{`{{ request.object.metadata.namespace }}`}} project Developer access"
                 groups:
-                  - APC-{{ include "application-gitops.environmentShort" . }}-{{`{{ to_upper(request.object.metadata.namespace) }}`}}-DEV
+                  - APC-{{ include "application-gitops.environmentShort" . | upper }}-{{`{{ to_upper(request.object.metadata.namespace) }}`}}-DEV
                 name: developer
                 policies:
                   # manage applications
@@ -132,7 +130,7 @@ spec:
 
               - description: "{{`{{ request.object.metadata.namespace }}`}} project Viewer access"
                 groups:
-                  - APC-{{ include "application-gitops.environmentShort" . }}-{{`{{ to_upper(request.object.metadata.namespace) }}`}}-VIE
+                  - APC-{{ include "application-gitops.environmentShort" . | upper }}-{{`{{ to_upper(request.object.metadata.namespace) }}`}}-VIE
                 name: viewer
                 policies:
                   # manage applications
@@ -147,8 +145,14 @@ spec:
               namespaceSelector:
                 matchLabels:
                   apc.namespace.type: application
+      preconditions:
+        all:
+        - key: {{`"{{ request.object.metadata.name }}"`}}
+          operator: Equals
+          value: {{`"{{ request.object.metadata.namespace }}"`}}
       generate:
         orphanDownstreamOnPolicyDelete: true
+        # disable synchronize, or use server side apply = whole policy only!
         synchronize: false
         generateExisting: true
         apiVersion: v1
@@ -157,9 +161,10 @@ spec:
         namespace: {{`"{{ request.object.metadata.namespace }}"`}}
         data:
           metadata:
+            # disabled sync doesn't delete downstream resource. Using ownerReference does the job
             ownerReferences:
-            - apiVersion: v1
-              kind: Service
+            - apiVersion: {{`"{{request.object.apiVersion}}"`}}
+              kind: {{`"{{request.object.kind}}"`}}
               name: {{`"{{request.object.metadata.name}}"`}}
               uid: {{`"{{request.object.metadata.uid}}"`}}
 
@@ -172,6 +177,11 @@ spec:
               namespaceSelector:
                 matchLabels:
                   apc.namespace.type: application
+      preconditions:
+        all:
+        - key: {{`"{{ request.object.metadata.name }}"`}}
+          operator: Equals
+          value: {{`"{{ request.object.metadata.namespace }}"`}}
       generate:
         orphanDownstreamOnPolicyDelete: true
         synchronize: true
@@ -181,12 +191,12 @@ spec:
         name: {{ include "application-gitops.fullname" . }}
         namespace: {{`"{{ request.object.metadata.namespace }}"`}}
         data:
-          metadata:
-            ownerReferences:
-            - apiVersion: v1
-              kind: Service
-              name: {{`"{{request.object.metadata.name}}"`}}
-              uid: {{`"{{request.object.metadata.uid}}"`}}
+          # metadata:
+          #   ownerReferences:
+          #   - apiVersion: {{`"{{request.object.apiVersion}}"`}}
+          #     kind: {{`"{{request.object.kind}}"`}}
+          #     name: {{`"{{request.object.metadata.name}}"`}}
+          #     uid: {{`"{{request.object.metadata.uid}}"`}}
           roleRef:
             apiGroup: rbac.authorization.k8s.io
             kind: ClusterRole
