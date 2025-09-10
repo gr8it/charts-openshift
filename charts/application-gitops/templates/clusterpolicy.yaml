@@ -8,7 +8,7 @@ metadata:
     policies.kyverno.io/category: gitops
     policies.kyverno.io/subject: Generate application gitops resources
     policies.kyverno.io/minversion: 1.13.0
-  labes:
+  labels:
     {{- include "application-gitops.labels" . | nindent 4 }}
 spec:
   background: true
@@ -65,6 +65,7 @@ spec:
                   - p, proj:{{`{{ request.object.metadata.namespace }}`}}:admin, repositories, *, {{`{{ request.object.metadata.namespace }}`}}/https://gitlab.socpoist.sk/*, allow
                   # manage applications
                   - p, proj:{{`{{ request.object.metadata.namespace }}`}}:admin, applications, *, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:admin, clusters, get, https://kubernetes.default.svc, allow
                   # exec into pods
                   - p, proj:{{`{{ request.object.metadata.namespace }}`}}:admin, exec, create, {{`{{ request.object.metadata.namespace }}`}}/*, allow
                   # access logs
@@ -85,6 +86,7 @@ spec:
                   - p, proj:{{`{{ request.object.metadata.namespace }}`}}:operator, applications, delete/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow
                   - p, proj:{{`{{ request.object.metadata.namespace }}`}}:operator, applications, sync, {{`{{ request.object.metadata.namespace }}`}}/*, allow
                   - p, proj:{{`{{ request.object.metadata.namespace }}`}}:operator, applications, action/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:admin, clusters, get, https://kubernetes.default.svc, allow
                   # exec into pods
                   - p, proj:{{`{{ request.object.metadata.namespace }}`}}:operator, exec, create, {{`{{ request.object.metadata.namespace }}`}}/*, allow
                   # access logs
@@ -103,6 +105,7 @@ spec:
                   - p, proj:{{`{{ request.object.metadata.namespace }}`}}:tester, applications, delete/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow
                   - p, proj:{{`{{ request.object.metadata.namespace }}`}}:tester, applications, sync, {{`{{ request.object.metadata.namespace }}`}}/*, allow
                   - p, proj:{{`{{ request.object.metadata.namespace }}`}}:tester, applications, action/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:admin, clusters, get, https://kubernetes.default.svc, allow
                   # exec into pods
                   - p, proj:{{`{{ request.object.metadata.namespace }}`}}:tester, exec, create, {{`{{ request.object.metadata.namespace }}`}}/*, allow
                   # access logs
@@ -120,8 +123,10 @@ spec:
                   - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, applications, delete, {{`{{ request.object.metadata.namespace }}`}}/*, deny
                   - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, applications, delete/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow
                   - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, applications, sync, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, applications, action/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:admin, clusters, get, https://kubernetes.default.svc, allow
                   # exec into pods
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, applications, action/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, exec, create, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, exec, create, {{`{{ request.object.metadata.namespace }}`}}/*, allow
                   # access logs
                   - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, logs, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
 
