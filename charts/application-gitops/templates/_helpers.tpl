@@ -65,5 +65,5 @@ Create the name of the service account to use
 Create the environmentShort
 */}}
 {{- define "application-gitops.environmentShort" -}}
-{{- .Values.environmentShort | default .Values.global.apc.cluster.environmentShort }}
+{{- .Values.environmentShort | default .Values.global.apc.environmentShort }}
 {{- end }}

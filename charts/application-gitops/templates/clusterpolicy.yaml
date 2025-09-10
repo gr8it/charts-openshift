@@ -58,7 +58,7 @@ spec:
             roles:
               - description: "{{`{{ request.object.metadata.namespace }}`}} project admin access"
                 groups:
-                  - APC-{{ include "application-gitops.environmentShort" . }}-{{`{{ to_upper(request.object.metadata.namespace) }}`}}-PJA
+                  - APC-{{ include "application-gitops.environmentShort" . | upper }}-{{`{{ to_upper(request.object.metadata.namespace) }}`}}-PJA
                 name: admin
                 policies:
                   # manage repositories (CLI / GUI only)
