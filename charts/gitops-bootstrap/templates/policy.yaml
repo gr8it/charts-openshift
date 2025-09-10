@@ -140,9 +140,18 @@ spec:
                   rbac:
                     defaultPolicy: role:none
                     policy: |-
+                      g, system:cluster-admins, role:admin
                       {{- range .Values.adminGroups }}
                       g, {{ . }}, role:admin
                       {{- end }}
+                      p, role:none, applications, get, */*, deny
+                      p, role:none, certificates, get, *, deny
+                      p, role:none, clusters, get, *, deny
+                      p, role:none, repositories, get, *, deny
+                      p, role:none, projects, get, *, deny
+                      p, role:none, accounts, get, *, deny
+                      p, role:none, gpgkeys, get, *, deny
+                    scopes: '[groups]'
                   extraConfig:
                     application.sync.impersonation.enabled: "true"
                   # app in any namespace
