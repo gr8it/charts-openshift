@@ -5,9 +5,79 @@ fullnameOverride: ""
 # uses following global values => do not set here
 global:
   apc:
+    environment: ~
     environmentShort: ~
 
+environment: ~ # environment name, e.g. dev, test, prod. If not set, .global.apc.environment is used
 environmentShort: ~ # environment short name, e.g. D for dev, T for test, P for prod. If not set, .global.apc.environmentShort is used
 
 gitopsNamespace: apc-gitops
 adminRole: apc-project-admin
+
+# git domain to allow traffic from, must end with /, e.g. https://gitlab.socpoist.sk/
+# if not specified, all git domains are allowed!
+allowedGitDomain: ~
+
+defaultRoles:
+  admin:
+    groupSuffix: PJA
+    # policies are ArgoCD Cabin policies stripped of the first 2 parts, e.g. p, proj:xxx:admin, as they are generated in the template
+    policies: # templating is used for policies, i.e. {{ }} get expanded in the template
+      # manage repositories (CLI / GUI only)
+      - repositories, *, {{`{{ request.object.metadata.namespace }}`}}/{{ .Values.allowedGitDomain }}*, allow
+      # manage applications
+      - applications, *, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+      - clusters, get, https://kubernetes.default.svc, allow
+      # exec into pods
+      - exec, create, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+      # access logs
+      - logs, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+
+  operator:
+    groupSuffix: OPR
+    policies:
+      # manage repositories (CLI / GUI only)
+      - repositories, *, {{`{{ request.object.metadata.namespace }}`}}/{{ .Values.allowedGitDomain }}*, allow
+      # manage applications
+      - applications, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+      # - applications, create, {{`{{ request.object.metadata.namespace }}`}}/*, allow # app CR management
+      # - applications, update, {{`{{ request.object.metadata.namespace }}`}}/*, allow # app CR management
+      # - applications, delete, {{`{{ request.object.metadata.namespace }}`}}/*, allow # app CR management
+      # - applications, update/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow # app resources management
+      # - applications, delete/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow # app resources management
+      - applications, sync, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+      # - applications, action/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow # app resources management
+      - clusters, get, https://kubernetes.default.svc, allow
+      # exec into pods
+      - exec, create, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+      # access logs
+      - logs, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+
+  tester:
+    groupSuffix: TES
+    policies:
+      - applications, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+      - applications, sync, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+      - exec, create, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+      - logs, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+
+  developer:
+    groupSuffix: DEV
+    policies:
+      - applications, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+      - applications, sync, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+      - exec, create, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+      - logs, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+
+  viewer:
+    groupSuffix: VIE
+    policies:
+      - applications, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+
+# deep merging is NOT applied => all parameters must be specified here as well!
+rolesOverride:
+  # environmentName
+  dev:
+    # roles
+    tester: {}
+    developer: {}

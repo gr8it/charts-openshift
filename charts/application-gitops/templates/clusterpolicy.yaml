@@ -41,101 +41,37 @@ spec:
             description: "{{`{{ request.object.metadata.namespace }}`}} namespace project"
             orphanedResources:
               warn: false
+            # explicitly disable cluster resource access
+            clusterResourceWhitelist: []
+            # allow namespaced resources only using specific service account
             destinationServiceAccounts:
               - defaultServiceAccount: {{ include "application-gitops.fullname" . }}
                 namespace: {{`"{{ request.object.metadata.namespace }}"`}}
                 server: https://kubernetes.default.svc
+            # allow deployment to current namespace only
             destinations:
             - namespace: {{`"{{ request.object.metadata.namespace }}"`}}
               # name: in-cluster
               server: https://kubernetes.default.svc
+            # allow applications from current namespace only
             sourceNamespaces:
               - {{`"{{ request.object.metadata.namespace }}"`}}
             sourceRepos:
-              - 'https://gitlab.socpoist.sk/*'
+              - '{{ .Values.allowedGitDomain }}*'
             roles:
-              - description: "{{`{{ request.object.metadata.namespace }}`}} project admin access"
+              {{- range $role, $roleValues := (include "application-gitops.roles" $ | fromJson ) }}
+              {{- if $roleValues }}
+              - description: "{{`{{ request.object.metadata.namespace }}`}} project {{ $role }} access"
                 groups:
-                  - APC-{{ include "application-gitops.environmentShort" . | upper }}-{{`{{ to_upper(request.object.metadata.namespace) }}`}}-PJA
-                name: admin
+                  - APC-{{ include "application-gitops.environmentShort" $ | upper }}-{{`{{ to_upper(request.object.metadata.namespace) }}`}}-{{ $roleValues.groupSuffix }}
+                name: {{ $role }}
                 policies:
-                  # manage repositories (CLI / GUI only)
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:admin, repositories, *, {{`{{ request.object.metadata.namespace }}`}}/https://gitlab.socpoist.sk/*, allow
-                  # manage applications
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:admin, applications, *, {{`{{ request.object.metadata.namespace }}`}}/*, allow
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:admin, clusters, get, https://kubernetes.default.svc, allow
-                  # exec into pods
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:admin, exec, create, {{`{{ request.object.metadata.namespace }}`}}/*, allow
-                  # access logs
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:admin, logs, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+                {{- range $policy := $roleValues.policies }}
+                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:{{ $role }}, {{ tpl $policy $ }}
+                {{- end }}
 
-              - description: "{{`{{ request.object.metadata.namespace }}`}} project Operator access"
-                groups:
-                  - APC-{{ include "application-gitops.environmentShort" . | upper }}-{{`{{ to_upper(request.object.metadata.namespace) }}`}}-OPR
-                name: operator
-                policies:
-                  # manage repositories (CLI / GUI only)
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:operator, repositories, *, {{`{{ request.object.metadata.namespace }}`}}/https://gitlab.socpoist.sk/*, allow
-                  # manage applications
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:operator, applications, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:operator, applications, update, {{`{{ request.object.metadata.namespace }}`}}/*, deny
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:operator, applications, update/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:operator, applications, delete, {{`{{ request.object.metadata.namespace }}`}}/*, deny
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:operator, applications, delete/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:operator, applications, sync, {{`{{ request.object.metadata.namespace }}`}}/*, allow
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:operator, applications, action/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:admin, clusters, get, https://kubernetes.default.svc, allow
-                  # exec into pods
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:operator, exec, create, {{`{{ request.object.metadata.namespace }}`}}/*, allow
-                  # access logs
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:operator, logs, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
-
-              - description: "{{`{{ request.object.metadata.namespace }}`}} project Tester access"
-                groups:
-                  - APC-{{ include "application-gitops.environmentShort" . | upper }}-{{`{{ to_upper(request.object.metadata.namespace) }}`}}-TES
-                name: tester
-                policies:
-                  # manage applications
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:tester, applications, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:tester, applications, update, {{`{{ request.object.metadata.namespace }}`}}/*, deny
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:tester, applications, update/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:tester, applications, delete, {{`{{ request.object.metadata.namespace }}`}}/*, deny
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:tester, applications, delete/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:tester, applications, sync, {{`{{ request.object.metadata.namespace }}`}}/*, allow
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:tester, applications, action/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:admin, clusters, get, https://kubernetes.default.svc, allow
-                  # exec into pods
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:tester, exec, create, {{`{{ request.object.metadata.namespace }}`}}/*, allow
-                  # access logs
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:tester, logs, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
-
-              - description: "{{`{{ request.object.metadata.namespace }}`}} project Developer access"
-                groups:
-                  - APC-{{ include "application-gitops.environmentShort" . | upper }}-{{`{{ to_upper(request.object.metadata.namespace) }}`}}-DEV
-                name: developer
-                policies:
-                  # manage applications
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, applications, *, {{`{{ request.object.metadata.namespace }}`}}/*, allow
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, applications, update, {{`{{ request.object.metadata.namespace }}`}}/*, deny
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, applications, update/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, applications, delete, {{`{{ request.object.metadata.namespace }}`}}/*, deny
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, applications, delete/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, applications, sync, {{`{{ request.object.metadata.namespace }}`}}/*, allow
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, applications, action/*, {{`{{ request.object.metadata.namespace }}`}}/*, allow
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:admin, clusters, get, https://kubernetes.default.svc, allow
-                  # exec into pods
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, exec, create, {{`{{ request.object.metadata.namespace }}`}}/*, allow
-                  # access logs
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:developer, logs, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
-
-              - description: "{{`{{ request.object.metadata.namespace }}`}} project Viewer access"
-                groups:
-                  - APC-{{ include "application-gitops.environmentShort" . | upper }}-{{`{{ to_upper(request.object.metadata.namespace) }}`}}-VIE
-                name: viewer
-                policies:
-                  # manage applications
-                  - p, proj:{{`{{ request.object.metadata.namespace }}`}}:viewer, applications, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
-
+              {{- end }}
+              {{- end }}
     - name: generate-argocd-serviceaccount
       match:
         any:
