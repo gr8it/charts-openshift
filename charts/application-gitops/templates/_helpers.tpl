@@ -1,0 +1,101 @@
+{{/*
+Expand the name of the chart.
+*/}}
+{{- define "application-gitops.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Create a default fully qualified app name.
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+If release name contains chart name it will be used as a full name.
+*/}}
+{{- define "application-gitops.fullname" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create chart name and version as used by the chart label.
+*/}}
+{{- define "application-gitops.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Common labels
+*/}}
+{{- define "application-gitops.labels" -}}
+helm.sh/chart: {{ include "application-gitops.chart" . }}
+{{ include "application-gitops.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
+Selector labels
+*/}}
+{{- define "application-gitops.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "application-gitops.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "application-gitops.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "application-gitops.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create the clusterName
+*/}}
+{{- define "application-gitops.clusterName" -}}
+{{- .Values.clusterName | default .Values.global.apc.cluster.name | required "clusterName is required"  }}
+{{- end }}
+
+{{/*
+Create the environment
+*/}}
+{{- define "application-gitops.environment" -}}
+{{- .Values.environment | default .Values.global.apc.environment | required "environment is required"  }}
+{{- end }}
+
+{{/*
+Create the environmentShort
+*/}}
+{{- define "application-gitops.environmentShort" -}}
+{{- .Values.environmentShort | default .Values.global.apc.environmentShort | required "environmentShort is required" }}
+{{- end }}
+
+{{/*
+Create the roles
+*/}}
+{{- define "application-gitops.roles" -}}
+{{ $result := .Values.defaultRoles | deepCopy }}
+{{- if hasKey .Values.roleEnvOverrides (include "application-gitops.environment" .) }}
+{{- range $role, $roleValues := get .Values.roleEnvOverrides (include "application-gitops.environment" .) }}
+  {{- $_ := set $result $role $roleValues }}
+{{- end }}
+{{- end }}
+{{- if hasKey .Values.roleClusterOverrides (include "application-gitops.clusterName" .) }}
+{{- range $role, $roleValues := get .Values.roleClusterOverrides (include "application-gitops.clusterName" .) }}
+  {{- $_ := set $result $role $roleValues }}
+{{- end }}
+{{- end }}
+{{- $result | toJson }}
+{{- end }}

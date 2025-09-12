@@ -35,4 +35,11 @@ spec:
   destinations:
     {{- tpl $project.destinations $ | nindent 4 }}
   {{- end }}
+  {{- $projectOrphanedResources := ($project.orphanedResources) | default dict }}
+  {{- $defaultOrphanedResources := ((($.Values.default).project).orphanedResources) | default dict }}
+  {{- $orphanedResources := merge $projectOrphanedResources $defaultOrphanedResources }}
+  {{- with $orphanedResources }}
+  orphanedResources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 {{- end }}

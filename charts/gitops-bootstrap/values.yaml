@@ -33,11 +33,11 @@ repo:
 # operator subs to install
 subscription:
   channel: gitops-1.17
-  # first version is used as startingCSV
+  # first version is used as startingCSV => should match the current channel!
   versions:
+    - openshift-gitops-operator.v1.17.0
     - openshift-gitops-operator.v1.16.1
     - openshift-gitops-operator.v1.16.2
-    - openshift-gitops-operator.v1.17.0
 
 # As no shared mechanism exists to get parameters of argocd-app-of-apps application from the argocd-app-of-apps chart, we use manual settings here
 # will be overriden by argocd-app-of-apps settings from repo anyway
@@ -48,7 +48,6 @@ syncPolicy:
 
 # Openshift groups, which will get ArgoCD admin privileges = role:admin
 adminGroups:
-- system:cluster-admins
 - ocp_admins_hub
 - ocp_admins_prod
 - ocp_admins_test

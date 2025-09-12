@@ -1,0 +1,28 @@
+# uses following global values => do not set here
+global:
+  apc:
+    environment: dev
+    environmentShort: d
+    cluster:
+      name: dev01
+
+allowedGitDomain: https://gitlab.socpoist.sk/
+
+defaultRoles:
+  viewer:
+    policies: []
+
+roleEnvOverrides:
+  # environmentName
+  dev:
+    # roles
+    tester: {}
+    developer: {}
+
+# deep merging is NOT applied => all parameters must be specified here as well!
+roleClusterOverrides: 
+  dev01:
+    developer:
+      groupSuffix: DEV
+      policies:
+        - applications, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow

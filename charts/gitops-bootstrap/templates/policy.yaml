@@ -140,10 +140,23 @@ spec:
                   rbac:
                     defaultPolicy: role:none
                     policy: |-
+                      g, system:cluster-admins, role:admin
                       {{- range .Values.adminGroups }}
                       g, {{ . }}, role:admin
                       {{- end }}
-
+                      p, role:none, applications, get, */*, deny
+                      p, role:none, certificates, get, *, deny
+                      p, role:none, clusters, get, *, deny
+                      p, role:none, repositories, get, *, deny
+                      p, role:none, projects, get, *, deny
+                      p, role:none, accounts, get, *, deny
+                      p, role:none, gpgkeys, get, *, deny
+                    scopes: '[groups]'
+                  extraConfig:
+                    application.sync.impersonation.enabled: "true"
+                  # app in any namespace
+                  sourceNamespaces:
+                  - '*'
                   resourceTrackingMethod: annotation
                   # according to release notes, defaults from argocd 3 (https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml#L326) are not applied withing Openshift Gitops 1.17 - https://docs.redhat.com/en/documentation/red_hat_openshift_gitops/1.17/html/release_notes/gitops-release-notes
                   resourceExclusions: |
@@ -365,26 +378,32 @@ spec:
         apiVersion: policy.open-cluster-management.io/v1
         kind: ConfigurationPolicy
         metadata:
-          name: {{ include "gitops-bootstrap.fullname" . }}-repository
+          name: {{ include "gitops-bootstrap.fullname" . }}-default-project
         spec:
           remediationAction: enforce
           severity: high
           object-templates:
             - complianceType: musthave
               objectDefinition:
-                apiVersion: v1
-                kind: Secret
+                apiVersion: argoproj.io/v1alpha1
+                kind: AppProject
                 metadata:
-                  labels:
-                    argocd.argoproj.io/secret-type: repository
-                  name: default-{{ include "gitops-bootstrap.repoShort" . }}
+                  name: default
                   namespace: {{ .Values.namespace }}
-                type: Opaque
-                stringData:
-                  name: default-{{ include "gitops-bootstrap.repoShort" . }}
-                  type: git
-                  url: {{ include "gitops-bootstrap.repoUrl" . }}
-                  project: default
+                spec:
+                  destinations:
+                  - namespace: {{ .Values.namespace }}
+                    server: https://kubernetes.default.svc
+                  # sync service account impersonation
+                  destinationServiceAccounts:
+                    - defaultServiceAccount: {{ .Values.namespace }}:{{ .Values.instanceName }}-argocd-application-controller
+                      namespace: {{ .Values.namespace }}
+                      server: https://kubernetes.default.svc
+                  # apps in any namespace
+                  sourceNamespaces:
+                  - {{ .Values.namespace }}
+                  sourceRepos:
+                  - '*'
 
     - extraDependencies:
         - name: {{ include "gitops-bootstrap.fullname" . }}-operator
