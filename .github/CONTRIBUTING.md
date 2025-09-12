@@ -22,6 +22,12 @@ Use simple component names with no prefix, e.g. remove-kubeadmin, crossplane, ky
 
 ## Best practices
 
+1) Follow helm best practices - <https://helm.sh/docs/chart_best_practices/>, e.g.
+
+   - Each resource definition should be in its own template file!
+   - prefer flat over nested values <https://helm.sh/docs/chart_best_practices/values/#flat-or-nested-values>, e.g. clusterName over cluster.name
+   - use pre-releases while developing (e.g. 1.2.3-1) + pin version to use pre-release charts, e.g. ~1.2.3-0
+
 1) Namespace should be specified in all manifests because of rendered manifest pattern usage - <https://github.com/helm/helm/issues/3553> 
 
    - prefer usage of Release namespace

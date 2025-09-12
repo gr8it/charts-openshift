@@ -27,34 +27,26 @@ For best practices / contributing rules see [CONTRIBUTING.md](.github/CONTRIBUTI
 ## Build a new/updated helm chart package
 
 > [!TIP]  
-> Don't forget to update helm chart version in Chart.yaml! Otherwise the helm Chart won't be build
+> Don't forget to update helm chart version in Chart.yaml! Otherwise the helm Chart will be skipped
 
 Run:
 
 ```bash
-make -C scripts/ build
+make build
 ```
 
-### Cleanup of decommission charts
+> [!NOTE]  
+> Helm chart will be linted before packaging
 
-During the build process, previously packaged Helm charts are retained in the [packaged-charts](./packaged_charts/) folder and remain referenced in the [index](index.yaml) file. This behavior is intentional, as it ensures that older chart versions remain accessible for compatibility and historical purposes.
+### Helm chart lint
 
-To remove specific older chart versions or decommission charts entirely, delete the necessary files in [packaged-charts](./packaged_charts/) and/or [charts](./charts/) folders respectively and run the `clean` target.
+While linting can be launched manually, it is always included when building / packaging a chart.
 
 ```bash
-make -C scripts/ clean
+make lint
 ```
 
-### Regenerate Index
-
-If there's any problem with the index file, it is possible to regenerate it from scratch.
-
-> [!IMPORTANT]  
-> This will rebuild the helm repository index removing any unlinked references and fixing any potential issues with the file. This also has an unintended consequence of updating the `created` timestamp of all the remaining charts in the repository.
-
-```bash
-make -C scripts/ reindex
-```
+For cases, where linting fails, a lint configuration can be supplied by creating `values.lint.yaml` file. This lint values file is used automatically, when it exists.
 
 ### Publish to Github (raw)
 
@@ -65,6 +57,7 @@ Everything required has been created on filesystem (index.yaml + packaged_charts
 To publish all local charts to a remote oci registry (such as ghcr, quay, ..), be sure to export environment variables for registry user and password.
 The variable for registry url is optional and defaults to `ghcr.io/<git-remote-repo>`  (git-remote-repo is derived from the output of `git config --get remote.origin.url`).
 Github note:
+
 - GitHub Packages only supports authentication using a personal access token (classic). For more information, see [documentation](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry).
 
 ```bash
@@ -73,10 +66,36 @@ export REGISTRY_TOKEN="ghp_E6pjd ..... jweUO71"
 export REGISTRY_URL="ghcr.io/gr8it/charts-openshift"
 ```
 
-To push packaged charts as oci images to a registry, run:
+To push packaged chart as oci images to a registry, run:
 
 ```bash
-make -C scripts/ publish
+CHARTFOLDER=<chart dir name> make publish
+```
+
+Where \<chart dir name\> is a directory name in the charts folder.
+
+> [!WARNING]  
+> Charts won't be pushed to destination if the same tag already exists! Either chart version must be increased, or the chart version deleted in the oci registry (usually using registry GUI)
+
+### Cleanup of decommission charts
+
+During the build process, previously packaged Helm charts are retained in the [packaged-charts](./packaged_charts/) folder and remain referenced in the [index](index.yaml) file. This behavior is intentional, as it ensures that older chart versions remain accessible for compatibility and historical purposes.
+
+To remove specific older chart versions or decommission charts entirely, delete the necessary files in [packaged-charts](./packaged_charts/) and/or [charts](./charts/) folders respectively and run the `clean` target.
+
+```bash
+make clean
+```
+
+### Regenerate Index
+
+If there's any problem with the index file, it is possible to regenerate it from scratch.
+
+> [!IMPORTANT]  
+> This will rebuild the helm repository index removing any unlinked references and fixing any potential issues with the file. This also has an unintended consequence of updating the `created` timestamp of all the remaining charts in the repository.
+
+```bash
+make reindex
 ```
 
 ## Usage
