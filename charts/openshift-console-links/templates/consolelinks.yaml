@@ -1,0 +1,10 @@
+{{- range .Values.links }}
+apiVersion: console.openshift.io/v1
+kind: ConsoleLink
+metadata:
+  name: {{ .name }}
+spec:
+  href: {{ .href | quote }}
+  location: {{ .location }}
+  text: {{ .text | quote }}
+{{- end }}
