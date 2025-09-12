@@ -60,7 +60,7 @@ spec:
               - '{{ .Values.allowedGitDomain }}*'
             roles:
               {{- range $role, $roleValues := (include "application-gitops.roles" $ | fromJson ) }}
-              {{- if $roleValues }}
+              {{- if and $roleValues $roleValues.policies }}
               - description: "{{`{{ request.object.metadata.namespace }}`}} project {{ $role }} access"
                 groups:
                   - APC-{{ include "application-gitops.environmentShort" $ | upper }}-{{`{{ to_upper(request.object.metadata.namespace) }}`}}-{{ $roleValues.groupSuffix }}

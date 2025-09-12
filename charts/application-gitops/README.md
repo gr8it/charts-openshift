@@ -68,7 +68,7 @@ Component allows self service of application gitops by app teams:
   |role|applications|repositories|resources|exec|logs|
   |---|---|---|---|---|---|
   |PJA|FULL|YES|FULL|YES|YES|
-  |OPR|READ|NO|READ+SYNC|YES|YES|
+  |OPR|READ|YES|READ+SYNC|YES|YES|
   |TES**|READ|NO|READ+SYNC|YES|YES|
   |DEV**|READ|NO|READ+SYNC|YES|YES|
   |VIE|READ|NO|READ|NO|NO|

@@ -7,9 +7,12 @@ global:
   apc:
     environment: ~
     environmentShort: ~
+    cluster:
+      name: ~
 
 environment: ~ # environment name, e.g. dev, test, prod. If not set, .global.apc.environment is used
 environmentShort: ~ # environment short name, e.g. D for dev, T for test, P for prod. If not set, .global.apc.environmentShort is used
+clusterName: ~ # cluster name, e.g. dev01, test01, ... If not set, .global.apc.cluster.name is used
 
 gitopsNamespace: apc-gitops
 adminRole: apc-project-admin
@@ -18,6 +21,12 @@ adminRole: apc-project-admin
 # if not specified, all git domains are allowed!
 allowedGitDomain: ~
 
+# roles applied to all environments
+# can be overidden by roleEnvOverrides and roleClusterOverrides
+# to override default roles in values.yaml, we need to workaround helm's merge issues, e.g.:
+# defaultRoles:
+#  viewer:
+#    policies: []
 defaultRoles:
   admin:
     groupSuffix: PJA
@@ -74,10 +83,30 @@ defaultRoles:
     policies:
       - applications, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
 
-# deep merging is NOT applied => all parameters must be specified here as well!
-rolesOverride:
+# environment specific roles
+# overridess defaultRoles
+# can be overidden by roleClusterOverrides
+# deep merging is NOT applied => all parameters (groupSuffix and policies) must be specified here as well!
+# roleEnvOverrides:
+#  prod:
+#    tester:
+#      groupSuffix: TES
+#      policies:
+#        - applications, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+roleEnvOverrides:
   # environmentName
   prod:
     # roles
     tester: {}
     developer: {}
+
+# cluster specific roles
+# overridess defaultRoles and roleEnvOverrides
+# deep merging is NOT applied => all parameters (groupSuffix and policies) must be specified here as well!
+# roleClusterOverrides:
+#  prod01:
+#    tester:
+#      groupSuffix: TES
+#      policies:
+#        - applications, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
+roleClusterOverrides: {}

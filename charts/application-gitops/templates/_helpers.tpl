@@ -62,17 +62,24 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
+Create the clusterName
+*/}}
+{{- define "application-gitops.clusterName" -}}
+{{- .Values.clusterName | default .Values.global.apc.cluster.name | required "clusterName is required"  }}
+{{- end }}
+
+{{/*
 Create the environment
 */}}
 {{- define "application-gitops.environment" -}}
-{{- .Values.environment | default .Values.global.apc.environment }}
+{{- .Values.environment | default .Values.global.apc.environment | required "environment is required"  }}
 {{- end }}
 
 {{/*
 Create the environmentShort
 */}}
 {{- define "application-gitops.environmentShort" -}}
-{{- .Values.environmentShort | default .Values.global.apc.environmentShort }}
+{{- .Values.environmentShort | default .Values.global.apc.environmentShort | required "environmentShort is required" }}
 {{- end }}
 
 {{/*
@@ -80,8 +87,13 @@ Create the roles
 */}}
 {{- define "application-gitops.roles" -}}
 {{ $result := .Values.defaultRoles | deepCopy }}
-{{- if hasKey .Values.rolesOverride (include "application-gitops.environment" .) }}
-{{- range $role, $roleValues := get .Values.rolesOverride (include "application-gitops.environment" .) }}
+{{- if hasKey .Values.roleEnvOverrides (include "application-gitops.environment" .) }}
+{{- range $role, $roleValues := get .Values.roleEnvOverrides (include "application-gitops.environment" .) }}
+  {{- $_ := set $result $role $roleValues }}
+{{- end }}
+{{- end }}
+{{- if hasKey .Values.roleClusterOverrides (include "application-gitops.clusterName" .) }}
+{{- range $role, $roleValues := get .Values.roleClusterOverrides (include "application-gitops.clusterName" .) }}
   {{- $_ := set $result $role $roleValues }}
 {{- end }}
 {{- end }}
