@@ -70,7 +70,7 @@ Create the name of the service account to use
 {{- end }}
 
 {{- define "gitops-bootstrap.repoShort" -}}
-{{- mustRegexReplaceAll "^https://github.com/([^/]+)/([^/.]+)(.git|/)?$" (include "gitops-bootstrap.repoUrl" .) "${1}-${2}" }}
+{{- mustRegexReplaceAll "^https://github.com/([^/]+)/([^/]+)(.git|/)?$" (include "gitops-bootstrap.repoUrl" .) "${1}-${2}" }}
 {{- end }}
 
 {{/*
