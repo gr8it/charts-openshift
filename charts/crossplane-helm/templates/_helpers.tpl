@@ -70,5 +70,5 @@ Create the name of the service account to use
 {{- end }}
 
 {{- define "crossplane-helm.repoShort" -}}
-{{- mustRegexReplaceAll "^https://github.com/([^/]+)/([^/.]+)(.git|/)?$" (include "crossplane-helm.repoUrl" .) "${1}-${2}" }}
+{{- mustRegexReplaceAll "^https://github.com/([^/]+)/([^/]+?)(\\.git|/)?$" (include "crossplane-helm.repoUrl" .) "${1}-${2}" }}
 {{- end }}
