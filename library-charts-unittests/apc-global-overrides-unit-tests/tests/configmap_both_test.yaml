@@ -1,0 +1,112 @@
+suite: ConfigMap - combined local and global values
+templates:
+  - templates/data.yaml
+values:
+  - ../values.global.yaml
+  - ../values.local.yaml
+
+tests:
+  - it: manifest should match snapshot
+    asserts:
+      - matchSnapshot: {}
+
+  - it: customer local over global
+    asserts:
+      - equal: { path: data.customer, value: customer-local }
+
+  - it: repo fields prefer local over global
+    asserts:
+      - equal: { path: data.repoURL, value: repoURL-local }
+      - equal: { path: data.repoTargetRevision, value: repoTargetRevision-local }
+
+  - it: environment fields prefer local over global
+    asserts:
+      - equal: { path: data.environment, value: environment-local }
+      - equal: { path: data.environmentShort, value: environmentShort-local }
+
+  - it: cluster identity fields prefer local over global
+    asserts:
+      - equal: { path: data.clusterName, value: clusterName-local }
+      - equal: { path: data.clusterAcmName, value: clusterAcmName-local }
+      - equal: { path: data.clusterType, value: clusterType-local }
+
+  - it: cluster domain and API fields prefer local over global
+    asserts:
+      - equal: { path: data.clusterBaseDomain, value: clusterBaseDomain-local }
+      - equal: { path: data.clusterAppsDomain, value: clusterAppsDomain-local }
+      - equal: { path: data.clusterApiURL, value: clusterApiURL-local }
+
+  - it: cluster API versions prefer local over global
+    asserts:
+      - equal: { path: data.clusterKubeVersion, value: clusterKubeVersion-local }
+      - equal:
+          path: data.clusterApiVersions
+          value:
+            - clusterApiVersions-local
+
+  - it: clusterServices and merged include global+local with local precedence; global key absent in non-merged
+    asserts:
+      - equal: { path: data.clusterServices.local.url, value: clusterServicesLocalUrl-local }
+      - equal: { path: data.clusterServices.override.url, value: clusterServicesOverrideUrl-local }
+      - notExists: { path: data.clusterServices.global }
+      - equal: { path: data.clusterServicesMerged.global.url, value: clusterServicesGlobalUrl-global }
+      - equal: { path: data.clusterServicesMerged.local.url, value: clusterServicesLocalUrl-local }
+      - equal: { path: data.clusterServicesMerged.override.url, value: clusterServicesOverrideUrl-local }
+
+  - it: booleans prefer local over global
+    asserts:
+      - equal: { path: data.clusterIsHub, value: false }
+      - equal: { path: data.clusterRunsApps, value: false }
+
+  - it: proxy, noProxy, proxyIPs prefer local over global
+    asserts:
+      - equal: { path: data.proxy, value: proxy-local }
+      - equal: { path: data.noProxy, value: noProxy-local }
+      - equal:
+          path: data.proxyIPs
+          value:
+            - proxyIP-local
+
+  - it: services and merged include global+local with local precedence; global key absent in non-merged
+    asserts:
+      - equal: { path: data.services.local.url, value: servicesLocaltUrl-local }
+      - equal: { path: data.services.override.url, value: servicesOverrideUrl-local }
+      - notExists: { path: data.services.global }
+      - equal: { path: data.servicesMerged.global.url, value: servicesGlobalUrl-global }
+      - equal: { path: data.servicesMerged.local.url, value: servicesLocaltUrl-local }
+      - equal: { path: data.servicesMerged.override.url, value: servicesOverrideUrl-local }
+
+  - it: caCertificates and merged include global+local with local precedence; global key absent in non-merged
+    asserts:
+      - equal:
+          path: data.caCertificates["cert.crt"]
+          value: |
+            -----BEGIN CERTIFICATE-----
+            local
+            -----END CERTIFICATE-----
+      - equal:
+          path: data.caCertificates["cert-local.crt"]
+          value: |
+            -----BEGIN CERTIFICATE-----
+            local
+            -----END CERTIFICATE-----
+      - notExists:
+          path: data.caCertificates["cert-global.crt"]
+      - equal:
+          path: data.caCertificatesMerged["cert-global.crt"]
+          value: |
+            -----BEGIN CERTIFICATE-----
+            global
+            -----END CERTIFICATE-----
+      - equal:
+          path: data.caCertificatesMerged["cert-local.crt"]
+          value: |
+            -----BEGIN CERTIFICATE-----
+            local
+            -----END CERTIFICATE-----
+      - equal:
+          path: data.caCertificatesMerged["cert.crt"]
+          value: |
+            -----BEGIN CERTIFICATE-----
+            local
+            -----END CERTIFICATE-----
