@@ -11,7 +11,7 @@ spec:
         - key: apc.namespace.type
           operator: In
           values:
-            {{- if eq "true" (include "default-network-policies.boolDefaults" (list .Values.createApplicationPolicies .Values.global.apc.cluster.runsApps true)) }}
+            {{- if eq "true" (include "apc-global-overrides.boolDefaults" (list .Values.createApplicationPolicies (include "apc-global-overrides.clusterRunsApps" .) true)) }}
             - application
             {{- end }}
             - platform
@@ -20,11 +20,11 @@ spec:
       action: Deny
       from:
       - namespaces: {}
-  {{- if (include "default-network-policies.proxyIPs" . | fromJsonArray) }}
+  {{- if (include "apc-global-overrides.proxyIPs" . | fromYamlArray ) }}
   egress:
   - action: Deny
     name: deny-to-proxy
     to:
     - networks:
-      {{- toYaml (include "default-network-policies.proxyIPs" . | fromJsonArray) | nindent 6 }}
+      {{- (include "apc-global-overrides.proxyIPs" .) | nindent 6 }}
   {{- end }}

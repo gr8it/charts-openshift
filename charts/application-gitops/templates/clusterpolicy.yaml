@@ -63,7 +63,7 @@ spec:
               {{- if and $roleValues $roleValues.policies }}
               - description: "{{`{{ request.object.metadata.namespace }}`}} project {{ $role }} access"
                 groups:
-                  - APC-{{ include "application-gitops.environmentShort" $ | upper }}-{{`{{ to_upper(request.object.metadata.namespace) }}`}}-{{ $roleValues.groupSuffix }}
+                  - APC-{{ include "apc-global-overrides.require-environmentShort" $ | upper }}-{{`{{ to_upper(request.object.metadata.namespace) }}`}}-{{ $roleValues.groupSuffix }}
                 name: {{ $role }}
                 policies:
                 {{- range $policy := $roleValues.policies }}

@@ -1,0 +1,207 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      labels:
+        app.kubernetes.io/instance: argo-events-project-setup
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: argo-events-project-setup
+        helm.sh/chart: argo-events-project-setup-1.1.0
+      name: argo-events-project-setup-event-source
+    rules:
+      - apiGroups:
+          - user.openshift.io
+        resources:
+          - groups
+        verbs:
+          - list
+          - get
+          - watch
+  2: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      labels:
+        app.kubernetes.io/instance: argo-events-project-setup
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: argo-events-project-setup
+        helm.sh/chart: argo-events-project-setup-1.1.0
+      name: argo-events-project-setup-sensor
+    rules:
+      - apiGroups:
+          - ""
+        resources:
+          - namespaces
+        verbs:
+          - create
+          - update
+          - get
+          - patch
+  3: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: argo-events-project-setup
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: argo-events-project-setup
+        helm.sh/chart: argo-events-project-setup-1.1.0
+      name: argo-events-project-setup-sensor
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: argo-events-project-setup-sensor
+    subjects:
+      - kind: ServiceAccount
+        name: argo-events-project-setup-sensor
+        namespace: apc-argo-project-setup
+  4: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: argo-events-project-setup
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: argo-events-project-setup
+        helm.sh/chart: argo-events-project-setup-1.1.0
+      name: argo-events-project-setup-event-source
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: argo-events-project-setup-event-source
+    subjects:
+      - kind: ServiceAccount
+        name: argo-events-project-setup-event-source
+        namespace: apc-argo-project-setup
+  5: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: EventBus
+    metadata:
+      labels:
+        app.kubernetes.io/instance: argo-events-project-setup
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: argo-events-project-setup
+        helm.sh/chart: argo-events-project-setup-1.1.0
+      name: argo-events-project-setup
+      namespace: apc-argo-project-setup
+    spec:
+      nats:
+        native:
+          auth: token
+          persistence:
+            accessMode: ReadWriteOnce
+            volumeSize: 1Gi
+          replicas: 3
+  6: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: EventSource
+    metadata:
+      labels:
+        app.kubernetes.io/instance: argo-events-project-setup
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: argo-events-project-setup
+        helm.sh/chart: argo-events-project-setup-1.1.0
+      name: argo-events-project-setup-addgroup
+      namespace: apc-argo-project-setup
+    spec:
+      eventBusName: argo-events-project-setup
+      resource:
+        addgroup:
+          eventTypes:
+            - ADD
+          filter:
+            prefix: APC-D-
+          group: user.openshift.io
+          namespace: ""
+          resource: groups
+          version: v1
+      template:
+        container:
+          env:
+            - name: LOG_LEVEL
+              value: info
+        serviceAccountName: argo-events-project-setup-event-source
+  7: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: Sensor
+    metadata:
+      labels:
+        app.kubernetes.io/instance: argo-events-project-setup
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: argo-events-project-setup
+        helm.sh/chart: argo-events-project-setup-1.1.0
+      name: argo-events-project-setup-createnamespace
+      namespace: apc-argo-project-setup
+    spec:
+      dependencies:
+        - eventName: addgroup
+          eventSourceName: argo-events-project-setup-addgroup
+          filters:
+            exprs:
+              - expr: a =~ "^APC-D-.*-PJA$"
+                fields:
+                  - name: a
+                    path: groupname
+          name: addgroup
+          transform:
+            jq: '{ groupname: (.body.metadata.name), name: (.body.metadata.name | sub("^APC-D-"; "") | sub("-PJA$"; "") | ascii_downcase) }'
+      eventBusName: argo-events-project-setup
+      template:
+        container:
+          env:
+            - name: LOG_LEVEL
+              value: debug
+        serviceAccountName: argo-events-project-setup-sensor
+      triggers:
+        - template:
+            k8s:
+              operation: create
+              parameters:
+                - dest: metadata.name
+                  src:
+                    dataKey: name
+                    dependencyName: addgroup
+              source:
+                resource:
+                  apiVersion: v1
+                  kind: Namespace
+                  metadata:
+                    labels:
+                      apc.namespace.type: application
+                    name: dummy
+            name: createnamespace
+            policy:
+              k8s:
+                backoff:
+                  duration: 10s
+                  factor: 2
+                  jitter: 0.1
+                  steps: 5
+                errorOnBackoffTimeout: true
+  8: |
+    apiVersion: v1
+    automountServiceAccountToken: true
+    kind: ServiceAccount
+    metadata:
+      annotations: {}
+      labels:
+        app.kubernetes.io/instance: argo-events-project-setup
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: argo-events-project-setup
+        helm.sh/chart: argo-events-project-setup-1.1.0
+      name: argo-events-project-setup-event-source
+      namespace: apc-argo-project-setup
+  9: |
+    apiVersion: v1
+    automountServiceAccountToken: true
+    kind: ServiceAccount
+    metadata:
+      annotations: {}
+      labels:
+        app.kubernetes.io/instance: argo-events-project-setup
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: argo-events-project-setup
+        helm.sh/chart: argo-events-project-setup-1.1.0
+      name: argo-events-project-setup-sensor
+      namespace: apc-argo-project-setup

@@ -1,4 +1,4 @@
-{{- if (include "crossplane-helm.proxyIPs" . | fromJsonArray ) }}
+{{- if (include "apc-global-overrides.proxyIPs" . | fromYamlArray ) }}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -9,7 +9,7 @@ metadata:
 spec:
   egress:
   - to:
-    {{- range (include "crossplane-helm.proxyIPs" . | fromJsonArray ) }}
+    {{- range (include "apc-global-overrides.proxyIPs" . | fromYamlArray ) }}
     - ipBlock:
         cidr: {{ . }}
     {{- end }}

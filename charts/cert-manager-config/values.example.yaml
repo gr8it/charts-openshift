@@ -72,11 +72,12 @@ global:
         -----END CERTIFICATE-----
     services:
       vault:
-        url: https://vault.apps.hub01.cloud.socpoist.sk
+        url: "https://vault.apps.hub01.cloud.socpoist.sk"
       certManager:
-        defaultClusterIssuer: vault-hub-issuer
+        defaultClusterIssuer: "vault-hub-issuer"
 
-# clusterName: ocpdemo-spoke1
+# cluster:
+#   name: ocpdemo-spoke1
 # CA to validate Vault cert. If not specified, defaults to global.apc.caCertificates
 # caCertificates: |
 #   -----BEGIN CERTIFICATE-----
@@ -99,9 +100,12 @@ global:
 #   4QPZXa053WFfTvDpAOS4hs87tr2TzcrZ0fgSOLv3O8cDtWBIoY+qfMY/GO0+D7G2
 #   jSfZQEwdYLLQ6lslNN9Zrg3E3MOpPdJMGcNpA/LRCa2XbbDuG6jRPH0=
 #   -----END CERTIFICATE-----
-# defaultClusterIssuer: # if not specified, defaults to global.apc.services.certManager.defaultClusterIssuer, or vault-{{ "vaultName" }}-issuer
+# services:
+#   certManager:
+#     defaultClusterIssuer: # if not specified, defaults to global.apc.services.certManager.defaultClusterIssuer, or vault-{{ "vaultName" }}-issuer
+#   vault:
+#     url: https://vault.lab.gr8it.cloud # if not specified, defaults to global.apc.services.vault.url
 
-# vaultUrl: https://vault.lab.gr8it.cloud # if not specified, defaults to global.apc.services.vault.url
 # vaultName: vault-lab # if not specified, extracted hostname from vaultUrl
 vaultKubeAuthMountPath: kubernetes
 vaultPkiPath: pki-int-gr8it.cloud # required. Path to the PKI secrets engine mount
