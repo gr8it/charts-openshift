@@ -1,0 +1,13 @@
+suite: Snapshot test
+templates:
+  - templates/*
+values:
+  - ../values.example.yaml
+release:
+  name: cert-manager-config
+  namespace: cert-manager
+
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}

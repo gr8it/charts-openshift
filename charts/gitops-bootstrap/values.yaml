@@ -8,23 +8,24 @@ bootstrap: false
 instanceName: apc-argocd
 namespace: apc-gitops # where to install custom ArgoCD instance
 
-# uses following global values => do not set here
-global:
-  apc:
-    repoURL: ~
-    repoTargetRevision: ~
-    cluster:
-      name: hub
-      appsDomain: ~
-    proxyIPs: []
-
-cluster:
-  name: ~ # name of the hub cluster, to be used in argocd-app-of-apps rendered path
-  appsDomain: ~ # domain to be added to the route
+## uses following global values => do not set here
+# global:
+#   apc:
+#     repoURL: ~
+#     repoTargetRevision: ~
+#     cluster:
+#       name: hub
+#       appsDomain: ~
+#     proxyIPs: []
+## and their local overrides
+# repoURL: ~ # URL of the git repository to bootstrap from App of Apps
+# repoTargetRevision: ~ # Branch or tag to use in the git repository
+# cluster:
+#   name: ~ # name of the hub cluster, to be used in argocd-app-of-apps rendered path
+#   appsDomain: ~ # domain to be added to the route
+# proxyIPs: [] # if set, communication to these IP will be allowed
 
 repo:
-  url: ~ # URL of the git repository to bootstrap from App of Apps
-  targetRevision: ~ # Branch or tag to use in the git repository
   credentials: # Github app credentials # see <https://github.com/gr8it/privatecloud/blob/develop/docs/openshift/gitops.md>
     app_id: ~
     installation_id: ~
@@ -52,5 +53,3 @@ adminGroups:
 - ocp_admins_prod
 - ocp_admins_test
 - ocp_admins_dev
-
-proxyIPs: [] # if set, communication to these IP will be allowed
