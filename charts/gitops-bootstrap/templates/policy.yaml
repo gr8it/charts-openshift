@@ -58,13 +58,7 @@ spec:
                   labels:
                     openshift.io/cluster-monitoring: "true"
 
-    - extraDependencies:
-        - name: {{ include "gitops-bootstrap.fullname" . }}-operator
-          namespace: ""
-          apiVersion: policy.open-cluster-management.io/v1beta1
-          kind: OperatorPolicy
-          compliance: Compliant
-      objectDefinition:
+    - objectDefinition:
         apiVersion: policy.open-cluster-management.io/v1
         kind: ConfigurationPolicy
         metadata:
@@ -83,10 +77,40 @@ spec:
                     apc.namespace.type: platform
 
     - extraDependencies:
+        - name: {{ include "gitops-bootstrap.fullname" . }}-namespace
+          namespace: ""
+          apiVersion: policy.open-cluster-management.io/v1
+          kind: ConfigurationPolicy
+          compliance: Compliant
+      objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: {{ include "gitops-bootstrap.fullname" . }}-ca
+        spec:
+          remediationAction: enforce
+          severity: high
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                kind: ConfigMap
+                apiVersion: v1
+                metadata:
+                  name: cluster-root-ca-bundle
+                  namespace: {{ .Values.namespace }}
+                  labels:
+                    config.openshift.io/inject-trusted-cabundle: 'true'
+
+    - extraDependencies:
         - name: {{ include "gitops-bootstrap.fullname" . }}-operator
           namespace: ""
           apiVersion: policy.open-cluster-management.io/v1beta1
           kind: OperatorPolicy
+          compliance: Compliant
+        - name: {{ include "gitops-bootstrap.fullname" . }}-ca
+          namespace: ""
+          apiVersion: policy.open-cluster-management.io/v1
+          kind: ConfigurationPolicy
           compliance: Compliant
       objectDefinition:
         apiVersion: policy.open-cluster-management.io/v1
@@ -126,6 +150,16 @@ spec:
                       requests:
                         cpu: 250m
                         memory: 2Gi
+                  repo:
+                    volumeMounts:
+                    - mountPath: /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+                      subPath: ca-bundle.crt
+                      name: cluster-root-ca-bundle
+                    volumes:
+                      - configMap:
+                          name: cluster-root-ca-bundle
+                          optional: true
+                        name: cluster-root-ca-bundle
                   sso:
                     dex:
                       openShiftOAuth: true
@@ -278,10 +312,10 @@ spec:
 
     {{- if (include "gitops-bootstrap.proxyIPs" . | fromJsonArray ) }}
     - extraDependencies:
-        - name: {{ include "gitops-bootstrap.fullname" . }}-operator
+        - name: {{ include "gitops-bootstrap.fullname" . }}-namespace
           namespace: ""
-          apiVersion: policy.open-cluster-management.io/v1beta1
-          kind: OperatorPolicy
+          apiVersion: policy.open-cluster-management.io/v1
+          kind: ConfigurationPolicy
           compliance: Compliant
       objectDefinition:
         apiVersion: policy.open-cluster-management.io/v1
@@ -290,7 +324,7 @@ spec:
           name: {{ include "gitops-bootstrap.fullname" . }}-proxy-netpol
         spec:
           remediationAction: enforce
-          severity: low
+          severity: high
           object-templates:
             - complianceType: musthave
               objectDefinition:
@@ -311,13 +345,7 @@ spec:
                   - Egress
     {{- end }}
 
-    - extraDependencies:
-        - name: {{ include "gitops-bootstrap.fullname" . }}-operator
-          namespace: ""
-          apiVersion: policy.open-cluster-management.io/v1beta1
-          kind: OperatorPolicy
-          compliance: Compliant
-      objectDefinition:
+    - objectDefinition:
         apiVersion: policy.open-cluster-management.io/v1
         kind: ConfigurationPolicy
         metadata:
@@ -342,10 +370,10 @@ spec:
                   name: cluster-admin
 
     - extraDependencies:
-        - name: {{ include "gitops-bootstrap.fullname" . }}-operator
+        - name: {{ include "gitops-bootstrap.fullname" . }}-namespace
           namespace: ""
-          apiVersion: policy.open-cluster-management.io/v1beta1
-          kind: OperatorPolicy
+          apiVersion: policy.open-cluster-management.io/v1
+          kind: ConfigurationPolicy
           compliance: Compliant
       objectDefinition:
         apiVersion: policy.open-cluster-management.io/v1
@@ -369,6 +397,11 @@ spec:
                 type: Opaque
 
     - extraDependencies:
+        - name: {{ include "gitops-bootstrap.fullname" . }}-namespace
+          namespace: ""
+          apiVersion: policy.open-cluster-management.io/v1
+          kind: ConfigurationPolicy
+          compliance: Compliant
         - name: {{ include "gitops-bootstrap.fullname" . }}-operator
           namespace: ""
           apiVersion: policy.open-cluster-management.io/v1beta1
@@ -406,6 +439,11 @@ spec:
                   - '*'
 
     - extraDependencies:
+        - name: {{ include "gitops-bootstrap.fullname" . }}-namespace
+          namespace: ""
+          apiVersion: policy.open-cluster-management.io/v1
+          kind: ConfigurationPolicy
+          compliance: Compliant
         - name: {{ include "gitops-bootstrap.fullname" . }}-operator
           namespace: ""
           apiVersion: policy.open-cluster-management.io/v1beta1
@@ -448,10 +486,10 @@ spec:
                       recurse: true
 
     - extraDependencies:
-        - name: {{ include "gitops-bootstrap.fullname" . }}-operator
+        - name: {{ include "gitops-bootstrap.fullname" . }}-namespace
           namespace: ""
-          apiVersion: policy.open-cluster-management.io/v1beta1
-          kind: OperatorPolicy
+          apiVersion: policy.open-cluster-management.io/v1
+          kind: ConfigurationPolicy
           compliance: Compliant
       objectDefinition:
         apiVersion: policy.open-cluster-management.io/v1
@@ -460,7 +498,7 @@ spec:
           name: {{ include "gitops-bootstrap.fullname" . }}-prometheus-rules
         spec:
           remediationAction: enforce
-          severity: low
+          severity: high
           object-templates:
             - complianceType: musthave
               objectDefinition:
@@ -523,10 +561,10 @@ spec:
                         description: Service {{ "{{ \"{{ $labels.name }}\" }}" }} run by argo is currently not healthy.\n  VALUE = {{ "{{ \"{{ $value }}\" }}" }}\n  LABELS = {{ "{{ \"{{ $labels }}\" }}" }}
 
     - extraDependencies:
-        - name: {{ include "gitops-bootstrap.fullname" . }}-operator
+        - name: {{ include "gitops-bootstrap.fullname" . }}-instance
           namespace: ""
-          apiVersion: policy.open-cluster-management.io/v1beta1
-          kind: OperatorPolicy
+          apiVersion: policy.open-cluster-management.io/v1
+          kind: ConfigurationPolicy
           compliance: Compliant
       objectDefinition:
         apiVersion: policy.open-cluster-management.io/v1
