@@ -1,0 +1,81 @@
+suite: APC global overrides - default values
+templates:
+  - templates/apc-global-overrides.yaml
+release:
+  name: agout
+  namespace: default
+
+tests:
+  - it: manifest should match snapshot
+    asserts:
+      - matchSnapshot: {}
+
+  - it: customer from default values
+    asserts:
+      - equal: { path: data.customer, value: ~ }
+
+  - it: repo fields from default values
+    asserts:
+      - equal: { path: data.repoURL, value: ~ }
+      - equal: { path: data.repoTargetRevision, value: ~ }
+
+  - it: environment fields from default values
+    asserts:
+      - equal: { path: data.environment, value: ~ }
+      - equal: { path: data.environmentShort, value: ~ }
+
+  - it: cluster identity fields from default values
+    asserts:
+      - equal: { path: data.clusterName, value: ~ }
+      - equal: { path: data.clusterAcmName, value: ~ }
+      - equal: { path: data.clusterType, value: ~ }
+
+  - it: cluster domain and API fields from default values
+    asserts:
+      - equal: { path: data.clusterBaseDomain, value: ~ }
+      - equal: { path: data.clusterAppsDomain, value: ~ }
+      - equal: { path: data.clusterApiURL, value: ~ }
+
+  - it: cluster API versions from default values
+    asserts:
+      - equal: { path: data.clusterKubeVersion, value: ~ }
+      - equal:
+          path: data.clusterApiVersions
+          value: []
+
+  - it: clusterServices and merged default values
+    asserts:
+      - equal:
+          path: data.clusterServices
+          value: {}
+      - equal:
+          path: data.clusterServicesMerged
+          value: {}
+
+  - it: booleans from default values
+    asserts:
+      - equal: { path: data.clusterIsHub, value: false }
+      - equal: { path: data.clusterRunsApps, value: false }
+
+  - it: proxy, noProxy, proxyIPs from default values
+    asserts:
+      - equal: { path: data.proxy, value: ~ }
+      - equal: { path: data.noProxy, value: ~ }
+      - equal:
+          path: data.proxyIPs
+          value: []
+
+  - it: services and merged default values
+    asserts:
+      - equal:
+          path: data.services
+          value: {}
+      - equal:
+          path: data.servicesMerged
+          value: {}
+
+  - it: caCertificates and merged default values
+    asserts:
+      - equal:
+          path: data.caCertificates
+          value: {}

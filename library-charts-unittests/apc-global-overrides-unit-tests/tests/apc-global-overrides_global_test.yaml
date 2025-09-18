@@ -1,0 +1,106 @@
+suite: APC global overrides - global values only
+templates:
+  - templates/apc-global-overrides.yaml
+values:
+  - ../values.global.yaml
+release:
+  name: agout
+  namespace: default
+
+tests:
+  - it: manifest should match snapshot
+    asserts:
+      - matchSnapshot: {}
+
+  - it: customer from global
+    asserts:
+      - equal: { path: data.customer, value: customer-global }
+  
+  - it: repo fields from global
+    asserts:
+      - equal: { path: data.repoURL, value: repoURL-global }
+      - equal: { path: data.repoTargetRevision, value: repoTargetRevision-global }
+
+  - it: environment fields from global
+    asserts:
+      - equal: { path: data.environment, value: environment-global }
+      - equal: { path: data.environmentShort, value: environmentShort-global }
+
+  - it: cluster identity fields from global
+    asserts:
+      - equal: { path: data.clusterName, value: clusterName-global }
+      - equal: { path: data.clusterAcmName, value: clusterAcmName-global }
+      - equal: { path: data.clusterType, value: clusterType-global }
+
+  - it: cluster domain and API fields from global
+    asserts:
+      - equal: { path: data.clusterBaseDomain, value: clusterBaseDomain-global }
+      - equal: { path: data.clusterAppsDomain, value: clusterAppsDomain-global }
+      - equal: { path: data.clusterApiURL, value: clusterApiURL-global }
+
+  - it: cluster API versions from global
+    asserts:
+      - equal: { path: data.clusterKubeVersion, value: clusterKubeVersion-global }
+      - equal:
+          path: data.clusterApiVersions
+          value:
+            - clusterApiVersions-global
+
+  - it: clusterServices and merged (global only, no local keys in non-merged)
+    asserts:
+      - equal: { path: data.clusterServices.global.url, value: clusterServicesGlobalUrl-global }
+      - equal: { path: data.clusterServices.override.url, value: clusterServicesOverrideUrl-global }
+      - notExists: { path: data.clusterServices.local }
+      - equal: { path: data.clusterServicesMerged.global.url, value: clusterServicesGlobalUrl-global }
+      - equal: { path: data.clusterServicesMerged.override.url, value: clusterServicesOverrideUrl-global }
+
+  - it: booleans from global
+    asserts:
+      - equal: { path: data.clusterIsHub, value: true }
+      - equal: { path: data.clusterRunsApps, value: true }
+
+  - it: proxy, noProxy, proxyIPs from global
+    asserts:
+      - equal: { path: data.proxy, value: proxy-global }
+      - equal: { path: data.noProxy, value: noProxy-global }
+      - equal:
+          path: data.proxyIPs
+          value:
+            - proxyIP-global
+
+  - it: services and merged (global only, no local keys in non-merged)
+    asserts:
+      - equal: { path: data.services.global.url, value: servicesGlobalUrl-global }
+      - equal: { path: data.services.override.url, value: servicesOverrideUrl-global }
+      - notExists: { path: data.services.local }
+      - equal: { path: data.servicesMerged.global.url, value: servicesGlobalUrl-global }
+      - equal: { path: data.servicesMerged.override.url, value: servicesOverrideUrl-global }
+
+  - it: caCertificates and merged (global only, no local keys in non-merged)
+    asserts:
+      - equal:
+          path: data.caCertificates["cert.crt"]
+          value: |
+            -----BEGIN CERTIFICATE-----
+            global
+            -----END CERTIFICATE-----
+      - equal:
+          path: data.caCertificates["cert-global.crt"]
+          value: |
+            -----BEGIN CERTIFICATE-----
+            global
+            -----END CERTIFICATE-----
+      - notExists:
+          path: data.caCertificates["cert-local.crt"]
+      - equal:
+          path: data.caCertificatesMerged["cert.crt"]
+          value: |
+            -----BEGIN CERTIFICATE-----
+            global
+            -----END CERTIFICATE-----
+      - equal:
+          path: data.caCertificatesMerged["cert-global.crt"]
+          value: |
+            -----BEGIN CERTIFICATE-----
+            global
+            -----END CERTIFICATE-----
