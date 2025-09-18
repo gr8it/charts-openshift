@@ -18,17 +18,24 @@ data:
     {{- (include "apc-global-overrides.clusterServices" .) | nindent 4 }}
   clusterServicesMerged:
     {{- (include "apc-global-overrides.merge-clusterServices" .) | nindent 4 }}
+  clusterServicesExtracted: {{ (((include "apc-global-overrides.clusterServices" .) | fromYaml).override).url }}
   clusterIsHub: {{ include "apc-global-overrides.clusterIsHub" . }}
   clusterRunsApps: {{ include "apc-global-overrides.clusterRunsApps" . }}
   proxy: {{ include "apc-global-overrides.proxy" . }}
   noProxy: {{ include "apc-global-overrides.noProxy" . }}
   proxyIPs:
     {{- (include "apc-global-overrides.proxyIPs" .) | nindent 4 }}
+  {{- if (include "apc-global-overrides.proxyIPs" .) | fromYamlArray }}
+  proxyIPsArray: {{ (include "apc-global-overrides.proxyIPs" .) | fromYamlArray }}
+  {{- end }}
   services:
     {{- (include "apc-global-overrides.services" .) | nindent 4 }}
   servicesMerged:
     {{- (include "apc-global-overrides.merge-services" .) | nindent 4 }}
+  servicesExtracted: {{ (((include "apc-global-overrides.services" .) | fromYaml).override).url }}
   caCertificates:
     {{- (include "apc-global-overrides.caCertificates" .) | nindent 4 }}
   caCertificatesMerged:
     {{- (include "apc-global-overrides.merge-caCertificates" .) | nindent 4 }}
+  caCertificatesExtracted: |
+    {{- (index ((include "apc-global-overrides.caCertificates" .) | fromYaml) "cert.crt" | default "") | nindent 4 }}

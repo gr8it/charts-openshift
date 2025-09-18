@@ -15,10 +15,6 @@ manifest should match snapshot:
         local
         -----END CERTIFICATE-----
       caCertificatesMerged:
-        cert-global.crt: |
-          -----BEGIN CERTIFICATE-----
-          global
-          -----END CERTIFICATE-----
         cert-local.crt: |
           -----BEGIN CERTIFICATE-----
           local
@@ -44,8 +40,6 @@ manifest should match snapshot:
           url: clusterServicesOverrideUrl-local
       clusterServicesExtracted: clusterServicesOverrideUrl-local
       clusterServicesMerged:
-        global:
-          url: clusterServicesGlobalUrl-global
         local:
           url: clusterServicesLocalUrl-local
         override:
@@ -57,7 +51,10 @@ manifest should match snapshot:
       noProxy: noProxy-local
       proxy: proxy-local
       proxyIPs:
-        - proxyIP-local
+        - proxyIP-local1
+        - proxyIP-local2
+      proxyIPsArray:
+        - proxyIP-local1 proxyIP-local2
       repoTargetRevision: repoTargetRevision-local
       repoURL: repoURL-local
       services:
@@ -67,8 +64,6 @@ manifest should match snapshot:
           url: servicesOverrideUrl-local
       servicesExtracted: servicesOverrideUrl-local
       servicesMerged:
-        global:
-          url: servicesGlobalUrl-global
         local:
           url: servicesLocaltUrl-local
         override:

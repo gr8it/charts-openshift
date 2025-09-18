@@ -1,8 +1,11 @@
-suite: ConfigMap - global values only
+suite: APC global overrides - global values only
 templates:
-  - templates/data.yaml
+  - templates/apc-global-overrides.yaml
 values:
   - ../values.global.yaml
+release:
+  name: agout
+  namespace: default
 
 tests:
   - it: manifest should match snapshot
