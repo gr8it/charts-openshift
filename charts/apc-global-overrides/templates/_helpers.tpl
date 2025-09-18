@@ -118,7 +118,7 @@ Create the repoURL and require it
 Create the repoShort = extract organization and project name from the repoURL
 */}}
 {{- define "apc-global-overrides.repoShort" -}}
-{{- mustRegexReplaceAll "^https://github.com/([^/]+)/([^/]+?)(\\.git|/)?$" (include "apc-global-overrides.repoUrl" .) "${1}-${2}" }}
+{{- mustRegexReplaceAll "^https://github.com/([^/]+)/([^/]+?)(\\.git|/)?$" (include "apc-global-overrides.repoURL" .) "${1}-${2}" }}
 {{- end }}
 
 {{/*
