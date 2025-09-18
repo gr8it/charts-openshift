@@ -115,6 +115,13 @@ Create the repoURL and require it
 {{- end }}
 
 {{/*
+Create the repoShort = extract organization and project name from the repoURL
+*/}}
+{{- define "apc-global-overrides.repoShort" -}}
+{{- mustRegexReplaceAll "^https://github.com/([^/]+)/([^/]+?)(\\.git|/)?$" (include "apc-global-overrides.repoUrl" .) "${1}-${2}" }}
+{{- end }}
+
+{{/*
 Create the repoTargetRevision
 */}}
 {{- define "apc-global-overrides.repoTargetRevision" -}}
@@ -322,7 +329,7 @@ Create the noProxy and require it
 Create the proxyIPs
 */}}
 {{- define "apc-global-overrides.proxyIPs" -}}
-{{- .Values.proxyIPs | default ((.Values.global).apc).proxyIPs | default list }}
+{{- .Values.proxyIPs | default ((.Values.global).apc).proxyIPs | default list | toYaml }}
 {{- end }}
 
 {{/*
