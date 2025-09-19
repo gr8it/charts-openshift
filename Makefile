@@ -49,6 +49,23 @@ lint:
 		fi; \
 	done
 
+unittest:
+	@echo -e "\033[0;36m~> Starting helm unittests on all chart folders ...\033[0m"
+	@for folder in $(CHARTFOLDERS); do \
+		echo -n "$$(basename $${folder}): Unittest "; \
+		if [ -d $${folder}/tests/ ]; then \
+			if out=$$(helm unittest --strict $$folder); then \
+				echo -e "\033[0;32mOK\033[0m "; \
+			else \
+				echo -e "\033[0;31mFAILED\033[0m "; \
+				echo "$$out"; \
+				exit 1; \
+			fi; \
+		else \
+		  echo "NA"; \
+		fi; \
+	done
+
 gitpull:
 	@echo -e "\033[0;36m~> Synchronizing with the latest Git repository state ...\033[0m"
 	@if ! git pull; then \
@@ -82,6 +99,18 @@ package:
 				echo -e "\033[0;31mFAILED\033[0m "; \
 				echo "$$out"; \
 				exit 1; \
+			fi; \
+			echo -n "$${whitespaces}unittests "; \
+			if [ -d $${folder}/tests/ ]; then \
+				if out=$$(helm unittest --strict $$folder); then \
+					echo -e "\033[0;32mOK\033[0m "; \
+				else \
+					echo -e "\033[0;31mFAILED\033[0m "; \
+					echo "$$out"; \
+					exit 1; \
+				fi; \
+			else \
+			  echo "NA"; \
 			fi; \
 			echo -n "$${whitespaces}package "; \
 			if out=$$(helm package $${folder} --version $${chart_version} --destination $(TEMP_DIR)/packaged_charts 2>&1); then \

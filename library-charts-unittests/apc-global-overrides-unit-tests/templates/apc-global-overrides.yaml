@@ -26,7 +26,11 @@ data:
   proxyIPs:
     {{- (include "apc-global-overrides.proxyIPs" .) | nindent 4 }}
   {{- if (include "apc-global-overrides.proxyIPs" .) | fromYamlArray }}
-  proxyIPsArray: {{ (include "apc-global-overrides.proxyIPs" .) | fromYamlArray }}
+  proxyIPsArray:
+    {{- range (include "apc-global-overrides.proxyIPs" . | fromYamlArray ) }}
+    - ipBlock:
+        cidr: {{ . }}
+    {{- end }}
   {{- end }}
   services:
     {{- (include "apc-global-overrides.services" .) | nindent 4 }}
@@ -39,3 +43,4 @@ data:
     {{- (include "apc-global-overrides.merge-caCertificates" .) | nindent 4 }}
   caCertificatesExtracted: |
     {{- (index ((include "apc-global-overrides.caCertificates" .) | fromYaml) "cert.crt" | default "") | nindent 4 }}
+  caCertificatesJoined: {{ print ((include "apc-global-overrides.caCertificates" .) | fromYaml | values | join "") "\n" | b64enc }}
