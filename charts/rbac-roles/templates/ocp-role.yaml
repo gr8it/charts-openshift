@@ -1,0 +1,14 @@
+{{ $agRoles := (include "remaping.aggregatedRoles" . | fromYaml) }}
+{{- range $ocpRole, $apcRole := $agRoles }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: ServerSideApply=true
+  labels:
+    {{- range $aggregateRole := $apcRole }}
+    rbac.authorization.k8s.io/aggregate-to-{{ $aggregateRole }}: "true"
+    {{- end }}
+  name: {{ $ocpRole}}
+{{- end}}

@@ -1,0 +1,67 @@
+releaseServiceOverride: ArgoCD
+
+defaultRoles:
+  apc-project-admin:
+    - admin
+    - alert-routing-edit
+    - cluster-logging-application-view
+    - monitoring-edit
+    - netobserv-metrics-reader
+    - netobserv-reader
+  apc-project-developer:
+    - alert-routing-edit
+    - cluster-logging-application-view
+    - edit
+    - monitoring-edit
+    - netobserv-metrics-reader
+    - netobserv-reader
+  apc-project-operator:
+    - alert-routing-edit
+    - cluster-logging-application-view
+    - edit
+    - monitoring-edit
+    - netobserv-metrics-reader
+    - netobserv-reader
+  apc-project-tester:
+    - alert-routing-edit
+    - cluster-logging-application-view
+    - edit
+    - monitoring-edit
+    - netobserv-metrics-reader
+    - netobserv-reader
+  apc-project-view:
+    - monitoring-rules-view
+    - view
+
+rolesOverride:
+  test:
+    apc-project-developer:
+      - cluster-logging-application-view
+      - edit
+      - monitoring-edit
+      - netobserv-metrics-reader
+      - netobserv-reader
+    apc-project-tester:
+      - cluster-logging-application-view
+      - edit
+      - monitoring-edit
+      - netobserv-metrics-reader
+      - netobserv-reader
+    apc-project-operator:
+      - cluster-logging-application-view
+      - edit
+      - monitoring-edit
+      - netobserv-metrics-reader
+      - netobserv-reader
+  prod:
+    apc-project-developer: {}
+    apc-project-tester: {}
+    apc-project-operator:
+      - cluster-logging-application-view
+      - edit
+      - netobserv-metrics-reader
+      - netobserv-reader
+
+global:
+  apc:
+    environment: ~

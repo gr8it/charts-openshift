@@ -1,0 +1,18 @@
+{{- $roles := (include "rbac-roles.roles" . | fromYaml) }}
+{{- range $apcRole, $ocpRole := $roles }}
+{{- if ne (len $ocpRole) 0 }}
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  environment: {{ include "rbac-roles.environment" $ }}
+  name: {{ $apcRole }}
+  labels:
+  {{- include "rbac-roles.labels" $ | nindent 4 }}
+aggregationRule:
+  clusterRoleSelectors:
+  - matchLabels:
+      rbac.authorization.k8s.io/aggregate-to-{{ $apcRole }}: "true"
+rules: []
+{{- end }}
+{{- end }}
