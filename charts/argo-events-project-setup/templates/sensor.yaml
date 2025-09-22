@@ -11,13 +11,13 @@ spec:
     eventSourceName: {{ include "argo-events-project-setup.fullname" . }}-addgroup
     filters:
       exprs:
-      - expr: a =~ "^APC-{{ .Values.environmentShort | default .Values.global.apc.environmentShort | default "" | upper }}-.*-PJA$"
+      - expr: a =~ "^APC-{{ include "apc-global-overrides.require-environmentShort" . | upper }}-.*-PJA$"
         fields:
         - name: a
           path: groupname
     name: addgroup
     transform:
-      jq: '{ groupname: (.body.metadata.name), name: (.body.metadata.name | sub("^APC-{{ .Values.environmentShort | default .Values.global.apc.environmentShort | default "" | upper }}-";
+      jq: '{ groupname: (.body.metadata.name), name: (.body.metadata.name | sub("^APC-{{ include "apc-global-overrides.require-environmentShort" . | upper }}-";
         "") | sub("-PJA$"; "") | ascii_downcase) }'
   eventBusName: {{ include "argo-events-project-setup.fullname" . }}
   template:

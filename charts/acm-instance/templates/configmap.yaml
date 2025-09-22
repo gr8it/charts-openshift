@@ -1,4 +1,4 @@
-{{- if (.Values.customCACertificates | default .Values.global.apc.caCertificates) }}
+{{- if (include "apc-global-overrides.caCertificates" .) }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -7,5 +7,5 @@ metadata:
   labels:
     {{- include "acm-instance.labels" . | nindent 4 }}
 data:
-{{- .Values.customCACertificates | default .Values.global.apc.caCertificates | toYaml | nindent 2 }}
+{{- include "apc-global-overrides.caCertificates" . | nindent 2 }}
 {{- end }}
