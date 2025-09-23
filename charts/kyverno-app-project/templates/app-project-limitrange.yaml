@@ -9,7 +9,6 @@ metadata:
     policies.kyverno.io/category: limit range
     policies.kyverno.io/subject: project
     policies.kyverno.io/minversion: 1.13.0
-    argocd.argoproj.io/compare-options: ServerSideDiff=true
 spec:
   background: true
   generateExisting: true
@@ -26,6 +25,7 @@ spec:
         - key: '{{ `{{ request.object.metadata.labels."apc.namespace.type" }}` }}'
           operator: Equals
           value: application
+      skipBackgroundRequests: {{ .Values.defaultLimitRange.skipBackgroundRequests | default false }}
       generate:
         apiVersion: v1
         kind: LimitRange
