@@ -1,4 +1,4 @@
-{{ if .Values.internetProxy.enabled }}
+{{- if .Values.internetProxy.enabled }}
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
@@ -39,10 +39,10 @@ spec:
         data:
           kind: ConfigMap
           data:
-            http_proxy: {{.values.internetProxy.proxy | default .Values.global.apc.proxy }}
-            https_proxy: {{.values.internetProxy.proxy | default .Values.global.apc.proxy }}
-            no_proxy: {{ .values.internetProxy.no_proxy  default .Values.global.apc.no_proxy }}
-            HTTP_PROXY: {{.values.internetProxy.proxy | default .Values.global.apc.proxy }}
-            HTTPS_PROXY: {{.values.internetProxy.proxy | default .Values.global.apc.proxy }}
-            NO_PROXY: {{.values.internetProxy.no_proxy | default .Values.global.apc.no_proxy }}
-{{ end }}            
+            http_proxy: {{ .Values.internetProxy.proxy | default .Values.global.apc.proxy }}
+            https_proxy: {{ .Values.internetProxy.proxy | default .Values.global.apc.proxy }}
+            no_proxy: {{ .Values.internetProxy.no_proxy | default .Values.global.apc.no_proxy }}
+            HTTP_PROXY: {{ .Values.internetProxy.proxy | default .Values.global.apc.proxy }}
+            HTTPS_PROXY: {{ .Values.internetProxy.proxy | default .Values.global.apc.proxy }}
+            NO_PROXY: {{ .Values.internetProxy.no_proxy | default .Values.global.apc.no_proxy }}
+{{- end }}            
