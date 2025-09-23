@@ -9,6 +9,7 @@ metadata:
     policies.kyverno.io/category: quota 
     policies.kyverno.io/subject: project
     policies.kyverno.io/minversion: 1.13.0
+    argocd.argoproj.io/compare-options: ServerSideDiff=true
 spec:
   background: true
   generateExisting: true
@@ -25,7 +26,6 @@ spec:
         - key: '{{ `{{ request.object.metadata.labels."apc.namespace.type" }}` }}'
           operator: Equals
           value: application
-      skipBackgroundRequests: {{ .Values.defaultResourceQuota.skipBackgroundRequests | default false }}
       generate:
         apiVersion: v1
         kind: ResourceQuota
@@ -67,7 +67,6 @@ spec:
         - key: '{{ `{{ request.object.metadata.labels."apc.namespace.type" }}` }}'
           operator: Equals
           value: application
-      skipBackgroundRequests: {{ .Values.cpngCustomResourceQuota.skipBackgroundRequests | default false }}
       generate:
         apiVersion: v1
         kind: ResourceQuota
@@ -93,7 +92,6 @@ spec:
         - key: '{{ `{{ request.object.metadata.labels."apc.namespace.type" }}` }}'
           operator: Equals
           value: application
-      skipBackgroundRequests: {{ .Values.monitoringQuota.skipBackgroundRequests | default false }}
       generate:
         apiVersion: v1
         kind: ResourceQuota
@@ -124,7 +122,6 @@ spec:
         - key: '{{ `{{ request.object.metadata.labels."apc.namespace.type" }}` }}'
           operator: Equals
           value: application
-      skipBackgroundRequests: {{ .Values.grafanaQuota.skipBackgroundRequests | default false }}
       generate:
         apiVersion: v1
         kind: ResourceQuota
@@ -158,7 +155,6 @@ spec:
         - key: '{{ `{{ request.object.metadata.labels."apc.namespace.type" }}` }}'
           operator: Equals
           value: application
-      skipBackgroundRequests: {{ .Values.kubevirtCrQuota.skipBackgroundRequests | default false }}
       generate:
         apiVersion: v1
         kind: ResourceQuota
