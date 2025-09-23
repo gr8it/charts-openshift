@@ -25,7 +25,7 @@ spec:
         - key: '{{ `{{ request.object.metadata.labels."apc.namespace.type" }}` }}'
           operator: Equals
           value: application
-      skipBackgroundRequests: {{ .Values.defaultLimitRange.skipBackgroundRequests | default false }}
+      skipBackgroundRequests: {{ .Values.defaultLimitRange.skipBackgroundRequests }}
       generate:
         apiVersion: v1
         kind: LimitRange
