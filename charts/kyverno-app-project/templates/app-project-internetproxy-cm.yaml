@@ -11,8 +11,9 @@ metadata:
     policies.kyverno.io/subject: project
     policies.kyverno.io/minversion: 1.15.0
 spec:
-  background: true
-  generateExisting: true
+  background: false
+  skipBackgroundRequests: false
+  useServerSideApply: true
   validationFailureAction: Audit
   rules:
     - name: app-project-internetproxy-cm
@@ -27,6 +28,9 @@ spec:
           operator: Equals
           value: application
       generate:
+        generateExisting: true
+        orphanDownstreamOnPolicyDelete: true
+        synchronize: true      
         apiVersion: v1
         kind: ConfigMap
         name: "proxy"
