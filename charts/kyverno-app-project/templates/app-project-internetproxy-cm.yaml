@@ -1,3 +1,4 @@
+{{ if .Values.internetProxy.enabled }}
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
@@ -8,7 +9,7 @@ metadata:
     policies.kyverno.io/title: Create configmap for internet proxy
     policies.kyverno.io/category: internetproxy 
     policies.kyverno.io/subject: project
-    policies.kyverno.io/minversion: 1.13.0
+    policies.kyverno.io/minversion: 1.15.0
 spec:
   background: true
   generateExisting: true
@@ -34,9 +35,10 @@ spec:
         data:
           kind: ConfigMap
           data:
-            http_proxy: {{ .values.internetProxy.http_proxy }}
-            https_proxy: {{ .values.internetProxy.https_proxy }}
-            no_proxy: {{ .values.internetProxy.no_proxy }}
-            HTTP_PROXY: {{ .values.internetProxy.http_proxy }}
-            HTTPS_PROXY: {{ .values.internetProxy.https_proxy }}
-            NO_PROXY: {{ .values.internetProxy.no_proxy }}
+            http_proxy: {{.values.internetProxy.proxy | default .Values.global.apc.proxy }}
+            https_proxy: {{.values.internetProxy.proxy | default .Values.global.apc.proxy }}
+            no_proxy: {{ .values.internetProxy.no_proxy  default .Values.global.apc.no_proxy }}
+            HTTP_PROXY: {{.values.internetProxy.proxy | default .Values.global.apc.proxy }}
+            HTTPS_PROXY: {{.values.internetProxy.proxy | default .Values.global.apc.proxy }}
+            NO_PROXY: {{.values.internetProxy.no_proxy | default .Values.global.apc.no_proxy }}
+{{ end }}            
