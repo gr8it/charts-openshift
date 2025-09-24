@@ -2,24 +2,28 @@ manifest should match snapshot:
   1: |
     data:
       caCertificates:
-        cert-global.crt: |
+        global.crt: |
           -----BEGIN CERTIFICATE-----
           global
           -----END CERTIFICATE-----
-        cert.crt: |
+        override.crt: |
           -----BEGIN CERTIFICATE-----
           global
           -----END CERTIFICATE-----
-      caCertificatesExtracted: |
+      caCertificatesBundle: |
         -----BEGIN CERTIFICATE-----
         global
         -----END CERTIFICATE-----
+        -----BEGIN CERTIFICATE-----
+        global
+        -----END CERTIFICATE-----
+      caCertificatesExtracted: ""
       caCertificatesMerged:
-        cert-global.crt: |
+        global.crt: |
           -----BEGIN CERTIFICATE-----
           global
           -----END CERTIFICATE-----
-        cert.crt: |
+        override.crt: |
           -----BEGIN CERTIFICATE-----
           global
           -----END CERTIFICATE-----
@@ -53,7 +57,7 @@ manifest should match snapshot:
       proxyIPs:
         - proxyIP-global
       proxyIPsArray:
-        - proxyIP-global
+        - IP: proxyIP-global
       repoTargetRevision: repoTargetRevision-global
       repoURL: repoURL-global
       services:

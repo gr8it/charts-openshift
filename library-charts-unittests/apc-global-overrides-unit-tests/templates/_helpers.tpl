@@ -60,3 +60,10 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Create the caCertificates merged (local + global) (dictionary) - local has precedence
+*/}}
+{{- define "apc-global-overrides2.merge-caCertificates" -}}
+{{ deepCopy (.Values.caCertificates | default dict) | mergeOverwrite (((.Values.global).apc).caCertificates | default dict) | toYaml }}
+{{- end -}}
