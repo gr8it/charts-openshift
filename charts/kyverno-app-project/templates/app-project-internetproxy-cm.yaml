@@ -39,11 +39,10 @@ spec:
         data:
           kind: ConfigMap
           data:
-            proxy: {{ include "apc-global-overrides.proxy" . }}
-            # http_proxy: {{ .Values.internetProxy.proxy | default (include "apc-global-overrides.proxy" .) }}
-            # https_proxy: {{ .Values.internetProxy.proxy | default (include "apc-global-overrides.proxy" .) }}
-            # no_proxy: {{ .Values.internetProxy.no_proxy | default (include "apc-global-overrides.no_proxy" .) }}
-            # HTTP_PROXY: {{ .Values.internetProxy.proxy | default (include "apc-global-overrides.proxy" .) }}
-            # HTTPS_PROXY: {{ .Values.internetProxy.proxy | default (include "apc-global-overrides.proxy" .) }}
-            # NO_PROXY: {{ .Values.internetProxy.no_proxy | default (include "apc-global-overrides.no_proxy" .) }}
+            http_proxy: {{ .Values.internetProxy.proxy | default (include "apc-global-overrides.proxy" .) }}
+            https_proxy: {{ .Values.internetProxy.proxy | default (include "apc-global-overrides.proxy" .) }}
+            no_proxy: {{ .Values.internetProxy.noProxy | default (include "apc-global-overrides.noProxy" .) }}
+            HTTP_PROXY: {{ .Values.internetProxy.proxy | default (include "apc-global-overrides.proxy" .) }}
+            HTTPS_PROXY: {{ .Values.internetProxy.proxy | default (include "apc-global-overrides.proxy" .) }}
+            NO_PROXY: {{ .Values.internetProxy.noProxy | default (include "apc-global-overrides.noProxy" .) }}
 {{- end }}
