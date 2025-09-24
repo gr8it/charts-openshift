@@ -90,7 +90,7 @@ if eq "true" (include "apc-global-overrides.boolDefaults" (list ((.Values.cluste
 Create the customer
 */}}
 {{- define "apc-global-overrides.customer" -}}
-{{- .Values.customer | default (((.Values.global).apc).customer) }}
+{{- .Values.customer | default (((.Values.global).apc).customer) | default "" }}
 {{- end }}
 
 {{/*
@@ -104,7 +104,7 @@ Create the customer and require it
 Create the repoURL
 */}}
 {{- define "apc-global-overrides.repoURL" -}}
-{{- .Values.repoURL | default (((.Values.global).apc).repoURL) }}
+{{- .Values.repoURL | default (((.Values.global).apc).repoURL) | default "" }}
 {{- end }}
 
 {{/*
@@ -125,7 +125,7 @@ Create the repoShort = extract organization and project name from the repoURL
 Create the repoTargetRevision
 */}}
 {{- define "apc-global-overrides.repoTargetRevision" -}}
-{{- .Values.repoTargetRevision | default (((.Values.global).apc).repoTargetRevision) }}
+{{- .Values.repoTargetRevision | default (((.Values.global).apc).repoTargetRevision) | default "" }}
 {{- end }}
 
 {{/*
@@ -139,7 +139,7 @@ Create the repoTargetRevision and require it
 Create the environment
 */}}
 {{- define "apc-global-overrides.environment" -}}
-{{- .Values.environment | default (((.Values.global).apc).environment) }}
+{{- .Values.environment | default (((.Values.global).apc).environment) | default "" }}
 {{- end }}
 
 {{/*
@@ -153,7 +153,7 @@ Create the environment and require it
 Create the environmentShort
 */}}
 {{- define "apc-global-overrides.environmentShort" -}}
-{{- .Values.environmentShort | default (((.Values.global).apc).environmentShort) }}
+{{- .Values.environmentShort | default (((.Values.global).apc).environmentShort) | default "" }}
 {{- end }}
 
 {{/*
@@ -167,7 +167,7 @@ Create the environmentShort and require it
 Create the clusterName
 */}}
 {{- define "apc-global-overrides.clusterName" -}}
-{{- (.Values.cluster).name | default ((((.Values.global).apc).cluster).name) }}
+{{- (.Values.cluster).name | default ((((.Values.global).apc).cluster).name) | default "" }}
 {{- end }}
 
 {{/*
@@ -181,7 +181,7 @@ Create the clusterName and require it
 Create the clusterAcmName
 */}}
 {{- define "apc-global-overrides.clusterAcmName" -}}
-{{- (.Values.cluster).acmName | default ((((.Values.global).apc).cluster).acmName) }}
+{{- (.Values.cluster).acmName | default ((((.Values.global).apc).cluster).acmName) | default "" }}
 {{- end }}
 
 {{/*
@@ -195,7 +195,7 @@ Create the clusterAcmName and require it
 Create the clusterType
 */}}
 {{- define "apc-global-overrides.clusterType" -}}
-{{- (.Values.cluster).type | default ((((.Values.global).apc).cluster).type) }}
+{{- (.Values.cluster).type | default ((((.Values.global).apc).cluster).type) | default "" }}
 {{- end }}
 
 {{/*
@@ -209,7 +209,7 @@ Create the clusterType and require it
 Create the clusterBaseDomain
 */}}
 {{- define "apc-global-overrides.clusterBaseDomain" -}}
-{{- (.Values.cluster).baseDomain | default ((((.Values.global).apc).cluster).baseDomain) }}
+{{- (.Values.cluster).baseDomain | default ((((.Values.global).apc).cluster).baseDomain) | default "" }}
 {{- end }}
 
 {{/*
@@ -223,7 +223,7 @@ Create the clusterBaseDomain and require it
 Create the clusterAppsDomain
 */}}
 {{- define "apc-global-overrides.clusterAppsDomain" -}}
-{{- (.Values.cluster).appsDomain | default ((((.Values.global).apc).cluster).appsDomain) }}
+{{- (.Values.cluster).appsDomain | default ((((.Values.global).apc).cluster).appsDomain) | default "" }}
 {{- end }}
 
 {{/*
@@ -237,7 +237,7 @@ Create the clusterAppsDomain and require it
 Create the clusterApiURL
 */}}
 {{- define "apc-global-overrides.clusterApiURL" -}}
-{{- (.Values.cluster).apiURL | default ((((.Values.global).apc).cluster).apiURL) }}
+{{- (.Values.cluster).apiURL | default ((((.Values.global).apc).cluster).apiURL) | default "" }}
 {{- end }}
 
 {{/*
@@ -251,7 +251,7 @@ Create the clusterApiURL and require it
 Create the clusterKubeVersion
 */}}
 {{- define "apc-global-overrides.clusterKubeVersion" -}}
-{{- (.Values.cluster).kubeVersion | default ((((.Values.global).apc).cluster).kubeVersion) }}
+{{- (.Values.cluster).kubeVersion | default ((((.Values.global).apc).cluster).kubeVersion) | default "" }}
 {{- end }}
 
 {{/*
@@ -262,24 +262,24 @@ Create the clusterKubeVersion and require it
 {{- end }}
 
 {{/*
-Create the clusterApiVersions
+Create the clusterApiVersions (list)
 */}}
 {{- define "apc-global-overrides.clusterApiVersions" -}}
 {{- (.Values.cluster).apiVersions | default ((((.Values.global).apc).cluster).apiVersions | default list) | toYaml }}
 {{- end -}}
 
 {{/*
-Create the clusterServices
+Create the clusterServices (dictionary)
 */}}
 {{- define "apc-global-overrides.clusterServices" -}}
 {{- (.Values.cluster).services | default ((((.Values.global).apc).cluster).services | default dict) | toYaml }}
 {{- end -}}
 
 {{/*
-Create the clusterServices merged (local + global) - local has precedence
+Create the clusterServices merged (local + global) (dictionary) - local has precedence
 */}}
 {{- define "apc-global-overrides.merge-clusterServices" -}}
-{{ merge ((.Values.cluster).services | default dict) ((((.Values.global).apc).cluster).services | default dict) | toYaml }}
+{{ deepCopy ((.Values.cluster).services | default dict) | mergeOverwrite ((((.Values.global).apc).cluster).services | default dict) | toYaml }}
 {{- end -}}
 
 {{/*
@@ -300,7 +300,7 @@ Create the clusterRunsApps
 Create the proxy
 */}}
 {{- define "apc-global-overrides.proxy" -}}
-{{- .Values.proxy | default (((.Values.global).apc).proxy) }}
+{{- .Values.proxy | default (((.Values.global).apc).proxy) | default "" }}
 {{- end }}
 
 {{/*
@@ -314,7 +314,7 @@ Create the proxy and require it
 Create the noProxy
 */}}
 {{- define "apc-global-overrides.noProxy" -}}
-{{- .Values.noProxy | default (((.Values.global).apc).noProxy) }}
+{{- .Values.noProxy | default (((.Values.global).apc).noProxy) | default "" }}
 {{- end }}
 
 {{/*
@@ -324,9 +324,8 @@ Create the noProxy and require it
 {{- include "apc-global-overrides.noProxy" . | required "apc noProxy is required" }}
 {{- end }}
 
-{{/* prerobit existujuce proxyIps podla tohoto => otestovat, pripadne opravit !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/}}
 {{/*
-Create the proxyIPs
+Create the proxyIPs (list)
 */}}
 {{- define "apc-global-overrides.proxyIPs" -}}
 {{- .Values.proxyIPs | default ((.Values.global).apc).proxyIPs | default list | toYaml }}
@@ -340,29 +339,39 @@ Create the proxyIPs and require it
 {{- end }}
 
 {{/*
-Create the services
+Create the services (dictionary)
 */}}
 {{- define "apc-global-overrides.services" -}}
 {{- .Values.services | default ((.Values.global).apc).services | default dict | toYaml }}
 {{- end -}}
 
 {{/*
-Create the services merged (local + global) - local has precedence
+Create the services merged (local + global) (dictionary) - local has precedence
 */}}
 {{- define "apc-global-overrides.merge-services" -}}
-{{ merge (.Values.services | default dict) (((.Values.global).apc).services | default dict) | toYaml }}
+{{ deepCopy (.Values.services | default dict) | mergeOverwrite (((.Values.global).apc).services | default dict) | toYaml }}
 {{- end -}}
 
 {{/*
-Create the caCertificates
+Create the caCertificates (dictionary)
 */}}
 {{- define "apc-global-overrides.caCertificates" -}}
 {{- .Values.caCertificates | default (((.Values.global).apc).caCertificates | default dict) | toYaml }}
 {{- end -}}
 
 {{/*
-Create the caCertificates merged (local + global) - local has precedence
+Create the caCertificates merged (local + global) (dictionary) - local has precedence
 */}}
 {{- define "apc-global-overrides.merge-caCertificates" -}}
-{{ merge (.Values.caCertificates | default dict) (((.Values.global).apc).caCertificates | default dict) | toYaml }}
+{{ deepCopy (.Values.caCertificates | default dict) | mergeOverwrite (((.Values.global).apc).caCertificates | default dict) | toYaml }}
 {{- end -}}
+
+{{/*
+Create the caCertificatesBundle containing all certificates (single string)
+NOTE: this is a workaround to the https://github.com/helm/helm/issues/31324 issue
+*/}}
+{{- define "apc-global-overrides.caCertificatesBundle" -}}
+{{ range $key, $value := (include "apc-global-overrides.caCertificates" .) | fromYaml }}
+{{- $value }}
+{{- end }}
+{{- end }}

@@ -12,30 +12,55 @@ data:
   clusterAppsDomain: {{ include "apc-global-overrides.clusterAppsDomain" . }}
   clusterApiURL: {{ include "apc-global-overrides.clusterApiURL" . }}
   clusterKubeVersion: {{ include "apc-global-overrides.clusterKubeVersion" . }}
+  {{- /* cluster API versions available as a list */}}
   clusterApiVersions:
     {{- (include "apc-global-overrides.clusterApiVersions" .) | nindent 4 }}
+  {{- /* cluster services as a dictionary */}}
   clusterServices:
     {{- (include "apc-global-overrides.clusterServices" .) | nindent 4 }}
+  {{- /* local and global cluster services merged into a common dictionary*/}}
   clusterServicesMerged:
     {{- (include "apc-global-overrides.merge-clusterServices" .) | nindent 4 }}
+  {{- /* one specific cluster service extracted*/}}
   clusterServicesExtracted: {{ (((include "apc-global-overrides.clusterServices" .) | fromYaml).override).url }}
+  {{- /* cluster is a hub boolean (string) */}}
   clusterIsHub: {{ include "apc-global-overrides.clusterIsHub" . }}
+  {{- /* cluster runs apps boolean (string) */}}
   clusterRunsApps: {{ include "apc-global-overrides.clusterRunsApps" . }}
+  {{- if (include "apc-global-overrides.proxy" .) }}
   proxy: {{ include "apc-global-overrides.proxy" . }}
   noProxy: {{ include "apc-global-overrides.noProxy" . }}
+  {{- end }}
+  {{- /* it is not sufficient to test without fromYamlArray !!! */}}
+  {{- if (include "apc-global-overrides.proxyIPs" .) | fromYamlArray }}
+  {{- /* proxyIPs as a list */}}
   proxyIPs:
     {{- (include "apc-global-overrides.proxyIPs" .) | nindent 4 }}
-  {{- if (include "apc-global-overrides.proxyIPs" .) | fromYamlArray }}
-  proxyIPsArray: {{ (include "apc-global-overrides.proxyIPs" .) | fromYamlArray }}
+  {{- /* proxyIPs parsed and rendered as needed */}}
+  proxyIPsArray:
+    {{- range (include "apc-global-overrides.proxyIPs" . | fromYamlArray ) }}
+    - IP: {{ . }}
+    {{- end }}
   {{- end }}
   services:
     {{- (include "apc-global-overrides.services" .) | nindent 4 }}
+  {{- /* local and global services merged into a common dictionary*/}}
   servicesMerged:
     {{- (include "apc-global-overrides.merge-services" .) | nindent 4 }}
+  {{- /* one specific service extracted*/}}
   servicesExtracted: {{ (((include "apc-global-overrides.services" .) | fromYaml).override).url }}
+  {{- /* it is not sufficient to test without fromYamlArray !!! */}}
+  {{- if (include "apc-global-overrides.caCertificates" .) | fromYaml }}
+  {{- /* CA certificates = string of strings dictionary with keys = certificate names, and values equal to certificates */}}
   caCertificates:
     {{- (include "apc-global-overrides.caCertificates" .) | nindent 4 }}
+  {{- /* local and global CA certificates merged into a common dictionary*/}}
+  {{- /* one specific CA certificate extracted*/}}
   caCertificatesMerged:
     {{- (include "apc-global-overrides.merge-caCertificates" .) | nindent 4 }}
   caCertificatesExtracted: |
     {{- (index ((include "apc-global-overrides.caCertificates" .) | fromYaml) "cert.crt" | default "") | nindent 4 }}
+  {{- /* all CA certificates concatenated into a bundle*/}}
+  caCertificatesBundle: |
+    {{- (include "apc-global-overrides.caCertificatesBundle" .) | nindent 4 }}
+  {{- end }}
