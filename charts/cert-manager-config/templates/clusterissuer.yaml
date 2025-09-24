@@ -14,6 +14,6 @@ spec:
           name: {{ .Values.kubeServiceAccount }}
           audiences:
             - "https://kubernetes.default.svc"
-    caBundle: {{ (include "apc-global-overrides.caCertificates" .) | b64enc }}
+    caBundle: {{ (include "apc-global-overrides.caCertificatesBundle" .) | b64enc }}
     path: {{ .Values.vaultPkiPath }}/sign/{{ include "cert-manager-config.vaultPkiRole" . }}
     server: {{ include "cert-manager-config.vaultUrl" . }}

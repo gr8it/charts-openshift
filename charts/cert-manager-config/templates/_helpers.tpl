@@ -58,13 +58,6 @@ Create the mount path
 {{- end }}
 
 {{/*
-Create the mount path
-*/}}
-{{- define "cert-manager-config.caCertificates" -}}
-{{ include "apc-global-overrides.caCertificates" . | values}}
-{{- end }}
-
-{{/*
 Create the Vault URL
 */}}
 {{- define "cert-manager-config.vaultUrl" -}}
