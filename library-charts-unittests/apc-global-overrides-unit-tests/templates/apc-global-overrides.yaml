@@ -42,7 +42,7 @@ data:
     - IP: {{ . }}
     {{- end }}
   {{- end }}
-services:
+  services:
     {{- (include "apc-global-overrides.services" .) | nindent 4 }}
   {{- /* local and global services merged into a common dictionary*/}}
   servicesMerged:
@@ -63,4 +63,8 @@ services:
   {{- /* all CA certificates concatenated into a bundle*/}}
   caCertificatesBundle: |
     {{- (include "apc-global-overrides.caCertificatesBundle" .) | nindent 4 }}
+  {{- /* base64 encode all CA certificates concatenated into a bundle*/}}
+  {{- /* note: adding a newline might be required for some software although it should work without it */}}
+  caCertificatesBundleB64: {{ include "apc-global-overrides.caCertificatesBundle" .| b64enc }}
+  caCertificatesBundleB64Safe: {{ print (include "apc-global-overrides.caCertificatesBundle" .) "\n" | b64enc }}
   {{- end }}

@@ -9,7 +9,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.5.0
+        helm.sh/chart: gitops-bootstrap-2.6.0
       name: apc-bootstrap
   2: |
     apiVersion: policy.open-cluster-management.io/v1
@@ -22,7 +22,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.5.0
+        helm.sh/chart: gitops-bootstrap-2.6.0
       name: gitops-bootstrap
       namespace: apc-bootstrap
     spec:
@@ -477,10 +477,6 @@ manifests should match snapshot:
                         path: gitops/rendered/{{hub .ManagedClusterName | replace "local-cluster" "lab" hub}}/argocd-app-of-apps
                         repoURL: null
                         targetRevision: main
-                      syncPolicy:
-                        automated:
-                          prune: false
-                          selfHeal: true
               remediationAction: enforce
               severity: high
         - extraDependencies:
@@ -594,7 +590,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.5.0
+        helm.sh/chart: gitops-bootstrap-2.6.0
       name: gitops-bootstrap
       namespace: apc-bootstrap
     spec:
@@ -614,7 +610,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.5.0
+        helm.sh/chart: gitops-bootstrap-2.6.0
       name: gitops-bootstrap
       namespace: apc-bootstrap
     placementRef:
@@ -634,7 +630,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.5.0
+        helm.sh/chart: gitops-bootstrap-2.6.0
       name: global
       namespace: apc-bootstrap
     spec:
@@ -649,7 +645,7 @@ manifests should match snapshot:
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
         argocd.argoproj.io/secret-type: repo-creds
-        helm.sh/chart: gitops-bootstrap-2.5.0
+        helm.sh/chart: gitops-bootstrap-2.6.0
       name: null
       namespace: apc-bootstrap
     stringData:
