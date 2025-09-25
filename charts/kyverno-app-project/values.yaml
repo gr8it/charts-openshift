@@ -98,3 +98,70 @@ defaultLimitRange:
   limitsDefaultRequestCpu: 50m
   limitsDefaultRequestMemory: 50Mi
   skipBackgroundRequests: true
+
+vaultGroupDefaults:
+  providerConfigRef: vault-hub01
+  authBackendName: ad
+  skipBackgroundRequests: true
+
+defaultVaultRoles:
+  admin: pja
+  developer: dev
+  tester: tes
+  operator: opr
+
+defaultVaultCapabilities:
+  admin:
+    - create
+    - read
+    - update
+    - delete
+    - list
+    - patch
+  developer:
+    - create
+    - read
+    - update
+    - delete
+    - list
+    - patch
+  tester:
+    - create
+    - read
+    - update
+    - delete
+    - list
+    - patch
+  operator:
+    - create
+    - read
+    - update
+    - delete
+    - list
+    - patch
+
+vaultRolesOverride:
+  prod:
+    admin: pja
+    operator: opr
+
+vaultCapabilitiesOverride:
+  prod:
+    admin:
+      - create
+      - read
+      - update
+      - delete
+      - list
+      - patch
+    operator:
+      - create
+      - read
+      - update
+      - delete
+      - list
+      - patch
+
+global:
+  apc:
+    environment: ~
