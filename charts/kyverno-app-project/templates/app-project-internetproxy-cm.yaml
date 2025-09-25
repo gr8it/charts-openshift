@@ -1,4 +1,4 @@
-{{- if or ( .Values.internetProxy.proxy  ) (include "apc-global-overrides.proxy" .) }}
+{{- if or ( .Values.proxy  ) (include "apc-global-overrides.proxy" .) }}
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
@@ -39,10 +39,10 @@ spec:
         data:
           kind: ConfigMap
           data:
-            http_proxy: {{ .Values.internetProxy.proxy | default (include "apc-global-overrides.proxy" .) }}
-            https_proxy: {{ .Values.internetProxy.proxy | default (include "apc-global-overrides.proxy" .) }}
-            no_proxy: {{ .Values.internetProxy.noProxy | default (include "apc-global-overrides.noProxy" .) }}
-            HTTP_PROXY: {{ .Values.internetProxy.proxy | default (include "apc-global-overrides.proxy" .) }}
-            HTTPS_PROXY: {{ .Values.internetProxy.proxy | default (include "apc-global-overrides.proxy" .) }}
-            NO_PROXY: {{ .Values.internetProxy.noProxy | default (include "apc-global-overrides.noProxy" .) }}
+            http_proxy: {{ .Values.proxy | default (include "apc-global-overrides.proxy" .) }}
+            https_proxy: {{ .Values.proxy | default (include "apc-global-overrides.proxy" .) }}
+            no_proxy: {{ .Values.noProxy | default (include "apc-global-overrides.noProxy" .) }}
+            HTTP_PROXY: {{ .Values.proxy | default (include "apc-global-overrides.proxy" .) }}
+            HTTPS_PROXY: {{ .Values.proxy | default (include "apc-global-overrides.proxy" .) }}
+            NO_PROXY: {{ .Values.noProxy | default (include "apc-global-overrides.noProxy" .) }}
 {{- end }}

@@ -93,8 +93,17 @@ defaultLimitRange:
   limitsDefaultRequestCpu: 50m
   limitsDefaultRequestMemory: 50Mi
 
-internetProxy:
-  proxy: ~
-  #proxy: http://proxy.example.com:8080
-  noProxy: ~
-  #noProxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+proxy: ~
+## uses following global values
+# global:
+#   apc:
+#     proxy: ~ 
+## and their local overrides
+#proxy: http://proxy.example.com:8080 # custom internet proxy. If not specified, .global.apc.proxy is used
+noProxy: ~
+## uses following global values
+# global:
+#   apc:
+#     proxy: ~ 
+## and their local overrides
+#noProxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16 # custom internet noProxy. If not specified, .global.apc.noProxy is used
