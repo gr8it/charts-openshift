@@ -30,7 +30,12 @@ Reference particular helper function in chart template:
 {{ include "global-apc-overrides.clusterName" .}}
 ```
 
-Local overrides can be specified as:
+This will use **local override** (.Values.cluster.name), and if not defined **fallback to global** (.Values.global.apc.cluster.name).
+
+> [!NOTE]  
+> For string helper functions alternative helper functions are defined to require the value to be specified, i.e. if neither cluster.name, nor global.apc.cluster.name are specified helm rendering fails
+
+Local overrides can be specified in values.yaml as:
 
 ```yaml
 cluster:
@@ -48,7 +53,53 @@ cluster:
 >
 > **This is not the case here**, because we're not using template rendering, but helper functions, where context is sent directly - via 2nd parameter, e.g. dot in the `{{ include "global-apc-overrides.clusterName" . }}`
 
-See [APC Global Overrides Unit Tests chart](../../library-charts-unittests/apc-global-overrides-unit-tests/README.md) for usage.
+See [values.yaml](values.yaml), and [APC Global Overrides Unit Tests chart](../../library-charts-unittests/apc-global-overrides-unit-tests/templates/apc-global-overrides.yaml) for usage.
+
+## Helper function list
+
+|Name|Local override|Global|Output type|Note|
+|---|---|---|---|---|
+|apc-global-overrides.customer|customer|global.apc.customer|string||
+|apc-global-overrides.require-customer|customer|global.apc.customer|string||
+|apc-global-overrides.repoURL|repoURL|global.apc.repoURL|string||
+|apc-global-overrides.require-repoURL|repoURL|global.apc.repoURL|string||
+|apc-global-overrides.repoShort|repoShort|global.apc.repoShort|string|extracts organization and project name from repoURL and concatenates them using '-', e.g. gr8it-charts-openshift|
+|apc-global-overrides.repoTargetRevision|repoTargetRevision|global.apc.repoTargetRevision|string||
+|apc-global-overrides.require-repoTargetRevision|repoTargetRevision|global.apc.repoTargetRevision|string||
+|apc-global-overrides.environment|environment|global.apc.environment|string||
+|apc-global-overrides.require-environment|environment|global.apc.environment|string||
+|apc-global-overrides.environmentShort|environmentShort|global.apc.environmentShort|string||
+|apc-global-overrides.require-environmentShort|environmentShort|global.apc.environmentShort|string||
+|apc-global-overrides.clusterName|cluster.name|global.apc.cluster.name|string||
+|apc-global-overrides.require-clusterName|cluster.name|global.apc.cluster.name|string||
+|apc-global-overrides.clusterAcmName|cluster.acmName|global.apc.cluster.acmName|string||
+|apc-global-overrides.require-clusterAcmName|cluster.acmName|global.apc.cluster.acmName|string||
+|apc-global-overrides.clusterType|cluster.type|global.apc.cluster.type|string||
+|apc-global-overrides.require-clusterType|cluster.type|global.apc.cluster.type|string||
+|apc-global-overrides.clusterBaseDomain|cluster.baseDomain|global.apc.cluster.baseDomain|string||
+|apc-global-overrides.require-clusterBaseDomain|cluster.baseDomain|global.apc.cluster.baseDomain|string||
+|apc-global-overrides.clusterAppsDomain|cluster.appsDomain|global.apc.cluster.appsDomain|string||
+|apc-global-overrides.require-clusterAppsDomain|cluster.appsDomain|global.apc.cluster.appsDomain|string||
+|apc-global-overrides.clusterApiURL|cluster.apiURL|global.apc.cluster.apiURL|string||
+|apc-global-overrides.require-clusterApiURL|cluster.apiURL|global.apc.cluster.apiURL|string||
+|apc-global-overrides.clusterKubeVersion|cluster.kubeVersion|global.apc.cluster.kubeVersion|string||
+|apc-global-overrides.require-clusterKubeVersion|cluster.kubeVersion|global.apc.cluster.kubeVersion|string||
+|apc-global-overrides.clusterApiVersions|cluster.apiVersions|global.apc.cluster.apiVersions|list|List of supported Kubernetes API versions used during helm template rendering|
+|apc-global-overrides.clusterServices|cluster.services|global.apc.cluster.services|dictionary||
+|apc-global-overrides.merge-clusterServices|cluster.services|global.apc.cluster.services|dictionary||
+|apc-global-overrides.clusterIsHub|cluster.isHub|global.apc.cluster.isHub|boolean||
+|apc-global-overrides.clusterRunsApps|cluster.runsApps|global.apc.cluster.runsApps|boolean||
+|apc-global-overrides.proxy|proxy|global.apc.proxy|string||
+|apc-global-overrides.require-proxy|proxy|global.apc.proxy|string||
+|apc-global-overrides.noProxy|noProxy|global.apc.noProxy|string||
+|apc-global-overrides.require-noProxy|noProxy|global.apc.noProxy|string||
+|apc-global-overrides.proxyIPs|proxyIPs|global.apc.proxyIPs|list||
+|apc-global-overrides.require-proxyIPs|proxyIPs|global.apc.proxyIPs|list||
+|apc-global-overrides.services|services|global.apc.services|dictionary||
+|apc-global-overrides.merge-services|services|global.apc.services|dictionary||
+|apc-global-overrides.caCertificates|caCertificates|global.apc.caCertificates|dictionary||
+|apc-global-overrides.merge-caCertificates|caCertificates|global.apc.caCertificates|dictionary||
+|apc-global-overrides.caCertificatesBundle|caCertificates|global.apc.caCertificates|string|flattened caCertificates to be used as a bundle|
 
 ## Unit tests
 
