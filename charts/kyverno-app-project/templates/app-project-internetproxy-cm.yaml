@@ -1,4 +1,4 @@
-{{- if .Values.internetProxy.enabled }}
+{{- if or ( .Values.internetProxy.proxy  ) (include "apc-global-overrides.proxy" .) }}
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
