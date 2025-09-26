@@ -1,4 +1,4 @@
-{{- if or ( .Values.proxy  ) (include "apc-global-overrides.proxy" .) }}
+{{- if (include "apc-global-overrides.proxy" .) }}
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
@@ -7,7 +7,7 @@ metadata:
   {{- include "kyverno-app-project.labels" . | nindent 4 }}
   annotations:
     policies.kyverno.io/title: Create configmap for internet proxy
-    policies.kyverno.io/category: internetproxy 
+    policies.kyverno.io/category: internetproxy
     policies.kyverno.io/subject: project
     policies.kyverno.io/minversion: 1.15.0
 spec:
@@ -24,13 +24,13 @@ spec:
               - Namespace
       preconditions:
         all:
-        - key: '{{ `{{ request.object.metadata.labels.\"apc.namespace.type\" }}` }}'
+        - key: '{{ `{{ request.object.metadata.labels."apc.namespace.type" }}` }}'
           operator: Equals
           value: application
       generate:
         generateExisting: true
         orphanDownstreamOnPolicyDelete: true
-        synchronize: true      
+        synchronize: true
         apiVersion: v1
         kind: ConfigMap
         name: "proxy"
@@ -39,10 +39,10 @@ spec:
         data:
           kind: ConfigMap
           data:
-            http_proxy: {{ .Values.proxy | default (include "apc-global-overrides.proxy" .) }}
-            https_proxy: {{ .Values.proxy | default (include "apc-global-overrides.proxy" .) }}
-            no_proxy: {{ .Values.noProxy | default (include "apc-global-overrides.noProxy" .) }}
-            HTTP_PROXY: {{ .Values.proxy | default (include "apc-global-overrides.proxy" .) }}
-            HTTPS_PROXY: {{ .Values.proxy | default (include "apc-global-overrides.proxy" .) }}
-            NO_PROXY: {{ .Values.noProxy | default (include "apc-global-overrides.noProxy" .) }}
+            http_proxy: {{ include "apc-global-overrides.proxy" . }}
+            https_proxy: {{ include "apc-global-overrides.proxy" . }}
+            no_proxy: {{ include "apc-global-overrides.noProxy" . }}
+            HTTP_PROXY: {{ include "apc-global-overrides.proxy" . }}
+            HTTPS_PROXY: {{ include "apc-global-overrides.proxy" . }}
+            NO_PROXY: {{ include "apc-global-overrides.noProxy" . }}
 {{- end }}
