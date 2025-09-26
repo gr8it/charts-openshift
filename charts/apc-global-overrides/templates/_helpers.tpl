@@ -125,7 +125,7 @@ Create the repoShort = extract organization and project name from the repoURL
 Create the repoTargetRevision
 */}}
 {{- define "apc-global-overrides.repoTargetRevision" -}}
-{{- .Values.repoTargetRevision | default (((.Values.global).apc).repoTargetRevision) | default "" }}
+{{- .Values.repoTargetRevision | default (((.Values.global).apc).repoTargetRevision) | default "HEAD" }}
 {{- end }}
 
 {{/*
