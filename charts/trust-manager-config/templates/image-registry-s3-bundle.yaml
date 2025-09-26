@@ -1,0 +1,19 @@
+apiVersion: trust.cert-manager.io/v1alpha1
+kind: Bundle
+metadata:
+  name: {{ .Values.imageRegistryS3Bundle.name | default "image-registry-s3-bundle" }}
+spec:
+  sources:
+    - useDefaultCAs: {{ .Values.imageRegistryS3Bundle.useDefaultCAs | default false }}
+    - configMap:
+        key: ca.crt
+        name: kube-root-ca.crt
+    - configMap:
+        key: service-ca.crt
+        name: openshift-service-ca.crt
+  target:
+    configMap:
+      key: ca-bundle.crt
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: {{ .Values.imageRegistryS3Bundle.namespace | default "openshift-config" }}

@@ -1,0 +1,30 @@
+apiVersion: trust.cert-manager.io/v1alpha1
+kind: Bundle
+metadata:
+  name: {{ .Values.caBundle.name | default "ca-cert-bundle" }}
+spec:
+  sources:
+    - useDefaultCAs: {{ .Values.caBundle.useDefaultCAs | default true }}
+    - inLine: |
+{{- include "apc-global-overrides.caCertificatesBundle" . | trim | nindent 8 }}
+    - configMap:
+        key: ca.crt
+        name: kube-root-ca.crt
+    - configMap:
+        key: service-ca.crt
+        name: openshift-service-ca.crt
+  target:
+    additionalFormats:
+      jks:
+        key: ca-bundle.jks
+        # mandatory password: https://cert-manager.io/docs/faq/#keystore-passwords
+        password: {{ .Values.caBundle.jksPassword | default "changeit" | quote }}
+    configMap:
+      key: ca-bundle.crt
+    namespaceSelector:
+      matchExpressions:
+        - key: apc.namespace.type
+          operator: In
+          values: {{ .Values.caBundle.namespaceTypes | default (list "application") | toYaml | nindent 10 }}
+    secret:
+      key: ca-bundle.crt
