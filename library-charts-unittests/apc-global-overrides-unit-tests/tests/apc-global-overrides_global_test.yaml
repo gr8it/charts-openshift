@@ -79,27 +79,27 @@ tests:
   - it: caCertificates and merged (global only, no local keys in non-merged)
     asserts:
       - equal:
-          path: data.caCertificates["cert.crt"]
+          path: data.caCertificates["override.crt"]
           value: |
             -----BEGIN CERTIFICATE-----
             global
             -----END CERTIFICATE-----
       - equal:
-          path: data.caCertificates["cert-global.crt"]
+          path: data.caCertificates["global.crt"]
           value: |
             -----BEGIN CERTIFICATE-----
             global
             -----END CERTIFICATE-----
       - notExists:
-          path: data.caCertificates["cert-local.crt"]
+          path: data.caCertificates["local.crt"]
       - equal:
-          path: data.caCertificatesMerged["cert.crt"]
+          path: data.caCertificatesMerged["override.crt"]
           value: |
             -----BEGIN CERTIFICATE-----
             global
             -----END CERTIFICATE-----
       - equal:
-          path: data.caCertificatesMerged["cert-global.crt"]
+          path: data.caCertificatesMerged["global.crt"]
           value: |
             -----BEGIN CERTIFICATE-----
             global

@@ -59,11 +59,12 @@ tests:
 
   - it: proxy, noProxy, proxyIPs from default values
     asserts:
-      - equal: { path: data.proxy, value: ~ }
-      - equal: { path: data.noProxy, value: ~ }
-      - equal:
+      - notExists:
+          path: data.proxy
+      - notExists:
+          path: data.noProxy
+      - notExists:
           path: data.proxyIPs
-          value: []
 
   - it: services and merged default values
     asserts:
@@ -76,6 +77,5 @@ tests:
 
   - it: caCertificates and merged default values
     asserts:
-      - equal:
+      - notExists:
           path: data.caCertificates
-          value: {}

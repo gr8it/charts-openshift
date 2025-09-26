@@ -63,5 +63,5 @@ Create the name of the service account to use
 
 
 {{- define "crossplane-vault-provider-bootstrap.caCertificates" -}}
-{{- (include "apc-global-overrides.caCertificates" .) | fromYaml | values }}
+{{- (include "apc-global-overrides.caCertificates" .) | fromYaml | values | join "" }}
 {{- end }}
