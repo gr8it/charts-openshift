@@ -18,7 +18,7 @@ Define this chart as a dependency:
 
 ```yaml
 dependencies:
-  - name: global-apc-overrides
+  - name: apc-global-overrides
     version: "1.0.0"
     repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
 
@@ -27,10 +27,12 @@ dependencies:
 Reference particular helper function in chart template:
 
 ```go
-{{ include "global-apc-overrides.clusterName" .}}
+{{ include "apc-global-overrides.clusterName" .}}
 ```
 
 This will use **local override** (.Values.cluster.name), and if not defined **fallback to global** (.Values.global.apc.cluster.name).
+
+### Local overrides in chart values
 
 > [!NOTE]  
 > For string helper functions alternative helper functions are defined to require the value to be specified, i.e. if neither cluster.name, nor global.apc.cluster.name are specified helm rendering fails
@@ -46,14 +48,49 @@ cluster:
 > While it is usually required to specify the subchart name in values.yaml to forward values to a subchart, e.g.
 >
 > ```yaml
-> global-apc-overrides:
+> apc-global-overrides:
 >   cluster:
 >     name: klaster1
 > ```
 >
-> **This is not the case here**, because we're not using template rendering, but helper functions, where context is sent directly - via 2nd parameter, e.g. dot in the `{{ include "global-apc-overrides.clusterName" . }}`
+> **This is not the case here**, because we're not using template rendering, but helper functions, where context is sent directly - via 2nd parameter, e.g. dot in the `{{ include "apc-global-overrides.clusterName" . }}`
 
-See [values.yaml](values.yaml), and [APC Global Overrides Unit Tests chart](../../library-charts-unittests/apc-global-overrides-unit-tests/templates/apc-global-overrides.yaml) for usage.
+See [values.yaml](values.yaml)
+
+### Usage implementation examples
+
+See [APC Global Overrides Unit Tests chart](../../library-charts-unittests/apc-global-overrides-unit-tests/templates/apc-global-overrides.yaml).
+
+## Helper function kinds
+
+### String
+
+Local override string is used when defined, otherwise global string is used.
+
+Helper functions prefixed with `require-` execute previous logic, but expect at least one of the values to be defined, otherwise rendering fails.
+
+### Booleans
+
+Local override boolean is used when defined, otherwise global boolean is used.
+
+Standard default function would use global value, if local override value is set and set to false.
+
+To workaround this issue a boolDefaults helper function is available, which corrects the behaviour as expected.
+Accepts a list of 3 items - override, global value, and default value, e.g. usage for isHub:
+
+```go
+{{- include "apc-global-overrides.boolDefaults" (list ((.Values.cluster).isHub) ((((.Values.global).apc).cluster).isHub) false) }}
+```
+
+### Lists
+
+Local override list is used when defined, otherwise global list is used.
+
+### Dictionaries
+
+Local override dict is used when defined, otherwise global dict is used.
+
+Helper functions prefixed with `merge-` merge local and global dict giving preference to the local dict.
 
 ## Helper function list
 
@@ -87,6 +124,7 @@ See [values.yaml](values.yaml), and [APC Global Overrides Unit Tests chart](../.
 |apc-global-overrides.clusterApiVersions|cluster.apiVersions|global.apc.cluster.apiVersions|list|List of supported Kubernetes API versions used during helm template rendering|
 |apc-global-overrides.clusterServices|cluster.services|global.apc.cluster.services|dictionary||
 |apc-global-overrides.merge-clusterServices|cluster.services|global.apc.cluster.services|dictionary||
+|apc-global-overrides.boolDefaults|-|-|boolean|see [booleans](#booleans)|
 |apc-global-overrides.clusterIsHub|cluster.isHub|global.apc.cluster.isHub|boolean||
 |apc-global-overrides.clusterRunsApps|cluster.runsApps|global.apc.cluster.runsApps|boolean||
 |apc-global-overrides.proxy|proxy|global.apc.proxy|string||
