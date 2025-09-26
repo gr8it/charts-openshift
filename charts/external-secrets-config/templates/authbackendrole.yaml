@@ -1,0 +1,19 @@
+apiVersion: kubernetes.vault.upbound.io/v1alpha1
+kind: AuthBackendRole
+metadata:
+  name: {{ include "apc-global-overrides.require-clusterName" . }}-{{ .Values.vaultKubeAuthRole }}
+spec:
+  forProvider:
+    # audience:
+    backend: {{ include "external-secrets-config.vaultKubeAuthMountPath" . }}
+    boundServiceAccountNames:
+      - {{ .Values.kubeServiceAccount }}
+    boundServiceAccountNamespaces:
+      - {{ .Release.Namespace }}
+    roleName: {{ .Values.vaultKubeAuthRole }}
+    tokenPolicies:
+      - default
+      - {{ include "apc-global-overrides.clusterName" . }}--{{ .Values.vaultKubeAuthRole }}
+    tokenTtl: 3600
+  providerConfigRef:
+    name: {{ include "external-secrets-config.vaultKubeVaultProviderConfigName" . }}

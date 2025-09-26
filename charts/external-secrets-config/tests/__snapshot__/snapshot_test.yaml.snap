@@ -1,0 +1,85 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: kubernetes.vault.upbound.io/v1alpha1
+    kind: AuthBackendRole
+    metadata:
+      name: dev01-external-secrets-operator
+    spec:
+      forProvider:
+        backend: dev01
+        boundServiceAccountNames:
+          - external-secrets-operator
+        boundServiceAccountNamespaces:
+          - NAMESPACE
+        roleName: external-secrets-operator
+        tokenPolicies:
+          - default
+          - dev01--external-secrets-operator
+        tokenTtl: 3600
+      providerConfigRef:
+        name: vault-example
+  2: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: external-secrets-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: external-secrets-config
+        helm.sh/chart: external-secrets-config-1.0.0
+      name: external-secrets-config-auth-delegator
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: system:auth-delegator
+    subjects:
+      - kind: ServiceAccount
+        name: external-secrets-operator
+        namespace: NAMESPACE
+  3: |
+    apiVersion: external-secrets.io/v1beta1
+    data:
+      spec:
+        conditions:
+          - namespaceSelector:
+              matchLabels:
+                apc.namespace.type: platform
+        provider:
+          vault:
+            auth:
+              kubernetes:
+                mountPath: dev01
+                role: external-secrets-operator
+                serviceAccountRef:
+                  name: external-secrets-operator
+                  namespace: NAMESPACE
+            caProvider:
+              key: ca.crt
+              name: kube-root-ca.crt
+              type: ConfigMap
+            path: dev01
+            server: https://vault.example.com
+            version: v2
+    kind: ClusterSecretStore
+    metadata:
+      name: vault-example
+  4: |
+    apiVersion: vault.vault.upbound.io/v1alpha1
+    kind: Policy
+    metadata:
+      name: dev01--external-secrets-operator
+    spec:
+      forProvider:
+        name: dev01--external-secrets-operator
+        policy: |2
+          path "apc//platform/*" {
+            capabilities = ["create", "read", "update", "patch", "list"]
+          }
+          path "apc/data//platform/*" {
+            capabilities = ["create", "read", "update", "patch", "list"]
+          }
+          path "apc/metadata//platform/*" {
+            capabilities = ["create", "read", "update", "patch", "list"]
+          }
+      providerConfigRef:
+        name: vault-example
