@@ -1,7 +1,7 @@
-{{- $vaultUrl := (((include "apc-global-overrides.services" .) | fromYaml).vault).url | required "Vault URL is required" }}
-{{- $vaultName := regexReplaceAll "https?://([^:/]+).*" (.Values.vaultName | default $vaultUrl) "${1}" | required "Vault URL/Name is required" }}
-{{- $localClusterName := include "apc-global-overrides.clusterName" . }}
-{{- $vaultProviderConfigName := .Values.vaultProviderConfigName | default $vaultName }}
+{{- $vaultUrl := (include "crossplane-vault-provider-bootstrap.vaultUrl" .) }}
+{{- $vaultName := (include "crossplane-vault-provider-bootstrap.vaultName" .) }}
+{{- $localClusterName := (include "apc-global-overrides.clusterName" .) }}
+{{- $vaultProviderConfigName := (include "crossplane-vault-provider-bootstrap.vaultKubeVaultProviderConfigName" .) }}
 apiVersion: policy.open-cluster-management.io/v1
 kind: Policy
 metadata:
@@ -42,7 +42,7 @@ spec:
           name: {{ include "crossplane-vault-provider-bootstrap.fullname" . }}-kubernetes-auth-provisioned-check
         spec:
           customMessage:
-            noncompliant: Waiting for the custom resources from {{ include "crossplane-vault-provider-bootstrap.fullname" . }}-kubernetes-auth-setup ConfigurationPolicy to be provisioned in Vault
+            noncompliant: Waiting for the custom resources from {{ include "crossplane-vault-provider-bootstrap.fullname" . }}-kubernetes-auth-setup ConfigurationPolicy to be synced and ready in Vault
           remediationAction: inform
           severity: low
           object-templates:
@@ -111,7 +111,7 @@ spec:
           name: {{ include "crossplane-vault-provider-bootstrap.fullname" . }}-token-auth-check
         spec:
           customMessage:
-            noncompliant: Please create a generic secret named {{ $vaultName }}-token in the {{ .Values.crossplaneNamespace }} namespace with 'credentials' key containing the Vault token with 'admin' policy on the MANAGED CLUSTER => see `Token Secret generation` in README
+            noncompliant: Please create a generic secret named {{ $vaultName }}-token in the {{ .Values.crossplaneNamespace }} namespace with 'credentials' key containing the Vault token with 'admin' policy on the MANAGED CLUSTER => see `Token Secret generation` in README of the {{ .Chart.Name }} component
           remediationAction: inform
           severity: low
           object-templates:
@@ -144,7 +144,6 @@ spec:
                 kind: ProviderConfig
                 metadata:
                   name: {{ $vaultProviderConfigName }}
-                  namespace: {{ .Release.Namespace }}
                 spec:
                   address: {{ $vaultUrl }}
                   credentials:
@@ -175,7 +174,7 @@ spec:
                   forProvider:
                     description: 'Kubernetes Auth for {{"{{"}}hub .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}} cluster'
                     type: "kubernetes"
-                    path: '{{"{{"}}hub "{{ .Values.vaultKubeAuthPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}'
+                    path: '{{"{{"}}hub "{{ .Values.vaultKubeAuthMountPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}'
                   providerConfigRef:
                     name: {{ $vaultProviderConfigName }}
 
@@ -189,7 +188,7 @@ spec:
                   # can't be deleted by itself, as all the objects are required for the removal to work => orphan
                   deletionPolicy: Orphan
                   forProvider:
-                    backend: '{{"{{"}}hub "{{ .Values.vaultKubeAuthPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}'
+                    backend: '{{"{{"}}hub "{{ .Values.vaultKubeAuthMountPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}'
                     disableLocalCaJwt: true
                     kubernetesHost: '{{`{{ fromClusterClaim "apiserverurl.openshift.io" }}`}}'
                     kubernetesCaCert: |
@@ -217,15 +216,15 @@ spec:
                         capabilities = ["read"]
                       }
 
-                      path "sys/auth/{{"{{"}}hub "{{ .Values.vaultKubeAuthPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}" {
+                      path "sys/auth/{{"{{"}}hub "{{ .Values.vaultKubeAuthMountPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}" {
                         capabilities = ["create", "read", "update", "patch", "delete", "list", "sudo"]
                       }
 
-                      path "auth/{{"{{"}}hub "{{ .Values.vaultKubeAuthPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}/config" {
+                      path "auth/{{"{{"}}hub "{{ .Values.vaultKubeAuthMountPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}/config" {
                         capabilities = ["create", "read", "update", "patch", "delete", "list"]
                       }
 
-                      path "auth/{{"{{"}}hub "{{ .Values.vaultKubeAuthPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}/role/+" {
+                      path "auth/{{"{{"}}hub "{{ .Values.vaultKubeAuthMountPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}/role/+" {
                         capabilities = ["create", "read", "update", "patch", "delete", "list"]
                       }
 
@@ -246,7 +245,7 @@ spec:
                   deletionPolicy: Orphan
                   forProvider:
                     audience: https://kubernetes.default.svc
-                    backend: '{{"{{"}}hub "{{ .Values.vaultKubeAuthPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}'
+                    backend: '{{"{{"}}hub "{{ .Values.vaultKubeAuthMountPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}'
                     boundServiceAccountNames:
                       - '*'
                     boundServiceAccountNamespaces:
@@ -258,6 +257,21 @@ spec:
                     tokenTtl: 3600
                   providerConfigRef:
                     name: {{ $vaultProviderConfigName }}
+
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: rbac.authorization.k8s.io/v1
+                kind: ClusterRoleBinding
+                metadata:
+                  name: {{ include "crossplane-vault-provider-bootstrap.fullname" . }}-auth-delegator
+                roleRef:
+                  apiGroup: rbac.authorization.k8s.io
+                  kind: ClusterRole
+                  name: system:auth-delegator
+                subjects:
+                - apiGroup: rbac.authorization.k8s.io
+                  kind: Group
+                  name: system:serviceaccounts:{{ .Values.crossplaneNamespace }}
 
     - extraDependencies:
         - name: {{ include "crossplane-vault-provider-bootstrap.fullname" . }}-kubernetes-auth-provisioned-check
@@ -280,7 +294,6 @@ spec:
                 kind: ProviderConfig
                 metadata:
                   name: {{ $vaultProviderConfigName }}
-                  namespace: {{ .Release.Namespace }}
                 spec:
                   address: {{ $vaultUrl }}
                   role: {{ .Values.vaultKubernetesRole }}
@@ -309,40 +322,3 @@ spec:
                 metadata:
                   name: {{ $vaultName }}-token
                   namespace: {{ .Values.crossplaneNamespace }}
----
-apiVersion: cluster.open-cluster-management.io/v1beta1
-kind: Placement
-metadata:
-  name: {{ include "crossplane-vault-provider-bootstrap.fullname" . }}
-  namespace: {{ .Release.Namespace }}
-spec:
-  clusterSets:
-  - global
-  # tolerations:
-  #   - key: cluster.open-cluster-management.io/unreachable
-  #     operator: Exists
-  #   - key: cluster.open-cluster-management.io/unavailable
-  #     operator: Exists
----
-apiVersion: policy.open-cluster-management.io/v1
-kind: PlacementBinding
-metadata:
-  name: {{ include "crossplane-vault-provider-bootstrap.fullname" . }}
-  namespace: {{ .Release.Namespace }}
-placementRef:
-  apiGroup: cluster.open-cluster-management.io
-  kind: Placement
-  name: {{ include "crossplane-vault-provider-bootstrap.fullname" . }}
-subjects:
-- apiGroup: policy.open-cluster-management.io
-  kind: Policy
-  name: {{ include "crossplane-vault-provider-bootstrap.fullname" . }}
----
-apiVersion: cluster.open-cluster-management.io/v1beta2
-kind: ManagedClusterSetBinding
-metadata:
-  name: global
-  # namespace: open-cluster-management-global-set
-  namespace: {{ .Release.Namespace }}
-spec:
-  clusterSet: global

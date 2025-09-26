@@ -54,7 +54,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Create the mount path
 */}}
 {{- define "cert-manager-config.vaultKubeAuthMountPath" -}}
-{{- .Values.vaultKubeAuthMountPath | default (include "apc-global-overrides.clusterName" .) }}
+{{- (((include "apc-global-overrides.services" .) | fromYaml).vault).kubeAuthMountPath | required "Vault kubeAuthMountPath is required" }}
 {{- end }}
 
 {{/*
@@ -63,16 +63,6 @@ Create the Vault URL
 {{- define "cert-manager-config.vaultUrl" -}}
 {{- (((include "apc-global-overrides.services" .) | fromYaml).vault).url | required "Vault URL is required" }}
 {{- end }}
-
-{{/*
-Create the Vault name
-From VaultURL = hostname, or override if specified
-*/}}
-{{- define "cert-manager-config.vaultName" -}}
-{{- $vaultName := regexReplaceAll "https?://([^:/]+).*" (include "cert-manager-config.vaultUrl" .) "${1}" | required "Vault URL/Name is required" }}
-{{- .Values.vaultName | default $vaultName }}
-{{- end }}
-
 
 {{/*
 Create the Vault PKI role to use for signing certs
@@ -84,16 +74,15 @@ Create the Vault PKI role to use for signing certs
 {{/*
 Create the vault provider config name
 */}}
-{{- define "cert-manager-config.kubeVaultProviderConfigName" -}}
-{{- .Values.kubeVaultProviderConfigName | default (include "cert-manager-config.vaultName" .) }}
+{{- define "cert-manager-config.vaultKubeVaultProviderConfigName" -}}
+{{- (((include "apc-global-overrides.services" .) | fromYaml).vault).kubeVaultProviderConfigName | required "Vault kubeVaultProviderConfigName is required" }}
 {{- end }}
 
 {{/*
 Create the cert-manager cluster issuer name
 */}}
-{{- define "cert-manager-config.defaultClusterIssuer" -}}
-{{- $vaultName := include "cert-manager-config.vaultName" . -}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).certManager).defaultClusterIssuer | default (printf "vault-%s-issuer" $vaultName) }}
+{{- define "cert-manager-config.certManagerdefaultClusterIssuer" -}}
+{{- (((include "apc-global-overrides.services" .) | fromYaml).certManager).defaultClusterIssuer | required "certManagerdefaultClusterIssuer is required" }}
 {{- end }}
 
 {{/*

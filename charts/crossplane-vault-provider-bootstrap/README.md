@@ -101,14 +101,11 @@ The chart is implemented as an ACM policy and does following:
 1) Create the Token secret on MANAGED CLUSTER(s)
 
    ```bash
-   kubectl create secret generic <secret-name> -n apc-crossplane-system --from-file=/tmp/vault-credentials
+   kubectl create secret generic <secret-name> -n apc-crossplane-system --from-file=credentials=/tmp/vault-credentials
    rm -f /tmp/vault-credentials
    ```
 
-   Where secret-name is generated from the hostname of the Vault URL suffixed with `-token` (can be overriden via parameter vaultName), e.g.:
-
-    - https://vault.apps.hub01.cloud.socpoist.sk => `vault.apps.hub01.cloud.socpoist.sk-token`
-    - https://vault.lab.gr8it.cloud:8200 => `vault.lab.gr8it.cloud-token`
+   Where secret-name is generated from the Vault name global service parameter suffixed with `-token`, e.g.:
 
 > [!NOTE]  
 > The Token secret to be used hint is available in the ACM GUI -> Governance -> Policies -> crossplane-vault-provider-bootstrap -> Results -> *-providerconfig-token-auth policy Message:
@@ -120,13 +117,13 @@ The chart is implemented as an ACM policy and does following:
 |Parameter|Default|Description|
 |---|---|---|
 |cluster.name|`.global.apc.cluster.name`|Cluster name to be used instead of local-cluster|
-|crossplaneNamespace|apc-crossplane-system|Namespace where Crossplane is installed, and configurations are created|
 |caCertificates|`.global.apc.caCertificates`|PEM encoded CA cert to trust when Vault makes contact to the Kube API|
-|vaultKubeAuthPath||For testing only as it only support 1 cluster only !!! => Kube auth mount path in Vault |
-|vaultKubernetesRole|crossplane|Kubernetes role in Vault for Crossplane to use|
-|vaultName|`hotname` from Vault URL|Prefix to be used for provider config, token, etc.|
-|vaultProviderConfigName|cluster name|Name of the Vault provider config to create|
 |services.vault.url|`.global.apc.services.vault.url`|Vault URL|
+|services.vault.name|`.global.apc.services.vault.name`|Vault Name|
+|services.vault.kubeVaultProviderConfigName|`.global.apc.services.vault.kubeVaultProviderConfigName`|Name of the Vault provider config to create|
+|vaultKubeAuthMountPath|-|For testing only as it only support 1 cluster only !!! => Kube auth mount path in Vault |
+|vaultKubernetesRole|crossplane|Kubernetes role in Vault for Crossplane to use|
+|crossplaneNamespace|apc-crossplane-system|Namespace where Crossplane is installed, and configurations are created|
 
 ## Removal
 

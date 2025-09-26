@@ -61,7 +61,31 @@ Create the name of the service account to use
 {{- end }}
 {{- end }}
 
+{{/*
+Create the Vault URL
+*/}}
+{{- define "crossplane-vault-provider-bootstrap.vaultUrl" -}}
+{{- (((include "apc-global-overrides.services" .) | fromYaml).vault).url | required "Vault URL is required" }}
+{{- end }}
 
-{{- define "crossplane-vault-provider-bootstrap.caCertificates" -}}
-{{- (include "apc-global-overrides.caCertificates" .) | fromYaml | values | join "" }}
+{{/*
+Create the Vault name
+From VaultURL = hostname, or override if specified
+*/}}
+{{- define "crossplane-vault-provider-bootstrap.vaultName" -}}
+{{- (((include "apc-global-overrides.services" .) | fromYaml).vault).name | default (regexReplaceAll "https?://([^:/]+).*" (include "crossplane-vault-provider-bootstrap.vaultUrl" .) "${1}") }}
+{{- end }}
+
+{{/*
+Create the mount path
+*/}}
+{{- define "crossplane-vault-provider-bootstrap.vaultKubeAuthMountPath" -}}
+{{- (((include "apc-global-overrides.services" .) | fromYaml).vault).kubeAuthMountPath | required "Vault kubeAuthMountPath is required" }}
+{{- end }}
+
+{{/*
+Create the vault provider config name
+*/}}
+{{- define "crossplane-vault-provider-bootstrap.vaultKubeVaultProviderConfigName" -}}
+{{- (((include "apc-global-overrides.services" .) | fromYaml).vault).kubeVaultProviderConfigName | required "Vault kubeVaultProviderConfigName is required" }}
 {{- end }}

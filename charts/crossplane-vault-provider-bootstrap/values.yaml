@@ -10,18 +10,19 @@ fullnameOverride: ""
 #       name: ~
 #     services:
 #       vault:
+#         name: ""
 #         url: ""
+#         kubeVaultProviderConfigName: ""
 # ## and their local overrides
 # cluster:
 #   name: ~ # cluster name. If not specified, .global.apc.cluster.name is used
 # caCertificates: ~ # custom CA certificates in PEM format. If not specified, .global.apc.caCertificates is used
 # services:
 #   vault:
+#     name: ~ # Vault name. If not specified, .global.apc.services.vault.name is used
 #     url: ~ # Vault URL. If not specified, .global.apc.services.vault.url is used
+#     kubeVaultProviderConfigName: ~ # Name of the Vault provider config to create
 
-vaultName: ~ # Vault Name to be used for provider config, token, etc. If not specified, hostname from Vault URL is used
-vaultKubeAuthPath: ~ # for testing only as it only support 1 cluster only !!! => Kube auth path in Vault
+vaultKubeAuthMountPath: ~ # for testing only as it only support 1 cluster only !!! => Kube auth path in Vault
 vaultKubernetesRole: crossplane # Kubernetes role in Vault for Crossplane to use
-vaultProviderConfigName: ~ # Name of the Vault provider config to create. If not specified, vaultName is used.
-
 crossplaneNamespace: apc-crossplane-system # Namespace where Crossplane is installed, and configurations are created
