@@ -1,6 +1,6 @@
-{{- $vaultName := regexReplaceAll "https?://([^:/]+).*" (.Values.vaultName | default .Values.vaultUrl | default .Values.global.apc.services.vault.url) "${1}" | required "Vault URL/Name is required" }}
-{{- $vaultUrl := .Values.vaultUrl | default .Values.global.apc.services.vault.url | required "Vault URL is required" }}
-{{- $localClusterName := .Values.clusterName | default .Values.global.apc.cluster.name }}
+{{- $vaultUrl := (((include "apc-global-overrides.services" .) | fromYaml).vault).url | required "Vault URL is required" }}
+{{- $vaultName := regexReplaceAll "https?://([^:/]+).*" (.Values.vaultName | default $vaultUrl) "${1}" | required "Vault URL/Name is required" }}
+{{- $localClusterName := include "apc-global-overrides.clusterName" . }}
 {{- $vaultProviderConfigName := .Values.vaultProviderConfigName | default $vaultName }}
 apiVersion: policy.open-cluster-management.io/v1
 kind: Policy
@@ -193,7 +193,7 @@ spec:
                     disableLocalCaJwt: true
                     kubernetesHost: '{{`{{ fromClusterClaim "apiserverurl.openshift.io" }}`}}'
                     kubernetesCaCert: |
-                      {{- include "crossplane-vault-provider-bootstrap.caCertificates" . | nindent 22 }}
+                      {{- include "apc-global-overrides.caCertificatesBundle" . | nindent 22 }}
                   providerConfigRef:
                     name: {{ $vaultProviderConfigName }}
 

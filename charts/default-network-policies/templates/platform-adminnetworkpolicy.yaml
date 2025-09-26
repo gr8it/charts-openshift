@@ -99,12 +99,12 @@ spec:
       to:
       - namespaces: {}
       - nodes: {}
-    {{- if (include "default-network-policies.proxyIPs" . | fromJsonArray) }}
+    {{- if (include "apc-global-overrides.proxyIPs" . | fromYamlArray) }}
     - name: pass-egress-to-proxy
       action: Pass
       to:
       - networks:
-        {{- toYaml (include "default-network-policies.proxyIPs" . | fromJsonArray) | nindent 8 }}
+        {{- (include "apc-global-overrides.proxyIPs" .) | nindent 8 }}
     {{- end }}
     - name: allow-all-private-cidrs-for-cluster-external-traffic
       action: Allow

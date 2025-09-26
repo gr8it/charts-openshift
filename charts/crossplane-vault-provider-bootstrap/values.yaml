@@ -2,20 +2,24 @@
 nameOverride: ""
 fullnameOverride: ""
 
-# uses following global values => do not set here
-global:
-  apc:
-    caCertificates: ~ 
-    cluster:
-      name: ~
-    services:
-      vault:
-        url: ""
-
-customCACertificates: ~ # custom CA certificates in PEM format. If not specified, .global.apc.caCertificates is used
+## uses following global values => do not set here
+# global:
+#   apc:
+#     caCertificates: ~ 
+#     cluster:
+#       name: ~
+#     services:
+#       vault:
+#         url: ""
+# ## and their local overrides
+# cluster:
+#   name: ~ # cluster name. If not specified, .global.apc.cluster.name is used
+# caCertificates: ~ # custom CA certificates in PEM format. If not specified, .global.apc.caCertificates is used
+# services:
+#   vault:
+#     url: ~ # Vault URL. If not specified, .global.apc.services.vault.url is used
 
 vaultName: ~ # Vault Name to be used for provider config, token, etc. If not specified, hostname from Vault URL is used
-vaultUrl: ~ # Vault URL. If not specified, .global.apc.services.vault.url is used
 vaultKubeAuthPath: ~ # for testing only as it only support 1 cluster only !!! => Kube auth path in Vault
 vaultKubernetesRole: crossplane # Kubernetes role in Vault for Crossplane to use
 vaultProviderConfigName: ~ # Name of the Vault provider config to create. If not specified, vaultName is used.
