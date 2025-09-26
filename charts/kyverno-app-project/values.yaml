@@ -11,7 +11,7 @@ defaultResourceQuota:
   replicasetsApps: 30
   serviceaccounts: 20
   services: 20
-  statefulsetsApps: 30
+  statefulsetsApps: 5
   requestsCpu: 4
   requestsMemory: 20Gi
   limitsCpu: 8
@@ -20,8 +20,10 @@ defaultResourceQuota:
   persistentvolumeclaims: 15
   requestsStorage: 300Gi
   servicesLoadbalancers: 2
+  skipBackgroundRequests: true
 
 cpngCustomResourceQuota:
+  skipBackgroundRequests: true
   clustersPostgresqlCpngIo: 1
   backupsPostgresqlCpngIo: 15
   scheduledbackupsPostgresqlCpngIo: 2
@@ -32,9 +34,10 @@ monitoringQuota:
   podmonitorsMonitoringCoreosCom: 20
   probesMonitoringCoreosCom: 10
   prometheusesMonitoringCoreosCom: 0
-  prometheusrulesMonitoringCoreosCom: 0
+  prometheusrulesMonitoringCoreosCom: 10
   servicemonitorsMonitoringCoreosCom: 20
   thanosrulersMonitoringCoreosCom: 0
+  skipBackgroundRequests: true
 
 grafanaQuota:
   alertingrulesLokiGrafanaCom: 0
@@ -48,6 +51,7 @@ grafanaQuota:
   lokistacksLokiGrafanaCom: 0
   recordingrulesLokiGrafanaCom: 0
   rulerconfigsLokiGrafanaCom: 0
+  skipBackgroundRequests: true
 
 kubevirtCrQuota:
   aaqsAaqKubevirtIo: 0
@@ -85,6 +89,7 @@ kubevirtCrQuota:
   volumeclonesourcesCdiKubevirtIo: 5
   volumeimportsourcesCdiKubevirtIo: 5
   volumeuploadsourcesCdiKubevirtIo: 5
+  skipBackgroundRequests: true
 
 defaultLimitRange:
   limitsDefaultCpu: 200m
@@ -92,6 +97,74 @@ defaultLimitRange:
   limitsDefaultEphemeralStorage: 1Gi
   limitsDefaultRequestCpu: 50m
   limitsDefaultRequestMemory: 50Mi
+  skipBackgroundRequests: true
+
+vaultGroupDefaults:
+  providerConfigRef: vault-hub01
+  authBackendName: ad
+  skipBackgroundRequests: true
+
+defaultVaultRoles:
+  admin: pja
+  developer: dev
+  tester: tes
+  operator: opr
+
+defaultVaultCapabilities:
+  admin:
+    - create
+    - read
+    - update
+    - delete
+    - list
+    - patch
+  developer:
+    - create
+    - read
+    - update
+    - delete
+    - list
+    - patch
+  tester:
+    - create
+    - read
+    - update
+    - delete
+    - list
+    - patch
+  operator:
+    - create
+    - read
+    - update
+    - delete
+    - list
+    - patch
+
+vaultRolesOverride:
+  prod:
+    admin: pja
+    operator: opr
+
+vaultCapabilitiesOverride:
+  prod:
+    admin:
+      - create
+      - read
+      - update
+      - delete
+      - list
+      - patch
+    operator:
+      - create
+      - read
+      - update
+      - delete
+      - list
+      - patch
+
+global:
+  apc:
+    environment: ~
 
 ## uses following global values
 # global:
