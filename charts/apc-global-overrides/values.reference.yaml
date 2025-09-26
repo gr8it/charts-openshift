@@ -1,0 +1,87 @@
+## uses following global values => do not set here
+
+# global:
+#   apc:
+#     customer: ~ # customer name, used as prefix
+#     repoURL: ~ # This repo URL, used for GitOps
+#     repoTargetRevision: HEAD # GitOps target branch, defaults to HEAD
+#     environment: ~ # environment is the name of the environment at customer, which is different to cluster name. In the GitOps repo naming = meta environment, e.g. prod, hub, test, dev
+#     environmentShort: ~ # usually 1st character of environment, e.g. p for prod, h for hub, d for dev, t for test
+#     cluster:
+#       name: ~
+#       acmName: ~ # name of the ACM managed cluster = for hub = local-cluster, for other clusters = name of the cluster above
+#       type: ~ # one of standalone, hcp
+#       baseDomain: ~
+#       appsDomain: ~
+#       apiURL: ~
+#       kubeVersion: # Kubernetes API version, e.g. v1.30
+#       # always create a comment stating the component, which uses the particular apiVersion
+#       apiVersions: # apiVersions available at the cluster => used by helmfile during rendering
+#         ## stakater-reloader
+#         - apps.openshift.io/v1
+#         ## stakater-reloader
+#         - argoproj.io/v1alpha1
+#       # cluster local services
+#       # used to share values between helm charts
+#       services: ~
+#       isHub: false
+#       runsApps: false
+#     proxy: ~ # Internet http(s) proxy
+#     noProxy: ~
+#     proxyIPs: [] # specified as CIDR, e.g. x.x.x.x/32
+#     # apc global services
+#     # used to share values between helm charts
+#     services:
+#       vault:
+#         url: https://vault.apps.lab.gr8it.cloud
+#       certManager:
+#         defaultClusterIssuer: vault-hub-issuer
+#       gitops:
+#         url: https://gitops.apps.lab.gr8it.cloud
+#     caCertificates:
+#       gr8it.crt: |
+#         -----BEGIN CERTIFICATE-----
+#         MIIDVTCCAj2gAwIBAgIUeRYCH56h2vgcgcQTlLVIZW+3t98wDQYJKoZIhvcNAQEL
+#         BQAwMjELMAkGA1UEBhMCU0sxDjAMBgNVBAoTBWdyOGl0MRMwEQYDVQQDEwpncjhp
+#         dC1yb290MB4XDTIzMTAwNjEzMDA0N1oXDTMzMTAwMzEzMDExNlowMjELMAkGA1UE
+#         BhMCU0sxDjAMBgNVBAoTBWdyOGl0MRMwEQYDVQQDEwpncjhpdC1yb290MIIBIjAN
+#         BgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA23z4SW7x8jx9GrwCs+2Tuht5UrHB
+#         QYPVB+a8knkfX5eHFsD1rXdYhR5n3mWljou2xtuXZRINHv3CxxLySdMMK9LtL8i/
+#         mlqPM1gXyH8eW4QM23sulP6kXgTnhIUeZJIX6fzVoECt7j2W5xN6gqWBXGQ0Zm74
+#         /dCuBnVLKK43tDc7bQw4SyiaN4S/DgXrNzWsHSlPZXHVpyZhDPLBAFFwt0FDgXLX
+#         WbQReNBX44bSbEliJ4CuTkxjlHhhDbMCVxaW283+uNZV239YdlMcC6SEJcy8chnY
+#         puFsPznRro0MWbgA3vjNa7g71zuj17pJmYYG9bMxP2z6CFQMQJXsgCGTHQIDAQAB
+#         o2MwYTAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU
+#         zkeoW/c9qpn5X61YwxAmG62icK8wHwYDVR0jBBgwFoAUzkeoW/c9qpn5X61YwxAm
+#         G62icK8wDQYJKoZIhvcNAQELBQADggEBAEvgBYkbG4TKel9xft8HXhaL1dODedpO
+#         GPOEV9agmukcyCyrnCcfHYhdWw/gW2Th/ISQ2j/7A3ZtA6eCAbzzN1q4ukdvtzS3
+#         fHDnwoG1TU/VGuHnyfx1UWTaj0sBZuaefxCCuRTdsW//ZTj0inIksQ2rVvqy6PD/
+#         ZwsLSfyXVFnTbUzkOuBXK4y5zWjvU6BkgJiK+Uf3ZJJ1kGloMyFbcDnzD0ZO7QYT
+#         4QPZXa053WFfTvDpAOS4hs87tr2TzcrZ0fgSOLv3O8cDtWBIoY+qfMY/GO0+D7G2
+#         jSfZQEwdYLLQ6lslNN9Zrg3E3MOpPdJMGcNpA/LRCa2XbbDuG6jRPH0=
+#         -----END CERTIFICATE-----
+
+## and their local overrides to override them in a chart
+# customer: ~
+# repoURL: ~
+# repoTargetRevision: ~
+# environment: ~
+# environmentShort: ~
+# cluster:
+#   name: ~
+#   acmName: ~
+#   type: ~
+#   baseDomain: ~
+#   appsDomain: ~
+#   apiURL: ~
+#   kubeVersion: ~
+#   # always create a comment stating the component, which uses the particular apiVersion
+#   apiVersions: []
+#   services: ~
+#   isHub: false
+#   runsApps: false
+# proxy: ~
+# noProxy: ~
+# proxyIPs: []
+# services: {}
+# caCertificates: {}
