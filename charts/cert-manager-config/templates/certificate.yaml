@@ -1,10 +1,10 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: wildcard-apps-{{ include "cert-manager-config.clusterName" . }}-cert
+  name: wildcard-apps-{{ include "apc-global-overrides.clusterName" . }}-cert
   namespace: openshift-ingress
 spec:
-  secretName: wildcard-apps-{{ include "cert-manager-config.clusterName" . }}-cert
+  secretName: wildcard-apps-{{ include "apc-global-overrides.clusterName" . }}-cert
   issuerRef: 
     kind: ClusterIssuer
     name: {{ include "cert-manager-config.defaultClusterIssuer" . }}

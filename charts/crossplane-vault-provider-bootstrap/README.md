@@ -119,14 +119,14 @@ The chart is implemented as an ACM policy and does following:
 
 |Parameter|Default|Description|
 |---|---|---|
-|localClusterName|`.global.apc.cluster.name`|Cluster name to be used instead of local-cluster|
+|cluster.name|`.global.apc.cluster.name`|Cluster name to be used instead of local-cluster|
 |crossplaneNamespace|apc-crossplane-system|Namespace where Crossplane is installed, and configurations are created|
-|customCACertificates|`.global.apc.caCertificates`|PEM encoded CA cert to trust when Vault makes contact to the Kube API|
+|caCertificates|`.global.apc.caCertificates`|PEM encoded CA cert to trust when Vault makes contact to the Kube API|
 |vaultKubeAuthPath||For testing only as it only support 1 cluster only !!! => Kube auth mount path in Vault |
 |vaultKubernetesRole|crossplane|Kubernetes role in Vault for Crossplane to use|
 |vaultName|`hotname` from Vault URL|Prefix to be used for provider config, token, etc.|
 |vaultProviderConfigName|cluster name|Name of the Vault provider config to create|
-|vaultUrl|`.global.apc.services.vault.url`|Vault URL|
+|services.vault.url|`.global.apc.services.vault.url`|Vault URL|
 
 ## Removal
 

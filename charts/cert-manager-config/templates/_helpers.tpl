@@ -51,30 +51,17 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
-Create the cluster name
-*/}}
-{{- define "cert-manager-config.clusterName" -}}
-{{- .Values.clusterName | default .Values.global.apc.cluster.name }}
-{{- end }}
-
-{{/*
 Create the mount path
 */}}
 {{- define "cert-manager-config.vaultKubeAuthMountPath" -}}
-{{- .Values.vaultKubeAuthMountPath | default (include "cert-manager-config.clusterName" .) }}
+{{- .Values.vaultKubeAuthMountPath | default (include "apc-global-overrides.clusterName" .) }}
 {{- end }}
 
 {{/*
-Create the mount path
+Create the Vault URL
 */}}
-{{- define "cert-manager-config.caCertificates" -}}
-{{- if .Values.caCertificates }}
-{{- .Values.caCertificates }}
-{{- else }}
-{{- range $i, $item := (.Values.global.apc.caCertificates | values) }}
-{{- $item }}
-{{- end }}
-{{- end }}
+{{- define "cert-manager-config.vaultUrl" -}}
+{{- (((include "apc-global-overrides.services" .) | fromYaml).vault).url | required "Vault URL is required" }}
 {{- end }}
 
 {{/*
@@ -86,18 +73,12 @@ From VaultURL = hostname, or override if specified
 {{- .Values.vaultName | default $vaultName }}
 {{- end }}
 
-{{/*
-Create the Vault URL
-*/}}
-{{- define "cert-manager-config.vaultUrl" -}}
-{{- .Values.vaultUrl | default .Values.global.apc.services.vault.url | required "Vault URL is required" }}
-{{- end }}
 
 {{/*
 Create the Vault PKI role to use for signing certs
 */}}
 {{- define "cert-manager-config.vaultPkiRole" -}}
-{{- .Values.vaultPkiRole | default .Values.global.apc.cluster.appsDomain }}
+{{- .Values.vaultPkiRole | default (include "apc-global-overrides.require-clusterAppsDomain" .) }}
 {{- end }}
 
 {{/*
@@ -111,25 +92,20 @@ Create the vault provider config name
 Create the cert-manager cluster issuer name
 */}}
 {{- define "cert-manager-config.defaultClusterIssuer" -}}
-{{- if .Values.defaultClusterIssuer }}
-{{- .Values.defaultClusterIssuer }}
-{{- else if  .Values.global.apc.services.certManager.defaultClusterIssuer }}
-{{- .Values.global.apc.services.certManager.defaultClusterIssuer }}
-{{- else -}}
-vault-{{ include "cert-manager-config.vaultName" . }}-issuer
-{{- end }}
+{{- $vaultName := include "cert-manager-config.vaultName" . -}}
+{{- (((include "apc-global-overrides.services" .) | fromYaml).certManager).defaultClusterIssuer | default (printf "vault-%s-issuer" $vaultName) }}
 {{- end }}
 
 {{/*
 Create the ingress cert CN
 */}}
 {{- define "cert-manager-config.ingressCertCommonName" -}}
-{{- .Values.ingressCertCommonName | default .Values.global.apc.cluster.appsDomain }}
+{{- .Values.ingressCertCommonName | default (include "apc-global-overrides.require-clusterAppsDomain" .) }}
 {{- end }}
 
 {{/*
 Create the ingress cert SANs
 */}}
 {{- define "cert-manager-config.ingressCertDnsNames" -}}
-{{- (.Values.ingressCertDnsNames | default (list (print "*." .Values.global.apc.cluster.appsDomain))) | toJson }}
+{{- (.Values.ingressCertDnsNames | default (list (print "*." (include "apc-global-overrides.require-clusterAppsDomain" .)))) | toJson }}
 {{- end }}
