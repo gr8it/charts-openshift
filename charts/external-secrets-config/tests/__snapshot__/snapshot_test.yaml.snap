@@ -38,31 +38,30 @@ manifests should match snapshot:
         namespace: NAMESPACE
   3: |
     apiVersion: external-secrets.io/v1beta1
-    data:
-      spec:
-        conditions:
-          - namespaceSelector:
-              matchLabels:
-                apc.namespace.type: platform
-        provider:
-          vault:
-            auth:
-              kubernetes:
-                mountPath: dev01
-                role: external-secrets-operator
-                serviceAccountRef:
-                  name: external-secrets-operator
-                  namespace: NAMESPACE
-            caProvider:
-              key: ca.crt
-              name: kube-root-ca.crt
-              type: ConfigMap
-            path: dev01
-            server: https://vault.example.com
-            version: v2
     kind: ClusterSecretStore
     metadata:
       name: vault-example
+    spec:
+      conditions:
+        - namespaceSelector:
+            matchLabels:
+              apc.namespace.type: platform
+      provider:
+        vault:
+          auth:
+            kubernetes:
+              mountPath: dev01
+              role: external-secrets-operator
+              serviceAccountRef:
+                name: external-secrets-operator
+                namespace: apc-external-secrets-operator
+          caProvider:
+            key: ca.crt
+            name: kube-root-ca.crt
+            type: ConfigMap
+          path: dev01
+          server: https://vault.example.com
+          version: v2
   4: |
     apiVersion: vault.vault.upbound.io/v1alpha1
     kind: Policy
