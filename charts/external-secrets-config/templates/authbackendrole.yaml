@@ -9,7 +9,7 @@ spec:
     boundServiceAccountNames:
       - {{ .Values.kubeServiceAccount }}
     boundServiceAccountNamespaces:
-      - {{ .Release.Namespace }}
+      - {{ .Values.esoNamespace }}
     roleName: {{ .Values.vaultKubeAuthRole }}
     tokenPolicies:
       - default

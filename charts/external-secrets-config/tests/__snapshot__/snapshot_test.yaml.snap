@@ -10,7 +10,7 @@ manifests should match snapshot:
         boundServiceAccountNames:
           - external-secrets-operator
         boundServiceAccountNamespaces:
-          - NAMESPACE
+          - apc-external-secrets-operator
         roleName: external-secrets-operator
         tokenPolicies:
           - default
@@ -35,7 +35,7 @@ manifests should match snapshot:
     subjects:
       - kind: ServiceAccount
         name: external-secrets-operator
-        namespace: NAMESPACE
+        namespace: apc-external-secrets-operator
   3: |
     apiVersion: external-secrets.io/v1beta1
     kind: ClusterSecretStore
@@ -52,12 +52,10 @@ manifests should match snapshot:
             kubernetes:
               mountPath: dev01
               role: external-secrets-operator
-              serviceAccountRef:
-                name: external-secrets-operator
-                namespace: apc-external-secrets-operator
           caProvider:
             key: ca.crt
             name: kube-root-ca.crt
+            namespace: apc-external-secrets-operator
             type: ConfigMap
           path: dev01
           server: https://vault.example.com
