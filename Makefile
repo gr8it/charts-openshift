@@ -80,7 +80,7 @@ package:
 	@mkdir -p $(TEMP_DIR)/packaged_charts
 	@echo -e "\033[0;33mTemp folder set to $(TEMP_DIR)\033[0m"
 	@for folder in $(CHARTFOLDERS); do \
-		chart_name=$$(basename $${folder}); \
+		chart_name=$$(grep '^name:' $${folder}/Chart.yaml | awk '{print $$2}'); \
 		chart_version=$$(grep '^version:' $${folder}/Chart.yaml | awk '{print $$2}'); \
 		chart_name_version=$${chart_name}-$${chart_version}; \
 		echo -n "$${chart_name_version}: "; \
@@ -107,7 +107,18 @@ package:
 				else \
 					echo -e "\033[0;31mFAILED\033[0m "; \
 					echo "$$out"; \
-					exit 1; \
+					echo -e "\033[33mUpdate unittests snapshot and continue? [n/Y]"; \
+					echo -e "\033[33mUpdate only when \033[31mreally sure\033[33m, that updating snapshot won't break anything!\033[0m"; \
+					read -r confirmation; \
+					if [ "$$confirmation" != "y" ] && [ "$$confirmation" != "Y" ]; then \
+							exit 1; \
+					else
+						helm unittest -u $$folder
+						if ! out=$$(helm unittest --strict $$folder); then \
+							echo -e "\033[0;31mSTILL FAILING\033[0m "; \
+							exit 1; \
+						fi \
+					fi; \
 				fi; \
 			else \
 			  echo "NA"; \
