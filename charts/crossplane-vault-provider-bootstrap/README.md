@@ -1,62 +1,14 @@
 # Crossplane Vault Provider bootstrap
 
-```mermaid
-flowchart TD
-    S(((Start)))
-    VPTA[Set Vault Provider To Use Token Auth]
-    VPKAC[Vault Provider Kubernetes Auth Check]
-    VPKACO[is not Kubernetes]
-    VPKAPC[Vault Provider Kubernetes Auth CRs Provisioned Check]
-    VPKAPCP[are provisioned]
-    TAC[Token Auth Check]
-    TR[Remove Token Secret]
-    KAS[Kubernetes Auth Setup]
-    KAB[Kubernetes Auth Backend CR]
-    KABC[Kubernetes Auth Backend Config CR]
-    KABR[Kubernetes Auth Backend Role CR]
-    PKA[Policy for Kubernetes Auth CR]
-    VPKA[Set Vault Provider To Use Kubernetes Auth]
-    
-    S --> VPKAC
-    S --> VPKAPC
-    S --> KAS
+Due to missing functionality (kubernetes auth with mount point other than kubernetes) of Crossplane Vault provider, the component was changed to work with tokens only! Waiting for PR <https://github.com/upbound/provider-vault/pull/93> to be merged.
 
-    VPKAC -- checks if Vault provider auth method is set to Kubernetes --> VPKAC
-    VPKAPC -.->|checks if Kubernetes Auth Setup CRs are provisioned in Vault = status Synced and Ready| KAS
-    KAS -.->VPKAPC
-    TAC -- checks if token auth secret exists and gives clue to the user in the GUI how to fix --> TAC
-
-    VPKAC ----> VPKACO
-    VPKACO --> TAC
-    VPKACO --> VPTA
-
-
-    KAS --> KAB
-    KAS --> KABC
-    KAS --> KABR
-    KAS --> PKA
-    
-    VPKAPC ----> VPKAPCP
-    VPKAPCP --> VPKA
-    VPKAPCP --> TR
-```
-
-> [!NOTE]  
-> The Crossplane Vault Provider bootstrap is not automatic, as it requires manual creation of an Vault token
-
-> [!WARNING]  
-> The Token secret must be created on the MANAGED CLUSTER, not on hub cluster!
+[V2](../crossplane-vault-provider-bootstrap-v2/) of this provider keeps the to be functionality..
 
 > [!WARNING]  
 > As the chart is implemented as an ACM policy, meaning the component has to be installed on the hub cluster only!
 
 The chart is implemented as an ACM policy and does following:
 
-- Checks if Vault ProviderConfig is using Kubernetes auth method
-  - If yes => the target status
-  - If not
-    - Sets Vault Provider to use Token auth for bootstrap
-    - Starts a helper policy to inform user in the GUI where to create the Token secret
 - Starts Kubernetes Auth Setup
   - Provisions the Vault CRs (Auth Backend, AuthBackendConfig, AuthBackendRole, Policy) required for Kubernetes Auth
   - Waits for the Token secret to be created - see [Token Secret generation](#token-secret-generation)
@@ -68,14 +20,20 @@ The chart is implemented as an ACM policy and does following:
 
 ## Token Secret generation
 
-1) Admin creates a token using `vault token create -ttl=15m --renewable=false`
+1) Extend the maximum validity of a token temporarily (BAD PRACTICE)
+
+```bash
+vault write sys/auth/token/tune max_lease_ttl=9000h
+```
+
+1) create a token using `vault token create -ttl=365d -explicit-max-ttl=365d --renewable=false`
 
    ```bash
    Key                  Value
    ---                  -----
    token                hvs.CAESFrBiuq2OJ4J1Vcr6-tiEyY0kZVeDQzTXh9fpiBVt1BBmnxEFWGh4KHGh2cy42R2IGmpsTXBOZ0xJYkZuQ25kemg
    token_accessor       wpVWsKklJhRTIEE374JbeyF7
-   token_duration       15m
+   token_duration       8760h
    token_renewable      false
    token_policies       ["admin" "default"]
    identity_policies    []
@@ -83,7 +41,16 @@ The chart is implemented as an ACM policy and does following:
    ```
 
 > [!NOTE]  
-> Policies of the creating (admin) user will be reused by default. Or specify policy to be used using `-policy <policy-name>`
+> Policies of the creating (admin) user will be reused by default. Or specify policy to be used using `-policy <policy-name>, e.g. admin`
+
+> [!WARNING]  
+> Do not create using root token, as it would create a long lived root token copy!!!
+
+1) Change the maximum validity of a token back
+
+```bash
+vault write sys/auth/token/tune max_lease_ttl=768h
+```
 
 1) Copy the token from the `token` parameter
 
