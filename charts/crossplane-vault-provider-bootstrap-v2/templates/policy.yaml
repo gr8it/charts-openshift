@@ -14,6 +14,26 @@ metadata:
 spec:
   disabled: false
   policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: {{ include "crossplane-vault-provider-bootstrap.fullname" . }}-kubernetes-auth-check
+        spec:
+          customMessage:
+            noncompliant: Waiting for the Vault provider to use kubernetes auth, i.e. {{ include "crossplane-vault-provider-bootstrap.fullname" . }}-kubernetes-auth ConfigurationPolicy to be executed = Compliant
+          remediationAction: inform
+          severity: low
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: vault.upbound.io/v1beta1
+                kind: ProviderConfig
+                metadata:
+                  name: {{ $vaultProviderConfigName }}
+                spec:
+                  credentials:
+                    source: Kubernetes
 
     - objectDefinition:
         apiVersion: policy.open-cluster-management.io/v1
@@ -78,7 +98,13 @@ spec:
                     - type: Ready
                       status: "True"
 
-    - objectDefinition:
+    - extraDependencies:
+        - name: {{ include "crossplane-vault-provider-bootstrap.fullname" . }}-kubernetes-auth-check
+          apiVersion: policy.open-cluster-management.io/v1
+          kind: ConfigurationPolicy
+          compliance: NonCompliant
+      ignorePending: true
+      objectDefinition:
         apiVersion: policy.open-cluster-management.io/v1
         kind: ConfigurationPolicy
         metadata:
@@ -97,7 +123,13 @@ spec:
                   name: {{ $vaultName }}-token
                   namespace: {{ .Values.crossplaneNamespace }}
 
-    - objectDefinition:
+    - extraDependencies:
+        - name: {{ include "crossplane-vault-provider-bootstrap.fullname" . }}-kubernetes-auth-check
+          apiVersion: policy.open-cluster-management.io/v1
+          kind: ConfigurationPolicy
+          compliance: NonCompliant
+      ignorePending: true
+      objectDefinition:
         apiVersion: policy.open-cluster-management.io/v1
         kind: ConfigurationPolicy
         metadata:
@@ -240,3 +272,53 @@ spec:
                 - apiGroup: rbac.authorization.k8s.io
                   kind: Group
                   name: system:serviceaccounts:{{ .Values.crossplaneNamespace }}
+
+    - extraDependencies:
+        - name: {{ include "crossplane-vault-provider-bootstrap.fullname" . }}-kubernetes-auth-provisioned-check
+          apiVersion: policy.open-cluster-management.io/v1
+          kind: ConfigurationPolicy
+          compliance: Compliant
+      ignorePending: true
+      objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: {{ include "crossplane-vault-provider-bootstrap.fullname" . }}-providerconfig-kubernetes-auth
+        spec:
+          remediationAction: enforce
+          severity: medium
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: vault.upbound.io/v1beta1
+                kind: ProviderConfig
+                metadata:
+                  name: {{ $vaultProviderConfigName }}
+                spec:
+                  address: {{ $vaultUrl }}
+                  role: {{ .Values.vaultKubernetesRole }}
+                  credentials:
+                    source: Kubernetes
+
+    - extraDependencies:
+        - name: {{ include "crossplane-vault-provider-bootstrap.fullname" . }}-kubernetes-auth-provisioned-check
+          apiVersion: policy.open-cluster-management.io/v1
+          kind: ConfigurationPolicy
+          compliance: Compliant
+      ignorePending: true
+      objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: {{ include "crossplane-vault-provider-bootstrap.fullname" . }}-token-removal
+        spec:
+          remediationAction: enforce
+          severity: medium
+          object-templates:
+            - complianceType: mustnothave
+              objectDefinition:
+                apiVersion: v1
+                kind: Secret
+                metadata:
+                  name: {{ $vaultName }}-token
+                  namespace: {{ .Values.crossplaneNamespace }}
