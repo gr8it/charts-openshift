@@ -273,4 +273,7 @@ clean: check-yq
 	fi
 	@rm -rf $(TEMP_DIR);
 
-build: package
+build: package update-versions
+
+update-versions:
+	@ find charts -name Chart.yaml -exec yq -M '.name + ":" + .version' {} \; > versions.txt
