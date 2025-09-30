@@ -1,0 +1,15 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: {{ include "gitops-bootstrap.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "gitops-bootstrap.labels" . | nindent 4 }}
+placementRef:
+  name: {{ include "gitops-bootstrap.fullname" . }}
+  apiGroup: cluster.open-cluster-management.io
+  kind: Placement
+subjects:
+  - name: {{ include "gitops-bootstrap.fullname" . }}
+    apiGroup: policy.open-cluster-management.io
+    kind: Policy

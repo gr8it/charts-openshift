@@ -1,0 +1,10 @@
+apiVersion: cluster.open-cluster-management.io/v1beta2
+kind: ManagedClusterSetBinding
+metadata:
+  name: global
+  # namespace: open-cluster-management-global-set
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "gitops-bootstrap.labels" . | nindent 4 }}
+spec:
+  clusterSet: global

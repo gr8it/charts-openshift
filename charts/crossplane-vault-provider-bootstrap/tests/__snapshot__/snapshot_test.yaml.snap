@@ -1,6 +1,29 @@
 manifests should match snapshot:
   1: |
     apiVersion: policy.open-cluster-management.io/v1
+    kind: PlacementBinding
+    metadata:
+      name: crossplane-vault-provider-bootstrap
+      namespace: apc-crossplane-system
+    placementRef:
+      apiGroup: cluster.open-cluster-management.io
+      kind: Placement
+      name: crossplane-vault-provider-bootstrap
+    subjects:
+      - apiGroup: policy.open-cluster-management.io
+        kind: Policy
+        name: crossplane-vault-provider-bootstrap
+  2: |
+    apiVersion: cluster.open-cluster-management.io/v1beta1
+    kind: Placement
+    metadata:
+      name: crossplane-vault-provider-bootstrap
+      namespace: apc-crossplane-system
+    spec:
+      clusterSets:
+        - global
+  3: |
+    apiVersion: policy.open-cluster-management.io/v1
     kind: Policy
     metadata:
       annotations:
@@ -9,7 +32,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: crossplane-vault-provider-bootstrap
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: crossplane-vault-provider-bootstrap
-        helm.sh/chart: crossplane-vault-provider-bootstrap-1.2.0
+        helm.sh/chart: crossplane-vault-provider-bootstrap-1.4.0
       name: crossplane-vault-provider-bootstrap
       namespace: apc-crossplane-system
     spec:
@@ -19,30 +42,10 @@ manifests should match snapshot:
             apiVersion: policy.open-cluster-management.io/v1
             kind: ConfigurationPolicy
             metadata:
-              name: crossplane-vault-provider-bootstrap-kubernetes-auth-check
-            spec:
-              customMessage:
-                noncompliant: Waiting for the Vault provider to use kubernetes auth, i.e. crossplane-vault-provider-bootstrap-kubernetes-auth ConfigurationPolicy to be executed = Compliant
-              object-templates:
-                - complianceType: musthave
-                  objectDefinition:
-                    apiVersion: vault.upbound.io/v1beta1
-                    kind: ProviderConfig
-                    metadata:
-                      name: vault.url
-                    spec:
-                      credentials:
-                        source: Kubernetes
-              remediationAction: inform
-              severity: low
-        - objectDefinition:
-            apiVersion: policy.open-cluster-management.io/v1
-            kind: ConfigurationPolicy
-            metadata:
               name: crossplane-vault-provider-bootstrap-kubernetes-auth-provisioned-check
             spec:
               customMessage:
-                noncompliant: Waiting for the custom resources from crossplane-vault-provider-bootstrap-kubernetes-auth-setup ConfigurationPolicy to be provisioned in Vault
+                noncompliant: Waiting for the custom resources from crossplane-vault-provider-bootstrap-kubernetes-auth-setup ConfigurationPolicy to be synced and ready in Vault
               object-templates:
                 - complianceType: musthave
                   objectDefinition:
@@ -97,20 +100,14 @@ manifests should match snapshot:
                           type: Ready
               remediationAction: inform
               severity: low
-        - extraDependencies:
-            - apiVersion: policy.open-cluster-management.io/v1
-              compliance: NonCompliant
-              kind: ConfigurationPolicy
-              name: crossplane-vault-provider-bootstrap-kubernetes-auth-check
-          ignorePending: true
-          objectDefinition:
+        - objectDefinition:
             apiVersion: policy.open-cluster-management.io/v1
             kind: ConfigurationPolicy
             metadata:
               name: crossplane-vault-provider-bootstrap-token-auth-check
             spec:
               customMessage:
-                noncompliant: Please create a generic secret named vault.url-token in the apc-crossplane-system namespace with 'credentials' key containing the Vault token with 'admin' policy on the MANAGED CLUSTER => see `Token Secret generation` in README
+                noncompliant: Please create a generic secret named vault.url-token in the apc-crossplane-system namespace with 'credentials' key containing the Vault token with 'admin' policy on the MANAGED CLUSTER (spoke) => see `Token Secret generation` in README of the crossplane-vault-provider-bootstrap component
               object-templates:
                 - complianceType: musthave
                   objectDefinition:
@@ -121,13 +118,7 @@ manifests should match snapshot:
                       namespace: apc-crossplane-system
               remediationAction: inform
               severity: low
-        - extraDependencies:
-            - apiVersion: policy.open-cluster-management.io/v1
-              compliance: NonCompliant
-              kind: ConfigurationPolicy
-              name: crossplane-vault-provider-bootstrap-kubernetes-auth-check
-          ignorePending: true
-          objectDefinition:
+        - objectDefinition:
             apiVersion: policy.open-cluster-management.io/v1
             kind: ConfigurationPolicy
             metadata:
@@ -139,8 +130,7 @@ manifests should match snapshot:
                     apiVersion: vault.upbound.io/v1beta1
                     kind: ProviderConfig
                     metadata:
-                      name: vault.url
-                      namespace: apc-crossplane-system
+                      name: vault-url
                     spec:
                       address: https://vault.url
                       credentials:
@@ -171,7 +161,7 @@ manifests should match snapshot:
                         path: '{{hub "" | default .ManagedClusterName | replace "local-cluster" "dev01" hub}}'
                         type: kubernetes
                       providerConfigRef:
-                        name: vault.url
+                        name: vault-url
                 - complianceType: musthave
                   objectDefinition:
                     apiVersion: kubernetes.vault.upbound.io/v1alpha1
@@ -206,7 +196,7 @@ manifests should match snapshot:
                           -----END CERTIFICATE-----
                         kubernetesHost: '{{ fromClusterClaim "apiserverurl.openshift.io" }}'
                       providerConfigRef:
-                        name: vault.url
+                        name: vault-url
                 - complianceType: musthave
                   objectDefinition:
                     apiVersion: vault.vault.upbound.io/v1alpha1
@@ -242,7 +232,7 @@ manifests should match snapshot:
                             capabilities = ["create", "read", "update", "patch", "delete", "list"]
                           }
                       providerConfigRef:
-                        name: vault.url
+                        name: vault-url
                 - complianceType: musthave
                   objectDefinition:
                     apiVersion: kubernetes.vault.upbound.io/v1alpha1
@@ -264,86 +254,20 @@ manifests should match snapshot:
                           - '{{hub .ManagedClusterName | replace "local-cluster" "dev01" hub}}--crossplane'
                         tokenTtl: 3600
                       providerConfigRef:
-                        name: vault.url
-              remediationAction: enforce
-              severity: medium
-        - extraDependencies:
-            - apiVersion: policy.open-cluster-management.io/v1
-              compliance: Compliant
-              kind: ConfigurationPolicy
-              name: crossplane-vault-provider-bootstrap-kubernetes-auth-provisioned-check
-          ignorePending: true
-          objectDefinition:
-            apiVersion: policy.open-cluster-management.io/v1
-            kind: ConfigurationPolicy
-            metadata:
-              name: crossplane-vault-provider-bootstrap-providerconfig-kubernetes-auth
-            spec:
-              object-templates:
+                        name: vault-url
                 - complianceType: musthave
                   objectDefinition:
-                    apiVersion: vault.upbound.io/v1beta1
-                    kind: ProviderConfig
+                    apiVersion: rbac.authorization.k8s.io/v1
+                    kind: ClusterRoleBinding
                     metadata:
-                      name: vault.url
-                      namespace: apc-crossplane-system
-                    spec:
-                      address: https://vault.url
-                      credentials:
-                        source: Kubernetes
-                      role: crossplane
+                      name: crossplane-vault-provider-bootstrap-auth-delegator
+                    roleRef:
+                      apiGroup: rbac.authorization.k8s.io
+                      kind: ClusterRole
+                      name: system:auth-delegator
+                    subjects:
+                      - apiGroup: rbac.authorization.k8s.io
+                        kind: Group
+                        name: system:serviceaccounts:apc-crossplane-system
               remediationAction: enforce
               severity: medium
-        - extraDependencies:
-            - apiVersion: policy.open-cluster-management.io/v1
-              compliance: Compliant
-              kind: ConfigurationPolicy
-              name: crossplane-vault-provider-bootstrap-kubernetes-auth-provisioned-check
-          ignorePending: true
-          objectDefinition:
-            apiVersion: policy.open-cluster-management.io/v1
-            kind: ConfigurationPolicy
-            metadata:
-              name: crossplane-vault-provider-bootstrap-token-removal
-            spec:
-              object-templates:
-                - complianceType: mustnothave
-                  objectDefinition:
-                    apiVersion: v1
-                    kind: Secret
-                    metadata:
-                      name: vault.url-token
-                      namespace: apc-crossplane-system
-              remediationAction: enforce
-              severity: medium
-  2: |
-    apiVersion: cluster.open-cluster-management.io/v1beta1
-    kind: Placement
-    metadata:
-      name: crossplane-vault-provider-bootstrap
-      namespace: apc-crossplane-system
-    spec:
-      clusterSets:
-        - global
-  3: |
-    apiVersion: policy.open-cluster-management.io/v1
-    kind: PlacementBinding
-    metadata:
-      name: crossplane-vault-provider-bootstrap
-      namespace: apc-crossplane-system
-    placementRef:
-      apiGroup: cluster.open-cluster-management.io
-      kind: Placement
-      name: crossplane-vault-provider-bootstrap
-    subjects:
-      - apiGroup: policy.open-cluster-management.io
-        kind: Policy
-        name: crossplane-vault-provider-bootstrap
-  4: |
-    apiVersion: cluster.open-cluster-management.io/v1beta2
-    kind: ManagedClusterSetBinding
-    metadata:
-      name: global
-      namespace: apc-crossplane-system
-    spec:
-      clusterSet: global

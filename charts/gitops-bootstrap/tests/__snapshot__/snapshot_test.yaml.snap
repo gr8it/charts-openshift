@@ -1,5 +1,19 @@
 manifests should match snapshot:
   1: |
+    apiVersion: cluster.open-cluster-management.io/v1beta2
+    kind: ManagedClusterSetBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: gitops-bootstrap
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: gitops-bootstrap
+        app.kubernetes.io/version: v1
+        helm.sh/chart: gitops-bootstrap-2.7.0
+      name: global
+      namespace: apc-bootstrap
+    spec:
+      clusterSet: global
+  2: |
     apiVersion: v1
     kind: Namespace
     metadata:
@@ -9,9 +23,49 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.6.0
+        helm.sh/chart: gitops-bootstrap-2.7.0
       name: apc-bootstrap
-  2: |
+  3: |
+    apiVersion: cluster.open-cluster-management.io/v1beta1
+    kind: Placement
+    metadata:
+      labels:
+        app.kubernetes.io/instance: gitops-bootstrap
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: gitops-bootstrap
+        app.kubernetes.io/version: v1
+        helm.sh/chart: gitops-bootstrap-2.7.0
+      name: gitops-bootstrap
+      namespace: apc-bootstrap
+    spec:
+      clusterSets:
+        - global
+      tolerations:
+        - key: cluster.open-cluster-management.io/unreachable
+          operator: Exists
+        - key: cluster.open-cluster-management.io/unavailable
+          operator: Exists
+  4: |
+    apiVersion: policy.open-cluster-management.io/v1
+    kind: PlacementBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: gitops-bootstrap
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: gitops-bootstrap
+        app.kubernetes.io/version: v1
+        helm.sh/chart: gitops-bootstrap-2.7.0
+      name: gitops-bootstrap
+      namespace: apc-bootstrap
+    placementRef:
+      apiGroup: cluster.open-cluster-management.io
+      kind: Placement
+      name: gitops-bootstrap
+    subjects:
+      - apiGroup: policy.open-cluster-management.io
+        kind: Policy
+        name: gitops-bootstrap
+  5: |
     apiVersion: policy.open-cluster-management.io/v1
     kind: Policy
     metadata:
@@ -22,7 +76,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.6.0
+        helm.sh/chart: gitops-bootstrap-2.7.0
       name: gitops-bootstrap
       namespace: apc-bootstrap
     spec:
@@ -581,60 +635,6 @@ manifests should match snapshot:
                       text: Cluster Argo CD
               remediationAction: enforce
               severity: low
-  3: |
-    apiVersion: cluster.open-cluster-management.io/v1beta1
-    kind: Placement
-    metadata:
-      labels:
-        app.kubernetes.io/instance: gitops-bootstrap
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: gitops-bootstrap
-        app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.6.0
-      name: gitops-bootstrap
-      namespace: apc-bootstrap
-    spec:
-      clusterSets:
-        - global
-      tolerations:
-        - key: cluster.open-cluster-management.io/unreachable
-          operator: Exists
-        - key: cluster.open-cluster-management.io/unavailable
-          operator: Exists
-  4: |
-    apiVersion: policy.open-cluster-management.io/v1
-    kind: PlacementBinding
-    metadata:
-      labels:
-        app.kubernetes.io/instance: gitops-bootstrap
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: gitops-bootstrap
-        app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.6.0
-      name: gitops-bootstrap
-      namespace: apc-bootstrap
-    placementRef:
-      apiGroup: cluster.open-cluster-management.io
-      kind: Placement
-      name: gitops-bootstrap
-    subjects:
-      - apiGroup: policy.open-cluster-management.io
-        kind: Policy
-        name: gitops-bootstrap
-  5: |
-    apiVersion: cluster.open-cluster-management.io/v1beta2
-    kind: ManagedClusterSetBinding
-    metadata:
-      labels:
-        app.kubernetes.io/instance: gitops-bootstrap
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: gitops-bootstrap
-        app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.6.0
-      name: global
-      namespace: apc-bootstrap
-    spec:
-      clusterSet: global
   6: |
     apiVersion: v1
     kind: Secret
@@ -645,7 +645,7 @@ manifests should match snapshot:
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
         argocd.argoproj.io/secret-type: repo-creds
-        helm.sh/chart: gitops-bootstrap-2.6.0
+        helm.sh/chart: gitops-bootstrap-2.7.0
       name: null
       namespace: apc-bootstrap
     stringData:

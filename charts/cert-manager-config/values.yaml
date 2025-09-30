@@ -14,6 +14,8 @@ fullnameOverride: ""
 #         defaultClusterIssuer: ~
 #       vault:
 #         url: ""
+#         kubeVaultProviderConfigName: ""
+#         kubeAuthMountPath: ""
 ## and their local overrides
 # cluster:
 #   appsDomain: ~ # if not specified, default to global.apc.cluster.appsDomain
@@ -24,14 +26,13 @@ fullnameOverride: ""
 #     defaultClusterIssuer: # if not specified, defaults to global.apc.services.certManager.defaultClusterIssuer, or vault-{{ "vaultName" }}-issuer
 #   vault:
 #     url: # if not specified, defaults to global.apc.services.vault.url
+#     kubeVaultProviderConfigName: # if not specified, defaults to global.apc.services.vault.kubeVaultProviderConfigName
+#     kubeAuthMountPath: # if not specified, defaults to global.apc.services.vault.kubeAuthMountPath
 
-vaultName: ~ # if not specified, extracted hostname from vaultUrl
-vaultKubeAuthMountPath: ~ # mount path of the clusters kubernetes auth. If not specified, defaults to clusterName
 vaultKubeAuthRole: cert-manager # role name to assume during kubernetes auth
 vaultPkiPath: pki # required. Path to the PKI secrets engine mount
 vaultPkiRole: ~ # PKI role to use for signing certificates. If not specified, defaults to global.apc.cluster.appsDomain
 
-kubeVaultProviderConfigName: ~ # Vault providerconfig to use. If not specified, defaults to the vault name extracted from vaultUrl
 kubeServiceAccount: cert-manager # service account used for kubernetes authentication
 
 ingressCertCommonName: ~ # common name of the created ingress certificate. If not specified, defaults to global.apc.cluster.appsDomain

@@ -61,6 +61,8 @@ global:
     services:
       vault:
         url: "https://vault.apps.demo.lab.gr8it.cloud"
+        kubeVaultProviderConfigName: vault-demo
+        kubeAuthMountPath: kubernetes
       certManager:
         defaultClusterIssuer: "vault-hub-issuer"
 
@@ -94,8 +96,6 @@ global:
 #   vault:
 #     url: https://vault.lab.gr8it.cloud # if not specified, defaults to global.apc.services.vault.url
 
-# vaultName: vault-lab # if not specified, extracted hostname from vaultUrl
-vaultKubeAuthMountPath: kubernetes
 vaultPkiPath: pki-int-gr8it.cloud # required. Path to the PKI secrets engine mount
 vaultPkiRole: lab.gr8it.cloud # PKI role to use for signing certificates. If not specified, defaults to global.apc.cluster.appsDomain
 
