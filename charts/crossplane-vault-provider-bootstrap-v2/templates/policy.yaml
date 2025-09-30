@@ -190,7 +190,15 @@ spec:
                   forProvider:
                     backend: '{{"{{"}}hub "{{ .Values.vaultKubeAuthMountPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}'
                     disableLocalCaJwt: true
-                    kubernetesHost: '{{`{{ regexReplaceAll "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" (fromClusterClaim "apiserverurl.openshift.io") (regexReplaceAll ".*apps\.(.*)" (fromClusterClaim "consoleurl.cluster.open-cluster-management.io") "api.${1}") }}`}}'
+                    ## API endpoint is read from cluster claim, which for HCP spokes is returned in the form https://ip:port
+                    ## API server (up to version 4.19) due to a bug doesn't return the correct API certificate, but only kubernetes selfsigned one
+                    ## https://access.redhat.com/support/cases/#/case/04040567
+                    ## https://access.redhat.com/support/cases/#/case/04040167
+                    ## when more than 1 cert is used in the kubernetesCaCert, the integration is not working correctly
+                    ## generate the API url with FQDN from console URL with some nasty replacements (note regexReplaceAll doesn't exist in ACM policies :-/)
+                    ## after Openshift 4.19 => simplified and more robust option should be used
+                    # kubernetesHost: '{{`{{ fromClusterClaim "apiserverurl.openshift.io" }}`}}'
+                    kubernetesHost: '{{`{{ printf "%s%s" (replace "console-openshift-console.apps." "api." (fromClusterClaim "consoleurl.cluster.open-cluster-management.io")) (regexFind ":[0-9]+" (fromClusterClaim "apiserverurl.openshift.io")) }}`}}'
                     kubernetesCaCert: |
                       {{- include "apc-global-overrides.caCertificatesBundle" . | nindent 22 }}
                   providerConfigRef:
