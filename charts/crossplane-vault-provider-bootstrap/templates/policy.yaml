@@ -166,7 +166,7 @@ spec:
                     ## generate the API url with FQDN from console URL with some nasty replacements (note regexReplaceAll doesn't exist in ACM policies :-/)
                     ## after Openshift 4.19 => simplified and more robust option should be used
                     # kubernetesHost: '{{`{{ fromClusterClaim "apiserverurl.openshift.io" }}`}}'
-                    kubernetesHost: '{{`{{ printf "%s%s" (replace "console-openshift-console.apps." "api." (fromClusterClaim "consoleurl.cluster.open-cluster-management.io"))(regexFind ":[0-9]+" (fromClusterClaim "apiserverurl.openshift.io")) }}`}}'
+                    kubernetesHost: '{{`{{ printf "%s%s" (replace "console-openshift-console.apps." "api." (fromClusterClaim "consoleurl.cluster.open-cluster-management.io")) (regexFind ":[0-9]+" (fromClusterClaim "apiserverurl.openshift.io")) }}`}}'
                     kubernetesCaCert: |
                       {{- include "apc-global-overrides.caCertificatesBundle" . | nindent 22 }}
                   providerConfigRef:

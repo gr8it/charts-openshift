@@ -194,7 +194,7 @@ manifests should match snapshot:
                           4QPZXa053WFfTvDpAOS4hs87tr2TzcrZ0fgSOLv3O8cDtWBIoY+qfMY/GO0+D7G2
                           jSfZQEwdYLLQ6lslNN9Zrg3E3MOpPdJMGcNpA/LRCa2XbbDuG6jRPH0=
                           -----END CERTIFICATE-----
-                        kubernetesHost: '{{ printf "%s%s" (replace "console-openshift-console.apps." "api." (fromClusterClaim "consoleurl.cluster.open-cluster-management.io"))(regexFind ":[0-9]+" (fromClusterClaim "apiserverurl.openshift.io")) }}'
+                        kubernetesHost: '{{ printf "%s%s" (replace "console-openshift-console.apps." "api." (fromClusterClaim "consoleurl.cluster.open-cluster-management.io")) (regexFind ":[0-9]+" (fromClusterClaim "apiserverurl.openshift.io")) }}'
                       providerConfigRef:
                         name: vault-url
                 - complianceType: musthave
