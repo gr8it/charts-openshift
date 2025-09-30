@@ -32,7 +32,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: crossplane-vault-provider-bootstrap
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: crossplane-vault-provider-bootstrap
-        helm.sh/chart: crossplane-vault-provider-bootstrap-1.4.0
+        helm.sh/chart: crossplane-vault-provider-bootstrap-1.4.1
       name: crossplane-vault-provider-bootstrap
       namespace: apc-crossplane-system
     spec:
@@ -194,7 +194,7 @@ manifests should match snapshot:
                           4QPZXa053WFfTvDpAOS4hs87tr2TzcrZ0fgSOLv3O8cDtWBIoY+qfMY/GO0+D7G2
                           jSfZQEwdYLLQ6lslNN9Zrg3E3MOpPdJMGcNpA/LRCa2XbbDuG6jRPH0=
                           -----END CERTIFICATE-----
-                        kubernetesHost: '{{ fromClusterClaim "apiserverurl.openshift.io" }}'
+                        kubernetesHost: '{{ printf "%s%s" (replace "console-openshift-console.apps." "api." (fromClusterClaim "consoleurl.cluster.open-cluster-management.io")) (regexFind ":[0-9]+" (fromClusterClaim "apiserverurl.openshift.io")) }}'
                       providerConfigRef:
                         name: vault-url
                 - complianceType: musthave
