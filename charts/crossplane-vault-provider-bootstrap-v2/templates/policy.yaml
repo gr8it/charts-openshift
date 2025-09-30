@@ -190,7 +190,7 @@ spec:
                   forProvider:
                     backend: '{{"{{"}}hub "{{ .Values.vaultKubeAuthMountPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}'
                     disableLocalCaJwt: true
-                    kubernetesHost: '{{`{{ fromClusterClaim "apiserverurl.openshift.io" }}`}}'
+                    kubernetesHost: '{{`{{ regexReplaceAll "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" (fromClusterClaim "apiserverurl.openshift.io") (regexReplaceAll ".*apps\.(.*)" (fromClusterClaim "consoleurl.cluster.open-cluster-management.io") "api.${1}") }}`}}'
                     kubernetesCaCert: |
                       {{- include "apc-global-overrides.caCertificatesBundle" . | nindent 22 }}
                   providerConfigRef:
