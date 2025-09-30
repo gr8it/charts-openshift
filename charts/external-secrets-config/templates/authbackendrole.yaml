@@ -13,7 +13,7 @@ spec:
     roleName: {{ .Values.vaultKubeAuthRole }}
     tokenPolicies:
       - default
-      - {{ include "apc-global-overrides.clusterName" . }}--{{ .Values.vaultKubeAuthRole }}
+      - {{ include "external-secrets-config.policyName" . }}
     tokenTtl: 3600
   providerConfigRef:
     name: {{ include "external-secrets-config.vaultKubeVaultProviderConfigName" . }}

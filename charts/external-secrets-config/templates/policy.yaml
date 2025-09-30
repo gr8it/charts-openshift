@@ -1,21 +1,21 @@
 apiVersion: vault.vault.upbound.io/v1alpha1
 kind: Policy
 metadata:
-  name: {{ include "apc-global-overrides.clusterName" . }}--{{ .Values.vaultKubeAuthRole }}
+  name: {{ include "external-secrets-config.policyName" . }}
 spec:
   forProvider:
-    name: {{ include "apc-global-overrides.clusterName" . }}--{{ .Values.vaultKubeAuthRole }}
+    name: {{ include "external-secrets-config.policyName" . }}
     ## https://github.com/cert-manager/cert-manager/issues/6150
     # delete omited by design not to allow deletion of secrets => allow creation, updates, and reads
     policy: |
 
-      path "{{ .Values.vaultKVmount }}/{{ include "apc-global-overrides.environmentShort" . }}/{{ .Values.vaultKVsubPath }}/*" {
+      path "{{ .Values.vaultKVmount }}/{{ include "apc-global-overrides.environmentShort" . }}/*" {
         capabilities = ["create", "read", "update", "patch", "list"]
       }
-      path "{{ .Values.vaultKVmount }}/data/{{ include "apc-global-overrides.environmentShort" . }}/{{ .Values.vaultKVsubPath }}/*" {
+      path "{{ .Values.vaultKVmount }}/data/{{ include "apc-global-overrides.environmentShort" . }}/*" {
         capabilities = ["create", "read", "update", "patch", "list"]
       }
-      path "{{ .Values.vaultKVmount }}/metadata/{{ include "apc-global-overrides.environmentShort" . }}/{{ .Values.vaultKVsubPath }}/*" {
+      path "{{ .Values.vaultKVmount }}/metadata/{{ include "apc-global-overrides.environmentShort" . }}/*" {
         capabilities = ["create", "read", "update", "patch", "list"]
       }
 

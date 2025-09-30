@@ -14,7 +14,7 @@ manifests should match snapshot:
         roleName: external-secrets-operator
         tokenPolicies:
           - default
-          - dev01--external-secrets-operator
+          - apc-platform-d-external-secrets-operator
         tokenTtl: 3600
       providerConfigRef:
         name: vault-example
@@ -46,6 +46,8 @@ manifests should match snapshot:
         - namespaceSelector:
             matchLabels:
               apc.namespace.type: platform
+        - namespaceRegexes:
+            - openshift-.*
       provider:
         vault:
           auth:
@@ -57,25 +59,25 @@ manifests should match snapshot:
             name: kube-root-ca.crt
             namespace: apc-external-secrets-operator
             type: ConfigMap
-          path: apc
+          path: apc-platform
           server: https://vault.example.com
           version: v2
   4: |
     apiVersion: vault.vault.upbound.io/v1alpha1
     kind: Policy
     metadata:
-      name: dev01--external-secrets-operator
+      name: apc-platform-d-external-secrets-operator
     spec:
       forProvider:
-        name: dev01--external-secrets-operator
+        name: apc-platform-d-external-secrets-operator
         policy: |2
-          path "apc//platform/*" {
+          path "apc-platform/d/*" {
             capabilities = ["create", "read", "update", "patch", "list"]
           }
-          path "apc/data//platform/*" {
+          path "apc-platform/data/d/*" {
             capabilities = ["create", "read", "update", "patch", "list"]
           }
-          path "apc/metadata//platform/*" {
+          path "apc-platform/metadata/d/*" {
             capabilities = ["create", "read", "update", "patch", "list"]
           }
       providerConfigRef:

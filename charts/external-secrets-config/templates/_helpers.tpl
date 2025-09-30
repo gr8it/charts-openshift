@@ -96,3 +96,10 @@ Create the eso default cluster secret store
 {{- define "external-secrets-config.ESODefaultClusterSecretStore" -}}
 {{- (((include "apc-global-overrides.services" .) | fromYaml).externalSecretsOperator).defaultClusterSecretStore | required "Vault ESODefaultClusterSecretStore is required" }}
 {{- end }}
+
+{{/*
+Create the policy name
+*/}}
+{{- define "external-secrets-config.policyName" -}}
+{{ .Values.vaultKVmount }}-{{ include "apc-global-overrides.require-environmentShort" . }}-{{ .Values.vaultKubeAuthRole }}
+{{- end }}
