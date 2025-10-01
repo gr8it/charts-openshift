@@ -4,9 +4,12 @@ remediationAction: enforce # inform, enforce
 severity: medium # low, medium, high
 upgradeApproval: None # Automatic, None - specify Automatic only in conjuncation with versions, i.e. to automatically upgrade only to the specified versions = managed upgrades!
 
+# Use forceReleaseNamespace to install operator to a dedicated (non-default) namespace
+# The focred namespace is taken from .Release.Name (as in helm install --namespace <custom-namespace> ...)
 # when forceReleaseNamespace is true:
 # - set operatorGroup.namespace and/or subscription.namespace to the value of .Release.Namespace
 # - only works when operatorGroup.namespace and/or subscription.namespace are null
+# - will break if there are other existing operators in the .Release.Namespace
 # when forceReleaseNamespace is false:
 # - use explicit values set in operatorGroup.namespace and/or subscription.namespace
 # - uses operator defaults when operatorGroup.namespace and/or subscription.namespace are null
