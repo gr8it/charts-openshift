@@ -62,13 +62,19 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
+Create the environment
+*/}}
+{{- define "ingress-configuration.environment" -}}
+{{- .Values.environment | default .Values.global.apc.environment }}
+{{- end }}
+
+{{/*
 Create logging overrides
 Usage: {{ include "ingress-configuration.loggingRequestMaxlengthEffective" . | fromYaml }}
 */}}
 {{- define "ingress-configuration.loggingRequestMaxlengthEffective" -}}
-{{- $env := default .Values.global.apc.environment .Values.environment }}
-{{- if hasKey .Values.loggingRequestMaxlengthOverride $env }}
-{{- toYaml (get .Values.loggingRequestMaxlengthOverride $env) }}
+{{- if hasKey .Values.loggingRequestMaxlengthOverride (include "ingress-configuration.environment" . ) }}
+{{- toYaml (get .Values.loggingRequestMaxlengthOverride (include "ingress-configuration.environment" . )) }}
 {{- else }}
 {{- toYaml .Values.defaultLoggingRequestMaxlength }}
 {{- end }}
@@ -79,9 +85,8 @@ Create replicas overrides
 Usage: {{ include "ingress-configuration.replicasEffective" . }}
 */}}
 {{- define "ingress-configuration.replicasEffective" -}}
-{{- $env := default .Values.global.apc.environment .Values.environment }}
-{{- if hasKey .Values.replicasOverride $env }}
-{{- get .Values.replicasOverride $env }}
+{{- if hasKey .Values.replicasOverride (include "ingress-configuration.environment" . ) }}
+{{- get .Values.replicasOverride (include "ingress-configuration.environment" . ) }}
 {{- else }}
 {{- .Values.defaultReplicas }}
 {{- end }}
