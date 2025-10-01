@@ -1,40 +1,5 @@
 {{- $roles := (include "kyverno-app-project.vaultRolesOverride" . | fromYaml) }}
 {{- $capabilities := (include "kyverno-app-project.vaultCapabilitiesOverride" . | fromYaml) }}
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  labels:
-    {{- include "kyverno-app-project.labels" . | nindent 4 }}
-    rbac.kyverno.io/aggregate-to-background-controller: "true"
-  name: kyverno:background-controller:project-vault-groups
-rules:
-- apiGroups: ["vault.vault.upbound.io"]
-  resources: ["policies"]
-  verbs: ["get","create"]
-- apiGroups: ["ldap.vault.upbound.io"]
-  resources: ["authbackendgroups"]
-  verbs: ["get","create"]
-
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  labels:
-    {{- include "kyverno-app-project.labels" . | nindent 4 }}
-    rbac.kyverno.io/aggregate-to-cleanup-controller: "true"
-  name: kyverno:cleanup-controller:project-vault-groups
-rules:
-- apiGroups: [""]
-  resources: ["namespaces"]
-  verbs: ["list", "get"]
-- apiGroups: ["vault.vault.upbound.io"]
-  resources: ["policies"]
-  verbs: ["delete", "list"]
-- apiGroups: ["ldap.vault.upbound.io"]
-  resources: ["authbackendgroups"]
-  verbs: ["delete", "list"]
-
----
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
@@ -68,11 +33,11 @@ spec:
     # GLOBAL: VAULT PROVIDER CONFIG NAME
     - name: vaultProviderConfigRef 
       variable:
-        value: {{ .Values.vaultGroupDefaults.providerConfigRef }}
+        value: {{ include "kyverno-app-project.vaultKubeVaultProviderConfigName" . }}
     # GLOBAL: VAULT LDAP AUTH BACKEND NAME
     - name: vaultAuthBackendName
       variable:
-        value: {{ .Values.vaultGroupDefaults.authBackendName }}
+        value: {{ include "kyverno-app-project.vaultKubeAuthMountPath" . }}
     # GLOBAL: OCP CLUSTER NAME (derived from openshift-console route host)
     - name: clusterName
       apiCall:
@@ -205,38 +170,3 @@ spec:
               policies: ["{{ `{{ vaultRolePrefix }}-{{ vaultRoleShort }}` }}"]
             providerConfigRef:
               name: "{{ `{{ vaultProviderConfigRef }}` }}"
-
----
-apiVersion: kyverno.io/v2
-kind: ClusterCleanupPolicy
-metadata:
-  name: app-project-vault-groups-cleanup
-  annotations:
-    policies.kyverno.io/title: Cleanup vault project groups and policies
-    policies.kyverno.io/category: Secrets
-    policies.kyverno.io/subject: project
-    policies.kyverno.io/minversion: 1.13.0
-  labels:
-    {{- include "kyverno-app-project.labels" . | nindent 4 }}
-spec:
-  schedule: "0 */3 * * *"
-  match:
-    all:
-    - resources:
-        kinds:
-        - "vault.vault.upbound.io/*/Policy"
-        - "ldap.vault.upbound.io/*/AuthBackendGroup"
-        selector:
-          matchLabels:
-            generate.kyverno.io/policy-name: app-project-vault-groups
-  context:
-  - name: appNamespaces
-    apiCall:
-      urlPath: "/api/v1/namespaces"
-      jmesPath: "items[?metadata.labels.\"apc.namespace.type\" == 'application'].metadata.name"
-      default: ["{{ `{{ target.metadata.name | split(@, '-') | [2:-1] | join('-',@) }}` }}"]
-  conditions:
-    all:
-    - key: "{{ `{{ target.metadata.name | split(@, '-') | [2:-1] | join('-',@) }}` }}"
-      operator: AllNotIn
-      value: "{{ `{{ appNamespaces }}` }}"
