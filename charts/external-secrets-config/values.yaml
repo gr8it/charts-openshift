@@ -1,0 +1,38 @@
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+## uses following global values => do not set here
+# global:
+#   apc:
+#     environmentShort:
+#     cluster:
+#       name:
+#     services:
+#       vault:
+#         url: ""
+#         kubeVaultProviderConfigName:
+#         kubeAuthMountPath:
+#     externalSecretsStore:
+#       defaultClusterSecretStore:
+## and their local overrides
+# environmentShort:
+# cluster:
+#   name:
+# services:
+#   vault:
+#     url:
+#     kubeVaultProviderConfigName:
+#     kubeAuthMountPath:
+#   externalSecretsStore:
+#     defaultClusterSecretStore:
+
+# secrets are managed in paths:
+# - mount / environment / subPath
+# secrets are managed in a concatenated path of mount / clusterName / envSubPath
+vaultKVmount: apc-platform
+
+vaultKubeAuthRole: external-secrets-operator # role name to assume during kubernetes auth
+kubeServiceAccount: external-secrets-operator # service account used for kubernetes authentication
+
+esoNamespace: apc-external-secrets-operator

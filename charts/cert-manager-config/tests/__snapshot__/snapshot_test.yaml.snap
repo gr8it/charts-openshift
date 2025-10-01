@@ -18,22 +18,8 @@ manifests should match snapshot:
           - test01--cert-manager
         tokenTtl: 3600
       providerConfigRef:
-        name: vault.apps.demo.lab.gr8it.cloud
+        name: vault-demo
   2: |
-    apiVersion: cert-manager.io/v1
-    kind: Certificate
-    metadata:
-      name: wildcard-apps-test01-cert
-      namespace: openshift-ingress
-    spec:
-      commonName: apps.demo.lab.gr8it.cloud
-      dnsNames:
-        - asterisk.apps.demo.lab.gr8it.cloud
-      issuerRef:
-        kind: ClusterIssuer
-        name: vault-hub-issuer
-      secretName: wildcard-apps-test01-cert
-  3: |
     apiVersion: cert-manager.io/v1
     kind: ClusterIssuer
     metadata:
@@ -41,7 +27,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cert-manager-config
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cert-manager-config
-        helm.sh/chart: cert-manager-config-1.2.0
+        helm.sh/chart: cert-manager-config-1.4.0
       name: vault-hub-issuer
     spec:
       vault:
@@ -56,7 +42,7 @@ manifests should match snapshot:
         caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURWVENDQWoyZ0F3SUJBZ0lVZVJZQ0g1NmgydmdjZ2NRVGxMVklaVyszdDk4d0RRWUpLb1pJaHZjTkFRRUwKQlFBd01qRUxNQWtHQTFVRUJoTUNVMHN4RGpBTUJnTlZCQW9UQldkeU9HbDBNUk13RVFZRFZRUURFd3BuY2pocApkQzF5YjI5ME1CNFhEVEl6TVRBd05qRXpNREEwTjFvWERUTXpNVEF3TXpFek1ERXhObG93TWpFTE1Ba0dBMVVFCkJoTUNVMHN4RGpBTUJnTlZCQW9UQldkeU9HbDBNUk13RVFZRFZRUURFd3BuY2pocGRDMXliMjkwTUlJQklqQU4KQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBMjN6NFNXN3g4ang5R3J3Q3MrMlR1aHQ1VXJIQgpRWVBWQithOGtua2ZYNWVIRnNEMXJYZFloUjVuM21XbGpvdTJ4dHVYWlJJTkh2M0N4eEx5U2RNTUs5THRMOGkvCm1scVBNMWdYeUg4ZVc0UU0yM3N1bFA2a1hnVG5oSVVlWkpJWDZmelZvRUN0N2oyVzV4TjZncVdCWEdRMFptNzQKL2RDdUJuVkxLSzQzdERjN2JRdzRTeWlhTjRTL0RnWHJOeldzSFNsUFpYSFZweVpoRFBMQkFGRnd0MEZEZ1hMWApXYlFSZU5CWDQ0YlNiRWxpSjRDdVRreGpsSGhoRGJNQ1Z4YVcyODMrdU5aVjIzOVlkbE1jQzZTRUpjeThjaG5ZCnB1RnNQem5Scm8wTVdiZ0EzdmpOYTdnNzF6dWoxN3BKbVlZRzliTXhQMno2Q0ZRTVFKWHNnQ0dUSFFJREFRQUIKbzJNd1lUQU9CZ05WSFE4QkFmOEVCQU1DQVFZd0R3WURWUjBUQVFIL0JBVXdBd0VCL3pBZEJnTlZIUTRFRmdRVQp6a2VvVy9jOXFwbjVYNjFZd3hBbUc2MmljSzh3SHdZRFZSMGpCQmd3Rm9BVXprZW9XL2M5cXBuNVg2MVl3eEFtCkc2MmljSzh3RFFZSktvWklodmNOQVFFTEJRQURnZ0VCQUV2Z0JZa2JHNFRLZWw5eGZ0OEhYaGFMMWRPRGVkcE8KR1BPRVY5YWdtdWtjeUN5cm5DY2ZIWWhkV3cvZ1cyVGgvSVNRMmovN0EzWnRBNmVDQWJ6ek4xcTR1a2R2dHpTMwpmSERud29HMVRVL1ZHdUhueWZ4MVVXVGFqMHNCWnVhZWZ4Q0N1UlRkc1cvL1pUajBpbklrc1EyclZ2cXk2UEQvClp3c0xTZnlYVkZuVGJVemtPdUJYSzR5NXpXanZVNkJrZ0ppSytVZjNaSkoxa0dsb015RmJjRG56RDBaTzdRWVQKNFFQWlhhMDUzV0ZmVHZEcEFPUzRoczg3dHIyVHpjclowZmdTT0x2M084Y0R0V0JJb1krcWZNWS9HTzArRDdHMgpqU2ZaUUV3ZFlMTFE2bHNsTk45WnJnM0UzTU9wUGRKTUdjTnBBL0xSQ2EyWGJiRHVHNmpSUEgwPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCi0tLS0tQkVHSU4gQ0VSVElGSUNBVEUtLS0tLQpNSUlGZURDQ0EyQ2dBd0lCQWdJUU93ZGdGR0dsWXJwRU0yRFkxR05tZXpBTkJna3Foa2lHOXcwQkFRc0ZBREJECk1SSXdFQVlLQ1pJbWlaUHlMR1FCR1JZQ2Myc3hHREFXQmdvSmtpYUprL0lzWkFFWkZnaHpiMk53YjJsemRERVQKTUJFR0ExVUVBeE1LVW05dmRFTkJMVk53TWpBZ0Z3MHhOakF5TURJd09UVXhOVE5hR0E4eU1EVTJNREl3TWpFdwpNREUwTmxvd1F6RVNNQkFHQ2dtU0pvbVQ4aXhrQVJrV0FuTnJNUmd3RmdZS0NaSW1pWlB5TEdRQkdSWUljMjlqCmNHOXBjM1F4RXpBUkJnTlZCQU1UQ2xKdmIzUkRRUzFUY0RJd2dnSWlNQTBHQ1NxR1NJYjNEUUVCQVFVQUE0SUMKRHdBd2dnSUtBb0lDQVFDZmlYVFljMTI4TWx0VGV2RzgxVFJPQkxrMG5sZUlDdnZ6MlNLaFA0VW0ydkdtSE1reQorN0RuN2N2U2Y5RzZ5WTNYOG11MmdXMDE4dXNMck1qR2J6Z0pWQlpyMkMvMlpIU2VvZjVGbVN1WjNHVVcyRFZOCm50NFVIeWRuRjhnbE4yeW8zT0R5b2YxLytISm41akY3Q0p2REpRdlBJNVh2QjNzV0RkSUc2eVdKTFIzcXNFdjAKNHJ2akRGV1lXVk9PWWIvdzg2UHJsQjFqZXcrQkxpaTdPMnhsZkFBdE5iUEVGa0NFQkhsV20zTHN5OWl4SXBhRwo1Sk5OdDdhdWlYTEt4T3ZyZUczVFVJWXgrYVZYNGxFVnhRUS93YWhCRUgwZDBlZHpndGtsZ2hXY2tGaStuc1NTCkh5TVpwVisvY0NkbG1SbFJYUDFNcE4vU2ltTjlBUDBvNytjUGh6cFdzN3NPTzJBRG01dHBMb2gxdk05ZTREbVkKY094UTJwL0cwSjNGNzBubFNjcEh3UmxmanRyMWlhUzZrcnRNRkdiYWd3WXJXbWl2TmlTMTRMdmdZQS9ZZVl6bApqY05HRDZ5S2FMWFNJMk83ODZMbnl0QmVCSHBLMjJGMU9jNCtYQmE0NGhXZEVaanZLQ3NoU0ptNDNtSkNPUElQCjRuVWFaUGhvZmxCWWtwK3FBakV1R0Q3aWtpakoyTlgzaUtaU1VlMVNnd1VJOWFzSW9hcklyN0FzTy9BUVVKaUoKTGtSc2l3SUxRM3dCYTBOdm5obFpVMG1jSFZtSU16K1NJaWxUTHgyZGhleXpyalJ2dTk2YmlaL3k3M1UxNzFhYwo1VkJjU2tQQ2tvT1pUdWFHUEk2UnRvWHRJeXBTZC91aGxTL3JZa2NSV2JLeG1sby9sajE2dXo3cndRSURBUUFCCm8yWXdaREFUQmdrckJnRUVBWUkzRkFJRUJoNEVBRU1BUVRBTEJnTlZIUThFQkFNQ0FZWXdEd1lEVlIwVEFRSC8KQkFVd0F3RUIvekFkQmdOVkhRNEVGZ1FVVXREdDVRY013UGdOYjNjYTljUE1WdVBEb040d0VBWUpLd1lCQkFHQwpOeFVCQkFNQ0FRQXdEUVlKS29aSWh2Y05BUUVMQlFBRGdnSUJBQXhTTHU5aTU2NHpnb2ZTYXlWTnZtOFBlUkJ4Cm8rd0dnSlRRWG1paG9xb3dOMHgrbmllb3ExekJVUkdiWXM2eVl0cks5cHAyeDlnT283NmE1SGdUL1dqMDJhUjEKZTJVTVBWTVNrMExFcm1jVkdtemlNRmZueHRrY3dSUlZGcDlZVXlzVTJKVk9JajFxTllnckJwaDdiR0szQVp3dgpLR3hOTlRXU21yV055QWJ4NkxHUkkzOUpNbHowMTJuUks3WE9Td213ME1oODluelVSSUFNZnBPTEIwdG9iWk1ECmw4L0ozN1pBdGVJRGxRMzdFZEkwak5IMHlDYVIxQWtTbHVnVklBV2U3ZWQ3SjBQUXhSTnFPc0JxWlp0MGxsdHIKTHlYWjhvbHljdWtLRVVPOEhObUNxSXR0dzNXcHBpNC93WGZTUDl5VGRwKzM2b3lWbWZMVnNyUFM2M2tEaWpHTApxSHR5SlptWkFJczY3RmN3ekFxZStlWTBDQWlheDdyL05KTGVZcjE3bVI5Ni9GZU43UjUvbjBaTCtpY21FdEVwCjdKaUF6Vy9wQVoxUnNUYUR1UHNSVlJ5V2VoQUZPWS9mS0ptb1VrTE9SUWdSaC9qN0RzV0d1QXB1TEIrQ3RCZ2EKQzFSdmpTVmdWNGIzd001S0xKeWM4YWt0aEtVb016Y01NdmZ6dElqcDRpWkFrREtTZlFjRk1MOUxQWmlqb2JlOQpFR2syZlNWMVJjRExncWl3K0YwdkszMlc4RDduY3hOaE5IZWtjdVNqeHFSeG9NVzZGVStNSjBaUUVhTGhIQUxkCmVCaFYvTk81RmMzajdYMFNvc2phN3JKQnB2b04wN2I3VzR2OE54bWk2ODVudy9RaDNuVldWVTNNTlRlQmRCMUMKSWRpQVBDQVlvcTRtaFJOZQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
         path: pki-int-gr8it.cloud/sign/lab.gr8it.cloud
         server: https://vault.apps.demo.lab.gr8it.cloud
-  4: |
+  3: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
@@ -64,7 +50,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cert-manager-config
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cert-manager-config
-        helm.sh/chart: cert-manager-config-1.2.0
+        helm.sh/chart: cert-manager-config-1.4.0
       name: cert-manager-config-auth-delegator
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -74,7 +60,7 @@ manifests should match snapshot:
       - kind: ServiceAccount
         name: cert-manager
         namespace: cert-manager
-  5: |
+  4: |
     apiVersion: vault.vault.upbound.io/v1alpha1
     kind: Policy
     metadata:
@@ -91,12 +77,12 @@ manifests should match snapshot:
             capabilities = ["create", "update"]
           }
       providerConfigRef:
-        name: vault.apps.demo.lab.gr8it.cloud
-  6: |
+        name: vault-demo
+  5: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: Role
     metadata:
-      name: cert-manager-config-token-creator
+      name: cert-manager-config-token-create
       namespace: cert-manager
     rules:
       - apiGroups:
@@ -107,7 +93,7 @@ manifests should match snapshot:
           - serviceaccounts/token
         verbs:
           - create
-  7: |
+  6: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
