@@ -37,7 +37,7 @@ spec:
     # GLOBAL: VAULT LDAP AUTH BACKEND NAME
     - name: vaultAuthBackendName
       variable:
-        value: {{ include "kyverno-app-project.vaultKubeAuthMountPath" . }}
+        value: {{ .Values.vaultGroupDefaults.authBackendName }}
     # GLOBAL: OCP CLUSTER NAME (derived from openshift-console route host)
     - name: clusterName
       apiCall:

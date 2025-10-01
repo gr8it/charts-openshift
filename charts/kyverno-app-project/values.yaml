@@ -9,7 +9,6 @@ releaseServiceOverride: ArgoCD
 #     services:
 #       vault:
 #         kubeVaultProviderConfigName: ""
-#         kubeAuthMountPath: ""
 ## and their local overrides
 # environment:
 # proxy:
@@ -17,7 +16,6 @@ releaseServiceOverride: ArgoCD
 # services:
 #   vault:
 #     kubeVaultProviderConfigName: ""
-#     kubeAuthMountPath: ""
 
 defaultResourceQuota:
   cronjobsBatch: 20
@@ -119,6 +117,7 @@ defaultLimitRange:
   skipBackgroundRequests: true
 
 vaultGroupDefaults:
+  authBackendName: ad
   skipBackgroundRequests: true
 
 defaultVaultRoles:

@@ -79,10 +79,3 @@ Create the vault provider config name
 {{- define "kyverno-app-project.vaultKubeVaultProviderConfigName" -}}
 {{- (((include "apc-global-overrides.services" .) | fromYaml).vault).kubeVaultProviderConfigName | required "Vault kubeVaultProviderConfigName is required" }}
 {{- end }}
-
-{{/*
-Create the mount path
-*/}}
-{{- define "kyverno-app-project.vaultKubeAuthMountPath" -}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).vault).kubeAuthMountPath | required "Vault kubeAuthMountPath is required" }}
-{{- end }}
