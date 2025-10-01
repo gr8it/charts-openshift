@@ -84,7 +84,7 @@ package:
 		chart_version=$$(grep '^version:' $${folder}/Chart.yaml | awk '{print $$2}'); \
 		chart_name_version=$${chart_name}-$${chart_version}; \
 		echo -n "$${chart_name_version}: "; \
-		whitespaces=$$(echo "$${chart_name_version}: " | sed "s/./ /g")
+		whitespaces=$$(echo "$${chart_name_version}: " | sed "s/./ /g"); \
 		if [ -f $(OUTPUT_DIR)/$${chart_name}-$${chart_version}.tgz ]; then \
 			echo -e "\033[0;33mskipped\033[0m - Chart package already exists"; \
 		else \
@@ -112,8 +112,8 @@ package:
 					read -r confirmation; \
 					if [ "$$confirmation" != "y" ] && [ "$$confirmation" != "Y" ]; then \
 							exit 1; \
-					else
-						helm unittest -u $$folder
+					else \
+						helm unittest -u $$folder; \
 						if ! out=$$(helm unittest --strict $$folder); then \
 							echo -e "\033[0;31mSTILL FAILING\033[0m "; \
 							exit 1; \
