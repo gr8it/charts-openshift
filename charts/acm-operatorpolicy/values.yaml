@@ -4,6 +4,14 @@ remediationAction: enforce # inform, enforce
 severity: medium # low, medium, high
 upgradeApproval: None # Automatic, None - specify Automatic only in conjuncation with versions, i.e. to automatically upgrade only to the specified versions = managed upgrades!
 
+# when forceReleaseNamespace is true:
+# - set operatorGroup.namespace and/or subscription.namespace to the value of .Release.Namespace
+# - only works when operatorGroup.namespace and/or subscription.namespace are null
+# when forceReleaseNamespace is false:
+# - use explicit values set in operatorGroup.namespace and/or subscription.namespace
+# - uses operator defaults when operatorGroup.namespace and/or subscription.namespace are null
+forceReleaseNamespace: false
+
 operatorGroup:
   name: ~
   namespace: ~

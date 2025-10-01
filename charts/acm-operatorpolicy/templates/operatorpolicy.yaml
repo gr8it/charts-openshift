@@ -14,8 +14,18 @@ spec:
   operatorGroup:
     name:  {{ .Values.operatorGroup.name }}
     namespace: {{ .Values.operatorGroup.namespace }}
+    {{- if .Values.operatorGroup.targetNamespaces | default false }}
     targetNamespaces:
       {{- toYaml .Values.operatorGroup.targetNamespaces | nindent 6 }}
+    {{- end }}
+  {{- else if .Values.forceReleaseNamespace | default false }}
+  operatorGroup:
+    name:  {{ .Release.Name | trunc 63 | trimSuffix "-" }}
+    namespace: {{ .Release.Namespace }}
+    {{- if .Values.operatorGroup.targetNamespaces | default false }}
+    targetNamespaces:
+      {{- toYaml .Values.operatorGroup.targetNamespaces | nindent 6 }}
+    {{- end }}
   {{- end }}
   subscription:
     {{- if .Values.subscription.channel }}
@@ -24,6 +34,8 @@ spec:
     name: {{ .Values.subscription.name }}
     {{- if .Values.subscription.namespace }}
     namespace: {{ .Values.subscription.namespace }}
+    {{- else if .Values.forceReleaseNamespace | default false }}
+    namespace: {{ .Release.Namespace }}
     {{- end }}
     {{- if .Values.subscription.source }}
     source: {{ .Values.subscription.source }}
