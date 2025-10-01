@@ -60,36 +60,3 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
-
-{{/*
-Helper function to work around helm limitation while using the default function, where false and null / nil are handled the same.
-This function:
-- returns value (1st argument) if the value is a boolean or string "true" or "false"
-- if not, it returns global value (2nd argument) if it is a boolean or string "true" or "false"
-- otherwise it returns the fallback value = default (3rd argument)
-*/}}
-
-{{- define "default-network-policies.boolDefaults" -}}
-{{- $value := index . 0 -}}
-{{- $global := index . 1 -}}
-{{- $default := index . 2 -}}
-{{- if or (kindIs "bool" $value) (and (kindIs "string" $value) (or (eq $value "true") (eq $value "false"))) -}}
-  {{- $value -}}
-{{- else if or (kindIs "bool" $global) (and (kindIs "string" $global) (or (eq $global "true") (eq $global "false"))) -}}
-  {{ $global }}
-{{- else -}}
-  {{- $default -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Creates proxyIPs list. If not specified, uses global value
-*/}}
-{{- define "default-network-policies.proxyIPs" -}}
-{{- $proxyIPs := .Values.proxyIPs | default .Values.global.apc.proxyIPs -}}
-{{- if $proxyIPs -}}
-{{ $proxyIPs | toJson }}
-{{- else -}}
-{{ list }}
-{{- end -}}
-{{- end -}}

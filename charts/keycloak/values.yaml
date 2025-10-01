@@ -1,32 +1,28 @@
-global: # to be overridden by helmfile global meta environment
-  apc:
-    cluster:
-      name: ~
-      appsDomain: ~
-    caCertificates: ~
-    environmentShort: ~
-    services:
-      certManager:
-        defaultClusterIssuer: ~
-  
-  releaseServiceOverride: ~
+## uses following global values => do not set here
 
-
-services:
-  certManager:
-    defaultClusterIssuer: ~
-
-cluster:
-  appsDomain: ~
-  name: ~
-# contains list dictionary of strings containing PEM encoded certificates, see values.example
-caCertificates: {}
-environmentShort: ~
+# global: # to be overridden by helmfile global meta environment
+#   apc:
+#     cluster:
+#       name: ~
+#       appsDomain: ~
+#     caCertificates: ~
+#     environmentShort: ~
+#     services:
+#       certManager:
+#         defaultClusterIssuer: ~
+#   releaseServiceOverride: ~
+## and their local overrides
+# cluster:
+#   name: ~
+#   appsDomain: ~
+# caCertificates: {}
+# environmentShort: ~
+# services:
+#   certManager:
+#     defaultClusterIssuer: ~
 
 releaseServiceOverride: ~
 
-
-  
 nameOverride: ""
 fullnameOverride: ""
 

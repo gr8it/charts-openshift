@@ -60,27 +60,3 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
-
-{{- define "crossplane-helm.repoUrl" -}}
-{{- .Values.repo.url | default .Values.global.apc.repoURL }}
-{{- end }}
-
-{{- define "crossplane-helm.targetRevision" -}}
-{{- .Values.repo.targetRevision | default .Values.global.apc.repoTargetRevision | default "main" }}
-{{- end }}
-
-{{- define "crossplane-helm.repoShort" -}}
-{{- mustRegexReplaceAll "^https://github.com/([^/]+)/([^/.]+)(.git|/)?$" (include "crossplane-helm.repoUrl" .) "${1}-${2}" }}
-{{- end }}
-
-{{/*
-Creates proxyIPs list. If not specified, uses global value
-*/}}
-{{- define "crossplane-helm.proxyIPs" -}}
-{{- $proxyIPs := .Values.proxyIPs | default .Values.global.apc.proxyIPs -}}
-{{- if $proxyIPs -}}
-{{- $proxyIPs | toJson -}}
-{{- else -}}
-{{ list }}
-{{- end -}}
-{{- end -}}

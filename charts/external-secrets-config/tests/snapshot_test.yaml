@@ -1,0 +1,12 @@
+suite: Snapshot test
+templates:
+  - templates/*
+values:
+  - ../values.lint.yaml
+release:
+  name: external-secrets-config
+
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}

@@ -1,0 +1,84 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: kubernetes.vault.upbound.io/v1alpha1
+    kind: AuthBackendRole
+    metadata:
+      name: dev01-external-secrets-operator
+    spec:
+      forProvider:
+        backend: dev01
+        boundServiceAccountNames:
+          - external-secrets-operator
+        boundServiceAccountNamespaces:
+          - apc-external-secrets-operator
+        roleName: external-secrets-operator
+        tokenPolicies:
+          - default
+          - apc-platform-d-external-secrets-operator
+        tokenTtl: 3600
+      providerConfigRef:
+        name: vault-example
+  2: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: external-secrets-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: external-secrets-config
+        helm.sh/chart: external-secrets-config-1.0.0
+      name: external-secrets-config-auth-delegator
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: system:auth-delegator
+    subjects:
+      - kind: ServiceAccount
+        name: external-secrets-operator
+        namespace: apc-external-secrets-operator
+  3: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ClusterSecretStore
+    metadata:
+      name: vault-example
+    spec:
+      conditions:
+        - namespaceSelector:
+            matchLabels:
+              apc.namespace.type: platform
+        - namespaceRegexes:
+            - openshift-.*
+      provider:
+        vault:
+          auth:
+            kubernetes:
+              mountPath: dev01
+              role: external-secrets-operator
+          caProvider:
+            key: ca.crt
+            name: kube-root-ca.crt
+            namespace: apc-external-secrets-operator
+            type: ConfigMap
+          path: apc-platform
+          server: https://vault.example.com
+          version: v2
+  4: |
+    apiVersion: vault.vault.upbound.io/v1alpha1
+    kind: Policy
+    metadata:
+      name: apc-platform-d-external-secrets-operator
+    spec:
+      forProvider:
+        name: apc-platform-d-external-secrets-operator
+        policy: |2
+          path "apc-platform/d/*" {
+            capabilities = ["create", "read", "update", "patch", "list"]
+          }
+          path "apc-platform/data/d/*" {
+            capabilities = ["create", "read", "update", "patch", "list"]
+          }
+          path "apc-platform/metadata/d/*" {
+            capabilities = ["create", "read", "update", "patch", "list"]
+          }
+      providerConfigRef:
+        name: vault-example

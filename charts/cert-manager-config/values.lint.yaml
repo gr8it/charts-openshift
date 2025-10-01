@@ -1,2 +1,10 @@
-clusterName: ocpdemo
-vaultUrl: https://vault.lab.gr8it.cloud 
+cluster:
+  name: ocpdemo
+  appsDomain: apps.demo.lab.gr8it.cloud
+services:
+  vault:
+    url: https://vault.lab.gr8it.cloud 
+    kubeVaultProviderConfigName: vault-lab
+    kubeAuthMountPath: kubernetes
+  certManager:
+    defaultClusterIssuer: vault-hub-issuer

@@ -1,0 +1,273 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: policy.open-cluster-management.io/v1
+    kind: PlacementBinding
+    metadata:
+      name: crossplane-vault-provider-bootstrap
+      namespace: apc-crossplane-system
+    placementRef:
+      apiGroup: cluster.open-cluster-management.io
+      kind: Placement
+      name: crossplane-vault-provider-bootstrap
+    subjects:
+      - apiGroup: policy.open-cluster-management.io
+        kind: Policy
+        name: crossplane-vault-provider-bootstrap
+  2: |
+    apiVersion: cluster.open-cluster-management.io/v1beta1
+    kind: Placement
+    metadata:
+      name: crossplane-vault-provider-bootstrap
+      namespace: apc-crossplane-system
+    spec:
+      clusterSets:
+        - global
+  3: |
+    apiVersion: policy.open-cluster-management.io/v1
+    kind: Policy
+    metadata:
+      annotations:
+        policy.open-cluster-management.io/description: A policy to bootstrap Crossplane Vault integration, i.e. Crossplane management of Vault for further setup
+      labels:
+        app.kubernetes.io/instance: crossplane-vault-provider-bootstrap
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: crossplane-vault-provider-bootstrap
+        helm.sh/chart: crossplane-vault-provider-bootstrap-1.4.1
+      name: crossplane-vault-provider-bootstrap
+      namespace: apc-crossplane-system
+    spec:
+      disabled: false
+      policy-templates:
+        - objectDefinition:
+            apiVersion: policy.open-cluster-management.io/v1
+            kind: ConfigurationPolicy
+            metadata:
+              name: crossplane-vault-provider-bootstrap-kubernetes-auth-provisioned-check
+            spec:
+              customMessage:
+                noncompliant: Waiting for the custom resources from crossplane-vault-provider-bootstrap-kubernetes-auth-setup ConfigurationPolicy to be synced and ready in Vault
+              object-templates:
+                - complianceType: musthave
+                  objectDefinition:
+                    apiVersion: auth.vault.upbound.io/v1alpha1
+                    kind: Backend
+                    metadata:
+                      name: '{{hub .ManagedClusterName | replace "local-cluster" "dev01" hub}}'
+                    status:
+                      conditions:
+                        - status: "True"
+                          type: Synced
+                        - status: "True"
+                          type: Ready
+                  recordDiff: Log
+                - complianceType: musthave
+                  objectDefinition:
+                    apiVersion: kubernetes.vault.upbound.io/v1alpha1
+                    kind: AuthBackendConfig
+                    metadata:
+                      name: '{{hub .ManagedClusterName | replace "local-cluster" "dev01" hub}}'
+                    status:
+                      conditions:
+                        - status: "True"
+                          type: Synced
+                        - status: "True"
+                          type: Ready
+                  recordDiff: Log
+                - complianceType: musthave
+                  objectDefinition:
+                    apiVersion: vault.vault.upbound.io/v1alpha1
+                    kind: Policy
+                    metadata:
+                      name: '{{hub .ManagedClusterName | replace "local-cluster" "dev01" hub}}--crossplane'
+                    status:
+                      conditions:
+                        - status: "True"
+                          type: Synced
+                        - status: "True"
+                          type: Ready
+                  recordDiff: Log
+                - complianceType: musthave
+                  objectDefinition:
+                    apiVersion: kubernetes.vault.upbound.io/v1alpha1
+                    kind: AuthBackendRole
+                    metadata:
+                      name: '{{hub .ManagedClusterName | replace "local-cluster" "dev01" hub}}-crossplane'
+                    status:
+                      conditions:
+                        - status: "True"
+                          type: Synced
+                        - status: "True"
+                          type: Ready
+              remediationAction: inform
+              severity: low
+        - objectDefinition:
+            apiVersion: policy.open-cluster-management.io/v1
+            kind: ConfigurationPolicy
+            metadata:
+              name: crossplane-vault-provider-bootstrap-token-auth-check
+            spec:
+              customMessage:
+                noncompliant: Please create a generic secret named vault.url-token in the apc-crossplane-system namespace with 'credentials' key containing the Vault token with 'admin' policy on the MANAGED CLUSTER (spoke) => see `Token Secret generation` in README of the crossplane-vault-provider-bootstrap component
+              object-templates:
+                - complianceType: musthave
+                  objectDefinition:
+                    apiVersion: v1
+                    kind: Secret
+                    metadata:
+                      name: vault.url-token
+                      namespace: apc-crossplane-system
+              remediationAction: inform
+              severity: low
+        - objectDefinition:
+            apiVersion: policy.open-cluster-management.io/v1
+            kind: ConfigurationPolicy
+            metadata:
+              name: crossplane-vault-provider-bootstrap-providerconfig-token-auth
+            spec:
+              object-templates:
+                - complianceType: mustonlyhave
+                  objectDefinition:
+                    apiVersion: vault.upbound.io/v1beta1
+                    kind: ProviderConfig
+                    metadata:
+                      name: vault-url
+                    spec:
+                      address: https://vault.url
+                      credentials:
+                        secretRef:
+                          key: credentials
+                          name: vault.url-token
+                          namespace: apc-crossplane-system
+                        source: Secret
+              remediationAction: enforce
+              severity: medium
+        - objectDefinition:
+            apiVersion: policy.open-cluster-management.io/v1
+            kind: ConfigurationPolicy
+            metadata:
+              name: crossplane-vault-provider-bootstrap-kubernetes-auth-setup
+            spec:
+              object-templates:
+                - complianceType: musthave
+                  objectDefinition:
+                    apiVersion: auth.vault.upbound.io/v1alpha1
+                    kind: Backend
+                    metadata:
+                      name: '{{hub .ManagedClusterName | replace "local-cluster" "dev01" hub}}'
+                    spec:
+                      deletionPolicy: Orphan
+                      forProvider:
+                        description: Kubernetes Auth for {{hub .ManagedClusterName | replace "local-cluster" "dev01" hub}} cluster
+                        path: '{{hub "" | default .ManagedClusterName | replace "local-cluster" "dev01" hub}}'
+                        type: kubernetes
+                      providerConfigRef:
+                        name: vault-url
+                - complianceType: musthave
+                  objectDefinition:
+                    apiVersion: kubernetes.vault.upbound.io/v1alpha1
+                    kind: AuthBackendConfig
+                    metadata:
+                      name: '{{hub .ManagedClusterName | replace "local-cluster" "dev01" hub}}'
+                    spec:
+                      deletionPolicy: Orphan
+                      forProvider:
+                        backend: '{{hub "" | default .ManagedClusterName | replace "local-cluster" "dev01" hub}}'
+                        disableLocalCaJwt: true
+                        kubernetesCaCert: |
+                          -----BEGIN CERTIFICATE-----
+                          MIIDVTCCAj2gAwIBAgIUeRYCH56h2vgcgcQTlLVIZW+3t98wDQYJKoZIhvcNAQEL
+                          BQAwMjELMAkGA1UEBhMCU0sxDjAMBgNVBAoTBWdyOGl0MRMwEQYDVQQDEwpncjhp
+                          dC1yb290MB4XDTIzMTAwNjEzMDA0N1oXDTMzMTAwMzEzMDExNlowMjELMAkGA1UE
+                          BhMCU0sxDjAMBgNVBAoTBWdyOGl0MRMwEQYDVQQDEwpncjhpdC1yb290MIIBIjAN
+                          BgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA23z4SW7x8jx9GrwCs+2Tuht5UrHB
+                          QYPVB+a8knkfX5eHFsD1rXdYhR5n3mWljou2xtuXZRINHv3CxxLySdMMK9LtL8i/
+                          mlqPM1gXyH8eW4QM23sulP6kXgTnhIUeZJIX6fzVoECt7j2W5xN6gqWBXGQ0Zm74
+                          /dCuBnVLKK43tDc7bQw4SyiaN4S/DgXrNzWsHSlPZXHVpyZhDPLBAFFwt0FDgXLX
+                          WbQReNBX44bSbEliJ4CuTkxjlHhhDbMCVxaW283+uNZV239YdlMcC6SEJcy8chnY
+                          puFsPznRro0MWbgA3vjNa7g71zuj17pJmYYG9bMxP2z6CFQMQJXsgCGTHQIDAQAB
+                          o2MwYTAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU
+                          zkeoW/c9qpn5X61YwxAmG62icK8wHwYDVR0jBBgwFoAUzkeoW/c9qpn5X61YwxAm
+                          G62icK8wDQYJKoZIhvcNAQELBQADggEBAEvgBYkbG4TKel9xft8HXhaL1dODedpO
+                          GPOEV9agmukcyCyrnCcfHYhdWw/gW2Th/ISQ2j/7A3ZtA6eCAbzzN1q4ukdvtzS3
+                          fHDnwoG1TU/VGuHnyfx1UWTaj0sBZuaefxCCuRTdsW//ZTj0inIksQ2rVvqy6PD/
+                          ZwsLSfyXVFnTbUzkOuBXK4y5zWjvU6BkgJiK+Uf3ZJJ1kGloMyFbcDnzD0ZO7QYT
+                          4QPZXa053WFfTvDpAOS4hs87tr2TzcrZ0fgSOLv3O8cDtWBIoY+qfMY/GO0+D7G2
+                          jSfZQEwdYLLQ6lslNN9Zrg3E3MOpPdJMGcNpA/LRCa2XbbDuG6jRPH0=
+                          -----END CERTIFICATE-----
+                        kubernetesHost: '{{ printf "%s%s" (replace "console-openshift-console.apps." "api." (fromClusterClaim "consoleurl.cluster.open-cluster-management.io")) (regexFind ":[0-9]+" (fromClusterClaim "apiserverurl.openshift.io")) }}'
+                      providerConfigRef:
+                        name: vault-url
+                - complianceType: musthave
+                  objectDefinition:
+                    apiVersion: vault.vault.upbound.io/v1alpha1
+                    kind: Policy
+                    metadata:
+                      name: '{{hub .ManagedClusterName | replace "local-cluster" "dev01" hub}}--crossplane'
+                    spec:
+                      deletionPolicy: Orphan
+                      forProvider:
+                        name: '{{hub .ManagedClusterName | replace "local-cluster" "dev01" hub}}--crossplane'
+                        policy: |
+                          path "auth/token/create" {
+                            capabilities = ["create", "update"]
+                          }
+
+                          path "sys/mounts/auth/kubernetes" {
+                            capabilities = ["read"]
+                          }
+
+                          path "sys/auth/{{hub "" | default .ManagedClusterName | replace "local-cluster" "dev01" hub}}" {
+                            capabilities = ["create", "read", "update", "patch", "delete", "list", "sudo"]
+                          }
+
+                          path "auth/{{hub "" | default .ManagedClusterName | replace "local-cluster" "dev01" hub}}/config" {
+                            capabilities = ["create", "read", "update", "patch", "delete", "list"]
+                          }
+
+                          path "auth/{{hub "" | default .ManagedClusterName | replace "local-cluster" "dev01" hub}}/role/+" {
+                            capabilities = ["create", "read", "update", "patch", "delete", "list"]
+                          }
+
+                          path "sys/policies/acl/{{hub .ManagedClusterName | replace "local-cluster" "dev01" hub}}--*" {
+                            capabilities = ["create", "read", "update", "patch", "delete", "list"]
+                          }
+                      providerConfigRef:
+                        name: vault-url
+                - complianceType: musthave
+                  objectDefinition:
+                    apiVersion: kubernetes.vault.upbound.io/v1alpha1
+                    kind: AuthBackendRole
+                    metadata:
+                      name: '{{hub .ManagedClusterName | replace "local-cluster" "dev01" hub}}-crossplane'
+                    spec:
+                      deletionPolicy: Orphan
+                      forProvider:
+                        audience: https://kubernetes.default.svc
+                        backend: '{{hub "" | default .ManagedClusterName | replace "local-cluster" "dev01" hub}}'
+                        boundServiceAccountNames:
+                          - '*'
+                        boundServiceAccountNamespaces:
+                          - apc-crossplane-system
+                        roleName: crossplane
+                        tokenPolicies:
+                          - default
+                          - '{{hub .ManagedClusterName | replace "local-cluster" "dev01" hub}}--crossplane'
+                        tokenTtl: 3600
+                      providerConfigRef:
+                        name: vault-url
+                - complianceType: musthave
+                  objectDefinition:
+                    apiVersion: rbac.authorization.k8s.io/v1
+                    kind: ClusterRoleBinding
+                    metadata:
+                      name: crossplane-vault-provider-bootstrap-auth-delegator
+                    roleRef:
+                      apiGroup: rbac.authorization.k8s.io
+                      kind: ClusterRole
+                      name: system:auth-delegator
+                    subjects:
+                      - apiGroup: rbac.authorization.k8s.io
+                        kind: Group
+                        name: system:serviceaccounts:apc-crossplane-system
+              remediationAction: enforce
+              severity: medium
