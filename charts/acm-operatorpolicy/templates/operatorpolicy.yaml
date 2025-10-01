@@ -20,7 +20,7 @@ spec:
     {{- end }}
   {{- else if .Values.forceReleaseNamespace | default false }}
   operatorGroup:
-    name:  {{ .Release.Name | trunc 63 | trimSuffix "-" }}
+    name:  {{ .Values.operatorGroup.name | default (.Release.Name | trunc 63 | trimSuffix "-") }}
     namespace: {{ .Release.Namespace }}
     {{- if .Values.operatorGroup.targetNamespaces | default false }}
     targetNamespaces:
