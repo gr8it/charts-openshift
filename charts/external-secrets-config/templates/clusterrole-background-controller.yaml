@@ -1,3 +1,4 @@
+{{- if eq "true" (include "apc-global-overrides.clusterRunsApps" .) }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -23,3 +24,4 @@ rules:
 - apiGroups: ["auth.vault.upbound.io"]
   resources: ["backends"]
   verbs: ["get", "list"]
+{{- end }}
