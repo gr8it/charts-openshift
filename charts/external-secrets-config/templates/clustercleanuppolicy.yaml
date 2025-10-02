@@ -1,3 +1,4 @@
+{{- if eq "true" (include "apc-global-overrides.clusterRunsApps" .) }}
 apiVersion: kyverno.io/v2
 kind: ClusterCleanupPolicy
 metadata:
@@ -27,3 +28,4 @@ spec:
     - key: "{{`{{`}} target.metadata.name | split(@, '-') | [:-1] | join('-',@) {{`}}`}}"
       operator: AllNotIn
       value: "{{`{{`}} appNamespaces {{`}}`}}"
+{{- end }}

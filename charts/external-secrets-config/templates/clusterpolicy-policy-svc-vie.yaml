@@ -1,3 +1,4 @@
+{{- if eq "true" (include "apc-global-overrides.clusterRunsApps" .) }}
 # using kyverno policy because accessor needs to read from the cluster / vault status
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
@@ -48,3 +49,4 @@ spec:
               }
           providerConfigRef:
             name: {{ include "external-secrets-config.vaultKubeVaultProviderConfigName" . }}
+{{- end }}

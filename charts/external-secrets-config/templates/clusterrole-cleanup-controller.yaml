@@ -1,4 +1,4 @@
-
+{{- if eq "true" (include "apc-global-overrides.clusterRunsApps" .) }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -12,3 +12,4 @@ rules:
 - apiGroups: ["kubernetes.vault.upbound.io"]
   resources: ["authbackendroles"]
   verbs: ["delete", "list"]
+{{- end }}

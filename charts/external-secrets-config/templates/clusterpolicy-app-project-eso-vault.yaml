@@ -1,3 +1,4 @@
+{{- if eq "true" (include "apc-global-overrides.clusterRunsApps" .) }}
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
@@ -117,3 +118,4 @@ spec:
           namespace: '{{`{{ request.object.metadata.name }}`}}'
           name: vault-auth
     skipBackgroundRequests: false
+{{- end }}
