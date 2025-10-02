@@ -65,7 +65,7 @@ Create the name of the service account to use
 Create the environment
 */}}
 {{- define "ingress-configuration.environment" -}}
-{{- .Values.environment | default .Values.global.apc.environment }}
+{{- .Values.environment | default (include "apc-global-overrides.environment" . ) }}
 {{- end }}
 
 {{/*
