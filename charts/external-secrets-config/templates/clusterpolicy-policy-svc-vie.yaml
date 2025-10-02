@@ -25,7 +25,7 @@ spec:
         value: "kubernetes"
     generate:
       generateExisting: true
-      synchronize: false
+      synchronize: true
       apiVersion: vault.vault.upbound.io/v1alpha1
       kind: Policy
       name: {{ .Values.vaultKVmount }}-{{ include "apc-global-overrides.require-environmentShort" . }}-svc-vie
@@ -48,4 +48,3 @@ spec:
               }
           providerConfigRef:
             name: {{ include "external-secrets-config.vaultKubeVaultProviderConfigName" . }}
-    skipBackgroundRequests: false
