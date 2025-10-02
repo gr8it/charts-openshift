@@ -32,7 +32,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: crossplane-vault-provider-bootstrap
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: crossplane-vault-provider-bootstrap
-        helm.sh/chart: crossplane-vault-provider-bootstrap-1.4.1
+        helm.sh/chart: crossplane-vault-provider-bootstrap-1.5.0
       name: crossplane-vault-provider-bootstrap
       namespace: apc-crossplane-system
     spec:
@@ -159,6 +159,9 @@ manifests should match snapshot:
                       forProvider:
                         description: Kubernetes Auth for {{hub .ManagedClusterName | replace "local-cluster" "dev01" hub}} cluster
                         path: '{{hub "" | default .ManagedClusterName | replace "local-cluster" "dev01" hub}}'
+                        tune:
+                          - defaultLeaseTtl: "900"
+                            maxLeaseTtl: "3600"
                         type: kubernetes
                       providerConfigRef:
                         name: vault-url
@@ -252,7 +255,7 @@ manifests should match snapshot:
                         tokenPolicies:
                           - default
                           - '{{hub .ManagedClusterName | replace "local-cluster" "dev01" hub}}--crossplane'
-                        tokenTtl: 3600
+                        tokenTtl: 900
                       providerConfigRef:
                         name: vault-url
                 - complianceType: musthave

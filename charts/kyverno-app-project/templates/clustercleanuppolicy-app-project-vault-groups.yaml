@@ -1,0 +1,33 @@
+apiVersion: kyverno.io/v2
+kind: ClusterCleanupPolicy
+metadata:
+  name: app-project-vault-groups-cleanup
+  annotations:
+    policies.kyverno.io/title: Cleanup vault project groups and policies
+    policies.kyverno.io/category: Secrets
+    policies.kyverno.io/subject: project
+    policies.kyverno.io/minversion: 1.13.0
+  labels:
+    {{- include "kyverno-app-project.labels" . | nindent 4 }}
+spec:
+  schedule: "0 */3 * * *"
+  match:
+    all:
+    - resources:
+        kinds:
+        - "vault.vault.upbound.io/*/Policy"
+        - "ldap.vault.upbound.io/*/AuthBackendGroup"
+        selector:
+          matchLabels:
+            generate.kyverno.io/policy-name: app-project-vault-groups
+  context:
+  - name: appNamespaces
+    apiCall:
+      urlPath: "/api/v1/namespaces"
+      jmesPath: "items[?metadata.labels.\"apc.namespace.type\" == 'application'].metadata.name"
+      default: ["{{ `{{ target.metadata.name | split(@, '-') | [2:-1] | join('-',@) }}` }}"]
+  conditions:
+    all:
+    - key: "{{ `{{ target.metadata.name | split(@, '-') | [2:-1] | join('-',@) }}` }}"
+      operator: AllNotIn
+      value: "{{ `{{ appNamespaces }}` }}"

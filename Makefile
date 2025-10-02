@@ -1,3 +1,5 @@
+.PHONY: debug lint unittest package publish clean build
+
 SHELL := /bin/bash
 .ONESHELL:
 
@@ -73,7 +75,7 @@ gitpull:
 		exit 1; \
 	fi
 
-package:
+package: check-helm check-helm-unittest
 	@echo -e "\033[0;36m~> Starting helm package for all chart folders ...\033[0m"
 	@mkdir -p $(OUTPUT_DIR)
 	$(eval TEMP_DIR := $(shell mktemp -d))
@@ -84,7 +86,7 @@ package:
 		chart_version=$$(grep '^version:' $${folder}/Chart.yaml | awk '{print $$2}'); \
 		chart_name_version=$${chart_name}-$${chart_version}; \
 		echo -n "$${chart_name_version}: "; \
-		whitespaces=$$(echo "$${chart_name_version}: " | sed "s/./ /g")
+		whitespaces=$$(echo "$${chart_name_version}: " | sed "s/./ /g"); \
 		if [ -f $(OUTPUT_DIR)/$${chart_name}-$${chart_version}.tgz ]; then \
 			echo -e "\033[0;33mskipped\033[0m - Chart package already exists"; \
 		else \
@@ -113,7 +115,7 @@ package:
 					if [ "$$confirmation" != "y" ] && [ "$$confirmation" != "Y" ]; then \
 							exit 1; \
 					else
-						helm unittest -u $$folder
+						helm unittest -u $$folder; \
 						if ! out=$$(helm unittest --strict $$folder); then \
 							echo -e "\033[0;31mSTILL FAILING\033[0m "; \
 							exit 1; \
@@ -177,6 +179,12 @@ check-helm:
 		echo -e "\033[0;31mhelm version >=3.8 is required; found version $${version}.\033[0m"; \
 		exit 1; \
 	fi
+
+check-helm-unittest:
+	@if (! helm plugin list | grep unittest >/dev/null 2>&1); then \
+		echo -e "\033[0;31mhelm unittest plugin not found; please install it.\033[0m"; \
+		exit 1; \
+	fi; \
 
 reset-index:
 	@echo -e "\033[0;36m~> Regenerating charts index file ...\033[0m"
@@ -275,5 +283,5 @@ clean: check-yq
 
 build: package update-versions
 
-update-versions:
-	@ find charts -name Chart.yaml -exec yq -M '.name + ":" + .version' {} \; > versions.txt
+update-versions: check-yq
+	@ find charts -name Chart.yaml -exec yq -M '.name + ":" + .version' {} \; | sort > versions.txt

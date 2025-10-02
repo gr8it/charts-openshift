@@ -1,0 +1,14 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    {{- include "kyverno-app-project.labels" . | nindent 4 }}
+    rbac.kyverno.io/aggregate-to-background-controller: "true"
+  name: kyverno:background-controller:project-vault-groups
+rules:
+- apiGroups: ["vault.vault.upbound.io"]
+  resources: ["policies"]
+  verbs: ["get","create"]
+- apiGroups: ["ldap.vault.upbound.io"]
+  resources: ["authbackendgroups"]
+  verbs: ["get","create"]

@@ -1,0 +1,547 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: kyverno.io/v2
+    kind: ClusterCleanupPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: Secrets
+        policies.kyverno.io/minversion: 1.13.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Cleanup vault project groups and policies
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-1.2.0
+      name: app-project-vault-groups-cleanup
+    spec:
+      conditions:
+        all:
+          - key: '{{ target.metadata.name | split(@, ''-'') | [2:-1] | join(''-'',@) }}'
+            operator: AllNotIn
+            value: '{{ appNamespaces }}'
+      context:
+        - apiCall:
+            default:
+              - '{{ target.metadata.name | split(@, ''-'') | [2:-1] | join(''-'',@) }}'
+            jmesPath: items[?metadata.labels."apc.namespace.type" == 'application'].metadata.name
+            urlPath: /api/v1/namespaces
+          name: appNamespaces
+      match:
+        all:
+          - resources:
+              kinds:
+                - vault.vault.upbound.io/*/Policy
+                - ldap.vault.upbound.io/*/AuthBackendGroup
+              selector:
+                matchLabels:
+                  generate.kyverno.io/policy-name: app-project-vault-groups
+      schedule: 0 */3 * * *
+  2: |
+    apiVersion: kyverno.io/v1
+    kind: ClusterPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: internetproxy
+        policies.kyverno.io/minversion: 1.15.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Create configmap for internet proxy
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-1.2.0
+      name: app-project-internetproxy-cm
+    spec:
+      background: false
+      rules:
+        - generate:
+            apiVersion: v1
+            data:
+              data:
+                HTTP_PROXY: http://proxy.example.com:8080
+                HTTPS_PROXY: http://proxy.example.com:8080
+                NO_PROXY: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+                http_proxy: http://proxy.example.com:8080
+                https_proxy: http://proxy.example.com:8080
+                no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+              kind: ConfigMap
+            generateExisting: true
+            kind: ConfigMap
+            name: proxy
+            namespace: '{{request.object.metadata.name}}'
+            orphanDownstreamOnPolicyDelete: true
+            synchronize: true
+          match:
+            any:
+              - resources:
+                  kinds:
+                    - Namespace
+          name: app-project-internetproxy-cm
+          preconditions:
+            all:
+              - key: '{{ request.object.metadata.labels."apc.namespace.type" }}'
+                operator: Equals
+                value: application
+      useServerSideApply: true
+      validationFailureAction: Audit
+  3: |
+    apiVersion: kyverno.io/v1
+    kind: ClusterPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: limit range
+        policies.kyverno.io/minversion: 1.13.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Create default limit range for namespace
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-1.2.0
+      name: app-project-limitrange
+    spec:
+      background: true
+      generateExisting: true
+      rules:
+        - generate:
+            apiVersion: v1
+            data:
+              spec:
+                limits:
+                  - default:
+                      cpu: 200m
+                      ephemeral-storage: 1Gi
+                      memory: 200Mi
+                    defaultRequest:
+                      cpu: 50m
+                      memory: 50Mi
+                    type: Container
+            kind: LimitRange
+            name: default-limit-range
+            namespace: '{{request.object.metadata.name}}'
+          match:
+            any:
+              - resources:
+                  kinds:
+                    - Namespace
+          name: app-project-default-limit-range
+          preconditions:
+            all:
+              - key: '{{ request.object.metadata.labels."apc.namespace.type" }}'
+                operator: Equals
+                value: application
+          skipBackgroundRequests: true
+      validationFailureAction: Audit
+  4: |
+    apiVersion: kyverno.io/v1
+    kind: ClusterPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: quota
+        policies.kyverno.io/minversion: 1.13.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Create quotas for namespace
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-1.2.0
+      name: app-project-quotas
+    spec:
+      background: true
+      generateExisting: true
+      rules:
+        - generate:
+            apiVersion: v1
+            data:
+              spec:
+                hard:
+                  count/cronjobs.batch: "20"
+                  count/daemonsets.apps: "0"
+                  count/deployments.apps: "10"
+                  count/ingresses.networking.k8s.io: "10"
+                  count/jobs.batch: "50"
+                  count/networkpolicies.networking.k8s.io: "20"
+                  count/replicasets.apps: "30"
+                  count/routes.route.openshift.io: "10"
+                  count/serviceaccounts: "20"
+                  count/services: "20"
+                  count/statefulsets.apps: "5"
+                  limits.cpu: "8"
+                  limits.memory: 35Gi
+                  persistentvolumeclaims: "15"
+                  pods: "30"
+                  requests.cpu: "4"
+                  requests.memory: 20Gi
+                  requests.storage: 300Gi
+                  services.loadbalancers: "2"
+            kind: ResourceQuota
+            name: default-resource-quota
+            namespace: '{{request.object.metadata.name}}'
+            synchronize: false
+          match:
+            any:
+              - resources:
+                  kinds:
+                    - Namespace
+          name: app-project-default-resource-quota
+          preconditions:
+            all:
+              - key: '{{ request.object.metadata.labels."apc.namespace.type" }}'
+                operator: Equals
+                value: application
+          skipBackgroundRequests: true
+        - generate:
+            apiVersion: v1
+            data:
+              spec:
+                hard:
+                  count/backups.postgresql.cnpg.io: "15"
+                  count/clusters.postgresql.cnpg.io: "1"
+                  count/scheduledbackups.postgresql.cnpg.io: "2"
+            kind: ResourceQuota
+            name: cnpg-custom-resource-quota
+            namespace: '{{request.object.metadata.name}}'
+            synchronize: false
+          match:
+            any:
+              - resources:
+                  kinds:
+                    - Namespace
+          name: app-project-cnpg-custom-resource-quota
+          preconditions:
+            all:
+              - key: '{{ request.object.metadata.labels."apc.namespace.type" }}'
+                operator: Equals
+                value: application
+          skipBackgroundRequests: true
+        - generate:
+            apiVersion: v1
+            data:
+              spec:
+                hard:
+                  count/alertmanagerconfigs.monitoring.coreos.com: "1"
+                  count/alertmanagers.monitoring.coreos.com: "0"
+                  count/podmonitors.monitoring.coreos.com: "20"
+                  count/probes.monitoring.coreos.com: "10"
+                  count/prometheuses.monitoring.coreos.com: "0"
+                  count/prometheusrules.monitoring.coreos.com: "10"
+                  count/servicemonitors.monitoring.coreos.com: "20"
+                  count/thanosrulers.monitoring.coreos.com: "0"
+            kind: ResourceQuota
+            name: monitoring-quota
+            namespace: '{{request.object.metadata.name}}'
+            synchronize: false
+          match:
+            any:
+              - resources:
+                  kinds:
+                    - Namespace
+          name: app-project-monitoring-quota
+          preconditions:
+            all:
+              - key: '{{ request.object.metadata.labels."apc.namespace.type" }}'
+                operator: Equals
+                value: application
+          skipBackgroundRequests: true
+        - generate:
+            apiVersion: v1
+            data:
+              spec:
+                hard:
+                  count/alertingrules.loki.grafana.com: "0"
+                  count/grafanaalertrulegroups.grafana.integreatly.org: "0"
+                  count/grafanacontactpoints.grafana.integreatly.org: "0"
+                  count/grafanadashboards.grafana.integreatly.org: "10"
+                  count/grafanadatasources.grafana.integreatly.org: "5"
+                  count/grafanafolders.grafana.integreatly.org: "10"
+                  count/grafananotificationpolicies.grafana.integreatly.org: "0"
+                  count/grafanas.grafana.integreatly.org: "1"
+                  count/lokistacks.loki.grafana.com: "0"
+                  count/recordingrules.loki.grafana.com: "0"
+                  count/rulerconfigs.loki.grafana.com: "0"
+            kind: ResourceQuota
+            name: grafana-quota
+            namespace: '{{request.object.metadata.name}}'
+            synchronize: false
+          match:
+            any:
+              - resources:
+                  kinds:
+                    - Namespace
+          name: app-project-grafana-quota
+          preconditions:
+            all:
+              - key: '{{ request.object.metadata.labels."apc.namespace.type" }}'
+                operator: Equals
+                value: application
+          skipBackgroundRequests: true
+        - generate:
+            apiVersion: v1
+            data:
+              spec:
+                hard:
+                  count/aaqs.aaq.kubevirt.io: "0"
+                  count/cdiconfigs.cdi.kubevirt.io: "0"
+                  count/cdis.cdi.kubevirt.io: "0"
+                  count/dataimportcrons.cdi.kubevirt.io: "10"
+                  count/datasources.cdi.kubevirt.io: "5"
+                  count/datavolumes.cdi.kubevirt.io: "5"
+                  count/hostpathprovisioners.hostpathprovisioner.kubevirt.io: "0"
+                  count/hyperconvergeds.hco.kubevirt.io: "0"
+                  count/kubevirts.kubevirt.io: "0"
+                  count/migrationpolicies.migrations.kubevirt.io: "0"
+                  count/mtqs.mtq.kubevirt.io: "0"
+                  count/networkaddonsconfigs.networkaddonsoperator.network.kubevirt.io: "0"
+                  count/objecttransfers.cdi.kubevirt.io: "0"
+                  count/openstackvolumepopulators.forklift.cdi.kubevirt.io: "0"
+                  count/ovirtvolumepopulators.forklift.cdi.kubevirt.io: "0"
+                  count/ssps.ssp.kubevirt.io: "0"
+                  count/storageprofiles.cdi.kubevirt.io: "0"
+                  count/virtualmachineclones.clone.kubevirt.io: "2"
+                  count/virtualmachineclusterinstancetypes.instancetype.kubevirt.io: "0"
+                  count/virtualmachineclusterpreferences.instancetype.kubevirt.io: "0"
+                  count/virtualmachineexports.export.kubevirt.io: "2"
+                  count/virtualmachineinstancemigrations.kubevirt.io: "5"
+                  count/virtualmachineinstancepresets.kubevirt.io: "2"
+                  count/virtualmachineinstancereplicasets.kubevirt.io: "2"
+                  count/virtualmachineinstances.kubevirt.io: "2"
+                  count/virtualmachineinstancetypes.instancetype.kubevirt.io: "2"
+                  count/virtualmachinepools.pool.kubevirt.io: "2"
+                  count/virtualmachinepreferences.instancetype.kubevirt.io: "2"
+                  count/virtualmachinerestores.snapshot.kubevirt.io: "5"
+                  count/virtualmachines.kubevirt.io: "2"
+                  count/virtualmachinesnapshotcontents.snapshot.kubevirt.io: "10"
+                  count/virtualmachinesnapshots.snapshot.kubevirt.io: "10"
+                  count/volumeclonesources.cdi.kubevirt.io: "5"
+                  count/volumeimportsources.cdi.kubevirt.io: "5"
+                  count/volumeuploadsources.cdi.kubevirt.io: "5"
+            kind: ResourceQuota
+            name: kubevirt-cr-quota
+            namespace: '{{request.object.metadata.name}}'
+            synchronize: false
+          match:
+            any:
+              - resources:
+                  kinds:
+                    - Namespace
+          name: app-project-kubevirt-cr-quota
+          preconditions:
+            all:
+              - key: '{{ request.object.metadata.labels."apc.namespace.type" }}'
+                operator: Equals
+                value: application
+          skipBackgroundRequests: true
+      validationFailureAction: Audit
+  5: |
+    apiVersion: kyverno.io/v1
+    kind: ClusterPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: Secrets
+        policies.kyverno.io/minversion: 1.13.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Setup vault project groups and policies
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-1.2.0
+      name: app-project-vault-groups
+    spec:
+      background: true
+      rules:
+        - context:
+            - name: vaultRoleList
+              variable:
+                value:
+                  - admin
+                  - operator
+            - name: vaultProviderConfigRef
+              variable:
+                value: vault-hub-provider-config
+            - name: vaultAuthBackendName
+              variable:
+                value: ad
+            - apiCall:
+                default: ""
+                jmesPath: split((spec.host || ''), '.') | [2]
+                method: GET
+                urlPath: /apis/route.openshift.io/v1/namespaces/openshift-console/routes/console
+              name: clusterName
+            - name: vaultRolePrefix
+              variable:
+                value: apc-{{ split((clusterName || ''), '') | [0] }}-{{ request.object.metadata.name }}
+          generate:
+            foreach:
+              - apiVersion: vault.vault.upbound.io/v1alpha1
+                context:
+                  - name: vaultRole
+                    variable:
+                      jmesPath: element
+                  - name: vaultRoleShort
+                    variable:
+                      default: ""
+                      value: '{{ vaultRole == ''admin'' && ''pja'' || vaultRole == ''operator'' && ''opr'' }}'
+                  - name: vaultRoleCapabilities
+                    variable:
+                      default: ""
+                      value: '{{ vaultRole == ''admin'' && ''"create", "read", "update", "delete", "list", "patch"'' || vaultRole == ''operator'' && ''"create", "read", "update", "delete", "list", "patch"'' }}'
+                data:
+                  spec:
+                    deletionPolicy: Delete
+                    forProvider:
+                      name: '{{ vaultRolePrefix }}-{{ vaultRoleShort }}'
+                      policy: |
+                        # Access to secrets path (v1)
+                        path "apc/{{ split((clusterName || ''), '') | [0] }}/{{ request.object.metadata.name }}/*" {
+                          capabilities = [{{ vaultRoleCapabilities }}]
+                        }
+
+                        # Access to secrets path (v2)
+                        path "apc/data/{{ split((clusterName || ''), '') | [0] }}/{{ request.object.metadata.name }}/*" {
+                          capabilities = [{{ vaultRoleCapabilities }}]
+                        }
+
+                        # Access to metadata (v2)
+                        path "apc/metadata/{{ split((clusterName || ''), '') | [0] }}/{{ request.object.metadata.name }}/*" {
+                          capabilities = [{{ vaultRoleCapabilities }}]
+                        }
+
+                        # Allow version delete
+                        path "apc/delete/{{ split((clusterName || ''), '') | [0] }}/{{ request.object.metadata.name }}/*" {
+                          capabilities = ["update"]
+                        }
+
+                        # Allow version destroy
+                        path "apc/destroy/{{ split((clusterName || ''), '') | [0] }}/{{ request.object.metadata.name }}/*" {
+                          capabilities = ["update"]
+                        }
+
+                        # Allow version undelete
+                        path "apc/undelete/{{ split((clusterName || ''), '') | [0] }}/{{ request.object.metadata.name }}/*" {
+                          capabilities = ["update"]
+                        }
+
+                        # Allow browsing to the project secrets
+                        path "apc/metadata/" {
+                          capabilities = ["list"]
+                        }
+                        path "apc/metadata/{{ split((clusterName || ''), '') | [0] }}" {
+                          capabilities = ["list"]
+                        }
+                    providerConfigRef:
+                      name: '{{ vaultProviderConfigRef }}'
+                kind: Policy
+                list: vaultRoleList
+                name: '{{ vaultRolePrefix }}-{{ vaultRoleShort }}'
+                preconditions:
+                  all:
+                    - key: '{{ length(vaultRoleShort || '''') }}'
+                      operator: GreaterThan
+                      value: 0
+                    - key: '{{ length(clusterName || '''') }}'
+                      operator: GreaterThan
+                      value: 0
+              - apiVersion: ldap.vault.upbound.io/v1alpha1
+                context:
+                  - name: vaultRole
+                    variable:
+                      jmesPath: element
+                  - name: vaultRoleShort
+                    variable:
+                      default: ""
+                      value: '{{ vaultRole == ''admin'' && ''pja'' || vaultRole == ''operator'' && ''opr'' }}'
+                data:
+                  spec:
+                    deletionPolicy: Delete
+                    forProvider:
+                      backend: '{{ vaultAuthBackendName }}'
+                      groupname: '{{ vaultRolePrefix }}-{{ vaultRoleShort }}'
+                      policies:
+                        - '{{ vaultRolePrefix }}-{{ vaultRoleShort }}'
+                    providerConfigRef:
+                      name: '{{ vaultProviderConfigRef }}'
+                kind: AuthBackendGroup
+                list: vaultRoleList
+                name: '{{ vaultRolePrefix }}-{{ vaultRoleShort }}'
+                preconditions:
+                  all:
+                    - key: '{{ length(vaultRoleShort || '''') }}'
+                      operator: GreaterThan
+                      value: 0
+                    - key: '{{ length(clusterName || '''') }}'
+                      operator: GreaterThan
+                      value: 0
+            generateExisting: true
+            synchronize: false
+          match:
+            any:
+              - resources:
+                  kinds:
+                    - Namespace
+                  selector:
+                    matchLabels:
+                      apc.namespace.type: application
+          name: project-vault-policy-group
+          skipBackgroundRequests: true
+  6: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-1.2.0
+        rbac.kyverno.io/aggregate-to-background-controller: "true"
+      name: kyverno:background-controller:project-vault-groups
+    rules:
+      - apiGroups:
+          - vault.vault.upbound.io
+        resources:
+          - policies
+        verbs:
+          - get
+          - create
+      - apiGroups:
+          - ldap.vault.upbound.io
+        resources:
+          - authbackendgroups
+        verbs:
+          - get
+          - create
+  7: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-1.2.0
+        rbac.kyverno.io/aggregate-to-cleanup-controller: "true"
+      name: kyverno:cleanup-controller:project-vault-groups
+    rules:
+      - apiGroups:
+          - ""
+        resources:
+          - namespaces
+        verbs:
+          - list
+          - get
+      - apiGroups:
+          - vault.vault.upbound.io
+        resources:
+          - policies
+        verbs:
+          - delete
+          - list
+      - apiGroups:
+          - ldap.vault.upbound.io
+        resources:
+          - authbackendgroups
+        verbs:
+          - delete
+          - list
