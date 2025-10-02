@@ -1,0 +1,21 @@
+nameOverride: "test"
+fullnameOverride: "user-workload-monitoring-policy-test"
+disabled: false
+
+kyvernoPolicy:
+  name: "generate-prometheus-rules-for-user-workloads"
+  namespaceSelector:
+    matchLabels:
+      apc.namespace.type: "application"
+
+prometheusRule:
+  rules:
+    - alert: "PodCrashLooping"
+      expr: 'rate(kube_pod_container_status_restarts_total[5m]) * 60 * 5 > 0'
+      for: "2m"
+      severity: "warning"
+      description: "Pod is crash looping"
+      summary: "Pod crash looping"
+
+managedClusterSetBinding:
+  create: false

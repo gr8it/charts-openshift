@@ -1,0 +1,52 @@
+nameOverride: ~
+fullnameOverride: ~
+
+disabled: false
+
+# Configuration for the Kyverno policy that creates PrometheusRule resources
+# This policy automatically creates monitoring rules for namespaces labeled with 'apc.namespace.type: application'
+# When a new namespace with this label is created, Kyverno will automatically generate PrometheusRule resources
+kyvernoPolicy:
+  name: "generate-prometheus-rules-for-user-workloads"
+  
+  # Target namespaces with this label for monitoring
+  # Only namespaces with 'apc.namespace.type: application' will get PrometheusRule resources
+  namespaceSelector:
+    matchLabels:
+      apc.namespace.type: "application"
+
+# PrometheusRule template configuration
+prometheusRule:
+  # Rules for detecting pod issues in user workloads
+  rules:
+    # Pod CrashLoopBackOff detection
+    - alert: "PodCrashLooping"
+      expr: 'rate(kube_pod_container_status_restarts_total[5m]) * 60 * 5 > 0'
+      for: "2m"
+      severity: "warning"
+      description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is crash looping"
+      summary: "Pod crash looping in namespace {{ $labels.namespace }}"
+      
+    # High pod restart count
+    - alert: "PodHighRestartCount"
+      expr: 'kube_pod_container_status_restarts_total > 10'
+      for: "5m"
+      severity: "warning"
+      description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} has high restart count: {{ $value }}"
+      summary: "High restart count for pod in namespace {{ $labels.namespace }}"
+      
+    # Pod stuck in pending state
+    - alert: "PodStuckPending"
+      expr: 'kube_pod_status_phase{phase="Pending"} == 1'
+      for: "5m"
+      severity: "warning"
+      description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} stuck in Pending state"
+      summary: "Pod stuck pending in namespace {{ $labels.namespace }}"
+      
+    # Pod memory usage high
+    - alert: "PodHighMemoryUsage"
+      expr: '(container_memory_working_set_bytes{container!="POD",container!=""} / container_spec_memory_limit_bytes{container!="POD",container!=""} * 100) > 90'
+      for: "5m"
+      severity: "warning"
+      description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} memory usage is above 90%"
+      summary: "High memory usage in namespace {{ $labels.namespace }}"

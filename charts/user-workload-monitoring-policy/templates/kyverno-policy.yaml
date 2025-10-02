@@ -1,0 +1,47 @@
+{{- if not .Values.disabled }}
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: {{ include "user-workload-monitoring-policy.fullname" . }}
+  labels:
+    {{- include "user-workload-monitoring-policy.labels" . | nindent 4 }}
+spec:
+  generateExistingOnPolicyUpdate: true
+  rules:
+  - name: generate-prometheus-rules
+    match:
+      any:
+      - resources:
+          kinds:
+          - Namespace
+          selector:
+            matchLabels:
+              apc.namespace.type: "application"
+    generate:
+      synchronize: true
+      apiVersion: monitoring.coreos.com/v1
+      kind: PrometheusRule
+      name: "user-workload-monitoring-{{`{{request.object.metadata.name}}`}}"
+      namespace: "{{`{{request.object.metadata.name}}`}}"
+      data:
+        metadata:
+          labels:
+            monitoring.workload/auto-generated: "true"
+            prometheus: kube-prometheus
+            role: alert-rules
+        spec:
+          groups:
+          - name: "user-workload-{{`{{request.object.metadata.name}}`}}"
+            rules:
+            {{- range .Values.prometheusRule.rules }}
+            - alert: {{ .alert }}
+              expr: {{ .expr | quote }}
+              for: {{ .for }}
+              labels:
+                severity: {{ .severity }}
+                namespace: "{{`{{request.object.metadata.name}}`}}"
+              annotations:
+                description: {{ .description | quote }}
+                summary: {{ .summary | quote }}
+            {{- end }}
+{{- end }}
