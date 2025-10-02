@@ -191,6 +191,9 @@ manifests should match snapshot:
                       forProvider:
                         description: Kubernetes Auth for {{hub .ManagedClusterName | replace "local-cluster" "dev01" hub}} cluster
                         path: '{{hub "" | default .ManagedClusterName | replace "local-cluster" "dev01" hub}}'
+                        tune:
+                          - defaultLeaseTtl: "900"
+                            maxLeaseTtl: "3600"
                         type: kubernetes
                       providerConfigRef:
                         name: vault-url
