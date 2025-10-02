@@ -1,0 +1,14 @@
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    rbac.kyverno.io/aggregate-to-cleanup-controller: "true"
+  name: kyverno:cleanup-controller:eso-vault
+rules:
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["list", "get"]
+- apiGroups: ["kubernetes.vault.upbound.io"]
+  resources: ["authbackendroles"]
+  verbs: ["delete", "list"]
