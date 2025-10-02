@@ -80,6 +80,7 @@ manifests should match snapshot:
                     matchLabels:
                       apc.namespace.type: application
           name: vault-auth-sa
+          skipBackgroundRequests: true
         - generate:
             apiVersion: kubernetes.vault.upbound.io/v1alpha1
             data:
@@ -145,6 +146,7 @@ manifests should match snapshot:
                     matchLabels:
                       apc.namespace.type: application
           name: secret-store
+          skipBackgroundRequests: true
         - generate:
             apiVersion: rbac.authorization.k8s.io/v1
             data:

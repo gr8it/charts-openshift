@@ -12,6 +12,7 @@ spec:
   rules:
 
   - name: vault-auth-sa
+    skipBackgroundRequests: true	
     match:
       any:
       - resources:
@@ -55,6 +56,7 @@ spec:
             name: {{ include "external-secrets-config.vaultKubeVaultProviderConfigName" . }}
 
   - name: secret-store
+    skipBackgroundRequests: true	
     match:
       all:
       - resources:
