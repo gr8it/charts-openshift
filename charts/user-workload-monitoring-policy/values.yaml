@@ -20,33 +20,42 @@ prometheusRule:
   # Rules for detecting pod issues in user workloads
   rules:
     # Pod CrashLoopBackOff detection
-    - alert: "PodCrashLooping"
-      expr: 'rate(kube_pod_container_status_restarts_total[5m]) * 60 * 5 > 0'
-      for: "2m"
-      severity: "warning"
-      description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is crash looping"
-      summary: "Pod crash looping in namespace {{ $labels.namespace }}"
+    - alert: AppPodCrashLooping
+      expr: increase(kube_pod_container_status_restarts_total[1m]) > 3
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: Kubernetes pod crash looping (instance {{ $labels.instance }})
+        description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is crash looping VALUE = {{ $value }} LABELS = {{ $labels }}"
+
       
-    # High pod restart count
-    - alert: "PodHighRestartCount"
-      expr: 'kube_pod_container_status_restarts_total > 10'
-      for: "5m"
-      severity: "warning"
-      description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} has high restart count: {{ $value }}"
-      summary: "High restart count for pod in namespace {{ $labels.namespace }}"
-      
-    # Pod stuck in pending state
-    - alert: "PodStuckPending"
-      expr: 'kube_pod_status_phase{phase="Pending"} == 1'
-      for: "5m"
-      severity: "warning"
-      description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} stuck in Pending state"
-      summary: "Pod stuck pending in namespace {{ $labels.namespace }}"
-      
+    # Pod not healthy
+    - alert: AppPodNotHealthy
+      expr: sum by (namespace, pod) (kube_pod_status_phase{phase=~"Pending|Unknown|Failed"}) > 0
+      for: 15m
+      labels:
+        severity: critical
+      annotations:
+        summary: Kubernetes Pod not healthy (instance {{ $labels.instance }})
+        description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} has been in a non-running state for longer than 15 minutes. VALUE = {{ $value }} LABELS = {{ $labels }}"
+
     # Pod memory usage high
-    - alert: "PodHighMemoryUsage"
-      expr: '(container_memory_working_set_bytes{container!="POD",container!=""} / container_spec_memory_limit_bytes{container!="POD",container!=""} * 100) > 90'
-      for: "5m"
-      severity: "warning"
-      description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} memory usage is above 90%"
-      summary: "High memory usage in namespace {{ $labels.namespace }}"
+    - alert: AppContainerHighMemoryUsage
+      expr: (sum(container_memory_working_set_bytes{name!=""}) BY (instance, name) / sum(container_spec_memory_limit_bytes > 0) BY (instance, name) * 100) > 80
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: Container High Memory usage (instance {{ $labels.instance }})
+        description: "Container Memory usage is above 80% VALUE = {{ $value }} LABELS = {{ $labels }}"
+    
+    # Pod CPU usage high
+    - alert: AppContainerHighCpuUtilization
+      expr: (sum(rate(container_cpu_usage_seconds_total{container!=""}[5m])) by (pod, container) / sum(container_spec_cpu_quota{container!=""}/container_spec_cpu_period{container!=""}) by (pod, container) * 100) > 80
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: Container High CPU utilization (instance {{ $labels.instance }})
+        description: "Container CPU utilization is above 80% VALUE = {{ $value }}  LABELS = {{ $labels }}"
