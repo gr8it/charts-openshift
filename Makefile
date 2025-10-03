@@ -114,7 +114,7 @@ package: check-helm check-helm-unittest
 					read -r confirmation; \
 					if [ "$$confirmation" != "y" ] && [ "$$confirmation" != "Y" ]; then \
 							exit 1; \
-					else
+					else \
 						helm unittest -u $$folder; \
 						if ! out=$$(helm unittest --strict $$folder); then \
 							echo -e "\033[0;31mSTILL FAILING\033[0m "; \
