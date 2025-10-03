@@ -1,0 +1,52 @@
+{{- if eq "true" (include "apc-global-overrides.clusterRunsApps" .) }}
+# using kyverno policy because accessor needs to read from the cluster / vault status
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: policy-svc-vie
+  annotations:
+    policies.kyverno.io/title: Setup vault access policy
+    policies.kyverno.io/category: Secrets
+    policies.kyverno.io/subject: project
+    policies.kyverno.io/minversion: 1.13.0
+spec:
+  background: true
+  # to enable sync for crossplane objects, use SSA
+  useServerSideApply: true
+  rules:
+  - name: policy-svc-vie
+    match:
+      any:
+      - resources:
+          kinds: ["auth.vault.upbound.io/*/Backend"]
+    preconditions:
+      all:
+      - key: "{{`{{ request.object.spec.forProvider.type }}`}}"
+        operator: Equals
+        value: "kubernetes"
+    generate:
+      generateExisting: true
+      synchronize: true
+      apiVersion: vault.vault.upbound.io/v1alpha1
+      kind: Policy
+      name: {{ .Values.vaultKVmount }}-{{ include "apc-global-overrides.require-environmentShort" . }}-svc-vie
+      data:
+        spec:
+          deletionPolicy: Orphan
+          forProvider:
+            name: {{ .Values.vaultKVmount }}-{{ include "apc-global-overrides.require-environmentShort" . }}-svc-vie
+
+            policy: |
+
+              path "{{ .Values.vaultKVmount }}/{{ include "apc-global-overrides.environmentShort" . }}/{{`\{{`}}identity.entity.aliases.{{`{{ request.object.status.atProvider.accessor }}`}}.metadata.service_account_namespace{{`}}`}}/*" {
+                capabilities = ["read", "list"]
+              }
+              path "{{ .Values.vaultKVmount }}/data/{{ include "apc-global-overrides.environmentShort" . }}/{{`\{{`}}identity.entity.aliases.{{`{{ request.object.status.atProvider.accessor }}`}}.metadata.service_account_namespace{{`}}`}}/*" {
+                capabilities = ["read", "list"]
+              }
+              path "{{ .Values.vaultKVmount }}/metadata/{{ include "apc-global-overrides.environmentShort" . }}/{{`\{{`}}identity.entity.aliases.{{`{{ request.object.status.atProvider.accessor }}`}}.metadata.service_account_namespace{{`}}`}}/*" {
+                capabilities = ["read", "list"]
+              }
+          providerConfigRef:
+            name: {{ include "external-secrets-config.vaultKubeVaultProviderConfigName" . }}
+{{- end }}

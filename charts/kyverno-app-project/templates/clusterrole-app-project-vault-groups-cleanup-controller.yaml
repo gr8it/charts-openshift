@@ -1,0 +1,17 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    {{- include "kyverno-app-project.labels" . | nindent 4 }}
+    rbac.kyverno.io/aggregate-to-cleanup-controller: "true"
+  name: kyverno:cleanup-controller:project-vault-groups
+rules:
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["list", "get"]
+- apiGroups: ["vault.vault.upbound.io"]
+  resources: ["policies"]
+  verbs: ["delete", "list"]
+- apiGroups: ["ldap.vault.upbound.io"]
+  resources: ["authbackendgroups"]
+  verbs: ["delete", "list"]

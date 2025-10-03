@@ -1,3 +1,5 @@
+.PHONY: debug lint unittest package publish clean build
+
 SHELL := /bin/bash
 .ONESHELL:
 
@@ -73,7 +75,7 @@ gitpull:
 		exit 1; \
 	fi
 
-package:
+package: check-helm check-helm-unittest
 	@echo -e "\033[0;36m~> Starting helm package for all chart folders ...\033[0m"
 	@mkdir -p $(OUTPUT_DIR)
 	$(eval TEMP_DIR := $(shell mktemp -d))
@@ -178,6 +180,12 @@ check-helm:
 		exit 1; \
 	fi
 
+check-helm-unittest:
+	@if (! helm plugin list | grep unittest >/dev/null 2>&1); then \
+		echo -e "\033[0;31mhelm unittest plugin not found; please install it.\033[0m"; \
+		exit 1; \
+	fi; \
+
 reset-index:
 	@echo -e "\033[0;36m~> Regenerating charts index file ...\033[0m"
 	@helm repo index $(CURDIR)/..
@@ -275,5 +283,5 @@ clean: check-yq
 
 build: package update-versions
 
-update-versions:
-	@ find charts -name Chart.yaml -exec yq -M '.name + ":" + .version' {} \; > versions.txt
+update-versions: check-yq
+	@ find charts -name Chart.yaml -exec yq -M '.name + ":" + .version' {} \; | sort > versions.txt
