@@ -61,21 +61,21 @@ Create the name of the service account to use
 {{- end }}
 {{- end }}
 
-{{/*
-Create the environment
-*/}}
-{{- define "kyverno-app-project.environment" -}}
-{{- .Values.environment | default .Values.global.apc.environment }}
-{{- end }}
-
 {{- define "kyverno-app-project.vaultRolesOverride" -}}
 {{- $roles := dict -}}
-{{- $roles := get .Values.vaultRolesOverride (include "kyverno-app-project.environment" . ) | default .Values.defaultVaultRoles }}
+{{- $roles := get .Values.vaultRolesOverride (include "apc-global-overrides.environment" . ) | default .Values.defaultVaultRoles }}
 {{- $roles | toYaml }}
 {{- end }}
 
 {{- define "kyverno-app-project.vaultCapabilitiesOverride" -}}
 {{- $capabilities := dict -}}
-{{- $capabilities := get .Values.vaultCapabilitiesOverride (include "kyverno-app-project.environment" . ) | default .Values.defaultVaultCapabilities }}
+{{- $capabilities := get .Values.vaultCapabilitiesOverride (include "apc-global-overrides.environment" . ) | default .Values.defaultVaultCapabilities }}
 {{- $capabilities | toYaml }}
+{{- end }}
+
+{{/*
+Create the vault provider config name
+*/}}
+{{- define "kyverno-app-project.vaultKubeVaultProviderConfigName" -}}
+{{- (((include "apc-global-overrides.services" .) | fromYaml).vault).kubeVaultProviderConfigName | required "Vault kubeVaultProviderConfigName is required" }}
 {{- end }}

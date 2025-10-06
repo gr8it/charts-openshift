@@ -9,13 +9,13 @@ spec:
     # delete omited by design not to allow deletion of secrets => allow creation, updates, and reads
     policy: |
 
-      path "{{ .Values.vaultKVmount }}/{{ include "apc-global-overrides.environmentShort" . }}/*" {
+      path "{{ .Values.vaultKVmountPlatform }}/{{ include "apc-global-overrides.environmentShort" . }}/*" {
         capabilities = ["create", "read", "update", "patch", "list"]
       }
-      path "{{ .Values.vaultKVmount }}/data/{{ include "apc-global-overrides.environmentShort" . }}/*" {
+      path "{{ .Values.vaultKVmountPlatform }}/data/{{ include "apc-global-overrides.environmentShort" . }}/*" {
         capabilities = ["create", "read", "update", "patch", "list"]
       }
-      path "{{ .Values.vaultKVmount }}/metadata/{{ include "apc-global-overrides.environmentShort" . }}/*" {
+      path "{{ .Values.vaultKVmountPlatform }}/metadata/{{ include "apc-global-overrides.environmentShort" . }}/*" {
         capabilities = ["create", "read", "update", "patch", "list"]
       }
 
