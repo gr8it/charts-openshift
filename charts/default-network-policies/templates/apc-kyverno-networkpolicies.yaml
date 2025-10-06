@@ -1,0 +1,38 @@
+{{- if .Values.createPlatformPolicies }}
+# Static NetworkPolicy for apc-kyverno namespace (same-namespace traffic)
+# This is required because Kyverno cannot generate network policies for its own namespace
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: apc-kyverno-allow-from-same-namespace
+  namespace: apc-kyverno
+  labels:
+    {{- include "default-network-policies.labels" . | nindent 4 }}
+    apc.networkpolicy.type: platform
+    apc.networkpolicy.generated-by: static
+spec:
+  podSelector: {}
+  ingress:
+  - from:
+    - podSelector: {}
+---
+# Static NetworkPolicy for apc-kyverno namespace (ingress traffic)
+# This is required because Kyverno cannot generate network policies for its own namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: apc-kyverno-allow-from-openshift-ingress
+  namespace: apc-kyverno
+  labels:
+    {{- include "default-network-policies.labels" . | nindent 4 }}
+    apc.networkpolicy.type: platform
+    apc.networkpolicy.generated-by: static
+spec:
+  podSelector: {}
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          network.openshift.io/policy-group: ingress
+{{- end }}
