@@ -62,37 +62,6 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
-Create the environment
-*/}}
-{{- define "ingress-configuration.environment" -}}
-{{- .Values.environment | default (include "apc-global-overrides.environment" . ) }}
-{{- end }}
-
-{{/*
-Create logging overrides
-Usage: {{ include "ingress-configuration.loggingRequestMaxlengthEffective" . | fromYaml }}
-*/}}
-{{- define "ingress-configuration.loggingRequestMaxlengthEffective" -}}
-{{- if hasKey .Values.loggingRequestMaxlengthOverride (include "ingress-configuration.environment" . ) }}
-{{- toYaml (get .Values.loggingRequestMaxlengthOverride (include "ingress-configuration.environment" . )) }}
-{{- else }}
-{{- toYaml .Values.defaultLoggingRequestMaxlength }}
-{{- end }}
-{{- end }}
-
-{{/*
-Create replicas overrides
-Usage: {{ include "ingress-configuration.replicasEffective" . }}
-*/}}
-{{- define "ingress-configuration.replicasEffective" -}}
-{{- if hasKey .Values.replicasOverride (include "ingress-configuration.environment" . ) }}
-{{- get .Values.replicasOverride (include "ingress-configuration.environment" . ) }}
-{{- else }}
-{{- .Values.defaultReplicas }}
-{{- end }}
-{{- end }}
-
-{{/*
 Create the cert-manager cluster issuer name
 */}}
 {{- define "cert-manager-config.defaultClusterIssuer" -}}
