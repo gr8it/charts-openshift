@@ -44,6 +44,14 @@ prometheusRule:
       summary: Kubernetes Pod not healthy (instance {{ $labels.instance }})
       description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} has been in a non-running state for longer than 15 minutes. VALUE = {{ $value }} LABELS = {{ $labels }}"
 
+    # Pod containers not ready (catches issues like failing liveness probes)
+    - alert: AppPodContainerNotReady
+      expr: sum by (namespace, pod) (kube_pod_container_status_ready{condition="false"}) > 0
+      for: 10m
+      severity: warning
+      summary: Kubernetes Pod containers not ready (instance {{ $labels.instance }})
+      description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} has containers that are not ready for longer than 10 minutes. This may indicate failing health checks. VALUE = {{ $value }} LABELS = {{ $labels }}"
+
     # Pod memory usage high
     - alert: AppContainerHighMemoryUsage
       expr: (sum(container_memory_working_set_bytes{name!=""}) BY (instance, name) / sum(container_spec_memory_limit_bytes > 0) BY (instance, name) * 100) > 80
