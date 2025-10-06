@@ -1,0 +1,68 @@
+
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+
+services:
+  externalSecretsOperator:
+    defaultClusterSecretStore: vault-hub-secret-store
+
+environmentShort: d
+
+vaultKVmountPlatform: apc-platform
+
+
+caCertificates:
+  caCrt: |-
+    -----BEGIN CERTIFICATE-----
+    MIIFeDCCA2CgAwIBAgIQOwdgFGGlYrpEM2DY1GNmezANBgkqhkiG9w0BAQsFADBD
+    MRIwEAYKCZImiZPyLGQBGRYCc2sxGDAWBgoJkiaJk/IsZAEZFghzb2Nwb2lzdDET
+    MBEGA1UEAxMKUm9vdENBLVNwMjAgFw0xNjAyMDIwOTUxNTNaGA8yMDU2MDIwMjEw
+    EGk2fSV1RcDLgqiw+F0vK32W8D7ncxNhNHekcuSjxqRxoMW6FU+MJ0ZQEaLhHALd
+    eBhV/NO5Fc3j7X0Sosja7rJBpvoN07b7W4v8Nxmi685nw/Qh3nVWVU3MNTeBdB1C
+    IdiAPCAYoq4mhRNe
+    -----END CERTIFICATE-----
+
+identityProviders:
+  - ldap:
+      attributes:
+        email:
+          - mail
+        id:
+          - sAMAccountName
+        name:
+          - cn
+        preferredUsername:
+          - sAMAccountName
+      bindDN: 'CN=1BA-SA-APC-OCP_AD_r,OU=T1-Service Accounts,OU=Tier 1,OU=Admin Tier Model,DC=example,DC=com'
+      bindPassword:
+        name: ad-ldap-bind-secret
+      ca:
+        name: ad-ldap-ca
+      insecure: false
+      url: 'ldaps://example.com/DC=example,DC=com?sAMAccountName?sub?(objectClass=person)'
+    mappingMethod: claim
+    name: Prihlásenie pre používateľov APC
+    type: LDAP
+  - name: APC LDAP
+    mappingMethod: claim 
+    type: LDAP
+    ldap:
+      attributes:
+        id: 
+        - dn
+        email: 
+        - mail
+        name: 
+        - cn
+        preferredUsername: 
+        - uid
+      bindDN: cn=OCP HUB01,ou=Technical-Accounts,ou=hub,ou=Project-Users,dc=example,dc=com
+      bindPassword: 
+        name: comm-ldap-bind-secret
+      ca: 
+        name: comm-ldap-ca
+      insecure: false
+      url: ldaps://ldap.comm.apc.example.com/OU=Project-Users,dc=example,dc=com?uid
+

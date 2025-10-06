@@ -1,0 +1,19 @@
+{{- if .Values.identityProviders }}
+{{- range .Values.identityProviders }}
+{{- $caName := "" -}}
+{{- if eq .type "LDAP"  }}
+{{- $caName = .ldap.ca.name -}}
+{{- end}}
+{{- if ne $caName "" -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $caName }}
+  labels:
+  {{- ( include "identity-providers-config.labels" $ ) | nindent 4 }}
+data:
+  ca.crt: |
+  {{- ( include "apc-global-overrides.caCertificatesBundle" $ ) | nindent 4}}
+{{- end}}
+{{- end}}
+{{- end}} 

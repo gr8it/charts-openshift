@@ -1,0 +1,9 @@
+{{- if .Values.identityProviders }}
+apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster
+spec:
+  identityProviders:
+{{ .Values.identityProviders | toYaml | indent 2 }}
+{{- end }}
