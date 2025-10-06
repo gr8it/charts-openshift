@@ -325,17 +325,17 @@ Create the noProxy and require it
 {{- end }}
 
 {{/*
-Create the proxyIPs (list)
+Create the proxyCIDRs (list)
 */}}
-{{- define "apc-global-overrides.proxyIPs" -}}
-{{- .Values.proxyIPs | default ((.Values.global).apc).proxyIPs | default list | toYaml }}
+{{- define "apc-global-overrides.proxyCIDRs" -}}
+{{- .Values.proxyCIDRs | default ((.Values.global).apc).proxyCIDRs | default list | toYaml }}
 {{- end }}
 
 {{/*
-Create the proxyIPs and require it
+Create the proxyCIDRs and require it
 */}}
-{{- define "apc-global-overrides.require-proxyIPs" -}}
-{{- include "apc-global-overrides.proxyIPs" . | required "apc proxyIPs is required" }}
+{{- define "apc-global-overrides.require-proxyCIDRs" -}}
+{{- include "apc-global-overrides.proxyCIDRs" . | required "apc proxyCIDRs is required" }}
 {{- end }}
 
 {{/*
