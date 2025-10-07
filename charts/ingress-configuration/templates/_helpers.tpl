@@ -64,8 +64,8 @@ Create the name of the service account to use
 {{/*
 Create the cert-manager cluster issuer name
 */}}
-{{- define "cert-manager-config.defaultClusterIssuer" -}}
-{{- $vaultName := include "cert-manager-config.vaultName" . -}}
+{{- define "ingress-configuration.defaultClusterIssuer" -}}
+{{- $vaultName := include "ingress-configuration.vaultName" . -}}
 {{- (((include "apc-global-overrides.services" .) | fromYaml).certManager).defaultClusterIssuer | default (printf "vault-%s-issuer" $vaultName) }}
 {{- end }}
 
@@ -73,28 +73,28 @@ Create the cert-manager cluster issuer name
 Create the Vault name
 From VaultURL = hostname, or override if specified
 */}}
-{{- define "cert-manager-config.vaultName" -}}
-{{- $vaultName := regexReplaceAll "https?://([^:/]+).*" (include "cert-manager-config.vaultUrl" .) "${1}" | required "Vault URL/Name is required" }}
+{{- define "ingress-configuration.vaultName" -}}
+{{- $vaultName := regexReplaceAll "https?://([^:/]+).*" (include "ingress-configuration.vaultUrl" .) "${1}" | required "Vault URL/Name is required" }}
 {{- .Values.vaultName | default $vaultName }}
 {{- end }}
 
 {{/*
 Create the Vault URL
 */}}
-{{- define "cert-manager-config.vaultUrl" -}}
+{{- define "ingress-configuration.vaultUrl" -}}
 {{- (((include "apc-global-overrides.services" .) | fromYaml).vault).url | required "Vault URL is required" }}
 {{- end }}
 
 {{/*
 Create the ingress cert CN
 */}}
-{{- define "cert-manager-config.ingressCertCommonName" -}}
+{{- define "ingress-configuration.ingressCertCommonName" -}}
 {{- .Values.ingressCertCommonName | default (include "apc-global-overrides.require-clusterAppsDomain" .) }}
 {{- end }}
 
 {{/*
 Create the ingress cert SANs
 */}}
-{{- define "cert-manager-config.ingressCertDnsNames" -}}
+{{- define "ingress-configuration.ingressCertDnsNames" -}}
 {{- (.Values.ingressCertDnsNames | default (list (print "*." (include "apc-global-overrides.require-clusterAppsDomain" .)))) | toJson }}
 {{- end }}
