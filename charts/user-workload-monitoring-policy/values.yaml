@@ -1,20 +1,3 @@
-nameOverride: ~
-fullnameOverride: ~
-
-disabled: false
-
-# Configuration for the Kyverno policy that creates PrometheusRule resources
-# This policy automatically creates monitoring rules for namespaces labeled with 'apc.namespace.type: application'
-# When a new namespace with this label is created, Kyverno will automatically generate PrometheusRule resources
-kyvernoPolicy:
-  name: "generate-prometheus-rules-for-user-workloads"
-  
-  # Target namespaces with this label for monitoring
-  # Only namespaces with 'apc.namespace.type: application' will get PrometheusRule resources
-  namespaceSelector:
-    matchLabels:
-      apc.namespace.type: "application"
-
 # PrometheusRule template configuration
 prometheusRule:
   # Rules for detecting pod issues in user workloads
@@ -28,29 +11,22 @@ prometheusRule:
       description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is crash looping VALUE = {{ $value }} LABELS = {{ $labels }}"
 
     # Container OOMKilled detection
-    - alert: AppContainerOOMKilled
-      expr: increase(kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}[1m]) > 0
-      for: 0m
-      severity: critical
-      summary: Container was OOMKilled (instance {{ $labels.instance }})
-      description: "Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} was killed due to Out Of Memory. VALUE = {{ $value }} LABELS = {{ $labels }}"
+    - alert: AppContainerOomKiller
+      expr: (kube_pod_container_status_restarts_total - kube_pod_container_status_restarts_total offset 10m >= 1) and ignoring (reason) min_over_time(kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}[10m]) == 1
+      for: 0m 
+      labels:
+        severity: warning
+      annotations:
+        summary: Kubernetes Container oom killer (instance {{ $labels.instance }})
+        description: "Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} has been OOMKilled {{ $value }} times in the last 10 minutes.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
 
-      
     # Pod not healthy
     - alert: AppPodNotHealthy
       expr: sum by (namespace, pod) (kube_pod_status_phase{phase=~"Pending|Unknown|Failed"}) > 0
       for: 15m
-      severity: critical
+      severity: warning
       summary: Kubernetes Pod not healthy (instance {{ $labels.instance }})
       description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} has been in a non-running state for longer than 15 minutes. VALUE = {{ $value }} LABELS = {{ $labels }}"
-
-    # Pod containers not ready (catches issues like failing liveness probes)
-    - alert: AppPodContainerNotReady
-      expr: sum by (namespace, pod) (kube_pod_container_status_ready{condition="false"}) > 0
-      for: 10m
-      severity: warning
-      summary: Kubernetes Pod containers not ready (instance {{ $labels.instance }})
-      description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} has containers that are not ready for longer than 10 minutes. This may indicate failing health checks. VALUE = {{ $value }} LABELS = {{ $labels }}"
 
     # Pod memory usage high
     - alert: AppContainerHighMemoryUsage
@@ -67,3 +43,4 @@ prometheusRule:
       severity: warning
       summary: Container High CPU utilization (instance {{ $labels.instance }})
       description: "Container CPU utilization is above 80% VALUE = {{ $value }}  LABELS = {{ $labels }}"
+
