@@ -1,0 +1,17 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-apps-{{ include "apc-global-overrides.clusterName" . }}-cert
+  namespace: openshift-ingress
+  labels:
+    {{- include "ingress-configuration.labels" . | nindent 4 }}
+spec:
+  secretName: wildcard-apps-{{ include "apc-global-overrides.clusterName" . }}-cert
+  issuerRef: 
+    kind: ClusterIssuer
+    name: {{ include "ingress-configuration.defaultClusterIssuer" . }}
+  commonName: {{ include "ingress-configuration.ingressCertCommonName" . }}
+  dnsNames:
+  {{- range include "ingress-configuration.ingressCertDnsNames" . | fromJsonArray }}
+    - "{{ . }}"
+  {{- end }}
