@@ -14,9 +14,21 @@ spec:
       - resources:
           kinds:
           - Namespace
+    exclude:
+      any:
+      - resources:
+          kinds:
+          - Namespace
           selector:
             matchLabels:
-              apc.namespace.type: "application"
+              openshift.io/cluster-monitoring: "true"
+      - resources:
+          kinds:
+          - Namespace
+          names:
+          - "openshift*"
+          - "kube*"
+          - "default"
     generate:
       synchronize: true
       apiVersion: monitoring.coreos.com/v1
