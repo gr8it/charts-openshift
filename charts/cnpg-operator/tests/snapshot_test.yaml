@@ -1,0 +1,11 @@
+suite: Snapshot test
+templates:
+  - templates/*
+release:
+  name: cnpg-operator
+  namespace: apc-cnpg-operator
+
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}
