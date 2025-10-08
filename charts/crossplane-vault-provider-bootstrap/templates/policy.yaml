@@ -143,6 +143,9 @@ spec:
                     description: 'Kubernetes Auth for {{"{{"}}hub .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}} cluster'
                     type: "kubernetes"
                     path: '{{"{{"}}hub "{{ .Values.vaultKubeAuthMountPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}'
+                    tune:
+                      - defaultLeaseTtl: "900"
+                        maxLeaseTtl: "3600"
                   providerConfigRef:
                     name: {{ $vaultProviderConfigName }}
 
@@ -230,7 +233,7 @@ spec:
                     tokenPolicies:
                       - default
                       - '{{"{{"}}hub .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}--{{ .Values.vaultKubernetesRole }}'
-                    tokenTtl: 3600
+                    tokenTtl: 900
                   providerConfigRef:
                     name: {{ $vaultProviderConfigName }}
 

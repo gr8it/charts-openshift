@@ -12,7 +12,6 @@ metadata:
     policies.kyverno.io/minversion: 1.15.0
 spec:
   background: false
-  skipBackgroundRequests: false
   useServerSideApply: true
   validationFailureAction: Audit
   rules:
@@ -35,7 +34,6 @@ spec:
         kind: ConfigMap
         name: "proxy"
         namespace: '{{ `{{request.object.metadata.name}}` }}'
-        synchronize: true
         data:
           kind: ConfigMap
           data:

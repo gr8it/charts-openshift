@@ -122,26 +122,6 @@ kyverno:
             - patch
             - update
             - watch
-          # application-gitops clusterpolicy
-          - apiGroups:
-            - argoproj.io
-            resources:
-            - appprojects
-            verbs:
-            - create
-            - delete
-            - get
-            - update
-          # application-gitops clusterpolicy
-          - apiGroups:
-            - ""
-            resources:
-            - serviceaccounts
-            verbs:
-            - create
-            - delete
-            - get
-            - update
 
     resources:
       limits:
@@ -187,14 +167,7 @@ kyverno:
             verbs:
             - get
             - list
-            - watch             
-          # application-gitops clusterpolicy
-          - apiGroups:
-            - rbac.authorization.k8s.io
-            resources:
-            - rolebindings
-            verbs:
-            - get
+            - watch
     container:
       resources:
         limits:
