@@ -7,7 +7,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: default-network-policies
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: default-network-policies
-        helm.sh/chart: default-network-policies-1.3.0
+        helm.sh/chart: default-network-policies-1.4.0
       name: application-anp-policy
     spec:
       egress:
@@ -47,7 +47,8 @@ manifests should match snapshot:
                     operator: In
                     values:
                       - openshift-operators
-          name: allow-ingress-from-openshift-operators
+                      - apc-cnpg-operator
+          name: allow-ingress-from-operators
         - action: Allow
           from:
             - namespaces:
@@ -96,7 +97,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: default-network-policies
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: default-network-policies
-        helm.sh/chart: default-network-policies-1.3.0
+        helm.sh/chart: default-network-policies-1.4.0
       name: app-project-networkpolicy
     spec:
       background: true
@@ -159,7 +160,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: default-network-policies
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: default-network-policies
-        helm.sh/chart: default-network-policies-1.3.0
+        helm.sh/chart: default-network-policies-1.4.0
       name: default
     spec:
       egress:
@@ -189,7 +190,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: default-network-policies
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: default-network-policies
-        helm.sh/chart: default-network-policies-1.3.0
+        helm.sh/chart: default-network-policies-1.4.0
       name: platform-anp-policy
     spec:
       egress:
@@ -261,7 +262,8 @@ manifests should match snapshot:
                     operator: In
                     values:
                       - openshift-operators
-          name: allow-ingress-from-openshift-operators
+                      - apc-cnpg-operator
+          name: allow-ingress-from-operators
         - action: Allow
           from:
             - namespaces:
@@ -310,7 +312,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: default-network-policies
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: default-network-policies
-        helm.sh/chart: default-network-policies-1.3.0
+        helm.sh/chart: default-network-policies-1.4.0
       name: platform-project-networkpolicy
     spec:
       background: true
@@ -373,7 +375,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: default-network-policies
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: default-network-policies
-        helm.sh/chart: default-network-policies-1.3.0
+        helm.sh/chart: default-network-policies-1.4.0
       name: cluster-wide-restricted-policy
     spec:
       egress:

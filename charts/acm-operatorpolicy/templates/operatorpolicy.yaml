@@ -46,6 +46,10 @@ spec:
     {{- if .Values.subscription.startingCSV }}
     startingCSV: {{ .Values.subscription.startingCSV }}
     {{- end }}
+    {{- if .Values.subscription.config }}
+    config:
+      {{- .Values.subscription.config | toYaml | nindent 6 }}
+    {{- end }}
   removalBehavior:
     operatorGroups: {{ .Values.removalBehavior.operatorGroups }}
     subscriptions: {{ .Values.removalBehavior.subscriptions }}

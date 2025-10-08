@@ -57,7 +57,7 @@ spec:
                   operator: In
                   values:
                     - csi-addons
-    - name: allow-ingress-from-openshift-operators
+    - name: allow-ingress-from-operators
       action: Allow
       from:
         - namespaces:
@@ -66,6 +66,7 @@ spec:
                 operator: In
                 values:
                   - openshift-operators
+                  {{- .Values.operatorNamespaces | toYaml | nindent 18 }}
     - name: allow-ingress-from-crossplane-namespace
       action: Allow
       from:
