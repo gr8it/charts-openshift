@@ -310,6 +310,10 @@ spec:
                   role: {{ .Values.vaultKubernetesRole }}
                   credentials:
                     source: Kubernetes
+                  max_lease_ttl_seconds: 1199
+                  headers:
+                    name: ""
+                    value: ""
 
     - extraDependencies:
         - name: {{ include "crossplane-vault-provider-bootstrap.fullname" . }}-kubernetes-auth-provisioned-check

@@ -120,6 +120,13 @@ spec:
                       key: credentials
                       name: {{ $vaultName }}-token
                       namespace: {{ .Values.crossplaneNamespace }}
+                  # skip child token = do not generate token per transaction, use only generated token
+                  # workaround for too many long lived (32d) tokens created
+                  skip_child_token: true
+                  max_lease_ttl_seconds: 1199
+                  headers:
+                    name: ""
+                    value: ""
 
     - objectDefinition:
         apiVersion: policy.open-cluster-management.io/v1
