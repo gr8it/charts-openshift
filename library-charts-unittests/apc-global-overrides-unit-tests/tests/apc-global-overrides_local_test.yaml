@@ -59,12 +59,12 @@ tests:
       - equal: { path: data.clusterIsHub, value: false }
       - equal: { path: data.clusterRunsApps, value: false }
 
-  - it: proxy, noProxy, proxyIPs from local
+  - it: proxy, noProxy, proxyCIDRs from local
     asserts:
       - equal: { path: data.proxy, value: proxy-local }
       - equal: { path: data.noProxy, value: noProxy-local }
       - equal:
-          path: data.proxyIPs
+          path: data.proxyCIDRs
           value:
             - proxyIP-local1
             - proxyIP-local2

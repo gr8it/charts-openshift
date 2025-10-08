@@ -131,8 +131,8 @@ Helper functions prefixed with `merge-` merge local and global dict giving prefe
 |apc-global-overrides.require-proxy|proxy|global.apc.proxy|string||
 |apc-global-overrides.noProxy|noProxy|global.apc.noProxy|string||
 |apc-global-overrides.require-noProxy|noProxy|global.apc.noProxy|string||
-|apc-global-overrides.proxyIPs|proxyIPs|global.apc.proxyIPs|list||
-|apc-global-overrides.require-proxyIPs|proxyIPs|global.apc.proxyIPs|list||
+|apc-global-overrides.proxyCIDRs|proxyCIDRs|global.apc.proxyCIDRs|list||
+|apc-global-overrides.require-proxyCIDRs|proxyCIDRs|global.apc.proxyCIDRs|list||
 |apc-global-overrides.services|services|global.apc.services|dictionary||
 |apc-global-overrides.merge-services|services|global.apc.services|dictionary||
 |apc-global-overrides.caCertificates|caCertificates|global.apc.caCertificates|dictionary||

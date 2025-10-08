@@ -32,13 +32,13 @@ data:
   noProxy: {{ include "apc-global-overrides.noProxy" . }}
   {{- end }}
   {{- /* it is not sufficient to test without fromYamlArray !!! */}}
-  {{- if (include "apc-global-overrides.proxyIPs" .) | fromYamlArray }}
-  {{- /* proxyIPs as a list */}}
-  proxyIPs:
-    {{- (include "apc-global-overrides.proxyIPs" .) | nindent 4 }}
-  {{- /* proxyIPs parsed and rendered as needed */}}
-  proxyIPsArray:
-    {{- range (include "apc-global-overrides.proxyIPs" . | fromYamlArray ) }}
+  {{- if (include "apc-global-overrides.proxyCIDRs" .) | fromYamlArray }}
+  {{- /* proxyCIDRs as a list */}}
+  proxyCIDRs:
+    {{- (include "apc-global-overrides.proxyCIDRs" .) | nindent 4 }}
+  {{- /* proxyCIDRs parsed and rendered as needed */}}
+  proxyCIDRsArray:
+    {{- range (include "apc-global-overrides.proxyCIDRs" . | fromYamlArray ) }}
     - IP: {{ . }}
     {{- end }}
   {{- end }}

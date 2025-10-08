@@ -1,0 +1,39 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: policy.open-cluster-management.io/v1beta1
+    kind: OperatorPolicy
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cert-utils-operator
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: acm-operatorpolicy
+        app.kubernetes.io/version: v1beta1
+        helm.sh/chart: acm-operatorpolicy-1.1.0
+      name: cert-utils-operator-acm-operatorpolicy
+      namespace: open-cluster-management-policies
+    spec:
+      complianceConfig:
+        catalogSourceUnhealthy: Compliant
+        deploymentsUnavailable: NonCompliant
+        upgradesAvailable: Compliant
+      complianceType: musthave
+      operatorGroup:
+        name: cert-utils-operator
+        namespace: cert-utils-operator
+      remediationAction: enforce
+      removalBehavior:
+        clusterServiceVersions: Delete
+        customResourceDefinitions: Keep
+        operatorGroups: DeleteIfUnused
+        subscriptions: Delete
+      severity: medium
+      subscription:
+        channel: alpha
+        name: cert-utils-operator
+        namespace: cert-utils-operator
+        source: community-operators
+        sourceNamespace: openshift-marketplace
+        startingCSV: cert-utils-operator.v1.3.12
+      upgradeApproval: Automatic
+      versions:
+        - cert-utils-operator.v1.3.12
