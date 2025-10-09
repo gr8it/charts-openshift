@@ -2,26 +2,35 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: {{ include "user-workload-monitoring-policy.fullname" . }}
+  name: uwm-platform-cluster-policy
   labels:
     {{- include "user-workload-monitoring-policy.labels" . | nindent 4 }}
 spec:
   generateExistingOnPolicyUpdate: true
   rules:
-  - name: generate-prometheus-rules
+  - name: generate-prometheus-rules-platform
     match:
       any:
       - resources:
           kinds:
           - Namespace
+    preconditions:
+      all:
+      - key: {{ "{{request.object.metadata.labels.\"openshift.io/cluster-monitoring\" || ''}}" | quote }}
+        operator: In
+        value:
+        - ""
+        - "false"
+      - key: {{ "{{request.object.metadata.labels.\"openshift.io/user-monitoring\"| ''}}" | quote }}
+        operator: In
+        value:
+        - ""
+        - "true"
+      - key: {{ "{{request.object.metadata.labels.\"apc.namespace.type\" || ''}}" | quote }}
+        operator: NotIn
+        value:
+        - "application"
     exclude:
-      any:
-      - resources:
-          kinds:
-          - Namespace
-          selector:
-            matchLabels:
-              openshift.io/cluster-monitoring: "true"
       - resources:
           kinds:
           - Namespace
