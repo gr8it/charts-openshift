@@ -2,13 +2,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ (index .Values "community-operator").operator.name }}-monitoring
+  name: {{ (index .Values "mongodb-kubernetes").operator.name }}-monitoring
   namespace: {{ .Release.Namespace }}
   labels:
-    name: {{ (index .Values "community-operator").operator.name }}
+    name: {{ (index .Values "mongodb-kubernetes").operator.name }}
 spec:
   selector:
-    name: {{ (index .Values "community-operator").operator.name }}
+    name: {{ (index .Values "mongodb-kubernetes").operator.name }}
   ports:
     - name: metrics
       protocol: TCP
@@ -19,14 +19,14 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ (index .Values "community-operator").operator.name }}-monitor
+  name: {{ (index .Values "mongodb-kubernetes").operator.name }}-monitor
   namespace: {{ .Release.Namespace }}
   labels:
-    name: {{ (index .Values "community-operator").operator.name }}
+    name: {{ (index .Values "mongodb-kubernetes").operator.name }}
 spec:
   selector:
     matchLabels:
-      name: {{ (index .Values "community-operator").operator.name }}
+      name: {{ (index .Values "mongodb-kubernetes").operator.name }}
   endpoints:
     - interval: 30s
       port: metrics
