@@ -1,0 +1,55 @@
+nameOverride: apc-grafana
+
+releaseServiceOverride: ~
+
+# ClusterRole references for granting access to cluster resources
+clusterRoleRef:
+  # ClusterRole name for accessing application pod logs
+  applicationLogs: cluster-logging-application-view
+  # ClusterRole name for accessing monitoring resources
+  monitoring: cluster-monitoring-view
+  # ClusterRole name for accessing tempostack traces
+  tempoTraces: tempostack-traces-read
+
+# Number of grafana pod replicas
+replicas: 1
+
+# PVC StorageClass (must support RWX for multiple replicas)
+# Set storageClassName to null to disable PVC provisioning
+storageClassName: ~ # ocs-storagecluster-cephfs
+storageAccessModes: ReadWriteMany
+storageSize: 200Mi
+
+# Resource requests / limits
+resources:
+  requests: { cpu: 100m, memory: 256Mi }
+  limits:   { cpu: '4',  memory: 2Gi }
+
+# Referenced filenames should exist under ./dashboards folder
+# If this is an empty list [] - NO dashboards are included
+# If this is unset / null - ALL dashboards are rendered
+dashboardFilter: ~
+# - openshift-persistent-volumes.json.gz
+# - openshift-pvc-monitoring.json.gz
+# - openshift-pvc-overview.json.gz
+# - strimzi-cruise-control.json.gz
+# - strimzi-operators.json.gz
+# - velero-oadp.json.gz
+
+# Override grfana dashboard folder (defaults to namespace name)
+dashboardFolderOverride: ~
+
+# Datasource URLs (set this to null to skip this datasource)
+datasourceThanosUrl: https://thanos-querier.openshift-monitoring.svc.cluster.local:9091
+datasourceLokiUrl:   https://logging-loki-gateway-http.openshift-logging.svc.cluster.local:8080/api/logs/v1/application/
+datasourceTempoUrl:  https://tempo-apc-tempo-stack-gateway.apc-observability.svc.cluster.local:8080/api/traces/v1/application/tempo
+
+# Overrides for grafana route host url (constructed as <overrideGrafanaHost>.<overrideGrafanaDomain>)
+# defaults to grafana-<namespace>-<global.apc.cluster.appsDomain>
+grafanaHostOverride: ~
+grafanaDomainOverride: ~
+
+# Proxy Overrides (when unset, defaults to global.apc.proxy)
+proxy: ~
+noProxy: ~
+proxyCIDRs: []

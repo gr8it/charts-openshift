@@ -1,0 +1,31 @@
+{{- if (.Values.datasourceLokiUrl | default false) }}
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: loki
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "grafana-instance.labels" . | nindent 4 }}
+spec:
+  instanceSelector:
+    matchLabels:
+      datasource: {{ include "grafana-instance.name" . }}
+  valuesFrom:
+    - targetPath: "secureJsonData.httpHeaderValue1"
+      valueFrom:
+        secretKeyRef:
+          name: {{ include "grafana-instance.name" . }}-sa-token
+          key: token
+  datasource:
+    name: loki
+    type: loki
+    access: proxy
+    basicAuth: true
+    url: "{{ .Values.datasourceLokiUrl }}"
+    isDefault: false
+    jsonData:
+      httpHeaderName1: Authorization
+    secureJsonData:
+      httpHeaderValue1: "Bearer ${token}"
+{{- end }}

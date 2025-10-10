@@ -1,0 +1,24 @@
+{{- if (include "apc-global-overrides.proxy" .) | default false }}
+{{- $CIDRs := ( include "apc-global-overrides.require-proxyCIDRs" . | fromYamlArray) }}
+{{- if lt (len $CIDRs) 1 }}
+{{- fail "proxyCIDRs is required if using proxy" }}
+{{- end }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "grafana-instance.name" . }}-allow-proxy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "grafana-instance.labels" . | nindent 4 }}
+spec:
+  egress:
+    - to:
+        {{- range $CIDRs }}
+        - ipBlock:
+            cidr: {{ . }}
+        {{- end }}
+  podSelector: {}
+  policyTypes:
+    - Egress
+{{- end }}

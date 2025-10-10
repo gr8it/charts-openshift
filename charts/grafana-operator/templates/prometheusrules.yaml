@@ -1,0 +1,23 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "grafana-operator.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "grafana-operator.labels" . | nindent 4 }}
+spec:
+  groups:
+    - name: {{ include "grafana-operator.fullname" . }}.rules
+      rules:
+        - alert: GrafanaOperatorDown
+          expr: |
+            absent(kube_pod_status_phase{namespace="{{ .Release.Namespace }}",phase="Running",pod=~"grafana-operator-controller-manager-.*"} == 1)
+            or sum(kube_pod_status_phase{namespace="{{ .Release.Namespace }}",phase="Running",pod=~"grafana-operator-controller-manager-.*"}) == 0
+          for: 5m
+          labels:
+            severity: warning
+            {{- include "grafana-operator.monitoringLabels" . | nindent 12 }}
+          annotations:
+            description: "Grafana operator pod in namespace {{`{{ $labels.namespace }}`}} is down for more than 5 minutes."
+            summary: "Grafana operator pod is down or missing"
