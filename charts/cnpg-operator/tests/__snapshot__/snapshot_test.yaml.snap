@@ -1,0 +1,71 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PodMonitor
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cnpg-operator
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cnpg-operator
+        app.kubernetes.io/version: v1.26.0
+        helm.sh/chart: cnpg-operator-1.2.0
+      name: cnpg-operator
+      namespace: apc-cnpg-operator
+    spec:
+      namespaceSelector:
+        matchNames:
+          - apc-cnpg-operator
+      podMetricsEndpoints:
+        - port: metrics
+      selector:
+        matchLabels:
+          app.kubernetes.io/name: cloudnative-pg
+  2: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cnpg-operator
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cnpg-operator
+        app.kubernetes.io/version: v1.26.0
+        helm.sh/chart: cnpg-operator-1.2.0
+      name: cnpg-operator
+      namespace: apc-cnpg-operator
+    spec:
+      groups:
+        - name: cnpg-operator.rules
+          rules:
+            - alert: CNPGOperatorDown
+              annotations:
+                description: CNPG operator pod has been down for more than 5 minutes
+                summary: CNPG operator is not running
+              expr: |
+                absent(up{job="apc-cnpg-operator/cnpg-operator"}) == 1
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: CNPGOperatorReconciliationErrors
+              annotations:
+                description: CNPG operator has reconciliation errors
+                summary: CNPG reconciliation errors detected
+              expr: |
+                increase(controller_runtime_reconcile_errors_total{job="apc-cnpg-operator/cnpg-operator"}[15m]) > 0
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: CNPGOperatorWebhookErrors
+              annotations:
+                description: CNPG operator is experiencing webhook errors for {{ $labels.webhook }}
+                summary: CNPG operator webhook errors detected
+              expr: |
+                increase(controller_runtime_webhook_requests_total{job="apc-cnpg-operator/cnpg-operator", code="500"}[15m]) > 0
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta

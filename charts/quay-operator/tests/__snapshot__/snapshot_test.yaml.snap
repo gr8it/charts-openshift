@@ -1,0 +1,36 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: policy.open-cluster-management.io/v1beta1
+    kind: OperatorPolicy
+    metadata:
+      labels:
+        app.kubernetes.io/instance: quay-operator
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: acm-operatorpolicy
+        app.kubernetes.io/version: v1beta1
+        helm.sh/chart: acm-operatorpolicy-1.1.0
+      name: quay-operator-acm-operatorpolicy
+      namespace: open-cluster-management-policies
+    spec:
+      complianceConfig:
+        catalogSourceUnhealthy: Compliant
+        deploymentsUnavailable: NonCompliant
+        upgradesAvailable: Compliant
+      complianceType: musthave
+      remediationAction: enforce
+      removalBehavior:
+        clusterServiceVersions: Delete
+        customResourceDefinitions: Keep
+        operatorGroups: DeleteIfUnused
+        subscriptions: Delete
+      severity: medium
+      subscription:
+        channel: stable-3.15
+        name: quay-operator
+        namespace: quay-operator
+        source: redhat-operators
+        sourceNamespace: openshift-marketplace
+        startingCSV: quay-operator.v3.15.1
+      upgradeApproval: Automatic
+      versions:
+        - quay-operator.v3.15.1
