@@ -4,19 +4,19 @@ prometheusRule:
   rules:
     # Pod CrashLoopBackOff detection
     - alert: KubePodCrashLooping
-      annotations:
-        description: 'Pod {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container }}) is in waiting state (reason: "CrashLoopBackOff").'
-        summary: Pod is crash looping.
       expr: |
         max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff",job="kube-state-metrics"}[5m]) >= 1
       for: 15m
       labels:
         severity: warning
+      annotations:
+        description: 'Pod {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container }}) is in waiting state (reason: "CrashLoopBackOff").'
+        summary: Pod is crash looping.
             
     # Container OOMKilled detection
     - alert: AppContainerOomKiller
       expr: (kube_pod_container_status_restarts_total - kube_pod_container_status_restarts_total offset 10m >= 1) and ignoring (reason) min_over_time(kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}[10m]) == 1
-      for: 0m 
+      for: 0m
       labels:
         severity: warning
       annotations:
@@ -25,10 +25,6 @@ prometheusRule:
 
     # Pod not healthy
     - alert: KubePodNotReady
-      annotations:
-        description: 'Pod {{ $labels.namespace }}/{{ $labels.pod }} has been in a non-ready state for longer than 15 minutes.'
-        runbook_url: 'https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/KubePodNotReady.md'
-        summary: Pod has been in a non-ready state for more than 15 minutes.
       expr: |
         sum by (namespace, pod, cluster) (
           max by(namespace, pod, cluster) (
@@ -41,6 +37,10 @@ prometheusRule:
       for: 15m
       labels:
         severity: warning
+      annotations:
+        description: 'Pod {{ $labels.namespace }}/{{ $labels.pod }} has been in a non-ready state for longer than 15 minutes.'
+        runbook_url: 'https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/KubePodNotReady.md'
+        summary: Pod has been in a non-ready state for more than 15 minutes.
 
     # Pod Running but not Ready for more than 5 minutes (detects 1/2 containers running)
     - alert: PodNotReadyWhileRunning
@@ -52,32 +52,40 @@ prometheusRule:
       labels:
         severity: warning
       annotations:
-        summary: "Pod {{ $labels.pod }} is Running but not Ready"
-        description: "Pod {{ $labels.pod }} in {{ $labels.namespace }} has been Running but not Ready for >5m."
+        summary: "Container {{ $labels.container }} in pod {{ $labels.pod }} is not ready"
+        description: |
+          Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }}
+          is not ready for more than 5 minutes while the pod is in Running phase.
+          This may indicate a failed readiness probe, an initialization issue,
+          or a container that failed to start properly.
     
     # Pod memory usage high
     - alert: AppContainerHighMemoryUsage
       expr: (sum(container_memory_working_set_bytes{name!=""}) BY (instance, name) / sum(container_spec_memory_limit_bytes > 0) BY (instance, name) * 100) > 80
       for: 2m
-      severity: warning
-      summary: Container High Memory usage (instance {{ $labels.instance }})
-      description: "Container Memory usage is above 80% VALUE = {{ $value }} LABELS = {{ $labels }}"
+      labels:
+        severity: warning
+      annotations:
+        summary: Container High Memory usage (instance {{ $labels.instance }})
+        description: "Container Memory usage is above 80% VALUE = {{ $value }} LABELS = {{ $labels }}"
     
     # Pod CPU usage high
     - alert: AppContainerHighCpuUtilization
       expr: (sum(rate(container_cpu_usage_seconds_total{container!=""}[5m])) by (pod, container) / sum(container_spec_cpu_quota{container!=""}/container_spec_cpu_period{container!=""}) by (pod, container) * 100) > 80
       for: 2m
-      severity: warning
-      summary: Container High CPU utilization (instance {{ $labels.instance }})
-      description: "Container CPU utilization is above 80% VALUE = {{ $value }}  LABELS = {{ $labels }}"
+      labels:
+        severity: warning
+      annotations:
+        summary: Container High CPU utilization (instance {{ $labels.instance }})
+        description: "Container CPU utilization is above 80% VALUE = {{ $value }}  LABELS = {{ $labels }}"
 
     # Pod container in waiting state for more than 1 hour
     - alert: KubeContainerWaiting
-      annotations:
-        description: 'pod/{{ $labels.pod }} in namespace {{ $labels.namespace }} on container {{ $labels.container}} has been in waiting state for longer than 1 hour.'
-        summary: Pod container waiting longer than 1 hour
       expr: |
         sum by (namespace, pod, container, cluster) (kube_pod_container_status_waiting_reason{job="kube-state-metrics"}) > 0
       for: 1h
       labels:
         severity: warning
+      annotations:
+        description: 'pod/{{ $labels.pod }} in namespace {{ $labels.namespace }} on container {{ $labels.container}} has been in waiting state for longer than 1 hour.'
+        summary: Pod container waiting longer than 1 hour
