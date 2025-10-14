@@ -11,10 +11,8 @@ CHARTS_DIR="$(realpath "${SCRIPT_DIR}/../charts")"
 if [[ -n "${CHARTFOLDER:-}" ]]; then
   CHARTFOLDERS="${CHARTS_DIR}/${CHARTFOLDER}"
 else
-  CHARTFOLDERS=$(find "${CHARTS_DIR}" -mindepth 2 -maxdepth 2 -type f -name Chart.yaml -printf '%h\n' | sort)
+  CHARTFOLDERS=$(find "${CHARTS_DIR}" -mindepth 2 -maxdepth 2 -type f -name Chart.yaml -print0 | xargs -0 dirname | sort)
 fi
-
-## CHARTFOLDERS=($(find "$CHARTS_DIR" -mindepth 1 -maxdepth 1 -type d -exec test -f '{}/Chart.yaml' \; -print))
 
 echo -e "\033[0;36m~> Starting helm package for all chart folders ...\033[0m"
 mkdir -p "$OUTPUT_DIR"
