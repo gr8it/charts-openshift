@@ -1,11 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
-# SCRIPT_DIR=$(dirname "$0")
-OUTPUT_DIR="$(realpath "$(dirname "$0")/../packaged_charts")"
-INDEX_FILE="$(realpath "$(dirname "$0")/../index.yaml")"
+SCRIPT_DIR=$(dirname "$0")
+OUTPUT_DIR="$(realpath "${SCRIPT_DIR}/../packaged_charts")"
+INDEX_FILE="$(realpath "${SCRIPT_DIR}/../index.yaml")"
 TEMP_DIR="$(mktemp -d)"
-CHARTS_DIR="$(realpath "$(dirname "$0")/../charts")"
+CHARTS_DIR="$(realpath "${SCRIPT_DIR}/../charts")"
 
 # setup path variables
 if [[ -n "${CHARTFOLDER:-}" ]]; then
