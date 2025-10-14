@@ -87,8 +87,8 @@ vault write sys/auth/token/tune max_lease_ttl=768h
 |caCertificates|`.global.apc.caCertificates`|PEM encoded CA cert to trust when Vault makes contact to the Kube API|
 |services.vault.url|`.global.apc.services.vault.url`|Vault URL|
 |services.vault.name|`.global.apc.services.vault.name`|Vault Name|
-|services.vault.kubeVaultProviderConfigName|`.global.apc.services.vault.kubeVaultProviderConfigName`|Name of the Vault provider config to create|
-|vaultKubeAuthMountPath|-|For testing only as it only support 1 cluster only !!! => Kube auth mount path in Vault |
+|services.crossplane.kubeVaultProviderConfigName|`.global.apc.services.crossplane.kubeVaultProviderConfigName`|Name of the Vault provider config to create|
+|vaultKubeAuthMountPath|-|For testing only as it only support 1 cluster only !!! normally filled in by hub ACM templating => Kube auth mount path in Vault|
 |vaultKubernetesRole|crossplane|Kubernetes role in Vault for Crossplane to use|
 |crossplaneNamespace|apc-crossplane-system|Namespace where Crossplane is installed, and configurations are created|
 

@@ -4,8 +4,8 @@ metadata:
   name: {{ include "apc-global-overrides.clusterName" . }}-{{ .Values.vaultKubeAuthRole }}
 spec:
   forProvider:
-    audience: vault://{{ include "cert-manager-config.certManagerdefaultClusterIssuer" . }}
-    backend: {{ include "cert-manager-config.vaultKubeAuthMountPath" . }}
+    audience: vault://{{ include "apc-global-overrides.require-certManagerDefaultClusterIssuer" . }}
+    backend: {{ include "apc-global-overrides.require-vaultKubeAuthMountPath" . }}
     boundServiceAccountNames:
       - {{ .Values.kubeServiceAccount }}
     boundServiceAccountNamespaces:
@@ -16,4 +16,4 @@ spec:
       - {{ include "apc-global-overrides.clusterName" . }}--{{ .Values.vaultKubeAuthRole }}
     tokenTtl: 900
   providerConfigRef:
-    name: {{ include "cert-manager-config.vaultKubeVaultProviderConfigName" . }}
+    name: {{ include "apc-global-overrides.require-crossplaneKubeVaultProviderConfigName" . }}
