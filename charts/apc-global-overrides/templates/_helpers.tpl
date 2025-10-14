@@ -1,67 +1,4 @@
 {{/*
-Expand the name of the chart.
-*/}}
-{{- define "apc-global-overrides.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
-Create a default fully qualified app name.
-We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
-If release name contains chart name it will be used as a full name.
-*/}}
-{{- define "apc-global-overrides.fullname" -}}
-{{- if .Values.fullnameOverride }}
-{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- $name := default .Chart.Name .Values.nameOverride }}
-{{- if contains $name .Release.Name }}
-{{- .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-{{- end }}
-{{- end }}
-
-{{/*
-Create chart name and version as used by the chart label.
-*/}}
-{{- define "apc-global-overrides.chart" -}}
-{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
-Common labels
-*/}}
-{{- define "apc-global-overrides.labels" -}}
-helm.sh/chart: {{ include "apc-global-overrides.chart" . }}
-{{ include "apc-global-overrides.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- end }}
-
-{{/*
-Selector labels
-*/}}
-{{- define "apc-global-overrides.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "apc-global-overrides.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end }}
-
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "apc-global-overrides.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "apc-global-overrides.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
-{{- end }}
-{{- end }}
-
-{{/*
 Helper function to work around helm limitation while using the default function, where false and null / nil are handled the same.
 This function:
 - returns value (1st argument) if the value is a boolean or string "true" or "false"
@@ -97,7 +34,7 @@ Create the customer
 Create the customer and require it
 */}}
 {{- define "apc-global-overrides.require-customer" -}}
-{{- include "apc-global-overrides.customer" . | required "apc customer is required" }}
+{{- include "apc-global-overrides.customer" . | required "APC customer is required" }}
 {{- end }}
 
 {{/*
@@ -111,7 +48,7 @@ Create the repoURL
 Create the repoURL and require it
 */}}
 {{- define "apc-global-overrides.require-repoURL" -}}
-{{- include "apc-global-overrides.repoURL" . | required "apc repoURL is required" }}
+{{- include "apc-global-overrides.repoURL" . | required "APC repoURL is required" }}
 {{- end }}
 
 {{/*
@@ -132,7 +69,7 @@ Create the repoTargetRevision
 Create the repoTargetRevision and require it
 */}}
 {{- define "apc-global-overrides.require-repoTargetRevision" -}}
-{{- include "apc-global-overrides.repoTargetRevision" . | required "apc repoTargetRevision is required" }}
+{{- include "apc-global-overrides.repoTargetRevision" . | required "APC repoTargetRevision is required" }}
 {{- end }}
 
 {{/*
@@ -146,7 +83,7 @@ Create the environment
 Create the environment and require it
 */}}
 {{- define "apc-global-overrides.require-environment" -}}
-{{- include "apc-global-overrides.environment" . | required "apc environment is required" }}
+{{- include "apc-global-overrides.environment" . | required "APC environment is required" }}
 {{- end }}
 
 {{/*
@@ -160,7 +97,7 @@ Create the environmentShort
 Create the environmentShort and require it
 */}}
 {{- define "apc-global-overrides.require-environmentShort" -}}
-{{- include "apc-global-overrides.environmentShort" . | required "apc environmentShort is required" }}
+{{- include "apc-global-overrides.environmentShort" . | required "APC environmentShort is required" }}
 {{- end }}
 
 {{/*
@@ -174,7 +111,7 @@ Create the clusterName
 Create the clusterName and require it
 */}}
 {{- define "apc-global-overrides.require-clusterName" -}}
-{{- include "apc-global-overrides.clusterName" . | required "apc cluster.name is required" }}
+{{- include "apc-global-overrides.clusterName" . | required "APC cluster.name is required" }}
 {{- end }}
 
 {{/*
@@ -188,7 +125,7 @@ Create the clusterAcmName
 Create the clusterAcmName and require it
 */}}
 {{- define "apc-global-overrides.require-clusterAcmName" -}}
-{{- include "apc-global-overrides.clusterAcmName" . | required "apc cluster.acmName is required" }}
+{{- include "apc-global-overrides.clusterAcmName" . | required "APC cluster.acmName is required" }}
 {{- end }}
 
 {{/*
@@ -202,7 +139,7 @@ Create the clusterType
 Create the clusterType and require it
 */}}
 {{- define "apc-global-overrides.require-clusterType" -}}
-{{- include "apc-global-overrides.clusterType" . | required "apc cluster.type is required" }}
+{{- include "apc-global-overrides.clusterType" . | required "APC cluster.type is required" }}
 {{- end }}
 
 {{/*
@@ -216,7 +153,7 @@ Create the clusterBaseDomain
 Create the clusterBaseDomain and require it
 */}}
 {{- define "apc-global-overrides.require-clusterBaseDomain" -}}
-{{- include "apc-global-overrides.clusterBaseDomain" . | required "apc cluster.baseDomain is required" }}
+{{- include "apc-global-overrides.clusterBaseDomain" . | required "APC cluster.baseDomain is required" }}
 {{- end }}
 
 {{/*
@@ -230,7 +167,7 @@ Create the clusterAppsDomain
 Create the clusterAppsDomain and require it
 */}}
 {{- define "apc-global-overrides.require-clusterAppsDomain" -}}
-{{- include "apc-global-overrides.clusterAppsDomain" . | required "apc cluster.appsDomain is required" }}
+{{- include "apc-global-overrides.clusterAppsDomain" . | required "APC cluster.appsDomain is required" }}
 {{- end }}
 
 {{/*
@@ -244,7 +181,7 @@ Create the clusterApiURL
 Create the clusterApiURL and require it
 */}}
 {{- define "apc-global-overrides.require-clusterApiURL" -}}
-{{- include "apc-global-overrides.clusterApiURL" . | required "apc cluster.apiURL is required" }}
+{{- include "apc-global-overrides.clusterApiURL" . | required "APC cluster.apiURL is required" }}
 {{- end }}
 
 {{/*
@@ -258,7 +195,7 @@ Create the clusterKubeVersion
 Create the clusterKubeVersion and require it
 */}}
 {{- define "apc-global-overrides.require-clusterKubeVersion" -}}
-{{- include "apc-global-overrides.clusterKubeVersion" . | required "apc cluster.kubeVersion is required" }}
+{{- include "apc-global-overrides.clusterKubeVersion" . | required "APC cluster.kubeVersion is required" }}
 {{- end }}
 
 {{/*
@@ -307,7 +244,7 @@ Create the proxy
 Create the proxy and require it
 */}}
 {{- define "apc-global-overrides.require-proxy" -}}
-{{- include "apc-global-overrides.proxy" . | required "apc proxy is required" }}
+{{- include "apc-global-overrides.proxy" . | required "APC proxy is required" }}
 {{- end }}
 
 {{/*
@@ -321,7 +258,7 @@ Create the noProxy
 Create the noProxy and require it
 */}}
 {{- define "apc-global-overrides.require-noProxy" -}}
-{{- include "apc-global-overrides.noProxy" . | required "apc noProxy is required" }}
+{{- include "apc-global-overrides.noProxy" . | required "APC noProxy is required" }}
 {{- end }}
 
 {{/*
@@ -335,7 +272,7 @@ Create the proxyCIDRs (list)
 Create the proxyCIDRs and require it
 */}}
 {{- define "apc-global-overrides.require-proxyCIDRs" -}}
-{{- (include "apc-global-overrides.proxyCIDRs" .) | fromYamlArray | default ("") | required "apc proxyCIDRs is required" | toYaml }}
+{{- (include "apc-global-overrides.proxyCIDRs" .) | fromYamlArray | default ("") | required "APC proxyCIDRs is required" | toYaml }}
 {{- end }}
 
 {{/*
@@ -387,7 +324,7 @@ Create the cert-manager cluster issuer name
 {{- end }}
 
 {{- define "apc-global-overrides.require-certManagerDefaultClusterIssuer" -}}
-{{- include "apc-global-overrides.certManagerDefaultClusterIssuer" . | required "certManagerdefaultClusterIssuer is required" }}
+{{- include "apc-global-overrides.certManagerDefaultClusterIssuer" . | required "APC services.certManager.DefaultClusterIssuer is required" }}
 {{- end }}
 
 {{/*
@@ -398,7 +335,7 @@ Create the vault provider config name
 {{- end }}
 
 {{- define "apc-global-overrides.require-crossplaneKubeVaultProviderConfigName" -}}
-{{- include "apc-global-overrides.crossplaneKubeVaultProviderConfigName" . | required "Crossplane kubeVaultProviderConfigName is required" }}
+{{- include "apc-global-overrides.crossplaneKubeVaultProviderConfigName" . | required "APC services.crossplane.kubeVaultProviderConfigName is required" }}
 {{- end }}
 
 {{/*
@@ -409,7 +346,7 @@ Create the eso default cluster secret store
 {{- end }}
 
 {{- define "apc-global-overrides.require-ESODefaultClusterSecretStore" -}}
-{{- include "apc-global-overrides.ESODefaultClusterSecretStore" . | required "Vault ESODefaultClusterSecretStore is required" }}
+{{- include "apc-global-overrides.ESODefaultClusterSecretStore" . | required "APC services.externalSecretsOperator.defaultClusterSecretStore is required" }}
 {{- end }}
 
 {{/*
@@ -420,7 +357,7 @@ Create the Vault kube auth mount path
 {{- end }}
 
 {{- define "apc-global-overrides.require-vaultKubeAuthMountPath" -}}
-{{- include "apc-global-overrides.vaultKubeAuthMountPath" . | required "Vault kubeAuthMountPath is required" }}
+{{- include "apc-global-overrides.vaultKubeAuthMountPath" . | required "APC services.vault.kubeAuthMountPath is required" }}
 {{- end }}
 
 {{/*
@@ -433,7 +370,7 @@ From VaultURL = hostname, or override if specified
 {{- end }}
 
 {{- define "apc-global-overrides.require-vaultName" -}}
-{{- include "apc-global-overrides.vaultName" . | required "Vault name is required" }}
+{{- include "apc-global-overrides.vaultName" . | required "APC services.vault.name is required" }}
 {{- end }}
 
 {{/*
@@ -444,5 +381,5 @@ Create the Vault URL
 {{- end }}
 
 {{- define "apc-global-overrides.require-vaultUrl" -}}
-{{- include "apc-global-overrides.vaultUrl" . | required "Vault URL is required" }}
+{{- include "apc-global-overrides.vaultUrl" . | required "APC services.vault.URL is required" }}
 {{- end }}
