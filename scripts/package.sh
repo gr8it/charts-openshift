@@ -60,7 +60,7 @@ for folder in ${CHARTFOLDERS}; do
           if [ -f "$dep_chart_dir/Chart.yaml" ]; then
             latest_version=$(yq e '.version' "$dep_chart_dir/Chart.yaml")
             if [ "$dep_version" != "$latest_version" ]; then
-              echo -e "${whitespaces}\033[0;33mWARNING: $chart_name depends on $dep_name version $dep_version, but latest is $latest_version. Please update!\033[0m"
+              echo -e "${whitespaces}\033[0;35mWARNING: $chart_name depends on $dep_name version $dep_version, but latest is $latest_version. Please update!\033[0m"
             fi
           fi
         fi
