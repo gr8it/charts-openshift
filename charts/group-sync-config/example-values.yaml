@@ -20,7 +20,7 @@ groupSync:
           - cn
           groupUIDAttribute: sAMAccountName
           groupsQuery:
-            baseDN: OU=APC,OU=Applications Groups,OU=Groups,OU=Ustredie,DC=socpoist,DC=sk
+            baseDN: OU=APC,OU=Applications Groups,OU=Groups,OU=Central,DC=example,DC=com
             derefAliases: never
             filter: (&(objectClass=group)(cn=APC-H*))
             pageSize: 1000
@@ -31,12 +31,12 @@ groupSync:
           - sAMAccountName
           userUIDAttribute: distinguishedName
           usersQuery:
-            baseDN: dc=socpoist,dc=sk
+            baseDN: dc=example,dc=com
             derefAliases: never
             filter: (objectClass=person)
             pageSize: 1000
             scope: sub
-        url: ldaps://socpoist.sk:636
+        url: ldaps://example.com:636
     - name: prov-2
       ldap:
         insecure: false
@@ -48,7 +48,7 @@ groupSync:
           - cn
           groupUIDAttribute: sAMAccountName
           groupsQuery:
-            baseDN: OU=APC,OU=Applications Groups,OU=Groups,OU=Ustredie,DC=socpoist,DC=sk
+            baseDN: OU=APC,OU=Applications Groups,OU=Groups,OU=Central,DC=example,DC=com
             derefAliases: never
             filter: (&(objectClass=group)(cn=APC-H*))
             pageSize: 1000
@@ -59,19 +59,19 @@ groupSync:
           - sAMAccountName
           userUIDAttribute: distinguishedName
           usersQuery:
-            baseDN: dc=socpoist,dc=sk
+            baseDN: dc=example,dc=com
             derefAliases: never
             filter: (objectClass=person)
             pageSize: 1000
             scope: sub
-        url: ldaps://socpoist.sk:636
+        url: ldaps://example.com:636
   - name: beta
     schedule: "10 * * *"
-    providers:
-    - name: prov-a
     credentialsSecret:
       username: ad-ldap-bind-secret
-      password: group-sync-operator      
+      password: group-sync-operator
+    providers:
+    - name: prov-a
       ldap:
         insecure: false
         prune: true
@@ -82,7 +82,7 @@ groupSync:
           - cn
           groupUIDAttribute: sAMAccountName
           groupsQuery:
-            baseDN: OU=APC,OU=Applications Groups,OU=Groups,OU=Ustredie,DC=socpoist,DC=sk
+            baseDN: OU=APC,OU=Applications Groups,OU=Groups,OU=Central,DC=example,DC=com
             derefAliases: never
             filter: (&(objectClass=group)(cn=APC-H*))
             pageSize: 1000
@@ -93,9 +93,9 @@ groupSync:
           - sAMAccountName
           userUIDAttribute: distinguishedName
           usersQuery:
-            baseDN: dc=socpoist,dc=sk
+            baseDN: dc=example,dc=com
             derefAliases: never
             filter: (objectClass=person)
             pageSize: 1000
             scope: sub
-        url: ldaps://socpoist.sk:636
+        url: ldaps://example.com:636
