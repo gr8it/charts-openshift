@@ -335,7 +335,7 @@ Create the proxyCIDRs (list)
 Create the proxyCIDRs and require it
 */}}
 {{- define "apc-global-overrides.require-proxyCIDRs" -}}
-{{- include "apc-global-overrides.proxyCIDRs" . | required "apc proxyCIDRs is required" }}
+{{- (include "apc-global-overrides.proxyCIDRs" .) | fromYamlArray | default ("") | required "apc proxyCIDRs is required" | toYaml }}
 {{- end }}
 
 {{/*
