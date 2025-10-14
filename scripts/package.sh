@@ -44,7 +44,7 @@ for folder in ${CHARTFOLDERS}; do
       exit 1
     fi
 
-    # Check dependencies versions
+    # Check local dependencies versions
     origin_url=$(git config --get remote.origin.url)
     https_url=$(sed -E 's/^(git@|https:\/\/)?([^:\/]+)[:/](.*)(.git)$/https:\/\/\2\/\3/' <<< "$origin_url")
     # raw_url=$(echo "$https_url" | sed -E 's#https://github.com/(.*)#https://raw.githubusercontent.com/\1#')
