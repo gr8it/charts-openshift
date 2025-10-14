@@ -297,7 +297,7 @@ update-chart-deps: check-yq
 	@chart_name="$(CHARTFOLDER)"; \
 	chart_path="charts/$${chart_name}/Chart.yaml"; \
 	if [ ! -f "$${chart_path}" ]; then \
-			echo "Chart.yaml for $${chart_name} not found!"; Set CHARTFOLDER environment variable to point to chart folder to be used for dependency updates. exit 1; \
+			echo "Chart.yaml for $${chart_name} not found! Set CHARTFOLDER environment variable to point to chart folder to be used for dependency updates."; exit 1; \
 	fi; \
 	chart_version=$$(grep '^version:' "$${chart_path}" | awk '{print $$2}'); \
 	echo "Chart: $${chart_name}, Version: $${chart_version}"; \
