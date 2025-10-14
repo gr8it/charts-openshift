@@ -76,6 +76,9 @@ gitpull:
 	fi
 
 package: check-helm check-helm-unittest
+	scripts/package.sh
+
+package-old: check-helm check-helm-unittest
 	@echo -e "\033[0;36m~> Starting helm package for all chart folders ...\033[0m"
 	@mkdir -p $(OUTPUT_DIR)
 	$(eval TEMP_DIR := $(shell mktemp -d))
