@@ -272,8 +272,8 @@ manifests should match snapshot:
           - clusterrolebindings
         verbs:
           - get
-          - list
           - create
+          - list
           - update
           - delete
       - apiGroups:
@@ -281,6 +281,8 @@ manifests should match snapshot:
         resources:
           - policies
         verbs:
+          - get
+          - create
           - list
           - update
           - patch
@@ -322,7 +324,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: external-secrets-config
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: external-secrets-config
-        helm.sh/chart: external-secrets-config-1.2.1
+        helm.sh/chart: external-secrets-config-1.2.2
       name: external-secrets-config-auth-delegator
     roleRef:
       apiGroup: rbac.authorization.k8s.io
