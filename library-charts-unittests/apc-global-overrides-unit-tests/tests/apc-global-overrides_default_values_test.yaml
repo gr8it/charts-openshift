@@ -74,6 +74,12 @@ tests:
       - equal:
           path: data.servicesMerged
           value: {}
+      - equal: { path: data.servicesExtracted.certManager.defaultClusterIssuer, value: null }
+      - equal: { path: data.servicesExtracted.crossplane.kubeVaultProviderConfigName, value: null }
+      - equal: { path: data.servicesExtracted.externalSecretsOperator.defaultClusterSecretStore, value: null }
+      - equal: { path: data.servicesExtracted.vault.kubeAuthMountPath, value: null }
+      - equal: { path: data.servicesExtracted.vault.name, value: null }
+      - equal: { path: data.servicesExtracted.vault.url, value: null }
 
   - it: caCertificates and merged default values
     asserts:

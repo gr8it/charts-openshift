@@ -53,6 +53,7 @@ tests:
       - notExists: { path: data.clusterServices.global }
       - equal: { path: data.clusterServicesMerged.local.url, value: clusterServicesLocalUrl-local }
       - equal: { path: data.clusterServicesMerged.override.url, value: clusterServicesOverrideUrl-local }
+      - notExists: { path: data.clusterServicesMerged.global }
 
   - it: booleans from local
     asserts:
@@ -72,10 +73,15 @@ tests:
   - it: services and merged (local only, no global keys in non-merged)
     asserts:
       - equal: { path: data.services.local.url, value: servicesLocaltUrl-local }
-      - equal: { path: data.services.override.url, value: servicesOverrideUrl-local }
       - notExists: { path: data.services.global }
       - equal: { path: data.servicesMerged.local.url, value: servicesLocaltUrl-local }
-      - equal: { path: data.servicesMerged.override.url, value: servicesOverrideUrl-local }
+      - notExists: { path: data.servicesMerged.global }
+      - equal: { path: data.servicesExtracted.certManager.defaultClusterIssuer, value: certManagerDefaultClusterIssuer-local }
+      - equal: { path: data.servicesExtracted.crossplane.kubeVaultProviderConfigName, value: crossplaneKubeVaultProviderConfigName-local }
+      - equal: { path: data.servicesExtracted.externalSecretsOperator.defaultClusterSecretStore, value: ESODefaultClusterSecretStore-local }
+      - equal: { path: data.servicesExtracted.vault.kubeAuthMountPath, value: vaultKubeAuthMountPath-local }
+      - equal: { path: data.servicesExtracted.vault.name, value: vaultName-local }
+      - equal: { path: data.servicesExtracted.vault.url, value: vaultUrl-local }
 
   - it: caCertificates and merged (local only, no global keys in non-merged)
     asserts:
