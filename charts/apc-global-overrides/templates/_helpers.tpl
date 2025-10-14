@@ -383,7 +383,7 @@ NOTE: this is a workaround to the https://github.com/helm/helm/issues/31324 issu
 Create the cert-manager cluster issuer name
 */}}
 {{- define "apc-global-overrides.certManagerDefaultClusterIssuer" -}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).certManager).defaultClusterIssuer }}
+{{- (((include "apc-global-overrides.services" .) | fromYaml).certManager).defaultClusterIssuer | default "" }}
 {{- end }}
 
 {{- define "apc-global-overrides.require-certManagerDefaultClusterIssuer" -}}
@@ -394,7 +394,7 @@ Create the cert-manager cluster issuer name
 Create the vault provider config name
 */}}
 {{- define "apc-global-overrides.crossplaneKubeVaultProviderConfigName" -}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).crossplane).kubeVaultProviderConfigName }}
+{{- (((include "apc-global-overrides.services" .) | fromYaml).crossplane).kubeVaultProviderConfigName | default "" }}
 {{- end }}
 
 {{- define "apc-global-overrides.require-crossplaneKubeVaultProviderConfigName" -}}
@@ -405,7 +405,7 @@ Create the vault provider config name
 Create the eso default cluster secret store
 */}}
 {{- define "apc-global-overrides.ESODefaultClusterSecretStore" -}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).externalSecretsOperator).defaultClusterSecretStore }}
+{{- (((include "apc-global-overrides.services" .) | fromYaml).externalSecretsOperator).defaultClusterSecretStore | default "" }}
 {{- end }}
 
 {{- define "apc-global-overrides.require-ESODefaultClusterSecretStore" -}}
@@ -416,7 +416,7 @@ Create the eso default cluster secret store
 Create the Vault kube auth mount path
 */}}
 {{- define "apc-global-overrides.vaultKubeAuthMountPath" -}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).vault).kubeAuthMountPath }}
+{{- (((include "apc-global-overrides.services" .) | fromYaml).vault).kubeAuthMountPath | default "" }}
 {{- end }}
 
 {{- define "apc-global-overrides.require-vaultKubeAuthMountPath" -}}
@@ -428,18 +428,19 @@ Create the Vault name
 From VaultURL = hostname, or override if specified
 */}}
 {{- define "apc-global-overrides.vaultName" -}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).vault).name }}
+{{/* https://github.com/helm/helm/issues/13487 */}}
+{{- (((include "apc-global-overrides.services" .) | fromYaml).vault).name | default "" }}
 {{- end }}
 
 {{- define "apc-global-overrides.require-vaultName" -}}
-{{- include "apc-global-overrides.vaultName" .| required "Vault name is required" }}
+{{- include "apc-global-overrides.vaultName" . | required "Vault name is required" }}
 {{- end }}
 
 {{/*
 Create the Vault URL
 */}}
 {{- define "apc-global-overrides.vaultUrl" -}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).vault).url }}
+{{- (((include "apc-global-overrides.services" .) | fromYaml).vault).url | default "" }}
 {{- end }}
 
 {{- define "apc-global-overrides.require-vaultUrl" -}}
