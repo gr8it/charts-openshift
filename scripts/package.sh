@@ -47,12 +47,12 @@ for folder in ${CHARTFOLDERS}; do
     # Check local dependencies versions
     origin_url=$(git config --get remote.origin.url)
     https_url=$(sed -E 's/^(git@|https:\/\/)?([^:\/]+)[:/](.*)(.git)$/https:\/\/\2\/\3/' <<< "$origin_url")
-    # raw_url=$(echo "$https_url" | sed -E 's#https://github.com/(.*)#https://raw.githubusercontent.com/\1#')
     dep_count=$(yq e '.dependencies | length' "$folder/Chart.yaml")
     if [ "$dep_count" -gt 0 ]; then
       for dep_idx in $(seq 0 $((dep_count-1))); do
         dep_name=$(yq e ".dependencies[$dep_idx].name" "$folder/Chart.yaml")
         dep_repo=$(yq e ".dependencies[$dep_idx].repository" "$folder/Chart.yaml")
+        # replace raw github URL to normal github URL for comparison
         dep_repo_replaced=$(sed -E 's/https:\/\/raw.githubusercontent.com\/(.*)\/refs\/heads\/.*/https:\/\/github.com\/\1/' <<< "${dep_repo}")
         dep_version=$(yq e ".dependencies[$dep_idx].version" "$folder/Chart.yaml")
         if [[ "${dep_repo_replaced}" == "${https_url}" ]]; then
