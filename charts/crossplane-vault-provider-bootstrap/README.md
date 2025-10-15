@@ -1,21 +1,52 @@
 # Crossplane Vault Provider bootstrap
 
-Due to missing functionality (kubernetes auth with mount point other than kubernetes) of Crossplane Vault provider, the component was changed to work with tokens only! Waiting for PR <https://github.com/upbound/provider-vault/pull/93> to be merged.
+**Due to missing functionality (kubernetes auth with mount point other than kubernetes) of Crossplane Vault provider, the component was changed to work with tokens only! Waiting for PR <https://github.com/upbound/provider-vault/pull/93> to be merged.**
 
-[V2](../crossplane-vault-provider-bootstrap-v2/) of this provider keeps the to be functionality..
+[V2](../crossplane-vault-provider-bootstrap-v2/) of this provider keeps the TO BE functionality..
 
 > [!WARNING]  
 > As the chart is implemented as an ACM policy, meaning the component has to be installed on the hub cluster only!
 
+```mermaid
+flowchart TD
+    S(((Start)))
+    VPTA[Set Vault Provider To Use Token Auth]
+    VPKAPC[Vault Provider Kubernetes Auth CRs Provisioned Check]
+    VPKAPCP[are provisioned]
+    TAC[Token Auth Check]
+    TR[Remove Token Secret]
+    KAS[Kubernetes Auth Setup]
+    KAB[Kubernetes Auth Backend CR]
+    KABC[Kubernetes Auth Backend Config CR]
+    KABR[Kubernetes Auth Backend Role CR]
+    PKA[Policy for Kubernetes Auth CR]
+    
+    S --> VPKAPC
+    S --> KAS
+
+    VPKAPC -.->|checks if Kubernetes Auth Setup CRs are provisioned in Vault = status Synced and Ready| VPKAPC
+    TAC -- checks if token auth secret exists and gives clue to the user in the GUI how to fix --> TAC
+
+    S --> TAC
+    S --> VPTA
+
+    KAS --> KAB
+    KAS --> KABC
+    KAS --> KABR
+    KAS --> PKA
+    
+    VPKAPC ----> VPKAPCP
+    VPKAPCP --> TR
+```
+
 The chart is implemented as an ACM policy and does following:
 
 - Starts Kubernetes Auth Setup
-  - Provisions the Vault CRs (Auth Backend, AuthBackendConfig, AuthBackendRole, Policy) required for Kubernetes Auth
   - Waits for the Token secret to be created - see [Token Secret generation](#token-secret-generation)
+  - Provisions the Vault CRs (Auth Backend, AuthBackendConfig, AuthBackendRole, Policy) required for Kubernetes Auth
 - Checks if Kubernetes Auth CRs provisioned
   - All CRs created in the Kubernetes Auth Setup must by in Sync & Ready status
   - If Kube Auth CRs are provisioned
-    - Sets Vault Provider to use Kubernetes auth
     - Removes the Token secret
 
 ## Token Secret generation
@@ -87,8 +118,8 @@ vault write sys/auth/token/tune max_lease_ttl=768h
 |caCertificates|`.global.apc.caCertificates`|PEM encoded CA cert to trust when Vault makes contact to the Kube API|
 |services.vault.url|`.global.apc.services.vault.url`|Vault URL|
 |services.vault.name|`.global.apc.services.vault.name`|Vault Name|
-|services.vault.kubeVaultProviderConfigName|`.global.apc.services.vault.kubeVaultProviderConfigName`|Name of the Vault provider config to create|
-|vaultKubeAuthMountPath|-|For testing only as it only support 1 cluster only !!! => Kube auth mount path in Vault |
+|services.crossplane.kubeVaultProviderConfigName|`.global.apc.services.crossplane.kubeVaultProviderConfigName`|Name of the Vault provider config to create|
+|vaultKubeAuthMountPath|-|For testing only as it only support 1 cluster only !!! normally filled in by hub ACM templating => Kube auth mount path in Vault|
 |vaultKubernetesRole|crossplane|Kubernetes role in Vault for Crossplane to use|
 |crossplaneNamespace|apc-crossplane-system|Namespace where Crossplane is installed, and configurations are created|
 
