@@ -5,7 +5,6 @@
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  environment: {{ include "rbac-roles.environment" $ }}
   name: {{ $apcRole }}
   labels:
   {{- include "rbac-roles.labels" $ | nindent 4 }}

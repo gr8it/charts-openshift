@@ -62,19 +62,12 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
-Create the environment
-*/}}
-{{- define "rbac-roles.environment" -}}
-{{- .Values.environment | default .Values.global.apc.environment }}
-{{- end }}
-
-{{/*
 Create the roles
 */}}
 {{- define "rbac-roles.roles" -}}
 {{ $result := .Values.defaultRoles | deepCopy }}
-{{- if hasKey .Values.rolesOverride (include "rbac-roles.environment" .) }}
-{{- range $role, $roleValues := get .Values.rolesOverride (include "rbac-roles.environment" .) }}
+{{- if hasKey .Values.rolesOverride (include "apc-global-overrides.environment" .) }}
+{{- range $role, $roleValues := get .Values.rolesOverride (include "apc-global-overrides.environment" .) }}
   {{- $_ := set $result $role $roleValues }}
 {{- end }}
 {{- end }}

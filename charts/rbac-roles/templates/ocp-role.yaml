@@ -1,6 +1,13 @@
 {{ $agRoles := (include "remaping.aggregatedRoles" . | fromYaml) }}
 {{- range $ocpRole, $apcRole := $agRoles }}
 ---
+{{- if or (eq $ocpRole "admin") (eq $ocpRole "edit") (eq $ocpRole "view") }}
+# workarkound for issue https://access.redhat.com/support/cases/#/case/04259235
+aggregationRule:
+  clusterRoleSelectors:
+    - matchLabels:
+        rbac.authorization.k8s.io/aggregate-to-{{ $ocpRole }}: 'true'
+{{- end }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -10,5 +17,5 @@ metadata:
     {{- range $aggregateRole := $apcRole }}
     rbac.authorization.k8s.io/aggregate-to-{{ $aggregateRole }}: "true"
     {{- end }}
-  name: {{ $ocpRole}}
-{{- end}}
+  name: {{ $ocpRole }}
+{{- end }}
