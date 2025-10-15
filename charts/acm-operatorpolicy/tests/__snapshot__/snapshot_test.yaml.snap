@@ -8,7 +8,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: acm-operatorpolicy
         app.kubernetes.io/version: v1beta1
-        helm.sh/chart: acm-operatorpolicy-1.2.0
+        helm.sh/chart: acm-operatorpolicy-1.3.0
       name: acm-operatorpolicy
       namespace: open-cluster-management-policies
     spec:
@@ -17,9 +17,6 @@ manifests should match snapshot:
         deploymentsUnavailable: NonCompliant
         upgradesAvailable: Compliant
       complianceType: musthave
-      operatorGroup:
-        name: acm-operatorpolicy
-        namespace: operator-namespace
       remediationAction: enforce
       removalBehavior:
         clusterServiceVersions: Delete
@@ -33,8 +30,11 @@ manifests should match snapshot:
           env:
             - name: HTTP_PROXY
               value: proxy.example.com
+            - name: HTTPS_PROXY
+              value: proxy.example.com
+            - name: NO_PROXY
+              value: localhost,127.0.0.1,.svc,.cluster.local,.example.com
         name: openshift-cert-manager-operator
-        namespace: operator-namespace
         source: redhat-operators
         sourceNamespace: openshift-marketplace
         startingCSV: cert-manager-operator.v1.15.1

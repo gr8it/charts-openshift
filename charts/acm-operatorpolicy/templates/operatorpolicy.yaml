@@ -16,7 +16,9 @@ spec:
     namespace: {{ .Values.operatorGroup.namespace }}
     {{- if .Values.operatorGroup.targetNamespaces | default false }}
     targetNamespaces:
-      {{- toYaml .Values.operatorGroup.targetNamespaces | nindent 6 }}
+      {{- range .Values.operatorGroup.targetNamespaces }}
+      - {{ tpl . $ }}
+      {{- end }}
     {{- end }}
   {{- else if .Values.forceReleaseNamespace | default false }}
   operatorGroup:
@@ -24,7 +26,9 @@ spec:
     namespace: {{ .Release.Namespace }}
     {{- if .Values.operatorGroup.targetNamespaces | default false }}
     targetNamespaces:
-      {{- toYaml .Values.operatorGroup.targetNamespaces | nindent 6 }}
+      {{- range .Values.operatorGroup.targetNamespaces }}
+      - {{ tpl . $ }}
+      {{- end }}
     {{- end }}
   {{- end }}
   subscription:
