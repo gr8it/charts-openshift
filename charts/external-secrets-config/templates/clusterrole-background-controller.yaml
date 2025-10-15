@@ -1,0 +1,27 @@
+{{- if eq "true" (include "apc-global-overrides.clusterRunsApps" .) }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    rbac.kyverno.io/aggregate-to-background-controller: "true"
+  name: kyverno:background-controller:eso-vault
+rules:
+- apiGroups: [""]
+  resources: ["serviceaccounts"]
+  verbs: ["create", "delete", "update"]
+- apiGroups: ["kubernetes.vault.upbound.io"]
+  resources: ["authbackendroles"]
+  verbs: ["create", "get"]
+- apiGroups: ["external-secrets.io"]
+  resources: ["secretstores"]
+  verbs: ["create", "delete", "update"]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["clusterrolebindings"]
+  verbs: ["get", "create", "list", "update", "delete"]
+- apiGroups: ["vault.vault.upbound.io"]
+  resources: ["policies"]
+  verbs: ["get", "create", "list", "update", "patch", "delete"]
+- apiGroups: ["auth.vault.upbound.io"]
+  resources: ["backends"]
+  verbs: ["get", "list"]
+{{- end }}

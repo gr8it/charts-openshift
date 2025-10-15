@@ -1,0 +1,50 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: v1
+    data:
+      sp2-root-ca.crt: |
+        -----BEGIN CERTIFICATE-----
+        MIIDVTCCAj2gAwIBAgIUeRYCH56h2vgcgcQTlLVIZW+3t98wDQYJKoZIhvcNAQEL
+        BQAwMjELMAkGA1UEBhMCU0sxDjAMBgNVBAoTBWdyOGl0MRMwEQYDVQQDEwpncjhp
+        dC1yb290MB4XDTIzMTAwNjEzMDA0N1oXDTMzMTAwMzEzMDExNlowMjELMAkGA1UE
+        BhMCU0sxDjAMBgNVBAoTBWdyOGl0MRMwEQYDVQQDEwpncjhpdC1yb290MIIBIjAN
+        BgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA23z4SW7x8jx9GrwCs+2Tuht5UrHB
+        QYPVB+a8knkfX5eHFsD1rXdYhR5n3mWljou2xtuXZRINHv3CxxLySdMMK9LtL8i/
+        mlqPM1gXyH8eW4QM23sulP6kXgTnhIUeZJIX6fzVoECt7j2W5xN6gqWBXGQ0Zm74
+        /dCuBnVLKK43tDc7bQw4SyiaN4S/DgXrNzWsHSlPZXHVpyZhDPLBAFFwt0FDgXLX
+        WbQReNBX44bSbEliJ4CuTkxjlHhhDbMCVxaW283+uNZV239YdlMcC6SEJcy8chnY
+        puFsPznRro0MWbgA3vjNa7g71zuj17pJmYYG9bMxP2z6CFQMQJXsgCGTHQIDAQAB
+        o2MwYTAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU
+        zkeoW/c9qpn5X61YwxAmG62icK8wHwYDVR0jBBgwFoAUzkeoW/c9qpn5X61YwxAm
+        G62icK8wDQYJKoZIhvcNAQELBQADggEBAEvgBYkbG4TKel9xft8HXhaL1dODedpO
+        GPOEV9agmukcyCyrnCcfHYhdWw/gW2Th/ISQ2j/7A3ZtA6eCAbzzN1q4ukdvtzS3
+        fHDnwoG1TU/VGuHnyfx1UWTaj0sBZuaefxCCuRTdsW//ZTj0inIksQ2rVvqy6PD/
+        ZwsLSfyXVFnTbUzkOuBXK4y5zWjvU6BkgJiK+Uf3ZJJ1kGloMyFbcDnzD0ZO7QYT
+        4QPZXa053WFfTvDpAOS4hs87tr2TzcrZ0fgSOLv3O8cDtWBIoY+qfMY/GO0+D7G2
+        jSfZQEwdYLLQ6lslNN9Zrg3E3MOpPdJMGcNpA/LRCa2XbbDuG6jRPH0=
+        -----END CERTIFICATE-----
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/instance: acm-instance
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: acm-instance
+        app.kubernetes.io/version: v2.12.1
+        helm.sh/chart: acm-instance-1.2.0
+      name: acm-instance-ca-certificates
+      namespace: open-cluster-management
+  2: |
+    apiVersion: operator.open-cluster-management.io/v1
+    kind: MultiClusterHub
+    metadata:
+      labels:
+        app.kubernetes.io/instance: acm-instance
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: acm-instance
+        app.kubernetes.io/version: v2.12.1
+        helm.sh/chart: acm-instance-1.2.0
+      name: acm-instance
+      namespace: open-cluster-management
+    spec:
+      availabilityConfig: High
+      customCAConfigmap: acm-instance-ca-certificates

@@ -57,7 +57,7 @@ spec:
                   operator: In
                   values:
                     - csi-addons
-    - name: allow-ingress-from-openshift-operators
+    - name: allow-ingress-from-operators
       action: Allow
       from:
         - namespaces:
@@ -66,6 +66,7 @@ spec:
                 operator: In
                 values:
                   - openshift-operators
+                  {{- .Values.operatorNamespaces | toYaml | nindent 18 }}
     - name: allow-ingress-from-crossplane-namespace
       action: Allow
       from:
@@ -99,12 +100,12 @@ spec:
       to:
       - namespaces: {}
       - nodes: {}
-    {{- if (include "default-network-policies.proxyIPs" . | fromJsonArray) }}
+    {{- if (include "apc-global-overrides.proxyCIDRs" . | fromYamlArray) }}
     - name: pass-egress-to-proxy
       action: Pass
       to:
       - networks:
-        {{- toYaml (include "default-network-policies.proxyIPs" . | fromJsonArray) | nindent 8 }}
+        {{- (include "apc-global-overrides.proxyCIDRs" .) | nindent 8 }}
     {{- end }}
     - name: allow-all-private-cidrs-for-cluster-external-traffic
       action: Allow

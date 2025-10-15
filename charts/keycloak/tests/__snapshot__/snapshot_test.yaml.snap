@@ -1,0 +1,430 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.3.0
+      name: keycloak-ca-certs
+      namespace: apc-keycloak
+    stringData: |
+      -----BEGIN CERTIFICATE-----
+      MIIDVTCCAj2gAwIBAgIUeRYCH56h2vgcgcQTlLVIZW+3t98wDQYJKoZIhvcNAQEL
+      BQAwMjELMAkGA1UEBhMCU0sxDjAMBgNVBAoTBWdyOGl0MRMwEQYDVQQDEwpncjhp
+      dC1yb290MB4XDTIzMTAwNjEzMDA0N1oXDTMzMTAwMzEzMDExNlowMjELMAkGA1UE
+      BhMCU0sxDjAMBgNVBAoTBWdyOGl0MRMwEQYDVQQDEwpncjhpdC1yb290MIIBIjAN
+      BgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA23z4SW7x8jx9GrwCs+2Tuht5UrHB
+      QYPVB+a8knkfX5eHFsD1rXdYhR5n3mWljou2xtuXZRINHv3CxxLySdMMK9LtL8i/
+      mlqPM1gXyH8eW4QM23sulP6kXgTnhIUeZJIX6fzVoECt7j2W5xN6gqWBXGQ0Zm74
+      /dCuBnVLKK43tDc7bQw4SyiaN4S/DgXrNzWsHSlPZXHVpyZhDPLBAFFwt0FDgXLX
+      WbQReNBX44bSbEliJ4CuTkxjlHhhDbMCVxaW283+uNZV239YdlMcC6SEJcy8chnY
+      puFsPznRro0MWbgA3vjNa7g71zuj17pJmYYG9bMxP2z6CFQMQJXsgCGTHQIDAQAB
+      o2MwYTAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU
+      zkeoW/c9qpn5X61YwxAmG62icK8wHwYDVR0jBBgwFoAUzkeoW/c9qpn5X61YwxAm
+      G62icK8wDQYJKoZIhvcNAQELBQADggEBAEvgBYkbG4TKel9xft8HXhaL1dODedpO
+      GPOEV9agmukcyCyrnCcfHYhdWw/gW2Th/ISQ2j/7A3ZtA6eCAbzzN1q4ukdvtzS3
+      fHDnwoG1TU/VGuHnyfx1UWTaj0sBZuaefxCCuRTdsW//ZTj0inIksQ2rVvqy6PD/
+      ZwsLSfyXVFnTbUzkOuBXK4y5zWjvU6BkgJiK+Uf3ZJJ1kGloMyFbcDnzD0ZO7QYT
+      4QPZXa053WFfTvDpAOS4hs87tr2TzcrZ0fgSOLv3O8cDtWBIoY+qfMY/GO0+D7G2
+      jSfZQEwdYLLQ6lslNN9Zrg3E3MOpPdJMGcNpA/LRCa2XbbDuG6jRPH0=
+      -----END CERTIFICATE-----
+    type: Opaque
+  2: |
+    apiVersion: postgresql.cnpg.io/v1
+    kind: ScheduledBackup
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.3.0
+      name: keycloak-backup-db
+      namespace: apc-keycloak
+    spec:
+      backupOwnerReference: none
+      cluster:
+        name: keycloak-db
+      immediate: true
+      method: barmanObjectStore
+      schedule: 0 0 0 * * *
+      suspend: false
+  3: |
+    apiVersion: postgresql.cnpg.io/v1
+    kind: Cluster
+    metadata:
+      labels:
+        app: keycloak
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.3.0
+      name: keycloak-db
+      namespace: apc-keycloak
+    spec:
+      affinity:
+        podAntiAffinityType: preferred
+      backup:
+        barmanObjectStore:
+          destinationPath: s3://keycloak-backup
+          endpointURL: http://s3.openshift-storage.svc
+          s3Credentials:
+            accessKeyId:
+              key: access_key_id
+              name: keycloak-backup-allinfo
+            secretAccessKey:
+              key: access_key_secret
+              name: keycloak-backup-allinfo
+          wal:
+            compression: bzip2
+            maxParallel: 4
+        retentionPolicy: 2w
+        target: prefer-standby
+      bootstrap:
+        initdb:
+          dataChecksums: true
+          database: keycloak
+          encoding: UTF8
+          localeCType: en_US.utf8
+          localeCollate: en_US.utf8
+          owner: keycloak
+          secret:
+            name: keycloak-db-auth
+          walSegmentSize: 1
+      imageName: ghcr.io/cloudnative-pg/postgresql:16.4
+      instances: 3
+      maxSyncReplicas: 2
+      minSyncReplicas: 1
+      monitoring:
+        enablePodMonitor: true
+      postgresql:
+        parameters:
+          max_slot_wal_keep_size: 500MB
+          shared_buffers: 256MB
+          wal_keep_size: "200"
+        syncReplicaElectionConstraint:
+          enabled: false
+          nodeLabelsAntiAffinity:
+            - topology.kubernetes.io/zone
+      primaryUpdateMethod: switchover
+      primaryUpdateStrategy: unsupervised
+      replicationSlots:
+        updateInterval: 30
+      resources:
+        limits:
+          cpu: "1"
+          memory: 500Mi
+        requests:
+          cpu: 100m
+          memory: 500Mi
+      storage:
+        size: 1Gi
+      walStorage:
+        size: 1Gi
+  4: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.3.0
+      name: keycloak
+      namespace: apc-keycloak
+    spec:
+      groups:
+        - name: apc-keycloak.rules
+          rules:
+            - alert: APC Keycloak down
+              annotations:
+                description: No keycloak pods up for more than 5 minutes
+                summary: Keycloak is not running
+              expr: |
+                absent(up{job="keycloak-service",namespace="apc-keycloak"}) == 1
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: APC Keycloak degraded
+              annotations:
+                description: Keycloak degraded for more than 5 minutes
+                summary: Keycloak is degraded
+              expr: |
+                sum(up{container="keycloak", namespace="apc-keycloak"}) < 2
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: APC Keycloak high latency
+              annotations:
+                description: Keycloak - Response time for authentication related HTTP requests is higher than 250ms for more than 5 minutes
+                summary: Keycloak  - Response time for authentication related HTTP requests is higher than 250ms for more than 5 minutes. 95% of all authentication related requests should be faster than 250 ms within a 5-minute-range.
+              expr: "(\nsum(\n  rate(\n    http_server_requests_seconds_bucket{\n      uri=~\"/admin|/admin/{realm}/console|/realms/{realm}/protocol/{protocol}.*|/realms/{realm}/login-actions.*\", \n      le=\"0.25\", \n      container=\"keycloak\", \n      namespace=\"apc-keycloak\"}\n    [5m] \n  )\n) without (le,uri,status,outcome,method,pod,instance) \n/\nsum(\n  rate(\n    http_server_requests_seconds_count{\n      uri=~\"/admin|/admin/{realm}/console|/realms/{realm}/protocol/{protocol}.*|/realms/{realm}/login-actions.*\", \n      container=\"keycloak\",\n      namespace=\"apc-keycloak\"}\n    [5m] \n  )\n) without (le,uri,status,outcome,method,pod,instance)\n) < 0.95\n"
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: APC Keycloak high failed authentication requests
+              annotations:
+                description: Keycloak - Failed authentication requests due to server problems
+                summary: Keycloak  - Failed authentication requests due to server problems. The rate of errors due to server problems for authentication requests should be less than 0.1% within a 5-minute-range.
+              expr: "(\nsum(\n  rate(\n    http_server_requests_seconds_count{\n      uri=~\"/admin|/admin/{realm}/console|/realms/{realm}/protocol/{protocol}.*|/realms/{realm}/login-actions.*\", \n      outcome=\"SERVER_ERROR\", \n      container=\"keycloak\", \n      namespace=\"apc-keycloak\"}\n    [5m] \n  )\n) without (le,uri,status,outcome,method,pod,instance)  \n/\nsum(\n  rate(\n    http_server_requests_seconds_count{\n      uri=~\"/admin|/admin/{realm}/console|/realms/{realm}/protocol/{protocol}.*|/realms/{realm}/login-actions.*\", \n      container=\"keycloak\", \n      namespace=\"apc-keycloak\"}\n    [5m] \n  )\n) without (le,uri,status,outcome,method,pod,instance)\n) < 0.9999\n"
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+  5: |
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.3.0
+      name: keycloak-tls-secret
+      namespace: apc-keycloak
+    spec:
+      commonName: login.app.lab.gr8it.cloud
+      dnsNames:
+        - keycloak.app.lab.gr8it.cloud
+        - login.app.lab.gr8it.cloud
+      isCA: false
+      issuerRef:
+        kind: ClusterIssuer
+        name: rozdavaccertifikatov
+      secretName: keycloak-tls-secret
+      secretTemplate:
+        labels:
+          app.kubernetes.io/instance: keycloak
+          app.kubernetes.io/managed-by: Helm
+          app.kubernetes.io/name: keycloak
+          app.kubernetes.io/version: v26.0
+          helm.sh/chart: keycloak-1.3.0
+  6: |
+    apiVersion: k8s.keycloak.org/v2alpha1
+    kind: Keycloak
+    metadata:
+      labels:
+        app: keycloak
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.3.0
+      name: keycloak
+      namespace: apc-keycloak
+    spec:
+      additionalOptions:
+        - name: metrics-enabled
+          value: "true"
+        - name: health-enabled
+          value: "true"
+        - name: cache-metrics-histograms-enabled
+          value: "true"
+        - name: http-metrics-histograms-enabled
+          value: "true"
+        - name: http-metrics-slos
+          value: 5,10,25,50,250,500,1000,2500,5000,10000
+        - name: log-console-output
+          value: json
+        - name: log-level
+          value: INFO,org.keycloak.events:DEBUG,org.keycloak.services.error:DEBUG,org.keycloak.services.resources.admin:DEBUG
+      db:
+        host: keycloak-db-rw
+        passwordSecret:
+          key: password
+          name: keycloak-db-auth
+        usernameSecret:
+          key: username
+          name: keycloak-db-auth
+        vendor: postgres
+      hostname:
+        admin: https://keycloak.app.lab.gr8it.cloud
+        hostname: https://login.app.lab.gr8it.cloud
+      http:
+        tlsSecret: keycloak-tls-secret
+      ingress:
+        enabled: false
+      instances: 3
+      resources:
+        limits:
+          cpu: 2
+          memory: 2Gi
+        requests:
+          cpu: 100m
+          memory: 1Gi
+      truststores:
+        ca-cert-truststore:
+          secret:
+            name: keycloak-ca-certs
+      unsupported:
+        podTemplate:
+          spec:
+            affinity:
+              podAntiAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  - labelSelector:
+                      matchLabels:
+                        app: keycloak
+                    topologyKey: kubernetes.io/hostname
+            containers:
+              - securityContext:
+                  allowPrivilegeEscalation: false
+                  capabilities:
+                    drop:
+                      - ALL
+                  runAsNonRoot: true
+                  seccompProfile:
+                    type: RuntimeDefault
+  7: |
+    apiVersion: objectbucket.io/v1alpha1
+    kind: ObjectBucketClaim
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.3.0
+      name: keycloak-backup
+      namespace: apc-keycloak
+    spec:
+      bucketName: keycloak-backup
+      storageClassName: openshift-storage.noobaa.io
+  8: |
+    apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      labels:
+        app: keycloak
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.3.0
+      name: keycloak-admin-ingress
+      namespace: apc-keycloak
+    spec:
+      host: keycloak.app.lab.gr8it.cloud
+      port:
+        targetPort: https
+      tls:
+        insecureEdgeTerminationPolicy: Redirect
+        termination: passthrough
+      to:
+        kind: Service
+        name: keycloak-service
+        weight: 100
+  9: |
+    apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      labels:
+        app: keycloak
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.3.0
+      name: keycloak-ingress
+      namespace: apc-keycloak
+    spec:
+      host: login.app.lab.gr8it.cloud
+      port:
+        targetPort: https
+      tls:
+        insecureEdgeTerminationPolicy: Redirect
+        termination: passthrough
+      to:
+        kind: Service
+        name: keycloak-service
+        weight: 100
+  10: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.3.0
+      name: keycloak-db-auth
+      namespace: apc-keycloak
+    spec:
+      dataFrom:
+        - sourceRef:
+            generatorRef:
+              apiVersion: generators.external-secrets.io/v1alpha1
+              kind: Password
+              name: keycloak-db-auth
+      refreshInterval: "0"
+      target:
+        creationPolicy: Owner
+        name: keycloak-db-auth
+        template:
+          data:
+            password: '{{ . }}'
+            username: keycloak
+          metadata:
+            labels:
+              app.kubernetes.io/instance: keycloak
+              app.kubernetes.io/managed-by: Helm
+              app.kubernetes.io/name: keycloak
+              app.kubernetes.io/version: v26.0
+              helm.sh/chart: keycloak-1.3.0
+          type: kubernetes.io/basic-auth
+  11: |
+    apiVersion: generators.external-secrets.io/v1alpha1
+    kind: Password
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.3.0
+      name: keycloak-db-auth
+      namespace: apc-keycloak
+    spec:
+      allowRepeat: false
+      digits: 5
+      length: 26
+      noUpper: false
+      symbolCharacters: -_/!@^)
+      symbols: 5
+  12: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.3.0
+      name: keycloak
+      namespace: apc-keycloak
+    spec:
+      endpoints:
+        - interval: 30s
+          port: management
+          scheme: https
+          tlsConfig:
+            insecureSkipVerify: true
+      selector:
+        matchLabels:
+          app: keycloak

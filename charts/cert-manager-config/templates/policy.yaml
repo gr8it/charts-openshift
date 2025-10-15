@@ -1,10 +1,10 @@
 apiVersion: vault.vault.upbound.io/v1alpha1
 kind: Policy
 metadata:
-  name: {{ include "cert-manager-config.clusterName" .  }}--{{ .Values.vaultKubeAuthRole }}
+  name: {{ include "apc-global-overrides.clusterName" . }}--{{ .Values.vaultKubeAuthRole }}
 spec:
   forProvider:
-    name: {{ include "cert-manager-config.clusterName" .  }}--{{ .Values.vaultKubeAuthRole }}
+    name: {{ include "apc-global-overrides.clusterName" . }}--{{ .Values.vaultKubeAuthRole }}
     ## https://github.com/cert-manager/cert-manager/issues/6150
     policy: |
 
@@ -17,4 +17,4 @@ spec:
       }
 
   providerConfigRef:
-    name: {{ include "cert-manager-config.kubeVaultProviderConfigName" . }}
+    name: {{ include "apc-global-overrides.require-crossplaneKubeVaultProviderConfigName" . }}

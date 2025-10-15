@@ -1,0 +1,395 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: policy.networking.k8s.io/v1alpha1
+    kind: AdminNetworkPolicy
+    metadata:
+      labels:
+        app.kubernetes.io/instance: default-network-policies
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: default-network-policies
+        helm.sh/chart: default-network-policies-1.4.0
+      name: application-anp-policy
+    spec:
+      egress:
+        - action: Allow
+          name: allow-egress-inside-cluster
+          to:
+            - namespaces: {}
+            - nodes: {}
+        - action: Pass
+          name: pass-egress-to-proxy
+          to:
+            - networks:
+                - 10.1.1.7/32
+        - action: Allow
+          name: allow-all-private-cidrs-for-cluster-external-traffic
+          to:
+            - networks:
+                - 10.0.0.0/8
+                - 172.16.0.0/12
+                - 192.168.0.0/16
+      ingress:
+        - action: Allow
+          from:
+            - namespaces:
+                matchExpressions:
+                  - key: kubernetes.io/metadata.name
+                    operator: In
+                    values:
+                      - openshift-monitoring
+                      - openshift-user-workload-monitoring
+          name: allow-ingress-from-monitoring
+        - action: Allow
+          from:
+            - namespaces:
+                matchExpressions:
+                  - key: kubernetes.io/metadata.name
+                    operator: In
+                    values:
+                      - openshift-operators
+                      - apc-cnpg-operator
+          name: allow-ingress-from-operators
+        - action: Allow
+          from:
+            - namespaces:
+                matchExpressions:
+                  - key: kubernetes.io/metadata.name
+                    operator: In
+                    values:
+                      - apc-crossplane-system
+          name: allow-ingress-from-crossplane-namespace
+        - action: Pass
+          from:
+            - namespaces:
+                matchExpressions:
+                  - key: apc.namespace.type
+                    operator: In
+                    values:
+                      - application
+          name: pass-ingress-from-application-namespaces
+        - action: Pass
+          from:
+            - namespaces:
+                matchExpressions:
+                  - key: apc.namespace.type
+                    operator: In
+                    values:
+                      - platform
+          name: pass-ingress-from-platform-namespaces
+      priority: 40
+      subject:
+        namespaces:
+          matchExpressions:
+            - key: apc.namespace.type
+              operator: In
+              values:
+                - application
+  2: |
+    apiVersion: kyverno.io/v1
+    kind: ClusterPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: networkpolicy
+        policies.kyverno.io/minversion: 1.13.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Create default networkpolicy in namespace
+      labels:
+        app.kubernetes.io/instance: default-network-policies
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: default-network-policies
+        helm.sh/chart: default-network-policies-1.4.0
+      name: app-project-networkpolicy
+    spec:
+      background: true
+      generateExisting: true
+      rules:
+        - generate:
+            apiVersion: networking.k8s.io/v1
+            data:
+              spec:
+                ingress:
+                  - from:
+                      - podSelector: {}
+                podSelector: {}
+            kind: NetworkPolicy
+            name: '{{ request.object.metadata.name }}-allow-from-same-namespace'
+            namespace: '{{ request.object.metadata.name }}'
+            synchronize: false
+          match:
+            any:
+              - resources:
+                  kinds:
+                    - Namespace
+          name: app-project-networkpolicy
+          preconditions:
+            all:
+              - key: '{{ request.object.metadata.labels."apc.namespace.type" }}'
+                operator: Equals
+                value: application
+        - generate:
+            apiVersion: networking.k8s.io/v1
+            data:
+              spec:
+                ingress:
+                  - from:
+                      - namespaceSelector:
+                          matchLabels:
+                            network.openshift.io/policy-group: ingress
+                podSelector: {}
+            kind: NetworkPolicy
+            name: '{{ request.object.metadata.name }}-allow-from-openshift-ingress'
+            namespace: '{{ request.object.metadata.name }}'
+            synchronize: false
+          match:
+            any:
+              - resources:
+                  kinds:
+                    - Namespace
+          name: app-project-networkpolicy-ingress
+          preconditions:
+            all:
+              - key: '{{ request.object.metadata.labels."apc.namespace.type" }}'
+                operator: Equals
+                value: application
+      validationFailureAction: Audit
+  3: |
+    apiVersion: policy.networking.k8s.io/v1alpha1
+    kind: BaselineAdminNetworkPolicy
+    metadata:
+      labels:
+        app.kubernetes.io/instance: default-network-policies
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: default-network-policies
+        helm.sh/chart: default-network-policies-1.4.0
+      name: default
+    spec:
+      egress:
+        - action: Deny
+          name: deny-to-proxy
+          to:
+            - networks:
+                - 10.1.1.7/32
+      ingress:
+        - action: Deny
+          from:
+            - namespaces: {}
+          name: default-zero-trust-policy
+      subject:
+        namespaces:
+          matchExpressions:
+            - key: apc.namespace.type
+              operator: In
+              values:
+                - application
+                - platform
+  4: |
+    apiVersion: policy.networking.k8s.io/v1alpha1
+    kind: AdminNetworkPolicy
+    metadata:
+      labels:
+        app.kubernetes.io/instance: default-network-policies
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: default-network-policies
+        helm.sh/chart: default-network-policies-1.4.0
+      name: platform-anp-policy
+    spec:
+      egress:
+        - action: Allow
+          name: allow-egress-inside-cluster
+          to:
+            - namespaces: {}
+            - nodes: {}
+        - action: Pass
+          name: pass-egress-to-proxy
+          to:
+            - networks:
+                - 10.1.1.7/32
+        - action: Allow
+          name: allow-all-private-cidrs-for-cluster-external-traffic
+          to:
+            - networks:
+                - 10.0.0.0/8
+                - 172.16.0.0/12
+                - 192.168.0.0/16
+      ingress:
+        - action: Allow
+          from:
+            - namespaces:
+                matchExpressions:
+                  - key: kubernetes.io/metadata.name
+                    operator: In
+                    values:
+                      - openshift-monitoring
+                      - openshift-user-workload-monitoring
+          name: allow-ingress-from-monitoring
+        - action: Allow
+          from:
+            - pods:
+                namespaceSelector:
+                  matchExpressions:
+                    - key: kubernetes.io/metadata.name
+                      operator: In
+                      values:
+                        - kube-system
+                podSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - konnectivity-agent
+          name: allow-ingress-from-konnectivity
+        - action: Allow
+          from:
+            - pods:
+                namespaceSelector:
+                  matchExpressions:
+                    - key: kubernetes.io/metadata.name
+                      operator: In
+                      values:
+                        - openshift-storage
+                podSelector:
+                  matchExpressions:
+                    - key: app.kubernetes.io/name
+                      operator: In
+                      values:
+                        - csi-addons
+          name: allow-ingress-from-openshift-storage
+        - action: Allow
+          from:
+            - namespaces:
+                matchExpressions:
+                  - key: kubernetes.io/metadata.name
+                    operator: In
+                    values:
+                      - openshift-operators
+                      - apc-cnpg-operator
+          name: allow-ingress-from-operators
+        - action: Allow
+          from:
+            - namespaces:
+                matchExpressions:
+                  - key: kubernetes.io/metadata.name
+                    operator: In
+                    values:
+                      - apc-crossplane-system
+          name: allow-ingress-from-crossplane-namespace
+        - action: Pass
+          from:
+            - namespaces:
+                matchExpressions:
+                  - key: apc.namespace.type
+                    operator: In
+                    values:
+                      - application
+          name: pass-ingress-from-application-namespaces
+        - action: Pass
+          from:
+            - namespaces:
+                matchExpressions:
+                  - key: apc.namespace.type
+                    operator: In
+                    values:
+                      - platform
+          name: pass-ingress-from-platform-namespaces
+      priority: 30
+      subject:
+        namespaces:
+          matchExpressions:
+            - key: apc.namespace.type
+              operator: In
+              values:
+                - platform
+  5: |
+    apiVersion: kyverno.io/v1
+    kind: ClusterPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: networkpolicy
+        policies.kyverno.io/minversion: 1.13.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Create default networkpolicy in namespace
+      labels:
+        app.kubernetes.io/instance: default-network-policies
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: default-network-policies
+        helm.sh/chart: default-network-policies-1.4.0
+      name: platform-project-networkpolicy
+    spec:
+      background: true
+      generateExisting: true
+      rules:
+        - generate:
+            apiVersion: networking.k8s.io/v1
+            data:
+              spec:
+                ingress:
+                  - from:
+                      - podSelector: {}
+                podSelector: {}
+            kind: NetworkPolicy
+            name: '{{ request.object.metadata.name }}-allow-from-same-namespace'
+            namespace: '{{ request.object.metadata.name }}'
+            synchronize: false
+          match:
+            any:
+              - resources:
+                  kinds:
+                    - Namespace
+          name: platform-project-networkpolicy
+          preconditions:
+            all:
+              - key: '{{ request.object.metadata.labels."apc.namespace.type" }}'
+                operator: Equals
+                value: platform
+        - generate:
+            apiVersion: networking.k8s.io/v1
+            data:
+              spec:
+                ingress:
+                  - from:
+                      - namespaceSelector:
+                          matchLabels:
+                            network.openshift.io/policy-group: ingress
+                podSelector: {}
+            kind: NetworkPolicy
+            name: '{{ request.object.metadata.name }}-allow-from-openshift-ingress'
+            namespace: '{{ request.object.metadata.name }}'
+            synchronize: false
+          match:
+            any:
+              - resources:
+                  kinds:
+                    - Namespace
+          name: platform-project-networkpolicy-ingress
+          preconditions:
+            all:
+              - key: '{{ request.object.metadata.labels."apc.namespace.type" }}'
+                operator: Equals
+                value: platform
+      validationFailureAction: Audit
+  6: |
+    apiVersion: policy.networking.k8s.io/v1alpha1
+    kind: AdminNetworkPolicy
+    metadata:
+      labels:
+        app.kubernetes.io/instance: default-network-policies
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: default-network-policies
+        helm.sh/chart: default-network-policies-1.4.0
+      name: cluster-wide-restricted-policy
+    spec:
+      egress:
+        - action: Deny
+          name: deny-egress-from-restricted
+          to:
+            - namespaces: {}
+      ingress:
+        - action: Deny
+          from:
+            - namespaces: {}
+          name: deny-ingress-to-restricted
+      priority: 10
+      subject:
+        namespaces:
+          matchLabels:
+            security: restricted

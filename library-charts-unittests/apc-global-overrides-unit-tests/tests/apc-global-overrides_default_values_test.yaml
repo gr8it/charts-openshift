@@ -1,0 +1,88 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: APC global overrides - default values
+templates:
+  - templates/apc-global-overrides.yaml
+release:
+  name: agout
+  namespace: default
+
+tests:
+  - it: manifest should match snapshot
+    asserts:
+      - matchSnapshot: {}
+
+  - it: customer from default values
+    asserts:
+      - equal: { path: data.customer, value: ~ }
+
+  - it: repo fields from default values
+    asserts:
+      - equal: { path: data.repoURL, value: ~ }
+      - equal: { path: data.repoTargetRevision, value: HEAD }
+
+  - it: environment fields from default values
+    asserts:
+      - equal: { path: data.environment, value: ~ }
+      - equal: { path: data.environmentShort, value: ~ }
+
+  - it: cluster identity fields from default values
+    asserts:
+      - equal: { path: data.clusterName, value: ~ }
+      - equal: { path: data.clusterAcmName, value: ~ }
+      - equal: { path: data.clusterType, value: ~ }
+
+  - it: cluster domain and API fields from default values
+    asserts:
+      - equal: { path: data.clusterBaseDomain, value: ~ }
+      - equal: { path: data.clusterAppsDomain, value: ~ }
+      - equal: { path: data.clusterApiURL, value: ~ }
+
+  - it: cluster API versions from default values
+    asserts:
+      - equal: { path: data.clusterKubeVersion, value: ~ }
+      - equal:
+          path: data.clusterApiVersions
+          value: []
+
+  - it: clusterServices and merged default values
+    asserts:
+      - equal:
+          path: data.clusterServices
+          value: {}
+      - equal:
+          path: data.clusterServicesMerged
+          value: {}
+
+  - it: booleans from default values
+    asserts:
+      - equal: { path: data.clusterIsHub, value: false }
+      - equal: { path: data.clusterRunsApps, value: false }
+
+  - it: proxy, noProxy, proxyCIDRs from default values
+    asserts:
+      - notExists:
+          path: data.proxy
+      - notExists:
+          path: data.noProxy
+      - notExists:
+          path: data.proxyCIDRs
+
+  - it: services and merged default values
+    asserts:
+      - equal:
+          path: data.services
+          value: {}
+      - equal:
+          path: data.servicesMerged
+          value: {}
+      - equal: { path: data.servicesExtracted.certManager.defaultClusterIssuer, value: null }
+      - equal: { path: data.servicesExtracted.crossplane.kubeVaultProviderConfigName, value: null }
+      - equal: { path: data.servicesExtracted.externalSecretsOperator.defaultClusterSecretStore, value: null }
+      - equal: { path: data.servicesExtracted.vault.kubeAuthMountPath, value: null }
+      - equal: { path: data.servicesExtracted.vault.name, value: null }
+      - equal: { path: data.servicesExtracted.vault.url, value: null }
+
+  - it: caCertificates and merged default values
+    asserts:
+      - notExists:
+          path: data.caCertificates

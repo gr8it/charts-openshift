@@ -60,3 +60,15 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{- define "kyverno-app-project.vaultRolesOverride" -}}
+{{- $roles := dict -}}
+{{- $roles := get .Values.vaultRolesOverride (include "apc-global-overrides.environment" . ) | default .Values.defaultVaultRoles }}
+{{- $roles | toYaml }}
+{{- end }}
+
+{{- define "kyverno-app-project.vaultCapabilitiesOverride" -}}
+{{- $capabilities := dict -}}
+{{- $capabilities := get .Values.vaultCapabilitiesOverride (include "apc-global-overrides.environment" . ) | default .Values.defaultVaultCapabilities }}
+{{- $capabilities | toYaml }}
+{{- end }}

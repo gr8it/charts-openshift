@@ -1,14 +1,19 @@
-# do not set, to be overriden by values uponm installation
-global:
-  apc:
-    cluster:
-      runsApps: ~
-    proxyIPs: []
+## do not set, to be overriden by values uponm installation
+# global:
+#   apc:
+#     cluster:
+#       runsApps: ~
+#     proxyCIDRs: []
+## and their local overrides
+# cluster:
+#   runsApps: ~
+# proxyCIDRs: [] # if set, communication to these IP will be blocked by default network policies. If not set, defaults to global.apc.proxyCIDRs
 
 createApplicationPolicies: ~ # overrides global.apc.cluster.runsApps. If neither is set, defaults to true
+
 createPlatformPolicies: true
 createRestrictedPolicies: true
 
 crossplaneNamespace: apc-crossplane-system
-
-proxyIPs: [] # if set, communication to these IP will be blocked by default network policies
+operatorNamespaces:
+  - apc-cnpg-operator

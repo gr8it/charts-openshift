@@ -1,0 +1,13 @@
+
+{{- if eq "true" (include "apc-global-overrides.clusterRunsApps" .) }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    rbac.kyverno.io/aggregate-to-admission-controller: "true"
+  name: kyverno:cleanup-admission:eso-vault
+rules:
+- apiGroups: ["vault.vault.upbound.io"]
+  resources: ["policies"]
+  verbs: ["get", "list"]
+{{- end }}

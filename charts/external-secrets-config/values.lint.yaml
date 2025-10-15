@@ -1,0 +1,13 @@
+global:
+  apc:
+    environmentShort: d
+    cluster:
+      name: dev01
+    services:
+      vault:
+        url: https://vault.example.com
+        kubeAuthMountPath: dev01
+      crossplane:
+        kubeVaultProviderConfigName: vault-hub-provider-config
+      externalSecretsOperator:
+        defaultClusterSecretStore: vault-example

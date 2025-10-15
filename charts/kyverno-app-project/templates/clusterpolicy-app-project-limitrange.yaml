@@ -1,0 +1,46 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: app-project-limitrange
+  labels:
+  {{- include "kyverno-app-project.labels" . | nindent 4 }}
+  annotations:
+    policies.kyverno.io/title: Create default limit range for namespace
+    policies.kyverno.io/category: limit range
+    policies.kyverno.io/subject: project
+    policies.kyverno.io/minversion: 1.13.0
+spec:
+  background: true
+  generateExisting: true
+  validationFailureAction: Audit
+  rules:
+    - name: app-project-default-limit-range
+      match:
+        any:
+          - resources:
+              kinds:
+              - Namespace
+      preconditions:
+        all:
+        - key: '{{ `{{ request.object.metadata.labels."apc.namespace.type" }}` }}'
+          operator: Equals
+          value: application
+      skipBackgroundRequests: {{ .Values.defaultLimitRange.skipBackgroundRequests }}
+      generate:
+        apiVersion: v1
+        kind: LimitRange
+        name: "default-limit-range"
+        namespace: '{{ `{{request.object.metadata.name}}` }}'
+        data:
+          spec:
+            limits:
+            {{- with .Values.defaultLimitRange }}
+              - default:
+                  cpu: {{ .limitsDefaultCpu | quote }}                              # Default CPU limit for containers
+                  memory: {{ .limitsDefaultMemory | quote }}                        # Default memory limit for containers
+                  ephemeral-storage: {{ .limitsDefaultEphemeralStorage | quote }}   # Default ephemeral storage limit for containers
+                defaultRequest:
+                  cpu: {{ .limitsDefaultRequestCpu | quote }}                       # Default CPU request for containers
+                  memory: {{ .limitsDefaultRequestMemory | quote }}                 # Default memory request for containers
+                type: Container
+            {{- end }}

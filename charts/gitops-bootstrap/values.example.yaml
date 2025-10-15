@@ -4,9 +4,17 @@ fullnameOverride: ""
 
 bootstrap: true
 
+global:
+  apc:
+    proxyCIDRs:
+      - 10.1.1.7/32
+    repoUrl: https://github.com/gr8it/conf-socpoist.git
+    repoTargetRevision: main
+    cluster:
+      name: lab
+      appsDomain: apps.lab.gr8it.cloud
+
 repo:
-  url: https://github.com/gr8it/conf-socpoist.git
-  targetRevision: main
   credentials:
     app_id: 123
     installation_id: 456
@@ -14,6 +22,3 @@ repo:
         -----BEGIN RSA PRIVATE KEY-----
         MIIEpAIBAAKCAQEA...
         -----END RSA PRIVATE KEY-----
-
-proxyIPs:
-  - 10.1.1.7/32
