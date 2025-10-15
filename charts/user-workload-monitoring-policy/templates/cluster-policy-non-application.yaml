@@ -2,7 +2,7 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: uwm-platform-cluster-policy
+  name: cluster-policy-non-application
   labels:
     {{- include "user-workload-monitoring-policy.labels" . | nindent 4 }}
 spec:
@@ -45,11 +45,6 @@ spec:
       name: "user-workload-monitoring-{{`{{request.object.metadata.name}}`}}"
       namespace: "{{`{{request.object.metadata.name}}`}}"
       data:
-        metadata:
-          labels:
-            monitoring.workload/auto-generated: "true"
-            prometheus: kube-prometheus
-            role: alert-rules
         spec:
           groups:
           - name: "user-workload-{{`{{request.object.metadata.name}}`}}"
@@ -59,6 +54,8 @@ spec:
               expr: {{ .expr | quote }}
               for: {{ .for }}
               labels:
+                vendor: aspecta
+                team: platform
                 severity: {{ .severity }}
                 namespace: "{{`{{request.object.metadata.name}}`}}"
               annotations:

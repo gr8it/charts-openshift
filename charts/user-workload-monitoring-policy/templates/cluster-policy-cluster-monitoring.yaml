@@ -2,13 +2,13 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: uwm-application-cluster-policy
+  name: cluster-policy-cluster-monitoring
   labels:
     {{- include "user-workload-monitoring-policy.labels" . | nindent 4 }}
 spec:
   generateExistingOnPolicyUpdate: true
   rules:
-  - name: generate-prometheus-rules-application
+  - name: generate-prometheus-rules-labels
     match:
       any:
       - resources:
@@ -19,18 +19,8 @@ spec:
       - key: {{ "{{request.object.metadata.labels.\"openshift.io/cluster-monitoring\" || ''}}" | quote }}
         operator: In
         value:
-        - ""
         - "true"
-      - key: {{ "{{request.object.metadata.labels.\"openshift.io/user-monitoring\" || ''}}" | quote }}
-        operator: In
-        value:
-        - ""
-        - "true"
-      - key: {{ "{{request.object.metadata.labels.\"apc.namespace.type\" || ''}}" | quote }}
-        operator: Equals
-        value: "application"
     exclude:
-      any:
       - resources:
           kinds:
           - Namespace
@@ -45,11 +35,6 @@ spec:
       name: "user-workload-monitoring-{{`{{request.object.metadata.name}}`}}"
       namespace: "{{`{{request.object.metadata.name}}`}}"
       data:
-        metadata:
-          labels:
-            monitoring.workload/auto-generated: "true"
-            prometheus: kube-prometheus
-            role: alert-rules
         spec:
           groups:
           - name: "user-workload-{{`{{request.object.metadata.name}}`}}"
@@ -59,7 +44,9 @@ spec:
               expr: {{ .expr | quote }}
               for: {{ .for }}
               labels:
-                severity: low #informative
+                vendor: aspecta
+                team: platform
+                severity: {{ .severity }}
                 namespace: "{{`{{request.object.metadata.name}}`}}"
               annotations:
                 description: {{ .description | quote }}
