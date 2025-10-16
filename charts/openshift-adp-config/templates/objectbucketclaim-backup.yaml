@@ -1,16 +1,20 @@
 {{- if .Values.objectBucketClaims.enabled }}
+{{- $env := include "apc-global-overrides.environment" . }}
+{{- $backupLocations := .Values.dpa.backupLocations | default (list (dict) (dict)) }}
+{{- $backupEntry := index $backupLocations 0 }}
+{{- $backupObcName := tpl (default (printf "oadp-%s-app-backup" $env) (default "" .Values.objectBucketClaims.backup.name)) $ }}
+{{- $backupBucket := tpl (default "" (default "" $backupEntry.bucket)) $ }}
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
-  name: {{ tpl .Values.objectBucketClaims.backup.name . }}
+  name: {{ $backupObcName }}
   namespace: {{ .Values.sourceNamespace }}
   labels:
     {{- include "apc-global-overrides.labels" . | nindent 4 }}
     bucket-provisioner: openshift-storage.ceph.rook.io-bucket
 spec:
-  {{- $backupLocation := (index .Values.dpa.backupLocations 0) }}
-  bucketName: {{ tpl $backupLocation.bucket . }}
-  generateBucketName: {{ tpl .Values.objectBucketClaims.backup.name . }}
-  objectBucketName: obc-{{ .Values.sourceNamespace }}-{{ tpl .Values.objectBucketClaims.backup.name . }}
+  bucketName: {{ $backupBucket }}
+  generateBucketName: {{ $backupObcName }}
+  objectBucketName: obc-{{ .Values.sourceNamespace }}-{{ $backupObcName }}
   storageClassName: {{ .Values.objectBucketClaims.backup.storageClassName }}
 {{- end }}
