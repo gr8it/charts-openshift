@@ -6,13 +6,43 @@ metadata:
   labels:
     {{- include "apc-global-overrides.labels" . | nindent 4 }}
 {{- $env := tpl (include "apc-global-overrides.environment" .) $ }}
+{{- $locationDefaults := list
+  (dict "name" (printf "oadp-%s-app-backup" $env) "bucket" "" "prefix" (printf "backup/%s-app" $env) "default" true)
+  (dict "name" (printf "oadp-%s-app-restore" $env) "bucket" "" "prefix" (printf "backup/%s-app" $env) "default" false)
+}}
+{{- $providedLocations := .Values.dpa.backupLocations | default (list) }}
+{{- $backupTargetDefault := printf "oadp-%s-app-backup-cloud-credentials" $env }}
+{{- $restoreTargetDefault := printf "oadp-%s-app-restore-cloud-credentials" $env }}
 spec:
   backupLocations:
-  {{- range $index, $location := .Values.dpa.backupLocations }}
-  {{- $isDefault := default false $location.default }}
-  {{- $locationName := tpl (default "" $location.name) $ }}
-  {{- $bucket := tpl (default "" $location.bucket) $ }}
-  {{- $prefix := tpl (default "" $location.prefix) $ }}
+  {{- range $index, $defaults := $locationDefaults }}
+  {{- $override := dict }}
+  {{- if lt $index (len $providedLocations) }}
+    {{- $override = index $providedLocations $index }}
+  {{- end }}
+  {{- $combined := merge (dict) $defaults $override }}
+  {{- $locationName := tpl (default "" (index $combined "name")) $ }}
+  {{- if eq $locationName "" }}
+    {{- $locationName = index $defaults "name" }}
+  {{- end }}
+  {{- $bucket := tpl (default "" (index $combined "bucket")) $ }}
+  {{- if eq $bucket "" }}
+    {{- $bucket = index $defaults "bucket" }}
+  {{- end }}
+  {{- $prefix := tpl (default "" (index $combined "prefix")) $ }}
+  {{- if eq $prefix "" }}
+    {{- $prefix = index $defaults "prefix" }}
+  {{- end }}
+  {{- $isDefault := index $combined "default" }}
+  {{- if eq (printf "%v" $isDefault) "" }}
+    {{- $isDefault = index $defaults "default" }}
+  {{- end }}
+  {{- $targetName := "" }}
+  {{- if $isDefault }}
+    {{- $targetName = tpl (default $backupTargetDefault (default "" $.Values.credentials.backup.targetName)) $ }}
+  {{- else }}
+    {{- $targetName = tpl (default $restoreTargetDefault (default "" $.Values.credentials.restore.targetName)) $ }}
+  {{- end }}
   - name: {{ $locationName }}
     velero:
       accessMode: ReadWrite
@@ -24,11 +54,7 @@ spec:
         s3Url: {{ $.Values.dpa.s3.url }}
       credential:
         key: cloud
-        {{- if $isDefault }}
-        name: {{ tpl $.Values.credentials.backup.targetName $ }}
-        {{- else }}
-        name: {{ tpl $.Values.credentials.restore.targetName $ }}
-        {{- end }}
+        name: {{ $targetName }}
       default: {{ $isDefault }}
       objectStorage:
         bucket: {{ $bucket }}

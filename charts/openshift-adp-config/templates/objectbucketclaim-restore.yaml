@@ -1,9 +1,26 @@
 {{- if .Values.objectBucketClaims.enabled }}
-{{- $env := include "apc-global-overrides.environment" . }}
-{{- $backupLocations := .Values.dpa.backupLocations | default (list (dict) (dict)) }}
-{{- $restoreEntry := index $backupLocations 1 }}
-{{- $restoreObcName := tpl (default (printf "oadp-%s-app-restore" $env) (default "" .Values.objectBucketClaims.restore.name)) $ }}
-{{- $restoreBucket := tpl (default "" (default "" $restoreEntry.bucket)) $ }}
+{{- $env := tpl (include "apc-global-overrides.environment" .) $ }}
+{{- $defaults := list
+  (dict "name" (printf "oadp-%s-app-backup" $env) "bucket" "" "prefix" (printf "backup/%s-app" $env) "default" true)
+  (dict "name" (printf "oadp-%s-app-restore" $env) "bucket" "" "prefix" (printf "backup/%s-app" $env) "default" false)
+}}
+{{- $providedLocations := .Values.dpa.backupLocations | default (list) }}
+{{- $restoreDefaults := index $defaults 1 }}
+{{- $restoreOverride := dict }}
+{{- if lt 1 (len $providedLocations) }}
+  {{- $restoreOverride = index $providedLocations 1 }}
+{{- end }}
+{{- $restoreCombined := merge (dict) $restoreDefaults $restoreOverride }}
+{{- $restoreNameValue := index $restoreCombined "name" }}
+{{- if eq (printf "%v" $restoreNameValue) "" }}
+  {{- $restoreNameValue = index $restoreDefaults "name" }}
+{{- end }}
+{{- $restoreObcName := tpl (printf "%v" $restoreNameValue) $ }}
+{{- $restoreBucketValue := index $restoreCombined "bucket" }}
+{{- if eq (printf "%v" $restoreBucketValue) "" }}
+  {{- $restoreBucketValue = index $restoreDefaults "bucket" }}
+{{- end }}
+{{- $restoreBucket := tpl (printf "%v" $restoreBucketValue) $ }}
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
@@ -16,5 +33,5 @@ spec:
   bucketName: {{ $restoreBucket }}
   generateBucketName: {{ $restoreObcName }}
   objectBucketName: obc-{{ .Values.sourceNamespace }}-{{ $restoreObcName }}
-  storageClassName: {{ .Values.objectBucketClaims.restore.storageClassName }}
+  storageClassName: {{ .Values.objectBucketClaims.restore.storageClassName | default "ocs-storagecluster-ceph-rgw" }}
 {{- end }}

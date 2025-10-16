@@ -10,24 +10,18 @@ kyverno:
 # Credential transformation
 credentials:
   backup:
-    sourceName: 'oadp-{{ include "apc-global-overrides.environment" . }}-app-backup'
-    targetName: 'oadp-{{ include "apc-global-overrides.environment" . }}-app-backup-cloud-credentials'
+    sourceName: ~
+    targetName: ~
   restore:
-    sourceName: 'oadp-{{ include "apc-global-overrides.environment" . }}-app-restore'
-    targetName: 'oadp-{{ include "apc-global-overrides.environment" . }}-app-restore-cloud-credentials'
+    sourceName: ~
+    targetName: ~
 
 # DataProtectionApplication configuration
 dpa:
   name: apc-dpa
   backupLocations:
-    - name: 'oadp-{{ include "apc-global-overrides.environment" . }}-app-backup'
-      bucket: ''
-      prefix: 'backup/{{ include "apc-global-overrides.environment" . }}-app'
-      default: true
-    - name: 'oadp-{{ include "apc-global-overrides.environment" . }}-app-restore'
-      bucket: 'oadp-{{ include "apc-global-overrides.environment" . }}-app-restore-92a26d80-8740-42b6-88d8-f4ce195d6368'
-      prefix: 'backup/{{ include "apc-global-overrides.environment" . }}-app'
-      default: false
+    - default: true
+    - default: false
 
   # S3 configuration
   s3:
@@ -69,10 +63,10 @@ serviceMonitor:
 objectBucketClaims:
   enabled: true
   backup:
-    name: 'oadp-{{ include "apc-global-overrides.environment" . }}-app-backup'
-    storageClassName: ocs-storagecluster-ceph-rgw
+    name: ~
+    storageClassName: ~
   restore:
-    name: 'oadp-{{ include "apc-global-overrides.environment" . }}-app-restore'
-    storageClassName: ocs-storagecluster-ceph-rgw
+    name: ~
+    storageClassName: ~
 
 # Standard APC labels will be applied via apc-global-overrides

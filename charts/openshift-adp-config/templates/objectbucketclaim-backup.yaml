@@ -1,9 +1,26 @@
 {{- if .Values.objectBucketClaims.enabled }}
-{{- $env := include "apc-global-overrides.environment" . }}
-{{- $backupLocations := .Values.dpa.backupLocations | default (list (dict) (dict)) }}
-{{- $backupEntry := index $backupLocations 0 }}
-{{- $backupObcName := tpl (default (printf "oadp-%s-app-backup" $env) (default "" .Values.objectBucketClaims.backup.name)) $ }}
-{{- $backupBucket := tpl (default "" (default "" $backupEntry.bucket)) $ }}
+{{- $env := tpl (include "apc-global-overrides.environment" .) $ }}
+{{- $defaults := list
+  (dict "name" (printf "oadp-%s-app-backup" $env) "bucket" "" "prefix" (printf "backup/%s-app" $env) "default" true)
+  (dict "name" (printf "oadp-%s-app-restore" $env) "bucket" "" "prefix" (printf "backup/%s-app" $env) "default" false)
+}}
+{{- $providedLocations := .Values.dpa.backupLocations | default (list) }}
+{{- $backupDefaults := index $defaults 0 }}
+{{- $backupOverride := dict }}
+{{- if lt 0 (len $providedLocations) }}
+  {{- $backupOverride = index $providedLocations 0 }}
+{{- end }}
+{{- $backupCombined := merge (dict) $backupDefaults $backupOverride }}
+{{- $backupNameValue := index $backupCombined "name" }}
+{{- if eq (printf "%v" $backupNameValue) "" }}
+  {{- $backupNameValue = index $backupDefaults "name" }}
+{{- end }}
+{{- $backupObcName := tpl (printf "%v" $backupNameValue) $ }}
+{{- $backupBucketValue := index $backupCombined "bucket" }}
+{{- if eq (printf "%v" $backupBucketValue) "" }}
+  {{- $backupBucketValue = index $backupDefaults "bucket" }}
+{{- end }}
+{{- $backupBucket := tpl (printf "%v" $backupBucketValue) $ }}
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
@@ -16,5 +33,5 @@ spec:
   bucketName: {{ $backupBucket }}
   generateBucketName: {{ $backupObcName }}
   objectBucketName: obc-{{ .Values.sourceNamespace }}-{{ $backupObcName }}
-  storageClassName: {{ .Values.objectBucketClaims.backup.storageClassName }}
+  storageClassName: {{ .Values.objectBucketClaims.backup.storageClassName | default "ocs-storagecluster-ceph-rgw" }}
 {{- end }}
