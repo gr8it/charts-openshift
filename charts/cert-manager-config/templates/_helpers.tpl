@@ -51,38 +51,10 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
-Create the mount path
-*/}}
-{{- define "cert-manager-config.vaultKubeAuthMountPath" -}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).vault).kubeAuthMountPath | required "Vault kubeAuthMountPath is required" }}
-{{- end }}
-
-{{/*
-Create the Vault URL
-*/}}
-{{- define "cert-manager-config.vaultUrl" -}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).vault).url | required "Vault URL is required" }}
-{{- end }}
-
-{{/*
 Create the Vault PKI role to use for signing certs
 */}}
 {{- define "cert-manager-config.vaultPkiRole" -}}
 {{- .Values.vaultPkiRole | default (include "apc-global-overrides.require-clusterAppsDomain" .) }}
-{{- end }}
-
-{{/*
-Create the vault provider config name
-*/}}
-{{- define "cert-manager-config.vaultKubeVaultProviderConfigName" -}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).vault).kubeVaultProviderConfigName | required "Vault kubeVaultProviderConfigName is required" }}
-{{- end }}
-
-{{/*
-Create the cert-manager cluster issuer name
-*/}}
-{{- define "cert-manager-config.certManagerdefaultClusterIssuer" -}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).certManager).defaultClusterIssuer | required "certManagerdefaultClusterIssuer is required" }}
 {{- end }}
 
 {{/*

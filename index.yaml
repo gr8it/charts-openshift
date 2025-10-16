@@ -70,6 +70,18 @@ entries:
   acm-operatorpolicy:
   - apiVersion: v2
     appVersion: v1beta1
+    created: "2025-10-08T21:30:01.169045147+02:00"
+    description: A Helm chart to install operators using ACM operatorpolicy CR with
+      external tools, i.e. on managed clusters only (no placement decisions!)
+    digest: a343c7323777ad530eb8ccde3a9f64a3ed936d4898c0067749292249f5cf298b
+    icon: https://raw.githubusercontent.com/operator-framework/olm-docs/ea9cd734aa7a6bf2d24f273322ed9aec3ffcb02a/content/en/images/logo-sm.svg
+    name: acm-operatorpolicy
+    type: application
+    urls:
+    - packaged_charts/acm-operatorpolicy-1.2.0.tgz
+    version: 1.2.0
+  - apiVersion: v2
+    appVersion: v1beta1
     created: "2025-10-01T16:21:37.284721+02:00"
     description: A Helm chart to install operators using ACM operatorpolicy CR with
       external tools, i.e. on managed clusters only (no placement decisions!)
@@ -105,6 +117,26 @@ entries:
     - packaged_charts/acm-policy-1.0.0.tgz
     version: 1.0.0
   apc-global-overrides:
+  - apiVersion: v2
+    created: "2025-10-14T14:31:11.694545076+02:00"
+    description: A Helm chart containing helm helper functions to override global
+      APC values by local values
+    digest: e426fccf08f4837424741bc354cc30a6b26bbf3c1b088c88d7d50dce421f4ff4
+    name: apc-global-overrides
+    type: library
+    urls:
+    - packaged_charts/apc-global-overrides-1.3.0.tgz
+    version: 1.3.0
+  - apiVersion: v2
+    created: "2025-10-09T12:36:15.929325959+02:00"
+    description: A Helm chart containing helm helper functions to override global
+      APC values by local values
+    digest: 4bd458265c4cc0d01f48c46bf7ee5cb364b2398e0ed37a40c47a2795721f4682
+    name: apc-global-overrides
+    type: library
+    urls:
+    - packaged_charts/apc-global-overrides-1.2.1.tgz
+    version: 1.2.1
   - apiVersion: v2
     created: "2025-10-06T14:45:26.441740712+02:00"
     description: A Helm chart containing helm helper functions to override global
@@ -267,6 +299,19 @@ entries:
     version: 1.0.0
   cert-manager-config:
   - apiVersion: v2
+    created: "2025-10-14T14:43:36.542365203+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install Cert Manager Operator configuration
+    digest: b7b871e3982459861f4af1c97710cd519c8cda656ffa238bf1b0aab9b732c09e
+    name: cert-manager-config
+    type: application
+    urls:
+    - packaged_charts/cert-manager-config-1.5.0.tgz
+    version: 1.5.0
+  - apiVersion: v2
     created: "2025-10-01T14:02:50.706923+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -415,6 +460,24 @@ entries:
     - packaged_charts/cert-utils-operator-1.0.0.tgz
     version: 1.0.0
   cnpg-operator:
+  - apiVersion: v2
+    appVersion: v1.26.0
+    created: "2025-10-08T21:34:25.651136156+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.2.0
+    - name: plugin-barman-cloud
+      repository: https://cloudnative-pg.github.io/charts
+      version: 0.2.0
+    description: A Helm chart to install CNPG Operator using ACM operator policy and
+      Barman plugin
+    digest: f4ccad1b1d7276edd504342c1ae9f754197fc75afbd917d912c6414409b5348f
+    name: cnpg-operator
+    type: application
+    urls:
+    - packaged_charts/cnpg-operator-1.3.0.tgz
+    version: 1.3.0
   - apiVersion: v2
     appVersion: v1.26.0
     created: "2025-10-06T13:25:47.538479459+02:00"
@@ -580,18 +643,31 @@ entries:
     version: 1.1.0
   crossplane-vault-provider-bootstrap:
   - apiVersion: v2
-    created: "2025-10-06T12:33:19.089484051+02:00"
+    created: "2025-10-14T14:43:36.543370961+02:00"
     dependencies:
     - name: apc-global-overrides
       repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
-      version: 1.1.0
+      version: 1.3.0
     description: A Helm chart for Kubernetes
-    digest: 824369d129f91337eb9fc171b203c15cdc77f066a2eb7c5ec19591d02f4753ba
+    digest: 653303016a493e5f63e4b5f8128140adc1f132a52d8b62ab3d5426102f325ccd
     name: crossplane-vault-provider-bootstrap
     type: application
     urls:
     - packaged_charts/crossplane-vault-provider-bootstrap-2.0.0.tgz
     version: 2.0.0
+  - apiVersion: v2
+    created: "2025-10-14T14:43:36.542855777+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart for Kubernetes
+    digest: dd5b572ab053fd1575c94155c21bb3101c99b65ec94b26ca3a705b4d529c02af
+    name: crossplane-vault-provider-bootstrap
+    type: application
+    urls:
+    - packaged_charts/crossplane-vault-provider-bootstrap-1.7.0.tgz
+    version: 1.7.0
   - apiVersion: v2
     created: "2025-10-06T12:33:19.088988458+02:00"
     dependencies:
@@ -694,6 +770,20 @@ entries:
     version: 1.0.0
   default-network-policies:
   - apiVersion: v2
+    created: "2025-10-08T15:54:55.164560859+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.2.0
+    description: A Helm chart to apply default network policies for platform and application
+      namespaces.
+    digest: 1f251feec85914868cf9d145bc9a3bbef496210296fb03ce2d423bd17917622f
+    name: default-network-policies
+    type: application
+    urls:
+    - packaged_charts/default-network-policies-1.4.0.tgz
+    version: 1.4.0
+  - apiVersion: v2
     created: "2025-10-06T15:04:23.456351573+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -746,6 +836,32 @@ entries:
     - packaged_charts/default-network-policies-1.0.0.tgz
     version: 1.0.0
   external-secrets-config:
+  - apiVersion: v2
+    created: "2025-10-14T14:43:36.544295362+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart for configuration of external secret operator
+    digest: 54412618c0810ebb9a4f18cf9d11f1c645870f8c663768aa2470c9eafd1c65c8
+    name: external-secrets-config
+    type: application
+    urls:
+    - packaged_charts/external-secrets-config-1.3.0.tgz
+    version: 1.3.0
+  - apiVersion: v2
+    created: "2025-10-14T10:47:54.289910102+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.2.0
+    description: A Helm chart for configuration of external secret operator
+    digest: 7e9992e4558bbaa11204831485d8540c6999f5564b0b66de6627d734cd384a80
+    name: external-secrets-config
+    type: application
+    urls:
+    - packaged_charts/external-secrets-config-1.2.2.tgz
+    version: 1.2.2
   - apiVersion: v2
     created: "2025-10-02T23:21:31.204924306+02:00"
     dependencies:
@@ -983,6 +1099,20 @@ entries:
   keycloak:
   - apiVersion: v2
     appVersion: v26.0
+    created: "2025-10-14T14:43:36.545172703+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart for APC keycloak
+    digest: 7b179961671e5635d98e7ab847abd423643015ffb9a928e651a9831346254877
+    name: keycloak
+    type: application
+    urls:
+    - packaged_charts/keycloak-1.3.0.tgz
+    version: 1.3.0
+  - apiVersion: v2
+    appVersion: v26.0
     created: "2025-09-24T17:36:34.956087164+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -1106,6 +1236,20 @@ entries:
     - packaged_charts/kyverno-1.0.0.tgz
     version: 1.0.0
   kyverno-app-project:
+  - apiVersion: v2
+    created: "2025-10-14T14:43:36.545910535+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to create kyverno policies to set specific limits, quotas
+      and proxy for projects.
+    digest: 1ac1bbe87dfa8c419cdf7f0c6d07d6de4794b2294c778dd80abf72b878454634
+    name: kyverno-app-project
+    type: application
+    urls:
+    - packaged_charts/kyverno-app-project-1.3.0.tgz
+    version: 1.3.0
   - apiVersion: v2
     created: "2025-10-01T15:56:02.939522407+02:00"
     dependencies:
@@ -1380,4 +1524,4 @@ entries:
     urls:
     - packaged_charts/trust-manager-helm-1.0.0.tgz
     version: 1.0.0
-generated: "2025-10-10T15:44:57.142008+02:00"
+generated: "2025-10-14T14:43:36.541826347+02:00"

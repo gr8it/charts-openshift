@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: APC global overrides - require values
+release:
+  name: agout
+  namespace: default
+
+tests:
+  # seems like when testing multiple failed templates, unittest requires to specify all the values, which should not fail (or at least those, which come before the failed one)
+  - it: fail due to missing required value of type string
+    template: templates/apc-global-overrides-require-string.yaml
+    set:
+      proxyCIDRs:
+        - aaa
+    asserts:
+      - failedTemplate: {}
+
+  - it: fail due to missing required value of type list
+    template: templates/apc-global-overrides-require-list.yaml
+    set:
+      customer: aaa
+    asserts:
+      - failedTemplate: {}

@@ -1,14 +1,14 @@
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
-  name: {{ include "cert-manager-config.certManagerdefaultClusterIssuer" . }}
+  name: {{ include "apc-global-overrides.require-certManagerDefaultClusterIssuer" . }}
   labels:
     {{- include "cert-manager-config.labels" . | nindent 4 }}
 spec:
   vault:
     auth:
       kubernetes:
-        mountPath: /v1/auth/{{ include "cert-manager-config.vaultKubeAuthMountPath" . }}
+        mountPath: /v1/auth/{{ include "apc-global-overrides.require-vaultKubeAuthMountPath" . }}
         role: {{ .Values.vaultKubeAuthRole }}
         serviceAccountRef:
           name: {{ .Values.kubeServiceAccount }}
@@ -16,4 +16,4 @@ spec:
             - "https://kubernetes.default.svc"
     caBundle: {{ print (include "apc-global-overrides.caCertificatesBundle" .) "\n" | b64enc }}
     path: {{ .Values.vaultPkiPath }}/sign/{{ include "cert-manager-config.vaultPkiRole" . }}
-    server: {{ include "cert-manager-config.vaultUrl" . }}
+    server: {{ include "apc-global-overrides.require-vaultUrl" . }}

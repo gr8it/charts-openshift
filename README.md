@@ -16,13 +16,22 @@ For best practices / contributing rules see [CONTRIBUTING.md](.github/CONTRIBUTI
   - [ACM Instance](charts/acm-instance/)
   - [GitOps Bootstrap](charts/gitops-bootstrap/)
   - [ArgoCD App of Apps](charts/argocd-app-of-apps/)
+  - [Crossplane Helm](charts/crossplane-helm/)
+  - [Crossplane Vault Provider](charts/crossplane-vault-provider/)
+  - [Crossplane Vault Provider Bootstrap](charts/crossplane-vault-provider-bootstrap/)
+  - [Cert Manager Operator](charts/cert-manager-operator/)
+  - [Cert Manager Config](charts/cert-manager-config/)
+  - [External Secrets Operator](charts/external-secrets-operator/)
+  - [External Secrets Config](charts/external-secrets-config/)
 - library components
+  - [APC Global Overrides](charts/apc-global-overrides/)
   - [ACM Configuration policy](charts/acm-configurationpolicy/)
   - [ACM Policy](charts/acm-policy/)
   - [ACM Operator policy](charts/acm-operatorpolicy/)
   - [Operators Installer](charts/operators-installer/)
 - components
   - [Remove kubeadmin](charts/remove-kubeadmin/)
+  - ...
 
 ## Build a new/updated helm chart package
 
