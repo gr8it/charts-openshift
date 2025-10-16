@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
 suite: APC global overrides - global values only
 templates:
   - templates/apc-global-overrides.yaml
@@ -53,6 +54,7 @@ tests:
       - notExists: { path: data.clusterServices.local }
       - equal: { path: data.clusterServicesMerged.global.url, value: clusterServicesGlobalUrl-global }
       - equal: { path: data.clusterServicesMerged.override.url, value: clusterServicesOverrideUrl-global }
+      - notExists: { path: data.clusterServicesMerged.local }
 
   - it: booleans from global
     asserts:
@@ -71,10 +73,15 @@ tests:
   - it: services and merged (global only, no local keys in non-merged)
     asserts:
       - equal: { path: data.services.global.url, value: servicesGlobalUrl-global }
-      - equal: { path: data.services.override.url, value: servicesOverrideUrl-global }
       - notExists: { path: data.services.local }
       - equal: { path: data.servicesMerged.global.url, value: servicesGlobalUrl-global }
-      - equal: { path: data.servicesMerged.override.url, value: servicesOverrideUrl-global }
+      - notExists: { path: data.servicesMerged.local }
+      - equal: { path: data.servicesExtracted.certManager.defaultClusterIssuer, value: certManagerDefaultClusterIssuer-global }
+      - equal: { path: data.servicesExtracted.crossplane.kubeVaultProviderConfigName, value: crossplaneKubeVaultProviderConfigName-global }
+      - equal: { path: data.servicesExtracted.externalSecretsOperator.defaultClusterSecretStore, value: ESODefaultClusterSecretStore-global }
+      - equal: { path: data.servicesExtracted.vault.kubeAuthMountPath, value: vaultKubeAuthMountPath-global }
+      - equal: { path: data.servicesExtracted.vault.name, value: vaultName-global }
+      - equal: { path: data.servicesExtracted.vault.url, value: vaultUrl-global }
 
   - it: caCertificates and merged (global only, no local keys in non-merged)
     asserts:

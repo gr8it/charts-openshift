@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
 suite: APC global overrides - combined local and global values
 templates:
   - templates/apc-global-overrides.yaml
@@ -74,11 +75,15 @@ tests:
   - it: services and merged include global+local with local precedence; global key absent in non-merged
     asserts:
       - equal: { path: data.services.local.url, value: servicesLocaltUrl-local }
-      - equal: { path: data.services.override.url, value: servicesOverrideUrl-local }
       - notExists: { path: data.services.global }
       - equal: { path: data.servicesMerged.global.url, value: servicesGlobalUrl-global }
       - equal: { path: data.servicesMerged.local.url, value: servicesLocaltUrl-local }
-      - equal: { path: data.servicesMerged.override.url, value: servicesOverrideUrl-local }
+      - equal: { path: data.servicesExtracted.certManager.defaultClusterIssuer, value: certManagerDefaultClusterIssuer-local }
+      - equal: { path: data.servicesExtracted.crossplane.kubeVaultProviderConfigName, value: crossplaneKubeVaultProviderConfigName-local }
+      - equal: { path: data.servicesExtracted.externalSecretsOperator.defaultClusterSecretStore, value: ESODefaultClusterSecretStore-local }
+      - equal: { path: data.servicesExtracted.vault.kubeAuthMountPath, value: vaultKubeAuthMountPath-local }
+      - equal: { path: data.servicesExtracted.vault.name, value: vaultName-local }
+      - equal: { path: data.servicesExtracted.vault.url, value: vaultUrl-local }
 
   - it: caCertificates and merged include global+local with local precedence; global key absent in non-merged
     asserts:

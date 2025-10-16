@@ -71,15 +71,41 @@ manifest should match snapshot:
       repoTargetRevision: repoTargetRevision-local
       repoURL: repoURL-local
       services:
+        certManager:
+          defaultClusterIssuer: certManagerDefaultClusterIssuer-local
+        crossplane:
+          kubeVaultProviderConfigName: crossplaneKubeVaultProviderConfigName-local
+        externalSecretsOperator:
+          defaultClusterSecretStore: ESODefaultClusterSecretStore-local
         local:
           url: servicesLocaltUrl-local
-        override:
-          url: servicesOverrideUrl-local
-      servicesExtracted: servicesOverrideUrl-local
+        vault:
+          kubeAuthMountPath: vaultKubeAuthMountPath-local
+          name: vaultName-local
+          url: vaultUrl-local
+      servicesExtracted:
+        certManager:
+          defaultClusterIssuer: certManagerDefaultClusterIssuer-local
+        crossplane:
+          kubeVaultProviderConfigName: crossplaneKubeVaultProviderConfigName-local
+        externalSecretsOperator:
+          defaultClusterSecretStore: ESODefaultClusterSecretStore-local
+        vault:
+          kubeAuthMountPath: vaultKubeAuthMountPath-local
+          name: vaultName-local
+          url: vaultUrl-local
       servicesMerged:
+        certManager:
+          defaultClusterIssuer: certManagerDefaultClusterIssuer-local
+        crossplane:
+          kubeVaultProviderConfigName: crossplaneKubeVaultProviderConfigName-local
+        externalSecretsOperator:
+          defaultClusterSecretStore: ESODefaultClusterSecretStore-local
         global:
           url: servicesGlobalUrl-global
         local:
           url: servicesLocaltUrl-local
-        override:
-          url: servicesOverrideUrl-local
+        vault:
+          kubeAuthMountPath: vaultKubeAuthMountPath-local
+          name: vaultName-local
+          url: vaultUrl-local
