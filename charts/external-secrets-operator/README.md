@@ -1,4 +1,4 @@
-# external-secrets-operator for Red Hat OpenShift
+# external-secrets-operator
 
 Source repository for this operator: https://github.com/external-secrets/external-secrets
 
