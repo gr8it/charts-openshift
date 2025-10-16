@@ -105,6 +105,7 @@ data:
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `kyverno.enabled` | Enable Kyverno policy for credential transformation | `true` |
+| `kyverno.injectCa` | Inject internal OpenShift CA into DPA backup locations ending with `.svc:443` | `true` |
 
 ### Optional Components
 

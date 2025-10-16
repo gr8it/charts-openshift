@@ -1,0 +1,53 @@
+{{- if and .Values.kyverno.enabled .Values.kyverno.injectCa }}
+{{- $caConfigPath := printf "/api/v1/namespaces/%s/configmaps/kube-root-ca.crt" .Values.targetNamespace }}
+{{- $encodedCa := "{{ base64_encode('{{ openshiftCa.data.ca.crt }}') }}" }}
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: {{ include "apc-global-overrides.fullname" . }}-oadp-inject-ca
+  labels:
+    {{- include "apc-global-overrides.labels" . | nindent 4 }}
+spec:
+  background: true
+  rules:
+    - name: inject-internal-ca
+      match:
+        any:
+          - resources:
+              kinds:
+                - DataProtectionApplication
+              namespaces:
+                - {{ .Values.targetNamespace }}
+      exclude:
+        any:
+          - resources:
+              kinds:
+                - DataProtectionApplication
+              subresources:
+                - status
+      mutateExistingOnPolicyUpdate: true
+      context:
+        - name: openshiftCa
+          apiCall:
+            urlPath: {{ $caConfigPath | quote }}
+      mutate:
+        foreach:
+          - list: "spec.backupLocations"
+            preconditions:
+              all:
+                - key: "{{ contains(element.velero.config.s3Url, '.svc:443') }}"
+                  operator: Equals
+                  value: true
+                - key: "{{ element.velero.config.insecureSkipTLSVerify }}"
+                  operator: Equals
+                  value: "false"
+            patchStrategicMerge:
+              spec:
+                backupLocations:
+                  - (name): "{{ element.name }}"
+                    velero:
+                      config:
+                        insecureSkipTLSVerify: "false"
+                      objectStorage:
+                        caCert: {{ $encodedCa | quote }}
+{{- end }}
