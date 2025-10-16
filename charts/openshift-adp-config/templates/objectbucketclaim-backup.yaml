@@ -12,6 +12,10 @@
 {{- end }}
 {{- $backupCombined := merge (dict) $backupDefaults $backupOverride }}
 {{- $backupNameValue := index $backupCombined "name" }}
+{{- $explicitBackupName := tpl (default "" .Values.objectBucketClaims.backup.name) $ }}
+{{- if ne (printf "%v" $explicitBackupName) "" }}
+  {{- $backupNameValue = $explicitBackupName }}
+{{- end }}
 {{- if eq (printf "%v" $backupNameValue) "" }}
   {{- $backupNameValue = index $backupDefaults "name" }}
 {{- end }}

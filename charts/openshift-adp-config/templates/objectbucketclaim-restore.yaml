@@ -12,6 +12,10 @@
 {{- end }}
 {{- $restoreCombined := merge (dict) $restoreDefaults $restoreOverride }}
 {{- $restoreNameValue := index $restoreCombined "name" }}
+{{- $explicitRestoreName := tpl (default "" .Values.objectBucketClaims.restore.name) $ }}
+{{- if ne (printf "%v" $explicitRestoreName) "" }}
+  {{- $restoreNameValue = $explicitRestoreName }}
+{{- end }}
 {{- if eq (printf "%v" $restoreNameValue) "" }}
   {{- $restoreNameValue = index $restoreDefaults "name" }}
 {{- end }}
