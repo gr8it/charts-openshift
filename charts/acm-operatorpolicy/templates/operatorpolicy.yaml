@@ -3,6 +3,8 @@ kind: OperatorPolicy
 metadata:
   name: {{ include "acm-operatorpolicy.fullname" . }}
   namespace: open-cluster-management-policies
+  annotations:
+    {{- .Values.annotations | toYaml | nindent 4 }}
   labels:
     {{- include "acm-operatorpolicy.labels" . | nindent 4 }}
 spec:
