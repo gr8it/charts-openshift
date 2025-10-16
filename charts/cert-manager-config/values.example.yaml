@@ -61,8 +61,9 @@ global:
     services:
       vault:
         url: "https://vault.apps.demo.lab.gr8it.cloud"
-        kubeVaultProviderConfigName: vault-demo
         kubeAuthMountPath: kubernetes
+      crossplane:
+        kubeVaultProviderConfigName: vault-demo
       certManager:
         defaultClusterIssuer: "vault-hub-issuer"
 
@@ -92,7 +93,7 @@ global:
 #   -----END CERTIFICATE-----
 # services:
 #   certManager:
-#     defaultClusterIssuer: # if not specified, defaults to global.apc.services.certManager.defaultClusterIssuer, or vault-{{ "vaultName" }}-issuer
+#     defaultClusterIssuer: # if not specified, defaults to global.apc.services.certManager.defaultClusterIssuer
 #   vault:
 #     url: https://vault.lab.gr8it.cloud # if not specified, defaults to global.apc.services.vault.url
 

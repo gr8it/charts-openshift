@@ -297,24 +297,19 @@ update-chart-deps: check-yq
 	@chart_name="$(CHARTFOLDER)"; \
 	chart_path="charts/$${chart_name}/Chart.yaml"; \
 	if [ ! -f "$${chart_path}" ]; then \
-			echo "Chart.yaml for $${chart_name} not found!"; Set CHARTFOLDER environment variable to point to chart folder to be used for dependency updates. exit 1; \
+			echo "Chart.yaml for $${chart_name} not found! Set CHARTFOLDER environment variable to point to chart folder to be used for dependency updates."; exit 1; \
 	fi; \
 	chart_version=$$(grep '^version:' "$${chart_path}" | awk '{print $$2}'); \
 	echo "Chart: $${chart_name}, Version: $${chart_version}"; \
 	branch=$$(git rev-parse --abbrev-ref HEAD); \
-	helm_repo_updated=0; \
+	helm repo update; \
 	for dep_chart in $$(grep -rl "name: $${chart_name}" charts/*/Chart.yaml | grep -v "$${chart_path}"); do \
 		echo "Updating dependency in $${dep_chart}"; \
 		orig_repo=$$(yq '.dependencies[] | select(.name == "'$${chart_name}'") | .repository' "$${dep_chart}"); \
 		yq -i '.dependencies[] |= (select(.name == "'$${chart_name}'") .version = "'$${chart_version}'")' "$${dep_chart}"; \
 		yq -i '.dependencies[] |= (select(.name == "'$${chart_name}'") .repository |= sub("main", "'$${branch}'"))' "$${dep_chart}"; \
 		chart_dir=$$(dirname "$${dep_chart}"); \
-		if test $$helm_repo_updated -eq 0; then \
-			helm dep update "$${chart_dir}"; \
-			helm_repo_updated=1;
-		else \
-			helm dep update --skip-refresh "$${chart_dir}"; \
-		fi; \
+		helm dep update --skip-refresh "$${chart_dir}"; \
 		yq -i '.dependencies[] |= (select(.name == "'$${chart_name}'") .repository = "'$${orig_repo}'")' "$${dep_chart}"; \
 		lock_file="$${chart_dir}/Chart.lock"; \
 		if [ -f "$${lock_file}" ]; then \

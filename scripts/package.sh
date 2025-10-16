@@ -75,7 +75,7 @@ for folder in ${CHARTFOLDERS}; do
       else
         echo -e "\033[0;31mFAILED\033[0m "
         echo "$out"
-        echo -e "\033[33mUpdate unittests snapshot and continue? [n/Y]"
+        echo -e "\033[33mUpdate unittests snapshot and continue? [N/y]"
         echo -e "\033[33mUpdate only when \033[31mreally sure\033[33m, that updating snapshot won't break anything!\033[0m"
         read -r confirmation
         if [[ "$confirmation" != "y" && "$confirmation" != "Y" ]]; then

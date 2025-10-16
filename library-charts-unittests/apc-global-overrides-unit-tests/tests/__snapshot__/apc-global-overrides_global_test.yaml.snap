@@ -63,13 +63,39 @@ manifest should match snapshot:
       repoTargetRevision: repoTargetRevision-global
       repoURL: repoURL-global
       services:
+        certManager:
+          defaultClusterIssuer: certManagerDefaultClusterIssuer-global
+        crossplane:
+          kubeVaultProviderConfigName: crossplaneKubeVaultProviderConfigName-global
+        externalSecretsOperator:
+          defaultClusterSecretStore: ESODefaultClusterSecretStore-global
         global:
           url: servicesGlobalUrl-global
-        override:
-          url: servicesOverrideUrl-global
-      servicesExtracted: servicesOverrideUrl-global
+        vault:
+          kubeAuthMountPath: vaultKubeAuthMountPath-global
+          name: vaultName-global
+          url: vaultUrl-global
+      servicesExtracted:
+        certManager:
+          defaultClusterIssuer: certManagerDefaultClusterIssuer-global
+        crossplane:
+          kubeVaultProviderConfigName: crossplaneKubeVaultProviderConfigName-global
+        externalSecretsOperator:
+          defaultClusterSecretStore: ESODefaultClusterSecretStore-global
+        vault:
+          kubeAuthMountPath: vaultKubeAuthMountPath-global
+          name: vaultName-global
+          url: vaultUrl-global
       servicesMerged:
+        certManager:
+          defaultClusterIssuer: certManagerDefaultClusterIssuer-global
+        crossplane:
+          kubeVaultProviderConfigName: crossplaneKubeVaultProviderConfigName-global
+        externalSecretsOperator:
+          defaultClusterSecretStore: ESODefaultClusterSecretStore-global
         global:
           url: servicesGlobalUrl-global
-        override:
-          url: servicesOverrideUrl-global
+        vault:
+          kubeAuthMountPath: vaultKubeAuthMountPath-global
+          name: vaultName-global
+          url: vaultUrl-global
