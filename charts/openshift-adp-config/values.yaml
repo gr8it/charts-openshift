@@ -1,4 +1,4 @@
-environment: {{ include "apc-global-overrides.environment" . }}
+environment: '{{ include "apc-global-overrides.environment" . }}'
 
 # Namespace configuration
 sourceNamespace: apc-backup
@@ -12,23 +12,23 @@ kyverno:
 # Credential transformation
 credentials:
   backup:
-    sourceName: {{ printf "oadp-%s-app-backup" (include "apc-global-overrides.environment" .) }}
-    targetName: {{ printf "oadp-%s-app-backup-cloud-credentials" (include "apc-global-overrides.environment" .) }}
+    sourceName: '{{ printf "oadp-%s-app-backup" (include "apc-global-overrides.environment" .) }}'
+    targetName: '{{ printf "oadp-%s-app-backup-cloud-credentials" (include "apc-global-overrides.environment" .) }}'
   restore:
-    sourceName: {{ printf "oadp-%s-app-restore" (include "apc-global-overrides.environment" .) }}
-    targetName: {{ printf "oadp-%s-app-restore-cloud-credentials" (include "apc-global-overrides.environment" .) }}
+    sourceName: '{{ printf "oadp-%s-app-restore" (include "apc-global-overrides.environment" .) }}'
+    targetName: '{{ printf "oadp-%s-app-restore-cloud-credentials" (include "apc-global-overrides.environment" .) }}'
 
 # DataProtectionApplication configuration
 dpa:
   name: apc-dpa
   backupLocations:
-    - name: {{ printf "oadp-%s-app-backup" (include "apc-global-overrides.environment" .) }}
+    - name: '{{ printf "oadp-%s-app-backup" (include "apc-global-overrides.environment" .) }}'
       bucket: ""
-      prefix: {{ printf "backup/%s-app" (include "apc-global-overrides.environment" .) }}
+      prefix: '{{ printf "backup/%s-app" (include "apc-global-overrides.environment" .) }}'
       default: true
-    - name: {{ printf "oadp-%s-app-restore" (include "apc-global-overrides.environment" .) }}
-      bucket: {{ printf "oadp-%s-app-restore-92a26d80-8740-42b6-88d8-f4ce195d6368" (include "apc-global-overrides.environment" .) }}
-      prefix: {{ printf "backup/%s-app" (include "apc-global-overrides.environment" .) }}
+    - name: '{{ printf "oadp-%s-app-restore" (include "apc-global-overrides.environment" .) }}'
+      bucket: '{{ printf "oadp-%s-app-restore-92a26d80-8740-42b6-88d8-f4ce195d6368" (include "apc-global-overrides.environment" .) }}'
+      prefix: '{{ printf "backup/%s-app" (include "apc-global-overrides.environment" .) }}'
       default: false
 
   # S3 configuration
@@ -71,10 +71,10 @@ serviceMonitor:
 objectBucketClaims:
   enabled: true
   backup:
-    name: {{ printf "oadp-%s-app-backup" (include "apc-global-overrides.environment" .) }}
+    name: '{{ printf "oadp-%s-app-backup" (include "apc-global-overrides.environment" .) }}'
     storageClassName: ocs-storagecluster-ceph-rgw
   restore:
-    name: {{ printf "oadp-%s-app-restore" (include "apc-global-overrides.environment" .) }}
+    name: '{{ printf "oadp-%s-app-restore" (include "apc-global-overrides.environment" .) }}'
     storageClassName: ocs-storagecluster-ceph-rgw
 
 # Standard APC labels will be applied via apc-global-overrides
