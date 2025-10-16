@@ -5,26 +5,15 @@ metadata:
   namespace: {{ .Values.targetNamespace }}
   labels:
     {{- include "apc-global-overrides.labels" . | nindent 4 }}
-{{- $env := include "apc-global-overrides.environment" . }}
-{{- $backupLocations := .Values.dpa.backupLocations | default (list (dict) (dict)) }}
-{{- $backupEntry := index $backupLocations 0 }}
-{{- $restoreEntry := index $backupLocations 1 }}
-{{- $defaultPrefix := printf "backup/%s-app" $env }}
-{{- $backupLocationName := tpl (default (printf "oadp-%s-app-backup" $env) (default "" $backupEntry.name)) $ }}
-{{- $restoreLocationName := tpl (default (printf "oadp-%s-app-restore" $env) (default "" $restoreEntry.name)) $ }}
-{{- $backupBucket := tpl (default "" (default "" $backupEntry.bucket)) $ }}
-{{- $restoreBucket := tpl (default "" (default "" $restoreEntry.bucket)) $ }}
-{{- $backupPrefix := tpl (default $defaultPrefix (default "" $backupEntry.prefix)) $ }}
-{{- $restorePrefix := tpl (default $defaultPrefix (default "" $restoreEntry.prefix)) $ }}
-{{- $backupSourceName := tpl (default (printf "oadp-%s-app-backup" $env) (default "" .Values.credentials.backup.sourceName)) $ }}
-{{- $backupTargetName := tpl (default (printf "oadp-%s-app-backup-cloud-credentials" $env) (default "" .Values.credentials.backup.targetName)) $ }}
-{{- $restoreSourceName := tpl (default (printf "oadp-%s-app-restore" $env) (default "" .Values.credentials.restore.sourceName)) $ }}
-{{- $restoreTargetName := tpl (default (printf "oadp-%s-app-restore-cloud-credentials" $env) (default "" .Values.credentials.restore.targetName)) $ }}
-{{- $backupDefault := default true (default true $backupEntry.default) }}
-{{- $restoreDefault := default false (default false $restoreEntry.default) }}
+{{- $env := tpl (include "apc-global-overrides.environment" .) $ }}
 spec:
   backupLocations:
-  - name: {{ $backupLocationName }}
+  {{- range $index, $location := .Values.dpa.backupLocations }}
+  {{- $isDefault := default false $location.default }}
+  {{- $locationName := tpl (default "" $location.name) $ }}
+  {{- $bucket := tpl (default "" $location.bucket) $ }}
+  {{- $prefix := tpl (default "" $location.prefix) $ }}
+  - name: {{ $locationName }}
     velero:
       accessMode: ReadWrite
       config:
@@ -35,31 +24,18 @@ spec:
         s3Url: {{ $.Values.dpa.s3.url }}
       credential:
         key: cloud
-        name: {{ $backupTargetName }}
-      default: {{ $backupDefault }}
+        {{- if $isDefault }}
+        name: {{ tpl $.Values.credentials.backup.targetName $ }}
+        {{- else }}
+        name: {{ tpl $.Values.credentials.restore.targetName $ }}
+        {{- end }}
+      default: {{ $isDefault }}
       objectStorage:
-        bucket: {{ $backupBucket }}
+        bucket: {{ $bucket }}
         caCert: {{ $.Values.dpa.s3.caCert }}
-        prefix: {{ $backupPrefix }}
+        prefix: {{ $prefix }}
       provider: aws
-  - name: {{ $restoreLocationName }}
-    velero:
-      accessMode: ReadWrite
-      config:
-        insecureSkipTLSVerify: {{ $.Values.dpa.s3.insecureSkipTLSVerify | quote }}
-        profile: default
-        region: {{ $.Values.dpa.s3.region }}
-        s3ForcePathStyle: {{ $.Values.dpa.s3.forcePathStyle | quote }}
-        s3Url: {{ $.Values.dpa.s3.url }}
-      credential:
-        key: cloud
-        name: {{ $restoreTargetName }}
-      default: {{ $restoreDefault }}
-      objectStorage:
-        bucket: {{ $restoreBucket }}
-        caCert: {{ $.Values.dpa.s3.caCert }}
-        prefix: {{ $restorePrefix }}
-      provider: aws
+  {{- end }}
   configuration:
     nodeAgent:
       enable: {{ .Values.dpa.nodeAgent.enabled }}
