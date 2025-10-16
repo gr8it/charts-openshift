@@ -2,7 +2,7 @@
 
 Source repository for this operator: https://github.com/external-secrets/external-secrets
 
-## 🐞 Bug Rendering ServiceMonitor object
+## 🐞 Rendering ServiceMonitor object
 
 ### Description
 
