@@ -1,0 +1,68 @@
+{{- if .Values.createRoleBindings }}
+{{- $roles := (include "rbac-roles.roles" . | fromYaml) }}
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: app-project-roles
+  annotations:
+    policies.kyverno.io/title: Create project roles bindings
+    policies.kyverno.io/category: rolebindings 
+    policies.kyverno.io/subject: project
+    policies.kyverno.io/minversion: 1.13.0
+  labels:
+  {{- include "rbac-roles.labels" $ | nindent 4 }}
+spec:
+  background: true
+  validationFailureAction: Audit
+  rules:
+    - name: app-project-rolebindings
+      context:
+      - name: groupPrefix
+        variable:
+          value: "APC"
+      - name: clusterEnv
+        variable:
+          value: "{{ upper (include "apc-global-overrides.environmentShort" .) }}"
+      - name: bindingRules
+        variable:
+          value: |
+          {{- range $apcRole, $ocpRole := $roles }}
+            {{- if ne (len $ocpRole) 0 }}
+            - clusterRole: "{{ $apcRole }}"
+              groupSuffix: "{{ get $.Values.groupSuffix $apcRole }}"
+            {{- end }}
+          {{- end }}
+      match:
+        any:
+          - resources:
+              kinds:
+              - Namespace
+      preconditions:
+        all:
+        - key: "{{ `{{ request.object.metadata.labels.\"apc.namespace.type\" }}` }}"
+          operator: Equals
+          value: application
+      generate:
+        generateExisting: true
+        synchronize: false
+        foreach:
+          - list: bindingRules | parse_yaml(@)
+            context:
+            - name: item
+              variable:
+                jmesPath: element
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: RoleBinding
+            name: "{{ `{{ to_lower('{{element.groupSuffix}}') }}-{{element.clusterRole}}` }}-binding"
+            namespace: "{{ `{{request.object.metadata.name}}` }}"
+            data:
+              subjects:
+                - kind: Group
+                  name: "{{ `{{groupPrefix}}-{{clusterEnv}}-{{ to_upper('{{request.object.metadata.name}}') }}-{{element.groupSuffix}}` }}"
+                  apiGroup: rbac.authorization.k8s.io
+              roleRef:
+                kind: ClusterRole
+                name: "{{ `{{element.clusterRole}}` }}"
+                apiGroup: rbac.authorization.k8s.io
+      skipBackgroundRequests: true
+{{- end }}
