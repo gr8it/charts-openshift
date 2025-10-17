@@ -5,14 +5,14 @@ metadata:
   namespace: {{ .Values.targetNamespace }}
   labels:
     {{- include "apc-global-overrides.labels" . | nindent 4 }}
-{{- $env := tpl (include "apc-global-overrides.environment" .) $ }}
+{{- $cluster := tpl (include "apc-global-overrides.clusterName" .) $ }}
 {{- $locationDefaults := list
-  (dict "name" (printf "oadp-%s-app-backup" $env) "bucket" (printf "oadp-%s-app-backup" $env) "prefix" (printf "backup/%s-app" $env) "default" true)
-  (dict "name" (printf "oadp-%s-app-restore" $env) "bucket" (printf "oadp-%s-app-restore" $env) "prefix" (printf "backup/%s-app" $env) "default" false)
+  (dict "name" (printf "oadp-%s-app-backup" $cluster) "bucket" (printf "oadp-%s-app-backup" $cluster) "prefix" (printf "backup/%s-app" $cluster) "default" true)
+  (dict "name" (printf "oadp-%s-app-restore" $cluster) "bucket" (printf "oadp-%s-app-restore" $cluster) "prefix" (printf "backup/%s-app" $cluster) "default" false)
 }}
 {{- $providedLocations := .Values.dpa.backupLocations | default (list) }}
-{{- $backupTargetDefault := printf "oadp-%s-app-backup-cloud-credentials" $env }}
-{{- $restoreTargetDefault := printf "oadp-%s-app-restore-cloud-credentials" $env }}
+{{- $backupTargetDefault := printf "oadp-%s-app-backup-cloud-credentials" $cluster }}
+{{- $restoreTargetDefault := printf "oadp-%s-app-restore-cloud-credentials" $cluster }}
 spec:
   backupLocations:
   {{- range $index, $defaults := $locationDefaults }}
