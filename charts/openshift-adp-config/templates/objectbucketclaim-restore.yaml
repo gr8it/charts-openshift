@@ -24,6 +24,10 @@
 {{- if eq (printf "%v" $restoreBucketValue) "" }}
   {{- $restoreBucketValue = index $restoreDefaults "bucket" }}
 {{- end }}
+{{- $explicitRestoreBucket := tpl (default "" .Values.objectBucketClaims.restore.bucketName) $ }}
+{{- if ne (printf "%v" $explicitRestoreBucket) "" }}
+  {{- $restoreBucketValue = $explicitRestoreBucket }}
+{{- end }}
 {{- $restoreBucket := tpl (printf "%v" $restoreBucketValue) $ }}
 {{- $generateBucketNameValue := tpl (default "" .Values.objectBucketClaims.restore.generateBucketName) $ }}
 {{- if eq (printf "%v" $generateBucketNameValue) "" }}
