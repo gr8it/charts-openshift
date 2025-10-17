@@ -25,17 +25,28 @@ spec:
   {{- if eq $locationName "" }}
     {{- $locationName = index $defaults "name" }}
   {{- end }}
+  {{- $isDefault := index $combined "default" }}
+  {{- if eq (printf "%v" $isDefault) "" }}
+    {{- $isDefault = index $defaults "default" }}
+  {{- end }}
   {{- $bucket := tpl (default "" (index $combined "bucket")) $ }}
   {{- if eq $bucket "" }}
     {{- $bucket = index $defaults "bucket" }}
   {{- end }}
+  {{- if $isDefault }}
+    {{- $explicitBucket := tpl (default "" $.Values.objectBucketClaims.backup.bucketName) $ }}
+    {{- if ne $explicitBucket "" }}
+      {{- $bucket = $explicitBucket }}
+    {{- end }}
+  {{- else }}
+    {{- $explicitBucket := tpl (default "" $.Values.objectBucketClaims.restore.bucketName) $ }}
+    {{- if ne $explicitBucket "" }}
+      {{- $bucket = $explicitBucket }}
+    {{- end }}
+  {{- end }}
   {{- $prefix := tpl (default "" (index $combined "prefix")) $ }}
   {{- if eq $prefix "" }}
     {{- $prefix = index $defaults "prefix" }}
-  {{- end }}
-  {{- $isDefault := index $combined "default" }}
-  {{- if eq (printf "%v" $isDefault) "" }}
-    {{- $isDefault = index $defaults "default" }}
   {{- end }}
   {{- $targetName := "" }}
   {{- if $isDefault }}
