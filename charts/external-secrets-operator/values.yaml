@@ -3,6 +3,22 @@ global:
     openshift:
       adaptSecurityContext: force
 
-crds:
-  annotations:
-   argocd.argoproj.io/sync-options: ServerSideApply=true
+external-secrets:
+
+  crds:
+    annotations:
+    argocd.argoproj.io/sync-options: ServerSideApply=true
+
+  serviceMonitor:
+    alwaysRender: true
+    enabled: true
+
+  webhook:
+    metrics:
+      service:
+        enabled: true
+
+  certController:
+    metrics:
+      service:
+        enabled: true
