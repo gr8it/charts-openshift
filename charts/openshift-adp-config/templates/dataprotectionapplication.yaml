@@ -7,8 +7,8 @@ metadata:
     {{- include "apc-global-overrides.labels" . | nindent 4 }}
 {{- $env := tpl (include "apc-global-overrides.environment" .) $ }}
 {{- $locationDefaults := list
-  (dict "name" (printf "oadp-%s-app-backup" $env) "bucket" "" "prefix" (printf "backup/%s-app" $env) "default" true)
-  (dict "name" (printf "oadp-%s-app-restore" $env) "bucket" "" "prefix" (printf "backup/%s-app" $env) "default" false)
+  (dict "name" (printf "oadp-%s-app-backup" $env) "bucket" (printf "oadp-%s-app-backup" $env) "prefix" (printf "backup/%s-app" $env) "default" true)
+  (dict "name" (printf "oadp-%s-app-restore" $env) "bucket" (printf "oadp-%s-app-restore" $env) "prefix" (printf "backup/%s-app" $env) "default" false)
 }}
 {{- $providedLocations := .Values.dpa.backupLocations | default (list) }}
 {{- $backupTargetDefault := printf "oadp-%s-app-backup-cloud-credentials" $env }}
