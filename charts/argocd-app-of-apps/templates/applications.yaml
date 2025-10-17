@@ -44,7 +44,7 @@ spec:
     {{- $applicationDestinationServer := (($application.destination).server) }}
     {{- $defaultDestinationServer := (((($.Values.default).application).destination).server) }}
     {{- $destinationServer := coalesce $applicationDestinationServer $defaultDestinationServer }}
-    
+
     {{- if $destinationName }}
     name: {{ $destinationName }}
     {{- else if $destinationServer }}
@@ -52,6 +52,11 @@ spec:
     {{- else}}
       {{- false | required (printf "No destination.server or destination.name specified for %s" $applicationName ) }}
     {{- end}}
+
+  {{- if hasKey $application "ignoreDifferences" }}
+  ignoreDifferences:
+    {{ $application.ignoreDifferences | toYaml |  nindent 4 }}
+  {{- end}}
 
   {{- $applicationProject := ($application.project) }}
   {{- $defaultProject := ((($.Values.default).application).project) }}
@@ -70,7 +75,7 @@ spec:
 
   {{- if or $autoSyncEnabled $autoPruneEnabled ($application.managedNamespaceMetadata) $syncPolicyRetry (hasKey $application "syncOptions") }}
   syncPolicy:
-    
+
     {{- if or $autoSyncEnabled $autoPruneEnabled }}
     automated:
 
@@ -111,7 +116,7 @@ spec:
     {{- $defaultRepoURL := (((($.Values.default).application).source).repoURL) }}
     {{- $repoURL := coalesce $applicationRepoURL $defaultRepoURL | required (printf "No repoURL specified for %s" $applicationName ) }}
     repoURL: {{ $repoURL }}
-    
+
     {{- $applicationTargetRevision := (($application.source).targetRevision) }}
     {{- $defaultTargetRevision := (((($.Values.default).application).source).targetRevision) | default "HEAD" }}
     {{- $targetRevision := coalesce $applicationTargetRevision $defaultTargetRevision }}
