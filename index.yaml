@@ -279,6 +279,16 @@ entries:
   argocd-app-of-apps:
   - apiVersion: v2
     appVersion: v1alpha1
+    created: "2025-10-16T16:21:44.562168+02:00"
+    description: A Helm chart for creating series of Argo CD Applications and AppProjects
+    digest: 70ce16d58169809f9625584bd228e97d2c473f7d71809e6d567f524bcbddeaea
+    name: argocd-app-of-apps
+    type: application
+    urls:
+    - packaged_charts/argocd-app-of-apps-1.2.0.tgz
+    version: 1.2.0
+  - apiVersion: v2
+    appVersion: v1alpha1
     created: "2025-09-09T15:46:32.801252857+02:00"
     description: A Helm chart for creating series of Argo CD Applications and AppProjects
     digest: a2e6391bf8531c06e2dc255f8b1d0d7b4374407ada29c08d01732613787b22c0
@@ -1064,6 +1074,38 @@ entries:
     urls:
     - packaged_charts/gitops-bootstrap-2.2.1.tgz
     version: 2.2.1
+  grafana-apc-instance:
+  - apiVersion: v2
+    appVersion: v5
+    created: "2025-10-10T15:44:57.143146+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.2.0
+    description: A Helm chart for installing APC Grafana Instance
+    digest: a2aabb1ee593b865ad1e578f8a20ace42a0487a51197b5831b113afb490d634b
+    kubeVersion: '>=1.16-0'
+    name: grafana-apc-instance
+    type: application
+    urls:
+    - packaged_charts/grafana-apc-instance-1.0.0.tgz
+    version: 1.0.0
+  grafana-operator:
+  - apiVersion: v2
+    appVersion: v5
+    created: "2025-10-16T16:36:30.178251+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.2.0
+    description: A Helm chart for installing Grafana Operator
+    digest: 4a7a3d38838de1cb3c4697615fe761f68a3fe0527215957fb08b209c1e8d0052
+    kubeVersion: '>=1.16-0'
+    name: grafana-operator
+    type: application
+    urls:
+    - packaged_charts/grafana-operator-1.0.0.tgz
+    version: 1.0.0
   ingress-configuration:
   - apiVersion: v2
     appVersion: 1.0.0
@@ -1507,4 +1549,4 @@ entries:
     urls:
     - packaged_charts/trust-manager-helm-1.0.0.tgz
     version: 1.0.0
-generated: "2025-10-16T15:19:46.034551395+02:00"
+generated: "2025-10-16T16:36:30.17721+02:00"

@@ -1,0 +1,150 @@
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: Grafana
+metadata:
+  name: {{ include "grafana-instance.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    dashboards: {{ include "grafana-instance.name" . }}
+    datasource: {{ include "grafana-instance.name" . }}
+    {{- include "grafana-instance.labels" . | nindent 4 }}
+spec:
+  client:
+    preferIngress: false
+  config:
+    analytics:
+      check_for_updates: "false"
+      reporting_enabled: "false"
+    auth:
+      disable_login_form: "true"
+      disable_signout_menu: "true"
+    auth.anonymous:
+      enabled: "true"
+    auth.basic:
+      enabled: "true"
+    auth.proxy:
+      auto_sign_up: "true"
+      enable_login_token: "true"
+      enabled: "true"
+      header_name: X-Forwarded-User
+      header_property: username
+    dashboards:
+      min_refresh_interval: 30s
+    log:
+      level: warn
+      mode: console
+    security:
+      cookie_secure: "true"
+    unified_alerting:
+      enabled: "false"
+    users:
+      allow_sign_up: "true"
+      default_theme: light
+      viewers_can_edit: "true"
+  deployment:
+    spec:
+      replicas: {{ .Values.replicas | default 1 }}
+      template:
+        spec:
+          containers:
+            - name: grafana
+              {{- if or (.Values.httpProxy | default false) (((.Values.global|default dict).apc|default dict).proxy | default false) }}
+              envFrom:
+                - configMapRef:
+                    name: {{ include "grafana-instance.name" . }}-proxy
+              {{- end }}
+              resources:
+                {{ .Values.resources | toYaml | nindent 16 }}
+              volumeMounts:
+                - name: openshift-service-ca
+                  mountPath: /etc/ssl/certs/openshift-service-ca.pem
+                  subPath: service-ca.crt
+                {{- if .Values.storageClassName | default false }}
+                - name: grafana-data
+                  mountPath: /var/lib/grafana
+                {{- end }}
+
+            - name: grafana-proxy
+              image: registry.redhat.io/openshift4/ose-oauth-proxy
+              args:
+                - -provider=openshift
+                - -pass-basic-auth=false
+                - -https-address=:9091
+                - -http-address=
+                - -email-domain=*
+                - -upstream=http://localhost:3000
+                - --openshift-service-account={{ include "grafana-instance.name" . }}-sa
+                - --openshift-ca=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+                - --tls-cert=/etc/tls/private/tls.crt
+                - --tls-key=/etc/tls/private/tls.key
+                - --cookie-secret={{ (randAlphaNum 16 | nospace) | b64enc }}
+                - --client-id=system:serviceaccount:{{ .Release.Namespace }}:{{ include "grafana-instance.name" . }}-sa
+                - --client-secret-file=/var/run/secrets/kubernetes.io/serviceaccount/token
+                - --cookie-expire=24h
+                - '--openshift-sar={"namespace":"{{ .Release.Namespace }}","resource":"route","resourceName":"{{ include "grafana-instance.name" . }}","verb":"get"}'
+                - --skip-provider-button
+                - --scope=user:info user:check-access user:list-projects
+                - -pass-access-token=true
+                - -pass-user-headers=true
+                - -skip-auth-regex=^/metrics
+              ports:
+                - containerPort: 9091
+                  name: https
+                  protocol: TCP
+              resources:
+                requests: { cpu: 50m, memory: 64Mi }
+                limits: { cpu: 500m, memory: 512Mi }
+              volumeMounts:
+                - name: {{ include "grafana-instance.name" . }}-trusted-cabundle
+                  mountPath: /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+                  subPath: ca-bundle.crt
+                - name: {{ include "grafana-instance.name" . }}-tls
+                  mountPath: /etc/tls/private
+          volumes:
+            - name: openshift-service-ca
+              configMap:
+                name: openshift-service-ca.crt
+            - name: {{ include "grafana-instance.name" . }}-tls
+              secret:
+                secretName: {{ include "grafana-instance.name" . }}-tls
+            - name: {{ include "grafana-instance.name" . }}-trusted-cabundle
+              configMap:
+                name: {{ include "grafana-instance.name" . }}-trusted-cabundle
+            {{- if .Values.storageClassName | default false }}
+            - name: grafana-data
+              persistentVolumeClaim:
+                claimName: {{ include "grafana-instance.name" . }}-pvc
+            {{- end }}
+
+  {{- if .Values.storageClassName | default false }}
+  persistentVolumeClaim:
+    spec:
+      accessModes: ["{{ .Values.storageAccessModes }}"]
+      storageClassName: {{ .Values.storageClassName }}
+      volumeMode: Filesystem
+      resources: { requests: { storage: {{ .Values.storageSize }} } }
+  {{- end }}
+
+  service:
+    metadata:
+      annotations:
+        service.beta.openshift.io/serving-cert-secret-name: {{ include "grafana-instance.name" . }}-tls
+    spec:
+      ports:
+        - name: https
+          port: 9091
+          protocol: TCP
+          targetPort: https
+
+  route:
+    spec:
+      host: {{ include "grafana-instance.grafanaHost" . }}
+      port: { targetPort: https }
+      tls:
+        termination: reencrypt
+        insecureEdgeTerminationPolicy: Redirect
+
+  serviceAccount:
+    metadata:
+      annotations:
+        serviceaccounts.openshift.io/oauth-redirectreference.primary: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"{{ include "grafana-instance.name" . }}-route"}}'

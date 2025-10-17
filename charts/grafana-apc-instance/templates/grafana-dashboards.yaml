@@ -1,0 +1,49 @@
+{{/* Skip dashboard import if dashboardFilter is an empty list */}}
+{{- if ne (.Values.dashboardFilter | toString) "[]" }}
+{{/* If dashboardFilter is null - don't check anything and import all files */}}
+{{- if eq (.Values.dashboardFilter | default list | len) 0 }}
+{{- range $path, $_ := .Files.Glob "dashboards/*.json.gz" }}
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: {{ $path | base | trimSuffix ".json.gz" }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    dashboards: {{ include "grafana-instance.name" $ }}
+    {{- include "grafana-instance.labels" $ | nindent 4 }}
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: {{ include "grafana-instance.name" $ }}
+  allowCrossNamespaceImport: false
+  resyncPeriod: 10m
+  folder: {{ $.Values.dashboardFolderOverride | default $.Release.Namespace }}
+  gzipJson: {{ $.Files.Get $path | b64enc }}
+{{- end }}{{/*range*/}}
+{{/* If dashboardFilter is set - include only selected dashboards */}}
+{{- else }}
+{{- range $file := .Values.dashboardFilter }}
+{{- $fileContent := ($.Files.Get (printf "dashboards/%s" $file) | b64enc) }}
+{{- if $fileContent }}
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: {{ $file | trimSuffix ".json.gz" }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    dashboards: {{ include "grafana-instance.name" $ }}
+    {{- include "grafana-instance.labels" $ | nindent 4 }}
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: {{ include "grafana-instance.name" $ }}
+  allowCrossNamespaceImport: false
+  resyncPeriod: 10m
+  folder: {{ $.Values.dashboardFolderOverride | default $.Release.Namespace }}
+  gzipJson: {{ $fileContent }}
+{{- end }}
+{{- end }}{{/*range*/}}
+{{- end }}
+{{- end }}
