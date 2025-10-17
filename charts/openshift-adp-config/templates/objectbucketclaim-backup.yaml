@@ -25,6 +25,14 @@
   {{- $backupBucketValue = index $backupDefaults "bucket" }}
 {{- end }}
 {{- $backupBucket := tpl (printf "%v" $backupBucketValue) $ }}
+{{- $generateBucketNameValue := tpl (default "" .Values.objectBucketClaims.backup.generateBucketName) $ }}
+{{- if eq (printf "%v" $generateBucketNameValue) "" }}
+  {{- $generateBucketNameValue = $backupObcName }}
+{{- end }}
+{{- $objectBucketNameValue := tpl (default "" .Values.objectBucketClaims.backup.objectBucketName) $ }}
+{{- if eq (printf "%v" $objectBucketNameValue) "" }}
+  {{- $objectBucketNameValue = printf "obc-%s-%s" .Values.sourceNamespace $backupObcName }}
+{{- end }}
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
@@ -35,7 +43,7 @@ metadata:
     bucket-provisioner: openshift-storage.ceph.rook.io-bucket
 spec:
   bucketName: {{ $backupBucket }}
-  generateBucketName: {{ $backupObcName }}
-  objectBucketName: obc-{{ .Values.sourceNamespace }}-{{ $backupObcName }}
+  generateBucketName: {{ $generateBucketNameValue }}
+  objectBucketName: {{ $objectBucketNameValue }}
   storageClassName: {{ .Values.objectBucketClaims.backup.storageClassName | default "ocs-storagecluster-ceph-rgw" }}
 {{- end }}
