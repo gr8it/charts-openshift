@@ -56,17 +56,3 @@ Create the Vault PKI role to use for signing certs
 {{- define "cert-manager-config.vaultPkiRole" -}}
 {{- .Values.vaultPkiRole | default (include "apc-global-overrides.require-clusterAppsDomain" .) }}
 {{- end }}
-
-{{/*
-Create the ingress cert CN
-*/}}
-{{- define "cert-manager-config.ingressCertCommonName" -}}
-{{- .Values.ingressCertCommonName | default (include "apc-global-overrides.require-clusterAppsDomain" .) }}
-{{- end }}
-
-{{/*
-Create the ingress cert SANs
-*/}}
-{{- define "cert-manager-config.ingressCertDnsNames" -}}
-{{- (.Values.ingressCertDnsNames | default (list (print "*." (include "apc-global-overrides.require-clusterAppsDomain" .)))) | toJson }}
-{{- end }}
