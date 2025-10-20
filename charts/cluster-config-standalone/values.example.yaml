@@ -1,0 +1,31 @@
+nameOverride: ""
+fullnameOverride: ""
+
+global:
+  apc:
+    environmentShort: d
+    caCertificates:
+      example.com: |
+        ---BEGIN CERTIFICATE---
+        MIIDdzCCAl+gAwIBAgIEb1pQszANBg
+        ---END CERTIFICATE---
+    services:
+      externalSecretsOperator:
+        defaultClusterSecretStore: vault-issuer
+      vault:
+        KVmountPlatform: apc-platform
+
+imageProxy:
+  host: quay.apps.example.com
+  port: 443
+  sources:
+  - registry.redhat.io
+  - registry.connect.redhat.com
+  - docker.io
+  - quay.io
+  - ghcr.io
+  # caCertificates:
+  #   example.com: |
+  #     ---BEGIN CERTIFICATE---
+  #     MIIDdzCCAl+gAwIBAgIEb1pQszANBg
+  #     ---END CERTIFICATE---

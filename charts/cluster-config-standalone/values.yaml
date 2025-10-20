@@ -1,0 +1,41 @@
+nameOverride: ""
+fullnameOverride: ""
+
+## uses following global values => do not set here
+# global:
+#   apc:
+#     caCertificates: ~ 
+#     environmentShort:
+#     services:
+#       externalSecretsOperator:
+#         defaultClusterSecretStore:
+#       vault:
+#         KVmountPlatform:
+## and their local overrides
+# caCertificates: ~ # custom CA certificates in PEM format. If not specified, .global.apc.caCertificates is used
+# environmentShort:
+# services:
+#   externalSecretsStore:
+#     defaultClusterSecretStore:
+#   vault:
+#     KVmountPlatform:
+
+# set image proxy for pulling images from external registries
+imageProxy:
+  # enabled, only if host is specified
+  host: ""
+  port: 443
+  sources: []
+  # # should include
+  # - registry.redhat.io
+  # - registry.connect.redhat.com
+  # - docker.io
+  # - quay.io
+  # - ghcr.io
+  caCertificates: ~ # custom CA certificates in PEM format for image proxy. If not specified, .caCertificates / .global.apc.caCertificates is used
+
+# pull secret to use in cluster
+# must exist in <global.apc.vault.KVmountPlatform>/<global.apc.vault.environmentShort>/<vaultKey>
+pullSecret:
+  vaultKey: cluster-config
+  vaultProperty: pull-secret
