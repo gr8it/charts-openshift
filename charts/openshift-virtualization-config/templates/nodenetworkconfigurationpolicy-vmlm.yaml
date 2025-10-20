@@ -1,0 +1,21 @@
+apiVersion: nmstate.io/v1
+kind: NodeNetworkConfigurationPolicy
+metadata:
+  name: {{ include "openshift-virtualization-config.vmlmInterfaceName" . }}
+spec:
+  desiredState:
+    interfaces:
+    - ipv4:
+        dhcp: false
+        enabled: false
+      ipv6:
+        dhcp: false
+        enabled: false
+      name: {{ include "openshift-virtualization-config.vmlmInterfaceName" . }}
+      state: up
+      type: vlan
+      vlan:
+        base-iface: {{ .Values.vmlmInterface.baseIface }}
+        id: {{ .Values.vmlmInterface.vlanId }}
+  nodeSelector:
+    {{- .Values.vmlmInterface.nodeSelector | default (dict "node-role.kubernetes.io/worker" "") | toYaml | nindent 4 }}

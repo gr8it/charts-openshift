@@ -1,0 +1,20 @@
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata:
+  name: vmlm
+  namespace: openshift-cnv
+spec:
+  config: |-
+    {
+      "cniVersion": "0.3.1",
+      "name": "vmlm",
+      "type": "macvlan",
+      "master": "{{ include "openshift-virtualization-config.vmlmInterfaceName" . }}",
+      "mode": "bridge",
+      "ipam": {
+        "type": "whereabouts",
+        "range": "{{ .Values.vmlmInterface.whereabouts.rangeCidr | required "VMLM whereabouts range CIDR must be defined" }}",
+        "range_start": "{{ .Values.vmlmInterface.whereabouts.rangeStart | required "VMLM whereabouts range START must be defined" }}",
+        "range_end": "{{ .Values.vmlmInterface.whereabouts.rangeEnd | required "VMLM whereabouts range END must be defined" }}"
+      }
+    }

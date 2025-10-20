@@ -1,0 +1,16 @@
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+# VLAN network for VM live migration network
+vmlmInterface:
+  baseIface: "bond1"
+  vlanId: "123"
+  whereabouts:
+    rangeCidr: "10.1.2.0/25" # CIDR range for VM live migration network
+    rangeStart: "10.1.2.10" # start of the IP range for VM live migration network
+    rangeEnd: "10.1.2.15" # end of the IP range for VM live migration network
+
+vmInterfaces:
+- baseIface: "bond1"
+  vlanId: "234"

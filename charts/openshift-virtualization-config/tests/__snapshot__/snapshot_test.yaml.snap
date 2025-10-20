@@ -1,0 +1,180 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: hco.kubevirt.io/v1beta1
+    kind: HyperConverged
+    metadata:
+      name: kubevirt-hyperconverged
+      namespace: openshift-cnv
+    spec:
+      evictionStrategy: LiveMigrateIfPossible
+      higherWorkloadDensity:
+        memoryOvercommitPercentage: 100
+      infra: {}
+      liveMigrationConfig:
+        allowAutoConverge: false
+        allowPostCopy: false
+        completionTimeoutPerGiB: 800
+        parallelMigrationsPerCluster: 5
+        parallelOutboundMigrationsPerNode: 2
+        progressTimeout: 150
+      virtualMachineOptions:
+        disableFreePageReporting: false
+        disableSerialConsoleLog: true
+      vmStateStorageClass: ocs-storagecluster-cephfs
+      workloads: {}
+  2: |
+    apiVersion: hco.kubevirt.io/v1beta1
+    kind: HyperConverged
+    metadata:
+      annotations:
+        deployOVS: "false"
+      labels:
+        app: kubevirt-hyperconverged
+      name: kubevirt-hyperconverged
+      namespace: openshift-cnv
+    spec:
+      applicationAwareConfig:
+        allowApplicationAwareClusterResourceQuota: false
+        vmiCalcConfigName: DedicatedVirtualResources
+      certConfig:
+        ca:
+          duration: 48h0m0s
+          renewBefore: 24h0m0s
+        server:
+          duration: 24h0m0s
+          renewBefore: 12h0m0s
+      evictionStrategy: LiveMigrate
+      featureGates:
+        alignCPUs: false
+        autoResourceLimits: false
+        deployKubeSecondaryDNS: false
+        deployKubevirtIpamController: false
+        deployTektonTaskResources: false
+        deployVmConsoleProxy: false
+        disableMDevConfiguration: false
+        downwardMetrics: false
+        enableApplicationAwareQuota: false
+        enableCommonBootImageImport: true
+        enableManagedTenantQuota: false
+        nonRoot: true
+        persistentReservation: false
+        primaryUserDefinedNetworkBinding: false
+        withHostPassthroughCPU: false
+      higherWorkloadDensity:
+        memoryOvercommitPercentage: 100
+      infra: {}
+      liveMigrationConfig:
+        allowAutoConverge: false
+        allowPostCopy: false
+        completionTimeoutPerGiB: 800
+        network: vmlm
+        parallelMigrationsPerCluster: 5
+        parallelOutboundMigrationsPerNode: 2
+        progressTimeout: 150
+      resourceRequirements:
+        vmiCPUAllocationRatio: 10
+      uninstallStrategy: BlockUninstallIfWorkloadsExist
+      virtualMachineOptions:
+        disableFreePageReporting: false
+        disableSerialConsoleLog: true
+      workloadUpdateStrategy:
+        batchEvictionInterval: 1m0s
+        batchEvictionSize: 10
+        workloadUpdateMethods:
+          - LiveMigrate
+      workloads: {}
+  3: |
+    apiVersion: k8s.cni.cncf.io/v1
+    kind: NetworkAttachmentDefinition
+    metadata:
+      name: vm-br-576
+      namespace: openshift-cnv
+    spec:
+      config: |-
+        {
+          "cniVersion": 0.3.1",
+          name": "vm-br-576",
+          type": "cnv-bridge",
+          bridge": "br-576",
+          disableContainerInterface": true
+        }
+  4: |
+    apiVersion: k8s.cni.cncf.io/v1
+    kind: NetworkAttachmentDefinition
+    metadata:
+      name: vmlm
+      namespace: openshift-cnv
+    spec:
+      config: |-
+        {
+          "cniVersion": "0.3.1",
+          "name": "vmlm",
+          "type": "macvlan",
+          "master": "bond1.123",
+          "mode": "bridge",
+          "ipam": {
+            "type": "whereabouts",
+            "range": "10.1.2.0/25",
+            "range_start": "10.1.2.10",
+            "range_end": "10.1.2.15"
+          }
+        }
+  5: |
+    apiVersion: nmstate.io/v1
+    kind: NodeNetworkConfigurationPolicy
+    metadata:
+      name: bond1.234
+    spec:
+      desiredState:
+        interfaces:
+          - ipv4:
+              dhcp: false
+              enabled: false
+            ipv6:
+              dhcp: false
+              enabled: false
+            name: bond1.234
+            state: up
+            type: vlan
+            vlan:
+              base-iface: bond1
+              id: 234
+          - bridge:
+              options:
+                stp:
+                  enabled: false
+              port:
+                - name: bond1.234
+            ipv4:
+              dhcp: false
+              enabled: false
+            ipv6:
+              dhcp: false
+              enabled: false
+            name: br-234
+            state: up
+            type: linux-bridge
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
+  6: |
+    apiVersion: nmstate.io/v1
+    kind: NodeNetworkConfigurationPolicy
+    metadata:
+      name: bond1.123
+    spec:
+      desiredState:
+        interfaces:
+          - ipv4:
+              dhcp: false
+              enabled: false
+            ipv6:
+              dhcp: false
+              enabled: false
+            name: bond1.123
+            state: up
+            type: vlan
+            vlan:
+              base-iface: bond1
+              id: 123
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""

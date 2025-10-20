@@ -1,0 +1,27 @@
+apiVersion: nmstate.io/v1
+kind: NodeNetworkConfigurationPolicy
+metadata:
+  name: bond1
+  annotations:
+    argocd.argoproj.io/sync-wave: "-20"
+spec:
+  desiredState:
+    interfaces:
+    - ipv4:
+        dhcp: {{ .Values.nncps.bond1.ipv4.dhcp }}
+        enabled: {{ .Values.nncps.bond1.ipv4.enabled }}
+      ipv6:
+        dhcp: {{ .Values.nncps.bond1.ipv6.dhcp }}
+        enabled: {{ .Values.nncps.bond1.ipv6.enabled }}
+      link-aggregation:
+        mode: {{ .Values.nncps.bond1.linkAggregation.mode }}
+        options:
+          miimon: {{ .Values.nncps.bond1.linkAggregation.options.miimon | quote }}
+          xmit_hash_policy: {{ .Values.nncps.bond1.linkAggregation.options.xmit_hash_policy }}
+        port:
+          {{- .Values.nncps.bond1.linkAggregation.port | default "" | required "Port(s) must be specified" | toYaml | nindent 10 }}
+      name: {{ .Values.nncps.bond1.name }}
+      state: {{ .Values.nncps.bond1.state }}
+      type: {{ .Values.nncps.bond1.type }}
+  nodeSelector:
+    {{- .Values.nncps.bond1.nodeSelector | toYaml | nindent 4 }}

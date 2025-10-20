@@ -1,0 +1,29 @@
+nameOverride: ""
+fullnameOverride: ""
+
+acm-operatorpolicy:
+  annotations:
+    argocd.argoproj.io/sync-wave: "-60"
+
+  remediationAction: inform
+
+  forceReleaseNamespace: true
+
+  operatorGroup:
+    targetNamespaces:
+      - "{{ .Release.Namespace }}"
+
+  subscription:
+    channel: stable
+    name: kubernetes-nmstate-operator
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    startingCSV: kubernetes-nmstate-operator.4.17.0-202502250404
+    config:
+      metadata:
+        labels:
+          operators.coreos.com/kubernetes-nmstate-operator.openshift-nmstate: ""
+
+  upgradeApproval: Automatic
+  versions:
+    - kubernetes-nmstate-operator.4.17.0-202502250404

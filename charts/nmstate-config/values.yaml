@@ -1,0 +1,27 @@
+nameOverride: ""
+fullnameOverride: ""
+
+nncps:
+  bond1:
+    # bond 1 interface params
+    ipv4:
+      dhcp: false
+      enabled: false
+    ipv6:
+      dhcp: false
+      enabled: false
+    # note - resource parameter is link-aggregation, however due to helm limitations when working with dashes in keys we use camel case linkAggregation
+    linkAggregation:
+      mode: 802.3ad
+      options:
+        miimon: "140"
+        xmit_hash_policy: layer2
+      # need to be supplied per environment
+      port: []
+    name: bond1
+    state: up
+    type: bond
+    # bond 1 interface params end
+
+    nodeSelector:
+      node-role.kubernetes.io/worker: ""

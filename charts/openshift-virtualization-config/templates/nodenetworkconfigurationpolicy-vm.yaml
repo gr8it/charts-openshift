@@ -1,0 +1,40 @@
+{{- range .Values.vmInterfaces }}
+{{ $vmInterfaceName := printf "%s.%s" .baseIface .vlanId }}
+apiVersion: nmstate.io/v1
+kind: NodeNetworkConfigurationPolicy
+metadata:
+  name: {{ $vmInterfaceName }}
+spec:
+  desiredState:
+    interfaces:
+    - ipv4:
+        dhcp: false
+        enabled: false
+      ipv6:
+        dhcp: false
+        enabled: false
+      name: {{ $vmInterfaceName }}
+      state: up
+      type: vlan
+      vlan:
+        base-iface: {{ .baseIface | required "VM BASE interface must be specified" }}
+        id: {{ .vlanId | required "VM VLAN ID must be specified" }}
+    - bridge:
+        options:
+          stp:
+            enabled: false
+        port:
+        - name: {{ $vmInterfaceName }}
+      ipv4:
+        dhcp: false
+        enabled: false
+      ipv6:
+        dhcp: false
+        enabled: false
+      name: br-{{ .vlanId }}
+      state: up
+      type: linux-bridge
+  nodeSelector:
+    {{- .nodeSelector | default (dict "node-role.kubernetes.io/worker" "") | toYaml | nindent 4 }}
+---
+{{- end }}

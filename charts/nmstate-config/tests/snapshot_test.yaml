@@ -1,0 +1,13 @@
+suite: Snapshot test
+templates:
+  - templates/*
+values:
+  - ../values.lint.yaml
+release:
+  name: nmstate-config
+  namespace: openshift-nmstate
+
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}

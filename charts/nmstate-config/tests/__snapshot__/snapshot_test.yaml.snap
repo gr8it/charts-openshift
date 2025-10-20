@@ -1,0 +1,37 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: nmstate.io/v1
+    kind: NMState
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-40"
+      name: nmstate
+  2: |
+    apiVersion: nmstate.io/v1
+    kind: NodeNetworkConfigurationPolicy
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-20"
+      name: bond1
+    spec:
+      desiredState:
+        interfaces:
+          - ipv4:
+              dhcp: false
+              enabled: false
+            ipv6:
+              dhcp: false
+              enabled: false
+            link-aggregation:
+              mode: 802.3ad
+              options:
+                miimon: "140"
+                xmit_hash_policy: layer2
+              port:
+                - ens13f1np1
+                - ens7f1np1
+            name: bond1
+            state: up
+            type: bond
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""

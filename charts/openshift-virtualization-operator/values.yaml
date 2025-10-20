@@ -1,0 +1,21 @@
+nameOverride: ""
+fullnameOverride: ""
+
+acm-operatorpolicy:
+  remediationAction: inform
+  forceReleaseNamespace: true
+
+  operatorGroup:
+    targetNamespaces:
+      - "{{ .Release.Namespace }}"
+
+  subscription:
+    channel: "stable" 
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    name: kubevirt-hyperconverged
+    startingCSV: kubevirt-hyperconverged-operator.v4.17.5
+
+  upgradeApproval: Automatic
+  versions:
+    - kubevirt-hyperconverged-operator.v4.17.5
