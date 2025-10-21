@@ -897,6 +897,17 @@ entries:
     urls:
     - packaged_charts/kyverno-app-project-1.0.0.tgz
     version: 1.0.0
+  kyverno-prometheusrules-helpers:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2025-10-21T14:58:47.88163+02:00"
+    description: A Helm chart for Kubernetes
+    digest: c740b9fa6b3a7cde52d7ec2998327385504bd3ac595dca60199776f9554013fe
+    name: kyverno-prometheusrules-helpers
+    type: application
+    urls:
+    - packaged_charts/kyverno-prometheusrules-helpers-1.0.0.tgz
+    version: 1.0.0
   mongodb-operator-helm:
   - apiVersion: v2
     appVersion: 0.12.0
@@ -1122,18 +1133,21 @@ entries:
   user-workload-monitoring-policy:
   - apiVersion: v2
     appVersion: v1
-    created: "2025-10-15T13:18:24.883529+02:00"
+    created: "2025-10-21T14:58:47.882331+02:00"
     dependencies:
     - name: apc-global-overrides
       repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
       version: 1.2.0
+    - name: kyverno-prometheusrules-helpers
+      repository: file://../kyverno-prometheusrules-helpers
+      version: 1.0.0
     description: A Helm chart that automatically creates PrometheusRule resources
       for application namespaces labeled with 'apc.namespace.type=application' using
       Kyverno policies
-    digest: 9c59039dd5c36a2011ce68e5367a7113825162486bebd021d66f62eec8c7a511
+    digest: b7811673b10f1222bb10d3d1d660a26bba051df7fea0530e75c6428d6e13fdd4
     name: user-workload-monitoring-policy
     type: application
     urls:
-    - packaged_charts/user-workload-monitoring-policy-1.0.5.tgz
-    version: 1.0.5
-generated: "2025-10-15T13:18:42.979442+02:00"
+    - packaged_charts/user-workload-monitoring-policy-1.0.0.tgz
+    version: 1.0.0
+generated: "2025-10-21T14:58:47.88054+02:00"

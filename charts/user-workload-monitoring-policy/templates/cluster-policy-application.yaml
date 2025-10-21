@@ -1,4 +1,4 @@
-{{- if not .Values.disabled }}
+
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
@@ -6,7 +6,7 @@ metadata:
   labels:
     {{- include "user-workload-monitoring-policy.labels" . | nindent 4 }}
 spec:
-  generateExistingOnPolicyUpdate: true
+  generateExisting: true
   rules:
   - name: generate-prometheus-rules-application
     match:
@@ -49,5 +49,4 @@ spec:
           groups:
           - name: "user-workload-{{`{{request.object.metadata.name}}`}}"
             rules:
-              {{- include "prometheusrules.rulesApp" . | nindent 14 }}
-{{- end }}
+              {{- include "kyverno-prometheusrules-helpers.rulesApp" . | nindent 14 }}

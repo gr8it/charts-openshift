@@ -62,20 +62,43 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
-Create the rules list usable for prometheusrule.spec.groups.rules
+Create the rules list usable for prometheusrule.spec.groups.rules for Application namespaces
 */}}
-{{- define "prometheusrules.rulesApp" -}}
-{{- range .Values.rules }}
+{{- define "kyverno-prometheusrules-helpers.rulesApp" -}}
+{{- $rules := index .Values "kyverno-prometheusrules-helpers" "rules" | default .Values.rules }}
+{{- range $rules }}
 - alert: {{ .alert }}
   expr: {{ .expr | quote }}
   for: {{ .for }}
   labels:
     vendor: socpoist
     team: developers
-    severity: {{ .severity }}
+    severity: {{ .labels.severity }}
     namespace: "{{`{{request.object.metadata.name}}`}}"
   annotations:
-    description: {{ .description | quote }}
-    summary: {{ .summary | quote }}
+    description: {{ .annotations.description | quote }}
+    summary: {{ .annotations.summary | quote }}
 {{- end }}
 {{- end }}
+
+{{/*
+Create the rules list usable for prometheusrule.spec.groups.rules for Platform (non-application) namespaces
+*/}}
+{{- define "kyverno-prometheusrules-helpers.rulesPlatform" -}}
+{{- $rules := index .Values "kyverno-prometheusrules-helpers" "rules" | default .Values.rules }}
+{{- range $rules }}
+- alert: {{ .alert }}
+  expr: {{ .expr | quote }}
+  for: {{ .for }}
+  labels:
+    vendor: aspecta
+    team: platform
+    severity: {{ .labels.severity }}
+    namespace: "{{`{{request.object.metadata.name}}`}}"
+  annotations:
+    description: {{ .annotations.description | quote }}
+    summary: {{ .annotations.summary | quote }}
+{{- end }}
+{{- end }}
+
+

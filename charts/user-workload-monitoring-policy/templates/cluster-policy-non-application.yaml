@@ -1,4 +1,3 @@
-{{- if not .Values.disabled }}
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
@@ -6,7 +5,7 @@ metadata:
   labels:
     {{- include "user-workload-monitoring-policy.labels" . | nindent 4 }}
 spec:
-  generateExistingOnPolicyUpdate: true
+  generateExisting: true
   rules:
   - name: generate-prometheus-rules-platform
     match:
@@ -31,6 +30,7 @@ spec:
         value:
         - "application"
     exclude:
+      any:
       - resources:
           kinds:
           - Namespace
@@ -49,17 +49,4 @@ spec:
           groups:
           - name: "user-workload-{{`{{request.object.metadata.name}}`}}"
             rules:
-            {{- range .Values.prometheusRule.rules }}
-            - alert: {{ .alert }}
-              expr: {{ .expr | quote }}
-              for: {{ .for }}
-              labels:
-                vendor: aspecta
-                team: platform
-                severity: {{ .severity }}
-                namespace: "{{`{{request.object.metadata.name}}`}}"
-              annotations:
-                description: {{ .description | quote }}
-                summary: {{ .summary | quote }}
-            {{- end }}
-{{- end }}
+              {{- include "kyverno-prometheusrules-helpers.rulesPlatform" . | nindent 14 }}
