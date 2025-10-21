@@ -1,173 +1,95 @@
-# OpenShift ADP Configuration
+# OpenShift ADP Config
 
-This Helm chart configures OpenShift ADP (Application Data Protection) with DataProtectionApplication resources and credential transformation driven by Kyverno.
+Helm chart that prepares OpenShift Application Data Protection (OADP) for application backups. It renders:
 
-## Overview
+- a `DataProtectionApplication` (DPA) with two backup locations (backup and restore)
+- optional `ObjectBucketClaim` resources for Ceph RGW backed storage
+- a Kyverno policy that mirrors cloud credentials from `apc-backup` into `openshift-adp`
+- optional ServiceMonitor resources for Velero metrics
 
-The chart transforms AWS credentials from source secrets in the `apc-backup` namespace to the format required by OADP in the `openshift-adp` namespace, and creates a complete DataProtectionApplication configuration for backup and restore operations.
+## Requirements
 
-## Features
+- OADP operator installed in the cluster
+- Kyverno operator when `kyverno.enabled` is `true`
+- ObjectBucketClaim provisioning (Ceph RGW) if `objectBucketClaims.enabled` is `true`
+- Source secrets containing `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` in `apc-backup`
 
-- **Credential Transformation**: Uses a Kyverno `ClusterPolicy` to transform AWS credentials from `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` format to OADP's `cloud` format
-- **DataProtectionApplication**: Creates a complete DPA configuration with backup locations, Velero settings, and NodeAgent configuration
-- **Monitoring**: Optional ServiceMonitor for Prometheus monitoring
-- **Storage**: ObjectBucketClaim resources for Ceph RGW storage
-- **Environment Flexibility**: Configurable for different environments and applications
+## Values
 
-## Prerequisites
+### Namespaces & Credentials
 
-- OpenShift ADP Operator installed and running
-- External Secrets Operator configured with appropriate SecretStore
-- Ceph RGW storage available (for ObjectBucketClaims)
-- Source secrets available in `apc-backup` namespace
+| Value | Description | Default |
+| --- | --- | --- |
+| `sourceNamespace` | Namespace containing the original cloud credentials | `apc-backup` |
+| `targetNamespace` | Namespace where OADP resources and transformed secrets are created | `openshift-adp` |
+| `credentials.backup.sourceName` | Explicit source secret name (backup); auto-generated when `~` | `~` |
+| `credentials.backup.targetName` | Target secret name override (backup) | `~` |
+| `credentials.restore.sourceName` | Explicit source secret name (restore); auto-generated when `~` | `~` |
+| `credentials.restore.targetName` | Target secret name override (restore) | `~` |
 
-## Installation
+### DataProtectionApplication
 
-### Basic Installation
+| Value | Description | Default |
+| --- | --- | --- |
+| `dpa.name` | Name of the rendered DPA | `apc-dpa` |
+| `dpa.backupLocations` | Array with backup location overrides | see `values.yaml` |
+| `dpa.s3.region` | S3 region | `us-east-1` |
+| `dpa.s3.url` | S3 endpoint URL | `https://rook-ceph-rgw-ocs-storagecluster-cephobjectstore.openshift-storage.svc:443` |
+| `dpa.s3.forcePathStyle` | Enable path-style addressing | `"true"` |
+| `dpa.s3.insecureSkipTLSVerify` | Skip TLS verification for S3 endpoint | `"true"` |
+| `dpa.s3.caCert` | Base64 or PEM CA bundle (leave blank to skip) | `~` |
+| `dpa.velero.defaultPlugins` | Velero plugins | `[openshift, aws, kubevirt, csi]` |
+| `dpa.velero.defaultSnapshotMoveData` | Enable snapshot move data | `true` |
+| `dpa.velero.defaultVolumesToFSBackup` | Enable filesystem backups by default | `false` |
+| `dpa.velero.resourceTimeout` | Velero reconcile timeout | `60m` |
+| `dpa.nodeAgent.enabled` | Enable NodeAgent | `true` |
+| `dpa.nodeAgent.uploaderType` | Uploader implementation | `kopia` |
+| `dpa.nodeAgent.resourceAllocations.requests` | CPU / memory requests | `500m` / `4Gi` |
+| `dpa.nodeAgent.resourceAllocations.limits` | CPU / memory limits | `"2"` / `32Gi` |
 
-```yaml
-openshift-adp-config:
-  render:
-    chart: gr8it-openshift/openshift-adp-config
-    chartVersion: "1.0.0"
-  destination:
-    namespace: openshift-adp
-  syncOptions:
-    - CreateNamespace=true
-  enableAutoSync: true
-  values:
-    environment: test01
-    app: myapp
-```
+### Kyverno
 
-### Custom Environment
+| Value | Description | Default |
+| --- | --- | --- |
+| `kyverno.enabled` | Render Kyverno secret-transform policy and related objects | `true` |
 
-```yaml
-openshift-adp-config:
-  render:
-    chart: gr8it-openshift/openshift-adp-config
-    chartVersion: "1.0.0"
-  destination:
-    namespace: openshift-adp
-  values:
-    environment: prod
-    app: critical-app
-    dpa:
-      backupLocations:
-        - name: oadp-prod-critical-app-backup
-          bucket: oadp-prod-critical-app-backup-abc123
-          prefix: backup/prod-critical-app
-          default: true
-```
+### ObjectBucketClaims
 
-## Configuration
+| Value | Description | Default |
+| --- | --- | --- |
+| `objectBucketClaims.enabled` | Render ObjectBucketClaims | `true` |
+| `objectBucketClaims.backup.name` | OBC name override for backup bucket | `~` |
+| `objectBucketClaims.backup.storageClassName` | StorageClass for backup OBC | `~` (defaults to `ocs-storagecluster-ceph-rgw`) |
+| `objectBucketClaims.restore.name` | OBC name override for restore bucket | `~` |
+| `objectBucketClaims.restore.storageClassName` | StorageClass for restore OBC | `~` |
 
-### Environment Configuration
+### Monitoring
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `environment` | Environment name (test01, prod, etc.) | `test01` |
-| `app` | Application name | `app` |
-| `sourceNamespace` | Source namespace for secrets | `apc-backup` |
-| `targetNamespace` | Target namespace for OADP resources | `openshift-adp` |
+| Value | Description | Default |
+| --- | --- | --- |
+| `serviceMonitor.enabled` | Create ServiceMonitor for Velero | `true` |
+| `serviceMonitor.namespace` | Namespace for ServiceMonitor | `openshift-adp` |
 
-### Credential Transformation
+## Secret Flow
 
-The chart automatically transforms credentials from:
+When `kyverno.enabled` is `true`:
 
-**Source format** (in `apc-backup` namespace):
-```yaml
-data:
-  AWS_ACCESS_KEY_ID: <base64-encoded-key>
-  AWS_SECRET_ACCESS_KEY: <base64-encoded-secret>
-```
+1. Source secret (`apc-backup/<default name>`) contains `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
+2. Kyverno `ClusterPolicy` generates / syncs a target secret in `openshift-adp` containing the `cloud` data expected by Velero.
+3. The DPA references the generated target secret for each backup location.
 
-**Target format** (in `openshift-adp` namespace):
-```yaml
-data:
-  cloud: <base64-encoded-aws-credentials-file>
-```
+You can override secret names via the `credentials.*` block if your naming does not follow the defaults (defaults resolve to `oadp-<cluster>-app-backup` / `oadp-<cluster>-app-backup-cloud-credentials` for backup and `oadp-<cluster>-app-restore` / `oadp-<cluster>-app-restore-cloud-credentials` for restore).
 
-### DataProtectionApplication Configuration
+## Object Storage
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `dpa.name` | DPA resource name | `apc-dpa` |
-| `dpa.backupLocations` | Array of backup locations | See values.yaml |
-| `dpa.s3.region` | AWS S3 region | `us-east-1` |
-| `dpa.s3.url` | S3 endpoint URL | Ceph RGW URL |
-| `dpa.velero.defaultPlugins` | Velero plugins to enable | `[openshift, aws, kubevirt, csi]` |
-| `dpa.nodeAgent.enabled` | Enable NodeAgent (restic) | `true` |
-| `dpa.nodeAgent.uploaderType` | Uploader type | `kopia` |
+Two backup locations are rendered by default:
 
-### Kyverno Configuration
+- **Default backup** (`default: true`): shared bucket used by application backups, defaults to `oadp-<cluster>-app-backup`.
+- **Restore helper** (`default: false`): helper bucket for restore workflows, defaults to `oadp-<cluster>-app-restore`.
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `kyverno.enabled` | Enable Kyverno policy for credential transformation | `true` |
-| `kyverno.injectCa` | Inject internal OpenShift CA into DPA backup locations ending with `.svc:443` | `true` |
+Override buckets, prefixes, or mark locations as default by editing `dpa.backupLocations` or supplying environment-specific values.
 
-### Optional Components
+## Notes
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `serviceMonitor.enabled` | Create ServiceMonitor for monitoring | `true` |
-| `objectBucketClaims.enabled` | Create ObjectBucketClaim resources | `true` |
-
-## Secret Naming Convention
-
-The chart uses template-based naming with environment and app variables:
-
-- **Source secrets**: `oadp-${environment}-${app}-backup`, `oadp-${environment}-${app}-restore`
-- **Target secrets**: `oadp-${environment}-${app}-backup-cloud-credentials`, `oadp-${environment}-${app}-restore-cloud-credentials`
-
-Example for `environment: test01` and `app: myapp`:
-- Source: `oadp-test01-myapp-backup`
-- Target: `oadp-test01-myapp-backup-cloud-credentials`
-
-## Backup Locations
-
-The chart creates two backup locations by default:
-
-1. **Primary backup location** (`default: true`): For regular backups
-2. **Restore location** (`default: false`): For restore operations
-
-Each location has its own:
-- S3 bucket
-- AWS credentials (transformed by Kyverno)
-- Object prefix for organization
-
-## Resource Allocation
-
-Default NodeAgent resource allocation:
-- **Requests**: 500m CPU, 4Gi memory
-- **Limits**: 2 CPU, 32Gi memory
-
-These can be adjusted based on your backup workload requirements.
-
-## Dependencies
-
-- apc-global-overrides: ^1.2.0 (provides standardized APC helper functions and labels)
-
-## Troubleshooting
-
-### Kyverno Policy Issues
-
-If credentials are not being transformed:
-1. Ensure Kyverno is installed and the CRDs are available
-2. Verify source secrets exist in the `apc-backup` namespace
-3. Check Kyverno logs for rule evaluation errors
-3. Check Kyverno policy reports: `oc get clusterpolicyreport`
-
-### DPA Configuration Issues
-
-If DataProtectionApplication is not ready:
-1. Check OADP operator logs
-2. Verify cloud credentials are properly formatted
-3. Test S3 connectivity from the cluster
-
-### Backup/Restore Issues
-
-1. Check Velero logs: `oc logs -n openshift-adp deployment/velero`
-2. Verify backup locations are accessible
-3. Check NodeAgent pods: `oc get pods -n openshift-adp -l app=node-agent`
+- TLS verification is disabled by default (`insecureSkipTLSVerify: "true"`). Provide a CA bundle and set it to `"false"` in your environment overrides when the endpoint has a trusted certificate.
+- All helper defaults (names, buckets) rely on `apc-global-overrides`; ensure the dependency is present in `Chart.yaml`.

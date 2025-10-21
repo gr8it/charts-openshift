@@ -5,13 +5,14 @@ targetNamespace: openshift-adp
 # Kyverno policy toggle
 kyverno:
   enabled: true
-  injectCa: true
 
 # Credential transformation
 credentials:
+  # Defaults resolve to oadp-<cluster>-app-backup / oadp-<cluster>-app-backup-cloud-credentials
   backup:
     sourceName: ~
     targetName: ~
+  # Defaults resolve to oadp-<cluster>-app-restore / oadp-<cluster>-app-restore-cloud-credentials
   restore:
     sourceName: ~
     targetName: ~
@@ -20,16 +21,24 @@ credentials:
 dpa:
   name: apc-dpa
   backupLocations:
-    - default: true
-    - default: false
+    # Default backup location used by all OADP application backups (always as default location)
+    - name: ~
+      bucket: ~
+      prefix: ~
+      default: true
+    # Helper restore location
+    - name: ~
+      bucket: ~
+      prefix: ~
+      default: false
 
   # S3 configuration
   s3:
     region: us-east-1
     url: https://rook-ceph-rgw-ocs-storagecluster-cephobjectstore.openshift-storage.svc:443
     forcePathStyle: "true"
-    insecureSkipTLSVerify: "false"
-    caCert: 
+    insecureSkipTLSVerify: "true"
+    caCert: ~
   
   # Velero configuration  
   velero:
