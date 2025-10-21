@@ -49,17 +49,5 @@ spec:
           groups:
           - name: "user-workload-{{`{{request.object.metadata.name}}`}}"
             rules:
-            {{- range .Values.prometheusRule.rules }}
-            - alert: {{ .alert }}
-              expr: {{ .expr | quote }}
-              for: {{ .for }}
-              labels:
-                vendor: socpoist
-                team: developers
-                severity: {{ .severity }}
-                namespace: "{{`{{request.object.metadata.name}}`}}"
-              annotations:
-                description: {{ .description | quote }}
-                summary: {{ .summary | quote }}
-            {{- end }}
+              {{- include "prometheusrules.rulesApp" . | nindent 14 }}
 {{- end }}
