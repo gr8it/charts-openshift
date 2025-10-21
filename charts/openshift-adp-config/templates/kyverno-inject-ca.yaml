@@ -35,10 +35,10 @@ spec:
           - list: "spec.backupLocations"
             preconditions:
               all:
-                - key: "{{ `{{ contains \".svc:443\" element.velero.config.s3Url }}` }}"
+                - key: {{ printf "%q" "{{ contains(element.velero.config.s3Url, '.svc:443') }}" }}
                   operator: Equals
                   value: true
-                - key: "{{ `{{ element.velero.config.insecureSkipTLSVerify }}` }}"
+                - key: {{ printf "%q" "{{ element.velero.config.insecureSkipTLSVerify }}" }}
                   operator: Equals
                   value: "false"
             patchStrategicMerge:
