@@ -4,7 +4,11 @@ kind: Schedule
 metadata:
   name: {{ .name | quote }}
   namespace: {{ .namespace | default $.Values.namespace | default $.Release.Namespace | quote }}
-  labels: {{- toYaml (.labels | default dict) | nindent 4 }}
+  labels:
+    {{- include "apc-global-overrides.labels" $ | nindent 4 }}
+    {{- with .labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   {{- toYaml .spec | nindent 2 }}
 ---
