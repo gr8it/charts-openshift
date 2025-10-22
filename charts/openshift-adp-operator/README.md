@@ -41,7 +41,7 @@ The chart supports the following configuration options through the `acm-operator
 - `subscription.name`: The operator name (default: `redhat-oadp-operator`)
 - `subscription.source`: The operator source catalog (default: `redhat-operators`)
 - `subscription.sourceNamespace`: The source namespace (default: `openshift-marketplace`)
-- `subscription.startingCSV`: The ClusterServiceVersion (default: `oadp-operator.v1.4.2`)
+- `subscription.startingCSV`: The ClusterServiceVersion (default: `oadp-operator.v1.4.3`)
 - `subscription.namespace`: The installation namespace (default: `openshift-adp`)
 
 ### Operator Group Configuration
@@ -51,7 +51,7 @@ The chart supports the following configuration options through the `acm-operator
 
 ### Policy Configuration
 - `upgradeApproval`: Upgrade approval mode (default: `None`)
-- `versions`: Allowed operator versions (default: `["oadp-operator.v1.4.2"]`)
+- `versions`: Allowed operator versions (default: `["oadp-operator.v1.4.3"]`)
 
 ## Post-Installation
 
