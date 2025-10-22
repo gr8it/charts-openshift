@@ -5,6 +5,7 @@ metadata:
   namespace: {{ .Values.targetNamespace }}
   labels:
     {{- include "apc-global-overrides.labels" . | nindent 4 }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- $cluster := tpl (include "apc-global-overrides.clusterName" .) $ }}
 {{- $locationDefaults := list
   (dict "name" (printf "oadp-%s-app-backup" $cluster) "bucket" (printf "oadp-%s-app-backup" $cluster) "prefix" (printf "backup/%s-app" $cluster) "default" true)

@@ -6,6 +6,7 @@ metadata:
   namespace: {{ .Values.serviceMonitor.namespace }}
   labels:
     app: oadp-service-monitor
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
   endpoints:
   - interval: 30s
