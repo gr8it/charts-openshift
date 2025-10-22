@@ -69,6 +69,9 @@ Helm chart that prepares OpenShift Application Data Protection (OADP) for applic
 | --- | --- | --- |
 | `serviceMonitor.enabled` | Create ServiceMonitor for Velero | `true` |
 | `serviceMonitor.namespace` | Namespace for ServiceMonitor | `openshift-adp` |
+| `prometheusRule.enabled` | Create PrometheusRule alerts | `true` |
+| `prometheusRule.namespace` | Namespace for PrometheusRule | `openshift-adp` |
+| `prometheusRule.name` | PrometheusRule resource name | `oadp-monitoring-rules` |
 
 ## Secret Flow
 
