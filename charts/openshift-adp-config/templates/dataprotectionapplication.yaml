@@ -4,7 +4,7 @@ metadata:
   name: {{ .Values.dpa.name }}
   namespace: {{ .Values.targetNamespace }}
   labels:
-    {{- include "apc-global-overrides.labels" . | nindent 4 }}
+    {{ include "apc-global-overrides.labels" . | nindent 4 }}
 {{- $cluster := tpl (include "apc-global-overrides.clusterName" .) $ }}
 {{- $locationDefaults := list
   (dict "name" (printf "oadp-%s-app-backup" $cluster) "bucket" (printf "oadp-%s-app-backup" $cluster) "prefix" (printf "backup/%s-app" $cluster) "default" true)
@@ -13,6 +13,9 @@ metadata:
 {{- $providedLocations := .Values.dpa.backupLocations | default (list) }}
 {{- $backupTargetDefault := printf "oadp-%s-app-backup-cloud-credentials" $cluster }}
 {{- $restoreTargetDefault := printf "oadp-%s-app-restore-cloud-credentials" $cluster }}
+{{- $credentials := (.Values.credentials | default dict) }}
+{{- $backupCreds := get $credentials "backup" | default dict }}
+{{- $restoreCreds := get $credentials "restore" | default dict }}
 spec:
   backupLocations:
   {{- range $index, $defaults := $locationDefaults }}
@@ -50,9 +53,9 @@ spec:
   {{- end }}
   {{- $targetName := "" }}
   {{- if $isDefault }}
-    {{- $targetName = tpl (default $backupTargetDefault (default "" $.Values.credentials.backup.targetName)) $ }}
+    {{- $targetName = tpl (default $backupTargetDefault (default "" $backupCreds.targetName)) $ }}
   {{- else }}
-    {{- $targetName = tpl (default $restoreTargetDefault (default "" $.Values.credentials.restore.targetName)) $ }}
+    {{- $targetName = tpl (default $restoreTargetDefault (default "" $restoreCreds.targetName)) $ }}
   {{- end }}
   - name: {{ $locationName }}
     velero:

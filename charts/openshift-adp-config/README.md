@@ -81,7 +81,7 @@ When `kyverno.enabled` is `true`:
 2. Kyverno `ClusterPolicy` generates / syncs a target secret in `openshift-adp` containing the `cloud` data expected by Velero.
 3. The DPA references the generated target secret for each backup location.
 
-You can override secret names via the `credentials.*` block if your naming does not follow the defaults (defaults resolve to `oadp-<cluster>-app-backup` / `oadp-<cluster>-app-backup-cloud-credentials` for backup and `oadp-<cluster>-app-restore` / `oadp-<cluster>-app-restore-cloud-credentials` for restore).
+By default the chart derives secret names from the bucket IDs configured in `dpa.backupLocations` (or `objectBucketClaims`), falling back to `oadp-<cluster>-app-{backup,restore}` when nothing is overridden. If you need custom naming you can still set `credentials.backup.*` or `credentials.restore.*` in your environment overrides.
 
 ## Object Storage
 
