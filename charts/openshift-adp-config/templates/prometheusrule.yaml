@@ -5,7 +5,8 @@ metadata:
   name: {{ .Values.prometheusRule.name | default "oadp-monitoring-rules" }}
   namespace: {{ .Values.prometheusRule.namespace | default .Values.targetNamespace }}
   labels:
-    {{- include "apc-global-overrides.labels" . | nindent 4 }}
+    app.kubernetes.io/instance: user-workload
+    role: alert-rules
 spec:
   groups:
     - name: velero.rules
@@ -13,10 +14,10 @@ spec:
         - alert: VeleroNoBackups
           annotations:
             description: |
-              No Velero backup attempts (successful or failed) have been observed in '{{`$labels.namespace`}}' in the last 30 hours
-              for schedule '{{`$labels.schedule`}}'.
+              No Velero backup attempts (successful or failed) have been observed in '{{ "{{" }} $labels.namespace {{ "}}" }}'in the last 30 hours
+              for schedule '{{ "{{" }} $labels.schedule {{ "}}" }}'.
               This may indicate that the schedule is not running, Velero is misconfigured, or metrics are missing.
-            summary: "No Velero backups in the last 30 hours for schedule {{`$labels.schedule`}}"
+            summary: "No Velero backups in the last 30 hours for schedule {{ "{{" }} $labels.schedule {{ "}}" }}"
           expr: |
             max_over_time(velero_backup_success_total[30h]) - min_over_time(velero_backup_success_total[30h]) == 0
           for: 1h
@@ -25,10 +26,10 @@ spec:
         - alert: VeleroLongRunningBackupJob
           annotations:
             description: |
-              A Velero backup job for schedule '{{`$labels.schedule`}}' in namespace '{{`$labels.namespace`}}'
-              is taking longer than expected (over 1 hour).
-              Investigate potential performance bottlenecks or storage issues.
-            summary: "Backup job taking too long in namespace {{`$labels.namespace`}}"
+                A Velero backup job for schedule '{{ "{{" }} $labels.schedule {{ "}}" }}' in namespace '{{ "{{" }} $labels.namespace {{ "}}" }}'
+                is taking longer than expected (over 1 hour).
+                Investigate potential performance bottlenecks or storage issues.
+            summary: "Backup job taking too long in namespace {{ "{{" }} $labels.namespace {{ "}}" }}"
           expr: histogram_quantile(0.95, rate(velero_backup_duration_seconds_bucket[5m])) > 3600
           for: 10m
           labels:
@@ -36,10 +37,10 @@ spec:
         - alert: VeleroNoBackupActivity
           annotations:
             description: |
-              No Velero backup attempts (success or failure) have been recorded in the last 24 hours
-              for namespace '{{`$labels.namespace`}}'.
-              Ensure that Velero is running and schedules are configured correctly.
-            summary: "No backup activity detected in the last 12 hours in namespace {{`$labels.namespace`}}"
+                No Velero backup attempts (success or failure) have been recorded in the last 24 hours
+                for namespace '{{ "{{" }} $labels.namespace {{ "}}" }}'.
+                Ensure that Velero is running and schedules are configured correctly.
+            summary: "No backup activity detected in the last 12 hours in namespace {{ "{{" }} $labels.namespace {{ "}}" }}"
           expr: sum((increase(velero_backup_attempt_total{namespace="openshift-adp"}[24h]))) == 0
           for: 1h
           labels:
@@ -47,8 +48,8 @@ spec:
         - alert: VeleroBackupLastStatus
           annotations:
             description: |
-              The last Velero backup job did not succeed in namespace '{{`$labels.namespace`}}'.
-              Investigate the Velero logs for more details. A value of 1 indicates success, but the current value is '{{`$value`}}'.
+                The last Velero backup job did not succeed in namespace '{{ "{{" }} $labels.namespace {{ "}}" }}'.
+                Investigate the Velero logs for more details. A value of 1 indicates success, but the current value is '{{ "{{" }} $value {{ "}}" }}'.
             summary: "Last Velero backup job failed"
           expr: velero_backup_last_status != 1
           for: 1m
@@ -56,7 +57,7 @@ spec:
             severity: warning
         - alert: VeleroBackupPartialFailureTotal
           annotations:
-            description: At least one backup is partially failed for schedule '{{`$labels.schedule`}}' in namespace '{{`$labels.namespace`}}'
+            description: At least one backup is partially failed for schedule '{{ "{{" }} $labels.schedule {{ "}}" }}' in namespace '{{ "{{" }} $labels.namespace {{ "}}" }}'
             summary: At least one backup is partially failed
           expr: increase(velero_backup_partial_failure_total[5m]) >= 1
           for: 1m
@@ -64,15 +65,15 @@ spec:
             severity: warning
         - alert: VeleroBackupFailureTotal
           annotations:
-            description: At least one backup is failed for schedule '{{`$labels.schedule`}}' in namespace '{{`$labels.namespace`}}'
+            description: At least one backup is failed for schedule '{{ "{{" }} $labels.schedule {{ "}}" }}' in namespace '{{ "{{" }} $labels.namespace {{ "}}" }}'
             summary: At least one backup is failed
-          expr: increase(velero_backup_failure_total[5m]) >= 1
+          expr: increase(velero_backup_failure_total[5m]) >=1
           for: 1m
           labels:
             severity: warning
         - alert: VeleroBackupValidationFailureTotal
           annotations:
-            description: At least one backup validation failed for schedule '{{`$labels.schedule`}}' in namespace '{{`$labels.namespace`}}'
+            description: At least one backup validation failed for schedule '{{ "{{" }} $labels.schedule {{ "}}" }}' in namespace '{{ "{{" }} $labels.namespace {{ "}}" }}'
             summary: At least one backup validation failed
           expr: increase(velero_backup_validation_failure_total[5m]) >= 1
           for: 1m
@@ -80,7 +81,7 @@ spec:
             severity: warning
         - alert: VeleroBackupDeletionFailureTotal
           annotations:
-            description: At least one backup deletion is failed for schedule '{{`$labels.schedule`}}' in namespace '{{`$labels.namespace`}}'
+            description: At least one backup deletion is failed for schedule '{{ "{{" }} $labels.schedule {{ "}}" }}' in namespace '{{ "{{" }} $labels.namespace {{ "}}" }}'
             summary: At least one backup deletion is failed
           expr: increase(velero_backup_deletion_failure_total[5m]) >= 1
           for: 1m
@@ -88,15 +89,15 @@ spec:
             severity: warning
         - alert: VeleroRestoreFailureTotal
           annotations:
-            description: At least one restore is failed for schedule '{{`$labels.schedule`}}' in namespace '{{`$labels.namespace`}}'
+            description: At least one restore is failed for schedule '{{ "{{" }} $labels.schedule {{ "}}" }}' in namespace '{{ "{{" }} $labels.namespace {{ "}}" }}'
             summary: At least one restore is failed
-          expr: increase(velero_restore_failed_total[5m]) >= 1
+          expr: increase(velero_restore_failed_total[5m]) >=1
           for: 1m
           labels:
             severity: warning
         - alert: VeleroRestorePartialFailureTotal
           annotations:
-            description: At least one restore is partially failed for schedule '{{`$labels.schedule`}}' in namespace '{{`$labels.namespace`}}'
+            description: At least one restore is partially failed for schedule '{{ "{{" }} $labels.schedule {{ "}}" }}' in namespace '{{ "{{" }} $labels.namespace {{ "}}" }}'
             summary: At least one restore is partially failed
           expr: increase(velero_restore_partial_failure_total[5m]) >= 1
           for: 1m
@@ -104,7 +105,7 @@ spec:
             severity: warning
         - alert: VeleroRestoreValidationFailureTotal
           annotations:
-            description: At least one restore validation failed for schedule '{{`$labels.schedule`}}' in namespace '{{`$labels.namespace`}}'
+            description: At least one restore validation failed for schedule '{{ "{{" }} $labels.schedule {{ "}}" }}' in namespace '{{ "{{" }} $labels.namespace {{ "}}" }}'
             summary: At least one restore validation failed
           expr: increase(velero_restore_validation_failed_total[5m]) >= 1
           for: 1m
@@ -112,7 +113,7 @@ spec:
             severity: warning
         - alert: VeleroBackupItemErrors
           annotations:
-            description: At least one backup item error detected for schedule '{{`$labels.schedule`}}' in namespace '{{`$labels.namespace`}}'
+            description: At least one backup item error detected for schedule '{{ "{{" }} $labels.schedule {{ "}}" }}' in namespace '{{ "{{" }} $labels.namespace {{ "}}" }}'
             summary: "Backup item errors detected"
           expr: velero_backup_items_errors >= 1
           for: 1m
@@ -121,8 +122,8 @@ spec:
         - alert: VeleroCSISnapshotFailures
           annotations:
             description: |
-              At least one failed CSI volume snapshots detected for schedule '{{`$labels.schedule`}}' in namespace '{{`$labels.namespace`}}'
-              Check the Velero logs and investigate the snapshot storage or CSI driver configuration.
+                At least one failed CSI volume snapshots detected for schedule '{{ "{{" }} $labels.schedule {{ "}}" }}' in namespace '{{ "{{" }} $labels.namespace {{ "}}" }}'
+                Check the Velero logs and investigate the snapshot storage or CSI driver configuration.
             summary: "CSI snapshot failures detected"
           expr: increase(velero_csi_snapshot_failure_total[5m]) >= 1
           for: 1m
@@ -131,8 +132,8 @@ spec:
         - alert: VeleroVolumeSnapshotFailures
           annotations:
             description: |
-              At least one failed CSI volume snapshots detected for schedule '{{`$labels.schedule`}}' in namespace '{{`$labels.namespace`}}'
-              Check the Velero logs and investigate the snapshot storage or CSI driver configuration.
+                At least one failed CSI volume snapshots detected for schedule '{{ "{{" }} $labels.schedule {{ "}}" }}' in namespace '{{ "{{" }} $labels.namespace {{ "}}" }}'
+                Check the Velero logs and investigate the snapshot storage or CSI driver configuration.
             summary: "CSI snapshot failures detected"
           expr: increase(velero_volume_snapshot_failure_total[5m]) >= 1
           for: 1m
