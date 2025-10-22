@@ -26,14 +26,22 @@ cluster:
   runsApps: false
 proxy: proxy-local
 noProxy: noProxy-local
-proxyIPs:
+proxyCIDRs:
   - proxyIP-local1
   - proxyIP-local2
 services:
   local:
     url: servicesLocaltUrl-local
-  override:
-    url: servicesOverrideUrl-local
+  certManager:
+    defaultClusterIssuer: certManagerDefaultClusterIssuer-local
+  crossplane:
+    kubeVaultProviderConfigName: crossplaneKubeVaultProviderConfigName-local
+  externalSecretsOperator:
+    defaultClusterSecretStore: ESODefaultClusterSecretStore-local
+  vault:
+    kubeAuthMountPath: vaultKubeAuthMountPath-local
+    name: vaultName-local
+    url: vaultUrl-local
 caCertificates:
   override.crt: |
     -----BEGIN CERTIFICATE-----

@@ -58,8 +58,8 @@ The chart is implemented as an ACM policy and does following:
     - Sets Vault Provider to use Token auth for bootstrap
     - Starts a helper policy to inform user in the GUI where to create the Token secret
 - Starts Kubernetes Auth Setup
-  - Provisions the Vault CRs (Auth Backend, AuthBackendConfig, AuthBackendRole, Policy) required for Kubernetes Auth
   - Waits for the Token secret to be created - see [Token Secret generation](#token-secret-generation)
+  - Provisions the Vault CRs (Auth Backend, AuthBackendConfig, AuthBackendRole, Policy) required for Kubernetes Auth
 - Checks if Kubernetes Auth CRs provisioned
   - All CRs created in the Kubernetes Auth Setup must by in Sync & Ready status
   - If Kube Auth CRs are provisioned
@@ -120,8 +120,8 @@ The chart is implemented as an ACM policy and does following:
 |caCertificates|`.global.apc.caCertificates`|PEM encoded CA cert to trust when Vault makes contact to the Kube API|
 |services.vault.url|`.global.apc.services.vault.url`|Vault URL|
 |services.vault.name|`.global.apc.services.vault.name`|Vault Name|
-|services.vault.kubeVaultProviderConfigName|`.global.apc.services.vault.kubeVaultProviderConfigName`|Name of the Vault provider config to create|
-|vaultKubeAuthMountPath|-|For testing only as it only support 1 cluster only !!! => Kube auth mount path in Vault |
+|services.crossplane.kubeVaultProviderConfigName|`.global.apc.services.crossplane.kubeVaultProviderConfigName`|Name of the Vault provider config to create|
+|vaultKubeAuthMountPath|-|For testing only as it only support 1 cluster only !!! normally filled in by hub ACM templating => Kube auth mount path in Vault|
 |vaultKubernetesRole|crossplane|Kubernetes role in Vault for Crossplane to use|
 |crossplaneNamespace|apc-crossplane-system|Namespace where Crossplane is installed, and configurations are created|
 

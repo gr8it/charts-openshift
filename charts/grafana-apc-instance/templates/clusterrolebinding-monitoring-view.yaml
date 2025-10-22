@@ -1,0 +1,17 @@
+{{- if (.Values.datasourceThanosUrl | default false) }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "grafana-instance.name" . }}-cluster-monitoring-view
+  labels:
+    {{- include "grafana-instance.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ .Values.clusterRoleRef.monitoring }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "grafana-instance.name" . }}-sa
+    namespace: {{ .Release.Namespace }}
+{{- end }}

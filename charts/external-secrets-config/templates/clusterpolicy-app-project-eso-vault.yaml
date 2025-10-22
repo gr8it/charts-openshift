@@ -1,0 +1,121 @@
+{{- if eq "true" (include "apc-global-overrides.clusterRunsApps" .) }}
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: app-project-eso-vault
+  annotations:
+    policies.kyverno.io/title: Setup vault access and generate SecretStore
+    policies.kyverno.io/category: Secrets
+    policies.kyverno.io/subject: project
+    policies.kyverno.io/minversion: 1.13.0
+spec:
+  background: true
+  rules:
+
+  - name: vault-auth-sa
+    skipBackgroundRequests: true	
+    match:
+      any:
+      - resources:
+          kinds: [Namespace]
+          selector:
+            matchLabels:
+              apc.namespace.type: application
+    generate:
+      generateExisting: true
+      synchronize: false
+      apiVersion: v1
+      kind: ServiceAccount
+      name: vault-auth
+      namespace: "{{`{{ request.object.metadata.name }}`}}"
+      data: {}
+
+  - name: auth-backend-role
+    match:
+      any:
+      - resources:
+          kinds: [Namespace]
+          selector:
+            matchLabels:
+              apc.namespace.type: application
+    generate:
+      generateExisting: true
+      synchronize: false  # synchronization causes a reconciliation loop with crossplane
+      apiVersion: kubernetes.vault.upbound.io/v1alpha1
+      kind: AuthBackendRole
+      name: "{{`{{ request.object.metadata.name }}`}}-vie"
+      data:
+        spec:
+          forProvider:
+            roleName: "{{`{{ request.object.metadata.name }}`}}-vie"
+            boundServiceAccountNames: [vault-auth]
+            boundServiceAccountNamespaces: ["{{`{{ request.object.metadata.name }}`}}"]
+            backend: {{ include "apc-global-overrides.require-vaultKubeAuthMountPath" . }}
+            tokenTtl: 900
+            tokenPolicies: ["{{ .Values.vaultKVmount }}-{{ include "apc-global-overrides.environmentShort" . }}-svc-vie"]
+          providerConfigRef:
+            name: {{ include "apc-global-overrides.require-crossplaneKubeVaultProviderConfigName" . }}
+
+  - name: secret-store
+    skipBackgroundRequests: true	
+    match:
+      all:
+      - resources:
+          kinds: [Namespace]
+          selector:
+            matchLabels:
+              apc.namespace.type: application
+    generate:
+      generateExisting: true
+      synchronize: true
+      apiVersion: external-secrets.io/v1beta1
+      kind: SecretStore
+      name: vault-hub01
+      namespace: "{{`{{ request.object.metadata.name }}`}}"
+      data:
+        spec:
+          retrySettings:
+            maxRetries: 5
+            retryInterval: 10s
+          provider:
+            vault:
+              server: {{ include "apc-global-overrides.require-vaultUrl" . }}
+              path: {{ .Values.vaultKVmount }}
+              version: v2
+              caProvider:
+                type: ConfigMap
+                name: kube-root-ca.crt
+                key: ca.crt
+              auth:
+                kubernetes:
+                  mountPath: {{ include "apc-global-overrides.require-vaultKubeAuthMountPath" . }}
+                  role: "{{`{{ request.object.metadata.name }}`}}-vie"
+                  serviceAccountRef:
+                    name: vault-auth
+
+  - name: auth-delegator
+    match:
+      all:
+      - resources:
+          kinds:
+          - Namespace
+          selector:
+            matchLabels:
+              apc.namespace.type: application
+    generate:
+      generateExisting: true
+      synchronize: true
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: '{{`{{ request.object.metadata.name }}`}}-auth-delegator'
+      data:
+        roleRef:
+          apiGroup: rbac.authorization.k8s.io
+          kind: ClusterRole
+          name: system:auth-delegator
+        subjects:
+        - kind: ServiceAccount
+          namespace: '{{`{{ request.object.metadata.name }}`}}'
+          name: vault-auth
+    skipBackgroundRequests: false
+{{- end }}

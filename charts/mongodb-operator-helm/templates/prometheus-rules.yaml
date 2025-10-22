@@ -1,14 +1,14 @@
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: {{ (index .Values "community-operator").operator.name }}-rules
+  name: {{ (index .Values "mongodb-kubernetes").operator.name }}-rules
   namespace: {{ .Release.Namespace }}
 spec:
   groups:
-    - name: {{ (index .Values "community-operator").operator.name }}.rules
+    - name: {{ (index .Values "mongodb-kubernetes").operator.name }}.rules
       rules:
         - alert: MongodbKubernetesOperatorPodDown
-          expr: absent(kube_pod_status_phase{namespace="{{ .Release.Namespace }}",phase="Running",pod=~"{{ (index .Values "community-operator").operator.deploymentName }}-.*"} == 1) or sum(kube_pod_status_phase{namespace="{{ .Release.Namespace }}",phase="Running",pod=~"{{ (index .Values "community-operator").operator.deploymentName }}-.*"}) == 0
+          expr: absent(kube_pod_status_phase{namespace="{{ .Release.Namespace }}",phase="Running",pod=~"{{ (index .Values "mongodb-kubernetes").operator.deployment_name }}-.*"} == 1) or sum(kube_pod_status_phase{namespace="{{ .Release.Namespace }}",phase="Running",pod=~"{{ (index .Values "mongodb-kubernetes").operator.deployment_name }}-.*"}) == 0
           for: 5m
           labels:
             severity: warning

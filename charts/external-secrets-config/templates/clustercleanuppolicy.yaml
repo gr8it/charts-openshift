@@ -1,0 +1,31 @@
+{{- if eq "true" (include "apc-global-overrides.clusterRunsApps" .) }}
+apiVersion: kyverno.io/v2
+kind: ClusterCleanupPolicy
+metadata:
+  name: app-project-eso-vault-cleanup
+  annotations:
+    policies.kyverno.io/title: Cleanup AuthBackendRoles
+    policies.kyverno.io/category: Secrets
+    policies.kyverno.io/subject: project
+    policies.kyverno.io/minversion: 1.13.0
+spec:
+  schedule: "0 */4 * * *"
+  match:
+    all:
+    - resources:
+        kinds: ["kubernetes.vault.upbound.io/*/AuthBackendRole"]
+        selector:
+          matchLabels:
+            generate.kyverno.io/policy-name: app-project-eso-vault
+  context:
+  - name: appNamespaces
+    apiCall:
+      urlPath: "/api/v1/namespaces"
+      jmesPath: "items[?metadata.labels.\"apc.namespace.type\" == 'application'].metadata.name"
+      default: ["{{`{{`}} target.metadata.name | split(@, '-') | [:-1] | join('-',@) {{`}}`}}"]
+  conditions:
+    all:
+    - key: "{{`{{`}} target.metadata.name | split(@, '-') | [:-1] | join('-',@) {{`}}`}}"
+      operator: AllNotIn
+      value: "{{`{{`}} appNamespaces {{`}}`}}"
+{{- end }}

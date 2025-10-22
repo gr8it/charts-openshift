@@ -1,7 +1,7 @@
-{{- $vaultUrl := (include "crossplane-vault-provider-bootstrap.vaultUrl" .) }}
-{{- $vaultName := (include "crossplane-vault-provider-bootstrap.vaultName" .) }}
+{{- $vaultUrl := (include "apc-global-overrides.require-vaultUrl" .) }}
+{{- $vaultName := (include "apc-global-overrides.require-vaultName" .) }}
 {{- $localClusterName := (include "apc-global-overrides.clusterName" .) }}
-{{- $vaultProviderConfigName := (include "crossplane-vault-provider-bootstrap.vaultKubeVaultProviderConfigName" .) }}
+{{- $vaultProviderConfigName := (include "apc-global-overrides.require-crossplaneKubeVaultProviderConfigName" .) }}
 apiVersion: policy.open-cluster-management.io/v1
 kind: Policy
 metadata:
@@ -120,6 +120,13 @@ spec:
                       key: credentials
                       name: {{ $vaultName }}-token
                       namespace: {{ .Values.crossplaneNamespace }}
+                  # skip child token = do not generate token per transaction, use only generated token
+                  # workaround for too many long lived (32d) tokens created
+                  skip_child_token: true
+                  max_lease_ttl_seconds: 1199
+                  headers:
+                    name: ""
+                    value: ""
 
     - objectDefinition:
         apiVersion: policy.open-cluster-management.io/v1
@@ -143,6 +150,9 @@ spec:
                     description: 'Kubernetes Auth for {{"{{"}}hub .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}} cluster'
                     type: "kubernetes"
                     path: '{{"{{"}}hub "{{ .Values.vaultKubeAuthMountPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}'
+                    tune:
+                      - defaultLeaseTtl: "900"
+                        maxLeaseTtl: "3600"
                   providerConfigRef:
                     name: {{ $vaultProviderConfigName }}
 
@@ -230,7 +240,7 @@ spec:
                     tokenPolicies:
                       - default
                       - '{{"{{"}}hub .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}--{{ .Values.vaultKubernetesRole }}'
-                    tokenTtl: 3600
+                    tokenTtl: 900
                   providerConfigRef:
                     name: {{ $vaultProviderConfigName }}
 

@@ -16,7 +16,7 @@ manifests should match snapshot:
         tokenPolicies:
           - default
           - test01--cert-manager
-        tokenTtl: 3600
+        tokenTtl: 900
       providerConfigRef:
         name: vault-demo
   2: |
@@ -27,7 +27,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cert-manager-config
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cert-manager-config
-        helm.sh/chart: cert-manager-config-1.4.0
+        helm.sh/chart: cert-manager-config-1.5.0
       name: vault-hub-issuer
     spec:
       vault:
@@ -50,7 +50,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cert-manager-config
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cert-manager-config
-        helm.sh/chart: cert-manager-config-1.4.0
+        helm.sh/chart: cert-manager-config-1.5.0
       name: cert-manager-config-auth-delegator
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -68,7 +68,7 @@ manifests should match snapshot:
     spec:
       forProvider:
         name: test01--cert-manager
-        policy: |2
+        policy: |
           path "pki-int-gr8it.cloud/sign/lab.gr8it.cloud" {
             capabilities = ["create", "update"]
           }

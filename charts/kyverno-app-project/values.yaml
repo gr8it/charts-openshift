@@ -1,5 +1,22 @@
 releaseServiceOverride: ArgoCD
 
+## uses following global values => do not set here
+# global:
+#   apc:
+#     environment:
+#     proxy:
+#     noProxy:
+#     services:
+#       crossplane:
+#         kubeVaultProviderConfigName: ""
+## and their local overrides
+# environment:
+# proxy:
+# noProxy:
+# services:
+#   crossplane:
+#     kubeVaultProviderConfigName: ""
+
 defaultResourceQuota:
   cronjobsBatch: 20
   daemonsetsApps: 0
@@ -100,7 +117,6 @@ defaultLimitRange:
   skipBackgroundRequests: true
 
 vaultGroupDefaults:
-  providerConfigRef: vault-hub01
   authBackendName: ad
   skipBackgroundRequests: true
 
@@ -161,16 +177,3 @@ vaultCapabilitiesOverride:
       - delete
       - list
       - patch
-
-global:
-  apc:
-    environment: ~
-
-## uses following global values
-# global:
-#   apc:
-#     proxy: ~
-#     noProxy: ~
-## and their local overrides
-#proxy: http://proxy.example.com:8080 # custom internet proxy. If not specified, .global.apc.proxy is used
-#noProxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16 # custom internet noProxy. If not specified, .global.apc.noProxy is used

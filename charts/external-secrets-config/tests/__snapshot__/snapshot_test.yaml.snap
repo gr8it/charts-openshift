@@ -15,10 +15,308 @@ manifests should match snapshot:
         tokenPolicies:
           - default
           - apc-platform-d-external-secrets-operator
-        tokenTtl: 3600
+        tokenTtl: 900
       providerConfigRef:
-        name: vault-example
+        name: vault-hub-provider-config
   2: |
+    apiVersion: kyverno.io/v2
+    kind: ClusterCleanupPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: Secrets
+        policies.kyverno.io/minversion: 1.13.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Cleanup AuthBackendRoles
+      name: app-project-eso-vault-cleanup
+    spec:
+      conditions:
+        all:
+          - key: '{{ target.metadata.name | split(@, ''-'') | [:-1] | join(''-'',@) }}'
+            operator: AllNotIn
+            value: '{{ appNamespaces }}'
+      context:
+        - apiCall:
+            default:
+              - '{{ target.metadata.name | split(@, ''-'') | [:-1] | join(''-'',@) }}'
+            jmesPath: items[?metadata.labels."apc.namespace.type" == 'application'].metadata.name
+            urlPath: /api/v1/namespaces
+          name: appNamespaces
+      match:
+        all:
+          - resources:
+              kinds:
+                - kubernetes.vault.upbound.io/*/AuthBackendRole
+              selector:
+                matchLabels:
+                  generate.kyverno.io/policy-name: app-project-eso-vault
+      schedule: 0 */4 * * *
+  3: |
+    apiVersion: kyverno.io/v1
+    kind: ClusterPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: Secrets
+        policies.kyverno.io/minversion: 1.13.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Setup vault access and generate SecretStore
+      name: app-project-eso-vault
+    spec:
+      background: true
+      rules:
+        - generate:
+            apiVersion: v1
+            data: {}
+            generateExisting: true
+            kind: ServiceAccount
+            name: vault-auth
+            namespace: '{{ request.object.metadata.name }}'
+            synchronize: false
+          match:
+            any:
+              - resources:
+                  kinds:
+                    - Namespace
+                  selector:
+                    matchLabels:
+                      apc.namespace.type: application
+          name: vault-auth-sa
+          skipBackgroundRequests: true
+        - generate:
+            apiVersion: kubernetes.vault.upbound.io/v1alpha1
+            data:
+              spec:
+                forProvider:
+                  backend: dev01
+                  boundServiceAccountNames:
+                    - vault-auth
+                  boundServiceAccountNamespaces:
+                    - '{{ request.object.metadata.name }}'
+                  roleName: '{{ request.object.metadata.name }}-vie'
+                  tokenPolicies:
+                    - apc-d-svc-vie
+                  tokenTtl: 900
+                providerConfigRef:
+                  name: vault-hub-provider-config
+            generateExisting: true
+            kind: AuthBackendRole
+            name: '{{ request.object.metadata.name }}-vie'
+            synchronize: false
+          match:
+            any:
+              - resources:
+                  kinds:
+                    - Namespace
+                  selector:
+                    matchLabels:
+                      apc.namespace.type: application
+          name: auth-backend-role
+        - generate:
+            apiVersion: external-secrets.io/v1beta1
+            data:
+              spec:
+                provider:
+                  vault:
+                    auth:
+                      kubernetes:
+                        mountPath: dev01
+                        role: '{{ request.object.metadata.name }}-vie'
+                        serviceAccountRef:
+                          name: vault-auth
+                    caProvider:
+                      key: ca.crt
+                      name: kube-root-ca.crt
+                      type: ConfigMap
+                    path: apc
+                    server: https://vault.example.com
+                    version: v2
+                retrySettings:
+                  maxRetries: 5
+                  retryInterval: 10s
+            generateExisting: true
+            kind: SecretStore
+            name: vault-hub01
+            namespace: '{{ request.object.metadata.name }}'
+            synchronize: true
+          match:
+            all:
+              - resources:
+                  kinds:
+                    - Namespace
+                  selector:
+                    matchLabels:
+                      apc.namespace.type: application
+          name: secret-store
+          skipBackgroundRequests: true
+        - generate:
+            apiVersion: rbac.authorization.k8s.io/v1
+            data:
+              roleRef:
+                apiGroup: rbac.authorization.k8s.io
+                kind: ClusterRole
+                name: system:auth-delegator
+              subjects:
+                - kind: ServiceAccount
+                  name: vault-auth
+                  namespace: '{{ request.object.metadata.name }}'
+            generateExisting: true
+            kind: ClusterRoleBinding
+            name: '{{ request.object.metadata.name }}-auth-delegator'
+            synchronize: true
+          match:
+            all:
+              - resources:
+                  kinds:
+                    - Namespace
+                  selector:
+                    matchLabels:
+                      apc.namespace.type: application
+          name: auth-delegator
+          skipBackgroundRequests: false
+  4: |
+    apiVersion: kyverno.io/v1
+    kind: ClusterPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: Secrets
+        policies.kyverno.io/minversion: 1.13.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Setup vault access policy
+      name: policy-svc-vie
+    spec:
+      background: true
+      rules:
+        - generate:
+            apiVersion: vault.vault.upbound.io/v1alpha1
+            data:
+              spec:
+                deletionPolicy: Orphan
+                forProvider:
+                  name: apc-d-svc-vie
+                  policy: |
+                    path "apc/d/\{{identity.entity.aliases.{{ request.object.status.atProvider.accessor }}.metadata.service_account_namespace}}/*" {
+                      capabilities = ["read", "list"]
+                    }
+                    path "apc/data/d/\{{identity.entity.aliases.{{ request.object.status.atProvider.accessor }}.metadata.service_account_namespace}}/*" {
+                      capabilities = ["read", "list"]
+                    }
+                    path "apc/metadata/d/\{{identity.entity.aliases.{{ request.object.status.atProvider.accessor }}.metadata.service_account_namespace}}/*" {
+                      capabilities = ["read", "list"]
+                    }
+                providerConfigRef:
+                  name: vault-hub-provider-config
+            generateExisting: true
+            kind: Policy
+            name: apc-d-svc-vie
+            synchronize: true
+          match:
+            any:
+              - resources:
+                  kinds:
+                    - auth.vault.upbound.io/*/Backend
+          name: policy-svc-vie
+          preconditions:
+            all:
+              - key: '{{ request.object.spec.forProvider.type }}'
+                operator: Equals
+                value: kubernetes
+      useServerSideApply: true
+  5: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      labels:
+        rbac.kyverno.io/aggregate-to-admission-controller: "true"
+      name: kyverno:cleanup-admission:eso-vault
+    rules:
+      - apiGroups:
+          - vault.vault.upbound.io
+        resources:
+          - policies
+        verbs:
+          - get
+          - list
+  6: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      labels:
+        rbac.kyverno.io/aggregate-to-background-controller: "true"
+      name: kyverno:background-controller:eso-vault
+    rules:
+      - apiGroups:
+          - ""
+        resources:
+          - serviceaccounts
+        verbs:
+          - create
+          - delete
+          - update
+      - apiGroups:
+          - kubernetes.vault.upbound.io
+        resources:
+          - authbackendroles
+        verbs:
+          - create
+          - get
+      - apiGroups:
+          - external-secrets.io
+        resources:
+          - secretstores
+        verbs:
+          - create
+          - delete
+          - update
+      - apiGroups:
+          - rbac.authorization.k8s.io
+        resources:
+          - clusterrolebindings
+        verbs:
+          - get
+          - create
+          - list
+          - update
+          - delete
+      - apiGroups:
+          - vault.vault.upbound.io
+        resources:
+          - policies
+        verbs:
+          - get
+          - create
+          - list
+          - update
+          - patch
+          - delete
+      - apiGroups:
+          - auth.vault.upbound.io
+        resources:
+          - backends
+        verbs:
+          - get
+          - list
+  7: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      labels:
+        rbac.kyverno.io/aggregate-to-cleanup-controller: "true"
+      name: kyverno:cleanup-controller:eso-vault
+    rules:
+      - apiGroups:
+          - ""
+        resources:
+          - namespaces
+        verbs:
+          - list
+          - get
+      - apiGroups:
+          - kubernetes.vault.upbound.io
+        resources:
+          - authbackendroles
+        verbs:
+          - delete
+          - list
+  8: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
@@ -26,7 +324,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: external-secrets-config
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: external-secrets-config
-        helm.sh/chart: external-secrets-config-1.0.0
+        helm.sh/chart: external-secrets-config-1.3.0
       name: external-secrets-config-auth-delegator
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -36,7 +334,7 @@ manifests should match snapshot:
       - kind: ServiceAccount
         name: external-secrets-operator
         namespace: apc-external-secrets-operator
-  3: |
+  9: |
     apiVersion: external-secrets.io/v1beta1
     kind: ClusterSecretStore
     metadata:
@@ -62,7 +360,7 @@ manifests should match snapshot:
           path: apc-platform
           server: https://vault.example.com
           version: v2
-  4: |
+  10: |
     apiVersion: vault.vault.upbound.io/v1alpha1
     kind: Policy
     metadata:
@@ -70,7 +368,7 @@ manifests should match snapshot:
     spec:
       forProvider:
         name: apc-platform-d-external-secrets-operator
-        policy: |2
+        policy: |
           path "apc-platform/d/*" {
             capabilities = ["create", "read", "update", "patch", "list"]
           }
@@ -81,4 +379,4 @@ manifests should match snapshot:
             capabilities = ["create", "read", "update", "patch", "list"]
           }
       providerConfigRef:
-        name: vault-example
+        name: vault-hub-provider-config

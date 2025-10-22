@@ -5,7 +5,7 @@ metadata:
 spec:
   forProvider:
     # audience:
-    backend: {{ include "external-secrets-config.vaultKubeAuthMountPath" . }}
+    backend: {{ include "apc-global-overrides.require-vaultKubeAuthMountPath" . }}
     boundServiceAccountNames:
       - {{ .Values.kubeServiceAccount }}
     boundServiceAccountNamespaces:
@@ -14,6 +14,6 @@ spec:
     tokenPolicies:
       - default
       - {{ include "external-secrets-config.policyName" . }}
-    tokenTtl: 3600
+    tokenTtl: 900
   providerConfigRef:
-    name: {{ include "external-secrets-config.vaultKubeVaultProviderConfigName" . }}
+    name: {{ include "apc-global-overrides.require-crossplaneKubeVaultProviderConfigName" . }}
