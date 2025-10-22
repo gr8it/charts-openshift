@@ -101,4 +101,24 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Platform (
 {{- end }}
 {{- end }}
 
+{{/*
+Create the rules list usable for prometheusrule.spec.groups.rules for Cluster Monitoring namespaces
+*/}}
+{{- define "kyverno-prometheusrules-helpers.rulesClusterMonitoring" -}}
+{{- $rules := index .Values "kyverno-prometheusrules-helpers" "rules" | default .Values.rules }}
+{{- range $rules }}
+- alert: {{ .alert }}
+  expr: {{ .expr | quote }}
+  for: {{ .for }}
+  labels:
+    vendor: aspecta
+    team: platform
+    severity: {{ .labels.severity }}
+    namespace: "{{`{{request.object.metadata.name}}`}}"
+  annotations:
+    description: {{ .annotations.description | quote }}
+    summary: {{ .annotations.summary | quote }}
+{{- end }}
+{{- end }}
+
 
