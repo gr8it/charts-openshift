@@ -45,7 +45,6 @@ metadata:
   labels:
     {{- include "apc-global-overrides.labels" . | nindent 4 }}
     bucket-provisioner: openshift-storage.ceph.rook.io-bucket
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
   bucketName: {{ $backupBucket }}
   generateBucketName: {{ $generateBucketNameValue }}
