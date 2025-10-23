@@ -49,7 +49,7 @@ policyTemplates:
   objectTemplates:
     - objectDefinition:
         apiVersion: v1
-        data:  '{{ "{{hub copySecretData \"apc-bootstrap\" \"gr8it-conf-socpoist\" hub}}" }}'
+        data:  '{{ "{{hub copySecretData \"apc-bootstrap\" \"gr8it-conf-example-com\" hub}}" }}'
         kind: Secret
         metadata:
           name: main-secret
@@ -69,11 +69,11 @@ policyTemplates:
         metadata:
           labels:
             argocd.argoproj.io/secret-type: repository
-          name: default-gr8it-conf-socpoist
+          name: default-gr8it-conf-example-com
           namespace: openshift-gitops
         type: Opaque
         stringData:
-          name: default-gr8it-conf-socpoist
+          name: default-gr8it-conf-example-com
           type: git
           url: ~
           project: default
@@ -83,11 +83,11 @@ policyTemplates:
         metadata:
           labels:
             argocd.argoproj.io/secret-type: repository
-          name: cluster-config-gr8it-conf-socpoist
+          name: cluster-config-gr8it-conf-example-com
           namespace: openshift-gitops
         type: Opaque
         stringData:
-          name: cluster-config-gr8it-conf-socpoist
+          name: cluster-config-gr8it-conf-example-com
           type: git
           url: ~
           project: cluster-config

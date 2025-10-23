@@ -85,7 +85,7 @@ Component allows self service of application gitops by app teams:
 
   <https://argo-cd.readthedocs.io/en/stable/operator-manual/rbac/#the-applications-resource>
 
-- Only `https://gitlab.socpoist.sk` repo is allowed to be used with created ArgoCD application projects
+- Only repo specified in `allowedGitDomain` is allowed to be used with created ArgoCD application projects
 - One ArgoCD application project is created per namespace matching namespace name
 - Because ArgoCD uses service account with APC admin role (PJA), all git users with push privilege to the target ArgoCD application branch are ~ project admins in the particular ArgoCD application environment!
 
