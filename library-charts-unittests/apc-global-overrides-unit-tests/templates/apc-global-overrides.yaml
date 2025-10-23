@@ -58,6 +58,7 @@ data:
       kubeAuthMountPath: {{ include "apc-global-overrides.vaultKubeAuthMountPath" . }}
       name: {{ include "apc-global-overrides.vaultName" . }}
       url: {{ include "apc-global-overrides.vaultUrl" . }}
+      KVmountPlatform: {{ include "apc-global-overrides.vaultKVmountPlatform" . }}
   {{- /* it is not sufficient to test without fromYamlArray !!! */}}
   {{- if (include "apc-global-overrides.caCertificates" .) | fromYaml }}
   {{- /* CA certificates = string of strings dictionary with keys = certificate names, and values equal to certificates */}}
