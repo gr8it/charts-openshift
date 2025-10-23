@@ -1,0 +1,52 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: cluster-policy-non-application
+  labels:
+    {{- include "user-workload-monitoring-policy.labels" . | nindent 4 }}
+spec:
+  generateExisting: true
+  rules:
+  - name: generate-prometheus-rules-platform
+    match:
+      any:
+      - resources:
+          kinds:
+          - Namespace
+    preconditions:
+      all:
+      - key: {{ "{{request.object.metadata.labels.\"openshift.io/cluster-monitoring\" || ''}}" | quote }}
+        operator: In
+        value:
+        - ""
+        - "false"
+      - key: {{ "{{request.object.metadata.labels.\"openshift.io/user-monitoring\"| ''}}" | quote }}
+        operator: In
+        value:
+        - ""
+        - "true"
+      - key: {{ "{{request.object.metadata.labels.\"apc.namespace.type\" || ''}}" | quote }}
+        operator: NotIn
+        value:
+        - "application"
+    exclude:
+      any:
+      - resources:
+          kinds:
+          - Namespace
+          names:
+          - "openshift*"
+          - "kube*"
+          - "default"
+    generate:
+      synchronize: true
+      apiVersion: monitoring.coreos.com/v1
+      kind: PrometheusRule
+      name: "user-workload-monitoring-{{`{{request.object.metadata.name}}`}}"
+      namespace: "{{`{{request.object.metadata.name}}`}}"
+      data:
+        spec:
+          groups:
+          - name: "user-workload-{{`{{request.object.metadata.name}}`}}"
+            rules:
+              {{- include "monitoring-prometheusrules.rulesPlatform" . | nindent 14 }}
