@@ -64,8 +64,8 @@ Create the name of the service account to use
 {{/*
 Create the rules list usable for prometheusrule.spec.groups.rules for Application namespaces
 */}}
-{{- define "kyverno-prometheusrules-helpers.rulesApp" -}}
-{{- $rules := index .Values "kyverno-prometheusrules-helpers" "rules" | default .Values.rules }}
+{{- define "monitoring-prometheusrules.rulesApp" -}}
+{{- $rules := index .Values "monitoring-prometheusrules" "rules" | default .Values.rules }}
 {{- range $rules }}
 - alert: {{ .alert }}
   expr: {{ .expr | quote }}
@@ -84,8 +84,8 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Applicatio
 {{/*
 Create the rules list usable for prometheusrule.spec.groups.rules for Platform (non-application) namespaces
 */}}
-{{- define "kyverno-prometheusrules-helpers.rulesPlatform" -}}
-{{- $rules := index .Values "kyverno-prometheusrules-helpers" "rules" | default .Values.rules }}
+{{- define "monitoring-prometheusrules.rulesPlatform" -}}
+{{- $rules := index .Values "monitoring-prometheusrules" "rules" | default .Values.rules }}
 {{- range $rules }}
 - alert: {{ .alert }}
   expr: {{ .expr | quote }}
@@ -104,8 +104,8 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Platform (
 {{/*
 Create the rules list usable for prometheusrule.spec.groups.rules for Cluster Monitoring namespaces
 */}}
-{{- define "kyverno-prometheusrules-helpers.rulesClusterMonitoring" -}}
-{{- $rules := index .Values "kyverno-prometheusrules-helpers" "rules" | default .Values.rules }}
+{{- define "monitoring-prometheusrules.rulesClusterMonitoring" -}}
+{{- $rules := index .Values "monitoring-prometheusrules" "rules" | default .Values.rules }}
 {{- range $rules }}
 - alert: {{ .alert }}
   expr: {{ .expr | quote }}
