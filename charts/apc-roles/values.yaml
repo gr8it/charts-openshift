@@ -1,0 +1,60 @@
+releaseServiceOverride: ArgoCD
+ldapGroupPrefix: apc
+adGroupPrefix: T1-APC
+roleNamePrefix: apc
+customerCode: sp
+roleBindings:
+  ad:
+    operator:
+      monitoring-alertmanager-view: openshift-monitoring
+    secauditor:
+      monitoring-alertmanager-view: openshift-monitoring
+    administrator:
+      monitoring-alertmanager-view: openshift-monitoring
+  ldap:
+    operator:
+      monitoring-alertmanager-view: openshift-monitoring
+    secauditor:
+      monitoring-alertmanager-view: openshift-monitoring
+
+clusterRoleBindings:
+  ad:
+    operator:
+      - cluster-reader
+      - cluster-status
+      - cluster-logging-application-view
+      - cluster-logging-infrastructure-view
+      - cluster-monitoring-view
+      - netobserv-reader
+      - netobserv-metrics-reader
+    secauditor:
+      - cluster-reader
+      - cluster-logging-audit-view
+      - cluster-logging-application-view
+      - cluster-logging-infrastructure-view
+      - cluster-monitoring-view
+      - netobserv-reader
+      - netobserv-metrics-reader
+    administrator:
+      - cluster-reader
+      - cluster-status
+      - cluster-logging-application-view
+      - cluster-logging-infrastructure-view
+      - cluster-monitoring-view
+  ldap:
+    operator:
+      - cluster-reader
+      - cluster-status
+      - cluster-logging-application-view
+      - cluster-logging-infrastructure-view
+      - cluster-monitoring-view
+      - netobserv-reader
+      - netobserv-metrics-reader
+    secauditor:
+      - cluster-reader
+      - cluster-logging-audit-view
+      - cluster-logging-application-view
+      - cluster-logging-infrastructure-view
+      - cluster-monitoring-view
+      - netobserv-reader
+      - netobserv-metrics-reader
