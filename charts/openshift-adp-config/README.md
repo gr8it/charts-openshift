@@ -82,6 +82,10 @@ When `kyverno.enabled` is `true`:
 3. The DPA references the generated target secret for each backup location.
 
 You can override secret names via the `credentials.*` block if your naming does not follow the defaults (defaults resolve to `oadp-<cluster>-app-backup` / `oadp-<cluster>-app-backup-cloud-credentials` for backup and `oadp-<cluster>-app-restore` / `oadp-<cluster>-app-restore-cloud-credentials` for restore).
+By default Kyverno reads the credentials from `sourceNamespace` (`apc-backup`) and writes the transformed secret to `targetNamespace` (`openshift-adp`).
+
+> [!NOTE]
+> Velero restore objects are ephemeral and should be created manually. Red Hat’s guidance states: “The `velero restore create` command creates restore resources in the cluster. You must delete the resources created as part of the restore after you review them.” — [OKD documentation](https://docs.okd.io/latest/backup_and_restore/application_backup_and_restore/backing_up_and_restoring/restoring-applications.html)
 
 ## Object Storage
 
