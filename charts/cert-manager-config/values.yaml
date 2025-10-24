@@ -14,8 +14,9 @@ fullnameOverride: ""
 #         defaultClusterIssuer: ~
 #       vault:
 #         url: ""
-#         kubeVaultProviderConfigName: ""
 #         kubeAuthMountPath: ""
+#       crossplane:
+#         kubeVaultProviderConfigName: ""
 ## and their local overrides
 # cluster:
 #   appsDomain: ~ # if not specified, default to global.apc.cluster.appsDomain
@@ -23,11 +24,12 @@ fullnameOverride: ""
 # caCertificates: ~ # CAs to validate Vault cert. String of concatenated PEM encoded certs as opposed to the global value, which is a dictionary of strings. If not specified, defaults to global.apc.caCertificates.
 # services:
 #   certManager:
-#     defaultClusterIssuer: # if not specified, defaults to global.apc.services.certManager.defaultClusterIssuer, or vault-{{ "vaultName" }}-issuer
+#     defaultClusterIssuer: # if not specified, defaults to global.apc.services.certManager.defaultClusterIssuer
 #   vault:
 #     url: # if not specified, defaults to global.apc.services.vault.url
-#     kubeVaultProviderConfigName: # if not specified, defaults to global.apc.services.vault.kubeVaultProviderConfigName
 #     kubeAuthMountPath: # if not specified, defaults to global.apc.services.vault.kubeAuthMountPath
+#   crossplane:
+#     kubeVaultProviderConfigName: # if not specified, defaults to global.apc.services.crossplane.kubeVaultProviderConfigName
 
 vaultKubeAuthRole: cert-manager # role name to assume during kubernetes auth
 vaultPkiPath: pki # required. Path to the PKI secrets engine mount

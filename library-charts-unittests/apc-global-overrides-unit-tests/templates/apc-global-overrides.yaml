@@ -30,15 +30,14 @@ data:
   {{- if (include "apc-global-overrides.proxy" .) }}
   proxy: {{ include "apc-global-overrides.proxy" . }}
   noProxy: {{ include "apc-global-overrides.noProxy" . }}
-  {{- end }}
   {{- /* it is not sufficient to test without fromYamlArray !!! */}}
-  {{- if (include "apc-global-overrides.proxyCIDRs" .) | fromYamlArray }}
+  {{- /* if (include "apc-global-overrides.proxyCIDRs" .) | fromYamlArray */}}
   {{- /* proxyCIDRs as a list */}}
   proxyCIDRs:
-    {{- (include "apc-global-overrides.proxyCIDRs" .) | nindent 4 }}
+    {{- (include "apc-global-overrides.require-proxyCIDRs" .) | nindent 4 }}
   {{- /* proxyCIDRs parsed and rendered as needed */}}
   proxyCIDRsArray:
-    {{- range (include "apc-global-overrides.proxyCIDRs" . | fromYamlArray ) }}
+    {{- range (include "apc-global-overrides.require-proxyCIDRs" . | fromYamlArray ) }}
     - IP: {{ . }}
     {{- end }}
   {{- end }}
@@ -48,7 +47,17 @@ data:
   servicesMerged:
     {{- (include "apc-global-overrides.merge-services" .) | nindent 4 }}
   {{- /* one specific service extracted*/}}
-  servicesExtracted: {{ (((include "apc-global-overrides.services" .) | fromYaml).override).url }}
+  servicesExtracted:
+    certManager:
+      defaultClusterIssuer: {{ include "apc-global-overrides.certManagerDefaultClusterIssuer" . }}
+    crossplane:
+      kubeVaultProviderConfigName: {{ include "apc-global-overrides.crossplaneKubeVaultProviderConfigName" . }}
+    externalSecretsOperator:
+      defaultClusterSecretStore: {{ include "apc-global-overrides.ESODefaultClusterSecretStore" . }}
+    vault:
+      kubeAuthMountPath: {{ include "apc-global-overrides.vaultKubeAuthMountPath" . }}
+      name: {{ include "apc-global-overrides.vaultName" . }}
+      url: {{ include "apc-global-overrides.vaultUrl" . }}
   {{- /* it is not sufficient to test without fromYamlArray !!! */}}
   {{- if (include "apc-global-overrides.caCertificates" .) | fromYaml }}
   {{- /* CA certificates = string of strings dictionary with keys = certificate names, and values equal to certificates */}}
