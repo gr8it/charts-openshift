@@ -14,8 +14,7 @@ spec:
         - alert: VeleroNoBackups
           annotations:
             description: |
-              No Velero backup attempts (successful or failed) have been observed in '{{ "{{" }} $labels.namespace {{ "}}" }}'in the last 25 hours
-              for schedule '{{ "{{" }} $labels.schedule {{ "}}" }}'.
+              No Velero backup attempts (successful or failed) have been observed in '{{ "{{" }} $labels.namespace {{ "}}" }}'in the last 25 hours for schedule '{{ "{{" }} $labels.schedule {{ "}}" }}'.
               This may indicate that the schedule is not running, Velero is misconfigured, or metrics are missing.
             summary: "No Velero backups in the last 25 hours for schedule {{ "{{" }} $labels.schedule {{ "}}" }}"
           expr: |
