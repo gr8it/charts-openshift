@@ -118,6 +118,16 @@ entries:
     version: 1.0.0
   apc-global-overrides:
   - apiVersion: v2
+    created: "2025-10-20T15:55:26.751985094+02:00"
+    description: A Helm chart containing helm helper functions to override global
+      APC values by local values
+    digest: 52dde2041a0c03f60b88039c6b3c948daeb8b43905d033a66b89752540a6bffe
+    name: apc-global-overrides
+    type: library
+    urls:
+    - packaged_charts/apc-global-overrides-1.4.0.tgz
+    version: 1.4.0
+  - apiVersion: v2
     created: "2025-10-14T14:31:11.694545076+02:00"
     description: A Helm chart containing helm helper functions to override global
       APC values by local values
@@ -468,6 +478,20 @@ entries:
     type: application
     urls:
     - packaged_charts/cert-utils-operator-1.0.0.tgz
+    version: 1.0.0
+  cluster-config-standalone:
+  - apiVersion: v2
+    created: "2025-10-23T13:50:23.865057202+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.4.0
+    description: A Helm chart to configure standalone cluster settings
+    digest: 45f8343fb85b6631942968c9b56fef745f464f5a04d0a0f26d10a955f9cff0a4
+    name: cluster-config-standalone
+    type: application
+    urls:
+    - packaged_charts/cluster-config-standalone-1.0.0.tgz
     version: 1.0.0
   cnpg-operator:
   - apiVersion: v2
@@ -846,6 +870,19 @@ entries:
     - packaged_charts/default-network-policies-1.0.0.tgz
     version: 1.0.0
   external-secrets-config:
+  - apiVersion: v2
+    created: "2025-10-20T16:50:19.607514665+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.4.0
+    description: A Helm chart for configuration of external secret operator
+    digest: 507dc1125466576d11342cccd3f235483d63e5644c1586f803bfe5ad4b58237e
+    name: external-secrets-config
+    type: application
+    urls:
+    - packaged_charts/external-secrets-config-1.4.0.tgz
+    version: 1.4.0
   - apiVersion: v2
     created: "2025-10-14T14:43:36.544295362+02:00"
     dependencies:
@@ -1652,4 +1689,4 @@ entries:
     urls:
     - packaged_charts/user-workload-monitoring-policy-1.0.0.tgz
     version: 1.0.0
-generated: "2025-10-23T10:45:03.339767+02:00"
+generated: "2025-10-23T13:50:23.86379852+02:00"
