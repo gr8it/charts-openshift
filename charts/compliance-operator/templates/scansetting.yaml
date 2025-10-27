@@ -1,0 +1,20 @@
+---
+apiVersion: compliance.openshift.io/v1alpha1
+kind: ScanSetting
+metadata:
+  name: {{ .Values.scanSetting.name }}
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "compliance-operator.labels" . | nindent 4 }}
+spec:
+  rawResultStorage:
+    {{- toYaml .Values.scanSetting.rawResultStorage | nindent 4 }}
+  roles:
+    {{- toYaml .Values.scanSetting.roles | nindent 4 }}
+  scanTolerations:
+    {{- toYaml .Values.scanSetting.scanTolerations | nindent 4 }}
+  schedule: {{ .Values.scanSetting.schedule | quote }}
+  showNotApplicable: {{ .Values.scanSetting.showNotApplicable }}
+  strictNodeScan: {{ .Values.scanSetting.strictNodeScan }}
+  suspend: {{ .Values.scanSetting.suspend }}
+  timeout: {{ .Values.scanSetting.timeout }}
