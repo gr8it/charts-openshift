@@ -1,0 +1,10 @@
+{{- if .Values.stackrox.enabled }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.stackrox.namespace }}
+  labels:
+    {{- include "acs-operator.labels" . | nindent 4 }}
+spec: {}
+{{- end }}
