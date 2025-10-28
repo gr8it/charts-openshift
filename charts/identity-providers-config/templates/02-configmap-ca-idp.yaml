@@ -1,35 +1,11 @@
 {{- if .Values.identityProviders }}
-{{- range .Values.identityProviders }}
-{{- $caName := "" -}}
-{{- if eq .type "LDAP"  }}
-{{- $caName = .ldap.ca.name -}}
-{{- else if eq .type "Keystone"  }}
-{{- $caName = .keystone.ca.name -}}
-{{- else if eq .type "BasicAuth"  }}
-{{- $caName = .basicAuth.ca.name -}}
-{{- else if eq .type "RequestHeader"  }}
-{{- $caName = .requestHeader.ca.name -}}
-{{- else if eq .type "GitHub"  }}
-{{- $caName = .github.ca.name -}}
-{{- else if eq .type "GitLab"  }}
-{{- $caName = .gitlab.ca.name -}}
-{{- else if eq .type "Google"  }}
-{{- $caName = .google.ca.name -}}
-{{- else if eq .type "OpenID"  }}
-{{- $caName = .openID.ca.name -}}
-{{- else }}
-{{- $caName := "" -}}
-{{- end}}
-{{- if ne $caName "" -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ $caName }}
+  name: {{ include "identity-providers-config.fullname" . }}-ca-idp
   labels:
-  {{- ( include "identity-providers-config.labels" $ ) | nindent 4 }}
+  {{- ( include "identity-providers-config.labels" . ) | nindent 4 }}
 data:
   ca.crt: |
   {{- ( include "apc-global-overrides.caCertificatesBundle" $ ) | nindent 4}}
-{{- end}}
-{{- end}}
 {{- end}} 

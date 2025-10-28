@@ -7,5 +7,8 @@ metadata:
     argocd.argoproj.io/sync-options: ServerSideApply=true
 spec:
   identityProviders:
-{{ .Values.identityProviders | toYaml | indent 2 }}
+  {{- range $i, $value := .Values.identityProviders }}
+    {{ $value | toYaml | nindent 4 }}
+    keys $value
+  {{- end }}
 {{- end }}
