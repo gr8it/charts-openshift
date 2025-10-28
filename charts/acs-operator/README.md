@@ -1,6 +1,8 @@
 # ACS Operator
 
-This Helm chart installs the Red Hat Advanced Cluster Security (RHACS) operator and configures a secured cluster using ACM OperatorPolicy.
+# ACS Operator
+
+This Helm chart installs the Red Hat Advanced Cluster Security (RHACS) operator using ACM OperatorPolicy.
 
 ## Components
 
@@ -8,8 +10,6 @@ This chart creates:
 
 1. **RHACS Operator** - Installed via ACM OperatorPolicy dependency
    - ACM automatically creates: operator namespace, OperatorGroup, and Subscription
-2. **Stackrox Namespace** - Namespace where ACS components run
-3. **SecuredCluster CR** - Configures the ACS secured cluster instance
 
 ## How It Works
 
@@ -27,7 +27,9 @@ ACM automatically creates:
 - OperatorGroup in that namespace
 - Subscription for the operator
 
-The chart's templates then create the `stackrox` namespace and `SecuredCluster` custom resource.
+## Next Steps
+
+After installing the operator, use the `acs-instance` chart to deploy SecuredCluster instances.
 
 ## Configuration
 

@@ -5,7 +5,7 @@ metadata:
   name: {{ .Values.securedCluster.name }}
   namespace: {{ .Values.stackrox.namespace }}
   labels:
-    {{- include "acs-operator.labels" . | nindent 4 }}
+    {{- include "acs-config.labels" . | nindent 4 }}
 spec:
   admissionControl:
     bypass: {{ .Values.securedCluster.admissionControl.bypass }}
