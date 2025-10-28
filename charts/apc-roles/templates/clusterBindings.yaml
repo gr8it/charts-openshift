@@ -23,7 +23,7 @@ subjects:
 - apiGroup: rbac.authorization.k8s.io
   kind: Group
   {{- if eq $idps "ad" }}
-  name: "{{ $adGroupPrefix }}-{{ include "apc-global-overrides.environmentShort" $ | upper }} {{ $group | upper }}"
+  name: "{{ $adGroupPrefix }}-{{ include "apc-global-overrides.require-environmentShort" $ | upper }} {{ $group | upper }}"
   {{- else if eq $idps "ldap" }}
   name: {{ $ldapGroupPrefix }}_{{ $group }}_{{ include "apc-global-overrides.require-environment" $ }}
   {{- end }}
