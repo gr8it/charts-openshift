@@ -1,0 +1,18 @@
+# namespace of the operatorGroup and subscription is taken from .Release.Namespace
+forceReleaseNamespace: true
+
+operatorGroup:
+  # targets release namespace only
+  targetNamespaces:
+  - "{{ .Release.Namespace }}"
+
+subscription:
+  channel: stable-v1
+  name: openshift-cert-manager-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  startingCSV: cert-manager-operator.v1.15.1
+
+upgradeApproval: Automatic
+versions:
+  - cert-manager-operator.v1.15.1

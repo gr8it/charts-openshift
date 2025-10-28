@@ -1,0 +1,12 @@
+{{ $caCertificates := .Values.imageProxy.caCertificates | default (include "apc-global-overrides.caCertificatesBundle" .)}}
+{{- if and .Values.imageProxy.host $caCertificates }}
+apiVersion: config.openshift.io/v1
+kind: Image
+metadata:
+  name: cluster
+  annotations:
+    argocd.argoproj.io/sync-options: ServerSideApply=true
+spec:
+  additionalTrustedCA:
+    name: registry-ca-bundle
+{{- end }}

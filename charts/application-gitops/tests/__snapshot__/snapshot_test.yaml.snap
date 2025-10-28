@@ -39,7 +39,7 @@ manifests should match snapshot:
                       - APC-D-{{ to_upper(request.object.metadata.namespace) }}-PJA
                     name: admin
                     policies:
-                      - p, proj:{{ request.object.metadata.namespace }}:admin, repositories, *, {{ request.object.metadata.namespace }}/https://gitlab.socpoist.sk/*, allow
+                      - p, proj:{{ request.object.metadata.namespace }}:admin, repositories, *, {{ request.object.metadata.namespace }}/https://gitlab.example.com/*, allow
                       - p, proj:{{ request.object.metadata.namespace }}:admin, applications, *, {{ request.object.metadata.namespace }}/*, allow
                       - p, proj:{{ request.object.metadata.namespace }}:admin, clusters, get, https://kubernetes.default.svc, allow
                       - p, proj:{{ request.object.metadata.namespace }}:admin, exec, create, {{ request.object.metadata.namespace }}/*, allow
@@ -55,7 +55,7 @@ manifests should match snapshot:
                       - APC-D-{{ to_upper(request.object.metadata.namespace) }}-OPR
                     name: operator
                     policies:
-                      - p, proj:{{ request.object.metadata.namespace }}:operator, repositories, *, {{ request.object.metadata.namespace }}/https://gitlab.socpoist.sk/*, allow
+                      - p, proj:{{ request.object.metadata.namespace }}:operator, repositories, *, {{ request.object.metadata.namespace }}/https://gitlab.example.com/*, allow
                       - p, proj:{{ request.object.metadata.namespace }}:operator, applications, get, {{ request.object.metadata.namespace }}/*, allow
                       - p, proj:{{ request.object.metadata.namespace }}:operator, applications, sync, {{ request.object.metadata.namespace }}/*, allow
                       - p, proj:{{ request.object.metadata.namespace }}:operator, clusters, get, https://kubernetes.default.svc, allow
@@ -64,7 +64,7 @@ manifests should match snapshot:
                 sourceNamespaces:
                   - '{{ request.object.metadata.namespace }}'
                 sourceRepos:
-                  - https://gitlab.socpoist.sk/*
+                  - https://gitlab.example.com/*
             generateExisting: true
             kind: AppProject
             name: '{{ request.object.metadata.namespace }}'

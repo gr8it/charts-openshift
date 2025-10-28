@@ -383,3 +383,14 @@ Create the Vault URL
 {{- define "apc-global-overrides.require-vaultUrl" -}}
 {{- include "apc-global-overrides.vaultUrl" . | required "APC services.vault.URL is required" }}
 {{- end }}
+
+{{/*
+Create the Vault KV mount for platform
+*/}}
+{{- define "apc-global-overrides.vaultKVmountPlatform" -}}
+{{- (((include "apc-global-overrides.services" .) | fromYaml).vault).KVmountPlatform | default "" }}
+{{- end }}
+
+{{- define "apc-global-overrides.require-vaultKVmountPlatform" -}}
+{{- include "apc-global-overrides.vaultKVmountPlatform" . | required "APC services.vault.KVmountPlatform is required" }}
+{{- end }}
