@@ -1,0 +1,39 @@
+{{- $environment := include "apc-global-overrides.environment" . }}
+{{- if ne $environment "hub" }}
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: ingress-reserved
+  namespace: {{ .Values.metallbns }}
+spec:
+  addresses:
+  - {{ get .Values.ipAddrPool.spoke $environment }}
+  autoAssign: true
+  serviceAllocation:
+    namespaces:
+      - {{ .Values.ocpIngressNs }}
+    serviceSelectors:
+      - matchLabels:
+          app: router-internal-default-metallb
+---
+{{- end }}
+{{- if eq $environment "hub" }}
+{{- range $env, $ipAddrPool := .Values.ipAddrPool.hub }}
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: kubeapi-{{ $env }}01
+  namespace: metallb-system
+spec:
+  addresses:
+  - {{ $ipAddrPool }}
+  autoAssign: true
+  serviceAllocation:
+    namespaces:
+    - {{ $env }}01-{{ $env }}01
+    serviceSelectors:
+      - matchLabels:
+          app: kube-apiserver
+---
+{{- end }}
+{{- end }}

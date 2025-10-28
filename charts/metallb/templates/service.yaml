@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.service.name }}
+  namespace: {{ .Values.ocpIngressNs }}
+  annotations:
+    metallb.universe.tf/address-pool: ingress-reserved
+  labels:
+    app: {{ .Values.service.name }}
+spec:
+  selector:
+      ingresscontroller.operator.openshift.io/deployment-ingresscontroller: default
+  ports:
+    - name: http
+      port: {{ .Values.service.portHttp }}
+      protocol: TCP
+      targetPort: http
+    - name: https
+      port: {{ .Values.service.portHttps }}
+      protocol: TCP
+      targetPort: https
+    - name: metrics
+      port: {{ .Values.service.portMetrics }}
+      protocol: TCP
+      targetPort: metrics
+  type: LoadBalancer
