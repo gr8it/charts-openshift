@@ -25,7 +25,7 @@ subjects:
   {{- if eq $idps "ad" }}
   name: "{{ $adGroupPrefix }}-{{ include "apc-global-overrides.environmentShort" $ | upper }} {{ $group | upper }}"
   {{- else if eq $idps "ldap" }}
-  name: {{ $ldapGroupPrefix }}_{{ $group }}_{{ include "apc-global-overrides.environment" $ }}
+  name: {{ $ldapGroupPrefix }}_{{ $group }}_{{ include "apc-global-overrides.require-environment" $ }}
   {{- end }}
 ---
     {{- end}}
