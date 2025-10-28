@@ -58,10 +58,10 @@ spec:
     velero:
       accessMode: ReadWrite
       config:
-        insecureSkipTLSVerify: {{ $.Values.dpa.s3.insecureSkipTLSVerify | quote }}
+        insecureSkipTLSVerify: {{ toString $.Values.dpa.s3.insecureSkipTLSVerify | quote }}
         profile: default
         region: {{ $.Values.dpa.s3.region }}
-        s3ForcePathStyle: {{ $.Values.dpa.s3.forcePathStyle | quote }}
+        s3ForcePathStyle: {{ toString $.Values.dpa.s3.forcePathStyle | quote }}
         s3Url: {{ $.Values.dpa.s3.url }}
       credential:
         key: cloud

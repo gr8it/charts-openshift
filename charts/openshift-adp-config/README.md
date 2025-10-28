@@ -35,8 +35,8 @@ Helm chart that prepares OpenShift Application Data Protection (OADP) for applic
 | `dpa.backupLocations` | Array with backup location overrides | see `values.yaml` |
 | `dpa.s3.region` | S3 region | `us-east-1` |
 | `dpa.s3.url` | S3 endpoint URL | `https://rook-ceph-rgw-ocs-storagecluster-cephobjectstore.openshift-storage.svc:443` |
-| `dpa.s3.forcePathStyle` | Enable path-style addressing | `"true"` |
-| `dpa.s3.insecureSkipTLSVerify` | Skip TLS verification for S3 endpoint | `"true"` |
+| `dpa.s3.forcePathStyle` | Enable path-style addressing (accepts boolean or string; rendered as string) | `true` |
+| `dpa.s3.insecureSkipTLSVerify` | Skip TLS verification for S3 endpoint (accepts boolean or string; rendered as string) | `true` |
 | `dpa.s3.caCert` | Base64 or PEM CA bundle (leave blank to skip) | `~` |
 | `dpa.velero.defaultPlugins` | Velero plugins | `[openshift, aws, kubevirt, csi]` |
 | `dpa.velero.defaultSnapshotMoveData` | Enable snapshot move data | `true` |
@@ -46,6 +46,8 @@ Helm chart that prepares OpenShift Application Data Protection (OADP) for applic
 | `dpa.nodeAgent.uploaderType` | Uploader implementation | `kopia` |
 | `dpa.nodeAgent.resourceAllocations.requests` | CPU / memory requests | `500m` / `4Gi` |
 | `dpa.nodeAgent.resourceAllocations.limits` | CPU / memory limits | `"2"` / `32Gi` |
+
+> The S3 booleans are coerced to strings in the rendered manifest to match Velero's configuration map; you may supply either `true`/`false` or the quoted string equivalents in your values.
 
 ### Kyverno
 
