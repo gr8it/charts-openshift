@@ -47,7 +47,7 @@ The chart supports the following configuration options through the `acm-operator
 ### Operator Group Configuration
 - `operatorGroup.name`: The operator group name (default: `openshift-adp`)
 - `operatorGroup.namespace`: The operator group namespace (default: `openshift-adp`)
-- `operatorGroup.targetNamespaces`: Target namespaces for the operator (default: `[]`)
+- `operatorGroup.targetNamespaces`: Target namespaces for the operator (default: `["openshift-adp"]`)
 
 ### Policy Configuration
 - `upgradeApproval`: Upgrade approval mode (default: `None`)
