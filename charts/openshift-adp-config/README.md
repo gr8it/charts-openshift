@@ -60,8 +60,10 @@ Helm chart that prepares OpenShift Application Data Protection (OADP) for applic
 | `objectBucketClaims.enabled` | Render ObjectBucketClaims | `true` |
 | `objectBucketClaims.backup.name` | OBC name override for backup bucket | `~` |
 | `objectBucketClaims.backup.storageClassName` | StorageClass for backup OBC | `~` (defaults to `ocs-storagecluster-ceph-rgw`) |
+| `objectBucketClaims.backup.generateBucketName` | Override generated bucket suffix; defaults to the OBC name when `~` | `~` |
 | `objectBucketClaims.restore.name` | OBC name override for restore bucket | `~` |
 | `objectBucketClaims.restore.storageClassName` | StorageClass for restore OBC | `~` |
+| `objectBucketClaims.restore.generateBucketName` | Override generated bucket suffix; defaults to the OBC name when `~` | `~` |
 
 ### Monitoring
 

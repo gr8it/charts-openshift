@@ -75,9 +75,13 @@ objectBucketClaims:
   backup:
     name: ~
     storageClassName: ~
+    # generateBucketName defaults to the rendered ObjectBucketClaim name (e.g. oadp-<cluster>-app-backup) when omitted
+    generateBucketName: ~
   restore:
     name: ~
     storageClassName: ~
+    # generateBucketName defaults to the rendered ObjectBucketClaim name (e.g. oadp-<cluster>-app-restore) when omitted
+    generateBucketName: ~
 
 # Standard APC labels will be applied via apc-global-overrides
 prometheusRule:
