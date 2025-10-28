@@ -5,7 +5,7 @@ metadata:
   name: {{ .name | quote }}
   namespace: {{ .namespace | default $.Values.namespace | default $.Release.Namespace | quote }}
   labels:
-    {{- include "apc-global-overrides.labels" $ | nindent 4 }}
+    {{- include "openshift-adp-backups.labels" $ | nindent 4 }}
     {{- with .labels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
