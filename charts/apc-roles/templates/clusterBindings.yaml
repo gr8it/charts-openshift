@@ -1,7 +1,7 @@
 {{- $adGroupPrefix := .Values.adGroupPrefix }}
 {{- $ldapGroupPrefix := .Values.ldapGroupPrefix }}
 {{- $roleNamePrefix := .Values.roleNamePrefix }}
-{{- $customerCode := .Values.customerCode }}
+{{- $customerCode := include "apc-global-overrides.customer" . }}
 {{- range $idps, $groups := .Values.clusterRoleBindings }}
   {{- range $group, $roles := $groups }}
     {{- range $role := $roles }}

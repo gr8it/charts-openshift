@@ -1,9 +1,24 @@
+## uses following global values => do not set here
+# global:
+#   apc:
+#     environmentShort:
+#     environment:
+#     customer:
+## and their local overrides
+# environmentShort:
+# environment:
+# customer:
+
 releaseServiceOverride: ArgoCD
 ldapGroupPrefix: apc
 adGroupPrefix: T1-APC
 roleNamePrefix: apc
-customerCode: sp
 roleBindings:
+# IdP provider: ad or ldap
+# Format:
+# IdP:
+#   group:
+#     role: namespace
   ad:
     operator:
       monitoring-alertmanager-view: openshift-monitoring
@@ -18,6 +33,11 @@ roleBindings:
       monitoring-alertmanager-view: openshift-monitoring
 
 clusterRoleBindings:
+# IdP provider: ad or ldap
+# Format:
+# IdP:
+#   group:
+#     - clusterRole
   ad:
     operator:
       - cluster-reader
