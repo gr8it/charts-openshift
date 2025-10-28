@@ -58,12 +58,12 @@ Helm chart that prepares OpenShift Application Data Protection (OADP) for applic
 | Value | Description | Default |
 | --- | --- | --- |
 | `objectBucketClaims.enabled` | Render ObjectBucketClaims | `true` |
-| `objectBucketClaims.backup.name` | OBC name override for backup bucket | `~` |
-| `objectBucketClaims.backup.storageClassName` | StorageClass for backup OBC | `~` (defaults to `ocs-storagecluster-ceph-rgw`) |
-| `objectBucketClaims.backup.generateBucketName` | Override generated bucket suffix; defaults to the OBC name when `~` | `~` |
-| `objectBucketClaims.restore.name` | OBC name override for restore bucket | `~` |
-| `objectBucketClaims.restore.storageClassName` | StorageClass for restore OBC | `~` |
-| `objectBucketClaims.restore.generateBucketName` | Override generated bucket suffix; defaults to the OBC name when `~` | `~` |
+| `objectBucketClaims.backup.name` | ObjectBucketClaim resource name used by the DPA (`<cluster>` from `apc-global-overrides.clusterName`) | `~` (renders to `oadp-<cluster>-app-backup`) |
+| `objectBucketClaims.backup.storageClassName` | StorageClass for backup OBC | `~` (renders to `ocs-storagecluster-ceph-rgw`) |
+| `objectBucketClaims.backup.generateBucketName` | Generated bucket prefix for Ceph RGW; defaults to the resolved OBC name when `~` | `~` |
+| `objectBucketClaims.restore.name` | ObjectBucketClaim resource name used by the DPA (`<cluster>` from `apc-global-overrides.clusterName`) | `~` (renders to `oadp-<cluster>-app-restore`) |
+| `objectBucketClaims.restore.storageClassName` | StorageClass for restore OBC | `~` (renders to `ocs-storagecluster-ceph-rgw`) |
+| `objectBucketClaims.restore.generateBucketName` | Generated bucket prefix for Ceph RGW; defaults to the resolved OBC name when `~` | `~` |
 
 ### Monitoring
 

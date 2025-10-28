@@ -73,14 +73,18 @@ serviceMonitor:
 objectBucketClaims:
   enabled: true
   backup:
+    # defaults to oadp-<cluster>-app-backup via template when left ~
     name: ~
-    storageClassName: ~
-    # generateBucketName defaults to the rendered ObjectBucketClaim name (e.g. oadp-<cluster>-app-backup) when omitted
+    # defaults to ocs-storagecluster-ceph-rgw via template when left ~
+    storageClassName: ocs-storagecluster-ceph-rgw
+    # generateBucketName controls the Ceph bucket prefix and defaults to the resolved OBC name (e.g. oadp-<cluster>-app-backup)
     generateBucketName: ~
   restore:
+    # defaults to oadp-<cluster>-app-restore via template when left ~
     name: ~
-    storageClassName: ~
-    # generateBucketName defaults to the rendered ObjectBucketClaim name (e.g. oadp-<cluster>-app-restore) when omitted
+    # defaults to ocs-storagecluster-ceph-rgw via template when left ~
+    storageClassName: ocs-storagecluster-ceph-rgw
+    # generateBucketName controls the Ceph bucket prefix and defaults to the resolved OBC name (e.g. oadp-<cluster>-app-restore)
     generateBucketName: ~
 
 # Standard APC labels will be applied via apc-global-overrides
