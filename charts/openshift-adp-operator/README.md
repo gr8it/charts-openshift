@@ -23,7 +23,7 @@ openshift-adp-operator:
     chart: gr8it-openshift/openshift-adp-operator
     chartVersion: "1.0.0"
   destination:
-    namespace: open-cluster-management-policies
+    namespace: openshift-adp
   syncOptions:
     - CreateNamespace=true
   enableAutoSync: true
