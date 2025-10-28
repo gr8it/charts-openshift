@@ -43,7 +43,7 @@ metadata:
   name: {{ $backupObcName }}
   namespace: {{ .Values.sourceNamespace }}
   labels:
-    {{- include "apc-global-overrides.labels" . | nindent 4 }}
+    {{- include "openshift-adp-config.labels" . | nindent 4 }}
     bucket-provisioner: openshift-storage.ceph.rook.io-bucket
 spec:
   bucketName: {{ $backupBucket }}
