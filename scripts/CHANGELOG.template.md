@@ -2,11 +2,13 @@
 
 All notable changes to this component will be documented in this file.
 
-The format is based on [Common Changelog](https://common-changelog.org), and this project adheres to Semantic Versioning.
+The format is based on [Common Changelog](https://common-changelog.org/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [2.0.0] - 2025-10-29
 
 _([JIRA-843](https://example.atlassian.net/browse/JIRA-843)) (Bob J)_
+_If you are upgrading: please see [`UPGRADING.md`](UPGRADING.md)._
 
 ### Changed
 
@@ -22,11 +24,11 @@ _([JIRA-843](https://example.atlassian.net/browse/JIRA-843)) (Bob J)_
 
 ### Fixed
 
-- Fix infinite loop (Alice Meerkat)
+- Fix infinite loop
 
 ### Added
 
-- Support of CentOS ([JIRA-837](https://example.atlassian.net/browse/JIRA-837)) (Alice Meerkat, Milly Moose)
+- Support of CentOS ([JIRA-837](https://example.atlassian.net/browse/JIRA-837))
 
 ## [1.0.0] - 2025-08-23
 
