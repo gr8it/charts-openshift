@@ -3,6 +3,7 @@
 Helm chart that prepares OpenShift Application Data Protection (OADP) for application backups. It renders:
 
 - a Kyverno policy that generates the `DataProtectionApplication` (DPA) with two backup locations (backup and restore)
+- namespaced RBAC granting Kyverno permission to manage the DPA
 - optional `ObjectBucketClaim` resources for Ceph RGW backed storage
 - a Kyverno policy that mirrors cloud credentials from `apc-backup` into `openshift-adp`
 - optional ServiceMonitor resources for Velero metrics
@@ -56,6 +57,9 @@ Helm chart that prepares OpenShift Application Data Protection (OADP) for applic
 | `kyverno.enabled` | Render Kyverno secret-transform policy and related objects | `true` |
 | `kyverno.dpaPolicy.enabled` | Generate the DPA through Kyverno using the cluster service CA | `true` |
 | `kyverno.dpaPolicy.configMapNamespace` | Namespace containing `openshift-service-ca.crt` ConfigMap | `openshift-service-ca` |
+| `kyverno.dpaPolicy.serviceAccountNamespace` | Namespace containing Kyverno service accounts | `apc-kyverno` |
+| `kyverno.dpaPolicy.serviceAccounts` | Service accounts granted access to manage the DPA | `[kyverno-background-controller, kyverno-admission-controller]` |
+| `kyverno.dpaPolicy.rbac.create` | Toggle creation of the helper Role/RoleBinding | `true` |
 
 > [!NOTE]
 > The Kyverno DPA policy consumes this configuration. If Kyverno is disabled you must manage the DPA manifest outside of this chart.

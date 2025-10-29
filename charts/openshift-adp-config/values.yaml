@@ -9,6 +9,12 @@ kyverno:
     # Generate the DPA via Kyverno and keep the service CA in sync
     enabled: true
     configMapNamespace: openshift-service-ca
+    serviceAccountNamespace: apc-kyverno
+    serviceAccounts:
+      - name: kyverno-background-controller
+      - name: kyverno-admission-controller
+    rbac:
+      create: true
 
 # Credential transformation - copy secret from sourceNamespace to targetNamespace
 credentials:
