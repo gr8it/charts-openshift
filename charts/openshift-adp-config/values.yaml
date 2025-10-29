@@ -6,8 +6,8 @@ targetNamespace: openshift-adp
 kyverno:
   enabled: true
   dpaPolicy:
-    # Generate the DPA via Kyverno (set dpa.enabled=false when enabling)
-    enabled: false
+    # Generate the DPA via Kyverno and keep the service CA in sync
+    enabled: true
 
 # Credential transformation - copy secret from sourceNamespace to targetNamespace
 credentials:
@@ -22,7 +22,7 @@ credentials:
 
 # DataProtectionApplication configuration
 dpa:
-  enabled: true
+  enabled: false # set to true to render the DPA manifest directly (without Kyverno)
   name: apc-dpa
   backupLocations: []
 #     # Default backup location used by all OADP application backups (always as default location)
