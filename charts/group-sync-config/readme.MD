@@ -36,7 +36,7 @@ The following values can be set in `values.yaml` or via `--set` on the command l
 
 ## Example
 
-[example-values.yaml](./example-values.yaml)
+[example.values.yaml](./example.values.yaml)
 
 
 ## Templates
