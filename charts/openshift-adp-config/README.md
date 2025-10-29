@@ -67,6 +67,12 @@ Helm chart that prepares OpenShift Application Data Protection (OADP) for applic
 | `objectBucketClaims.restore.storageClassName` | StorageClass for restore OBC | `~` (renders to `ocs-storagecluster-ceph-rgw`) |
 | `objectBucketClaims.restore.generateBucketName` | Generated bucket prefix for Ceph RGW; defaults to the resolved OBC name when `~` | `~` |
 
+The chart always renders two ObjectBucketClaims (backup + restore). When `dpa.backupLocations`
+is empty, the templates inject default names/buckets derived from the cluster name. Supplying a
+matching entry in `dpa.backupLocations` or `objectBucketClaims.*` overrides just the fields you
+explicitly set while retaining the rest of the defaults.
+Put the backup override first (`dpa.backupLocations[0]`) and the restore override second (`dpa.backupLocations[1]`); any missing entries fall back to the chart defaults.
+
 ### Monitoring
 
 | Value | Description | Default |

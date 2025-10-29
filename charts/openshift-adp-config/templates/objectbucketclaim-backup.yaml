@@ -1,12 +1,15 @@
 {{- if .Values.objectBucketClaims.enabled }}
 {{- $cluster := tpl (include "apc-global-overrides.clusterName" .) $ }}
+{{- /* Build the default backup/restore location list based on the resolved cluster name */}}
 {{- $defaults := list
   (dict "name" (printf "oadp-%s-app-backup" $cluster) "bucket" (printf "oadp-%s-app-backup" $cluster) "prefix" (printf "backup/%s-app" $cluster) "default" true)
   (dict "name" (printf "oadp-%s-app-restore" $cluster) "bucket" (printf "oadp-%s-app-restore" $cluster) "prefix" (printf "backup/%s-app" $cluster) "default" false)
 }}
 {{- $providedLocations := .Values.dpa.backupLocations | default (list) }}
+{{- /* Start with chart defaults for the backup location; merge (replace matching keys) from dpa.backupLocations[0] if provided */}}
 {{- $backupDefaults := index $defaults 0 }}
 {{- $backupOverride := dict }}
+{{- /* Only merge an override when dpa.backupLocations has at least one item */}}
 {{- if lt 0 (len $providedLocations) }}
   {{- $backupOverride = index $providedLocations 0 }}
 {{- end }}
@@ -16,6 +19,7 @@
 {{- if ne (printf "%v" $explicitBackupName) "" }}
   {{- $backupNameValue = $explicitBackupName }}
 {{- end }}
+{{- /* Fall back to the chart default (e.g. oadp-<cluster>-app-backup) when nothing is supplied */}}
 {{- if eq (printf "%v" $backupNameValue) "" }}
   {{- $backupNameValue = index $backupDefaults "name" }}
 {{- end }}
@@ -33,6 +37,7 @@
 {{- if eq (printf "%v" $generateBucketNameValue) "" }}
   {{- $generateBucketNameValue = $backupObcName }}
 {{- end }}
+{{- /* ObjectBucketName links this claim to the generated ObjectBucket; default resolves to obc-<source-namespace>-<obc-name> */}}
 {{- $objectBucketNameValue := tpl (default "" .Values.objectBucketClaims.backup.objectBucketName) $ }}
 {{- if eq (printf "%v" $objectBucketNameValue) "" }}
   {{- $objectBucketNameValue = printf "obc-%s-%s" .Values.sourceNamespace $backupObcName }}
