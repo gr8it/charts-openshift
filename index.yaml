@@ -70,6 +70,18 @@ entries:
   acm-operatorpolicy:
   - apiVersion: v2
     appVersion: v1beta1
+    created: "2025-10-16T09:43:08.663618743+02:00"
+    description: A Helm chart to install operators using ACM operatorpolicy CR with
+      external tools, i.e. on managed clusters only (no placement decisions!)
+    digest: 681640672d2290c0c096636b5d89bb34b3a683625d2febe3b2a425d89907a84b
+    icon: https://raw.githubusercontent.com/operator-framework/olm-docs/ea9cd734aa7a6bf2d24f273322ed9aec3ffcb02a/content/en/images/logo-sm.svg
+    name: acm-operatorpolicy
+    type: application
+    urls:
+    - packaged_charts/acm-operatorpolicy-1.3.0.tgz
+    version: 1.3.0
+  - apiVersion: v2
+    appVersion: v1beta1
     created: "2025-10-08T21:30:01.169045147+02:00"
     description: A Helm chart to install operators using ACM operatorpolicy CR with
       external tools, i.e. on managed clusters only (no placement decisions!)
@@ -117,6 +129,16 @@ entries:
     - packaged_charts/acm-policy-1.0.0.tgz
     version: 1.0.0
   apc-global-overrides:
+  - apiVersion: v2
+    created: "2025-10-20T15:55:26.751985094+02:00"
+    description: A Helm chart containing helm helper functions to override global
+      APC values by local values
+    digest: 52dde2041a0c03f60b88039c6b3c948daeb8b43905d033a66b89752540a6bffe
+    name: apc-global-overrides
+    type: library
+    urls:
+    - packaged_charts/apc-global-overrides-1.4.0.tgz
+    version: 1.4.0
   - apiVersion: v2
     created: "2025-10-14T14:31:11.694545076+02:00"
     description: A Helm chart containing helm helper functions to override global
@@ -481,6 +503,20 @@ entries:
     type: application
     urls:
     - packaged_charts/cert-utils-operator-1.0.0.tgz
+    version: 1.0.0
+  cluster-config-standalone:
+  - apiVersion: v2
+    created: "2025-10-23T13:50:23.865057202+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.4.0
+    description: A Helm chart to configure standalone cluster settings
+    digest: 45f8343fb85b6631942968c9b56fef745f464f5a04d0a0f26d10a955f9cff0a4
+    name: cluster-config-standalone
+    type: application
+    urls:
+    - packaged_charts/cluster-config-standalone-1.0.0.tgz
     version: 1.0.0
   cnpg-operator:
   - apiVersion: v2
@@ -860,6 +896,19 @@ entries:
     version: 1.0.0
   external-secrets-config:
   - apiVersion: v2
+    created: "2025-10-20T16:50:19.607514665+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.4.0
+    description: A Helm chart for configuration of external secret operator
+    digest: 507dc1125466576d11342cccd3f235483d63e5644c1586f803bfe5ad4b58237e
+    name: external-secrets-config
+    type: application
+    urls:
+    - packaged_charts/external-secrets-config-1.4.0.tgz
+    version: 1.4.0
+  - apiVersion: v2
     created: "2025-10-14T14:43:36.544295362+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -938,6 +987,20 @@ entries:
     - packaged_charts/external-secrets-config-1.0.0.tgz
     version: 1.0.0
   external-secrets-operator:
+  - apiVersion: v2
+    appVersion: 0.11.0
+    created: "2025-10-27T11:12:09.592993471+01:00"
+    dependencies:
+    - name: external-secrets
+      repository: https://charts.external-secrets.io
+      version: 0.11.0
+    description: A Helm chart for installing External Secrets Operator
+    digest: 436a54687f38b219faf5a160f48dc11ab8778ccb3ac36fd250d2d0db3d1a2ab7
+    name: external-secrets-operator
+    type: application
+    urls:
+    - packaged_charts/external-secrets-operator-1.3.0.tgz
+    version: 1.3.0
   - apiVersion: v2
     appVersion: 0.11.0
     created: "2025-10-20T13:57:41.495962744+02:00"

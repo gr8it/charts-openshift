@@ -1,0 +1,15 @@
+{{- if .Values.imageProxy.host }}
+apiVersion: config.openshift.io/v1
+kind: ImageTagMirrorSet
+metadata:
+  name: {{ .Values.imageProxy.host }}
+  labels:
+    {{- include "cluster-config-standalone.labels" . | nindent 4 }}
+spec:
+  imageTagMirrors:
+  {{- range .Values.imageProxy.sources }}
+    - mirrors:
+      - {{ include "cluster-config-standalone.imageProxyUrl" $ }}/{{ . }}
+      source: {{ . }}
+  {{- end }}
+{{- end }}

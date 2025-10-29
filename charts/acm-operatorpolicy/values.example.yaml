@@ -1,6 +1,3 @@
-upgradeApproval: Automatic
-
-forceReleaseNamespace: true
 
 subscription:
   channel: stable-v1
@@ -12,6 +9,11 @@ subscription:
     env:
     - name: HTTP_PROXY
       value: "proxy.example.com"
+    - name: HTTPS_PROXY
+      value: "proxy.example.com"
+    - name: NO_PROXY
+      value: "localhost,127.0.0.1,.svc,.cluster.local,.example.com"
 
+upgradeApproval: Automatic
 versions:
   - cert-manager-operator.v1.15.1

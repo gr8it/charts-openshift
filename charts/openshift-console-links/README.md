@@ -13,7 +13,7 @@ Example:
 ```yaml
 links:
   - name: user-guide
-    href: 'https://user-guide-apc-guides.apps.hub01.cloud.socpoist.sk/'
+    href: 'https://user-guide.example.com/'
     location: HelpMenu
     text: APC používateľská príručka
 ```
