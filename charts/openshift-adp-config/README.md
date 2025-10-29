@@ -2,7 +2,7 @@
 
 Helm chart that prepares OpenShift Application Data Protection (OADP) for application backups. It renders:
 
-- a `DataProtectionApplication` (DPA) with two backup locations (backup and restore)
+- a Kyverno policy that generates the `DataProtectionApplication` (DPA) with two backup locations (backup and restore)
 - optional `ObjectBucketClaim` resources for Ceph RGW backed storage
 - a Kyverno policy that mirrors cloud credentials from `apc-backup` into `openshift-adp`
 - optional ServiceMonitor resources for Velero metrics
@@ -31,7 +31,6 @@ Helm chart that prepares OpenShift Application Data Protection (OADP) for applic
 
 | Value | Description | Default |
 | --- | --- | --- |
-| `dpa.enabled` | Render the DataProtectionApplication manifest | `false` |
 | `dpa.name` | Name of the rendered DPA | `apc-dpa` |
 | `dpa.backupLocations` | Array with backup location overrides | see `values.yaml` |
 | `dpa.s3.region` | S3 region | `us-east-1` |
@@ -59,8 +58,7 @@ Helm chart that prepares OpenShift Application Data Protection (OADP) for applic
 | `kyverno.dpaPolicy.configMapNamespace` | Namespace containing `openshift-service-ca.crt` ConfigMap | `openshift-service-ca` |
 
 > [!NOTE]
-> By default the chart lets Kyverno own the DataProtectionApplication. To fall back to a static manifest, disable the policy (`kyverno.dpaPolicy.enabled=false`) and set `dpa.enabled=true`.
-> Clusters without Kyverno must make that switch, otherwise the DPA will not render.
+> The Kyverno DPA policy consumes this configuration. If Kyverno is disabled you must manage the DPA manifest outside of this chart.
 
 ### ObjectBucketClaims
 
