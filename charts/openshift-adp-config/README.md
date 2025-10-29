@@ -31,6 +31,7 @@ Helm chart that prepares OpenShift Application Data Protection (OADP) for applic
 
 | Value | Description | Default |
 | --- | --- | --- |
+| `dpa.enabled` | Render the DataProtectionApplication manifest | `true` |
 | `dpa.name` | Name of the rendered DPA | `apc-dpa` |
 | `dpa.backupLocations` | Array with backup location overrides | see `values.yaml` |
 | `dpa.s3.region` | S3 region | `us-east-1` |
@@ -54,6 +55,10 @@ Helm chart that prepares OpenShift Application Data Protection (OADP) for applic
 | Value | Description | Default |
 | --- | --- | --- |
 | `kyverno.enabled` | Render Kyverno secret-transform policy and related objects | `true` |
+| `kyverno.dpaPolicy.enabled` | Generate the DPA through Kyverno using the cluster service CA | `false` |
+
+> [!NOTE]
+> When enabling `kyverno.dpaPolicy.enabled`, disable the static manifest with `dpa.enabled=false` so Kyverno becomes the single source of truth for the DataProtectionApplication.
 
 ### ObjectBucketClaims
 

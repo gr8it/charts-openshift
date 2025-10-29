@@ -1,0 +1,40 @@
+{{- if and .Values.kyverno.enabled (.Values.kyverno.dpaPolicy.enabled | default false) }}
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: {{ include "openshift-adp-config.fullname" . }}-generate-dpa
+  labels:
+    {{- include "openshift-adp-config.labels" . | nindent 4 }}
+spec:
+  background: true
+  rules:
+    - name: generate-dpa
+      match:
+        any:
+          - resources:
+              kinds: ["ConfigMap"]
+              namespaces: ["openshift-config-managed"]
+              names: ["openshift-service-ca.crt"]
+      context:
+        - name: serviceCA
+          configMap:
+            name: openshift-service-ca.crt
+            namespace: openshift-config-managed
+      generate:
+        apiVersion: oadp.openshift.io/v1alpha1
+        kind: DataProtectionApplication
+        name: {{ .Values.dpa.name }}
+        namespace: {{ .Values.targetNamespace }}
+        synchronize: true
+        generateExisting: true
+        data:
+          apiVersion: oadp.openshift.io/v1alpha1
+          kind: DataProtectionApplication
+          metadata:
+            name: {{ .Values.dpa.name }}
+            namespace: {{ .Values.targetNamespace }}
+            labels:
+{{ include "openshift-adp-config.labels" . | nindent 12 }}
+          spec:
+{{ include "openshift-adp-config.dpaSpec" (dict "root" . "caCert" (printf "\"{{ serviceCA.data['service-ca.crt'] }}\"")) | nindent 12 }}
+{{- end }}
