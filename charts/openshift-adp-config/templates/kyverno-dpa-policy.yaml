@@ -36,5 +36,5 @@ spec:
             labels:
 {{ include "openshift-adp-config.labels" . | nindent 12 }}
           spec:
-{{ include "openshift-adp-config.dpaSpec" (dict "root" . "caCert" (printf "\"{{ serviceCA.data['service-ca.crt'] }}\"")) | nindent 12 }}
+{{ include "openshift-adp-config.dpaSpec" (dict "root" . "caCert" (printf "\"{{ serviceCA.data.\\\"service-ca.crt\\\" | base64_encode(@) }}\"")) | nindent 12 }}
 {{- end }}
