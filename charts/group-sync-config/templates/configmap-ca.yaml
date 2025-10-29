@@ -1,17 +1,11 @@
 {{- if .Values.groupSync }}
-{{- range .Values.groupSync }}
-{{- $groupSyncName := .name }}
-{{- range .providers }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ $groupSyncName }}-{{ .name }}
+  name: {{ include "group-sync-config.fullname" . }}-ca-groupSync
   labels:
-  {{- include "group-sync-config.labels" $ | nindent 4 }}  
+  {{- include "group-sync-config.labels" . | nindent 4 }}
 data:
   ca.crt: |
-  {{- (include "apc-global-overrides.caCertificatesBundle" $) | nindent 4 }}
----
-{{- end }}
-{{- end }}
+  {{- (include "apc-global-overrides.caCertificatesBundle" .) | nindent 4 }}
 {{- end }}
