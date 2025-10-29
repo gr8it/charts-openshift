@@ -65,4 +65,35 @@ identityProviders:
         name: comm-ldap-ca
       insecure: false
       url: ldaps://ldap.comm.apc.example.com/OU=Project-Users,dc=example,dc=com?uid
-
+  - name: oidcidp
+    mappingMethod: claim
+    type: OpenID
+    openID:
+      clientID: "idp-client-id"
+      clientSecret:
+        name: oidcidp-secret
+      extraScopes:
+      - email
+      - profile
+      extraAuthorizeParameters:
+        include_granted_scopes: "true"
+      claims:
+        preferredUsername:
+        - preferred_username
+        - email
+        name:
+        - nickname
+        - given_name
+        - name
+        email:
+        - custom_email_claim
+        - email
+        groups:
+        - groups
+      issuer: https://www.idp-issuer.com
+  - name: my_htpasswd_provider
+    mappingMethod: claim
+    type: HTPasswd
+    htpasswd:
+      fileData:
+        name: htpass-secret      

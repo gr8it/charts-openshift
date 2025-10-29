@@ -6,9 +6,11 @@ This Helm chart manages the configuration of identity providers for your OpenShi
 
 The `identityProviders-configuration` chart allows you to define and deploy identity provider settings for OpenShift as Kubernetes resources:
 - config.openshift.io/v1/oauth/config - set identity providers in OpenShift built-in OAuth server
+  - except following entries:
+    - identityProvider.ldap|openID.ca - where CA is injected from configmap
 - configMap - cabundle for identity provider integration
 - secret 
-    - required sensitive information ( for example bind password ) for identity provider integration
+    - required sensitive information ( for example bind password, openID.clientSecret ) for identity provider integration
     - secret is sync from Vault using external secret operator from path {{ vaultKVmountPlatform }}/{{ environmentShort }}/openshift-config/oauth/identityProvider/{{ idpSecret }}, where
         - vaultKVmountPlatform - mount point for platform secrets in vault apc-platform
         - environmentShort - 1st character of environment, e.g. p for prod, h for hub, d for dev, t for test
@@ -20,7 +22,7 @@ The `identityProviders-configuration` chart allows you to define and deploy iden
 
 | Parameter         | Description                                                                        | Default   | Example |
 |-------------------|------------------------------------------------------------------------------------|-----------|-----------|
-| `identityProviders`       | List of identity provider configs, where identity providers is defined according to [Redhat documentation](https://docs.redhat.com/en/documentation/openshift_container_platform/4.19/html/authentication_and_authorization/understanding-identity-provider)    | `[]` |  [values-example](values-example.yaml) |
+| `identityProviders`       | List of identity provider configs, where identity providers is defined according to [Redhat documentation](https://docs.redhat.com/en/documentation/openshift_container_platform/4.19/html/authentication_and_authorization/understanding-identity-provider)    | `[]` |  [values.example.yaml](values.example.yaml) |
 | `services.externalSecretsOperator.defaultClusterSecretStore`| cluster secret store for ESO, see also [apc-global-overrides](https://github.com/gr8it/charts-openshift/tree/main/charts/apc-global-overrides) | vault-hub-secret-store | vault-hub-secret-store |
 | `environmentShort` | usually 1st character of environment, e.g. p for prod, h for hub, d for dev, t for test, [apc-global-overrides](https://github.com/gr8it/charts-openshift/tree/main/charts/apc-global-overrides)  | ~ | d  |
 | `vaultKVmountPlatform` | mount point for platform secrets in vault apc-platform | apc-platform  | apc-platform  |
@@ -45,8 +47,6 @@ identityProviders:
       bindDN: 'CN=1BA-SA-APC-OCP_AD_r,OU=T1-Service Accounts,OU=Tier 1,OU=Admin Tier Model,DC=example,DC=com'
       bindPassword:
         name: ad-ldap-bind-secret
-      ca:
-        name: ad-ldap-ca
       insecure: false
       url: 'ldaps://example.com/DC=example,DC=com?sAMAccountName?sub?(objectClass=person)'
     mappingMethod: claim
@@ -68,10 +68,35 @@ identityProviders:
       bindDN: cn=OCP HUB01,ou=Technical-Accounts,ou=hub,ou=Project-Users,dc=example,dc=com
       bindPassword: 
         name: comm-ldap-bind-secret
-      ca: 
-        name: comm-ldap-ca
       insecure: false
       url: ldaps://ldap.comm.apc.example.com/OU=Project-Users,dc=example,dc=com?uid
+  - name: oidcidp
+    mappingMethod: claim
+    type: OpenID
+    openID:
+      clientID: ...
+      clientSecret:
+        name: idp-secret
+        name: ca-config-map
+      extraScopes:
+      - email
+      - profile
+      extraAuthorizeParameters:
+        include_granted_scopes: "true"
+      claims:
+        preferredUsername:
+        - preferred_username
+        - email
+        name:
+        - nickname
+        - given_name
+        - name
+        email:
+        - custom_email_claim
+        - email
+        groups:
+        - groups
+      issuer: https://www.idp-issuer.com
 ```
 
 
