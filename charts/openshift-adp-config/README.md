@@ -110,3 +110,7 @@ Override buckets, prefixes, or mark locations as default by editing `dpa.backupL
 
 - TLS verification is disabled by default (`insecureSkipTLSVerify: "true"`). Provide a CA bundle and set it to `"false"` in your environment overrides when the endpoint has a trusted certificate.
 - All helper defaults (names, buckets) rely on `apc-global-overrides`; ensure the dependency is present in `Chart.yaml`.
+
+## TODO
+
+- Merge the nearly identical backup/restore ObjectBucketClaim templates into one template.
