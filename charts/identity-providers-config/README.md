@@ -15,6 +15,7 @@ The `identityProviders-configuration` chart allows you to define and deploy iden
         - vaultKVmountPlatform - mount point for platform secrets in vault apc-platform
         - environmentShort - 1st character of environment, e.g. p for prod, h for hub, d for dev, t for test
         - idpSecret - name of secret for identity provider  identityProviders
+        - details for type / property name can be found in [01-secret-idp.yaml](./templates/01-secret-idp.yaml)
     - secret must be available in Vault, created in Vault manually 
 
 
