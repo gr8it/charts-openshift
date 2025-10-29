@@ -56,6 +56,7 @@ Helm chart that prepares OpenShift Application Data Protection (OADP) for applic
 | --- | --- | --- |
 | `kyverno.enabled` | Render Kyverno secret-transform policy and related objects | `true` |
 | `kyverno.dpaPolicy.enabled` | Generate the DPA through Kyverno using the cluster service CA | `true` |
+| `kyverno.dpaPolicy.configMapNamespace` | Namespace containing `openshift-service-ca.crt` ConfigMap | `openshift-service-ca` |
 
 > [!NOTE]
 > By default the chart lets Kyverno own the DataProtectionApplication. To fall back to a static manifest, disable the policy (`kyverno.dpaPolicy.enabled=false`) and set `dpa.enabled=true`.

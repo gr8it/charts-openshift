@@ -13,13 +13,13 @@ spec:
         any:
           - resources:
               kinds: ["ConfigMap"]
-              namespaces: ["openshift-config-managed"]
+              namespaces: ["{{ .Values.kyverno.dpaPolicy.configMapNamespace }}"]
               names: ["openshift-service-ca.crt"]
       context:
         - name: serviceCA
           configMap:
             name: openshift-service-ca.crt
-            namespace: openshift-config-managed
+            namespace: {{ .Values.kyverno.dpaPolicy.configMapNamespace }}
       generate:
         apiVersion: oadp.openshift.io/v1alpha1
         kind: DataProtectionApplication
