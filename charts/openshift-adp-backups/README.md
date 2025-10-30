@@ -37,3 +37,8 @@ schedules:
           - persistentvolumeclaims
         ttl: 24h
 ```
+
+## TODO
+
+- Move platform component backup schedules (Quay, Prometheus, XCA) into their respective charts once those components are deployed via GitOps.
+```
