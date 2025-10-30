@@ -1,3 +1,5 @@
+{{- $environment := include "apc-global-overrides.environment" . }}
+{{- if ne $environment "hub" }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -24,3 +26,4 @@ spec:
       protocol: TCP
       targetPort: metrics
   type: LoadBalancer
+{{- end }}
