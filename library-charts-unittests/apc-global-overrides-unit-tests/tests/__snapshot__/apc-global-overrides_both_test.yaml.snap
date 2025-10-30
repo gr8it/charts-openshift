@@ -62,24 +62,53 @@ manifest should match snapshot:
       environmentShort: environmentShort-local
       noProxy: noProxy-local
       proxy: proxy-local
-      proxyIPs:
+      proxyCIDRs:
         - proxyIP-local1
         - proxyIP-local2
-      proxyIPsArray:
+      proxyCIDRsArray:
         - IP: proxyIP-local1
         - IP: proxyIP-local2
       repoTargetRevision: repoTargetRevision-local
       repoURL: repoURL-local
       services:
+        certManager:
+          defaultClusterIssuer: certManagerDefaultClusterIssuer-local
+        crossplane:
+          kubeVaultProviderConfigName: crossplaneKubeVaultProviderConfigName-local
+        externalSecretsOperator:
+          defaultClusterSecretStore: ESODefaultClusterSecretStore-local
         local:
           url: servicesLocaltUrl-local
-        override:
-          url: servicesOverrideUrl-local
-      servicesExtracted: servicesOverrideUrl-local
+        vault:
+          KVmountPlatform: vaultKVmountPlatform-local
+          kubeAuthMountPath: vaultKubeAuthMountPath-local
+          name: vaultName-local
+          url: vaultUrl-local
+      servicesExtracted:
+        certManager:
+          defaultClusterIssuer: certManagerDefaultClusterIssuer-local
+        crossplane:
+          kubeVaultProviderConfigName: crossplaneKubeVaultProviderConfigName-local
+        externalSecretsOperator:
+          defaultClusterSecretStore: ESODefaultClusterSecretStore-local
+        vault:
+          KVmountPlatform: vaultKVmountPlatform-local
+          kubeAuthMountPath: vaultKubeAuthMountPath-local
+          name: vaultName-local
+          url: vaultUrl-local
       servicesMerged:
+        certManager:
+          defaultClusterIssuer: certManagerDefaultClusterIssuer-local
+        crossplane:
+          kubeVaultProviderConfigName: crossplaneKubeVaultProviderConfigName-local
+        externalSecretsOperator:
+          defaultClusterSecretStore: ESODefaultClusterSecretStore-local
         global:
           url: servicesGlobalUrl-global
         local:
           url: servicesLocaltUrl-local
-        override:
-          url: servicesOverrideUrl-local
+        vault:
+          KVmountPlatform: vaultKVmountPlatform-local
+          kubeAuthMountPath: vaultKubeAuthMountPath-local
+          name: vaultName-local
+          url: vaultUrl-local

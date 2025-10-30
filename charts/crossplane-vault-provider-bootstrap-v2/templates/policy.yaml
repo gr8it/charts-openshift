@@ -1,7 +1,7 @@
-{{- $vaultUrl := (include "crossplane-vault-provider-bootstrap.vaultUrl" .) }}
-{{- $vaultName := (include "crossplane-vault-provider-bootstrap.vaultName" .) }}
+{{- $vaultUrl := (include "apc-global-overrides.require-vaultUrl" .) }}
+{{- $vaultName := (include "apc-global-overrides.require-vaultName" .) }}
 {{- $localClusterName := (include "apc-global-overrides.clusterName" .) }}
-{{- $vaultProviderConfigName := (include "crossplane-vault-provider-bootstrap.vaultKubeVaultProviderConfigName" .) }}
+{{- $vaultProviderConfigName := (include "apc-global-overrides.require-crossplaneKubeVaultProviderConfigName" .) }}
 apiVersion: policy.open-cluster-management.io/v1
 kind: Policy
 metadata:
@@ -310,6 +310,10 @@ spec:
                   role: {{ .Values.vaultKubernetesRole }}
                   credentials:
                     source: Kubernetes
+                  max_lease_ttl_seconds: 1199
+                  headers:
+                    name: ""
+                    value: ""
 
     - extraDependencies:
         - name: {{ include "crossplane-vault-provider-bootstrap.fullname" . }}-kubernetes-auth-provisioned-check

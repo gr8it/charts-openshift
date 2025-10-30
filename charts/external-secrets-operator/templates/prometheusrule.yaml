@@ -1,0 +1,111 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "external-secrets-operator.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "external-secrets-operator.labels" . | nindent 4 }}
+spec:
+  groups:
+  - name: external-secrets-operator.rules
+    rules:
+    - alert: ExternalSecretOutOfSync
+      expr: |
+        externalsecret_status_condition{condition="Ready",status!="True"} == 1
+      for: 30m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "ExternalSecret {{"{{"}} $labels.name {{"}}"}} is not synced in {{"{{"}} $labels.exported_namespace {{"}}"}} namespace"
+        description: |
+          The ExternalSecret {{"{{"}} $labels.name {{"}}"}} in {{"{{"}} $labels.exported_namespace {{"}}"}} namespace has not been in ready state for more than 30 minutes.
+          Check external secrets operator logs and the backend secret store availability.
+
+    - alert: SecretStoreNotReady
+      expr: |
+        secretstore_status_condition{condition="Ready",status!="True"} == 1
+      for: 5m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "SecretStore {{"{{"}} $labels.name {{"}}"}} in namespace {{"{{"}} $labels.exported_namespace {{"}}"}} is not Ready"
+        description: |
+          The SecretStore {{"{{"}} $labels.name {{"}}"}}" in namespace {{"{{"}} $labels.exported_namespace {{"}}"}}
+          is not in ready state for more than 5 minutes.
+          This likely indicates that external-secrets-operator cannot connect to the secret backend.
+
+    - alert: ClusterSecretStoreNotReady
+      expr: |
+        clustersecretstore_status_condition{condition="Ready",status!="True"} == 1
+      for: 5m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "ClusterSecretStore {{"{{"}} $labels.name {{"}}"}} is not Ready"
+        description: |
+          ClusterSecretStore {{"{{"}} $labels.name {{"}}"}} has not been in Ready for over 5 minutes.
+          External-secrets-operator likely cannot reach the provider or auth failed. Check external secrets operator logs.
+
+    - alert: ExternalSecretSyncErrorRatioHigh
+      expr: |
+        rate(externalsecret_sync_calls_error[5m])
+        /
+        rate(externalsecret_sync_calls_total[5m]) > 0.1
+      for: 10m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "High ExternalSecret sync error ratio"
+        description: |
+          More than 10% of External Secret sync calls failed over the last 10 minutes.
+          Investigate external-secrets-operator logs and secret provider availability/credentials.
+
+    - alert: ExternalSecretProviderApiErrorRateHigh
+      expr: |
+        sum by (provider, call) (
+          rate(externalsecret_provider_api_calls_count{status!="success"}[5m])
+        )
+        /
+        sum by (provider, call) (
+          rate(externalsecret_provider_api_calls_count[5m])
+        ) > 0.9
+      for: 10m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "Provider API errors for {{"{{"}} $labels.provider{{"}}"}}, call {{"{{"}} $labels.call {{"}}"}}"
+        description: |
+          Error ratio for provider {{"{{"}} $labels.provider{{"}}"}}, call {{"{{"}} $labels.call {{"}}"}} is > 90 % for 10m.
+          Check provider status, IAM/credentials, or rate limits.
+
+    - alert: ExternalSecretNoSyncActivity
+      expr: |
+        (
+        sum(rate(externalsecret_sync_calls_total[3h])) == 0
+        )
+        and
+        (
+        sum(externalsecret_status_condition{condition="Ready"}) > 0
+        )
+      for: 1h
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "No ExternalSecret sync activity in the last 3 hours"
+        description: |
+          No ExternalSecret syncs have been observed for at least 3 hours,
+          even though ExternalSecrets exist in the cluster.
+          This may indicate that the External Secrets Operator controller is stuck,
+          crashlooping, or not reconciling.

@@ -1,10 +1,21 @@
 acm-operatorpolicy:
+  forceReleaseNamespace: true
+
   subscription:
     channel: stable-v1
     name: cloudnative-pg
     source: certified-operators
     sourceNamespace: openshift-marketplace
     startingCSV: cloudnative-pg.v1.26.0
+    # remove HTTP PROXY setting, so cnpg can talk to plugins using "hostnames" without using proxy, e.g. https://barman-cloud:9090
+    config:
+      env:
+      - name: HTTP_PROXY
+        value: ""
+      - name: HTTPS_PROXY
+        value: ""
+      - name: NO_PROXY
+        value: ""
 
   upgradeApproval: Automatic
   versions:

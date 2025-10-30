@@ -9,15 +9,15 @@ spec:
     # delete omited by design not to allow deletion of secrets => allow creation, updates, and reads
     policy: |
 
-      path "{{ .Values.vaultKVmountPlatform }}/{{ include "apc-global-overrides.environmentShort" . }}/*" {
+      path "{{ include "apc-global-overrides.require-vaultKVmountPlatform" . }}/{{ include "apc-global-overrides.environmentShort" . }}/*" {
         capabilities = ["create", "read", "update", "patch", "list"]
       }
-      path "{{ .Values.vaultKVmountPlatform }}/data/{{ include "apc-global-overrides.environmentShort" . }}/*" {
+      path "{{ include "apc-global-overrides.require-vaultKVmountPlatform" . }}/data/{{ include "apc-global-overrides.environmentShort" . }}/*" {
         capabilities = ["create", "read", "update", "patch", "list"]
       }
-      path "{{ .Values.vaultKVmountPlatform }}/metadata/{{ include "apc-global-overrides.environmentShort" . }}/*" {
+      path "{{ include "apc-global-overrides.require-vaultKVmountPlatform" . }}/metadata/{{ include "apc-global-overrides.environmentShort" . }}/*" {
         capabilities = ["create", "read", "update", "patch", "list"]
       }
 
   providerConfigRef:
-    name: {{ include "external-secrets-config.vaultKubeVaultProviderConfigName" . }}
+    name: {{ include "apc-global-overrides.require-crossplaneKubeVaultProviderConfigName" . }}

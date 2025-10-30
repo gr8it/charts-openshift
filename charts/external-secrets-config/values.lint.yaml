@@ -6,7 +6,9 @@ global:
     services:
       vault:
         url: https://vault.example.com
-        kubeVaultProviderConfigName: vault-hub-provider-config
         kubeAuthMountPath: dev01
+        KVmountPlatform: apc-platform
+      crossplane:
+        kubeVaultProviderConfigName: vault-hub-provider-config
       externalSecretsOperator:
         defaultClusterSecretStore: vault-example

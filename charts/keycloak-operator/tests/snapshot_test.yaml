@@ -1,0 +1,11 @@
+suite: Snapshot test
+templates:
+  - charts/*/templates/*
+release:
+  name: keycloak-operator
+  namespace: apc-keycloak
+
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}

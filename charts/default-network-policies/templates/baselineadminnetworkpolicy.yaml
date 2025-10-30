@@ -20,11 +20,11 @@ spec:
       action: Deny
       from:
       - namespaces: {}
-  {{- if (include "apc-global-overrides.proxyIPs" . | fromYamlArray ) }}
+  {{- if (include "apc-global-overrides.proxyCIDRs" . | fromYamlArray ) }}
   egress:
   - action: Deny
     name: deny-to-proxy
     to:
     - networks:
-      {{- (include "apc-global-overrides.proxyIPs" .) | nindent 6 }}
+      {{- (include "apc-global-overrides.proxyCIDRs" .) | nindent 6 }}
   {{- end }}

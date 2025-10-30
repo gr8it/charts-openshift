@@ -1,0 +1,41 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: policy.open-cluster-management.io/v1beta1
+    kind: OperatorPolicy
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak-operator
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: acm-operatorpolicy
+        app.kubernetes.io/version: v1beta1
+        helm.sh/chart: acm-operatorpolicy-1.1.0
+      name: keycloak-operator-acm-operatorpolicy
+      namespace: open-cluster-management-policies
+    spec:
+      complianceConfig:
+        catalogSourceUnhealthy: Compliant
+        deploymentsUnavailable: NonCompliant
+        upgradesAvailable: Compliant
+      complianceType: musthave
+      operatorGroup:
+        name: apc-keycloak
+        namespace: apc-keycloak
+        targetNamespaces:
+          - apc-keycloak
+      remediationAction: enforce
+      removalBehavior:
+        clusterServiceVersions: Delete
+        customResourceDefinitions: Keep
+        operatorGroups: DeleteIfUnused
+        subscriptions: Delete
+      severity: medium
+      subscription:
+        channel: stable-v26.0
+        name: rhbk-operator
+        namespace: apc-keycloak
+        source: redhat-operators
+        sourceNamespace: openshift-marketplace
+        startingCSV: rhbk-operator.v26.0.10-opr.1
+      upgradeApproval: Automatic
+      versions:
+        - rhbk-operator.v26.0.10-opr.1

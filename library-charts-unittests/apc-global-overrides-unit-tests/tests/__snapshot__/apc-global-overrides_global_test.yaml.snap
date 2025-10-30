@@ -56,20 +56,49 @@ manifest should match snapshot:
       environmentShort: environmentShort-global
       noProxy: noProxy-global
       proxy: proxy-global
-      proxyIPs:
+      proxyCIDRs:
         - proxyIP-global
-      proxyIPsArray:
+      proxyCIDRsArray:
         - IP: proxyIP-global
       repoTargetRevision: repoTargetRevision-global
       repoURL: repoURL-global
       services:
+        certManager:
+          defaultClusterIssuer: certManagerDefaultClusterIssuer-global
+        crossplane:
+          kubeVaultProviderConfigName: crossplaneKubeVaultProviderConfigName-global
+        externalSecretsOperator:
+          defaultClusterSecretStore: ESODefaultClusterSecretStore-global
         global:
           url: servicesGlobalUrl-global
-        override:
-          url: servicesOverrideUrl-global
-      servicesExtracted: servicesOverrideUrl-global
+        vault:
+          KVmountPlatform: vaultKVmountPlatform-global
+          kubeAuthMountPath: vaultKubeAuthMountPath-global
+          name: vaultName-global
+          url: vaultUrl-global
+      servicesExtracted:
+        certManager:
+          defaultClusterIssuer: certManagerDefaultClusterIssuer-global
+        crossplane:
+          kubeVaultProviderConfigName: crossplaneKubeVaultProviderConfigName-global
+        externalSecretsOperator:
+          defaultClusterSecretStore: ESODefaultClusterSecretStore-global
+        vault:
+          KVmountPlatform: vaultKVmountPlatform-global
+          kubeAuthMountPath: vaultKubeAuthMountPath-global
+          name: vaultName-global
+          url: vaultUrl-global
       servicesMerged:
+        certManager:
+          defaultClusterIssuer: certManagerDefaultClusterIssuer-global
+        crossplane:
+          kubeVaultProviderConfigName: crossplaneKubeVaultProviderConfigName-global
+        externalSecretsOperator:
+          defaultClusterSecretStore: ESODefaultClusterSecretStore-global
         global:
           url: servicesGlobalUrl-global
-        override:
-          url: servicesOverrideUrl-global
+        vault:
+          KVmountPlatform: vaultKVmountPlatform-global
+          kubeAuthMountPath: vaultKubeAuthMountPath-global
+          name: vaultName-global
+          url: vaultUrl-global

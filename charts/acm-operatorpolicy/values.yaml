@@ -1,3 +1,6 @@
+# annotations to apply to the operatorpolicy resource
+annotations: {}
+
 # see https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.13/html/governance/governance#operator-policy-ctrl for details
 complianceType: musthave # musthave, mustnothave
 remediationAction: enforce # inform, enforce
@@ -10,6 +13,7 @@ upgradeApproval: None # Automatic, None - specify Automatic only in conjuncation
 # - set operatorGroup.namespace and/or subscription.namespace to the value of .Release.Namespace
 # - only works when operatorGroup.namespace and/or subscription.namespace are null
 # - will break if there are other existing operators in the .Release.Namespace
+# - when operatorGroup is targeting 1 namespace, templating can be used for dynamic targeting, see values.example.releaseNamespace.yaml
 # when forceReleaseNamespace is false:
 # - use explicit values set in operatorGroup.namespace and/or subscription.namespace
 # - uses operator defaults when operatorGroup.namespace and/or subscription.namespace are null
@@ -19,6 +23,9 @@ operatorGroup:
   name: ~
   namespace: ~
   targetNamespaces: []
+  # when forceReleaseNamespace is true and targetNamespaces has 1 entry, dynamic templating can be used:
+  # targetNamespaces:
+  # - "{{ .Release.Namespace }}"
 
 subscription:
   channel: ~
@@ -29,6 +36,7 @@ subscription:
   # source: redhat-operators
   # sourceNamespace: openshift-marketplace
   startingCSV: ~
+  values: {}
 
 versions: []
 

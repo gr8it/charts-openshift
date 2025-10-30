@@ -31,9 +31,19 @@ applications: {}
   #       chartVersion: ""
   #     source:
   #       path: gitops/rendered/{{ .Environment.Name }}/argocd-app-of-apps
+  #     ignoreDifferences:
+  #       - kind: ConfigMap
+  #         name: my-resource
+  #         namespace: my-namespace
+  #         jsonPointers: ["/data"]
+  #     extraFields: |
+  #       info:
+  #         - name: foo
+  #           values: bar
+  #     syncOptions:
+  #       - CreateNamespace=true
   #     destination:
-  ##       namespace: apc-gitops
-  #       namespace: openshift-gitops
+  #       namespace: apc-gitops
   #     enableAutoSync: true
   #     autoSyncPrune: true
 

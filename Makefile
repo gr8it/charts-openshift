@@ -1,4 +1,4 @@
-.PHONY: debug lint unittest package publish clean build
+.PHONY: debug lint unittest package publish clean build update-versions update-chart-deps
 
 SHELL := /bin/bash
 .ONESHELL:
@@ -76,78 +76,7 @@ gitpull:
 	fi
 
 package: check-helm check-helm-unittest
-	@echo -e "\033[0;36m~> Starting helm package for all chart folders ...\033[0m"
-	@mkdir -p $(OUTPUT_DIR)
-	$(eval TEMP_DIR := $(shell mktemp -d))
-	@mkdir -p $(TEMP_DIR)/packaged_charts
-	@echo -e "\033[0;33mTemp folder set to $(TEMP_DIR)\033[0m"
-	@for folder in $(CHARTFOLDERS); do \
-		chart_name=$$(grep '^name:' $${folder}/Chart.yaml | awk '{print $$2}'); \
-		chart_version=$$(grep '^version:' $${folder}/Chart.yaml | awk '{print $$2}'); \
-		chart_name_version=$${chart_name}-$${chart_version}; \
-		echo -n "$${chart_name_version}: "; \
-		whitespaces=$$(echo "$${chart_name_version}: " | sed "s/./ /g"); \
-		if [ -f $(OUTPUT_DIR)/$${chart_name}-$${chart_version}.tgz ]; then \
-			echo -e "\033[0;33mskipped\033[0m - Chart package already exists"; \
-		else \
-		  echo -n "lint "; \
-			if [ -f $${folder}/values.lint.yaml ]; then \
-				helm_args="--values $${folder}/values.lint.yaml"; \
-			fi; \
-			if out=$$(helm lint $$folder --quiet 2>&1 $$helm_args); then \
-				echo -e "\033[0;32mOK\033[0m "; \
-				if test -n "$$out"; then echo "$$out"; fi; \
-			else \
-				echo -e "\033[0;31mFAILED\033[0m "; \
-				echo "$$out"; \
-				exit 1; \
-			fi; \
-			echo -n "$${whitespaces}unittests "; \
-			if [ -d $${folder}/tests/ ]; then \
-				if out=$$(helm unittest --strict $$folder); then \
-					echo -e "\033[0;32mOK\033[0m "; \
-				else \
-					echo -e "\033[0;31mFAILED\033[0m "; \
-					echo "$$out"; \
-					echo -e "\033[33mUpdate unittests snapshot and continue? [n/Y]"; \
-					echo -e "\033[33mUpdate only when \033[31mreally sure\033[33m, that updating snapshot won't break anything!\033[0m"; \
-					read -r confirmation; \
-					if [ "$$confirmation" != "y" ] && [ "$$confirmation" != "Y" ]; then \
-							exit 1; \
-					else \
-						helm unittest -u $$folder; \
-						if ! out=$$(helm unittest --strict $$folder); then \
-							echo -e "\033[0;31mSTILL FAILING\033[0m "; \
-							exit 1; \
-						fi \
-					fi; \
-				fi; \
-			else \
-			  echo "NA"; \
-			fi; \
-			echo -n "$${whitespaces}package "; \
-			if out=$$(helm package $${folder} --version $${chart_version} --destination $(TEMP_DIR)/packaged_charts 2>&1); then \
-				echo -e "\033[0;32mDONE\033[0m - chart package has been created"; \
-				touch $(TEMP_DIR)/.index; \
-			else \
-				echo -e "\033[0;31mFAILED - packaging chart $${chart_name_version} has failed.\033[0m"; \
-				echo "$$out"; \
-				exit 1; \
-			fi \
-		fi \
-	done
-	@if test -f $(TEMP_DIR)/.index  &&  out=$$(helm repo index --merge $(INDEX_FILE) $(TEMP_DIR) 2>&1); then \
-		echo -e "\033[0;36m~> Updating index file and moving new packaged charts to $$(realpath $(OUTPUT_DIR)) ...\033[0m"; \
-		mv -vf $(TEMP_DIR)/packaged_charts/*.tgz $(OUTPUT_DIR)/; \
-		mv -vf $(TEMP_DIR)/index.yaml $(INDEX_FILE); \
-	elif (test ! -f $(TEMP_DIR)/.index); then \
-		echo -e "\033[0;33mNo new helm packages found.\033[0m"; \
-	else \
-		echo -e "\033[0;31mGenerating index file has failed.\033[0m"; \
-		echo "$$out"; \
-		exit 1; \
-	fi
-	@rm -rf $(TEMP_DIR)
+	scripts/package.sh
 
 check-yq:
 	@if (command -v $(YQ) >/dev/null 2>&1); then \
@@ -283,5 +212,33 @@ clean: check-yq
 
 build: package update-versions
 
+# update versions.txt with all chart names and versions
 update-versions: check-yq
 	@ find charts -name Chart.yaml -exec yq -M '.name + ":" + .version' {} \; | sort > versions.txt
+
+# Gets particular chart version (specified via CHARTFOLDER) and updates all other charts that depend on it
+# usage:
+# CHARTFOLDER=<chart_folder_name> make update-chart-deps
+update-chart-deps: check-yq
+	@chart_name="$(CHARTFOLDER)"; \
+	chart_path="charts/$${chart_name}/Chart.yaml"; \
+	if [ ! -f "$${chart_path}" ]; then \
+			echo "Chart.yaml for $${chart_name} not found! Set CHARTFOLDER environment variable to point to chart folder to be used for dependency updates."; exit 1; \
+	fi; \
+	chart_version=$$(grep '^version:' "$${chart_path}" | awk '{print $$2}'); \
+	echo "Chart: $${chart_name}, Version: $${chart_version}"; \
+	branch=$$(git rev-parse --abbrev-ref HEAD); \
+	helm repo update; \
+	for dep_chart in $$(grep -rl "name: $${chart_name}" charts/*/Chart.yaml | grep -v "$${chart_path}"); do \
+		echo "Updating dependency in $${dep_chart}"; \
+		orig_repo=$$(yq '.dependencies[] | select(.name == "'$${chart_name}'") | .repository' "$${dep_chart}"); \
+		yq -i '.dependencies[] |= (select(.name == "'$${chart_name}'") .version = "'$${chart_version}'")' "$${dep_chart}"; \
+		yq -i '.dependencies[] |= (select(.name == "'$${chart_name}'") .repository |= sub("main", "'$${branch}'"))' "$${dep_chart}"; \
+		chart_dir=$$(dirname "$${dep_chart}"); \
+		helm dep update --skip-refresh "$${chart_dir}"; \
+		yq -i '.dependencies[] |= (select(.name == "'$${chart_name}'") .repository = "'$${orig_repo}'")' "$${dep_chart}"; \
+		lock_file="$${chart_dir}/Chart.lock"; \
+		if [ -f "$${lock_file}" ]; then \
+			yq -i '.dependencies[] |= (select(.name == "'$${chart_name}'") .repository = "'$${orig_repo}'")' "$${lock_file}"; \
+		fi; \
+	done

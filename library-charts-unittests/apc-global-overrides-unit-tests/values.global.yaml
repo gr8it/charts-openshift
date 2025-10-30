@@ -28,13 +28,22 @@ global:
       runsApps: true
     proxy: proxy-global
     noProxy: noProxy-global
-    proxyIPs:
+    proxyCIDRs:
       - proxyIP-global
     services:
       global:
         url: servicesGlobalUrl-global
-      override:
-        url: servicesOverrideUrl-global
+      certManager:
+        defaultClusterIssuer: certManagerDefaultClusterIssuer-global
+      crossplane:
+        kubeVaultProviderConfigName: crossplaneKubeVaultProviderConfigName-global
+      externalSecretsOperator:
+        defaultClusterSecretStore: ESODefaultClusterSecretStore-global
+      vault:
+        kubeAuthMountPath: vaultKubeAuthMountPath-global
+        name: vaultName-global
+        url: vaultUrl-global
+        KVmountPlatform: vaultKVmountPlatform-global
     caCertificates:
       override.crt: |
         -----BEGIN CERTIFICATE-----

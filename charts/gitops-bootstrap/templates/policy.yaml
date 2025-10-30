@@ -312,7 +312,7 @@ spec:
                         health_status.message = "An install plan for a subscription is pending installation"
                         return health_status
 
-    {{- if (include "apc-global-overrides.proxyIPs" . ) | fromYamlArray }}
+    {{- if (include "apc-global-overrides.proxyCIDRs" . ) | fromYamlArray }}
     - extraDependencies:
         - name: {{ include "gitops-bootstrap.fullname" . }}-namespace
           namespace: ""
@@ -337,7 +337,7 @@ spec:
                   namespace: {{ .Values.namespace }}
                 spec:
                   egress:
-                  {{- range (include "apc-global-overrides.proxyIPs" . | fromYamlArray ) }}
+                  {{- range (include "apc-global-overrides.proxyCIDRs" . | fromYamlArray ) }}
                   - to:
                     - ipBlock:
                         cidr: {{ . }}

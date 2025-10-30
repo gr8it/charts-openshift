@@ -175,16 +175,15 @@ applications:
         maxDuration: 3m
     syncOptions:
       - Replace=true
-    extraFields: |
-      ignoreDifferences:
-        - group: kyverno.io
-          kind: ClusterPolicy
-          jsonPointers:
-          - /spec/rules
-        - group: kyverno.io
-          kind: Policy
-          jsonPointers:
-          - /spec/rules
+    ignoreDifferences:
+      - group: kyverno.io
+        kind: ClusterPolicy
+        jsonPointers:
+        - /spec/rules
+      - group: kyverno.io
+        kind: Policy
+        jsonPointers:
+        - /spec/rules
 
   config-pipeline-operator:
     annotations:
