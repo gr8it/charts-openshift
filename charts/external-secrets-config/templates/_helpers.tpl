@@ -65,5 +65,5 @@ Create the name of the service account to use
 Create the policy name
 */}}
 {{- define "external-secrets-config.policyName" -}}
-{{ .Values.vaultKVmountPlatform }}-{{ include "apc-global-overrides.require-environmentShort" . }}-{{ .Values.vaultKubeAuthRole }}
+{{- include "apc-global-overrides.require-vaultKVmountPlatform" . }}-{{ include "apc-global-overrides.require-environmentShort" . }}-{{ .Values.vaultKubeAuthRole }}
 {{- end }}

@@ -91,21 +91,21 @@ spec:
     - alert: ExternalSecretNoSyncActivity
       expr: |
         (
-        sum(rate(externalsecret_sync_calls_total[30m])) == 0
+        sum(rate(externalsecret_sync_calls_total[3h])) == 0
         )
         and
         (
         sum(externalsecret_status_condition{condition="Ready"}) > 0
         )
-      for: 30m
+      for: 1h
       labels:
         severity: warning
         vendor: aspecta
         team: platform
       annotations:
-        summary: "No ExternalSecret sync activity in the last 30 minutes"
+        summary: "No ExternalSecret sync activity in the last 3 hours"
         description: |
-          No ExternalSecret syncs have been observed for at least 30 minutes,
+          No ExternalSecret syncs have been observed for at least 3 hours,
           even though ExternalSecrets exist in the cluster.
           This may indicate that the External Secrets Operator controller is stuck,
           crashlooping, or not reconciling.
