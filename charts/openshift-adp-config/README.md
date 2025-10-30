@@ -121,7 +121,7 @@ Override buckets, prefixes, or mark locations as default by editing `dpa.backupL
 ## Notes
 
 - TLS verification is enabled by default (`insecureSkipTLSVerify: "false"`). Only flip it to `"true"` when connecting to an endpoint with an untrusted certificate or during troubleshooting, and ideally pair that with a CA bundle (`dpa.s3.caCert`).
-- When `dpa.s3.caCert` is provided it takes precedence over the service CA injected by the Kyverno policy.
+- When `dpa.s3.caCert` is blank the Kyverno policy injects the service-ca bundle (base64-encoded). Supplying your own bundle overrides that value.
 - All helper defaults (names, buckets) rely on `apc-global-overrides`; ensure the dependency is present in `Chart.yaml`.
 
 ## TODO

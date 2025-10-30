@@ -59,7 +59,10 @@ Render the shared DataProtectionApplication spec. Allows an optional caCert over
 {{- $ctx := index . "root" -}}
 {{- $valueCa := tpl (default "" $ctx.Values.dpa.s3.caCert) $ctx -}}
 {{- $passedCa := default "" (index . "caCert") -}}
-{{- $ca := default $passedCa $valueCa -}}
+{{- $ca := $passedCa -}}
+{{- if $valueCa }}
+  {{- $ca = $valueCa -}}
+{{- end }}
 {{- $cluster := tpl (include "apc-global-overrides.clusterName" $ctx) $ctx -}}
 {{- $locationDefaults := list
   (dict "name" (printf "oadp-%s-app-backup" $cluster) "bucket" (printf "oadp-%s-app-backup" $cluster) "prefix" (printf "backup/%s-app" $cluster) "default" true)
