@@ -1,0 +1,13 @@
+suite: Snapshot test
+templates:
+  - templates/*
+values:
+  - ../values.example.yaml
+release:
+  name: identity-provider-config
+  namespace: openshift-config
+
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}
