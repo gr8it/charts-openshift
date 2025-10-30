@@ -1478,6 +1478,22 @@ entries:
     version: 1.0.0
   monitoring:
   - apiVersion: v2
+    created: "2025-10-29T15:54:01.902849+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.4.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.2
+    description: A Helm chart for cluster monitoring with Kyverno PrometheusRule generation
+    digest: 619b3f10939036bf125ffb2072046bbcd74cd6ac4adc9bf88a16172a213fccaf
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.0.2.tgz
+    version: 1.0.2
+  - apiVersion: v2
     appVersion: v1
     created: "2025-10-27T08:51:43.667001+01:00"
     dependencies:
@@ -1512,6 +1528,15 @@ entries:
     - packaged_charts/monitoring-1.0.0.tgz
     version: 1.0.0
   monitoring-prometheusrules:
+  - apiVersion: v2
+    created: "2025-10-29T15:52:58.940545+01:00"
+    description: A Helm chart for prometheusrules used in other helm charts.
+    digest: 9996a42fd8cf2bdca5770842babfac435b4fee658db9622debbfd66a60f13e95
+    name: monitoring-prometheusrules
+    type: library
+    urls:
+    - packaged_charts/monitoring-prometheusrules-1.0.2.tgz
+    version: 1.0.2
   - apiVersion: v2
     created: "2025-10-27T08:50:04.858346+01:00"
     description: A Helm chart for prometheusrules used in other helm charts.
@@ -1752,6 +1777,23 @@ entries:
     - packaged_charts/trust-manager-helm-1.0.0.tgz
     version: 1.0.0
   user-workload-monitoring-policy:
+  - apiVersion: v2
+    created: "2025-10-29T15:54:01.903665+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.4.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.2
+    description: A Helm chart that automatically creates PrometheusRules for app /
+      non-app workload namespaces
+    digest: ea5d41459809f54c1009394041fbf1dc4d00fb221f4c8b85e4a0648b5f2e64da
+    name: user-workload-monitoring-policy
+    type: application
+    urls:
+    - packaged_charts/user-workload-monitoring-policy-1.0.2.tgz
+    version: 1.0.2
   - apiVersion: v2
     created: "2025-10-27T08:51:43.667649+01:00"
     dependencies:
