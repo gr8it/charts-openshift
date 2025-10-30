@@ -3,6 +3,8 @@ kind: MetalLB
 metadata:
   name: metallb
   namespace: {{ .Values.metallbns}}
+  labels:
+    {{- include "metallb-config.labels" . | nindent 4 }}
 spec:
   controllerConfig:
     priorityClassName: high-priority

@@ -2,4 +2,6 @@ apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
   name: high-priority
+  labels:
+    {{- include "metallb-config.labels" . | nindent 4 }}
 value: {{ .Values.priorityClassValue }}

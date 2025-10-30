@@ -5,6 +5,8 @@ kind: L2Advertisement
 metadata:
   name: ingress
   namespace: {{ .Values.metallbns }}
+  labels:
+    {{- include "metallb-config.labels" . | nindent 4 }}
 spec:
   ipAddressPools:
   - ingress-reserved
@@ -19,6 +21,8 @@ kind: L2Advertisement
 metadata:
   name: kubeapi-{{ $env }}01
   namespace: metallb-system
+  labels:
+    {{- include "metallb-config.labels" $ | nindent 4 }}
 spec:
   ipAddressPools:
   - kubeapi-{{ $env }}01

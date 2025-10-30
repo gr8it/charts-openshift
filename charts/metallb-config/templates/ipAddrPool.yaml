@@ -5,6 +5,8 @@ kind: IPAddressPool
 metadata:
   name: ingress-reserved
   namespace: {{ .Values.metallbns }}
+  labels:
+    {{- include "metallb-config.labels" . | nindent 4 }}
 spec:
   addresses:
   - {{ get .Values.ipAddrPool.spoke $environment }}
@@ -24,6 +26,8 @@ kind: IPAddressPool
 metadata:
   name: kubeapi-{{ $env }}01
   namespace: metallb-system
+  labels:
+    {{- include "metallb-config.labels" $ | nindent 4 }}
 spec:
   addresses:
   - {{ $ipAddrPool }}

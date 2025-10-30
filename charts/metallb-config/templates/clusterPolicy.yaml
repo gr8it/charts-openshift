@@ -2,6 +2,8 @@ apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
   name: patch-l2advertisement
+  labels:
+    {{- include "metallb-config.labels" . | nindent 4 }}
 spec:
   rules:
     - name: patch-{{ .Values.metallbInterface}}
