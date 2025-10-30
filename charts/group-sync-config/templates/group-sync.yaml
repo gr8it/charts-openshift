@@ -14,7 +14,6 @@ spec:
   - name: {{ .name }}
     {{- if .ldap }}
     ldap: {{ .ldap | toYaml | nindent 6 }}
-    {{- end }}
       ca:
         kind: ConfigMap
         namespace: {{ $.Release.Namespace }}
@@ -23,6 +22,7 @@ spec:
       credentialsSecret:
         namespace: {{ $.Release.Namespace }}
         name: {{ $groupSyncName }}-{{ .name }}    
+    {{- end }}
   {{- end }}
 ---
 {{- end }}
