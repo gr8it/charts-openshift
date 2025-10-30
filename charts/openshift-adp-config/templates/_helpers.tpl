@@ -57,7 +57,9 @@ Render the shared DataProtectionApplication spec. Allows an optional caCert over
 */}}
 {{- define "openshift-adp-config.dpaSpec" -}}
 {{- $ctx := index . "root" -}}
-{{- $ca := default (tpl (default "" $ctx.Values.dpa.s3.caCert) $ctx) (index . "caCert") -}}
+{{- $valueCa := tpl (default "" $ctx.Values.dpa.s3.caCert) $ctx -}}
+{{- $passedCa := default "" (index . "caCert") -}}
+{{- $ca := default $passedCa $valueCa -}}
 {{- $cluster := tpl (include "apc-global-overrides.clusterName" $ctx) $ctx -}}
 {{- $locationDefaults := list
   (dict "name" (printf "oadp-%s-app-backup" $cluster) "bucket" (printf "oadp-%s-app-backup" $cluster) "prefix" (printf "backup/%s-app" $cluster) "default" true)

@@ -25,8 +25,12 @@ spec:
         kind: DataProtectionApplication
         name: {{ .Values.dpa.name }}
         namespace: {{ .Values.targetNamespace }}
-        synchronize: true
-        generateExisting: true
+        # Keep the generated DPA in sync with the referenced ConfigMap contents.
+        synchronize: {{ default true .Values.kyverno.synchronize }}
+        # Generate the DPA immediately if the ConfigMap already exists.
+        generateExisting: {{ default true .Values.kyverno.generateExisting }}
+        # Leave the generated DPA in place if this policy is removed.
+        orphanDownstreamOnPolicyDelete: {{ default true .Values.kyverno.orphanDownstreamOnPolicyDelete }}
         data:
           apiVersion: oadp.openshift.io/v1alpha1
           kind: DataProtectionApplication
@@ -36,5 +40,5 @@ spec:
             labels:
 {{ include "openshift-adp-config.labels" . | nindent 12 }}
           spec:
-{{ include "openshift-adp-config.dpaSpec" (dict "root" . "caCert" (printf "\"{{ serviceCA.data.\\\"service-ca.crt\\\" | base64_encode(@) }}\"")) | nindent 12 }}
+{{ include "openshift-adp-config.dpaSpec" (dict "root" . "caCert" (printf "\"{{ serviceCA.data.\\\"service-ca.crt\\\" | b64enc }}\"")) | nindent 12 }}
 {{- end }}

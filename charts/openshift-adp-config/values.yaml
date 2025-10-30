@@ -5,6 +5,13 @@ targetNamespace: openshift-adp
 # Kyverno policy toggle
 kyverno:
   enabled: true
+  # Control how Kyverno manages generated resources
+  # generateExisting ensures Kyverno creates or updates targets even if the source already exists.
+  generateExisting: true
+  # synchronize reconciles generated resources to match the source data continuously.
+  synchronize: true
+  # orphanDownstreamOnPolicyDelete keeps generated resources when the policy is removed.
+  orphanDownstreamOnPolicyDelete: true
   dpaPolicy:
     # Generate the DPA via Kyverno and keep the service CA in sync
     enabled: true
@@ -47,7 +54,8 @@ dpa:
     region: us-east-1
     url: https://rook-ceph-rgw-ocs-storagecluster-cephobjectstore.openshift-storage.svc:443
     forcePathStyle: true
-    insecureSkipTLSVerify: true
+    insecureSkipTLSVerify: false
+    # Optional PEM/base64 CA bundle; overrides the service-ca ConfigMap when set.
     caCert: ~
   
   # Velero configuration  

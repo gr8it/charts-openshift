@@ -37,8 +37,8 @@ Helm chart that prepares OpenShift Application Data Protection (OADP) for applic
 | `dpa.s3.region` | S3 region | `us-east-1` |
 | `dpa.s3.url` | S3 endpoint URL | `https://rook-ceph-rgw-ocs-storagecluster-cephobjectstore.openshift-storage.svc:443` |
 | `dpa.s3.forcePathStyle` | Enable path-style addressing (accepts boolean or string; rendered as string) | `true` |
-| `dpa.s3.insecureSkipTLSVerify` | Skip TLS verification for S3 endpoint (accepts boolean or string; rendered as string) | `true` |
-| `dpa.s3.caCert` | Base64 or PEM CA bundle (leave blank to skip) | `~` |
+| `dpa.s3.insecureSkipTLSVerify` | Skip TLS verification for S3 endpoint (accepts boolean or string; rendered as string) | `false` |
+| `dpa.s3.caCert` | Base64 or PEM CA bundle (leave blank to use the cluster service CA) | `~` |
 | `dpa.velero.defaultPlugins` | Velero plugins | `[openshift, aws, kubevirt, csi]` |
 | `dpa.velero.defaultSnapshotMoveData` | Enable snapshot move data | `true` |
 | `dpa.velero.defaultVolumesToFSBackup` | Enable filesystem backups by default | `false` |
@@ -55,6 +55,9 @@ Helm chart that prepares OpenShift Application Data Protection (OADP) for applic
 | Value | Description | Default |
 | --- | --- | --- |
 | `kyverno.enabled` | Render Kyverno secret-transform policy and related objects | `true` |
+| `kyverno.generateExisting` | Create generated resources immediately if the source already exists | `true` |
+| `kyverno.synchronize` | Continuously reconcile generated resources to match the source | `true` |
+| `kyverno.orphanDownstreamOnPolicyDelete` | Leave generated resources in place if the policy is removed | `true` |
 | `kyverno.dpaPolicy.enabled` | Generate the DPA through Kyverno using the cluster service CA | `true` |
 | `kyverno.dpaPolicy.configMapNamespace` | Namespace containing `openshift-service-ca.crt` ConfigMap | `openshift-service-ca` |
 | `kyverno.dpaPolicy.serviceAccountNamespace` | Namespace containing Kyverno service accounts | `apc-kyverno` |
@@ -117,7 +120,8 @@ Override buckets, prefixes, or mark locations as default by editing `dpa.backupL
 
 ## Notes
 
-- TLS verification is disabled by default (`insecureSkipTLSVerify: "true"`). Provide a CA bundle and set it to `"false"` in your environment overrides when the endpoint has a trusted certificate.
+- TLS verification is enabled by default (`insecureSkipTLSVerify: "false"`). Only flip it to `"true"` when connecting to an endpoint with an untrusted certificate or during troubleshooting, and ideally pair that with a CA bundle (`dpa.s3.caCert`).
+- When `dpa.s3.caCert` is provided it takes precedence over the service CA injected by the Kyverno policy.
 - All helper defaults (names, buckets) rely on `apc-global-overrides`; ensure the dependency is present in `Chart.yaml`.
 
 ## TODO
