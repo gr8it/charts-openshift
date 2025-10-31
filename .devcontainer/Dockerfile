@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/base:ubuntu
+FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04
 
 ARG KUBECTL_VERSION="1.28.0"
 ARG YQ_VERSION="v4.44.3"
