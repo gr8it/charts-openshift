@@ -1,0 +1,201 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: identity-provider-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: identity-providers-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: identity-providers-config-1.0.0
+      name: ad-ldap-bind-secret
+      namespace: openshift-config
+    spec:
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: clusterSecretStore
+        name: vault-hub-secret-store
+      target:
+        creationPolicy: Orphan
+        data:
+          - remoteRef:
+              key: apc-platform/d/openshift-config/oauth/identityProvider/ad-ldap-bind-secret
+              property: bindPassword
+            secretKey: bindPassword
+        deletionPolicy: Retain
+        name: ad-ldap-bind-secret
+  2: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: identity-provider-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: identity-providers-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: identity-providers-config-1.0.0
+      name: comm-ldap-bind-secret
+      namespace: openshift-config
+    spec:
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: clusterSecretStore
+        name: vault-hub-secret-store
+      target:
+        creationPolicy: Orphan
+        data:
+          - remoteRef:
+              key: apc-platform/d/openshift-config/oauth/identityProvider/comm-ldap-bind-secret
+              property: bindPassword
+            secretKey: bindPassword
+        deletionPolicy: Retain
+        name: comm-ldap-bind-secret
+  3: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: identity-provider-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: identity-providers-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: identity-providers-config-1.0.0
+      name: oidcidp-secret
+      namespace: openshift-config
+    spec:
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: clusterSecretStore
+        name: vault-hub-secret-store
+      target:
+        creationPolicy: Orphan
+        data:
+          - remoteRef:
+              key: apc-platform/d/openshift-config/oauth/identityProvider/oidcidp-secret
+              property: clientSecret
+            secretKey: clientSecret
+        deletionPolicy: Retain
+        name: oidcidp-secret
+  4: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: identity-provider-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: identity-providers-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: identity-providers-config-1.0.0
+      name: htpass-secret
+      namespace: openshift-config
+    spec:
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: clusterSecretStore
+        name: vault-hub-secret-store
+      target:
+        creationPolicy: Orphan
+        data:
+          - remoteRef:
+              key: apc-platform/d/openshift-config/oauth/identityProvider/htpass-secret
+              property: fileData
+            secretKey: fileData
+        deletionPolicy: Retain
+        name: htpass-secret
+  5: |
+    apiVersion: v1
+    data:
+      ca.crt: "-----BEGIN CERTIFICATE-----\nMIIFeDCCA2CgAwIBAgIQOwdgFGGlYrpEM2DY1GNmezANBgkqhkiG9w0BAQsFADBD\nMRIwEAYKCZImiZPyLGQBGRYCc2sxGDAWBgoJkiaJk/IsZAEZFghzb2Nwb2lzdDET\nMBEGA1UEAxMKUm9vdENBLVNwMjAgFw0xNjAyMDIwOTUxNTNaGA8yMDU2MDIwMjEw\nEGk2fSV1RcDLgqiw+F0vK32W8D7ncxNhNHekcuSjxqRxoMW6FU+MJ0ZQEaLhHALd\neBhV/NO5Fc3j7X0Sosja7rJBpvoN07b7W4v8Nxmi685nw/Qh3nVWVU3MNTeBdB1C\nIdiAPCAYoq4mhRNe\n-----END CERTIFICATE----- "
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/instance: identity-provider-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: identity-providers-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: identity-providers-config-1.0.0
+      name: identity-provider-config-identity-providers-config-ca-idp
+  6: |
+    apiVersion: config.openshift.io/v1
+    kind: OAuth
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-options: ServerSideApply=true
+      name: cluster
+    spec:
+      identityProviders:
+        - ldap:
+            attributes:
+              email:
+                - mail
+              id:
+                - sAMAccountName
+              name:
+                - cn
+              preferredUsername:
+                - sAMAccountName
+            bindDN: CN=1BA-SA-APC-OCP_AD_r,OU=T1-Service Accounts,OU=Tier 1,OU=Admin Tier Model,DC=example,DC=com
+            bindPassword:
+              name: ad-ldap-bind-secret
+            ca:
+              name: identity-provider-config-identity-providers-config-ca-idp
+            insecure: false
+            url: ldaps://example.com/DC=example,DC=com?sAMAccountName?sub?(objectClass=person)
+          mappingMethod: claim
+          name: Prihlásenie pre používateľov APC
+          type: LDAP
+        - ldap:
+            attributes:
+              email:
+                - mail
+              id:
+                - dn
+              name:
+                - cn
+              preferredUsername:
+                - uid
+            bindDN: cn=OCP HUB01,ou=Technical-Accounts,ou=hub,ou=Project-Users,dc=example,dc=com
+            bindPassword:
+              name: comm-ldap-bind-secret
+            ca:
+              name: identity-provider-config-identity-providers-config-ca-idp
+            insecure: false
+            url: ldaps://ldap.comm.apc.example.com/OU=Project-Users,dc=example,dc=com?uid
+          mappingMethod: claim
+          name: APC LDAP
+          type: LDAP
+        - mappingMethod: claim
+          name: oidcidp
+          openID:
+            ca:
+              name: identity-provider-config-identity-providers-config-ca-idp
+            claims:
+              email:
+                - custom_email_claim
+                - email
+              groups:
+                - groups
+              name:
+                - nickname
+                - given_name
+                - name
+              preferredUsername:
+                - preferred_username
+                - email
+            clientID: idp-client-id
+            clientSecret:
+              name: oidcidp-secret
+            extraAuthorizeParameters:
+              include_granted_scopes: "true"
+            extraScopes:
+              - email
+              - profile
+            issuer: https://www.idp-issuer.com
+          type: OpenID
+        - htpasswd:
+            fileData:
+              name: htpass-secret
+          mappingMethod: claim
+          name: my_htpasswd_provider
+          type: HTPasswd
