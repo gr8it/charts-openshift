@@ -64,7 +64,7 @@ Helm chart that prepares OpenShift Application Data Protection (OADP) for applic
 | `kyverno.dpaPolicy.rbac.create` | Toggle creation of the helper Role/RoleBinding | `true` |
 
 > [!NOTE]
-> The Kyverno DPA policy consumes this configuration. If Kyverno is disabled you must manage the DPA manifest outside of this chart.
+> The Kyverno DPA policy consumes this configuration. If Kyverno is disabled you must manage the DPA manifest outside of this chart. The policy is namespace-scoped, so it automatically watches the `openshift-service-ca.crt` ConfigMap in the target namespace without additional selectors.
 
 ### ObjectBucketClaims
 
