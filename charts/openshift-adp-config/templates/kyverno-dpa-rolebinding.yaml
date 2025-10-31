@@ -1,0 +1,31 @@
+{{- if and .Values.kyverno.enabled (.Values.kyverno.dpaPolicy.enabled | default false) (.Values.kyverno.dpaPolicy.rbac.create | default true) }}
+{{- $defaultSaNamespace := default "kyverno" .Values.kyverno.dpaPolicy.serviceAccountNamespace }}
+{{- $serviceAccounts := .Values.kyverno.dpaPolicy.serviceAccounts | default (list) }}
+{{- if gt (len $serviceAccounts) 0 }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "openshift-adp-config.fullname" . }}-dpa-manager
+  namespace: {{ .Values.targetNamespace }}
+  labels:
+    {{- include "openshift-adp-config.labels" . | nindent 4 }}
+subjects:
+  {{- range $sa := $serviceAccounts }}
+    {{- if kindIs "string" $sa }}
+  - kind: ServiceAccount
+    name: {{ $sa }}
+    namespace: {{ $defaultSaNamespace }}
+    {{- else }}
+      {{- $saName := index $sa "name" }}
+      {{- $saNamespace := default $defaultSaNamespace (index $sa "namespace") }}
+  - kind: ServiceAccount
+    name: {{ $saName }}
+    namespace: {{ $saNamespace }}
+    {{- end }}
+  {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "openshift-adp-config.fullname" . }}-dpa-manager
+{{- end }}
+{{- end }}

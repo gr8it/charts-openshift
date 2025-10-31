@@ -1,0 +1,58 @@
+{{- if .Values.objectBucketClaims.enabled }}
+{{- $cluster := tpl (include "apc-global-overrides.clusterName" .) $ }}
+{{- /* Build the default backup/restore location list based on the resolved cluster name */}}
+{{- $defaults := list
+  (dict "name" (printf "oadp-%s-app-backup" $cluster) "bucket" (printf "oadp-%s-app-backup" $cluster) "prefix" (printf "backup/%s-app" $cluster) "default" true)
+  (dict "name" (printf "oadp-%s-app-restore" $cluster) "bucket" (printf "oadp-%s-app-restore" $cluster) "prefix" (printf "backup/%s-app" $cluster) "default" false)
+}}
+{{- $providedLocations := .Values.dpa.backupLocations | default (list) }}
+{{- /* Start from the chart's default restore location and merge (replace matching keys) from dpa.backupLocations[1] if supplied */}}
+{{- $restoreDefaults := index $defaults 1 }}
+{{- $restoreOverride := dict }}
+{{- /* Only merge an override when dpa.backupLocations has at least two items */}}
+{{- if lt 1 (len $providedLocations) }}
+  {{- $restoreOverride = index $providedLocations 1 }}
+{{- end }}
+{{- $restoreCombined := merge (dict) $restoreDefaults $restoreOverride }}
+{{- $restoreNameValue := index $restoreCombined "name" }}
+{{- $explicitRestoreName := tpl (default "" .Values.objectBucketClaims.restore.name) $ }}
+{{- if ne (printf "%v" $explicitRestoreName) "" }}
+  {{- $restoreNameValue = $explicitRestoreName }}
+{{- end }}
+{{- /* Fall back to the chart default (e.g. oadp-<cluster>-app-restore) when nothing is supplied */}}
+{{- if eq (printf "%v" $restoreNameValue) "" }}
+  {{- $restoreNameValue = index $restoreDefaults "name" }}
+{{- end }}
+{{- $restoreObcName := tpl (printf "%v" $restoreNameValue) $ }}
+{{- $restoreBucketValue := index $restoreCombined "bucket" }}
+{{- if eq (printf "%v" $restoreBucketValue) "" }}
+  {{- $restoreBucketValue = index $restoreDefaults "bucket" }}
+{{- end }}
+{{- $explicitRestoreBucket := tpl (default "" .Values.objectBucketClaims.restore.bucketName) $ }}
+{{- if ne (printf "%v" $explicitRestoreBucket) "" }}
+  {{- $restoreBucketValue = $explicitRestoreBucket }}
+{{- end }}
+{{- $restoreBucket := tpl (printf "%v" $restoreBucketValue) $ }}
+{{- $generateBucketNameValue := tpl (default "" .Values.objectBucketClaims.restore.generateBucketName) $ }}
+{{- if eq (printf "%v" $generateBucketNameValue) "" }}
+  {{- $generateBucketNameValue = $restoreObcName }}
+{{- end }}
+{{- /* ObjectBucketName links this claim to the generated ObjectBucket; default resolves to obc-<source-namespace>-<obc-name> */}}
+{{- $objectBucketNameValue := tpl (default "" .Values.objectBucketClaims.restore.objectBucketName) $ }}
+{{- if eq (printf "%v" $objectBucketNameValue) "" }}
+  {{- $objectBucketNameValue = printf "obc-%s-%s" .Values.sourceNamespace $restoreObcName }}
+{{- end }}
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: {{ $restoreObcName }}
+  namespace: {{ .Values.sourceNamespace }}
+  labels:
+    {{- include "openshift-adp-config.labels" . | nindent 4 }}
+    bucket-provisioner: openshift-storage.ceph.rook.io-bucket
+spec:
+  bucketName: {{ $restoreBucket }}
+  generateBucketName: {{ $generateBucketNameValue }}
+  objectBucketName: {{ $objectBucketNameValue }}
+  storageClassName: {{ .Values.objectBucketClaims.restore.storageClassName | default "ocs-storagecluster-ceph-rgw" }}
+{{- end }}
