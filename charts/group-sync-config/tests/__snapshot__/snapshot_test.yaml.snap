@@ -1,0 +1,248 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: v1
+    data:
+      ca.crt: |-
+        -----BEGIN CERTIFICATE-----
+        MIIFeDCCA2CgAwIBAgIQOwdgFGGlYrpEM2DY1GNmezANBgkqhkiG9w0BAQsFADBD
+        MRIwEAYKCZImiZPyLGQBGRYCc2sxGDAWBgoJkiaJk/IsZAEZFghzb2Nwb2lzdDET
+        MBEGA1UEAxMKUm9vdENBLVNwMjAgFw0xNjAyMDIwOTUxNTNaGA8yMDU2MDIwMjEw
+        EGk2fSV1RcDLgqiw+F0vK32W8D7ncxNhNHekcuSjxqRxoMW6FU+MJ0ZQEaLhHALd
+        eBhV/NO5Fc3j7X0Sosja7rJBpvoN07b7W4v8Nxmi685nw/Qh3nVWVU3MNTeBdB1C
+        IdiAPCAYoq4mhRNe
+        -----END CERTIFICATE-----
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/instance: group-sync-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: group-sync-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: group-sync-config-1.0.0
+      name: group-sync-config-ca-groupSync
+  2: |
+    apiVersion: redhatcop.redhat.io/v1alpha1
+    kind: GroupSync
+    metadata:
+      labels:
+        app.kubernetes.io/instance: group-sync-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: group-sync-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: group-sync-config-1.0.0
+      name: alfa
+    spec:
+      providers:
+        - ldap:
+            ca:
+              key: ca.crt
+              kind: ConfigMap
+              name: group-sync-config-ca-groupSync
+              namespace: group-sync-operator
+            credentialsSecret:
+              name: alfa-prov-1
+              namespace: group-sync-operator
+            insecure: false
+            prune: true
+            rfc2307:
+              groupMembershipAttributes:
+                - member
+              groupNameAttributes:
+                - cn
+              groupUIDAttribute: sAMAccountName
+              groupsQuery:
+                baseDN: OU=APC,OU=Applications Groups,OU=Groups,OU=Central,DC=example,DC=com
+                derefAliases: never
+                filter: (&(objectClass=group)(cn=APC-H*))
+                pageSize: 1000
+                scope: sub
+              tolerateMemberNotFoundErrors: true
+              tolerateMemberOutOfScopeErrors: false
+              userNameAttributes:
+                - sAMAccountName
+              userUIDAttribute: distinguishedName
+              usersQuery:
+                baseDN: dc=example,dc=com
+                derefAliases: never
+                filter: (objectClass=person)
+                pageSize: 1000
+                scope: sub
+            url: ldaps://example.com:636
+          name: prov-1
+        - ldap:
+            ca:
+              key: ca.crt
+              kind: ConfigMap
+              name: group-sync-config-ca-groupSync
+              namespace: group-sync-operator
+            credentialsSecret:
+              name: alfa-prov-2
+              namespace: group-sync-operator
+            insecure: false
+            prune: true
+            rfc2307:
+              groupMembershipAttributes:
+                - member
+              groupNameAttributes:
+                - cn
+              groupUIDAttribute: sAMAccountName
+              groupsQuery:
+                baseDN: OU=APC,OU=Applications Groups,OU=Groups,OU=Central,DC=example,DC=com
+                derefAliases: never
+                filter: (&(objectClass=group)(cn=APC-H*))
+                pageSize: 1000
+                scope: sub
+              tolerateMemberNotFoundErrors: true
+              tolerateMemberOutOfScopeErrors: false
+              userNameAttributes:
+                - sAMAccountName
+              userUIDAttribute: distinguishedName
+              usersQuery:
+                baseDN: dc=example,dc=com
+                derefAliases: never
+                filter: (objectClass=person)
+                pageSize: 1000
+                scope: sub
+            url: ldaps://example.com:636
+          name: prov-2
+      schedule: 5 * * * *
+  3: |
+    apiVersion: redhatcop.redhat.io/v1alpha1
+    kind: GroupSync
+    metadata:
+      labels:
+        app.kubernetes.io/instance: group-sync-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: group-sync-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: group-sync-config-1.0.0
+      name: beta
+    spec:
+      providers:
+        - ldap:
+            ca:
+              key: ca.crt
+              kind: ConfigMap
+              name: group-sync-config-ca-groupSync
+              namespace: group-sync-operator
+            credentialsSecret:
+              name: beta-prov-a
+              namespace: group-sync-operator
+            insecure: false
+            prune: true
+            rfc2307:
+              groupMembershipAttributes:
+                - member
+              groupNameAttributes:
+                - cn
+              groupUIDAttribute: sAMAccountName
+              groupsQuery:
+                baseDN: OU=APC,OU=Applications Groups,OU=Groups,OU=Central,DC=example,DC=com
+                derefAliases: never
+                filter: (&(objectClass=group)(cn=APC-H*))
+                pageSize: 1000
+                scope: sub
+              tolerateMemberNotFoundErrors: true
+              tolerateMemberOutOfScopeErrors: false
+              userNameAttributes:
+                - sAMAccountName
+              userUIDAttribute: distinguishedName
+              usersQuery:
+                baseDN: dc=example,dc=com
+                derefAliases: never
+                filter: (objectClass=person)
+                pageSize: 1000
+                scope: sub
+            url: ldaps://example.com:636
+          name: prov-a
+      schedule: 10 * * *
+  4: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: group-sync-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: group-sync-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: group-sync-config-1.0.0
+      name: alfa-prov-1
+      namespace: group-sync-operator
+    spec:
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: clusterSecretStore
+        name: null
+      target:
+        creationPolicy: Orphan
+        data:
+          - remoteRef:
+              key: apc-platform//group-sync-operator/group-sync/alfa-prov-1
+              property: username
+            secretKey: username
+          - remoteRef:
+              key: apc-platform//group-sync-operator/group-sync/alfa-prov-1
+              property: password
+            secretKey: password
+        deletionPolicy: Retain
+        name: alfa-prov-1
+  5: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: group-sync-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: group-sync-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: group-sync-config-1.0.0
+      name: alfa-prov-2
+      namespace: group-sync-operator
+    spec:
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: clusterSecretStore
+        name: null
+      target:
+        creationPolicy: Orphan
+        data:
+          - remoteRef:
+              key: apc-platform//group-sync-operator/group-sync/alfa-prov-2
+              property: username
+            secretKey: username
+          - remoteRef:
+              key: apc-platform//group-sync-operator/group-sync/alfa-prov-2
+              property: password
+            secretKey: password
+        deletionPolicy: Retain
+        name: alfa-prov-2
+  6: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: group-sync-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: group-sync-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: group-sync-config-1.0.0
+      name: beta-prov-a
+      namespace: group-sync-operator
+    spec:
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: clusterSecretStore
+        name: null
+      target:
+        creationPolicy: Orphan
+        data:
+          - remoteRef:
+              key: apc-platform//group-sync-operator/group-sync/beta-prov-a
+              property: username
+            secretKey: username
+          - remoteRef:
+              key: apc-platform//group-sync-operator/group-sync/beta-prov-a
+              property: password
+            secretKey: password
+        deletionPolicy: Retain
+        name: beta-prov-a

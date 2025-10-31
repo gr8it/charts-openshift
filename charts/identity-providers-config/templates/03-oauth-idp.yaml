@@ -1,0 +1,82 @@
+{{- if .Values.identityProviders }}
+apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster
+  annotations:
+    argocd.argoproj.io/sync-options: ServerSideApply=true
+spec:
+  identityProviders:
+  {{- range .Values.identityProviders }}
+    {{- if eq .type "LDAP" }}
+    - type: LDAP
+      name: {{ .name }}
+      mappingMethod: {{ .mappingMethod }}
+      ldap:
+        attributes:
+          {{- with .ldap.attributes }}
+          id: {{ .id | default "dn" }}
+          email: {{ .email | default "mail" }}
+          name: {{ .name | default "cn" }}
+          preferredUsername: {{ .preferredUsername | default "uid" }}
+          {{- end }}
+        bindDN: {{ .ldap.bindDN }}
+        bindPassword:
+          {{- with .ldap.bindPassword }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        ca:
+          name: {{ include "identity-providers-config.fullname" $ }}-ca-idp
+        insecure: {{ .ldap.insecure | default false }}
+        url: {{ .ldap.url }}
+    {{- else if eq .type "OpenID" }}
+    - type: OpenID
+      name: {{ .name }}
+      mappingMethod: {{ .mappingMethod }}
+      openID:
+        ca:
+          name: {{ include "identity-providers-config.fullname" $ }}-ca-idp     
+        clientID: "{{ .openID.clientID }}"
+        issuer: "{{ .openID.issuer }}"
+        clientSecret:
+          {{- with .openID.clientSecret }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- if .openID.extraScopes }}
+        extraScopes:
+          {{- range .openID.extraScopes }}
+          - {{ . }}
+        {{- end }}    
+        {{- end }}
+        {{- if .openID.extraAuthorizeParameters }}
+        extraAuthorizeParameters:
+          {{- range $key, $value := .openID.extraAuthorizeParameters }}
+          {{ $key }}: "{{ $value }}"
+          {{- end }}
+        {{- end }}
+        {{- if .openID.claims }}
+        claims:
+          {{- with .openID.claims }}
+          preferredUsername:
+            {{- range .preferredUsername }}
+            - {{ . }}
+            {{- end }}
+          name:
+            {{- range .name }}
+            - {{ . }}
+            {{- end }}
+          email:
+            {{- range .email }}
+            - {{ . }}
+            {{- end }}
+          groups:
+            {{- range .groups }}
+            - {{ . }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+    {{- else }}
+    {{ list . | toYaml | nindent 4 }}
+    {{- end }}
+  {{- end }}
+{{- end }}

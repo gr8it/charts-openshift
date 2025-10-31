@@ -71,7 +71,7 @@ for folder in ${CHARTFOLDERS}; do
     echo -n "${whitespaces}unittests "
     if [ -d "$folder/tests/" ]; then
       if out=$(helm unittest --strict "$folder"); then
-        echo -e "\033[0;32mOK\033[0m "
+        echo -e "\033[0;32mOK\033[0m"
       else
         echo -e "\033[0;31mFAILED\033[0m "
         echo "$out"
@@ -79,6 +79,7 @@ for folder in ${CHARTFOLDERS}; do
         echo -e "\033[33mUpdate only when \033[31mreally sure\033[33m, that updating snapshot won't break anything!\033[0m"
         read -r confirmation
         if [[ "$confirmation" != "y" && "$confirmation" != "Y" ]]; then
+          echo "Aborted by user."
           exit 1
         else
           helm unittest -u "$folder"
@@ -91,6 +92,43 @@ for folder in ${CHARTFOLDERS}; do
     else
       echo "NA"
     fi
+
+    # Check release notes exist for current version
+    echo -n "${whitespaces}release notes "
+    if [ ! -f "$folder/CHANGELOG.md" ]; then
+      echo -e "\033[0;31mNo CHANGELOG.md found in folder $folder\033[0m"
+
+      echo -e "\033[33mCreate a default CHANGELOG.md file? [Y/n]"
+      read -r confirmation
+      if [[ "$confirmation" == "n" || "$confirmation" == "N" ]]; then
+        echo "Aborted by user."
+        exit 1
+      else
+        cp scripts/CHANGELOG.template.md "$folder/CHANGELOG.md"
+        echo -e "\033[0;32m$folder/CHANGELOG.md created, please add release notes for current version\033[0m"
+        exit 1
+      fi
+
+      exit 1
+    fi
+    topmost_releasenote=$(grep -P -m 1 "^## .*" $folder/CHANGELOG.md)
+
+    # if topmost is unreleased, get the next one
+    if echo "${topmost_releasenote}" | grep -q -P "^## \[?Unreleased\]?"; then
+      topmost_releasenote=$(grep -P -m 2 "^## .*" $folder/CHANGELOG.md | awk 'NR==2') 
+    fi
+
+    if ! (echo "${topmost_releasenote}" | grep -P "^## \[?${chart_version}\]? " ); then
+      echo -e "\033[0;31mTopmost release note \`${topmost_releasenote}\` not matching expected version, i.e. \`## [${chart_version}]\`\033[0m"
+      exit 1
+    fi
+
+    # note - regexp matching both common changelog and keep a changelog formats!
+    if ! (echo "${topmost_releasenote}" | grep -P "^## \[?${chart_version}\]? (- |\()\d{4}-\d{2}-\d{2}\)?( \[YANKED\])?$" ); then
+      echo -e "\033[0;31mTopmost release note \`${topmost_releasenote}\` incorrect format, e.g. \`## [${chart_version}] - $(date +%Y-%m-%d)\`\033[0m"
+      exit 1
+    fi
+    echo -e "\033[0;32mOK\033[0m"
 
     # Package the chart
     echo -n "${whitespaces}package "

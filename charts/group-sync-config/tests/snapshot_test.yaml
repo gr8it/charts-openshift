@@ -1,0 +1,12 @@
+suite: Snapshot test
+templates:
+  - templates/*
+values:
+  - ../values.example.yaml
+release:
+  name: group-sync-config
+  namespace: group-sync-operator
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}

@@ -1,0 +1,11 @@
+{{- if .Values.identityProviders }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "identity-providers-config.fullname" . }}-ca-idp
+  labels:
+  {{- ( include "identity-providers-config.labels" . ) | nindent 4 }}
+data:
+  ca.crt: |
+  {{- ( include "apc-global-overrides.caCertificatesBundle" $ ) | nindent 4}}
+{{- end}} 
