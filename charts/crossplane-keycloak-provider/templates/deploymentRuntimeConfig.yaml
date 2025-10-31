@@ -1,0 +1,55 @@
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: {{ include "crossplane-keycloak-provider.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "crossplane-keycloak-provider.labels" . | nindent 4 }}
+spec:
+  deploymentTemplate:
+    spec:
+      replicas: 2
+      selector: {}
+      template:
+        spec:
+          containers:
+          - name: package-runtime
+            args:
+              - --debug
+              # - --enable-external-secret-stores
+            # resources:
+            #   limits:
+            #     cpu: 500m
+            #     memory: 300Mi
+            #   requests:
+            #     cpu: 20m
+            #     memory: 50Mi
+            securityContext: {}
+              # allowPrivilegeEscalation: false
+              # privileged: false
+              # runAsGroup: ~
+              # runAsNonRoot: true
+              # runAsUser: ~
+            # volumeMounts:
+            # - mountPath: /certs/
+            #   name: custom-ca-certs
+            # - mountPath: /etc/ssl/certs/isreg.crt
+            #   name: custom-ca-certs
+            #   readOnly: true
+            #   subPath: isreg.crt
+            # - mountPath: /etc/ssl/certs/sp-gr8it-cloud.crt
+            #   name: custom-ca-certs
+            #   readOnly: true
+            #   subPath: sp-gr8it-cloud.crt
+          securityContext: {}
+          topologySpreadConstraints:
+          - labelSelector:
+              matchLabels:
+                pkg.crossplane.io/provider: provider-keycloak
+            maxSkew: 1
+            topologyKey: kubernetes.io/hostname
+            whenUnsatisfiable: ScheduleAnyway
+          volumes:
+          - configMap:
+              name: custom-ca-certs
+            name: custom-ca-certs

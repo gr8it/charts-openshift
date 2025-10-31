@@ -1,0 +1,11 @@
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: {{ include "crossplane-keycloak-provider.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "crossplane-keycloak-provider.labels" . | nindent 4 }}
+spec:
+  package: {{ .Values.providerPackage }}
+  runtimeConfigRef:
+    name: {{ include "crossplane-keycloak-provider.fullname" . }}-config

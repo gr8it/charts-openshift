@@ -1,0 +1,19 @@
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: Client
+metadata:
+  name: isas
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    realmId: apps
+    clientId: isas
+    name: IS AS
+    description: Vzorovy IS AS klient
+    accessType: CONFIDENTIAL
+    serviceAccountsEnabled: true
+    # directAccessGrantsEnabled: true
+    frontchannelLogoutEnabled: true
+    pkceCodeChallengeMethod: "" # plain, S256
+    fullScopeAllowed: false
+  providerConfigRef:
+    name: keycloak-local-config

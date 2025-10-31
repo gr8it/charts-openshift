@@ -1,0 +1,15 @@
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: Client
+metadata:
+  name: bpm
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    realmId: apps
+    clientId: bpm
+    name: BPM
+    description: BPM mikrosluzba
+    accessType: CONFIDENTIAL
+    frontchannelLogoutEnabled: true
+  providerConfigRef:
+    name: keycloak-local-config
