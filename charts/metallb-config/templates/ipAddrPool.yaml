@@ -4,7 +4,7 @@ apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:
   name: ingress-reserved
-  namespace: {{ .Values.metallbns }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "metallb-config.labels" . | nindent 4 }}
 spec:
