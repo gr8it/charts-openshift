@@ -58,8 +58,7 @@ Helm chart that prepares OpenShift Application Data Protection (OADP) for applic
 | `kyverno.generateExisting` | Create generated resources immediately if the source already exists | `true` |
 | `kyverno.synchronize` | Continuously reconcile generated resources to match the source | `true` |
 | `kyverno.orphanDownstreamOnPolicyDelete` | Leave generated resources in place if the policy is removed | `true` |
-| `kyverno.dpaPolicy.enabled` | Generate the DPA through Kyverno using the cluster service CA | `true` |
-| `kyverno.dpaPolicy.configMapNamespace` | Namespace containing `openshift-service-ca.crt` ConfigMap | `openshift-service-ca` |
+| `kyverno.dpaPolicy.enabled` | Generate the DPA through Kyverno using the namespace-local service CA | `true` |
 | `kyverno.dpaPolicy.serviceAccountNamespace` | Namespace containing Kyverno service accounts | `apc-kyverno` |
 | `kyverno.dpaPolicy.serviceAccounts` | Service accounts granted access to manage the DPA | `[kyverno-background-controller, kyverno-admission-controller]` |
 | `kyverno.dpaPolicy.rbac.create` | Toggle creation of the helper Role/RoleBinding | `true` |
