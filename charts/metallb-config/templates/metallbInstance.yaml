@@ -2,7 +2,7 @@ apiVersion: metallb.io/v1beta1
 kind: MetalLB
 metadata:
   name: metallb
-  namespace: {{ .Values.metallbns}}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "metallb-config.labels" . | nindent 4 }}
 spec:

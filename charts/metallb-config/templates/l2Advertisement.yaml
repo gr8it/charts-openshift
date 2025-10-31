@@ -4,7 +4,7 @@ apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:
   name: ingress
-  namespace: {{ .Values.metallbns }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "metallb-config.labels" . | nindent 4 }}
 spec:
