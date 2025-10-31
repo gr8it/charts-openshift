@@ -1,0 +1,19 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "app.fullname" . }}-alert
+  namespace: {{ .Values.defaultNamespace }}
+  labels:
+    {{- include "common.labels" . | nindent 4 }}
+spec:
+  groups:
+  - name: cronjob.rules
+    rules:
+    - alert: EtcdBackupJobFailure
+      expr: kube_job_status_failed{namespace="{{ .Values.defaultNamespace }}", job_name=~"{{ include "app.fullname" . }}-.*"} > 0
+      labels:
+        severity: critical
+      annotations:
+        summary: "ETCD backup job has failed"
+        description: "ETCD backup job {{`{{ $labels.namespace }}/{{ $labels.job_name}}`}} has failed."

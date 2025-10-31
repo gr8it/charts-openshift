@@ -1,0 +1,14 @@
+{{- if and (hasKey .Values "objectBucketClaim") ( eq (default "false" (toString .Values.objectBucketClaim.create)) "true" ) -}}
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: {{ include "obc.name" . }}
+  namespace: {{ .Values.backupNamespace }}
+  labels:
+    {{- include "common.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  generateBucketName: {{ include "obc.name" . }}
+  storageClassName: {{ default "ocs-storagecluster-ceph-rgw" .Values.objectBucketClaim.storageClass }}
+{{- end -}}

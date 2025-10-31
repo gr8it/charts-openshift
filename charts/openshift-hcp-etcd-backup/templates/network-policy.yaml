@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "app.fullname" . }}
+  namespace: {{ include "cluster.namespace" . }}
+  labels:
+    {{- include "common.labels" . | nindent 4 }}
+spec:
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ .Values.backupNamespace }}
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: {{ include "app.name" . }}
+          app.kubernetes.io/instance: {{ include "app.fullname" . }}
+  podSelector:
+    matchExpressions:
+    - key: "statefulset.kubernetes.io/pod-name"
+      operator: In
+      values:
+      {{- range $idx := untilStep 0 5 1 }}
+      - {{ default "etcd" $.Values.etcdStatefulSetName }}-{{ $idx }}
+      {{- end }}
+  policyTypes:
+  - Ingress

@@ -1,0 +1,239 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "app.fullname" . }}-scripts
+  namespace: {{ .Values.backupNamespace }}
+  labels:
+    {{- include "common.labels" . | nindent 4 }}
+data:
+  env.etcdsts: {{ default "etcd" .Values.etcdStatefulSetName }}
+  env.fileprefix: etcd-{{ default "snapshot" (regexReplaceAll "[+._]" .Values.clusterName "-") }}
+  env.hcpns: {{ include "cluster.namespace" . }}
+  env.retention: {{ .Values.retentionDays | quote }}
+  env.compress: {{ (default "false" ( .Values.compressSnapshot )) | quote }}
+  init.sh: |
+    #!/bin/bash
+    set -euo pipefail
+
+    log_message() {
+      local timestamp
+      timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+      echo -e "$timestamp $1"
+    }
+
+    log_messagef() {
+      while read -r line; do
+        log_message "$line"
+      done < $1
+    }
+
+    # cleanup
+    find /backup -path '*/backup/*' -delete
+
+    # check etcd deployment
+    if ! READY=$( kubectl get statefulset "$STATEFULSET" -n "$HCPNS" -o jsonpath='{.status.readyReplicas}' 2>/dev/shm/out.err ); then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Failed to get readyReplicas for StatefulSet/$STATEFULSET"
+      exit 1
+    fi
+
+    if ! TOTAL=$( kubectl get statefulset "$STATEFULSET" -n "$HCPNS" -o jsonpath='{.status.replicas}' 2>/dev/shm/out.err ); then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Failed to get replicas for StatefulSet/$STATEFULSET"
+      exit 1
+    fi
+
+    if test $READY -ne $TOTAL || test $(expr $READY + $TOTAL ) -eq 0; then
+      log_message "ERROR: Insufficient readyReplicas in StatefulSet/$STATEFULSET"
+      exit 1
+    fi
+
+    # get a random running etcd pod
+    if ! ETCDPOD=$( kubectl -n $HCPNS get po -l app=etcd -o custom-columns=":metadata.name,:status.conditions[?(@.type=='Ready')].status" 2>/dev/shm/out.err | awk '$2 == "True" {print $1}' | shuf -n 1 ); then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Failed to get a list of running etcd pods"
+      exit 1
+    fi
+
+    if [ -z ${ETCDPOD+x} ]; then
+      log_message "ERROR: Failed to find a running etcd pod"
+      exit 1
+    fi
+
+    # copy certificates
+    mkdir /backup/certs
+
+    if ! kubectl -n "$HCPNS" -c etcd cp "$ETCDPOD":/etc/etcd/tls/etcd-ca/..data/ca.crt /backup/certs/ca.crt 2>/dev/shm/out.err 1>/dev/null; then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Failed to get ca.crt from $ETCDPOD"
+      exit 1
+    fi
+
+    if ! kubectl -n "$HCPNS" -c etcd cp "$ETCDPOD":/etc/etcd/tls/client/..data/etcd-client.crt /backup/certs/etcd-client.crt 2>/dev/shm/out.err 1>/dev/null; then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Failed to get etcd-client.crt from $ETCDPOD"
+      exit 1
+    fi
+
+    if ! kubectl -n "$HCPNS" -c etcd cp "$ETCDPOD":/etc/etcd/tls/client/..data/etcd-client.key /backup/certs/etcd-client.key 2>/dev/shm/out.err 1>/dev/null; then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Failed to get etcd-client.key from $ETCDPOD"
+      exit 1
+    fi
+
+    log_message "Init complete."
+    exit 0
+
+  etcdsnap.sh: |
+    #!/bin/bash
+    set -euo pipefail
+
+    log_message() {
+      local timestamp
+      timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+      echo -e "$timestamp $1"
+    }
+
+    log_messagef() {
+      while read -r line; do
+        log_message "$line"
+      done < $1
+    }
+
+    export ETCDCTL_API=3
+
+    # select random running etcd endpoint
+    if ! ENDPOINT=$(etcdctl --cacert=/backup/certs/ca.crt --cert=/backup/certs/etcd-client.crt --key=/backup/certs/etcd-client.key --endpoints=https://etcd-client."$HCPNS".svc:2379 member list 2>/dev/shm/out.err | awk -F', ' '$2 == "started" {print $5}'  | shuf -n 1); then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Failed to get a list of etcd endpoints"
+      exit 1
+    fi
+
+    if [ -z ${ENDPOINT+x} ]; then
+      log_message "ERROR: Failed to select a running etcd endpoint"
+      exit 1
+    fi
+
+    # check etcd endpoint health
+    if ! etcdctl --cacert=/backup/certs/ca.crt --cert=/backup/certs/etcd-client.crt --key=/backup/certs/etcd-client.key --endpoints="$ENDPOINT" endpoint health 2>/dev/shm/out.err 1>/dev/null; then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Endpoint $ENDPOINT is not healthy"
+      exit 1
+    fi
+
+    # create snapshot
+    DATESTRING=$(date -u "+%F_%H%M%SZ")
+    SNAPSHOT_FILE="/backup/${FILEPREFIX}_${DATESTRING}.db"
+    if ! etcdctl --cacert=/backup/certs/ca.crt --cert=/backup/certs/etcd-client.crt --key=/backup/certs/etcd-client.key --endpoints="$ENDPOINT" snapshot save "$SNAPSHOT_FILE" 2>/dev/shm/out.err 1>/dev/null; then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Failed to create snashot"
+      exit 2
+    fi
+
+    # verify snapshot
+    if ! etcdutl snapshot status "$SNAPSHOT_FILE" 2>/dev/shm/out.err 1>/dev/null; then
+      rm -f "$SNAPSHOT_FILE"
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Snapshot file integrity verification failed"
+      exit 2
+    fi
+
+    if (echo 'yes true enable enabled 1'|grep -wqi "$COMPRESS"); then
+      # archive
+      if ! gzip --best "$SNAPSHOT_FILE" 2>/dev/shm/out.err 1>/dev/null; then
+        log_messagef /dev/shm/out.err
+        log_message "ERROR: Failed to compress the snapshot file"
+        exit 3
+      fi
+
+      if ! gzip --test "${SNAPSHOT_FILE}.gz" 2>/dev/shm/out.err 1>/dev/null; then
+        log_messagef /dev/shm/out.err
+        log_message "ERROR: Failed to test the archive integrity"
+        exit 3
+      fi
+
+      log_message "Snasphot saved to ${SNAPSHOT_FILE}.gz"
+    else
+      log_message "Snasphot saved to ${SNAPSHOT_FILE}"
+    fi
+
+    exit 0
+
+  s3upload.sh: |
+    #!/bin/bash
+    set -euo pipefail
+
+    log_message() {
+      local timestamp
+      timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+      echo -e "$timestamp $1"
+    }
+
+    log_messagef() {
+      while read -r line; do
+        log_message "$line"
+      done < $1
+    }
+
+    # check snapshot file
+    SNAPSHOT_FILE=$(find /backup -type f -mmin -30 -name "${FILEPREFIX}*db*" | sort | tail -1)
+    if ! test -r "$SNAPSHOT_FILE"; then
+      log_message "ERROR: Failed to locate a valid snapshot file."
+      exit 1
+    fi
+
+    # setup aws env variables
+    export AWS_REQUEST_CHECKSUM_CALCULATION=when_required
+    export AWS_RESPONSE_CHECKSUM_VALIDATION=when_required
+    export AWS_ENDPOINT_URL="https://${BUCKET_HOST}:${BUCKET_PORT}"
+
+    # upload etcd backup to s3 bucket
+    if ! aws s3 cp "$SNAPSHOT_FILE" "s3://$BUCKET_NAME" --no-progress 2>/dev/shm/out.err 1>/dev/null; then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Failed to upload $(basename "$SNAPSHOT_FILE") to s3://$BUCKET_NAME "
+      exit 2
+    fi
+
+    if ! aws s3api head-object --bucket "$BUCKET_NAME" --key $(basename "$SNAPSHOT_FILE") 2>/dev/shm/out.err 1>/dev/null; then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Unable to verify uploaded object s3://${BUCKET_NAME}/$(basename "$SNAPSHOT_FILE")"
+      exit 2
+    fi
+
+    log_message "Snapshot has been uploaded to s3://${BUCKET_NAME}/$(basename "$SNAPSHOT_FILE")"
+
+    # run cleanup
+    if ! expr "$RETENTION" : '^[0-9]\+$' 2>/dev/shm/out.err 1>/dev/null; then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Value for retention is not a valid integer"
+      exit 1
+    fi
+
+    if ! RETENTION_DATE=$( date -u --date="${RETENTION} days ago" +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/shm/out.err ); then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Faield to set a retention date"
+      exit 1
+    fi
+
+    if ! aws s3api list-objects-v2 --bucket $BUCKET_NAME --query "Contents[?LastModified<='$RETENTION_DATE'].{Key: Key} | {Objects: [*]}" 2>/dev/shm/out.err 1>/backup/delete.json; then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Failed to generate a list of objects to delete"
+      exit 1
+    fi
+
+    if grep -qE '"Objects":\s*\[\s*\]' /backup/delete.json; then
+      log_message "No objects older than $RETENTION days found - skipping cleanup."
+      exit 0
+    fi
+
+    log_message "Removing obejcts older than $RETENTION days:"
+    if ! aws s3api delete-objects --bucket $BUCKET_NAME --delete file:///backup/delete.json --output text >/dev/shm/out 2>&1; then
+      log_messagef /dev/shm/out
+      log_message "ERROR: Failed to remove objects."
+      exit 1
+    fi
+
+    log_messagef /dev/shm/out
+    log_message "Cleanup complete."
+    exit 0

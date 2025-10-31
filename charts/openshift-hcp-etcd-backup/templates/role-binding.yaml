@@ -1,0 +1,16 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "app.fullname" . }}
+  namespace: {{ include "cluster.namespace" . }}
+  labels:
+    {{- include "common.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "app.fullname" . }}
+    namespace: {{ .Values.backupNamespace }}
+roleRef:
+  kind: Role
+  name: {{ include "app.fullname" . }}
+  apiGroup: rbac.authorization.k8s.io
