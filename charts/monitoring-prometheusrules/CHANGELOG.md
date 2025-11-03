@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _([SPEXAPC-7193](https://aspecta.atlassian.net/jira/software/c/projects/SPEXAPC/boards/109?selectedIssue=SPEXAPC-7193))_
 
-- Provide PrometheusRule manifests as a reusable library chart that other Helm charts can import.
+### Added
 
-### Changed
+- Provide PrometheusRule manifests as a reusable library chart that other Helm charts can import.
 
 
 
