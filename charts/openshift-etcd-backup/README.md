@@ -10,8 +10,8 @@ The Job will create etcd snapshot, and uploads it to an S3 endpoint.
 
 |Variable                         | Type | Default                         |  Notes |
 |:---                             |:---  |:---                             |:---    |
-| clusterName                     | str  |                                 | Name of the OpenShift Cluster |
-| defaultNamespace                | str  |                                 | Namespace for deploying the backup job. ObjectBucketClaim must be configured in this namespace beforehand. Alternatively, this Helm Chart can create one by setting the `objectBucketClaim.create` variable. |
+| clusterName                     | str  |                                 | Name of the OpenShift Cluster. Defaults to `global.apc.cluster.name` when not set. |
+| defaultNamespace                | str  | `apc-backup`                    | Namespace for deploying the backup job. ObjectBucketClaim must be configured in this namespace beforehand. Alternatively, this Helm Chart can create one by setting the `objectBucketClaim.create` variable. |
 | etcdBackupSchedule              | str  | `"0 * * * *"`                   | Cron notation for ETCD backup schedule |
 | retentionDays                   | int  | `10`                            | Specifies the number of days to retain old backups during the cleanup phase |
 | compressSnapshot                | bool | `false`                         | Controls whether to use gzip to compress the snapshot before uploading to S3 |

@@ -1,9 +1,9 @@
-# clusterName: <string> - mandatory, name of the hcp cluster
+# clusterName: <string> - mandatory, name of the hcp cluster (defaults to .Values.global.apc.cluster.name when unset)
 clusterName: ~
 # clusterNamespace: <string> - optional, overrides the default hcp namespace {clusterName-clusterName}
 clusterNamespace: ~
-# backupNamespace: <string> - mandatory, namespace for backup job deployment
-backupNamespace: ~
+# backupNamespace: <string> - namespace for backup job deployment
+backupNamespace: apc-backup
 # backupSchedule: <string> - crontab notation for etcd backup schedule
 backupSchedule: "0 * * * *"
 # retentionDays: <int> - specifies the number of days to retain old backups during the cleanup phase

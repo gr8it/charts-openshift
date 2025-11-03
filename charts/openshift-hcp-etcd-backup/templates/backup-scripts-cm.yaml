@@ -7,8 +7,9 @@ metadata:
   labels:
     {{- include "common.labels" . | nindent 4 }}
 data:
+  {{- $clusterName := include "etcd-hcp.clusterName" . }}
   env.etcdsts: {{ default "etcd" .Values.etcdStatefulSetName }}
-  env.fileprefix: etcd-{{ default "snapshot" (regexReplaceAll "[+._]" .Values.clusterName "-") }}
+  env.fileprefix: etcd-{{ default "snapshot" (regexReplaceAll "[+._]" $clusterName "-") }}
   env.hcpns: {{ include "cluster.namespace" . }}
   env.retention: {{ .Values.retentionDays | quote }}
   env.compress: {{ (default "false" ( .Values.compressSnapshot )) | quote }}

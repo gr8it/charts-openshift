@@ -3,10 +3,16 @@
 {{- default .Chart.Name .Values.nameOverride | trunc 40 | trimSuffix "-" -}}
 {{- end -}}
 
+{{/* Resolve cluster name using global overrides helper */}}
+{{- define "openshift-etcd.clusterName" -}}
+{{- $ctx := dict "Values" (dict "cluster" (dict "name" .Values.clusterName) "global" .Values.global) -}}
+{{- include "apc-global-overrides.require-clusterName" $ctx -}}
+{{- end -}}
+
 {{/* Fullname = chart name + cluster name */}}
 {{- define "app.fullname" -}}
 {{- $chartName := .Chart.Name | trunc 40 | trimSuffix "-" -}}
-{{- $clusterName := .Values.clusterName | trunc 20 | trimSuffix "-" | required "clusterName is required" -}}
+{{- $clusterName := (include "openshift-etcd.clusterName" .) | trunc 20 | trimSuffix "-" -}}
 {{- printf "%s-%s" $chartName $clusterName | trunc 50 | trimSuffix "-" }}
 {{- end -}}
 
@@ -17,7 +23,7 @@
 
 {{/* Genereate ObjectBucketClaim name */}}
 {{- define "obc.name" -}}
-{{- $clusterName := .Values.clusterName | required "clusterName is required" -}}
+{{- $clusterName := include "openshift-etcd.clusterName" . -}}
 {{- if and (hasKey .Values "objectBucketClaim") (hasKey .Values.objectBucketClaim "name") (.Values.objectBucketClaim.name) -}}
 {{- printf "%s" .Values.objectBucketClaim.name | required "objectBucketClaim.name is invalid" -}}
 {{- else -}}
