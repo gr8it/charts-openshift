@@ -1,0 +1,13 @@
+{{- if and .Values.kyverno.enabled (.Values.kyverno.dpaPolicy.enabled | default false) (.Values.kyverno.dpaPolicy.rbac.create | default true) }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "openshift-adp-config.fullname" . }}-dpa-manager
+  namespace: {{ .Values.targetNamespace }}
+  labels:
+    {{- include "openshift-adp-config.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["oadp.openshift.io"]
+    resources: ["dataprotectionapplications"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+{{- end }}

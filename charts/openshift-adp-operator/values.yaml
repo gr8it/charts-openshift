@@ -1,0 +1,19 @@
+acm-operatorpolicy:
+
+  subscription:
+    channel: stable-1.4
+    name: redhat-oadp-operator
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    startingCSV: oadp-operator.v1.4.3
+    namespace: openshift-adp
+
+  operatorGroup:
+    name: openshift-adp
+    namespace: openshift-adp
+    targetNamespaces:
+      - openshift-adp
+
+  upgradeApproval: None
+  versions:
+    - oadp-operator.v1.4.3

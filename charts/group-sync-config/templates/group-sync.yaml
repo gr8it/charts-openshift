@@ -1,0 +1,29 @@
+{{- if .Values.groupSync }}
+{{- range .Values.groupSync }}
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: GroupSync
+metadata:
+  name: {{ .name }}
+  {{- $groupSyncName := .name }}
+  labels:
+  {{- include "group-sync-config.labels" $ | nindent 4 }}
+spec:
+  schedule: {{ .schedule }}
+  providers:
+  {{- range .providers }}
+  - name: {{ .name }}
+    {{- if .ldap }}
+    ldap: {{ .ldap | toYaml | nindent 6 }}
+      ca:
+        kind: ConfigMap
+        namespace: {{ $.Release.Namespace }}
+        name: {{ include "group-sync-config.fullname" $ }}-ca-groupSync
+        key: ca.crt
+      credentialsSecret:
+        namespace: {{ $.Release.Namespace }}
+        name: {{ $groupSyncName }}-{{ .name }}    
+    {{- end }}
+  {{- end }}
+---
+{{- end }}
+{{- end }}  
