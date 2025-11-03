@@ -11,6 +11,7 @@ _([SPEXAPC-7193](https://aspecta.atlassian.net/jira/software/c/projects/SPEXAPC/
 
 ### Changed
 
-- Bump dependency on `monitoring-prometheusrules` from 1.0.1 to 1.0.2
+- Bump dependency on `monitoring-prometheusrules` from 1.0.0 to 1.0.2
+- Bump dependency on `apc-global-overrides` from 1.3.0 to 1.4.0
 
 
