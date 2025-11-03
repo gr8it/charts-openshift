@@ -111,20 +111,20 @@ for folder in ${CHARTFOLDERS}; do
 
       exit 1
     fi
-    topmost_releasenote=$(grep -P -m 1 "^## .*" $folder/CHANGELOG.md)
+    topmost_releasenote=$(grep -E -m 1 "^## .*" $folder/CHANGELOG.md)
 
     # if topmost is unreleased, get the next one
-    if echo "${topmost_releasenote}" | grep -q -P "^## \[?Unreleased\]?"; then
-      topmost_releasenote=$(grep -P -m 2 "^## .*" $folder/CHANGELOG.md | awk 'NR==2') 
+    if echo "${topmost_releasenote}" | grep -q -E "^## \[?Unreleased\]?$"; then
+      topmost_releasenote=$(grep -E -m 2 "^## .*" $folder/CHANGELOG.md | awk 'NR==2')
     fi
 
-    if ! out=$(echo "${topmost_releasenote}" | grep -P "^## \[?${chart_version}\]? " ); then
+    if ! out=$(echo "${topmost_releasenote}" | grep -E "^## \[?${chart_version}\]? " ); then
       echo -e "\033[0;31mTopmost release note \`${topmost_releasenote}\` not matching expected version, i.e. \`## [${chart_version}]\`\033[0m"
       exit 1
     fi
 
     # note - regexp matching both common changelog and keep a changelog formats!
-    if ! out=$(echo "${topmost_releasenote}" | grep -P "^## \[?${chart_version}\]? (- |\()\d{4}-\d{2}-\d{2}\)?( \[YANKED\])?$" ); then
+    if ! out=$(echo "${topmost_releasenote}" | grep -E "^## \[?${chart_version}\]? (- |\()[0-9]{4}-[0-9]{2}-[0-9]{2}\)?( \[YANKED\])?$" ); then
       echo -e "\033[0;31mTopmost release note \`${topmost_releasenote}\` incorrect format, e.g. \`## [${chart_version}] - $(date +%Y-%m-%d)\`\033[0m"
       exit 1
     fi
