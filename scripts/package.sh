@@ -111,6 +111,8 @@ for folder in ${CHARTFOLDERS}; do
 
       exit 1
     fi
+    ## -P option is not posix compliant, leaving here for reference
+    # topmost_releasenote=$(grep -P -m 1 "^## .*" $folder/CHANGELOG.md)
     topmost_releasenote=$(grep -E -m 1 "^## .*" $folder/CHANGELOG.md)
 
     # if topmost is unreleased, get the next one
