@@ -5,13 +5,14 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.3] - 2025-11-03
+## [1.0.3] - 2025-11-05
 
-_chart type_
+_chart type and clusterole_
 
 ### Changed
 
 - added chart type: application
+- added clusterrole-admission-controller.yaml
 
 ## [1.0.2] - 2025-10-30
 
