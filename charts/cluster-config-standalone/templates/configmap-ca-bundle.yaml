@@ -1,0 +1,13 @@
+{{ $caCertificates := .Values.imageProxy.caCertificates | default (include "apc-global-overrides.caCertificatesBundle" .)}}
+{{- if and .Values.imageProxy.host $caCertificates }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: registry-ca-bundle
+  namespace: openshift-config
+  labels:
+    {{- include "cluster-config-standalone.labels" . | nindent 4 }}
+data:
+  {{ .Values.imageProxy.host }}..{{ .Values.imageProxy.port }}: |
+  {{- $caCertificates | nindent 4 }}
+{{- end }}

@@ -1,0 +1,80 @@
+## uses following global values => do not set here
+# global:
+#   apc:
+#     environmentShort:
+#     environment:
+#     customer:
+## and their local overrides
+# environmentShort:
+# environment:
+# customer:
+
+releaseServiceOverride: ArgoCD
+ldapGroupPrefix: apc
+adGroupPrefix: T1-APC
+roleNamePrefix: apc
+roleBindings:
+# IdP provider: ad or ldap
+# Format:
+# IdP:
+#   group:
+#     role: namespace
+  ad:
+    operator:
+      monitoring-alertmanager-view: openshift-monitoring
+    secauditor:
+      monitoring-alertmanager-view: openshift-monitoring
+    administrator:
+      monitoring-alertmanager-view: openshift-monitoring
+  ldap:
+    operator:
+      monitoring-alertmanager-view: openshift-monitoring
+    secauditor:
+      monitoring-alertmanager-view: openshift-monitoring
+
+clusterRoleBindings:
+# IdP provider: ad or ldap
+# Format:
+# IdP:
+#   group:
+#     - clusterRole
+  ad:
+    operator:
+      - cluster-reader
+      - cluster-status
+      - cluster-logging-application-view
+      - cluster-logging-infrastructure-view
+      - cluster-monitoring-view
+      - netobserv-reader
+      - netobserv-metrics-reader
+    secauditor:
+      - cluster-reader
+      - cluster-logging-audit-view
+      - cluster-logging-application-view
+      - cluster-logging-infrastructure-view
+      - cluster-monitoring-view
+      - netobserv-reader
+      - netobserv-metrics-reader
+    administrator:
+      - cluster-reader
+      - cluster-status
+      - cluster-logging-application-view
+      - cluster-logging-infrastructure-view
+      - cluster-monitoring-view
+  ldap:
+    operator:
+      - cluster-reader
+      - cluster-status
+      - cluster-logging-application-view
+      - cluster-logging-infrastructure-view
+      - cluster-monitoring-view
+      - netobserv-reader
+      - netobserv-metrics-reader
+    secauditor:
+      - cluster-reader
+      - cluster-logging-audit-view
+      - cluster-logging-application-view
+      - cluster-logging-infrastructure-view
+      - cluster-monitoring-view
+      - netobserv-reader
+      - netobserv-metrics-reader

@@ -1,0 +1,41 @@
+{{- if and .Values.kyverno.enabled (.Values.kyverno.dpaPolicy.enabled | default false) }}
+apiVersion: kyverno.io/v1
+kind: Policy
+metadata:
+  name: {{ include "openshift-adp-config.fullname" . }}-generate-dpa
+  namespace: {{ .Values.targetNamespace }}
+  labels:
+    {{- include "openshift-adp-config.labels" . | nindent 4 }}
+spec:
+  background: true
+  rules:
+    - name: generate-dpa
+      match:
+        any:
+          - resources:
+              kinds: ["ConfigMap"]
+              names: ["openshift-service-ca.crt"]
+      context:
+        - name: serviceCA
+          configMap:
+            name: openshift-service-ca.crt
+            namespace: {{ .Values.targetNamespace }}
+      generate:
+        apiVersion: oadp.openshift.io/v1alpha1
+        kind: DataProtectionApplication
+        name: {{ .Values.dpa.name }}
+        namespace: {{ .Values.targetNamespace }}
+        synchronize: {{ default true .Values.kyverno.synchronize }}
+        generateExisting: {{ default true .Values.kyverno.generateExisting }}
+        orphanDownstreamOnPolicyDelete: {{ default true .Values.kyverno.orphanDownstreamOnPolicyDelete }}
+        data:
+          apiVersion: oadp.openshift.io/v1alpha1
+          kind: DataProtectionApplication
+          metadata:
+            name: {{ .Values.dpa.name }}
+            namespace: {{ .Values.targetNamespace }}
+            labels:
+{{ include "openshift-adp-config.labels" . | nindent 12 }}
+          spec:
+{{ include "openshift-adp-config.dpaSpec" (dict "root" . "caCert" (printf "\"{{ serviceCA.data.\\\"service-ca.crt\\\" | base64_encode(@) }}\"")) | nindent 12 }}
+{{- end }}

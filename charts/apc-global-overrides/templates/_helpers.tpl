@@ -66,13 +66,6 @@ Create the repoTargetRevision
 {{- end }}
 
 {{/*
-Create the repoTargetRevision and require it
-*/}}
-{{- define "apc-global-overrides.require-repoTargetRevision" -}}
-{{- include "apc-global-overrides.repoTargetRevision" . | required "APC repoTargetRevision is required" }}
-{{- end }}
-
-{{/*
 Create the environment
 */}}
 {{- define "apc-global-overrides.environment" -}}
@@ -313,7 +306,10 @@ NOTE: this is a workaround to the https://github.com/helm/helm/issues/31324 issu
 {{- end }}
 {{- end }}
 
-{{/* Extraction of particular service parameters
+{{/*
+-------------------------------------------
+Extraction of particular service parameters
+-------------------------------------------
 */}}
 
 {{/*
@@ -350,6 +346,24 @@ Create the eso default cluster secret store
 {{- end }}
 
 {{/*
+Create the MetalLB namespace
+*/}}
+{{- define "apc-global-overrides.metallbNamespace" -}}
+{{- (((include "apc-global-overrides.services" .) | fromYaml).metallb).namespace | default "metallb-system" }}
+{{- end }}
+
+{{/*
+Create the Quay host
+*/}}
+{{- define "apc-global-overrides.quayHost" -}}
+{{- (((include "apc-global-overrides.services" .) | fromYaml).quay).host | default "" }}
+{{- end }}
+
+{{- define "apc-global-overrides.require-quayHost" -}}
+{{- include "apc-global-overrides.quayHost" . | required "APC services.quay.host is required" }}
+{{- end }}
+
+{{/*
 Create the Vault kube auth mount path
 */}}
 {{- define "apc-global-overrides.vaultKubeAuthMountPath" -}}
@@ -382,4 +396,15 @@ Create the Vault URL
 
 {{- define "apc-global-overrides.require-vaultUrl" -}}
 {{- include "apc-global-overrides.vaultUrl" . | required "APC services.vault.URL is required" }}
+{{- end }}
+
+{{/*
+Create the Vault KV mount for platform
+*/}}
+{{- define "apc-global-overrides.vaultKVmountPlatform" -}}
+{{- (((include "apc-global-overrides.services" .) | fromYaml).vault).KVmountPlatform | default "apc-platform" }}
+{{- end }}
+
+{{- define "apc-global-overrides.require-vaultKVmountPlatform" -}}
+{{- include "apc-global-overrides.vaultKVmountPlatform" . | required "APC services.vault.KVmountPlatform is required" }}
 {{- end }}
