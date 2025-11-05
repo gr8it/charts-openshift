@@ -1,33 +1,17 @@
-{{- $environment := include "apc-global-overrides.environment" . }}
-{{- if ne $environment "hub" }}
+{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
+{{- range $clusterName, $ipAddrPool := .Values.ipAddrPool.hub }}
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:
-  name: ingress
-  namespace: {{ .Release.Namespace }}
-  labels:
-    {{- include "metallb-config.labels" . | nindent 4 }}
-spec:
-  ipAddressPools:
-  - ingress-reserved
-  interfaces:
-  - {{ .Values.metallbInterface }}
----
-{{- end }}
-{{- if eq $environment "hub" }}
-{{- range $env, $ipAddrPool := .Values.ipAddrPool.hub }}
-apiVersion: metallb.io/v1beta1
-kind: L2Advertisement
-metadata:
-  name: kubeapi-{{ $env }}01
-  namespace: metallb-system
+  name: kubeapi-{{ $clusterName }}
+  namespace: {{ $.Release.Namespace }}
   labels:
     {{- include "metallb-config.labels" $ | nindent 4 }}
 spec:
   ipAddressPools:
-  - kubeapi-{{ $env }}01
+  - kubeapi-{{ $clusterName }}
   interfaces:
-  - {{ .Values.metallbInterface }}
+  - {{ $.Values.metallbInterface }}
 ---
 {{- end }}
 {{- end }}

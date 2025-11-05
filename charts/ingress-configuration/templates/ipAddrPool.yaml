@@ -1,0 +1,23 @@
+{{- $environment := include "apc-global-overrides.environment" . }}
+{{- $metallbNamespace := include "apc-global-overrides.metallbNamespace" . }}
+{{- $clusterName := include "apc-global-overrides.require-clusterName" . }}
+{{- if ne (include "apc-global-overrides.clusterIsHub" .) "true" }}
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: ingress-reserved
+  namespace: {{ $metallbNamespace }}
+  labels:
+    {{- include "ingress-configuration.labels" . | nindent 4 }}
+spec:
+  addresses:
+  - {{ get .Values.ipAddrPool.spoke $clusterName }}
+  autoAssign: true
+  serviceAllocation:
+    namespaces:
+      - {{ .Values.ocpIngressNs }}
+    serviceSelectors:
+      - matchLabels:
+          app: router-internal-default-metallb
+---
+{{- end }}

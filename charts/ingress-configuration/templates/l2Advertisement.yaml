@@ -1,0 +1,16 @@
+{{- $metallbNamespace := include "apc-global-overrides.metallbNamespace" . }}
+{{- if ne (include "apc-global-overrides.clusterIsHub" .) "true" }}
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: ingress
+  namespace: {{ $metallbNamespace }}
+  labels:
+    {{- include "ingress-configuration.labels" . | nindent 4 }}
+spec:
+  ipAddressPools:
+  - ingress-reserved
+  interfaces:
+  - {{ .Values.metallb.interface }}
+---
+{{- end }}

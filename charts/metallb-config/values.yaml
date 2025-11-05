@@ -1,20 +1,17 @@
-releaseServiceOverride: ArgoCD
+## uses following global values => do not set here
+# global:
+#   apc:
+#     cluster:
+#       name:
+## and their local overrides
+# cluster.name:
 
-nsMonitoring: true
+releaseServiceOverride: ArgoCD
 priorityClassValue: 1000000
 ipAddrPool:
-  spoke:
-    dev: 10.14.76.41/32
-    test: 10.13.76.41/32
-    prod: 10.11.76.41/32
   hub:
-    dev: 10.111.76.44/32
-    test: 10.111.76.43/32
-    prod: 10.111.76.42/32
-ocpIngressNs: openshift-ingress
-service:
-  name: router-internal-default-metallb
-  portHttp: 80
-  portHttps: 443
-  portMetrics: 1936
+    dev01: ~
+    test01: ~
+    prod01: ~
+
 metallbInterface: br-ex

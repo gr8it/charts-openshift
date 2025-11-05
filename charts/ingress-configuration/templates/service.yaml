@@ -1,29 +1,28 @@
-{{- $environment := include "apc-global-overrides.environment" . }}
-{{- if ne $environment "hub" }}
+{{- if ne (include "apc-global-overrides.clusterIsHub" .) "true" }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.service.name }}
+  name: {{ .Values.metallb.service.name }}
   namespace: {{ .Values.ocpIngressNs }}
   annotations:
     metallb.universe.tf/address-pool: ingress-reserved
   labels:
-    app: {{ .Values.service.name }}
-    {{- include "metallb-config.labels" . | nindent 4 }}
+    app: {{ .Values.metallb.service.name }}
+    {{- include "ingress-configuration.labels" . | nindent 4 }}
 spec:
   selector:
       ingresscontroller.operator.openshift.io/deployment-ingresscontroller: default
   ports:
     - name: http
-      port: {{ .Values.service.portHttp }}
+      port: {{ .Values.metallb.service.portHttp }}
       protocol: TCP
       targetPort: http
     - name: https
-      port: {{ .Values.service.portHttps }}
+      port: {{ .Values.metallb.service.portHttps }}
       protocol: TCP
       targetPort: https
     - name: metrics
-      port: {{ .Values.service.portMetrics }}
+      port: {{ .Values.metallb.service.portMetrics }}
       protocol: TCP
       targetPort: metrics
   type: LoadBalancer

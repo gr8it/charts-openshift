@@ -1,6 +1,20 @@
-releaseServiceOverride: ArgoCD
+## uses following global values => do not set here
+# global:
+#   apc:
+#     environment:
+#     services:
+#       certManager:
+#         DefaultClusterIssuer:
+#     cluster:
+#       name:
+## and their local overrides
+# environment: dev
+# services.certManager.DefaultClusterIssuer:
+# cluster.name:
 
+releaseServiceOverride: ArgoCD
 replicas: 2
+ocpIngressNs: openshift-ingress
 
 loggingRequestMaxlength:
   XForwardedFor: 256
@@ -8,3 +22,17 @@ loggingRequestMaxlength:
   XForwardedPort: 6
   XForwardedhost: 256
   Forwarded: 256
+
+metallb:
+  service:
+    name: router-internal-default-metallb
+    portHttp: 80
+    portHttps: 443
+    portMetrics: 1936
+  interface: br-ex
+
+ipAddrPool:
+  spoke:
+    dev01: ~
+    test01: ~
+    prod01: ~
