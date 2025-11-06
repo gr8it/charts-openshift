@@ -9,7 +9,7 @@ metadata:
     {{- include "ingress-configuration.labels" . | nindent 4 }}
 spec:
   addresses:
-  - {{ get .Values.ipAddrPool.spoke $clusterName }}
+  - {{ .Values.ipAddrPool }}
   autoAssign: true
   serviceAllocation:
     namespaces:
