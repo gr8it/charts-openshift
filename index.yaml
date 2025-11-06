@@ -217,19 +217,6 @@ entries:
     version: 1.0.0
   application-gitops:
   - apiVersion: v2
-    created: "2025-10-27T22:06:36.119256+01:00"
-    dependencies:
-    - name: apc-global-overrides
-      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
-      version: 1.3.0
-    description: A Helm chart to prepare cluster for Application Gitops
-    digest: b8db549f0529bbf2ebae4928a5daf755229930d20cd99ce71c7d1e209db93edd
-    name: application-gitops
-    type: application
-    urls:
-    - packaged_charts/application-gitops-1.4.0.tgz
-    version: 1.4.0
-  - apiVersion: v2
     created: "2025-10-01T13:46:53.953460688+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -1549,6 +1536,22 @@ entries:
     version: 1.0.0
   monitoring:
   - apiVersion: v2
+    created: "2025-11-05T18:03:56.867568+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.2
+    description: A Helm chart for cluster monitoring with Kyverno PrometheusRule generation
+    digest: 74f5412ed28bb5664dd6d87ea480b9cae9f572a7b3cc3706dde8e397d59d51d0
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
     created: "2025-10-30T15:33:22.764459+01:00"
     dependencies:
     - name: apc-global-overrides
@@ -1895,6 +1898,23 @@ entries:
     version: 1.0.0
   user-workload-monitoring-policy:
   - apiVersion: v2
+    created: "2025-11-05T18:03:56.868187+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.2
+    description: A Helm chart that automatically creates PrometheusRules for app /
+      non-app workload namespaces
+    digest: e4e68fd48f05658e24e835f939703cd41e738db7d1705b7c0d54c71227f01bed
+    name: user-workload-monitoring-policy
+    type: application
+    urls:
+    - packaged_charts/user-workload-monitoring-policy-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
     created: "2025-10-30T15:33:22.76512+01:00"
     dependencies:
     - name: apc-global-overrides
@@ -1944,4 +1964,4 @@ entries:
     urls:
     - packaged_charts/user-workload-monitoring-policy-1.0.0.tgz
     version: 1.0.0
-generated: "2025-11-03T14:13:58.828215992+01:00"
+generated: "2025-11-05T18:03:56.866451+01:00"
