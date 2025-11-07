@@ -14,118 +14,118 @@ kyverno:
         # !!! https://kyverno.io/docs/installation/customization/#customizing-permissions   !!!
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         extraResources:
-          - apiGroups:
-            - networking.k8s.io
-            resources:
-            - ingresses
-            - ingressclasses
-            - networkpolicies
-            verbs:
-            - create
-            - update
-            - patch
-            - delete
-          - apiGroups:
-            - rbac.authorization.k8s.io
-            resources:
-            - rolebindings
-            - roles
-            verbs:
-            - create
-            - delete
-            - get
-            - list
-            - patch
-            - update
-            - watch
-          - apiGroups:
-            - rbac.authorization.k8s.io
-            resources:
-            - clusterroles
-            verbs:
-            - bind
-          - apiGroups:
-            - ''
-            resources:
-            - configmaps
-            - resourcequotas
-            - limitranges
-            verbs:
-            - create
-            - update
-            - patch
-            - delete
-          - apiGroups:
-            - ""
-            - project.openshift.io
-            resources:
-            - projectrequests
-            - projects
-            verbs:
-            - create
-            - get
-          - apiGroups:
-            - user.openshift.io
-            resources:
-            - groups
-            verbs:
-            - list
-            - get
-          - apiGroups:
-              - ''
-            resources:
-              - secrets
-            verbs:
-              - get
-              - list
-              - create
-              - update
-              - delete
-              - watch
-          - apiGroups:
-              - 'objectbucket.io'
-            resources:
-              - ObjectBucketClaim
-            verbs:
-              - get
-              - list
-              - watch
-          - apiGroups:
-            - k8s.ovn.org
-            resources:
-            - egressips
-            verbs:
-            - create
-            - delete
-            - get
-            - list
-            - patch
-            - update
-            - watch
-          - apiGroups:
-            - metallb.io
-            resources:
-            - L2Advertisement
-            verbs:
-            - get
-            - list
-            - patch
-            - update
-            - watch
-          - apiGroups:
-            - postgresql.cnpg.io
-            resources:
-            - backups
-            verbs:
-            - get
-            - list
-            - patch
-            - update
-            - watch
+        - apiGroups:
+          - networking.k8s.io
+          resources:
+          - ingresses
+          - ingressclasses
+          - networkpolicies
+          verbs:
+          - create
+          - update
+          - patch
+          - delete
+        - apiGroups:
+          - rbac.authorization.k8s.io
+          resources:
+          - rolebindings
+          - roles
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - rbac.authorization.k8s.io
+          resources:
+          - clusterroles
+          verbs:
+          - bind
+        - apiGroups:
+          - ''
+          resources:
+          - configmaps
+          - resourcequotas
+          - limitranges
+          verbs:
+          - create
+          - update
+          - patch
+          - delete
+        - apiGroups:
+          - ""
+          - project.openshift.io
+          resources:
+          - projectrequests
+          - projects
+          verbs:
+          - create
+          - get
+        - apiGroups:
+          - user.openshift.io
+          resources:
+          - groups
+          verbs:
+          - list
+          - get
+        - apiGroups:
+          - ''
+          resources:
+          - secrets
+          verbs:
+          - get
+          - list
+          - create
+          - update
+          - delete
+          - watch
+        - apiGroups:
+          - 'objectbucket.io'
+          resources:
+          - ObjectBucketClaim
+          verbs:
+          - get
+          - list
+          - watch
+        - apiGroups:
+          - k8s.ovn.org
+          resources:
+          - egressips
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - metallb.io
+          resources:
+          - L2Advertisement
+          verbs:
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - postgresql.cnpg.io
+          resources:
+          - backups
+          verbs:
+          - get
+          - list
+          - patch
+          - update
+          - watch
 
     resources:
       limits:
-        memory: 500Mi
+        memory: 800Mi
         cpu: 700m
   config:
     enableDefaultRegistryMutation: false
@@ -140,34 +140,34 @@ kyverno:
         # !!! https://kyverno.io/docs/installation/customization/#customizing-permissions   !!!
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         extraResources:
-          - apiGroups:
-              - ''
-            resources:
-              - secrets
-              - configmaps
-            verbs:
-              - get
-              - list
-              - create
-              - update
-              - delete
-              - watch
-          - apiGroups:
-              - 'objectbucket.io'
-            resources:
-              - ObjectBucketClaim
-            verbs:
-              - get
-              - list
-              - watch
-          - apiGroups:
-            - k8s.ovn.org
-            resources:
-            - egressips
-            verbs:
-            - get
-            - list
-            - watch
+        - apiGroups:
+          - ''
+          resources:
+          - secrets
+          - configmaps
+          verbs:
+          - get
+          - list
+          - create
+          - update
+          - delete
+          - watch
+        - apiGroups:
+          - 'objectbucket.io'
+          resources:
+          - ObjectBucketClaim
+          verbs:
+          - get
+          - list
+          - watch
+        - apiGroups:
+          - k8s.ovn.org
+          resources:
+          - egressips
+          verbs:
+          - get
+          - list
+          - watch
     container:
       resources:
         limits:
@@ -187,29 +187,29 @@ kyverno:
         # !!! https://kyverno.io/docs/installation/customization/#customizing-permissions   !!!
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         extraResources:
-          - apiGroups:
-            - k8s.ovn.org
-            resources:
-            - egressips
-            verbs:
-            - create
-            - delete
-            - get
-            - list
-            - patch
-            - update
-            - watch
-          - apiGroups:
-            - postgresql.cnpg.io
-            resources:
-            - backups
-            verbs:
-            - get
-            - list
-            - patch
-            - update
-            - watch
-            - delete
+        - apiGroups:
+          - k8s.ovn.org
+          resources:
+          - egressips
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - postgresql.cnpg.io
+          resources:
+          - backups
+          verbs:
+          - get
+          - list
+          - patch
+          - update
+          - watch
+          - delete
     resources:
       limits:
         memory: 128Mi
@@ -228,14 +228,14 @@ kyverno:
         # !!! https://kyverno.io/docs/installation/customization/#customizing-permissions   !!!
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         extraResources:
-          - apiGroups:
-            - k8s.ovn.org
-            resources:
-            - egressips
-            verbs:
-            - get
-            - list
-            - watch
+        - apiGroups:
+          - k8s.ovn.org
+          resources:
+          - egressips
+          verbs:
+          - get
+          - list
+          - watch
     resources:
       limits:
         memory: 256Mi
