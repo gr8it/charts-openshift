@@ -1,0 +1,28 @@
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: Client
+metadata:
+  name: bpm-admin
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    realmId: apps
+    clientId: bpm-admin
+    name: bpm-admin
+    description: BPM admin klient pre administraciu admin procesov sluzby BPM
+    accessType: PUBLIC # CONFIDENTIAL, PUBLIC, BEARER-ONLY
+    standardFlowEnabled: true
+    # directAccessGrantsEnabled: true
+    rootUrl: https://bpm-test-prime.apps.s1.lab.sp.gr8it.cloud/admin/processes
+    baseUrl: https://bpm-test-prime.apps.s1.lab.sp.gr8it.cloud/admin/processes
+    validRedirectUris:
+      - https://bpm-test-prime.apps.s1.lab.sp.gr8it.cloud/admin/processes
+    # validPostLogoutRedirectUris:
+    #   - https://bpm-test-prime.apps.s1.lab.sp.gr8it.cloud
+    webOrigins:
+      - https://bpm-test-prime.apps.s1.lab.sp.gr8it.cloud/admin/processes
+    # adminUrl: https://bpm-test-prime.apps.s1.lab.sp.gr8it.cloud/admin/processes
+    frontchannelLogoutEnabled: true
+    pkceCodeChallengeMethod: S256
+    fullScopeAllowed: false
+  providerConfigRef:
+    name: keycloak-local-config
