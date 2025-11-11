@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Rules logic update_
 
-### Added
+### Changed
 
 - proper namespace handling of expr in prometheusrules
 
