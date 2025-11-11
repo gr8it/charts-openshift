@@ -1,0 +1,29 @@
+{{- if .Values.ipAddrPool }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.metallb.service.name }}
+  namespace: {{ .Values.ocpIngressNs }}
+  annotations:
+    metallb.universe.tf/address-pool: ingress-reserved
+  labels:
+    app: {{ .Values.metallb.service.name }}
+    {{- include "ingress-configuration.labels" . | nindent 4 }}
+spec:
+  selector:
+      ingresscontroller.operator.openshift.io/deployment-ingresscontroller: default
+  ports:
+    - name: http
+      port: {{ .Values.metallb.service.portHttp }}
+      protocol: TCP
+      targetPort: http
+    - name: https
+      port: {{ .Values.metallb.service.portHttps }}
+      protocol: TCP
+      targetPort: https
+    - name: metrics
+      port: {{ .Values.metallb.service.portMetrics }}
+      protocol: TCP
+      targetPort: metrics
+  type: LoadBalancer
+{{- end }}

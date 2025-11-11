@@ -217,19 +217,6 @@ entries:
     version: 1.0.0
   application-gitops:
   - apiVersion: v2
-    created: "2025-10-27T22:06:36.119256+01:00"
-    dependencies:
-    - name: apc-global-overrides
-      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
-      version: 1.3.0
-    description: A Helm chart to prepare cluster for Application Gitops
-    digest: b8db549f0529bbf2ebae4928a5daf755229930d20cd99ce71c7d1e209db93edd
-    name: application-gitops
-    type: application
-    urls:
-    - packaged_charts/application-gitops-1.4.0.tgz
-    version: 1.4.0
-  - apiVersion: v2
     created: "2025-10-01T13:46:53.953460688+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -1282,6 +1269,20 @@ entries:
     version: 1.0.0
   ingress-configuration:
   - apiVersion: v2
+    appVersion: 1.1.0
+    created: "2025-11-06T15:54:02.390496+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart for Ingress configuration
+    digest: ec77083685ca283496a03086f56d3b4bd1869c11ac4607467e65c4f8bbca06fb
+    name: ingress-configuration
+    type: application
+    urls:
+    - packaged_charts/ingress-configuration-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
     appVersion: 1.0.0
     created: "2025-10-22T12:51:32.268143+02:00"
     dependencies:
@@ -1515,6 +1516,21 @@ entries:
     urls:
     - packaged_charts/kyverno-app-project-1.0.0.tgz
     version: 1.0.0
+  metallb-config:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2025-11-05T10:13:42.240688+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart for MetalLB configuration
+    digest: d21c522873bf391ddafc62a03e9588b1ac018e7a0b0bd1f7824ad9ae73f7916b
+    name: metallb-config
+    type: application
+    urls:
+    - packaged_charts/metallb-config-1.0.0.tgz
+    version: 1.0.0
   metallb-operator:
   - apiVersion: v2
     appVersion: 4.17.0-202502250404
@@ -1562,16 +1578,16 @@ entries:
     version: 1.0.0
   monitoring:
   - apiVersion: v2
-    created: "2025-11-11T09:28:13.387113+01:00"
+    created: "2025-11-11T09:20:15.588521+01:00"
     dependencies:
     - name: apc-global-overrides
       repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
-      version: 1.4.0
+      version: 1.5.0
     - name: monitoring-prometheusrules
       repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
-      version: 1.0.2
+      version: 1.0.3
     description: A Helm chart for cluster monitoring with Kyverno PrometheusRule generation
-    digest: ecb61abd14f986b42a9d31313bdc522a945efae0059d6d678bd674f2654c05d8
+    digest: bccc09eb3fa471323b9830eb32677ad5f3cd5ef5b48d58f3526f329c13d93856
     name: monitoring
     type: application
     urls:
@@ -1628,6 +1644,15 @@ entries:
     version: 1.0.0
   monitoring-prometheusrules:
   - apiVersion: v2
+    created: "2025-11-07T09:51:38.135312+01:00"
+    description: A Helm chart for prometheusrules used in other helm charts.
+    digest: ced815ba8576ef68d33bee32fb85debd977d51cf8c2204d88affaf71bb42c349
+    name: monitoring-prometheusrules
+    type: library
+    urls:
+    - packaged_charts/monitoring-prometheusrules-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
     created: "2025-10-29T15:52:58.940545+01:00"
     description: A Helm chart for prometheusrules used in other helm charts.
     digest: 9996a42fd8cf2bdca5770842babfac435b4fee658db9622debbfd66a60f13e95
@@ -1672,19 +1697,19 @@ entries:
   openshift-adp-config:
   - apiVersion: v2
     appVersion: v1.4.3
-    created: "2025-10-31T13:45:35.779038+01:00"
+    created: "2025-11-07T13:48:28.216831+01:00"
     dependencies:
     - name: apc-global-overrides
       repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
-      version: 1.4.0
+      version: 1.5.0
     description: A Helm chart to configure OpenShift ADP with DataProtectionApplication
       and Kyverno-based credential transformation
-    digest: ac0018f0008125640a1ee8d1096bb6a2781ded8533a6ab1d66c1bff12df3998f
+    digest: 8486a976379f4154e12e5fc258ddfa4034482cbbafebed8550252ad31905a5be
     name: openshift-adp-config
     type: application
     urls:
-    - packaged_charts/openshift-adp-config-1.0.0.tgz
-    version: 1.0.0
+    - packaged_charts/openshift-adp-config-1.0.1.tgz
+    version: 1.0.1
   openshift-adp-operator:
   - apiVersion: v2
     appVersion: v1.4.3
@@ -1924,17 +1949,17 @@ entries:
     version: 1.0.0
   user-workload-monitoring-policy:
   - apiVersion: v2
-    created: "2025-11-11T09:28:13.387991+01:00"
+    created: "2025-11-11T09:20:15.589201+01:00"
     dependencies:
     - name: apc-global-overrides
       repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
-      version: 1.4.0
+      version: 1.5.0
     - name: monitoring-prometheusrules
       repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
-      version: 1.0.2
+      version: 1.0.3
     description: A Helm chart that automatically creates PrometheusRules for app /
       non-app workload namespaces
-    digest: 136bb4dbfb4b328b2c010bd2daa11be61eb42bf9c7921e558da1001a2ebd9dd7
+    digest: 6ba47e3da1d466ba6569836b86db4fa68b4aa94a12bbed97c856b0614b6c1f9a
     name: user-workload-monitoring-policy
     type: application
     urls:

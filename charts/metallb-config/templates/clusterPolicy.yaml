@@ -1,0 +1,25 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: patch-l2advertisement
+  labels:
+    {{- include "metallb-config.labels" . | nindent 4 }}
+spec:
+  rules:
+    - name: patch-{{ .Values.metallbInterface}}
+      match:
+        any:
+        - resources:
+            kinds:
+            - L2Advertisement
+      preconditions:
+        all:
+        - key: "{{ `{{ request.object.spec.interfaces || '' }}` }}"
+          operator: Equals
+          value: ''
+      mutate:
+        patchStrategicMerge:
+          spec:
+            interfaces:
+            - {{ .Values.metallbInterface}}
+      skipBackgroundRequests: true

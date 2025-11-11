@@ -1,0 +1,17 @@
+{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
+{{- range $clusterName, $ipAddrPool := .Values.ipAddrPool.hub }}
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: kubeapi-{{ $clusterName }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "metallb-config.labels" $ | nindent 4 }}
+spec:
+  ipAddressPools:
+  - kubeapi-{{ $clusterName }}
+  interfaces:
+  - {{ $.Values.metallbInterface }}
+---
+{{- end }}
+{{- end }}
