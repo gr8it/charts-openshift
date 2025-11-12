@@ -5,6 +5,12 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2025-11-12
+
+### Changed
+
+- added skipBackgroundRequests
+
 ## [1.0.3] - 2025-11-07
 
 _chart type and clusterrole_
@@ -24,5 +30,3 @@ _([SPEXAPC-7193](https://aspecta.atlassian.net/jira/software/c/projects/SPEXAPC/
 
 - Bump dependency on `monitoring-prometheusrules` from 1.0.0 to 1.0.3
 - Bump dependency on `apc-global-overrides` from 1.3.0 to 1.4.0
-
-
