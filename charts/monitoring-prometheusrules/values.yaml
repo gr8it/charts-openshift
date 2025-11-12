@@ -5,7 +5,7 @@ rules:
       description: "Pod {{ `\\{{ $labels.namespace }}` }}/{{ `\\{{ $labels.pod }} (\\{{ $labels.container }})` }} is in waiting state (reason: \"CrashLoopBackOff\") on cluster {{ `\\{{ $labels.cluster }}` }}."
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodcrashlooping
       summary: Pod is crash looping.
-    expr: max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace=~".*"}[5m]) >= 1
+    expr: max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m]) >= 1
     for: 15m
     labels:
       severity: warning
@@ -17,7 +17,7 @@ rules:
     expr: |-
       sum by (namespace, pod, cluster) (
         max by (namespace, pod, cluster) (
-          kube_pod_status_phase{job="kube-state-metrics", namespace=~".*", phase=~"Pending|Unknown|Failed"}
+          kube_pod_status_phase{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", phase=~"Pending|Unknown|Failed"}
         ) * on (namespace, pod, cluster) group_left(owner_kind) topk by (namespace, pod, cluster) (
           1, max by (namespace, pod, owner_kind, cluster) (kube_pod_owner{owner_kind!="Job"})
         )
@@ -31,9 +31,9 @@ rules:
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentgenerationmismatch
       summary: Deployment generation mismatch due to possible roll-back
     expr: |-
-      kube_deployment_status_observed_generation{job="kube-state-metrics", namespace=~".*"}
+      kube_deployment_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
         !=
-      kube_deployment_metadata_generation{job="kube-state-metrics", namespace=~".*"}
+      kube_deployment_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
     for: 15m
     labels:
       severity: warning
@@ -44,11 +44,11 @@ rules:
       summary: Deployment has not matched the expected number of replicas.
     expr: |-
       (
-        kube_deployment_spec_replicas{job="kube-state-metrics", namespace=~".*"}
+        kube_deployment_spec_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
           >
-        kube_deployment_status_replicas_available{job="kube-state-metrics", namespace=~".*"}
+        kube_deployment_status_replicas_available{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
       ) and (
-        changes(kube_deployment_status_replicas_updated{job="kube-state-metrics", namespace=~".*"}[10m])
+        changes(kube_deployment_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[10m])
           ==
         0
       )
@@ -61,7 +61,7 @@ rules:
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentrolloutstuck
       summary: Deployment rollout is not progressing.
     expr: |-
-      kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics", namespace=~".*"}
+      kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
       != 0
     for: 15m
     labels:
@@ -73,11 +73,11 @@ rules:
       summary: StatefulSet has not matched the expected number of replicas.
     expr: |-
       (
-        kube_statefulset_status_replicas_ready{job="kube-state-metrics", namespace=~".*"}
+        kube_statefulset_status_replicas_ready{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
           !=
-        kube_statefulset_replicas{job="kube-state-metrics", namespace=~".*"}
+        kube_statefulset_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
       ) and (
-        changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace=~".*"}[10m])
+        changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[10m])
           ==
         0
       )
@@ -90,9 +90,9 @@ rules:
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetgenerationmismatch
       summary: StatefulSet generation mismatch due to possible roll-back
     expr: |-
-      kube_statefulset_status_observed_generation{job="kube-state-metrics", namespace=~".*"}
+      kube_statefulset_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
         !=
-      kube_statefulset_metadata_generation{job="kube-state-metrics", namespace=~".*"}
+      kube_statefulset_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
     for: 15m
     labels:
       severity: warning
@@ -104,18 +104,18 @@ rules:
     expr: |-
       (
         max by (namespace, statefulset, job, cluster) (
-          kube_statefulset_status_current_revision{job="kube-state-metrics", namespace=~".*"}
+          kube_statefulset_status_current_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
             unless
-          kube_statefulset_status_update_revision{job="kube-state-metrics", namespace=~".*"}
+          kube_statefulset_status_update_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
         )
           * on (namespace, statefulset, job, cluster)
         (
-          kube_statefulset_replicas{job="kube-state-metrics", namespace=~".*"}
+          kube_statefulset_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
             !=
-          kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace=~".*"}
+          kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
         )
       )  and on (namespace, statefulset, job, cluster) (
-        changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace=~".*"}[5m])
+        changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m])
           ==
         0
       )
@@ -130,24 +130,24 @@ rules:
     expr: |-
       (
         (
-          kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace=~".*"}
+          kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
             !=
-          kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace=~".*"}
+          kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
         ) or (
-          kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace=~".*"}
+          kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
             !=
           0
         ) or (
-          kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics", namespace=~".*"}
+          kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
             !=
-          kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace=~".*"}
+          kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
         ) or (
-          kube_daemonset_status_number_available{job="kube-state-metrics", namespace=~".*"}
+          kube_daemonset_status_number_available{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
             !=
-          kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace=~".*"}
+          kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
         )
       ) and (
-        changes(kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics", namespace=~".*"}[5m])
+        changes(kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m])
           ==
         0
       )
@@ -159,7 +159,7 @@ rules:
       description: "pod/{{ `\\{{ $labels.pod }}` }} in namespace {{ `\\{{ $labels.namespace }}` }} on container {{ `\\{{ $labels.container}}` }} has been in waiting state for longer than 1 hour. (reason: \"{{ `\\{{ $labels.reason }}` }}\") on cluster {{ `\\{{ $labels.cluster }}` }}."
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubecontainerwaiting
       summary: Pod container waiting longer than 1 hour
-    expr: kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics", namespace=~".*"} > 0
+    expr: kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
     for: 1h
     labels:
       severity: warning
@@ -169,9 +169,9 @@ rules:
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetnotscheduled
       summary: DaemonSet pods are not scheduled.
     expr: |-
-      kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace=~".*"}
+      kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
         -
-      kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace=~".*"} > 0
+      kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
     for: 10m
     labels:
       severity: warning
@@ -180,7 +180,7 @@ rules:
       description: "{{ `\\{{ $value }}` }} Pods of DaemonSet {{ `\\{{ $labels.namespace }}` }}/{{ `\\{{ $labels.daemonset }}` }} are running where they are not supposed to run on cluster {{ `\\{{ $labels.cluster }}` }}."
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetmisscheduled
       summary: DaemonSet pods are misscheduled.
-    expr: kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace=~".*"} > 0
+    expr: kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
     for: 15m
     labels:
       severity: warning
@@ -190,9 +190,9 @@ rules:
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobnotcompleted
       summary: Job did not complete in time
     expr: |-
-      time() - max by (namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics", namespace=~".*"}
+      time() - max by (namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
         and
-      kube_job_status_active{job="kube-state-metrics", namespace=~".*"} > 0) > 43200
+      kube_job_status_active{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0) > 43200
     labels:
       severity: warning
   - alert: KubeJobFailed
@@ -200,7 +200,7 @@ rules:
       description: "Job {{ `\\{{ $labels.namespace }}` }}/{{ `\\{{ $labels.job_name }}` }} failed to complete. Removing failed job after investigation should clear this alert on cluster {{ `\\{{ $labels.cluster }}` }}."
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobfailed
       summary: Job failed to complete.
-    expr: kube_job_failed{job="kube-state-metrics", namespace=~".*"}  > 0
+    expr: kube_job_failed{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}  > 0
     for: 15m
     labels:
       severity: warning
@@ -210,19 +210,19 @@ rules:
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubehpareplicasmismatch
       summary: HPA has not matched desired number of replicas.
     expr: |-
-      (kube_horizontalpodautoscaler_status_desired_replicas{job="kube-state-metrics", namespace=~".*"}
+      (kube_horizontalpodautoscaler_status_desired_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
         !=
-      kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace=~".*"})
+      kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
         and
-      (kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace=~".*"}
+      (kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
         >
-      kube_horizontalpodautoscaler_spec_min_replicas{job="kube-state-metrics", namespace=~".*"})
+      kube_horizontalpodautoscaler_spec_min_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
         and
-      (kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace=~".*"}
+      (kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
         <
-      kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace=~".*"})
+      kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
         and
-      changes(kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace=~".*"}[15m]) == 0
+      changes(kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[15m]) == 0
     for: 15m
     labels:
       severity: warning
@@ -232,9 +232,9 @@ rules:
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubehpamaxedout
       summary: HPA is running at max replicas
     expr: |-
-      kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace=~".*"}
+      kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
         ==
-      kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace=~".*"}
+      kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
     for: 15m
     labels:
       severity: warning
@@ -245,9 +245,9 @@ rules:
       summary: PDB does not have enough healthy pods.
     expr: |-
       (
-        kube_poddisruptionbudget_status_desired_healthy{job="kube-state-metrics", namespace=~".*"}
+        kube_poddisruptionbudget_status_desired_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
         -
-        kube_poddisruptionbudget_status_current_healthy{job="kube-state-metrics", namespace=~".*"}
+        kube_poddisruptionbudget_status_current_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
       )
       > 0
     for: 15m
@@ -260,12 +260,12 @@ rules:
       summary: PersistentVolume is filling up.
     expr: |-
       (
-        kubelet_volume_stats_available_bytes{job="kubelet", namespace=~".*", metrics_path="/metrics"}
+        kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
           /
-        kubelet_volume_stats_capacity_bytes{job="kubelet", namespace=~".*", metrics_path="/metrics"}
+        kubelet_volume_stats_capacity_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
       ) < 0.03
       and
-      kubelet_volume_stats_used_bytes{job="kubelet", namespace=~".*", metrics_path="/metrics"} > 0
+      kubelet_volume_stats_used_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
       unless on (cluster, namespace, persistentvolumeclaim)
       kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
       unless on (cluster, namespace, persistentvolumeclaim)
@@ -280,14 +280,14 @@ rules:
       summary: PersistentVolume is filling up.
     expr: |-
       (
-        kubelet_volume_stats_available_bytes{job="kubelet", namespace=~".*", metrics_path="/metrics"}
+        kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
           /
-        kubelet_volume_stats_capacity_bytes{job="kubelet", namespace=~".*", metrics_path="/metrics"}
+        kubelet_volume_stats_capacity_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
       ) < 0.15
       and
-      kubelet_volume_stats_used_bytes{job="kubelet", namespace=~".*", metrics_path="/metrics"} > 0
+      kubelet_volume_stats_used_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
       and
-      predict_linear(kubelet_volume_stats_available_bytes{job="kubelet", namespace=~".*", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
+      predict_linear(kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
       unless on (cluster, namespace, persistentvolumeclaim)
       kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
       unless on (cluster, namespace, persistentvolumeclaim)
@@ -302,12 +302,12 @@ rules:
       summary: PersistentVolumeInodes are filling up.
     expr: |-
       (
-        kubelet_volume_stats_inodes_free{job="kubelet", namespace=~".*", metrics_path="/metrics"}
+        kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
           /
-        kubelet_volume_stats_inodes{job="kubelet", namespace=~".*", metrics_path="/metrics"}
+        kubelet_volume_stats_inodes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
       ) < 0.03
       and
-      kubelet_volume_stats_inodes_used{job="kubelet", namespace=~".*", metrics_path="/metrics"} > 0
+      kubelet_volume_stats_inodes_used{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
       unless on (cluster, namespace, persistentvolumeclaim)
       kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
       unless on (cluster, namespace, persistentvolumeclaim)
@@ -322,14 +322,14 @@ rules:
       summary: PersistentVolumeInodes are filling up.
     expr: |-
       (
-        kubelet_volume_stats_inodes_free{job="kubelet", namespace=~".*", metrics_path="/metrics"}
+        kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
           /
-        kubelet_volume_stats_inodes{job="kubelet", namespace=~".*", metrics_path="/metrics"}
+        kubelet_volume_stats_inodes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
       ) < 0.15
       and
-      kubelet_volume_stats_inodes_used{job="kubelet", namespace=~".*", metrics_path="/metrics"} > 0
+      kubelet_volume_stats_inodes_used{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
       and
-      predict_linear(kubelet_volume_stats_inodes_free{job="kubelet", namespace=~".*", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
+      predict_linear(kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
       unless on (cluster, namespace, persistentvolumeclaim)
       kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
       unless on (cluster, namespace, persistentvolumeclaim)
