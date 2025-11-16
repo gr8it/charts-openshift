@@ -19,6 +19,8 @@ The chart is configured through `values.yaml`. Key parameters include:
 - `securedCluster.clusterName`: Unique cluster identifier (override per environment)
 - `securedCluster.centralEndpoint`: URL of the Central instance
 - Resource limits and scaling configuration for sensors and scanners
+- `central.enabled`: Enable to deploy the Central instance (hub cluster only)
+- `prometheusRule.enabled`: Enable to install the RHACS alerting ruleset
 
 ## Usage
 
@@ -26,4 +28,10 @@ The chart is configured through `values.yaml`. Key parameters include:
 securedCluster:
   clusterName: prod01
   centralEndpoint: 'https://central-stackrox.apps.hub01.cloud.socpoist.sk:443'
+
+central:
+  enabled: true
+
+prometheusRule:
+  enabled: true
 ```

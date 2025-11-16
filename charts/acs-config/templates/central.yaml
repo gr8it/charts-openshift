@@ -1,0 +1,12 @@
+{{- if .Values.central.enabled }}
+---
+apiVersion: platform.stackrox.io/v1alpha1
+kind: Central
+metadata:
+  name: {{ .Values.central.name }}
+  namespace: {{ .Values.central.namespace | default .Values.stackrox.namespace }}
+  labels:
+    {{- include "acs-config.labels" . | nindent 4 }}
+spec:
+  {{- .Values.central.spec | toYaml | nindent 2 }}
+{{- end }}

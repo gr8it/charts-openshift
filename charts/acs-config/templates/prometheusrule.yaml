@@ -1,0 +1,15 @@
+{{- if .Values.prometheusRule.enabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ .Values.prometheusRule.name }}
+  namespace: {{ .Values.prometheusRule.namespace | default .Values.stackrox.namespace }}
+  labels:
+    {{- include "acs-config.labels" . | nindent 4 }}
+    {{- with .Values.prometheusRule.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- .Values.prometheusRule.spec | toYaml | nindent 2 }}
+{{- end }}
