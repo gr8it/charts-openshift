@@ -1,26 +1,17 @@
 # Compliance Operator
 
-This Helm chart installs the OpenShift Compliance Operator and configures CIS compliance scanning using ACM OperatorPolicy.
+This chart installs the OpenShift Compliance Operator via ACM `OperatorPolicy`. All runtime configuration (namespaces, ScanSettings, ScanSettingBindings, TailoredProfiles) now lives in the separate `compliance-config` chart.
 
 ## Components
 
 This chart creates:
 
-1. **Compliance Operator** - Installed via ACM OperatorPolicy dependency
-   - ACM automatically creates: operator namespace, OperatorGroup, and Subscription
-2. **Namespace** - `openshift-compliance` with monitoring and security labels
-3. **ScanSetting** - Configuration for compliance scans
-4. **ScanSettingBinding** - Binds scan settings to compliance profiles
+1. **Compliance Operator** – Enforced by the `acm-operatorpolicy` dependency.
+   - ACM creates the operator namespace, OperatorGroup, Subscription, and ensures the desired CSV/channel.
 
-## How It Works
-
-The chart uses `acm-operatorpolicy` as a dependency. ACM automatically creates the operator installation resources (namespace, OperatorGroup, Subscription).
-
-The chart's templates create the compliance scanning configuration (ScanSetting and ScanSettingBinding).
+> Install `compliance-config` alongside this chart to provide ScanSettings, bindings, and TailoredProfiles.
 
 ## Configuration
-
-### Key Values
 
 ```yaml
 acm-operatorpolicy:
@@ -33,25 +24,19 @@ acm-operatorpolicy:
       env:
       - name: PLATFORM
         value: "HyperShift"
-
-scanSetting:
-  name: cis-scan-settings
-  schedule: "0 1 * * *"  # Daily at 1 AM
-  roles:
-  - worker
-
-scanSettingBinding:
-  name: cis-compliance
-  profiles:
-  - name: ocp4-cis-node
+  operatorGroup:
+    name: compliance-operator
+    namespace: openshift-compliance
+    targetNamespaces:
+    - openshift-compliance
 ```
 
 ### Customization
 
-Modify scan schedule, profiles, or storage settings in `values.yaml`.
+Adjust the subscription/channel, OperatorGroup, or CSV allow-list through the `acm-operatorpolicy` values above. Use `compliance-config` to customize scan storage, schedules, profile bindings, or TailoredProfiles per cluster.
 
 ## Prerequisites
 
 - OpenShift 4.x cluster
 - Access to Red Hat Operators catalog
-- ACM (Advanced Cluster Management) for OperatorPolicy support
+- ACM (Advanced Cluster Management) for policy enforcement

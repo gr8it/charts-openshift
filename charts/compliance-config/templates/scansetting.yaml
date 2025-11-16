@@ -5,7 +5,7 @@ metadata:
   name: {{ .Values.scanSetting.name }}
   namespace: {{ .Values.namespace.name }}
   labels:
-    {{- include "compliance-operator.labels" . | nindent 4 }}
+    {{- include "compliance-config.labels" . | nindent 4 }}
 spec:
   rawResultStorage:
     {{- toYaml .Values.scanSetting.rawResultStorage | nindent 4 }}

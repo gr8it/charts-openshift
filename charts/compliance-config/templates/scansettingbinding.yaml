@@ -1,0 +1,21 @@
+---
+apiVersion: compliance.openshift.io/v1alpha1
+kind: ScanSettingBinding
+metadata:
+  name: {{ .Values.scanSettingBinding.name }}
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "compliance-config.labels" . | nindent 4 }}
+spec:
+  profiles:
+    {{- $profiles := deepCopy (default (list) .Values.scanSettingBinding.profiles) }}
+    {{- if and .Values.tailoredProfiles.enabled (.Values.tailoredProfiles.items | default list) }}
+      {{- range .Values.tailoredProfiles.items }}
+        {{- if (default true .includeInBinding) }}
+          {{- $profiles = append $profiles (dict "name" .name "kind" "TailoredProfile" "apiGroup" "compliance.openshift.io/v1alpha1") }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+    {{- toYaml $profiles | nindent 4 }}
+  settingsRef:
+    {{- toYaml .Values.scanSettingBinding.settingsRef | nindent 4 }}

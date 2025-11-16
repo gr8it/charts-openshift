@@ -1,0 +1,17 @@
+{{- if and .Values.tailoredProfiles.enabled (.Values.tailoredProfiles.items | default list) }}
+{{- $root := . }}
+{{- range .Values.tailoredProfiles.items }}
+---
+apiVersion: compliance.openshift.io/v1alpha1
+kind: TailoredProfile
+metadata:
+  name: {{ .name }}
+  namespace: {{ .namespace | default $root.Values.namespace.name }}
+  labels:
+    {{- include "compliance-config.labels" $root | nindent 4 }}
+spec:
+  {{- if .spec }}
+  {{- toYaml .spec | nindent 2 }}
+  {{- end }}
+{{- end }}
+{{- end }}
