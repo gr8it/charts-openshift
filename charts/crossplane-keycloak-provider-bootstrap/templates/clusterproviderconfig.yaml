@@ -1,0 +1,12 @@
+apiVersion: keycloak.m.crossplane.io/v1beta1
+kind: ClusterProviderConfig
+metadata:
+  name: keycloak-local-config
+  namespace: apc-crossplane-system
+spec:
+  credentials:
+    source: Secret
+    secretRef:
+      name: keycloak-crossplane-credentials
+      key: credentials
+      namespace: apc-crossplane-system
