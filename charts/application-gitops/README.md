@@ -85,7 +85,7 @@ Component allows self service of application gitops by app teams:
 
   <https://argo-cd.readthedocs.io/en/stable/operator-manual/rbac/#the-applications-resource>
 
-- Only repositories specified in `allowedGitDomains` are allowed to be used with created ArgoCD application projects (usually `https://`, `ssh://git@`, and `oci://` versions ending in `/**` are used - see [example](values.example.yaml))
+- Only repositories specified in `allowedRepositories` are allowed to be used with created ArgoCD application projects (usually `https://`, `ssh://git@`, and `oci://` versions ending in `/**` are used - see [example](values.example.yaml))
 - One ArgoCD application project is created per namespace matching namespace name
 - Because ArgoCD uses service account with APC admin role (PJA), all git users with push privilege to the target ArgoCD application branch are ~ project admins in the particular ArgoCD application environment!
 

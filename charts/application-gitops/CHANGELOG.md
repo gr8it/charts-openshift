@@ -11,7 +11,7 @@ _([JIRA-8489](https://aspecta.atlassian.net/browse/SPEXAPC-8489))_
 
 ### Changed
 
-- change string allowedGitDomain to list allowedGitDomains
+- change string allowedGitDomain to list allowedRepositories
 
 ## [1.4.0] - 2025-10-27
 
