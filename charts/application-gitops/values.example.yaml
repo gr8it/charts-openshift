@@ -6,7 +6,11 @@ global:
     cluster:
       name: dev01
 
-allowedGitDomain: https://gitlab.example.com/
+allowedGitDomains:
+  - https://gitlab.example.com/**
+  - ssh://git@gitlab.example.com:**
+  - oci://gitlab.example.com/**
+  - gitlab.example.com/**
 
 defaultRoles:
   viewer:
