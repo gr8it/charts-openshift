@@ -1,0 +1,189 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnect
+metadata:
+  name: my-connect-cluster
+  annotations:
+    strimzi.io/use-connector-resources: "true"
+spec:
+  version: 4.0.0
+  replicas: 1
+  bootstrapServers: my-cluster-kafka-bootstrap:9092
+  # image: apc-registry-quay-quay.apps.hub01.cloud.socpoist.sk/apc/confluentinc-kafka-connect-s3:latest-build
+  # image: apc-registry-quay-quay.apps.hub01.cloud.socpoist.sk/apc/confluentinc-kafka-connect-s3:10.6.8
+  image: quay.io/strimzi/kafka:latest-kafka-4.0.1-amd64
+  build:
+    output:
+      type: docker
+      image: apc-registry-quay-quay.apps.hub01.cloud.socpoist.sk/apc/confluentinc-kafka-connect-s3:latest-build
+      pushSecret: push-secret
+    plugins:
+      - name: confluentinc-kafka-connect-s3
+        artifacts:
+          - type: zip
+            url: https://hub-downloads.confluent.io/api/plugins/confluentinc/kafka-connect-s3/versions/11.0.8/confluentinc-kafka-connect-s3-11.0.8.zip
+      - name: confluentinc-kafka-connect-s3
+        artifacts:
+          - type: jar
+            url: https://packages.confluent.io/maven/io/confluent/kafka-connect-avro-converter/7.6.8/kafka-connect-avro-converter-7.6.8.jar
+    resources:
+      requests:
+        cpu: "1"
+        memory: 2Gi
+        ephemeral-storage: 2Gi
+      limits:
+        cpu: "2"
+        memory: 4Gi
+        ephemeral-storage: 2Gi
+
+  # # ... rest of configuration
+  ## tls section not working = /tmp/kafka/cluster.truststore.p12 was no defined => use externalConfiguration and fill manually
+  # tls:
+  #   trustedCertificates:
+  #     - secretName: my-cluster-cluster-ca-cert
+  #       certificate: ca.crt
+  #       # certificate: ca.p12
+  # externalConfiguration:
+  #   volumes:
+  #     - name: my-tls
+  #       secret:
+  #         secretName: my-cluster-cluster-ca-cert
+  # template:
+  #   connectContainer:
+  #     volumeMounts:
+  #       - name: my-tls
+  #         mountPath: /mnt/kafka/cluster.truststore.p12
+  #         subPath: ca.p12
+  #       - name: my-tls
+  #         mountPath: /mnt/kafka/cluster.truststore.password
+  #         subPath: ca.password
+  config:
+    group.id: my-connect-cluster
+    offset.storage.topic: my-connect-cluster-offsets
+    config.storage.topic: my-connect-cluster-configs
+    status.storage.topic: my-connect-cluster-status
+    offset.storage.replication.factor: 3
+    config.storage.replication.factor: 3
+    status.storage.replication.factor: 3
+    ## ssl.truststore.location is forbidden & ignored
+    # ssl.truststore.location: /opt/kafka/connect-certs/my-cluster-cluster-ca-cert/ca.p12
+  resources:
+    limits:
+      cpu: "1"
+      ephemeral-storage: 2Gi
+      memory: 2Gi
+  metricsConfig:
+    type: jmxPrometheusExporter
+    valueFrom:
+      configMapKeyRef:
+        name: kafka-metrics
+        key: kafka-metrics-config.yml
+  template:
+    connectContainer:
+      env:
+        - name: HTTP_PROXY
+          value: ""
+        - name: HTTPS_PROXY
+          value: ""
+        - name: NO_PROXY
+          value: ""
+        - name: KAFKA_OPTS
+          value: "-Dhttp.proxyHost= -Dhttp.proxyPort= -Dhttps.proxyHost= -Dhttps.proxyPort= -Dhttp.nonProxyHosts="
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnector
+metadata:
+  name: my-source-connector
+  labels:
+    strimzi.io/cluster: my-connect-cluster
+spec:
+  # class: org.apache.camel.kafkaconnector.cephsink.CamelCephsinkSinkConnector
+  # class: org.apache.camel.kafkaconnector.aws2s3.CamelAws2s3SinkConnector
+  # class: org.apache.camel.kafkaconnector.awss3sink.CamelAwss3sinkSinkConnector
+  class: io.confluent.connect.s3.S3SinkConnector
+  tasksMax: 2
+  config:
+    topics: my-topic
+    # topics: my-topic,my-topic-json,my-topic-avro
+    key.converter.schemas.enable: false
+    value.converter.schemas.enable: false
+    key.converter: org.apache.kafka.connect.storage.StringConverter
+    # value.converter: org.apache.kafka.connect.storage.StringConverter
+
+    value.converter: org.apache.kafka.connect.converters.ByteArrayConverter
+    # value.converter: org.apache.kafka.connect.converters.ByteArrayConverter
+    # key.converter: org.apache.kafka.connect.json.JsonConverter
+    # value.converter: org.apache.kafka.connect.json.JsonConverter
+    # key.converter.schema.registry.url: http://localhost:8081
+    # value.converter.schema.registry.url: http://localhost:8081
+
+
+    ## org.apache.camel.kafkaconnector.cephsink.CamelCephsinkSinkConnector
+    # camel.kamelet.ceph-sink.accessKey: J81NK45GS134G0WFCJ7Y
+    # camel.kamelet.ceph-sink.bucketName: my-cluster-backup-57a192a0-1cca-49b2-bd5b-9e542ef723e5
+    # camel.kamelet.ceph-sink.cephUrl: http://rook-ceph-rgw-ocs-storagecluster-cephobjectstore.openshift-storage.svc:80
+    # camel.kamelet.ceph-sink.secretKey: kbwDVttdqTAs3Crc9UDUdjHcY1zedTVeXjrpiDms
+    # # camel.kamelet.ceph-sink.zoneGroup: default
+    # camel.kamelet.ceph-sink.zoneGroup: eu-west-1
+    # # camel.kamelet.ceph-sink.keyName: 
+
+    ## org.apache.camel.kafkaconnector.aws2s3.CamelAws2s3SinkConnector
+    # camel.sink.path.bucketNameOrArn: my-cluster-backup-57a192a0-1cca-49b2-bd5b-9e542ef723e5
+    # camel.sink.endpoint.overrideEndpoint: true
+    # camel.sink.endpoint.uriEndpointOverride: http://rook-ceph-rgw-ocs-storagecluster-cephobjectstore.openshift-storage.svc:80
+    # camel.component.aws2-s3.accessKey: J81NK45GS134G0WFCJ7Y
+    # camel.component.aws2-s3.secretKey: kbwDVttdqTAs3Crc9UDUdjHcY1zedTVeXjrpiDms
+    # camel.component.aws2-s3.region: eu-west-1
+
+    # camel.component.aws2-s3.force-path-style: true
+    # camel.component.aws2-s3.forcePathStyle: true
+    # camel.component.aws2-s3.trust-all-certificates: true
+    # camel.component.aws2-s3.trustAllCertificates: true
+    # camel.component.aws2-s3.override-endpoint: true
+    # camel.component.aws2-s3.uri-endpoint-override: http://rook-ceph-rgw-ocs-storagecluster-cephobjectstore.openshift-storage.svc:80
+
+    ## org.apache.camel.kafkaconnector.awss3sink.CamelAwss3sinkSinkConnector
+    # camel.kamelet.aws-s3-sink.bucketNameOrArn: my-cluster-backup-57a192a0-1cca-49b2-bd5b-9e542ef723e5
+    # camel.kamelet.aws-s3-sink.accessKey: J81NK45GS134G0WFCJ7Y
+    # camel.kamelet.aws-s3-sink.secretKey: kbwDVttdqTAs3Crc9UDUdjHcY1zedTVeXjrpiDms
+    # camel.kamelet.aws-s3-sink.region: eu-west-1
+    # camel.kamelet.aws-s3-sink.overrideEndpoint: true
+    # camel.kamelet.aws-s3-sink.uriEndpointOverride: http://rook-ceph-rgw-ocs-storagecluster-cephobjectstore.openshift-storage.svc.cluster.local:80
+    # camel.kamelet.aws-s3-sink.forcePathStyle: true
+
+    
+
+    ## io.confluent.connect.s3.S3SinkConnector
+    # connector.class: io.confluent.connect.s3.S3SinkConnector
+    # io.confluent.connect.s3.format.json.JsonFormat, io.confluent.connect.s3.format.avro.AvroFormat, io.confluent.connect.s3.format.bytearray.ByteArrayFormat, io.confluent.connect.s3.format.parquet.ParquetFormat
+    format.class: io.confluent.connect.s3.format.bytearray.ByteArrayFormat
+    # format.class: io.confluent.connect.s3.format.avro.AvroFormat 
+    # format.class: io.confluent.connect.s3.format.json.JsonFormat
+    s3.bucket.name: my-cluster-backup-123
+    # s3.object.tagging: true
+    s3.region: eu-west-1
+    aws.access.key.id: 4PNHS4J9S5C3IXZ998FJ
+    aws.secret.access.key: BTal6AYnk1kwLUZQFCCQta4tPrM5dNV3JPnY8EHj
+    # s3.ssea.name: AES256
+    store.url: http://rook-ceph-rgw-ocs-storagecluster-cephobjectstore.openshift-storage.svc.cluster.local:80
+    # s3.compression.type: gzip
+    # s3.compression.level: -1
+    flush.size: 1 # 3
+    storage.class: io.confluent.connect.s3.storage.S3Storage
+    schema.generator.class: io.confluent.connect.storage.hive.schema.DefaultSchemaGenerator
+    partitioner.class: io.confluent.connect.storage.partitioner.DefaultPartitioner
+    schema.compatibility: NONE
+    behavior.on.null.values: ignore
+
+    # camel.kamelet.aws-s3-sink.bucketNameOrArn: my-cluster-backup-57a192a0-1cca-49b2-bd5b-9e542ef723e5
+    # camel.kamelet.aws-s3-sink.accessKey: J81NK45GS134G0WFCJ7Y
+    # camel.kamelet.aws-s3-sink.secretKey: kbwDVttdqTAs3Crc9UDUdjHcY1zedTVeXjrpiDms
+    # camel.kamelet.aws-s3-sink.region: eu-west-1
+    # camel.kamelet.aws-s3-sink.overrideEndpoint: true
+    # camel.kamelet.aws-s3-sink.uriEndpointOverride: http://rook-ceph-rgw-ocs-storagecluster-cephobjectstore.openshift-storage.svc.cluster.local:80
+    # camel.kamelet.aws-s3-sink.forcePathStyle: true
+
+  # class: org.apache.kafka.connect.file.FileStreamSourceConnector
+  # tasksMax: 2
+  # config:
+  #   file: "/tmp/data.txt"
+  #   topic: "my-topic"
