@@ -74,8 +74,10 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Applicatio
     severity: {{ .labels.severity }}
     namespace: "{{`{{request.object.metadata.name}}`}}"
   annotations:
-    description: {{ .annotations.description | quote }}
-    summary: {{ .annotations.summary | quote }}
+    description: >-
+      {{ .annotations.description }}
+    summary: >-
+      {{ .annotations.summary }}
 {{- end }}
 {{- end }}
 
@@ -92,8 +94,10 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Platform (
     severity: {{ .labels.severity }}
     namespace: "{{`{{request.object.metadata.name}}`}}"
   annotations:
-    description: {{ .annotations.description | quote }}
-    summary: {{ .annotations.summary | quote }}
+    description: >-
+      {{ .annotations.description }}
+    summary: >-
+      {{ .annotations.summary }}
 {{- end }}
 {{- end }}
 
@@ -110,7 +114,9 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Cluster Mo
     severity: {{ .labels.severity }}
     namespace: "{{`{{request.object.metadata.name}}`}}"
   annotations:
-    description: {{ .annotations.description | quote }}
-    summary: {{ .annotations.summary | quote }}
+    description: >-
+      {{ .annotations.description }}
+    summary: >-
+      {{ .annotations.summary }}
 {{- end }}
 {{- end }}
