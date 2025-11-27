@@ -1,0 +1,18 @@
+{{- if .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Values.serviceMonitor.name | default "oadp-service-monitor" }}
+  namespace: {{ .Values.serviceMonitor.namespace }}
+  labels:
+    app: oadp-service-monitor
+spec:
+  endpoints:
+  - interval: 30s
+    path: /metrics
+    scheme: http
+    targetPort: 8085
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: velero
+{{- end }}

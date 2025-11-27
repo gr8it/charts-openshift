@@ -13,3 +13,10 @@ argoEventsEventSource:
 argoEventsSensor:
   serviceAccount:
     annotations: {}
+
+# List of namespaces which shouldnt be created by argocd events
+reservedNamespaces:
+  - "openshift-"
+  - "kube-"
+  - "default"
+  - "apc-"

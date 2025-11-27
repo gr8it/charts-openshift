@@ -7,7 +7,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: argo-events-project-setup
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: argo-events-project-setup
-        helm.sh/chart: argo-events-project-setup-1.2.0
+        helm.sh/chart: argo-events-project-setup-1.2.1
       name: argo-events-project-setup-event-source
     rules:
       - apiGroups:
@@ -26,7 +26,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: argo-events-project-setup
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: argo-events-project-setup
-        helm.sh/chart: argo-events-project-setup-1.2.0
+        helm.sh/chart: argo-events-project-setup-1.2.1
       name: argo-events-project-setup-sensor
     rules:
       - apiGroups:
@@ -46,7 +46,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: argo-events-project-setup
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: argo-events-project-setup
-        helm.sh/chart: argo-events-project-setup-1.2.0
+        helm.sh/chart: argo-events-project-setup-1.2.1
       name: argo-events-project-setup-sensor
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -64,7 +64,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: argo-events-project-setup
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: argo-events-project-setup
-        helm.sh/chart: argo-events-project-setup-1.2.0
+        helm.sh/chart: argo-events-project-setup-1.2.1
       name: argo-events-project-setup-event-source
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -82,7 +82,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: argo-events-project-setup
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: argo-events-project-setup
-        helm.sh/chart: argo-events-project-setup-1.2.0
+        helm.sh/chart: argo-events-project-setup-1.2.1
       name: argo-events-project-setup
       namespace: apc-argo-project-setup
     spec:
@@ -101,7 +101,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: argo-events-project-setup
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: argo-events-project-setup
-        helm.sh/chart: argo-events-project-setup-1.2.0
+        helm.sh/chart: argo-events-project-setup-1.2.1
       name: argo-events-project-setup-addgroup
       namespace: apc-argo-project-setup
     spec:
@@ -130,7 +130,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: argo-events-project-setup
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: argo-events-project-setup
-        helm.sh/chart: argo-events-project-setup-1.2.0
+        helm.sh/chart: argo-events-project-setup-1.2.1
       name: argo-events-project-setup-createnamespace
       namespace: apc-argo-project-setup
     spec:
@@ -143,6 +143,22 @@ manifests should match snapshot:
                 fields:
                   - name: a
                     path: groupname
+              - expr: '!(name =~ "^openshift-.*")'
+                fields:
+                  - name: name
+                    path: name
+              - expr: '!(name =~ "^kube-.*")'
+                fields:
+                  - name: name
+                    path: name
+              - expr: '!(name =~ "^default$")'
+                fields:
+                  - name: name
+                    path: name
+              - expr: '!(name =~ "^apc-.*")'
+                fields:
+                  - name: name
+                    path: name
           name: addgroup
           transform:
             jq: '{ groupname: (.body.metadata.name), name: (.body.metadata.name | sub("^APC-D-"; "") | sub("-PJA$"; "") | ascii_downcase) }'
@@ -189,7 +205,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: argo-events-project-setup
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: argo-events-project-setup
-        helm.sh/chart: argo-events-project-setup-1.2.0
+        helm.sh/chart: argo-events-project-setup-1.2.1
       name: argo-events-project-setup-event-source
       namespace: apc-argo-project-setup
   9: |
@@ -202,6 +218,6 @@ manifests should match snapshot:
         app.kubernetes.io/instance: argo-events-project-setup
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: argo-events-project-setup
-        helm.sh/chart: argo-events-project-setup-1.2.0
+        helm.sh/chart: argo-events-project-setup-1.2.1
       name: argo-events-project-setup-sensor
       namespace: apc-argo-project-setup

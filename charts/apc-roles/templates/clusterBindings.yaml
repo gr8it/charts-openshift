@@ -1,0 +1,33 @@
+{{- $adGroupPrefix := .Values.adGroupPrefix }}
+{{- $ldapGroupPrefix := .Values.ldapGroupPrefix }}
+{{- $roleNamePrefix := .Values.roleNamePrefix }}
+{{- $customerCode := include "apc-global-overrides.customer" . }}
+{{- range $idps, $groups := .Values.clusterRoleBindings }}
+  {{- range $group, $roles := $groups }}
+    {{- range $role := $roles }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  {{- if eq $idps "ad" }}
+  name: {{ printf "%s_%s_%s-%s" $roleNamePrefix $group $customerCode $role | trunc 63 | trimSuffix "-" }}
+  {{- else if eq $idps "ldap" }}
+  name: {{ printf "%s_%s-%s" $roleNamePrefix $group $role | trunc 63 | trimSuffix "-" }}
+  {{- end }}
+  labels:
+  {{- include "apc-roles.labels" $ | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ $role }}
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  {{- if eq $idps "ad" }}
+  name: "{{ $adGroupPrefix }}-{{ include "apc-global-overrides.require-environmentShort" $ | upper }} {{ $group | upper }}"
+  {{- else if eq $idps "ldap" }}
+  name: {{ $ldapGroupPrefix }}_{{ $group }}_{{ include "apc-global-overrides.require-environment" $ }}
+  {{- end }}
+---
+    {{- end}}
+  {{- end }}
+{{- end }}

@@ -1,3 +1,4 @@
+{{ $namespaces := include "argo-events-project-setup.reservedNsTransform" . | fromJsonArray }}
 apiVersion: argoproj.io/v1alpha1
 kind: Sensor
 metadata:
@@ -15,6 +16,12 @@ spec:
         fields:
         - name: a
           path: groupname
+      {{- range $ns := $namespaces }}
+      - expr: '!(name =~ "{{ $ns }}")'
+        fields:
+        - name: name
+          path: name
+      {{- end }}
     name: addgroup
     transform:
       jq: '{ groupname: (.body.metadata.name), name: (.body.metadata.name | sub("^APC-{{ include "apc-global-overrides.require-environmentShort" . | upper }}-";

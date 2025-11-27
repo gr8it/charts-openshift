@@ -27,7 +27,7 @@ Configures global pull-secret to be used by kubelet for accessing image registri
 |.pullSecret.vaultKey|cluster-config|string|vault path to get property containing pull secret from|
 |.pullSecret.vaultProperty|pull-secret|string|property of vaultKey containing pull-secret|
 
-Pull-secret is "downloaded" from Vault using default cluster secret store based external secret pointing to `<apc-global-overrides.servicesVaultKVmountPlatform>/<apc-global-overrides.environmentShort>/<.pullSecret.vaultKey>/<.pullSecret.vaultProperty>`, e.g. `apc-platform/h/cluster-config/pull-secret`.
+Pull-secret is "downloaded" from Vault using default cluster secret store based external secret pointing to `<apc-global-overrides.vaultKVmountPlatform>/<apc-global-overrides.environmentShort>/<.pullSecret.vaultKey>/<.pullSecret.vaultProperty>`, e.g. `apc-platform/h/cluster-config/pull-secret`.
 
 Vault property should contain docker configs auth section to be applied to the cluster, e.g.
 
