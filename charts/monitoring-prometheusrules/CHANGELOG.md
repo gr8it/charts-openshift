@@ -5,6 +5,14 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.15] - 2025-11-27
+
+_([SPEXAPC-8954](https://aspecta.atlassian.net/browse/SPEXAPC-8954))_
+
+### Fixed
+
+- reformat descriptions in alert rules for proper rendering
+
 ## [1.0.14] - 2025-11-27
 
 _([SPEXAPC-8954](https://aspecta.atlassian.net/browse/SPEXAPC-8954))_
