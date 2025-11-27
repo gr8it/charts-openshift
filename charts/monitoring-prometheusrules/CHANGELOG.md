@@ -5,6 +5,14 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2025-11-27
+
+_([SPEXAPC-8954](https://aspecta.atlassian.net/browse/SPEXAPC-8954))_
+
+### Fixed
+
+- reformat descriptions in alert rules for proper rendering
+
 ## [1.0.3] - 2025-11-07
 
 _Rules logic update_
@@ -21,7 +29,3 @@ _([SPEXAPC-7193](https://aspecta.atlassian.net/jira/software/c/projects/SPEXAPC/
 ### Added
 
 - Provide PrometheusRule manifests as a reusable library chart that other Helm charts can import.
-
-
-
-
