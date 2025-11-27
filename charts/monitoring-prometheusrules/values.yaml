@@ -69,10 +69,10 @@ rules:
       severity: warning
   - alert: KubeDeploymentRolloutStuck
     annotations:
-    description: >-
-      Rollout of deployment {{ "{{" }} $labels.namespace {{ "}}" }}/{{ "{{" }} $labels.deployment {{ "}}" }}
-      is not progressing for longer than 15 minutes on cluster
-      {{ "{{" }} $labels.cluster {{ "}}" }}.
+      description: >-
+        Rollout of deployment {{ "{{" }} $labels.namespace {{ "}}" }}/{{ "{{" }} $labels.deployment {{ "}}" }}
+        is not progressing for longer than 15 minutes on cluster
+        {{ "{{" }} $labels.cluster {{ "}}" }}.
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentrolloutstuck
       summary: Deployment rollout is not progressing.
     expr: |-
