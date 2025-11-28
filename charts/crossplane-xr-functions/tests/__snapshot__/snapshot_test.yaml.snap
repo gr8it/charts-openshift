@@ -1,0 +1,91 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: pkg.crossplane.io/v1beta1
+    kind: DeploymentRuntimeConfig
+    metadata:
+      labels:
+        app.kubernetes.io/instance: crossplane-xr-functions
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: crossplane-xr-functions
+        helm.sh/chart: crossplane-xr-functions-1.0.0
+      name: crossplane-xr-functions-auto-ready-runtime-config
+      namespace: apc-crossplane-system
+    spec:
+      deploymentTemplate:
+        spec:
+          replicas: 2
+          selector: {}
+          template:
+            spec:
+              containers:
+                - name: package-runtime
+                  securityContext:
+                    allowPrivilegeEscalation: false
+                    capabilities:
+                      drop:
+                        - ALL
+                    seccompProfile:
+                      type: RuntimeDefault
+              securityContext: {}
+  2: |
+    apiVersion: pkg.crossplane.io/v1beta1
+    kind: DeploymentRuntimeConfig
+    metadata:
+      labels:
+        app.kubernetes.io/instance: crossplane-xr-functions
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: crossplane-xr-functions
+        helm.sh/chart: crossplane-xr-functions-1.0.0
+      name: crossplane-xr-functions-go-templating-runtime-config
+      namespace: apc-crossplane-system
+    spec:
+      deploymentTemplate:
+        spec:
+          replicas: 2
+          selector: {}
+          template:
+            spec:
+              containers:
+                - name: package-runtime
+                  securityContext:
+                    allowPrivilegeEscalation: false
+                    capabilities:
+                      drop:
+                        - ALL
+                    seccompProfile:
+                      type: RuntimeDefault
+              securityContext: {}
+  3: |
+    apiVersion: pkg.crossplane.io/v1
+    kind: Function
+    metadata:
+      labels:
+        app.kubernetes.io/instance: crossplane-xr-functions
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: crossplane-xr-functions
+        helm.sh/chart: crossplane-xr-functions-1.0.0
+      name: crossplane-xr-functions-auto-ready
+      namespace: apc-crossplane-system
+    spec:
+      package: xpkg.crossplane.io/crossplane-contrib/function-auto-ready:v0.5.2
+      runtimeConfigRef:
+        apiVersion: pkg.crossplane.io/v1beta1
+        kind: DeploymentRuntimeConfig
+        name: crossplane-xr-functions-auto-ready-runtime-config
+  4: |
+    apiVersion: pkg.crossplane.io/v1
+    kind: Function
+    metadata:
+      labels:
+        app.kubernetes.io/instance: crossplane-xr-functions
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: crossplane-xr-functions
+        helm.sh/chart: crossplane-xr-functions-1.0.0
+      name: crossplane-xr-functions-go-templating
+      namespace: apc-crossplane-system
+    spec:
+      package: xpkg.crossplane.io/crossplane-contrib/function-go-templating:v0.11.1
+      runtimeConfigRef:
+        apiVersion: pkg.crossplane.io/v1beta1
+        kind: DeploymentRuntimeConfig
+        name: crossplane-xr-functions-go-templating-runtime-config
