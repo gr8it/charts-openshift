@@ -1,0 +1,19 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: microservice-project-admin
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-apc-project-admin: "true"
+rules:
+- apiGroups:
+  - ck.socpoist.sk
+  resources:
+  - microservices
+  verbs:
+  - "*"
+- apiGroups:
+  - ck.socpoist.sk
+  resources:
+  - microserviceaccess
+  verbs:
+  - "*"
