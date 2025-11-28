@@ -2,12 +2,18 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: mikroservice-admin
-  # labels:
-  #   rbac.crossplane.io/aggregate-to-crossplane: "true"
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-apc-project-admin: "true"
 rules:
 - apiGroups:
-  - apc.cloud.socpoist.sk
+  - ck.socpoist.sk
   resources:
-  - mikroservices
+  - microservices
+  verbs:
+  - "*"
+- apiGroups:
+  - ck.socpoist.sk
+  resources:
+  - microserviceaccess
   verbs:
   - "*"
