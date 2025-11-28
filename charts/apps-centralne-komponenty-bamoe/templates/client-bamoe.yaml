@@ -1,0 +1,34 @@
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: Client
+metadata:
+  name: {{ .Values.clientId }}
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    realmId: {{ .Values.realmId }}
+    clientId: {{ .Values.clientId }}
+    name: {{ .Values.clientName }}
+    description: {{ .Values.clientName }} manazment konzola
+    accessType: PUBLIC
+    standardFlowEnabled: true
+    {{- if or .Values.rootUrl .Values.baseUrl }}
+    rootUrl: {{ .Values.rootUrl | default .Values.baseUrl }}
+    {{- end }}
+    {{- if .Values.baseUrl }}
+    baseUrl: {{ .Values.baseUrl }}
+    {{- end }}
+    validRedirectUris:
+    {{- range .Values.validRedirectUris | required "validRedirectUris must be set" }}
+      - {{ . }}
+    {{- end }}
+    {{- if .Values.webOrigins }}
+    webOrigins:
+    {{- range .Values.webOrigins }}
+      - {{ . }}
+    {{- end }}
+    {{- end }}
+    frontchannelLogoutEnabled: true
+    pkceCodeChallengeMethod: S256
+    fullScopeAllowed: false
+  providerConfigRef:
+    name: {{ .Values.providerConfigRef }}
