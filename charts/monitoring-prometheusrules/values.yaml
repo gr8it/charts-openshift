@@ -2,8 +2,8 @@
 rules:
   - alert: KubePodCrashLooping
     annotations:
-      description: |
-        {{`Deployment $labels.deployment in $labels.namespace is failing on $labels.cluster`}}
+      description: >
+        Pod {{ `\{{ $labels.namespace }}` }}/{{ `\{{ $labels.pod }} (\{{ $labels.container }})` }} is in waiting state (reason: "CrashLoopBackOff") on cluster {{ `\{{ $labels.cluster }}` }}.
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodcrashlooping
       summary: Pod is crash looping.
     expr: max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m]) >= 1
