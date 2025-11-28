@@ -8,8 +8,10 @@ Due to inefficiencies of RHBK / Kubernetes RBAC (for example allow creation and 
 
 There are two XRDs:
 
-- microservice.ck.socpoist.sk
-- microserviceaccess.ck.socpoist.sk
+- [microservice.ck.socpoist.sk](#microservice)
+- [microserviceaccess.ck.socpoist.sk](#microservice-access)
+
+Usage of APC Keycloak is preferred due to operational complexity of running a Keycloak instance 24/7
 
 ### Microservice
 
