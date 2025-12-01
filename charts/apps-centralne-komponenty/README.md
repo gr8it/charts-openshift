@@ -2,7 +2,7 @@
 
 ## Architecture
 
-![architecture](img/architecture.png)
+![architecture](img/architecture.svg)
 
 Due to inefficiencies of RHBK / Kubernetes RBAC (for example allow creation and modification of a Keycloak client, but don't allow modification of any existing client) it is not possible to allow user selfservice their Keycloak configuration directly using Crossplane Managed Resources (MR). As such Crossplane Composite resources (XR) were used to work around this RBAC limitation, i.e. project admins / operators are able to manage XR composites, which will manage required Keycloak MRs in an controlled way.
 
@@ -33,6 +33,16 @@ Using the microservice.ck.socpoist.sk XR allows projet admins / operators to:
 
 > [!NOTE]  
 > Keycloak [https://www.keycloak.org/2025/05/fgap-kc-26-2](Fine-Grained Admin Permissions), are not yet available for RHBK, and don't allow required level of RBAC.
+
+### IS Agenda Systems
+
+Several options were considered for Agenda Systems connecting to APIs:
+
+1) trusting token from SP Keycloak on API = not recommended
+2) token exchange v1 = not standard / preview only / no support
+3) connecting AS clients to APC Keycloak = implementation on client side (with client auth implementation is very easy)
+
+Although a requirement on client (AS) side implementation, option 3) has been selected.
 
 ## XRD generation
 
