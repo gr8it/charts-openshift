@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.configMaps.vars.name }}
+  namespace: {{ include "apc-warmcache.namespace" . }}
+  labels:
+    {{- include "apc-warmcache.labels" . | nindent 4 }}
+data:
+  REGISTRIES: {{ join " " .Values.registries | quote}}
+  APCREGISTRY: {{ .Values.apcRegistry | quote }}
