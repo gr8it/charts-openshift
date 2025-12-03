@@ -13,8 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.3] - 2025-11-07
 
-_Rules logic update_
-
 ### Changed
 
 - proper namespace handling of expr in prometheusrules
