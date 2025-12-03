@@ -235,7 +235,7 @@ rules:
       kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
         ==
       kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-    for: 15m
+    for: 24h
     labels:
       severity: warning
   - alert: KubePdbNotEnoughHealthyPods
