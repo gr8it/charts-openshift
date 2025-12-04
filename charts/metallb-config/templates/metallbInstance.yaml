@@ -1,0 +1,12 @@
+apiVersion: metallb.io/v1beta1
+kind: MetalLB
+metadata:
+  name: metallb
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "metallb-config.labels" . | nindent 4 }}
+spec:
+  controllerConfig:
+    priorityClassName: high-priority
+  speakerConfig:
+    priorityClassName: high-priority

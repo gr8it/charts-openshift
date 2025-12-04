@@ -1,0 +1,111 @@
+# Namespace configuration
+sourceNamespace: apc-backup
+targetNamespace: openshift-adp
+
+# Kyverno policy toggle
+kyverno:
+  enabled: true
+  # Control how Kyverno manages generated resources
+  # generateExisting ensures Kyverno creates or updates targets even if the source already exists.
+  generateExisting: true
+  # synchronize reconciles generated resources to match the source data continuously.
+  synchronize: true
+  # orphanDownstreamOnPolicyDelete keeps generated resources when the policy is removed.
+  orphanDownstreamOnPolicyDelete: true
+  dpaPolicy:
+    # Generate the DPA via Kyverno and keep the service CA in sync
+    enabled: true
+    serviceAccountNamespace: apc-kyverno
+    serviceAccounts:
+      - name: kyverno-background-controller
+      - name: kyverno-admission-controller
+    rbac:
+      create: true
+
+# Credential transformation - copy secret from sourceNamespace to targetNamespace
+credentials:
+  # Defaults resolve to oadp-<cluster>-app-backup / oadp-<cluster>-app-backup-cloud-credentials
+  backup:
+    sourceName: ~
+    targetName: ~
+  # Defaults resolve to oadp-<cluster>-app-restore / oadp-<cluster>-app-restore-cloud-credentials
+  restore:
+    sourceName: ~
+    targetName: ~
+
+# DataProtectionApplication configuration (consumed by Kyverno policy)
+dpa:
+  name: apc-dpa
+  backupLocations: []
+#     # Default backup location used by all OADP application backups (always as default location)
+#     - name: ~
+#       bucket: ~
+#       prefix: ~
+#       default: true
+#     # Helper restore location
+#     - name: ~
+#       bucket: ~
+#       prefix: ~
+#       default: false
+
+  # S3 configuration
+  s3:
+    region: us-east-1
+    url: https://rook-ceph-rgw-ocs-storagecluster-cephobjectstore.openshift-storage.svc:443
+    forcePathStyle: true
+    insecureSkipTLSVerify: false
+    # Optional PEM/base64 CA bundle; overrides the service-ca ConfigMap when set.
+    caCert: ~
+  
+  # Velero configuration  
+  velero:
+    defaultPlugins:
+      - openshift
+      - aws
+      - kubevirt
+      - csi
+    defaultSnapshotMoveData: true
+    defaultVolumesToFSBackup: false
+    resourceTimeout: 60m
+  
+  # NodeAgent (formerly restic) configuration
+  nodeAgent:
+    enabled: true
+    uploaderType: kopia
+    resourceAllocations:
+      limits:
+        cpu: "2"
+        memory: 32Gi
+      requests:
+        cpu: 500m
+        memory: 4Gi
+
+# ServiceMonitor for monitoring
+serviceMonitor:
+  enabled: true
+  name: oadp-service-monitor
+  namespace: openshift-adp
+
+# ObjectBucketClaim for backup storage
+objectBucketClaims:
+  enabled: true
+  backup:
+    # defaults to oadp-<cluster>-app-backup via template when left ~
+    name: ~
+    # defaults to ocs-storagecluster-ceph-rgw via template when left ~
+    storageClassName: ocs-storagecluster-ceph-rgw
+    # generateBucketName controls the Ceph bucket prefix and defaults to the resolved OBC name (e.g. oadp-<cluster>-app-backup)
+    generateBucketName: ~
+  restore:
+    # defaults to oadp-<cluster>-app-restore via template when left ~
+    name: ~
+    # defaults to ocs-storagecluster-ceph-rgw via template when left ~
+    storageClassName: ocs-storagecluster-ceph-rgw
+    # generateBucketName controls the Ceph bucket prefix and defaults to the resolved OBC name (e.g. oadp-<cluster>-app-restore)
+    generateBucketName: ~
+
+# Standard APC labels will be applied via apc-global-overrides
+prometheusRule:
+  enabled: true
+  name: oadp-monitoring-rules
+  namespace: openshift-adp

@@ -9,6 +9,7 @@ spec:
   generateExisting: true
   rules:
   - name: generate-prometheus-rules-labels
+    skipBackgroundRequests: true
     match:
       any:
       - resources:
@@ -33,11 +34,11 @@ spec:
       synchronize: true
       apiVersion: monitoring.coreos.com/v1
       kind: PrometheusRule
-      name: "user-workload-monitoring-{{`{{request.object.metadata.name}}`}}"
+      name: "cluster-monitoring-{{`{{request.object.metadata.name}}`}}"
       namespace: "{{`{{request.object.metadata.name}}`}}"
       data:
         spec:
           groups:
-          - name: "user-workload-{{`{{request.object.metadata.name}}`}}"
+          - name: "cluster-monitoring-{{`{{request.object.metadata.name}}`}}"
             rules:
               {{- include "monitoring-prometheusrules.rulesClusterMonitoring" . | nindent 14 }}

@@ -60,3 +60,16 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Transform reservedNamespaces: add '^' at start, '$' if no '-' at end, '.*' if '-' at end.
+Usage: {{ include "argo-events-project-setup.reservedNsTransform" . }}
+*/}}
+{{- define "argo-events-project-setup.reservedNsTransform" -}}
+{{- $patterns := list }}
+{{- range $ns := .Values.reservedNamespaces }}
+  {{- $suffix := (hasSuffix "-" $ns | ternary ".*" "$") }}
+  {{- $patterns = append $patterns (printf "^%s%s" $ns $suffix) }}
+{{- end }}
+{{- toJson $patterns }}
+{{- end }}
