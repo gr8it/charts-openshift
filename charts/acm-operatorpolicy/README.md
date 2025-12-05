@@ -102,7 +102,7 @@ versions:
 forceReleaseNamespace: true
 
 operatorGroup:
-  # targets release namespace only
+# targets release namespace only
   targetNamespaces:
   - "{{ .Release.Namespace }}"
 
@@ -118,3 +118,19 @@ versions:
   - cert-manager-operator.v1.15.1
 ```
 
+> [!NOTE]
+> templating can be used in values.yaml for operatorGroup.targetNamespaces - see above
+
+
+### Targeted upgrades
+
+In automatic mode, updates are approved by ACM only for specified versions.
+
+> [!WARNING]
+> set to Automatic only when at least 1 version is defined, otherwise all updates are approved!
+
+```yaml
+  upgradeApproval: Automatic
+  versions:
+    - quay-operator.v3.13.2
+```
