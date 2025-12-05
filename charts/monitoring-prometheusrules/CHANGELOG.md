@@ -5,14 +5,17 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.3] - 2025-11-07
+## [1.0.4] - 2025-12-03
 
-_Rules logic update_
+### Changed
+
+- raised the for threshold in the Prometheus alert KubeHpaMaxedOut configuration
+
+## [1.0.3] - 2025-11-07
 
 ### Changed
 
 - proper namespace handling of expr in prometheusrules
-
 
 ## [1.0.2] - 2025-10-30
 
@@ -21,7 +24,3 @@ _([SPEXAPC-7193](https://aspecta.atlassian.net/jira/software/c/projects/SPEXAPC/
 ### Added
 
 - Provide PrometheusRule manifests as a reusable library chart that other Helm charts can import.
-
-
-
-

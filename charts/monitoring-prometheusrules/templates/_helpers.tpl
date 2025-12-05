@@ -71,8 +71,6 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Applicatio
   expr: {{ .expr | quote }}
   for: {{ .for }}
   labels:
-    vendor: socpoist
-    team: developers
     severity: {{ .labels.severity }}
     namespace: "{{`{{request.object.metadata.name}}`}}"
   annotations:
@@ -91,8 +89,6 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Platform (
   expr: {{ .expr | quote }}
   for: {{ .for }}
   labels:
-    vendor: aspecta
-    team: platform
     severity: {{ .labels.severity }}
     namespace: "{{`{{request.object.metadata.name}}`}}"
   annotations:
@@ -111,8 +107,6 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Cluster Mo
   expr: {{ .expr | quote }}
   for: {{ .for }}
   labels:
-    vendor: aspecta
-    team: platform
     severity: {{ .labels.severity }}
     namespace: "{{`{{request.object.metadata.name}}`}}"
   annotations:
@@ -120,5 +114,3 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Cluster Mo
     summary: {{ .annotations.summary | quote }}
 {{- end }}
 {{- end }}
-
-
