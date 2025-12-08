@@ -9,9 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _([SPEXAPC-4733](https://aspecta.atlassian.net/jira/software/c/projects/SPEXAPC/boards/109?issueType=3&selectedIssue=SPEXAPC-4733))_
 
-### Created
-
-- created compliance operator 
+_Initial release._
 
 
 
