@@ -3,7 +3,7 @@ apiVersion: compliance.openshift.io/v1alpha1
 kind: ScanSetting
 metadata:
   name: {{ .Values.scanSetting.name }}
-  namespace: {{ .Values.namespace.name }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "compliance-config.labels" . | nindent 4 }}
 spec:
