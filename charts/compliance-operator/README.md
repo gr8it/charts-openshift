@@ -17,7 +17,7 @@ This chart creates:
 acm-operatorpolicy:
   subscription:
     channel: stable
-    namespace: openshift-compliance
+    name: compliance-operator-sub
     config:
       nodeSelector:
         node-role.kubernetes.io/worker: ""
