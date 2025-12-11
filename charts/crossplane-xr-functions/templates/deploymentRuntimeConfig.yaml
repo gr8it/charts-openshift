@@ -15,6 +15,13 @@ spec:
         spec:
           containers:
           - name: package-runtime
+            resources:
+              limits:
+                cpu: 500m
+                memory: 300Mi
+              requests:
+                cpu: 50m
+                memory: 100Mi
             securityContext:
               allowPrivilegeEscalation: false
               capabilities:
