@@ -324,7 +324,7 @@ Create the cert-manager cluster issuer name
 {{- end }}
 
 {{/*
-Create the vault provider config name
+Create the Crossplane Vault provider config name
 */}}
 {{- define "apc-global-overrides.crossplaneKubeVaultProviderConfigName" -}}
 {{- (((include "apc-global-overrides.services" .) | fromYaml).crossplane).kubeVaultProviderConfigName | default "" }}
@@ -332,6 +332,17 @@ Create the vault provider config name
 
 {{- define "apc-global-overrides.require-crossplaneKubeVaultProviderConfigName" -}}
 {{- include "apc-global-overrides.crossplaneKubeVaultProviderConfigName" . | required "APC services.crossplane.kubeVaultProviderConfigName is required" }}
+{{- end }}
+
+{{/*
+Create the Crossplane Keycloak provider config name
+*/}}
+{{- define "apc-global-overrides.crossplaneKubeKeycloakProviderConfigName" -}}
+{{- (((include "apc-global-overrides.services" .) | fromYaml).crossplane).kubeKeycloakProviderConfigName | default "" }}
+{{- end }}
+
+{{- define "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" -}}
+{{- include "apc-global-overrides.crossplaneKubeKeycloakProviderConfigName" . | required "APC services.crossplane.kubeKeycloakProviderConfigName is required" }}
 {{- end }}
 
 {{/*
@@ -343,6 +354,28 @@ Create the eso default cluster secret store
 
 {{- define "apc-global-overrides.require-ESODefaultClusterSecretStore" -}}
 {{- include "apc-global-overrides.ESODefaultClusterSecretStore" . | required "APC services.externalSecretsOperator.defaultClusterSecretStore is required" }}
+{{- end }}
+
+{{/*
+Create the Keycloak URL
+*/}}
+{{- define "apc-global-overrides.keycloakUrl" -}}
+{{- (((include "apc-global-overrides.services" .) | fromYaml).keycloak).url | default "" }}
+{{- end }}
+
+{{- define "apc-global-overrides.require-keycloakUrl" -}}
+{{- include "apc-global-overrides.keycloakUrl" . | required "APC services.keycloak.url is required" }}
+{{- end }}
+
+{{/*
+Create the Keycloak Realm
+*/}}
+{{- define "apc-global-overrides.keycloakRealm" -}}
+{{- (((include "apc-global-overrides.services" .) | fromYaml).keycloak).realm | default "" }}
+{{- end }}
+
+{{- define "apc-global-overrides.require-keycloakRealm" -}}
+{{- include "apc-global-overrides.keycloakRealm" . | required "APC services.keycloak.realm is required" }}
 {{- end }}
 
 {{/*

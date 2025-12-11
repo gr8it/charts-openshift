@@ -5,6 +5,16 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2025-10-29
+
+_([SPEXAPC-7592](https://example.atlassian.net/browse/SPEXAPC-7592))_
+
+### Added
+
+- apc-global-overrides.crossplaneKubeKeycloakProviderConfigName helper
+- apc-global-overrides.keycloakUrl helper
+- apc-global-overrides.keycloakRealm helper
+
 ## [1.5.0] - 2025-10-29
 
 _([JIRA-6770](https://example.atlassian.net/browse/JIRA-6770))_

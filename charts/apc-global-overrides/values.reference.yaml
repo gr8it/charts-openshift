@@ -32,12 +32,28 @@
 #     # apc global services
 #     # used to share values between helm charts
 #     services:
-#       vault:
-#         url: https://vault.apps.lab.gr8it.cloud
 #       certManager:
 #         defaultClusterIssuer: vault-hub-issuer
+#       crossplane:
+#         # name of the crossplane vault provider config to be used when creating vault resources using crossplane
+#         kubeVaultProviderConfigName: vault-hub-provider-config
+#         kubeKeycloakProviderConfigName: keycloak-hub-provider-config
+#       externalSecretsOperator:
+#         defaultClusterSecretStore: vault-hub-secret-store
 #       gitops:
 #         url: https://gitops.apps.lab.gr8it.cloud
+#       keycloak:
+#         url: https://login.apps.lab.gr8it.cloud
+#         realm: apps
+#       metallb:
+#         namespace: metallb-system
+#       quay:
+#         host: apc-registry-quay-quay.apps.hub01.cloud.socpoist.sk
+#       vault:
+#         url: https://vault.apps.lab.gr8it.cloud
+#         name: vault-hub
+#         KVmountPlatform: apc-platform
+#         kubeAuthMountPath: dev
 #     caCertificates:
 #       gr8it.crt: |
 #         -----BEGIN CERTIFICATE-----
