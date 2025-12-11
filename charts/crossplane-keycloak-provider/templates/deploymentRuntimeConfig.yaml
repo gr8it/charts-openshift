@@ -8,7 +8,7 @@ metadata:
 spec:
   deploymentTemplate:
     spec:
-      replicas: 2
+      replicas: {{ .Values.replicas }}
       selector: {}
       template:
         spec:
@@ -30,9 +30,9 @@ spec:
               # runAsGroup: ~
               # runAsNonRoot: true
               # runAsUser: ~
-            # volumeMounts:
-            # - mountPath: /certs/
-            #   name: custom-ca-certs
+            volumeMounts:
+            - mountPath: /certs/
+              name: custom-ca-certs
             # - mountPath: /etc/ssl/certs/isreg.crt
             #   name: custom-ca-certs
             #   readOnly: true
@@ -45,10 +45,10 @@ spec:
           topologySpreadConstraints:
           - labelSelector:
               matchLabels:
-                pkg.crossplane.io/provider: provider-keycloak
+                pkg.crossplane.io/provider: {{ include "crossplane-keycloak-provider.fullname" . }}
             maxSkew: 1
             topologyKey: kubernetes.io/hostname
-            whenUnsatisfiable: ScheduleAnyway
+            whenUnsatisfiable: DoNotSchedule
           volumes:
           - configMap:
               name: custom-ca-certs
