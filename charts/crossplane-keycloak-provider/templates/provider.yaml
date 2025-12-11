@@ -9,3 +9,6 @@ spec:
   package: {{ .Values.providerPackage }}
   runtimeConfigRef:
     name: {{ include "crossplane-keycloak-provider.fullname" . }}-config
+  # packagePullPolicy: IfNotPresent
+  # revisionActivationPolicy: Manual
+  revisionHistoryLimit: 2
