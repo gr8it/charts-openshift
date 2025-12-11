@@ -2,6 +2,8 @@ apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
   name: ck-microservice-access
+  labels:
+    {{- include "apps-centralne-komponenty.labels" . | nindent 4 }}
 spec:
   compositeTypeRef:
     apiVersion: ck.socpoist.sk/v1alpha1

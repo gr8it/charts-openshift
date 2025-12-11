@@ -2,6 +2,8 @@ apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
 kind: Client
 metadata:
   name: {{ .Values.clientId }}
+  labels:
+    {{- include "apps-centralne-komponenty-bamoe.labels" . | nindent 4 }}
 spec:
   deletionPolicy: Delete
   forProvider:
