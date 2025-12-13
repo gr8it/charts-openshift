@@ -54,6 +54,10 @@ data:
       kubeVaultProviderConfigName: {{ include "apc-global-overrides.crossplaneKubeVaultProviderConfigName" . }}
     externalSecretsOperator:
       defaultClusterSecretStore: {{ include "apc-global-overrides.ESODefaultClusterSecretStore" . }}
+    metallb:
+      namespace: {{ include "apc-global-overrides.metallbNamespace" . }}
+    quay:
+      host: {{ include "apc-global-overrides.quayHost" . }}
     vault:
       kubeAuthMountPath: {{ include "apc-global-overrides.vaultKubeAuthMountPath" . }}
       name: {{ include "apc-global-overrides.vaultName" . }}
