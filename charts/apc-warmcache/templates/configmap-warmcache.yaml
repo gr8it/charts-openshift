@@ -12,8 +12,6 @@ data:
 
     imglist="/imglist/images"
     registrycertdir="/etc/regca"
-    # docker.io is specific as the registry is not specified in the registry url
-    dockerRegistry="docker.io"
 
     log_message() {
       local timestamp
@@ -35,53 +33,37 @@ data:
     }
 
     while IFS= read -r line; do
-    # Strip the image url and get only the registry (till the first '/')
-    registry=$(echo $line | sed 's!/.*!!')
-    notCacheRegistry=true
+      # Strip the image url and get only the registry (till the first '/')
+      registry=$(echo $line | sed 's!/.*!!')
+      notCacheRegistry=true
 
-    # Check if the registry is cached
-    for reg in $REGISTRIES; do
-      if [ "$registry" == "$reg" ]; then
-        notCacheRegistry=false
-        break
-      fi
-    done
-
-    if [[ "$notCacheRegistry" == "true" ]]; then
-      # Check if its docker registry, docker.io is not implicitly in the image name
-      isDocker=`echo $registry | sed -n '/^[A-Za-z0-9_-]\+\(:[A-Za-z0-9._-]\+\)\?$/p'`
-      if [[ -n $isDocker ]]; then
-        registryuser=$(echo $dockerRegistry  | sed 's/:.*//; s/\./_/g')_user
-        registrypassword=$(echo $dockerRegistry  | sed 's/:.*//; s/\./_/g')_password
-        # Some images in docker.io are from library repo
-        isLibrary=`echo $line | sed -n '/\//p'`
-        if [[ -z $isLibrary ]]; then
-          log_message "INFO: refreshing image ${line}"
-          if ! skopeo copy --src-cert-dir ${registrycertdir} --src-creds ${!registryuser}:${!registrypassword} docker://${APCREGISTRY}/docker.io/library/${line} docker-archive:/dev/null > /dev/shm/log.err 2>&1; then
-            log_message "ERROR: refreshing image ${line} failed."
-            log_messagef /dev/shm/log.err
-          fi
-        else
-          log_message "INFO: refreshing image ${line}"
-          if ! skopeo copy --src-cert-dir ${registrycertdir} --src-creds ${!registryuser}:${!registrypassword} docker://${APCREGISTRY}/docker.io/${line} docker-archive:/dev/null > /dev/shm/log.err 2>&1; then
-            log_message "ERROR: refreshing image ${line} failed."
-            log_messagef /dev/shm/log.err
-          fi
+      # Check if the registry is cached
+      for reg in $REGISTRIES; do
+        if [ "$registry" == "$reg" ]; then
+          notCacheRegistry=false
+          break
         fi
-      else
+      done
+
+      if [[ "$notCacheRegistry" == "true" ]]; then
         log_message "WARNING: Not a cached registry, image: $line"
-      fi
-    else
-      registryuser=$(echo $registry  | sed 's/:.*//; s/\./_/g')_user
-      registrypassword=$(echo $registry  | sed 's/:.*//; s/\./_/g')_password
+      else
+        registryuser=$(echo $registry  | sed 's/:.*//; s/\./_/g')_user
+        registrypassword=$(echo $registry  | sed 's/:.*//; s/\./_/g')_password
+        count=0
 
-      log_message "INFO: refreshing image ${line}"
-      if ! skopeo copy --src-cert-dir ${registrycertdir} --src-creds ${!registryuser}:${!registrypassword} docker://${APCREGISTRY}/$line docker-archive:/dev/null > /dev/shm/log.err 2>&1; then
-        log_message "ERROR: refreshing image ${line} failed."
-        log_messagef /dev/shm/log.err
-      fi
-    fi
+        log_message "INFO: refreshing image ${line}"
+        until skopeo copy --src-cert-dir ${registrycertdir} --src-creds ${!registryuser}:${!registrypassword} docker://${APCREGISTRY}/$line docker-archive:/dev/null > /dev/shm/log.err 2>&1; do
+          count=$((count + 1))
+          if [ "$count" -ge "$RETRY" ]; then
+            log_message "ERROR: refreshing image ${line} failed after ${RETRY} attempts."
+            log_messagef /dev/shm/log.err
+            break
+          fi
+          log_message "WARNING: refreshing image ${line} failed, retrying (${count}/${RETRY})..."
+        done
 
+      fi
     done < ${imglist}
 
     log_message "INFO: Completed downloading the images to refresh the image cache."

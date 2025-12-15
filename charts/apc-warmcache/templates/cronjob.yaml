@@ -71,9 +71,14 @@ spec:
                 mountPath: /usr/local/bin/warmcache.sh
                 subPath: warmcache.sh
                 readOnly: true
+            env:
+              - name: REGISTRIES
+                value: {{ join " " .Values.registries | quote }}
+              - name: APCREGISTRY
+                value: {{ .Values.apcRegistry | quote }}
+              - name: RETRY
+                value: {{ .Values.retry | quote }}
             envFrom:
-              - configMapRef:
-                  name: {{ .Values.configMaps.vars.name }}
               - secretRef:
                   name: {{ .Values.externalSecrets.regrobot.targetSecretName }}
             {{- with .Values.container.resources }}
@@ -83,7 +88,7 @@ spec:
           volumes: 
             - name: regca
               secret:
-                secretName: {{ .Values.externalSecrets.regca.targetSecretName }}
+                secretName: {{ .Values.secrets.regca.name }}
             - name: imglist
               emptyDir:
                 sizeLimit: {{ .Values.volumes.imglist.sizeLimit }}

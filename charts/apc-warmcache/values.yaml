@@ -117,26 +117,17 @@ externalSecrets:
   
   # Secret store reference
   secretStoreRef:
-    name: vault-hub-secret-store
     kind: ClusterSecretStore
   
   # Refresh interval for secrets
   refreshInterval: "1h0m0s"
   
-  # Registry CA certificate secret
-  regca:
-    name: registryca
-    targetSecretName: registryca-secret
-    vault:
-      # Vault path for registry CA bundle
-      key: /d/quay-config/registry-ca-bundle
-      property: ca
-  
   # Registry robot accounts secrets
   regrobot:
     name: registryrobots
     targetSecretName: registryrobots-secret
-    vaultPath: "/d/quay-config/registries/{{ .registry }}/robot-account"
+    # There are stored two values under the secret: username and password
+    vaultPath: "/{{ .env }}/quay-config/registries/{{ .registry }}/robot-account"
 
 # Labels to apply to all resources
 commonLabels: {}
@@ -144,10 +135,16 @@ commonLabels: {}
 # Annotations to apply to all resources
 commonAnnotations: {}
 
+secrets:
+  # CA certificates secret for registry communication
+  regca:
+    name: registryca-secret
+
 configMaps:
   cachescript:
     name: warmcachescript
   imagescript:
     name: getimagesscript
-  vars:
-    name: variables
+
+# retry count for image download
+retry: 2

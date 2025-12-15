@@ -24,7 +24,7 @@ data:
 
     log_message "INFO: Starting to retrieve images from all pods."
 
-    if ! oc get pods -A -o jsonpath='{range .items[*]}{range .spec.initContainers[*]}{.image}{"\n"}{end}{range .spec.containers[*]}{.image}{"\n"}{end}{end}' | sort -u > /imglist/images; then
+    if ! oc get pods -A -o jsonpath='{range .items[*]}{range .status.initContainerStatuses[*]}{.image}{"\n"}{end}{range .status.containerStatuses[*]}{.image}{"\n"}{end}{end}' | sort -u > /imglist/images; then
       log_messagef /imglist/images
       log_message "ERROR: Failed to retrieve images from all pods."
       exit 1
