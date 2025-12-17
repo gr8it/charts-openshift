@@ -1,0 +1,26 @@
+{{- if .Values.networkpolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "apps-ck-kafka.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "apps-ck-kafka.labels" . | nindent 4 }}
+spec:
+  ingress:
+  {{- range $user := .Values.networkpolicy.namespaces }}
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ $user }}
+    ports:
+    - port: 9093
+  {{- end }}
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ include "apps-ck-kafka.fullname" . }}
+      strimzi.io/broker-role: "true"
+  policyTypes:
+  - Ingress
+---
+{{- end }}

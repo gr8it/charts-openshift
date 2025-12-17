@@ -579,6 +579,31 @@ manifests should match snapshot:
         acls: []
         type: simple
   15: |
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.0.0
+      name: kafka
+      namespace: kafka
+    spec:
+      ingress:
+        - from:
+            - namespaceSelector:
+                matchLabels:
+                  kubernetes.io/metadata.name: source-namespace-1
+          ports:
+            - port: 9093
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/instance: kafka
+          strimzi.io/broker-role: "true"
+      policyTypes:
+        - Ingress
+  16: |
     apiVersion: velero.io/v1
     kind: Schedule
     metadata:

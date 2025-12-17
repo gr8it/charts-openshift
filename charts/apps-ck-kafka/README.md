@@ -39,3 +39,4 @@ UI has authentication disabled (see TODO) and as such is currently available usi
 - kafka-ui
   - add Auth => with auth enabled, add ingress
   - integrate metrics in brokers.metrics GUI
+- user credentials secret synchronization to target namespace, e.g. eds?
