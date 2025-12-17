@@ -3,7 +3,7 @@ apiVersion: platform.stackrox.io/v1alpha1
 kind: SecuredCluster
 metadata:
   name: {{ .Values.securedCluster.name }}
-  namespace: {{ .Values.stackrox.namespace }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "acs-config.labels" . | nindent 4 }}
 spec:

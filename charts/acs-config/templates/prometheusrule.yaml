@@ -4,7 +4,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
   name: {{ .Values.prometheusRule.name }}
-  namespace: {{ .Values.prometheusRule.namespace | default .Values.stackrox.namespace }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "acs-config.labels" . | nindent 4 }}
     {{- with .Values.prometheusRule.labels }}
