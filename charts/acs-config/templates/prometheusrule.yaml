@@ -1,4 +1,4 @@
-{{- if .Values.prometheusRule.enabled }}
+{{- if or .Values.prometheusRule.enabled (eq (include "apc-global-overrides.clusterIsHub" .) "true") }}
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
@@ -11,5 +11,8 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- .Values.prometheusRule.spec | toYaml | nindent 2 }}
+  groups:
+    {{- range $path, $_ := .Files.Glob "prometheus-rules/*.yaml" }}
+    {{- $.Files.Get $path | nindent 4 }}
+    {{- end }}
 {{- end }}
