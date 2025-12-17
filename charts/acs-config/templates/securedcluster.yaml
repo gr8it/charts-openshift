@@ -17,7 +17,7 @@ spec:
     timeoutSeconds: {{ .Values.securedCluster.admissionControl.timeoutSeconds }}
   auditLogs:
     collection: {{ .Values.securedCluster.auditLogs.collection }}
-  clusterName: {{ .Values.securedCluster.clusterName }}
+  clusterName: {{ include "apc-global-overrides.clusterName" . }}
   centralEndpoint: {{ .Values.securedCluster.centralEndpoint }}
   monitoring:
     openshift:
