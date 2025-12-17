@@ -77,6 +77,7 @@ spec:
                 - --openshift-ca=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
                 - --tls-cert=/etc/tls/private/tls.crt
                 - --tls-key=/etc/tls/private/tls.key
+                # while not optimal, it is ok that the cookie-secret changes during lifecycle of the CR. The grafana deployment is restarted with new secret, and all client must reauthenticate to receiver newly encoded cookies
                 - --cookie-secret={{ (randAlphaNum 16 | nospace) | b64enc }}
                 - --client-id=system:serviceaccount:{{ .Release.Namespace }}:{{ include "grafana-instance.name" . }}-sa
                 - --client-secret-file=/var/run/secrets/kubernetes.io/serviceaccount/token

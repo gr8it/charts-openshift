@@ -1,0 +1,22 @@
+{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
+{{- range $clusterName, $ipAddrPool := .Values.ipAddrPool.hub }}
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: kubeapi-{{ $clusterName }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "metallb-config.labels" $ | nindent 4 }}
+spec:
+  addresses:
+  - {{ $ipAddrPool }}
+  autoAssign: true
+  serviceAllocation:
+    namespaces:
+    - {{ $clusterName }}-{{ $clusterName }}
+    serviceSelectors:
+      - matchLabels:
+          app: kube-apiserver
+---
+{{- end }}
+{{- end }}

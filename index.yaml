@@ -130,6 +130,16 @@ entries:
     version: 1.0.0
   apc-global-overrides:
   - apiVersion: v2
+    created: "2025-11-03T14:13:58.829102043+01:00"
+    description: A Helm chart containing helm helper functions to override global
+      APC values by local values
+    digest: bb2d85704a9c67792dc901d39befa4a5cfe104f535326572e81851b3bad8bf49
+    name: apc-global-overrides
+    type: library
+    urls:
+    - packaged_charts/apc-global-overrides-1.5.0.tgz
+    version: 1.5.0
+  - apiVersion: v2
     created: "2025-10-20T15:55:26.751985094+02:00"
     description: A Helm chart containing helm helper functions to override global
       APC values by local values
@@ -205,20 +215,35 @@ entries:
     urls:
     - packaged_charts/apc-roles-1.0.0.tgz
     version: 1.0.0
-  application-gitops:
+  apc-warmcache:
   - apiVersion: v2
-    created: "2025-10-27T22:06:36.119256+01:00"
+    appVersion: 1.0.0
+    created: "2025-12-15T14:08:48.694741+01:00"
     dependencies:
     - name: apc-global-overrides
       repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
-      version: 1.3.0
+      version: 1.5.0
+    description: A Helm chart for warming registry cache by syncing images using skopeo
+    digest: 7646890785041ea961095c01bfea84d5be74234b8ff9267d23a961c2f9b74734
+    name: apc-warmcache
+    type: application
+    urls:
+    - packaged_charts/apc-warmcache-1.0.0.tgz
+    version: 1.0.0
+  application-gitops:
+  - apiVersion: v2
+    created: "2025-11-19T22:22:58.418674285+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
     description: A Helm chart to prepare cluster for Application Gitops
-    digest: b8db549f0529bbf2ebae4928a5daf755229930d20cd99ce71c7d1e209db93edd
+    digest: 0d77a9844a72e7944c6fb21660b399972bbf1f86ed647b9944d9ab79d0763d9e
     name: application-gitops
     type: application
     urls:
-    - packaged_charts/application-gitops-1.4.0.tgz
-    version: 1.4.0
+    - packaged_charts/application-gitops-1.5.0.tgz
+    version: 1.5.0
   - apiVersion: v2
     created: "2025-10-01T13:46:53.953460688+02:00"
     dependencies:
@@ -341,6 +366,19 @@ entries:
     - packaged_charts/argo-events-helm-1.0.0.tgz
     version: 1.0.0
   argo-events-project-setup:
+  - apiVersion: v2
+    created: "2025-11-11T09:28:13.386093+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart to configure Argo Events for Project setup
+    digest: 6871b96c80b33b39b8ef364a37f194845de5e19742d03fcd30841c638f875891
+    name: argo-events-project-setup
+    type: application
+    urls:
+    - packaged_charts/argo-events-project-setup-1.2.1.tgz
+    version: 1.2.1
   - apiVersion: v2
     created: "2025-10-22T12:51:32.223602+02:00"
     dependencies:
@@ -1317,6 +1355,20 @@ entries:
     version: 1.0.0
   ingress-configuration:
   - apiVersion: v2
+    appVersion: 1.1.0
+    created: "2025-11-06T15:54:02.390496+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart for Ingress configuration
+    digest: ec77083685ca283496a03086f56d3b4bd1869c11ac4607467e65c4f8bbca06fb
+    name: ingress-configuration
+    type: application
+    urls:
+    - packaged_charts/ingress-configuration-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
     appVersion: 1.0.0
     created: "2025-10-22T12:51:32.268143+02:00"
     dependencies:
@@ -1443,6 +1495,20 @@ entries:
   kyverno:
   - apiVersion: v2
     appVersion: 3.5.1
+    created: "2025-11-10T13:34:30.970237728+01:00"
+    dependencies:
+    - name: kyverno
+      repository: https://kyverno.github.io/kyverno
+      version: 3.5.1
+    description: A Helm chart to install kyverno
+    digest: 4f595e3a1890ea79e858ad919c483ca7ffea22330ff1581dfa3ffcd749dbfc8b
+    name: kyverno
+    type: application
+    urls:
+    - packaged_charts/kyverno-1.3.0.tgz
+    version: 1.3.0
+  - apiVersion: v2
+    appVersion: 3.5.1
     created: "2025-10-22T12:51:32.334325+02:00"
     dependencies:
     - name: kyverno
@@ -1550,6 +1616,21 @@ entries:
     urls:
     - packaged_charts/kyverno-app-project-1.0.0.tgz
     version: 1.0.0
+  metallb-config:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2025-11-05T10:13:42.240688+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart for MetalLB configuration
+    digest: d21c522873bf391ddafc62a03e9588b1ac018e7a0b0bd1f7824ad9ae73f7916b
+    name: metallb-config
+    type: application
+    urls:
+    - packaged_charts/metallb-config-1.0.0.tgz
+    version: 1.0.0
   metallb-operator:
   - apiVersion: v2
     appVersion: 4.17.0-202502250404
@@ -1597,7 +1678,55 @@ entries:
     version: 1.0.0
   monitoring:
   - apiVersion: v2
-    created: "2025-10-29T15:54:01.902849+01:00"
+    created: "2025-11-14T14:34:45.914856547+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.3
+    description: A Helm chart for cluster monitoring with Kyverno PrometheusRule generation
+    digest: 87ddc1416a96354e2cef9b28a404e7165e45f37908ce6a00eadd7ea41dddec48
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.0.5.tgz
+    version: 1.0.5
+  - apiVersion: v2
+    created: "2025-11-12T13:06:41.518338506+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.3
+    description: A Helm chart for cluster monitoring with Kyverno PrometheusRule generation
+    digest: cc113d23b795f6d170fff4508650abcceca7b882e354aa4e2b598f3c419ee722
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.0.4.tgz
+    version: 1.0.4
+  - apiVersion: v2
+    created: "2025-11-11T11:04:36.966495+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.3
+    description: A Helm chart for cluster monitoring with Kyverno PrometheusRule generation
+    digest: 947fa8111e40862ea5eac4e72750273265346b4fda6c402f4eb6669b8cc7616d
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    created: "2025-10-30T15:33:22.764459+01:00"
     dependencies:
     - name: apc-global-overrides
       repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
@@ -1606,9 +1735,8 @@ entries:
       repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
       version: 1.0.2
     description: A Helm chart for cluster monitoring with Kyverno PrometheusRule generation
-    digest: 619b3f10939036bf125ffb2072046bbcd74cd6ac4adc9bf88a16172a213fccaf
+    digest: b84b855aa9d76249d10fd5d9b1e7f6d1926d4c9fbfaae5457a6721eb0f25a699
     name: monitoring
-    type: application
     urls:
     - packaged_charts/monitoring-1.0.2.tgz
     version: 1.0.2
@@ -1647,6 +1775,15 @@ entries:
     - packaged_charts/monitoring-1.0.0.tgz
     version: 1.0.0
   monitoring-prometheusrules:
+  - apiVersion: v2
+    created: "2025-11-07T09:51:38.135312+01:00"
+    description: A Helm chart for prometheusrules used in other helm charts.
+    digest: ced815ba8576ef68d33bee32fb85debd977d51cf8c2204d88affaf71bb42c349
+    name: monitoring-prometheusrules
+    type: library
+    urls:
+    - packaged_charts/monitoring-prometheusrules-1.0.3.tgz
+    version: 1.0.3
   - apiVersion: v2
     created: "2025-10-29T15:52:58.940545+01:00"
     description: A Helm chart for prometheusrules used in other helm charts.
@@ -1692,19 +1829,49 @@ entries:
   openshift-adp-config:
   - apiVersion: v2
     appVersion: v1.4.3
-    created: "2025-10-31T13:45:35.779038+01:00"
+    created: "2025-11-18T15:42:30.728658273+01:00"
     dependencies:
     - name: apc-global-overrides
       repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
-      version: 1.4.0
+      version: 1.5.0
     description: A Helm chart to configure OpenShift ADP with DataProtectionApplication
       and Kyverno-based credential transformation
-    digest: ac0018f0008125640a1ee8d1096bb6a2781ded8533a6ab1d66c1bff12df3998f
+    digest: 2fade43fa6df00decfd8e257e884652e3a88768d1ad769e5fb923663f16c3a10
     name: openshift-adp-config
     type: application
     urls:
-    - packaged_charts/openshift-adp-config-1.0.0.tgz
-    version: 1.0.0
+    - packaged_charts/openshift-adp-config-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    appVersion: v1.4.3
+    created: "2025-11-17T13:07:01.421758836+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart to configure OpenShift ADP with DataProtectionApplication
+      and Kyverno-based credential transformation
+    digest: 16a46e050fdcb2701d47af34548b3c8b3e92998eed0c23c56dfdf57225b29680
+    name: openshift-adp-config
+    type: application
+    urls:
+    - packaged_charts/openshift-adp-config-1.0.2.tgz
+    version: 1.0.2
+  - apiVersion: v2
+    appVersion: v1.4.3
+    created: "2025-11-07T13:48:28.216831+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart to configure OpenShift ADP with DataProtectionApplication
+      and Kyverno-based credential transformation
+    digest: 8486a976379f4154e12e5fc258ddfa4034482cbbafebed8550252ad31905a5be
+    name: openshift-adp-config
+    type: application
+    urls:
+    - packaged_charts/openshift-adp-config-1.0.1.tgz
+    version: 1.0.1
   openshift-adp-operator:
   - apiVersion: v2
     appVersion: v1.4.3
@@ -1957,7 +2124,58 @@ entries:
     version: 1.0.0
   user-workload-monitoring-policy:
   - apiVersion: v2
-    created: "2025-10-29T15:54:01.903665+01:00"
+    created: "2025-11-14T14:34:45.916843244+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.3
+    description: A Helm chart that automatically creates PrometheusRules for app /
+      non-app workload namespaces
+    digest: 9c15f036d3cab3c06100091ebe5b651dba465db3df60c2845a4dae2e2619d88b
+    name: user-workload-monitoring-policy
+    type: application
+    urls:
+    - packaged_charts/user-workload-monitoring-policy-1.0.5.tgz
+    version: 1.0.5
+  - apiVersion: v2
+    created: "2025-11-12T13:05:24.197961494+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.3
+    description: A Helm chart that automatically creates PrometheusRules for app /
+      non-app workload namespaces
+    digest: 0a1aa4c978d49608d9c6219621462daf1b43d2116c20415cdfc93a3c019c8a6f
+    name: user-workload-monitoring-policy
+    type: application
+    urls:
+    - packaged_charts/user-workload-monitoring-policy-1.0.4.tgz
+    version: 1.0.4
+  - apiVersion: v2
+    created: "2025-11-11T11:04:36.967162+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.3
+    description: A Helm chart that automatically creates PrometheusRules for app /
+      non-app workload namespaces
+    digest: 925df021b17c220e80972f49c3c14f2c9e81a43b0e131dab4eed4f251faad474
+    name: user-workload-monitoring-policy
+    type: application
+    urls:
+    - packaged_charts/user-workload-monitoring-policy-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    created: "2025-10-30T15:33:22.76512+01:00"
     dependencies:
     - name: apc-global-overrides
       repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
@@ -1967,9 +2185,8 @@ entries:
       version: 1.0.2
     description: A Helm chart that automatically creates PrometheusRules for app /
       non-app workload namespaces
-    digest: ea5d41459809f54c1009394041fbf1dc4d00fb221f4c8b85e4a0648b5f2e64da
+    digest: fa114ffd574e5379b9b498893a36bcd8bde5e5b92f4748d7b1edbc181912731f
     name: user-workload-monitoring-policy
-    type: application
     urls:
     - packaged_charts/user-workload-monitoring-policy-1.0.2.tgz
     version: 1.0.2

@@ -18,9 +18,9 @@ fullnameOverride: ""
 gitopsNamespace: apc-gitops
 adminRole: apc-project-admin
 
-# git domain to allow traffic from, must end with /, e.g. https://gitlab.example.com/
 # if not specified, all git domains are allowed!
-allowedGitDomain: ~
+# see <https://argo-cd.readthedocs.io/en/stable/user-guide/projects/#managing-projects> for details
+allowedRepositories: []
 
 # roles applied to all environments
 # can be overidden by roleEnvOverrides and roleClusterOverrides
@@ -34,7 +34,7 @@ defaultRoles:
     # policies are ArgoCD Cabin policies stripped of the first 2 parts, e.g. p, proj:xxx:admin, as they are generated in the template
     policies: # templating is used for policies, i.e. {{ }} get expanded in the template
       # manage repositories (CLI / GUI only)
-      - repositories, *, {{`{{ request.object.metadata.namespace }}`}}/{{ .Values.allowedGitDomain }}*, allow
+      - repositories, *, {{`{{ request.object.metadata.namespace }}`}}/*, allow
       # manage applications
       - applications, *, {{`{{ request.object.metadata.namespace }}`}}/*, allow
       - clusters, get, https://kubernetes.default.svc, allow
@@ -47,7 +47,7 @@ defaultRoles:
     groupSuffix: OPR
     policies:
       # manage repositories (CLI / GUI only)
-      - repositories, *, {{`{{ request.object.metadata.namespace }}`}}/{{ .Values.allowedGitDomain }}*, allow
+      - repositories, *, {{`{{ request.object.metadata.namespace }}`}}/*, allow
       # manage applications
       - applications, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
       # - applications, create, {{`{{ request.object.metadata.namespace }}`}}/*, allow # app CR management
