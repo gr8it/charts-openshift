@@ -267,6 +267,35 @@ entries:
     urls:
     - packaged_charts/application-gitops-1.0.0.tgz
     version: 1.0.0
+  apps-kafka-config:
+  - apiVersion: v2
+    created: "2025-12-17T12:24:24.759814409+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - condition: kafka-ui.enabled
+      name: kafka-ui
+      repository: https://kafbat.github.io/helm-charts
+      version: 1.5.3
+    description: Production-ready Kafka cluster using Strimzi operator with KRaft
+      mode
+    digest: 3316568794a1f83a375d057b1edaf59063a8ab2efda85ad6889251119b4eda1f
+    home: https://github.com/gr8it/charts-openshift
+    icon: https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/main/documentation/logo/strimzi_logo.png
+    keywords:
+    - kafka
+    - strimzi
+    - kraft
+    kubeVersion: '>=1.25.0'
+    name: apps-kafka-config
+    sources:
+    - https://github.com/gr8it/charts-openshift
+    - https://strimzi.io/
+    type: application
+    urls:
+    - packaged_charts/apps-kafka-config-1.0.0.tgz
+    version: 1.0.0
   argo-events-helm:
   - apiVersion: v2
     appVersion: 2.4.13
@@ -1212,21 +1241,6 @@ entries:
     urls:
     - packaged_charts/grafana-operator-1.0.0.tgz
     version: 1.0.0
-  ingress-configuration:
-  - apiVersion: v2
-    appVersion: 1.0.0
-    created: "2025-10-22T12:51:32.268143+02:00"
-    dependencies:
-    - name: apc-global-overrides
-      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
-      version: 1.1.0
-    description: A Helm chart for Ingress configuration
-    digest: 22b2a0ada26fd8d106e9dcf06560bf47d8bb5baa7b93c5b977aa0443e6b2e662
-    name: ingress-configuration
-    type: application
-    urls:
-    - packaged_charts/ingress-configuration-1.0.0.tgz
-    version: 1.0.0
   group-sync-config:
   - apiVersion: v2
     appVersion: 1.0.0
@@ -1271,6 +1285,21 @@ entries:
     type: application
     urls:
     - packaged_charts/identity-providers-config-1.0.0.tgz
+    version: 1.0.0
+  ingress-configuration:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2025-10-22T12:51:32.268143+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.1.0
+    description: A Helm chart for Ingress configuration
+    digest: 22b2a0ada26fd8d106e9dcf06560bf47d8bb5baa7b93c5b977aa0443e6b2e662
+    name: ingress-configuration
+    type: application
+    urls:
+    - packaged_charts/ingress-configuration-1.0.0.tgz
     version: 1.0.0
   keycloak:
   - apiVersion: v2
@@ -1854,6 +1883,19 @@ entries:
     version: 1.0.0
   trust-manager-config:
   - apiVersion: v2
+    created: "2025-12-17T12:24:24.760648013+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart to install trust-manager configuration
+    digest: 7bbe9b34f980f92fc706ceb18baffd21f4c8f4d7370c3f11543ba43bf477eb76
+    name: trust-manager-config
+    type: application
+    urls:
+    - packaged_charts/trust-manager-config-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
     appVersion: 1.0.0
     created: "2025-10-22T12:51:32.349496+02:00"
     dependencies:
@@ -1936,4 +1978,4 @@ entries:
     urls:
     - packaged_charts/user-workload-monitoring-policy-1.0.0.tgz
     version: 1.0.0
-generated: "2025-10-31T13:45:35.777914+01:00"
+generated: "2025-12-17T12:24:24.755858427+01:00"
