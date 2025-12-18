@@ -1,0 +1,45 @@
+description: This profile is for scanning spoke clusters
+extends: ocp4-cis
+title: Management namespace profile
+setValues:
+  - name: ocp4-hypershift-cluster
+    rationale: This value is used for HyperShift version detection
+    value: prod01
+  - name: ocp4-hypershift-namespace-prefix
+    rationale: This value is used for HyperShift control plane namespace detection
+    value: prod01
+  - name: ocp4-var-sccs-with-allowed-capabilities-regex
+    rationale: |
+      Exempt only the following custom SCCs from the "allowed-capabilities" check: kubevirt-controller, netobserv-ebpf-agent, noobaa-endpoint, rook-ceph, rook-ceph-csi, unrestricted-apc-gitlab-runner
+    value: '^(hostnetwork-v2|nonroot-v2|privileged|restricted-v2|kubevirt-controller|netobserv-ebpf-agent|noobaa-endpoint|rook-ceph|rook-ceph-csi)$'
+disableRules:
+  - name: ocp4-api-server-audit-log-maxbackup
+    rationale: >
+      This control is not applicable because audit logs are being forwarded to a centralized logging system on the hub cluster. As a result, retaining 10 local rotated copies is unnecessary and does not align with our centralized log retention strategy.
+  - name: ocp4-api-server-audit-log-maxsize
+    rationale: >
+      This control is not applicable because audit logs are being forwarded to a centralized logging system on the hub cluster. As a result, retaining 10 local rotated copies is unnecessary and does not align with our centralized log retention strategy.
+  - name: ocp4-api-server-encryption-provider-cipher
+    rationale: >
+      ETCD encryption is not enabled due to a known limitation in the current OpenShift architecture: the etcd restore procedure is not fully supported when encryption is enabled in multi-node control plane clusters.
+  - name: ocp4-audit-log-forwarding-webhook
+    rationale: >
+      Forwarding of OpenShift API audit logs to an external system is not currently configured due to capacity limitations in the existing SIEM infrastructure.
+  - name: ocp4-audit-profile-set
+    rationale: >
+      The audit log policy is not configured to use WriteRequestBodies due to resource constraints. Enabling this setting would significantly increase the volume of audit logs, leading to higher CPU, memory, and storage consumption on the API server.
+  - name: ocp4-kubelet-configure-tls-cipher-suites-ingresscontroller
+    rationale: >
+      The default TLS cipher suites used by the IngressController already meet the organization's security standards and compatibility requirements. Custom configuration is not required at this time.
+  - name: ocp4-ocp-api-server-audit-log-maxbackup
+    rationale: >
+      This control is not applicable because audit logs are being forwarded to a centralized logging system on the hub cluster. As a result, retaining 10 local rotated copies is unnecessary and does not align with our centralized log retention strategy.
+  - name: ocp4-ocp-api-server-audit-log-maxsize
+    rationale: >
+      This control is not applicable because audit logs are being forwarded to a centralized logging system on the hub cluster. As a result, retaining 10 local rotated copies is unnecessary and does not align with our centralized log retention strategy.
+  - name: ocp4-ocp-allowed-registries
+    rationale: >
+      A centralized mirror registry configuration is not used in the current setup.
+  - name: ocp4-ocp-allowed-registries-for-import
+    rationale: >
+      A centralized mirror registry is not used for image imports.
