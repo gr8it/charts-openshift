@@ -1,0 +1,37 @@
+{{- if .Values.kafkaUsers.enabled }}
+{{- range $user := .Values.kafkaUsers.users }}
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaUser
+metadata:
+  name: {{ $user.name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    strimzi.io/cluster: {{ include "apps-ck-kafka.fullname" $ }}
+    {{- include "apps-ck-kafka.labels" $ | nindent 4 }}
+spec:
+  authentication:
+    type: scram-sha-512
+    # do not specify password here to let Strimzi generate one automatically including sasl.jaas.config!
+  authorization:
+    type: simple
+    {{- if $user.acls }}
+    acls:
+      {{- range $acl := $user.acls }}
+      - resource:
+          type: {{ $acl.resourceType | quote }}
+          name: {{ $acl.resourceName | quote }}
+          {{- if $acl.patternType }}
+          patternType: {{ $acl.patternType | default "literal" }}
+          {{- end }}
+        operations:
+          {{- range $op := $acl.operations }}
+          - {{ $op }}
+          {{- end }}
+        host: {{ $acl.host | default "*" | quote }}
+      {{- end }}
+    {{- else }}
+    acls: []
+    {{- end }}
+---
+{{- end }}
+{{- end }}

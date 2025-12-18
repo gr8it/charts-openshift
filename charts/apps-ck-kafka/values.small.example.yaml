@@ -1,0 +1,166 @@
+global:
+  apc:
+    services:
+      certManager:
+        defaultClusterIssuer: vault-issuer
+
+kafka:
+  brokers:
+    replicas: 1  # Single broker - not HA!
+    storage:
+      size: "10Gi"
+    resources:
+      requests:
+        cpu: "250m"
+        memory: "512Mi"
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+
+  controllers:
+    replicas: 1  # Single controller
+    storage:
+      size: "5Gi"
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+
+  config:
+    offsetsReplicationFactor: 1
+    transactionReplicationFactor: 1
+    transactionMinISR: 1
+    defaultReplicationFactor: 1
+    minISR: 1
+
+  superUsers:
+    - admin
+
+monitoring:
+  enabled: false  # Disable for small clusters
+
+# Enable and define topics to auto-create
+kafkaTopics:
+  enabled: true
+  topics:
+    # High-throughput events topic
+    - name: "events"
+      partitions: 6
+      replicas: 3
+      config:
+        retention.ms: "604800000"  # 7 days
+        compression.type: "snappy"
+        min.insync.replicas: "2"
+
+    # Application logs topic (shorter retention)
+    - name: "application-logs"
+      partitions: 3
+      replicas: 3
+      config:
+        retention.ms: "86400000"  # 1 day
+        compression.type: "lz4"
+
+    # Compacted state topic
+    - name: "state-store"
+      partitions: 1
+      replicas: 3
+      config:
+        cleanup.policy: "compact"
+        min.cleanable.dirty.ratio: "0.5"
+        segment.ms: "86400000"  # 1 day segments
+
+    # Audit trail (long retention)
+    - name: "audit-trail"
+      partitions: 3
+      replicas: 3
+      config:
+        retention.ms: "2592000000"  # 30 days
+        compression.type: "snappy"
+        min.insync.replicas: "2"
+
+    # Dead letter queue
+    - name: dlq
+      partitions: 3
+      replicas: 3
+      config:
+        retention.ms: "604800000"  # 7 days
+
+# Users with permissions for the topics
+kafkaUsers:
+  enabled: true
+  users:
+    - name: app-producer
+      acls:
+        - resourceType: topic
+          resourceName: "events"
+          patternType: literal
+          operations: [Write, Create, Describe]
+        - resourceType: topic
+          resourceName: "application-logs"
+          patternType: literal
+          operations: [Write, Create, Describe]
+        - resourceType: topic
+          resourceName: "dlq"
+          patternType: literal
+          operations: [Write, Create, Describe]
+
+    - name: app-consumer
+      acls:
+        - resourceType: topic
+          resourceName: "events"
+          patternType: literal
+          operations: [Read, Describe]
+        - resourceType: topic
+          resourceName: "application-logs"
+          patternType: literal
+          operations: [Read, Describe]
+        - resourceType: group
+          resourceName: "*"
+          patternType: Prefix
+          operations: [Read]
+
+    - name: analytics-consumer
+      acls:
+        - resourceType: topic
+          resourceName: "events"
+          patternType: literal
+          operations: [Read, Describe]
+        - resourceType: topic
+          resourceName: "state-store"
+          patternType: literal
+          operations: [Read, Describe]
+        - resourceType: group
+          resourceName: "analytics-*"
+          patternType: Prefix
+          operations: [Read]
+
+    - name: admin
+
+networkpolicy:
+  enabled: true
+  namespaces:
+  - source-namespace-1
+
+kafka-ui:
+  enabled: true
+
+  envs:
+    config:
+      KAFKA_CLUSTERS_0_NAME: kafka
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-kafka-bootstrap.kafka.svc:9093
+      KAFKA_CLUSTERS_0_SSL_VERIFYSSL: "false"
+      KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM: SCRAM-SHA-512
+      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: SASL_SSL
+      # https://github.com/kafbat/kafka-ui/discussions/1260#discussioncomment-14275371
+      KAFKA_CLUSTERS_0_SSL_TRUSTSTORELOCATION: "/etc/kafka/cluster-ca/ca-bundle.jks"
+      KAFKA_CLUSTERS_0_SSL_TRUSTSTORE_TYPE: JKS
+      KAFKA_CLUSTERS_0_SSL_TRUSTSTOREPASSWORD: "changeit"
+      LOGGING_LEVEL_ROOT: DEBUG
+      LOGGING_LEVEL_IO_KAFBAT_UI: DEBUG
+    secretMappings:
+      KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG:
+        name: admin
+        keyName: sasl.jaas.config

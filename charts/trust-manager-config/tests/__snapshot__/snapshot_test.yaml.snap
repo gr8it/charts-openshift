@@ -1,0 +1,52 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: trust.cert-manager.io/v1alpha1
+    kind: Bundle
+    metadata:
+      name: ca-cert-bundle
+    spec:
+      sources:
+        - useDefaultCAs: true
+        - inLine: ""
+        - configMap:
+            key: ca.crt
+            name: kube-root-ca.crt
+        - configMap:
+            key: service-ca.crt
+            name: openshift-service-ca.crt
+      target:
+        additionalFormats:
+          jks:
+            key: ca-bundle.jks
+            password: changeit
+        configMap:
+          key: ca-bundle.crt
+        namespaceSelector:
+          matchExpressions:
+            - key: apc.namespace.type
+              operator: In
+              values:
+                - application
+                - platform
+        secret:
+          key: ca-bundle.crt
+  2: |
+    apiVersion: trust.cert-manager.io/v1alpha1
+    kind: Bundle
+    metadata:
+      name: image-registry-s3-bundle
+    spec:
+      sources:
+        - useDefaultCAs: false
+        - configMap:
+            key: ca.crt
+            name: kube-root-ca.crt
+        - configMap:
+            key: service-ca.crt
+            name: openshift-service-ca.crt
+      target:
+        configMap:
+          key: ca-bundle.crt
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: openshift-config

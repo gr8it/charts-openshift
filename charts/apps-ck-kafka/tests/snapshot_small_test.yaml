@@ -1,0 +1,13 @@
+suite: Snapshot test
+templates:
+  - templates/*.yaml
+values:
+  - ../values.small.example.yaml
+release:
+  name: kafka
+  namespace: kafka
+
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}
