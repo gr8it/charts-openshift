@@ -128,7 +128,7 @@ data:
     SNAPSHOT_FILE="/backup/${FILEPREFIX}_${DATESTRING}.db"
     if ! etcdctl --cacert=/backup/certs/ca.crt --cert=/backup/certs/etcd-client.crt --key=/backup/certs/etcd-client.key --endpoints="$ENDPOINT" snapshot save "$SNAPSHOT_FILE" 2>/dev/shm/out.err 1>/dev/null; then
       log_messagef /dev/shm/out.err
-      log_message "ERROR: Failed to create snashot"
+      log_message "ERROR: Failed to create snapshot"
       exit 2
     fi
 
@@ -154,9 +154,9 @@ data:
         exit 3
       fi
 
-      log_message "Snasphot saved to ${SNAPSHOT_FILE}.gz"
+      log_message "Snapshot saved to ${SNAPSHOT_FILE}.gz"
     else
-      log_message "Snasphot saved to ${SNAPSHOT_FILE}"
+      log_message "Snapshot saved to ${SNAPSHOT_FILE}"
     fi
 
     exit 0
