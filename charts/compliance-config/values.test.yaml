@@ -1,4 +1,14 @@
-# ScanSetting configuration
+nameOverride: ""
+fullnameOverride: ""
+
+# Simulate hub cluster for testing multiple profiles in scanSettingBinding
+global:
+  apc:
+    cluster:
+      name: hub01
+      isHub: true
+
+# ScanSetting configuration (same as default)
 scanSetting:
   name: cis-scan-settings
   includeMasterRole: false
@@ -22,12 +32,10 @@ scanSetting:
   suspend: false
   timeout: 30m0s
 
-# ScanSettingBinding configuration
+# ScanSettingBinding configuration (will include TailoredProfiles for hub clusters)
 scanSettingBinding:
   name: cis-compliance
   settingsRef:
     name: cis-scan-settings
     kind: ScanSetting
     apiGroup: compliance.openshift.io/v1alpha1
-
-

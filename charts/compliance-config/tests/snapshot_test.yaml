@@ -1,0 +1,13 @@
+suite: Snapshot test
+templates:
+  - templates/*
+values:
+  - ../values.test.yaml
+release:
+  name: compliance-config
+  namespace: openshift-compliance
+
+tests:
+  - it: manifests should match snapshot with hub cluster (multiple profiles)
+    asserts:
+      - matchSnapshot: {}
