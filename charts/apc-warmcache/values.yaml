@@ -1,0 +1,163 @@
+# Default values for apc-warmcache
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+## uses following global values => do not set here
+# global:
+#   apc:
+#     environmentShort:
+#     caCertificates:
+# services:
+#   externalSecretsOperator:
+#     defaultClusterSecretStore:
+## and their local overrides
+# environmentShort:
+# defaultClusterSecretStore:
+# caCertificates:
+
+# Who manages the service
+releaseServiceOverride: ArgoCD
+
+# List of registries which are cached on proxy cache registry
+registries:
+  - docker.io
+  - quay.io
+  - ghcr.io
+  - registry.connect.redhat.com
+  - registry.redhat.io
+
+# APC proxy cache registry
+apcRegistry: "apc-registry-quay-quay.apps.hub01.cloud.socpoist.sk"
+
+
+# Namespace where the application will be deployed
+# If not set, it will use the namespace from helm install/upgrade command
+namespaceOverride: ""
+
+# Cronjob configuration
+cronJob:
+  name: ""  # defaults to chart fullname
+  schedule: "0 9 * * 6"  # saturday 9am UTC
+  concurrencyPolicy: Forbid  # or Allow, Replace
+  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 3
+  startingDeadlineSeconds: 300
+  backoffLimit: 2
+
+# Pod configuration
+pod:
+  # Name of the pod
+  name: warmcache
+  
+  # Restart policy for the pod
+  restartPolicy: Never
+  
+  # Security context for the pod
+  securityContext:
+    runAsNonRoot: true
+
+# Init container configuration for fetching images
+initContainer:
+  name: getimages
+  image:
+    repository: registry.redhat.io/openshift4/ose-cli
+    tag: v4.15
+    pullPolicy: IfNotPresent
+  
+  # Resource limits and requests
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Main container configuration for cache warming
+container:
+  name: warmcache
+  image:
+    repository: quay.io/containers/skopeo
+    tag: v1.20.0
+    pullPolicy: IfNotPresent
+  
+  # Resource limits and requests
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+
+# Service Account configuration
+serviceAccount:
+  # Name of the service account
+  name: warmcachesa
+  # Annotations to add to the service account
+  annotations: {}
+  # Whether to create the service account
+  create: true
+
+# RBAC configuration
+rbac:
+  # Whether to create RBAC resources
+  create: true
+  
+  clusterRole:
+    name: getimages
+    rules:
+      - apiGroups: [""]
+        resources: ["pods"]
+        verbs: ["get", "list", "watch"]
+  
+  clusterRoleBinding:
+    name: getimages
+
+# Volume configuration
+volumes:
+  # Empty directory for image list
+  imglist:
+    sizeLimit: 50Mi
+  
+  # ConfigMap default mode for scripts (executable)
+  scriptDefaultMode: "0555"
+
+# External Secrets configuration
+externalSecrets:
+  # Whether to create ExternalSecret resources
+  enabled: true
+  
+  # Secret store reference
+  secretStoreRef:
+    kind: ClusterSecretStore
+  
+  # Refresh interval for secrets
+  refreshInterval: "1h0m0s"
+  
+  # Registry robot accounts secrets
+  regrobot:
+    name: registryrobots
+    targetSecretName: registryrobots-secret
+    # There are stored two values under the secret: username and password
+    vaultPath: "/{{ .env }}/quay-config/registries/{{ .registry }}/robot-account"
+
+# Labels to apply to all resources
+commonLabels: {}
+
+# Annotations to apply to all resources
+commonAnnotations: {}
+
+secrets:
+  # CA certificates secret for registry communication
+  regca:
+    name: registryca-secret
+
+configMaps:
+  cachescript:
+    name: warmcachescript
+  imagescript:
+    name: getimagesscript
+
+# retry count for image download
+retry: 2

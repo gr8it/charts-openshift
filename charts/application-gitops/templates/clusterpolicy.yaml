@@ -57,7 +57,13 @@ spec:
             sourceNamespaces:
               - {{`"{{ request.object.metadata.namespace }}"`}}
             sourceRepos:
-              - '{{ .Values.allowedGitDomain }}*'
+            {{- if .Values.allowedRepositories }}
+              {{- range .Values.allowedRepositories }}
+              - {{ . }}
+              {{- end }}
+            {{- else }}
+              - "*"
+            {{- end }}
             roles:
               {{- range $role, $roleValues := (include "application-gitops.roles" $ | fromJson ) }}
               {{- if and $roleValues $roleValues.policies }}

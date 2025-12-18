@@ -1,0 +1,43 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  labels:
+    {{- include "apps-ck-kafka.labels" . | nindent 4 }}
+  name: {{ include "apps-ck-kafka.fullname" . }}-brokers
+  namespace: {{ .Release.Namespace }}
+spec:
+  commonName: {{ include "apps-ck-kafka.fullname" . }}-kafka-bootstrap.{{ .Release.Namespace }}.svc
+  dnsNames:
+  {{- range $idx, $e := until (.Values.kafka.brokers.replicas | int) }}
+  # - {{ include "apps-ck-kafka.fullname" $ }}-broker-{{ $idx }}
+  - {{ include "apps-ck-kafka.fullname" $ }}-broker-{{ $idx }}.{{ $.Release.Namespace }}.svc
+  - {{ include "apps-ck-kafka.fullname" $ }}-broker-{{ $idx }}.{{ $.Release.Namespace }}.svc.cluster.local
+  {{- end }}
+  # - {{ include "apps-ck-kafka.fullname" . }}-kafka-bootstrap
+  - {{ include "apps-ck-kafka.fullname" . }}-kafka-bootstrap.{{ .Release.Namespace }}.svc
+  - {{ include "apps-ck-kafka.fullname" . }}-kafka-bootstrap.{{ .Release.Namespace }}.svc.cluster.local
+  # - {{ include "apps-ck-kafka.fullname" . }}-kafka-brokers
+  - {{ include "apps-ck-kafka.fullname" . }}-kafka-brokers.{{ .Release.Namespace }}.svc
+  - {{ include "apps-ck-kafka.fullname" . }}-kafka-brokers.{{ .Release.Namespace }}.svc.cluster.local
+  - "*.{{ include "apps-ck-kafka.fullname" $ }}-kafka-brokers.{{ $.Release.Namespace }}.svc"
+  - "*.{{ include "apps-ck-kafka.fullname" $ }}-kafka-brokers.{{ $.Release.Namespace }}.svc.cluster.local"
+  {{- range $idx, $e := until (.Values.kafka.brokers.replicas | int) }}
+  # - {{ include "apps-ck-kafka.fullname" $ }}-{{ include "apps-ck-kafka.fullname" $ }}-brokers-{{ $idx }}.{{ include "apps-ck-kafka.fullname" $ }}-kafka-brokers.{{ $.Release.Namespace }}.svc
+  # - {{ include "apps-ck-kafka.fullname" $ }}-{{ include "apps-ck-kafka.fullname" $ }}-brokers-{{ $idx }}.{{ include "apps-ck-kafka.fullname" $ }}-kafka-brokers.{{ $.Release.Namespace }}.svc.cluster.local
+  {{- end }}
+  {{- with .Values.kafka.externalAccess }}
+  {{- if .enabled }}
+  {{- if .bootstrap }}
+  - {{ .bootstrap.host }}
+  {{- end }}
+  {{- if .brokers }}
+  {{- range $idx, $broker := .brokers }}
+  - {{ $broker.host }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
+  issuerRef:
+    kind: ClusterIssuer
+    name: {{ include "apc-global-overrides.require-certManagerDefaultClusterIssuer" . }}
+  secretName: {{ include "apps-ck-kafka.fullname" . }}-brokers-tls

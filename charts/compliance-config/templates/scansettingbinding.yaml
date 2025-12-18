@@ -1,0 +1,28 @@
+---
+apiVersion: compliance.openshift.io/v1alpha1
+kind: ScanSettingBinding
+metadata:
+  name: {{ .Values.scanSettingBinding.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "compliance-config.labels" . | nindent 4 }}
+spec:
+  profiles:
+    - name: ocp4-cis-node
+      kind: Profile
+      apiGroup: compliance.openshift.io/v1alpha1
+    {{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
+    - name: apc-ocp4-cis
+      kind: TailoredProfile
+      apiGroup: compliance.openshift.io/v1alpha1
+    {{- range $path, $_ := .Files.Glob "tailoredprofiles/*.yaml" }}
+    {{- $profileName := $path | base | trimSuffix ".yaml" }}
+    {{- if ne $profileName "apc-ocp4-cis" }}
+    - name: {{ $profileName }}
+      kind: TailoredProfile
+      apiGroup: compliance.openshift.io/v1alpha1
+    {{- end }}
+    {{- end }}
+    {{- end }}
+  settingsRef:
+    {{- toYaml .Values.scanSettingBinding.settingsRef | nindent 4 }}

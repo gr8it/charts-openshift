@@ -1,0 +1,134 @@
+{{- with .Values.kafka }}
+apiVersion: kafka.strimzi.io/v1beta2
+kind: Kafka
+metadata:
+  name: {{ include "apps-ck-kafka.fullname" $ }}
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    strimzi.io/kraft: "enabled"
+    strimzi.io/node-pools: "enabled"
+  labels:
+    {{- include "apps-ck-kafka.labels" $ | nindent 4 }}
+spec:
+  kafka:
+    version: {{ .version | default "4.0.0" }}
+    metadataVersion: {{ .metadataVersion | default "4.0-IV1" }}
+    
+    # Multiple listeners: plain (internal), TLS (encrypted), SCRAM auth
+    listeners:
+      - name: plain
+        port: 9092
+        type: internal
+        tls: false
+        
+      - name: tls
+        port: 9093
+        type: internal
+        tls: true
+        authentication:
+          type: scram-sha-512
+        configuration:
+          brokerCertChainAndKey:
+            secretName: {{ include "apps-ck-kafka.fullname" $ }}-brokers-tls
+            certificate: tls.crt
+            key: tls.key
+      
+      {{- if .externalAccess.enabled }}
+      # External listener for clients outside the cluster
+      - name: external
+        port: 9094
+        type: {{ .externalAccess.type | default "nodeport" }}
+        tls: true
+        authentication:
+          type: scram-sha-512
+        configuration:
+          brokerCertChainAndKey:
+            secretName: {{ include "apps-ck-kafka.fullname" $ }}-brokers-tls
+            certificate: tls.crt
+            key: tls.key
+          {{- if .externalAccess.bootstrap }}
+          bootstrap:
+            host: {{ .externalAccess.bootstrap.host }}
+            port: {{ .externalAccess.bootstrap.port }}
+          {{- end }}
+          {{- if .externalAccess.brokers }}
+          brokers:
+            {{- range $idx, $broker := .externalAccess.brokers }}
+            - broker: {{ $idx }}
+              host: {{ $broker.host }}
+              port: {{ $broker.port }}
+            {{- end }}
+          {{- end }}
+      {{- end }}
+
+    # Authorization using ACLs
+    authorization:
+      type: simple
+      {{- range .superUsers }}
+      superUsers:
+        - {{ . }}
+      {{- end }}
+
+    # JMX Prometheus metrics exporter
+    metricsConfig:
+      type: jmxPrometheusExporter
+      valueFrom:
+        configMapKeyRef:
+          name: {{ include "apps-ck-kafka.fullname" $ }}-metrics
+          key: kafka-metrics-config.yml
+    
+    config:
+      # Replication and durability settings
+      offsets.topic.replication.factor: {{ .config.offsetsReplicationFactor | default 3 }}
+      offsets.topic.num.partitions: {{ .config.offsetsPartitions | default 50 }}
+      transaction.state.log.replication.factor: {{ .config.transactionReplicationFactor | default 3 }}
+      transaction.state.log.min.isr: {{ .config.transactionMinISR | default 2 }}
+      transaction.state.log.num.partitions: {{ .config.transactionPartitions | default 50 }}
+      
+      # Default topic settings
+      default.replication.factor: {{ .config.defaultReplicationFactor | default 3 }}
+      min.insync.replicas: {{ .config.minISR | default 2 }}
+      num.partitions: {{ .config.defaultPartitions | default 3 }}
+      
+      # Log settings
+      log.retention.hours: {{ .config.logRetentionHours | default 168 }}
+      log.cleanup.policy: {{ .config.logCleanupPolicy | default "delete" }}
+      
+      # Performance tuning
+      num.network.threads: {{ .config.numNetworkThreads | default 8 }}
+      num.io.threads: {{ .config.numIOThreads | default 8 }}
+      socket.send.buffer.bytes: {{ .config.socketSendBufferBytes | default 102400 }}
+      socket.receive.buffer.bytes: {{ .config.socketReceiveBufferBytes | default 102400 }}
+      
+      # KRaft settings
+      controller.quorum.election.timeout.ms: {{ .config.quorumElectionTimeoutMs | default 10000 }}
+      controller.quorum.fetch.timeout.ms: {{ .config.quorumFetchTimeoutMs | default 2000 }}
+
+    # jvmOptions:
+    #   -Xms: 750m
+    #   -Xmx: 750m # Set Xms and Xmx same to prevent heap resizing jitter
+
+    rack:
+      topologyKey: {{ .rack.topologyKey }}
+
+  # Entity Operator for user and topic management
+  entityOperator:
+    topicOperator:
+      resources:
+        requests:
+          cpu: {{ .topicOperator.resources.requests.cpu | default "100m" }}
+          memory: {{ .topicOperator.resources.requests.memory | default "128Mi" }}
+        limits:
+          cpu: {{ .topicOperator.resources.limits.cpu | default "500m" }}
+          memory: {{ .topicOperator.resources.limits.memory | default "256Mi" }}
+    
+    userOperator:
+      resources:
+        requests:
+          cpu: {{ .userOperator.resources.requests.cpu | default "100m" }}
+          memory: {{ .userOperator.resources.requests.memory | default "128Mi" }}
+        limits:
+          cpu: {{ .userOperator.resources.limits.cpu | default "500m" }}
+          memory: {{ .userOperator.resources.limits.memory | default "256Mi" }}
+---
+{{- end }}

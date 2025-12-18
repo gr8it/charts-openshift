@@ -1,0 +1,142 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "apps-ck-kafka.fullname" . }}-alerts
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "apps-ck-kafka.labels" . | nindent 4 }}
+    role: alert-rules
+spec:
+  groups:
+    - name: kafka.rules
+      interval: 30s
+      rules:
+        # Alert when Kafka brokers are down
+        - alert: KafkaBrokerDown
+          expr: |
+            count(up{pod=~"{{ include "apps-ck-kafka.fullname" . }}-{{ include "apps-ck-kafka.fullname" . }}-brokers-.*"} == 1) < {{ .Values.monitoring.alerts.minBrokersUp | default 2 }}
+          for: 5m
+          labels:
+            severity: {{ if eq (int .Values.kafka.brokers.replicas) 1 }}warning{{ else }}critical{{ end }}
+            component: kafka
+          annotations:
+            summary: "Kafka broker is down"
+            description: "Kafka broker {{ `{{ $labels.pod }}` }} is down. Only {{ `{{ $value }}` }} brokers are up."
+
+        # Alert on under-replicated partitions
+        - alert: KafkaUnderReplicatedPartitions
+          expr: |
+            kafka_server_replicamanager_underreplicatedpartitions > 0
+          for: 5m
+          labels:
+            severity: warning
+            component: kafka
+          annotations:
+            summary: "Kafka has under-replicated partitions"
+            description: "Broker {{ `{{ $labels.pod }}` }} has {{ `{{ $value }}` }} under-replicated partitions"
+
+        # Alert on offline partitions (data loss risk)
+        - alert: KafkaOfflinePartitions
+          expr: |
+            kafka_controller_kafkacontroller_offlinepartitionscount > 0
+          for: 2m
+          labels:
+            severity: critical
+            component: kafka
+          annotations:
+            summary: "Kafka has offline partitions"
+            description: "Kafka cluster has {{ `{{ $value }}` }} offline partitions (with no leader). Data loss risk!"
+
+        # Alert on failed fetch requests
+        - alert: KafkaFailedFetchRequests
+          expr: |
+            rate(kafka_server_brokertopicmetrics_failedfetchrequests_total[5m]) > 0.1
+          for: 5m
+          labels:
+            severity: warning
+            component: kafka
+          annotations:
+            summary: "High failed fetch requests rate"
+            description: "Broker {{ `{{ $labels.pod }}` }} has {{ `{{ $value | humanize }}` }} failed fetch requests/sec"
+
+        # Alert on failed produce requests
+        - alert: KafkaFailedProduceRequests
+          expr: |
+            rate(kafka_server_brokertopicmetrics_failedproducerequests_total[5m]) > 0.1
+          for: 5m
+          labels:
+            severity: warning
+            component: kafka
+          annotations:
+            summary: "High failed produce requests rate"
+            description: "Broker {{ `{{ $labels.pod }}` }} has {{ `{{ $value | humanize }}` }} failed produce requests/sec"
+
+        # Alert on KRaft controller quorum issues
+        - alert: KafkaKRaftQuorumUnhealthy
+          expr: |
+            kafka_controller_kafkacontroller_activecontrollercount != 1
+          for: 2m
+          labels:
+            severity: critical
+            component: kafka
+          annotations:
+            summary: "KRaft quorum is unhealthy"
+            description: "KRaft quorum does not have exactly 1 active controller. Active controllers: {{ `{{ $value }}` }}"
+
+        - alert: KafkaRunningOutOfSpace
+          expr: |
+            kubelet_volume_stats_available_bytes{persistentvolumeclaim=~"data(-[0-9]+)?-(.+)-(brokers|controllers)-[0-9]+"} * 100 / kubelet_volume_stats_capacity_bytes{persistentvolumeclaim=~"data(-[0-9]+)?-(.+)-(brokers|controllers)-[0-9]+"} < 15
+          for: 5m
+          labels:
+            severity: warning
+            component: kafka
+          annotations:
+            summary: "Kafka is running out of free disk space"
+            description: "There are only {{ `{{ $value }}` }} percent available at {{ `{{ $labels.persistentvolumeclaim }}` }} PVC"
+
+        - alert: AbnormalControllerState
+          expr: |
+            sum(kafka_controller_kafkacontroller_activecontrollercount) by (strimzi_io_name, namespace) != 1
+          for: 5m
+          labels:
+            severity: warning
+            component: kafka
+          annotations:
+            summary: "Kafka abnormal controller state"
+            description: "Kafka instance {{ `{{ $labels.strimzi_io_name }}` }} on namespace {{ `{{ $labels.namespace }}` }} has {{ `{{ $value }}` }} active controllers"
+
+        - alert: UnderMinIsrPartitionCount
+          expr: |
+            kafka_server_replicamanager_underminisrpartitioncount > 0
+          for: 5m
+          labels:
+            severity: warning
+            component: kafka
+          annotations:
+            summary: "Kafka under min ISR partitions"
+            description: "There are {{ `{{ $value }}` }} partitions under the min ISR on {{ `{{ $labels.kubernetes_pod_name }}` }}"
+
+        - alert: OfflineLogDirectoryCount
+          expr: |
+            kafka_log_logmanager_offlinelogdirectorycount > 0
+          for: 5m
+          labels:
+            severity: warning
+            component: kafka
+          annotations:
+            summary: "Kafka offline log directories"
+            description: "There are {{ `{{ $value }}` }} offline log directories on {{ `{{ $labels.kubernetes_pod_name }}` }}"
+
+        - alert: KafkaContainerRestartedInTheLast5Minutes
+          expr: |
+            count(count_over_time(container_last_seen{container="kafka"}[5m])) > 2 * count(container_last_seen{container="kafka",pod=~".+-(brokers|controllers)-[0-9]+"})
+          for: 5m
+          labels:
+            severity: warning
+            component: kafka
+          annotations:
+            summary: "One or more Kafka containers restarted too often"
+            description: "One or more Kafka containers were restarted too often within the last 5 minutes"
+
+{{- end }}

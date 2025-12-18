@@ -1,0 +1,714 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.0.0
+      name: kafka-brokers
+      namespace: kafka
+    spec:
+      commonName: kafka-kafka-bootstrap.kafka.svc
+      dnsNames:
+        - kafka-broker-0.kafka.svc
+        - kafka-broker-0.kafka.svc.cluster.local
+        - kafka-broker-1.kafka.svc
+        - kafka-broker-1.kafka.svc.cluster.local
+        - kafka-broker-2.kafka.svc
+        - kafka-broker-2.kafka.svc.cluster.local
+        - kafka-broker-3.kafka.svc
+        - kafka-broker-3.kafka.svc.cluster.local
+        - kafka-broker-4.kafka.svc
+        - kafka-broker-4.kafka.svc.cluster.local
+        - kafka-kafka-bootstrap.kafka.svc
+        - kafka-kafka-bootstrap.kafka.svc.cluster.local
+        - kafka-kafka-brokers.kafka.svc
+        - kafka-kafka-brokers.kafka.svc.cluster.local
+        - '*.kafka-kafka-brokers.kafka.svc'
+        - '*.kafka-kafka-brokers.kafka.svc.cluster.local'
+        - kafka.example.com
+        - kafka-0.example.com
+        - kafka-1.example.com
+        - kafka-2.example.com
+      issuerRef:
+        kind: ClusterIssuer
+        name: vault-issuer
+      secretName: kafka-brokers-tls
+  2: |
+    apiVersion: v1
+    data:
+      kafka-metrics-config.yml: |
+        # See https://github.com/prometheus/jmx_exporter for more info about JMX Prometheus Exporter metrics
+        lowercaseOutputName: true
+        rules:
+        # Special cases and very specific rules
+        - pattern: kafka.server<type=(.+), name=(.+), clientId=(.+), topic=(.+), partition=(.*)><>Value
+          name: kafka_server_$1_$2
+          type: GAUGE
+          labels:
+            clientId: "$3"
+            topic: "$4"
+            partition: "$5"
+        - pattern: kafka.server<type=(.+), name=(.+), clientId=(.+), brokerHost=(.+), brokerPort=(.+)><>Value
+          name: kafka_server_$1_$2
+          type: GAUGE
+          labels:
+            clientId: "$3"
+            broker: "$4:$5"
+        - pattern: kafka.server<type=(.+), cipher=(.+), protocol=(.+), listener=(.+), networkProcessor=(.+)><>connections
+          name: kafka_server_$1_connections_tls_info
+          type: GAUGE
+          labels:
+            cipher: "$2"
+            protocol: "$3"
+            listener: "$4"
+            networkProcessor: "$5"
+        - pattern: kafka.server<type=(.+), clientSoftwareName=(.+), clientSoftwareVersion=(.+), listener=(.+), networkProcessor=(.+)><>connections
+          name: kafka_server_$1_connections_software
+          type: GAUGE
+          labels:
+            clientSoftwareName: "$2"
+            clientSoftwareVersion: "$3"
+            listener: "$4"
+            networkProcessor: "$5"
+        - pattern: "kafka.server<type=(.+), listener=(.+), networkProcessor=(.+)><>(.+-total):"
+          name: kafka_server_$1_$4
+          type: COUNTER
+          labels:
+            listener: "$2"
+            networkProcessor: "$3"
+        - pattern: "kafka.server<type=(.+), listener=(.+), networkProcessor=(.+)><>(.+):"
+          name: kafka_server_$1_$4
+          type: GAUGE
+          labels:
+            listener: "$2"
+            networkProcessor: "$3"
+        - pattern: kafka.server<type=(.+), listener=(.+), networkProcessor=(.+)><>(.+-total)
+          name: kafka_server_$1_$4
+          type: COUNTER
+          labels:
+            listener: "$2"
+            networkProcessor: "$3"
+        - pattern: kafka.server<type=(.+), listener=(.+), networkProcessor=(.+)><>(.+)
+          name: kafka_server_$1_$4
+          type: GAUGE
+          labels:
+            listener: "$2"
+            networkProcessor: "$3"
+        # Some percent metrics use MeanRate attribute
+        # Ex) kafka.server<type=(KafkaRequestHandlerPool), name=(RequestHandlerAvgIdlePercent)><>MeanRate
+        - pattern: kafka.(\w+)<type=(.+), name=(.+)Percent\w*><>MeanRate
+          name: kafka_$1_$2_$3_percent
+          type: GAUGE
+        # Generic gauges for percents
+        - pattern: kafka.(\w+)<type=(.+), name=(.+)Percent\w*><>Value
+          name: kafka_$1_$2_$3_percent
+          type: GAUGE
+        - pattern: kafka.(\w+)<type=(.+), name=(.+)Percent\w*, (.+)=(.+)><>Value
+          name: kafka_$1_$2_$3_percent
+          type: GAUGE
+          labels:
+            "$4": "$5"
+        # Generic per-second counters with 0-2 key/value pairs
+        - pattern: kafka.(\w+)<type=(.+), name=(.+)PerSec\w*, (.+)=(.+), (.+)=(.+)><>Count
+          name: kafka_$1_$2_$3_total
+          type: COUNTER
+          labels:
+            "$4": "$5"
+            "$6": "$7"
+        - pattern: kafka.(\w+)<type=(.+), name=(.+)PerSec\w*, (.+)=(.+)><>Count
+          name: kafka_$1_$2_$3_total
+          type: COUNTER
+          labels:
+            "$4": "$5"
+        - pattern: kafka.(\w+)<type=(.+), name=(.+)PerSec\w*><>Count
+          name: kafka_$1_$2_$3_total
+          type: COUNTER
+        # Generic gauges with 0-2 key/value pairs
+        - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.+), (.+)=(.+)><>Value
+          name: kafka_$1_$2_$3
+          type: GAUGE
+          labels:
+            "$4": "$5"
+            "$6": "$7"
+        - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.+)><>Value
+          name: kafka_$1_$2_$3
+          type: GAUGE
+          labels:
+            "$4": "$5"
+        - pattern: kafka.(\w+)<type=(.+), name=(.+)><>Value
+          name: kafka_$1_$2_$3
+          type: GAUGE
+        # Emulate Prometheus 'Summary' metrics for the exported 'Histogram's.
+        # Note that these are missing the '_sum' metric!
+        - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.+), (.+)=(.+)><>Count
+          name: kafka_$1_$2_$3_count
+          type: COUNTER
+          labels:
+            "$4": "$5"
+            "$6": "$7"
+        - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.*), (.+)=(.+)><>(\d+)thPercentile
+          name: kafka_$1_$2_$3
+          type: GAUGE
+          labels:
+            "$4": "$5"
+            "$6": "$7"
+            quantile: "0.$8"
+        - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.+)><>Count
+          name: kafka_$1_$2_$3_count
+          type: COUNTER
+          labels:
+            "$4": "$5"
+        - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.*)><>(\d+)thPercentile
+          name: kafka_$1_$2_$3
+          type: GAUGE
+          labels:
+            "$4": "$5"
+            quantile: "0.$6"
+        - pattern: kafka.(\w+)<type=(.+), name=(.+)><>Count
+          name: kafka_$1_$2_$3_count
+          type: COUNTER
+        - pattern: kafka.(\w+)<type=(.+), name=(.+)><>(\d+)thPercentile
+          name: kafka_$1_$2_$3
+          type: GAUGE
+          labels:
+            quantile: "0.$4"
+        # KRaft overall related metrics
+        # distinguish between always increasing COUNTER (total and max) and variable GAUGE (all others) metrics
+        - pattern: "kafka.server<type=raft-metrics><>(.+-total|.+-max):"
+          name: kafka_server_raftmetrics_$1
+          type: COUNTER
+        - pattern: "kafka.server<type=raft-metrics><>(current-state): (.+)"
+          name: kafka_server_raftmetrics_$1
+          value: 1
+          type: UNTYPED
+          labels:
+            $1: "$2"
+        - pattern: "kafka.server<type=raft-metrics><>(.+):"
+          name: kafka_server_raftmetrics_$1
+          type: GAUGE
+        # KRaft "low level" channels related metrics
+        # distinguish between always increasing COUNTER (total and max) and variable GAUGE (all others) metrics
+        - pattern: "kafka.server<type=raft-channel-metrics><>(.+-total|.+-max):"
+          name: kafka_server_raftchannelmetrics_$1
+          type: COUNTER
+        - pattern: "kafka.server<type=raft-channel-metrics><>(.+):"
+          name: kafka_server_raftchannelmetrics_$1
+          type: GAUGE
+        # Broker metrics related to fetching metadata topic records in KRaft mode
+        - pattern: "kafka.server<type=broker-metadata-metrics><>(.+):"
+          name: kafka_server_brokermetadatametrics_$1
+          type: GAUGE
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.0.0
+      name: kafka-metrics
+      namespace: kafka
+  3: |
+    apiVersion: kafka.strimzi.io/v1beta2
+    kind: Kafka
+    metadata:
+      annotations:
+        strimzi.io/kraft: enabled
+        strimzi.io/node-pools: enabled
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.0.0
+      name: kafka
+      namespace: kafka
+    spec:
+      entityOperator:
+        topicOperator:
+          resources:
+            limits:
+              cpu: 500m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+        userOperator:
+          resources:
+            limits:
+              cpu: 500m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+      kafka:
+        authorization:
+          superUsers:
+            - admin
+          type: simple
+        config:
+          controller.quorum.election.timeout.ms: 10000
+          controller.quorum.fetch.timeout.ms: 2000
+          default.replication.factor: 3
+          log.cleanup.policy: delete
+          log.retention.hours: 336
+          min.insync.replicas: 2
+          num.io.threads: 16
+          num.network.threads: 16
+          num.partitions: 10
+          offsets.topic.num.partitions: 100
+          offsets.topic.replication.factor: 3
+          socket.receive.buffer.bytes: 524288
+          socket.send.buffer.bytes: 524288
+          transaction.state.log.min.isr: 2
+          transaction.state.log.num.partitions: 100
+          transaction.state.log.replication.factor: 3
+        listeners:
+          - name: plain
+            port: 9092
+            tls: false
+            type: internal
+          - authentication:
+              type: scram-sha-512
+            configuration:
+              brokerCertChainAndKey:
+                certificate: tls.crt
+                key: tls.key
+                secretName: kafka-brokers-tls
+            name: tls
+            port: 9093
+            tls: true
+            type: internal
+          - authentication:
+              type: scram-sha-512
+            configuration:
+              bootstrap:
+                host: kafka.example.com
+                port: 9094
+              brokerCertChainAndKey:
+                certificate: tls.crt
+                key: tls.key
+                secretName: kafka-brokers-tls
+              brokers:
+                - broker: 0
+                  host: kafka-0.example.com
+                  port: 9094
+                - broker: 1
+                  host: kafka-1.example.com
+                  port: 9094
+                - broker: 2
+                  host: kafka-2.example.com
+                  port: 9094
+            name: external
+            port: 9094
+            tls: true
+            type: loadbalancer
+        metadataVersion: 4.0-IV1
+        metricsConfig:
+          type: jmxPrometheusExporter
+          valueFrom:
+            configMapKeyRef:
+              key: kafka-metrics-config.yml
+              name: kafka-metrics
+        rack:
+          topologyKey: topology.kubernetes.io/zone
+        version: 4.0.0
+  4: |
+    apiVersion: kafka.strimzi.io/v1beta2
+    kind: KafkaNodePool
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.0.0
+        strimzi.io/cluster: kafka
+      name: kafka-brokers
+      namespace: kafka
+    spec:
+      replicas: 5
+      resources:
+        limits:
+          cpu: 4000m
+          memory: 8Gi
+        requests:
+          cpu: 2000m
+          memory: 4Gi
+      roles:
+        - broker
+      storage:
+        type: jbod
+        volumes:
+          - deleteClaim: false
+            id: 0
+            kraftMetadata: shared
+            size: 500Gi
+            type: persistent-claim
+  5: |
+    apiVersion: kafka.strimzi.io/v1beta2
+    kind: KafkaNodePool
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.0.0
+        strimzi.io/cluster: kafka
+      name: kafka-controllers
+      namespace: kafka
+    spec:
+      replicas: 5
+      resources:
+        limits:
+          cpu: 2000m
+          memory: 4Gi
+        requests:
+          cpu: 1000m
+          memory: 2Gi
+      roles:
+        - controller
+      storage:
+        type: jbod
+        volumes:
+          - deleteClaim: false
+            id: 0
+            kraftMetadata: shared
+            size: 50Gi
+            type: persistent-claim
+  6: |
+    apiVersion: kafka.strimzi.io/v1beta2
+    kind: KafkaUser
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.0.0
+        strimzi.io/cluster: kafka
+      name: app-producer-high-volume
+      namespace: kafka
+    spec:
+      authentication:
+        type: scram-sha-512
+      authorization:
+        acls:
+          - host: '*'
+            operations:
+              - Write
+              - Create
+              - Describe
+            resource:
+              name: '*'
+              patternType: Prefix
+              type: topic
+        type: simple
+  7: |
+    apiVersion: kafka.strimzi.io/v1beta2
+    kind: KafkaUser
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.0.0
+        strimzi.io/cluster: kafka
+      name: app-consumer-analytics
+      namespace: kafka
+    spec:
+      authentication:
+        type: scram-sha-512
+      authorization:
+        acls:
+          - host: '*'
+            operations:
+              - Read
+              - Describe
+            resource:
+              name: '*'
+              patternType: Prefix
+              type: topic
+          - host: '*'
+            operations:
+              - Read
+            resource:
+              name: '*'
+              patternType: Prefix
+              type: group
+        type: simple
+  8: |
+    apiVersion: kafka.strimzi.io/v1beta2
+    kind: KafkaUser
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.0.0
+        strimzi.io/cluster: kafka
+      name: platform-admin
+      namespace: kafka
+    spec:
+      authentication:
+        type: scram-sha-512
+      authorization:
+        acls:
+          - host: '*'
+            operations:
+              - All
+            resource:
+              name: '*'
+              patternType: literal
+              type: '*'
+        type: simple
+  9: |
+    apiVersion: kafka.strimzi.io/v1beta2
+    kind: KafkaUser
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.0.0
+        strimzi.io/cluster: kafka
+      name: admin
+      namespace: kafka
+    spec:
+      authentication:
+        type: scram-sha-512
+      authorization:
+        acls: []
+        type: simple
+  10: |
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.0.0
+      name: kafka
+      namespace: kafka
+    spec:
+      ingress:
+        - from:
+            - namespaceSelector:
+                matchLabels:
+                  kubernetes.io/metadata.name: source-namespace-1
+          ports:
+            - port: 9093
+        - from:
+            - namespaceSelector:
+                matchLabels:
+                  kubernetes.io/metadata.name: source-namespace-2
+          ports:
+            - port: 9093
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/instance: kafka
+      policyTypes:
+        - Ingress
+  11: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PodMonitor
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.0.0
+      name: kafka-brokers
+      namespace: kafka
+    spec:
+      podMetricsEndpoints:
+        - interval: 30s
+          path: /metrics
+          port: tcp-prometheus
+          relabelings:
+            - action: labelmap
+              regex: __meta_kubernetes_pod_label_(strimzi_io_.+)
+              replacement: $1
+              separator: ;
+            - action: replace
+              regex: (.*)
+              replacement: $1
+              separator: ;
+              sourceLabels:
+                - __meta_kubernetes_namespace
+              targetLabel: namespace
+            - action: replace
+              regex: (.*)
+              replacement: $1
+              separator: ;
+              sourceLabels:
+                - __meta_kubernetes_pod_name
+              targetLabel: kubernetes_pod_name
+            - action: replace
+              regex: (.*)
+              replacement: $1
+              separator: ;
+              sourceLabels:
+                - __meta_kubernetes_pod_node_name
+              targetLabel: node_name
+            - action: replace
+              regex: (.*)
+              replacement: $1
+              separator: ;
+              sourceLabels:
+                - __meta_kubernetes_pod_host_ip
+              targetLabel: node_ip
+          scrapeTimeout: 10s
+      selector:
+        matchLabels:
+          strimzi.io/cluster: kafka
+          strimzi.io/kind: Kafka
+  12: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.0.0
+        role: alert-rules
+      name: kafka-alerts
+      namespace: kafka
+    spec:
+      groups:
+        - interval: 30s
+          name: kafka.rules
+          rules:
+            - alert: KafkaBrokerDown
+              annotations:
+                description: Kafka broker {{ $labels.pod }} is down. Only {{ $value }} brokers are up.
+                summary: Kafka broker is down
+              expr: |
+                count(up{pod=~"kafka-kafka-brokers-.*"} == 1) < 3
+              for: 5m
+              labels:
+                component: kafka
+                severity: critical
+            - alert: KafkaUnderReplicatedPartitions
+              annotations:
+                description: Broker {{ $labels.pod }} has {{ $value }} under-replicated partitions
+                summary: Kafka has under-replicated partitions
+              expr: |
+                kafka_server_replicamanager_underreplicatedpartitions > 0
+              for: 5m
+              labels:
+                component: kafka
+                severity: warning
+            - alert: KafkaOfflinePartitions
+              annotations:
+                description: Kafka cluster has {{ $value }} offline partitions (with no leader). Data loss risk!
+                summary: Kafka has offline partitions
+              expr: |
+                kafka_controller_kafkacontroller_offlinepartitionscount > 0
+              for: 2m
+              labels:
+                component: kafka
+                severity: critical
+            - alert: KafkaFailedFetchRequests
+              annotations:
+                description: Broker {{ $labels.pod }} has {{ $value | humanize }} failed fetch requests/sec
+                summary: High failed fetch requests rate
+              expr: |
+                rate(kafka_server_brokertopicmetrics_failedfetchrequests_total[5m]) > 0.1
+              for: 5m
+              labels:
+                component: kafka
+                severity: warning
+            - alert: KafkaFailedProduceRequests
+              annotations:
+                description: Broker {{ $labels.pod }} has {{ $value | humanize }} failed produce requests/sec
+                summary: High failed produce requests rate
+              expr: |
+                rate(kafka_server_brokertopicmetrics_failedproducerequests_total[5m]) > 0.1
+              for: 5m
+              labels:
+                component: kafka
+                severity: warning
+            - alert: KafkaKRaftQuorumUnhealthy
+              annotations:
+                description: 'KRaft quorum does not have exactly 1 active controller. Active controllers: {{ $value }}'
+                summary: KRaft quorum is unhealthy
+              expr: |
+                kafka_controller_kafkacontroller_activecontrollercount != 1
+              for: 2m
+              labels:
+                component: kafka
+                severity: critical
+            - alert: KafkaRunningOutOfSpace
+              annotations:
+                description: There are only {{ $value }} percent available at {{ $labels.persistentvolumeclaim }} PVC
+                summary: Kafka is running out of free disk space
+              expr: |
+                kubelet_volume_stats_available_bytes{persistentvolumeclaim=~"data(-[0-9]+)?-(.+)-(brokers|controllers)-[0-9]+"} * 100 / kubelet_volume_stats_capacity_bytes{persistentvolumeclaim=~"data(-[0-9]+)?-(.+)-(brokers|controllers)-[0-9]+"} < 15
+              for: 5m
+              labels:
+                component: kafka
+                severity: warning
+            - alert: AbnormalControllerState
+              annotations:
+                description: Kafka instance {{ $labels.strimzi_io_name }} on namespace {{ $labels.namespace }} has {{ $value }} active controllers
+                summary: Kafka abnormal controller state
+              expr: |
+                sum(kafka_controller_kafkacontroller_activecontrollercount) by (strimzi_io_name, namespace) != 1
+              for: 5m
+              labels:
+                component: kafka
+                severity: warning
+            - alert: UnderMinIsrPartitionCount
+              annotations:
+                description: There are {{ $value }} partitions under the min ISR on {{ $labels.kubernetes_pod_name }}
+                summary: Kafka under min ISR partitions
+              expr: |
+                kafka_server_replicamanager_underminisrpartitioncount > 0
+              for: 5m
+              labels:
+                component: kafka
+                severity: warning
+            - alert: OfflineLogDirectoryCount
+              annotations:
+                description: There are {{ $value }} offline log directories on {{ $labels.kubernetes_pod_name }}
+                summary: Kafka offline log directories
+              expr: |
+                kafka_log_logmanager_offlinelogdirectorycount > 0
+              for: 5m
+              labels:
+                component: kafka
+                severity: warning
+            - alert: KafkaContainerRestartedInTheLast5Minutes
+              annotations:
+                description: One or more Kafka containers were restarted too often within the last 5 minutes
+                summary: One or more Kafka containers restarted too often
+              expr: |
+                count(count_over_time(container_last_seen{container="kafka"}[5m])) > 2 * count(container_last_seen{container="kafka",pod=~".+-(brokers|controllers)-[0-9]+"})
+              for: 5m
+              labels:
+                component: kafka
+                severity: warning
+  13: |
+    apiVersion: velero.io/v1
+    kind: Schedule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.0.0
+      name: kafka-brokers
+      namespace: openshift-adp
+    spec:
+      schedule: 0 * * * *
+      skipImmediately: false
+      template:
+        includedNamespaces:
+          - kafka
+        includedResources:
+          - '*'
+        snapshotVolumes: true
+        ttl: 72h

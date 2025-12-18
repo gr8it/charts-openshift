@@ -1,0 +1,16 @@
+{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
+{{- range $path, $_ := .Files.Glob "tailoredprofiles/*.yaml" }}
+{{- $profileName := $path | base | trimSuffix ".yaml" }}
+{{- $fileContent := $.Files.Get $path }}
+---
+apiVersion: compliance.openshift.io/v1alpha1
+kind: TailoredProfile
+metadata:
+  name: {{ $profileName }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "compliance-config.labels" $ | nindent 4 }}
+spec:
+{{ $fileContent | nindent 2 }}
+{{- end }}
+{{- end }}
