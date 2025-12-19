@@ -27,8 +27,6 @@ The Job will create a compressed etcd snapshot, and uploads it to an S3 endpoint
 
 ## Example Deployment
 
-### Option #1: ObjectBucketClaim for etcd backup already exists
-
 ```yaml
 # my-values.yaml
 clusterName: ocpdemo-spoke2
@@ -46,32 +44,6 @@ selfSignedCertificate:
 $ helm -n apc-backup install -f my-values.yaml etcd-hcp-ocpdemo-spoke2-backup .
 NAME: etcd-hcp-ocpdemo-spoke2-backup
 LAST DEPLOYED: Fri Mar 28 10:08:09 2025
-NAMESPACE: apc-backup
-STATUS: deployed
-REVISION: 1
-TEST SUITE: None
-```
-
-### Option #2: ObjectBucketClaim for etcd backup does not exist
-
-```yaml
-# my-values.yaml
-clusterName: ocpdemo-spoke1
-backupNamespace: apc-backup
-backupSchedule: "30 */3 * * *"
-retentionDays: 10
-objectBucketClaim:
-  create: true
-  storageClass: openshift-storage.noobaa.io
-selfSignedCertificate:
-  configMap: openshift-service-ca.crt
-  name: service-ca.crt
-```
-
-```sh
-$ helm -n apc-backup install -f my-values.yaml etcd-hcp-ocpdemo-spoke1-backup .
-NAME: etcd-hcp-ocpdemo-spoke1-backup
-LAST DEPLOYED: Fri Mar 28 08:48:48 2025
 NAMESPACE: apc-backup
 STATUS: deployed
 REVISION: 1
