@@ -1,5 +1,5 @@
 {{/* Application / Chart name */}}
-{{- define "app.name" -}}
+{{- define " openshift-hcp-etcd-backup.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 40 | trimSuffix "-" -}}
 {{- end -}}
 
@@ -10,14 +10,14 @@
 {{- end -}}
 
 {{/* Fullname = chart name + cluster name */}}
-{{- define "app.fullname" -}}
+{{- define "openshift-hcp-etcd-backup.fullname" -}}
 {{- $chartName := default .Chart.Name .Values.nameOverride | trunc 40 | trimSuffix "-" -}}
 {{- $clusterName := (include "etcd-hcp.clusterName" .) | trunc 20 | trimSuffix "-" -}}
 {{- printf "%s-%s" $chartName $clusterName | replace "+" "_" | trunc 50 | trimSuffix "-" }}
 {{- end -}}
 
 {{/* Create chart name and version as used by the chart label. */}}
-{{- define "app.chart" -}}
+{{- define "openshift-hcp-etcd-backup.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end -}}
 
@@ -40,9 +40,9 @@
 
 {{/* Common labels */}}
 {{- define "common.labels" -}}
-app.kubernetes.io/name: {{ include "app.name" . }}
+app.kubernetes.io/name: {{ include "openshift-hcp-etcd-backup.name" . }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
-app.kubernetes.io/instance: {{ include "app.fullname" . }}
+app.kubernetes.io/instance: {{ include "openshift-hcp-etcd-backup.fullname" . }}
 app.kubernetes.io/version: {{ .Chart.Version | quote }}
-helm.sh/chart: {{ include "app.chart" . }}
+helm.sh/chart: {{ include "openshift-hcp-etcd-backup.chart" . }}
 {{- end -}}
