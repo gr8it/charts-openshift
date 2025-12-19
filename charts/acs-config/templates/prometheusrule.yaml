@@ -1,4 +1,4 @@
-{{- if or .Values.prometheusRule.enabled (eq (include "apc-global-overrides.clusterIsHub" .) "true") }}
+{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule

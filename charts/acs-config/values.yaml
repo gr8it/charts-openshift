@@ -74,9 +74,8 @@ securedCluster:
         replicas: 3
     scannerComponent: Default
 
-# Central configuration (enable for hub clusters)
+# Central configuration (deployed only on hub clusters)
 central:
-  enabled: false
   name: stackrox-central-services
   spec:
     central:
@@ -163,7 +162,6 @@ central:
 
 # PrometheusRule configuration (hub01 only via apc-global-overrides)
 prometheusRule:
-  enabled: false
   name: rhacs-prometheus-rules
   labels:
     app: rhacs

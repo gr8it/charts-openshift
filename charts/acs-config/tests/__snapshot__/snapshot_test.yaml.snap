@@ -1,0 +1,334 @@
+should only render SecuredCluster for managed cluster:
+  1: |
+    apiVersion: platform.stackrox.io/v1alpha1
+    kind: SecuredCluster
+    metadata:
+      labels:
+        app.kubernetes.io/instance: acs-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: acs-config
+        helm.sh/chart: acs-config-1.0.0
+      name: stackrox-secured-cluster-services
+      namespace: NAMESPACE
+    spec:
+      admissionControl:
+        bypass: BreakGlassAnnotation
+        contactImageScanners: DoNotScanInline
+        listenOnCreates: true
+        listenOnEvents: true
+        listenOnUpdates: true
+        replicas: 3
+        timeoutSeconds: 10
+      auditLogs:
+        collection: Auto
+      centralEndpoint: https://central-stackrox.apps.hub01.cloud.socpoist.sk:443
+      clusterName: dev01
+      monitoring:
+        openshift:
+          enabled: true
+      network:
+        policies: Enabled
+      perNode:
+        collector:
+          collection: CORE_BPF
+          forceCollection: false
+          imageFlavor: Regular
+        taintToleration: TolerateTaints
+      scanner:
+        analyzer:
+          resources:
+            limits:
+              cpu: "2"
+              memory: 4Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          scaling:
+            autoScaling: Enabled
+            maxReplicas: 5
+            minReplicas: 2
+            replicas: 3
+        scannerComponent: AutoSense
+      scannerV4:
+        db:
+          persistence:
+            persistentVolumeClaim:
+              claimName: scanner-v4-db
+          resources:
+            limits:
+              cpu: "2"
+              memory: 4Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+        indexer:
+          scaling:
+            autoScaling: Enabled
+            maxReplicas: 5
+            minReplicas: 2
+            replicas: 3
+        scannerComponent: Default
+      sensor:
+        resources:
+          limits:
+            cpu: "2"
+            memory: 4Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+should render all manifests for hub cluster:
+  1: |
+    apiVersion: platform.stackrox.io/v1alpha1
+    kind: Central
+    metadata:
+      labels:
+        app.kubernetes.io/instance: acs-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: acs-config
+        helm.sh/chart: acs-config-1.0.0
+      name: stackrox-central-services
+      namespace: NAMESPACE
+    spec:
+      central:
+        db:
+          isEnabled: Default
+          persistence:
+            persistentVolumeClaim:
+              claimName: central-db
+          resources:
+            limits:
+              cpu: "8"
+              memory: 16Gi
+            requests:
+              cpu: 500m
+              memory: 2Gi
+        exposure:
+          loadBalancer:
+            enabled: false
+            port: 443
+          nodePort:
+            enabled: false
+          route:
+            enabled: true
+        notifierSecretsEncryption:
+          enabled: false
+        persistence:
+          persistentVolumeClaim:
+            claimName: stackrox-db
+        resources:
+          limits:
+            cpu: "4"
+            memory: 8Gi
+          requests:
+            cpu: 500m
+            memory: 2Gi
+        telemetry:
+          enabled: true
+      egress:
+        connectivityPolicy: Online
+      monitoring:
+        openshift:
+          enabled: true
+      network:
+        policies: Enabled
+      scanner:
+        analyzer:
+          resources:
+            limits:
+              cpu: "2"
+              memory: 4Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          scaling:
+            autoScaling: Enabled
+            maxReplicas: 5
+            minReplicas: 2
+            replicas: 3
+      scannerV4:
+        db:
+          persistence:
+            persistentVolumeClaim:
+              claimName: scanner-v4-db
+          resources:
+            limits:
+              cpu: "2"
+              memory: 4Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+        indexer:
+          scaling:
+            autoScaling: Enabled
+            maxReplicas: 5
+            minReplicas: 2
+            replicas: 3
+        matcher:
+          scaling:
+            autoScaling: Enabled
+            maxReplicas: 5
+            minReplicas: 2
+            replicas: 3
+        scannerComponent: Default
+  2: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      labels:
+        app: rhacs
+        app.kubernetes.io/instance: acs-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: acs-config
+        helm.sh/chart: acs-config-1.0.0
+      name: rhacs-prometheus-rules
+      namespace: NAMESPACE
+    spec:
+      groups:
+        - name: rhacs-central
+          rules:
+            - alert: RHACSCentralScrapeFailed
+              annotations:
+                description: During the last 10 minutes, only `{{ $value | humanizePercentage }}` of scrapes of target `{{ $labels.pod }}` in namespace `{{ $labels.namespace }}` were successful. This alert is raised when less than 50% of scrapes are successful.
+                sop_url: https://gitlab.cee.redhat.com/stackrox/acs-managed-service-runbooks/blob/master/sops/dp-003-rhacs-instance-unavailable.md
+                summary: Prometheus unable to scrape metrics from target `{{ $labels.pod }}` in namespace `{{ $labels.namespace }}`.
+              expr: |
+                avg_over_time(up{pod=~"central-.*"}[10m]) < 0.5 and ON(pod) kube_pod_container_status_ready{container="central"} == 1
+              for: 20m
+              labels:
+                severity: critical
+            - alert: RHACSCentralContainerDown
+              annotations:
+                description: Central container `{{ $labels.pod }}/{{ $labels.container }}` in namespace `{{ $labels.namespace }}` has been down or in a CrashLoopBackOff status for at least 10 minutes.
+                sop_url: https://gitlab.cee.redhat.com/stackrox/acs-managed-service-runbooks/blob/master/sops/dp-003-rhacs-instance-unavailable.md
+                summary: Central container `{{ $labels.pod }}/{{ $labels.container }}` in namespace `{{ $labels.namespace }}` is down or in a CrashLoopBackOff status.
+              expr: |
+                avg_over_time(kube_pod_container_status_ready{container="central"}[10m]) < 0.5
+              for: 20m
+              labels:
+                severity: critical
+            - alert: RHACSCentralContainerFrequentlyRestarting
+              annotations:
+                description: Central container `{{ $labels.pod }}/{{ $labels.container }}` in namespace `{{ $labels.namespace }}` has restarted more than 3 times during the last 30 minutes.
+                sop_url: https://gitlab.cee.redhat.com/stackrox/acs-managed-service-runbooks/blob/master/sops/dp-003-rhacs-instance-unavailable.md
+                summary: Central container `{{ $labels.pod }}/{{ $labels.container }}` in namespace `{{ $labels.namespace }}` restarted more than 3 times.
+              expr: |
+                increase(kube_pod_container_status_restarts_total{container="central"}[30m]) > 3
+              labels:
+                severity: critical
+            - alert: RHACSCentralPostgresConnectionDown
+              annotations:
+                description: Central container `{{ $labels.pod }}/{{ $labels.container }}` database connection in namespace `{{ $labels.namespace }}` has been down or is in a bad shape for at least 10 minutes.
+                sop_url: https://gitlab.cee.redhat.com/stackrox/acs-managed-service-runbooks/blob/master/sops/dp-010-rhacs-instance-db-unavailable.md
+                summary: Central container `{{ $labels.pod }}/{{ $labels.container }}` database connection in namespace `{{ $labels.namespace }}` is down or is in a bad shape.
+              expr: avg_over_time(rox_central_postgres_connected{container="central"}[10m]) < 0.5
+              for: 20m
+              labels:
+                severity: critical
+        - name: rhacs-scanner
+          rules:
+            - alert: RHACSScannerScrapeFailed
+              annotations:
+                description: During the last 10 minutes, only `{{ $value | humanizePercentage }}` of scrapes of target `{{ $labels.pod }}` in namespace `{{ $labels.namespace }}` were successful. This alert is raised when less than 50% of scrapes are successful.
+                sop_url: https://gitlab.cee.redhat.com/stackrox/acs-managed-service-runbooks/blob/master/sops/dp-003-rhacs-instance-unavailable.md
+                summary: Prometheus unable to scrape metrics from target `{{ $labels.pod }}` in namespace `{{ $labels.namespace }}`.
+              expr: |
+                avg_over_time(up{pod=~"scanner-.*"}[10m]) < 0.5 and ON(pod) kube_pod_container_status_ready{pod=~"scanner.*", container=~"scanner|db"} == 1
+              for: 20m
+              labels:
+                severity: critical
+            - alert: RHACSScannerContainerDown
+              annotations:
+                description: Scanner container `{{ $labels.pod }}/{{ $labels.container }}` in namespace `{{ $labels.namespace }}` has been down or in a CrashLoopBackOff status for at least 10 minutes.
+                sop_url: https://gitlab.cee.redhat.com/stackrox/acs-managed-service-runbooks/blob/master/sops/dp-003-rhacs-instance-unavailable.md
+                summary: Scanner container `{{ $labels.pod }}/{{ $labels.container }}` in namespace `{{ $labels.namespace }}` is down or in a CrashLoopBackOff status.
+              expr: |
+                avg_over_time(kube_pod_container_status_ready{pod=~"scanner.*", container=~"scanner|db"}[10m]) < 0.5
+              for: 20m
+              labels:
+                severity: critical
+            - alert: RHACSScannerContainerFrequentlyRestarting
+              annotations:
+                description: Scanner container `{{ $labels.pod }}/{{ $labels.container }}` in namespace `{{ $labels.namespace }}` has restarted more than 3 times during the last 30 minutes.
+                sop_url: https://gitlab.cee.redhat.com/stackrox/acs-managed-service-runbooks/blob/master/sops/dp-003-rhacs-instance-unavailable.md
+                summary: Scanner container `{{ $labels.pod }}/{{ $labels.container }}` in namespace `{{ $labels.namespace }}` restarted more than 3 times.
+              expr: |
+                increase(kube_pod_container_status_restarts_total{pod=~"scanner.*", container=~"scanner|db"}[30m]) > 3
+              labels:
+                severity: warning
+  3: |
+    apiVersion: platform.stackrox.io/v1alpha1
+    kind: SecuredCluster
+    metadata:
+      labels:
+        app.kubernetes.io/instance: acs-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: acs-config
+        helm.sh/chart: acs-config-1.0.0
+      name: stackrox-secured-cluster-services
+      namespace: NAMESPACE
+    spec:
+      admissionControl:
+        bypass: BreakGlassAnnotation
+        contactImageScanners: DoNotScanInline
+        listenOnCreates: true
+        listenOnEvents: true
+        listenOnUpdates: true
+        replicas: 3
+        timeoutSeconds: 10
+      auditLogs:
+        collection: Auto
+      centralEndpoint: https://central-stackrox.apps.hub01.cloud.socpoist.sk:443
+      clusterName: hub01
+      monitoring:
+        openshift:
+          enabled: true
+      network:
+        policies: Enabled
+      perNode:
+        collector:
+          collection: CORE_BPF
+          forceCollection: false
+          imageFlavor: Regular
+        taintToleration: TolerateTaints
+      scanner:
+        analyzer:
+          resources:
+            limits:
+              cpu: "2"
+              memory: 4Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          scaling:
+            autoScaling: Enabled
+            maxReplicas: 5
+            minReplicas: 2
+            replicas: 3
+        scannerComponent: AutoSense
+      scannerV4:
+        db:
+          persistence:
+            persistentVolumeClaim:
+              claimName: scanner-v4-db
+          resources:
+            limits:
+              cpu: "2"
+              memory: 4Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+        indexer:
+          scaling:
+            autoScaling: Enabled
+            maxReplicas: 5
+            minReplicas: 2
+            replicas: 3
+        scannerComponent: Default
+      sensor:
+        resources:
+          limits:
+            cpu: "2"
+            memory: 4Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi

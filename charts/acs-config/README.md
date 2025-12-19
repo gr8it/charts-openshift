@@ -24,10 +24,7 @@ The chart is configured through `values.yaml`. Key parameters include:
 
 ## Usage
 
-```yaml
-securedCluster:
-  clusterName: prod01
-  centralEndpoint: 'https://central-stackrox.apps.hub01.cloud.socpoist.sk:443'
+
 
 central:
   enabled: true
@@ -35,3 +32,10 @@ central:
 prometheusRule:
   enabled: true
 ```
+
+## Additional OpenShift setup
+
+Implement these supporting steps alongside the chart deployment:
+
+- [docs/roles.md](docs/roles.md): create the ACS Auditor permission set/role and assign it to the required identity provider groups.
+- [docs/backup.md](docs/backup.md): configure ACS backup to S3 (and downstream Veeam backup) using the provided ACS backup functionality.

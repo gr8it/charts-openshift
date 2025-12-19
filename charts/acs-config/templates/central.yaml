@@ -1,4 +1,4 @@
-{{- if .Values.central.enabled }}
+{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
 ---
 apiVersion: platform.stackrox.io/v1alpha1
 kind: Central

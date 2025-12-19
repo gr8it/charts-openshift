@@ -42,18 +42,6 @@ acm-operatorpolicy:
     startingCSV: rhacs-operator.v4.6.1
   upgradeApproval: Manual
 
-securedCluster:
-  clusterName: dev01  # Override per environment
-  centralEndpoint: 'https://central-stackrox.apps.hub01.cloud.socpoist.sk:443'
-```
-
-### Per-Environment Override
-
-```yaml
-securedCluster:
-  clusterName: prod01  # Change for each environment
-  centralEndpoint: 'https://central-stackrox.apps.hub01.cloud.socpoist.sk:443'
-```
 
 ## Prerequisites
 
