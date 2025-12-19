@@ -2,8 +2,6 @@
 clusterName: ~
 # clusterNamespace: <string> - optional, overrides the default hcp namespace {clusterName-clusterName}
 clusterNamespace: ~
-# backupNamespace: <string> - namespace for backup job deployment
-backupNamespace: apc-backup
 # backupSchedule: <string> - crontab notation for etcd backup schedule
 backupSchedule: "0 * * * *"
 # retentionDays: <int> - specifies the number of days to retain old backups during the cleanup phase
@@ -14,7 +12,7 @@ etcdStatefulSetName: etcd
 compressSnapshot: false
 
 objectBucketClaim:
-  # create: <bool> - optional, creates an ObjectBucketClaim for storing etcd backups in {backupNamespace}
+  # create: <bool> - optional, creates an ObjectBucketClaim for storing etcd backups in {{ .Release.Namespace }}
   #                  if set to false; backup will use existing ObjectBucketClaim referenced with {objectBucketClaim.name}
   create: false
   # name: <string> - optional, overrides the default ObjectBucketClaim name etcd-hcp-{clusterName}-backup

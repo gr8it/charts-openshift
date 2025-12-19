@@ -10,7 +10,7 @@ spec:
   - from:
     - namespaceSelector:
         matchLabels:
-          kubernetes.io/metadata.name: {{ .Values.backupNamespace }}
+          kubernetes.io/metadata.name: {{ .Release.Namespace }}
     - podSelector:
         matchLabels:
           app.kubernetes.io/name: {{ include "app.name" . }}

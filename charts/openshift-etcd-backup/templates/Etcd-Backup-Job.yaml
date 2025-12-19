@@ -3,7 +3,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ include "app.fullname" . }}
-  namespace: {{ .Values.defaultNamespace }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "common.labels" . | nindent 4 }}
 spec:
@@ -51,16 +51,22 @@ spec:
               # cleanup
               echo -e "\n\n---\nCleanup old local etcd snapshots on $NODENAME\n"
               find /host/home/core/backup -mmin +60 -path '*/backup/*' -delete -print
+
               # snapshot
               echo -e "\n\n---\nCreate new local etcd snapshot on $NODENAME\n"
               TIMESTAMP=$(date -u +"%F_%H%M%SZ")
               chroot /host /usr/local/bin/cluster-backup.sh /home/core/backup/${TIMESTAMP}
-              {{- if and (hasKey .Values "compressSnapshot") ( eq (default "false" (toString .Values.compressSnapshot)) "true" ) }}
+
               # archive
+              {{- if and (hasKey .Values "compressSnapshot") ( eq (default "false" (toString .Values.compressSnapshot)) "true" ) }}
               echo -e "\n\n---\nCompress the etcd snapshot\n"
               gzip -9v /host/home/core/backup/${TIMESTAMP}/snapshot*
               gzip -tv /host/home/core/backup/${TIMESTAMP}/snapshot*
               {{- end }}
+
+              # success
+              echo -e "Etcd snapshot completed successfully on $NODENAME"
+              
               exit 0
             env:
             - name: NODENAME

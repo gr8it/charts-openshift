@@ -3,7 +3,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
   name: {{ include "app.fullname" . }}-rules
-  namespace: {{ .Values.backupNamespace }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "common.labels" . | nindent 4 }}
 spec:
@@ -12,7 +12,7 @@ spec:
     rules:
       {{- $clusterName := include "etcd-hcp.clusterName" . }}
       - alert: EtcdBackupJobFailure
-        expr: kube_job_status_failed{namespace="{{ .Values.backupNamespace }}", job_name=~"{{ include "app.fullname" . }}-.*"} > 0
+        expr: kube_job_status_failed{namespace="{{ .Release.Namespace }}", job_name=~"{{ include "app.fullname" . }}-.*"} > 0
         labels:
           severity: critical
         annotations:
