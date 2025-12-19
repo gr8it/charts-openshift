@@ -1,4 +1,4 @@
-{{/* Application / Chart name */}}
+{{/*  Chart name */}}
 {{- define "etcd-hcp-backup.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 40 | trimSuffix "-" -}}
 {{- end -}}
@@ -8,12 +8,6 @@
 {{- $chartName := default .Chart.Name .Values.nameOverride | trunc 40 | trimSuffix "-" -}}
 {{- $clusterName := .Values.clusterName | trunc 20 | trimSuffix "-" | required "clusterName is required" -}}
 {{- printf "%s-%s" $chartName $clusterName | replace "+" "_" | trunc 50 | trimSuffix "-" }}
-{{- end -}}
-
-{{/* Resolve cluster name using global overrides helper */}}
-{{- define "etcd-hcp-backup.clusterName" -}}
-{{- $ctx := dict "Values" (dict "cluster" (dict "name" .Values.clusterName) "global" .Values.global) -}}
-{{- include "apc-global-overrides.require-clusterName" $ctx -}}
 {{- end -}}
 
 {{/* Create chart name and version as used by the chart label. */}}
