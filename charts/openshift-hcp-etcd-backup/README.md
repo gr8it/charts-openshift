@@ -12,7 +12,7 @@ The Job will create a compressed etcd snapshot, and uploads it to an S3 endpoint
 |:---                             |:---  |:---                             |:---    |
 | clusterName                     | str  |                                 | Name of the Hosted Cluster. Defaults to `global.apc.cluster.name` when not set. |
 | clusterNamespace                | str  | `{clusterName}-{clusterName}`   | Overrides the default Hosted Cluster namespace | 
-| backupNamespace                 | str  | `apc-backup`                    | Namespace for deploying the backup job. ObjectBucketClaim must be configured in this namespace beforehand. Alternatively, this Helm Chart can create one by setting the `objectBucketClaim.create` variable. |
+| backupNamespace                 | str  | `.Release.Namespace`                    | Namespace for deploying the backup job. ObjectBucketClaim must be configured in this namespace beforehand. Alternatively, this Helm Chart can create one by setting the `objectBucketClaim.create` variable. |
 | backupSchedule                  | str  | `"0 * * * *"`                   | Cron notation for ETCD backup schedule |
 | retentionDays                   | int  | `30`                            | Specifies the number of days to retain old backups during the cleanup phase  |
 | etcdStatefulSetName             | str  | `etcd`                          | An optional parameter that overrides the default etcd StatefulSet name in  the Hosted Cluster namespace |
