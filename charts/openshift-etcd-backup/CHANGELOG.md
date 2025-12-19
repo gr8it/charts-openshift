@@ -1,10 +1,12 @@
 # Changelog
 
-## 1.3.0 - 2025-12-18
+All notable changes to this component will be documented in this file.
 
-- Fixing typos
+The format is based on [Common Changelog](https://common-changelog.org/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 1.1.2
+## [1.0.0] - 2025-12-19
 
-- Updated to use `apc-global-overrides` helper dependency for cluster defaults.
-- Added default namespace `apc-backup` and preserved existing functionality.
+([JIRA-7936](https://aspecta.atlassian.net/browse/SPEXAPC-7936))_
+
+- Initial release
