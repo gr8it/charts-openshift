@@ -1,0 +1,38 @@
+{
+  "type": "object",
+  "properties": {
+    "spec": {
+      "type": "object",
+      "description": "Defines the microservice",
+      "properties": {
+        "roles": {
+          "type": "array",
+          "description": "List of microservice Keycloak roles"
+        },
+        "validRedirectUris": {
+          "type": "array",
+          "description": "List of Keycloak client allowed redirect URIs"
+        },
+        "webOrigins": {
+          "type": "array",
+          "description": "List of Keycloak client allowed web origins, allowed CORS origins. To permit all origins of Valid Redirect URIs, add '+'. This does not include the '*' wildcard though. To permit all origins, explicitly add '*'."
+        },
+        "rootUrl": {
+          "type": "string",
+          "description": "Root URL of the microservice Keycloak client, prepended to all relative URLs"
+        },
+        "baseUrl": {
+          "type": "string",
+          "description": "Base URL of the microservice Keycloak client, used as a default redirect"
+        }
+      },
+      "required": [
+        "roles",
+        "validRedirectUris"
+      ]
+    }
+  },
+  "required": [
+    "spec"
+  ]
+}

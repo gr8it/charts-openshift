@@ -1,0 +1,13 @@
+apiVersion: keycloak.m.crossplane.io/v1beta1
+kind: ClusterProviderConfig
+metadata:
+  name: {{ include "apc-global-overrides.crossplaneKubeKeycloakProviderConfigName" . }}
+  labels:
+    {{- include "crossplane-keycloak-provider-bootstrap.labels" . | nindent 4 }}
+spec:
+  credentials:
+    source: Secret
+    secretRef:
+      name: {{ include "apc-global-overrides.crossplaneKubeKeycloakProviderConfigName" . }}
+      key: config.json
+      namespace: {{ .Release.Namespace }}
