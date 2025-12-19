@@ -2,12 +2,12 @@
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
-  name: {{ include "obc.name" . }}
+  name: {{ include "openshift-hcp-etcd-backup.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "common.labels" . | nindent 4 }}
   annotations:
     helm.sh/resource-policy: keep
 spec:
-  generateBucketName: {{ include "obc.name" . }}
+  generateBucketName: {{ include "openshift-hcp-etcd-backup.name" . }}
   storageClassName: {{ default "ocs-storagecluster-ceph-rgw" .Values.objectBucketClaim.storageClass }}
