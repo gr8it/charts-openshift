@@ -1,0 +1,131 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "etcd-hcp-backup.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "common.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.backupSchedule | quote }}
+  concurrencyPolicy: Forbid
+  suspend: false
+  successfulJobsHistoryLimit: 7
+  failedJobsHistoryLimit: 7
+  jobTemplate:
+    metadata:
+      labels:
+        {{- include "common.labels" . | nindent 8 }}
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "common.labels" . | nindent 12 }}
+        spec:
+          serviceAccountName: {{ include "etcd-hcp-backup.name" . }}
+          restartPolicy: Never
+          initContainers:
+          - name: init
+            image: {{ .Values.image.ocpcli }}
+            command: ["/bin/bash", "/usr/local/bin/init.sh"]
+            volumeMounts:
+            - name: workdir
+              mountPath: /backup
+            - name: scripts
+              mountPath: /usr/local/bin/init.sh
+              subPath: init.sh
+              readOnly: true
+            env:
+            - name: STATEFULSET
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "etcd-hcp-backup.name" . }}-scripts
+                  key: env.etcdsts
+            - name: HCPNS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "etcd-hcp-backup.name" . }}-scripts
+                  key: env.hcpns
+          - name: snapshot
+            image: {{ .Values.image.etcd }}
+            command: ["/bin/bash", "/usr/local/bin/etcdsnap.sh"]
+            volumeMounts:
+            - name: workdir
+              mountPath: /backup
+            - name: scripts
+              mountPath: /usr/local/bin/etcdsnap.sh
+              subPath: etcdsnap.sh
+              readOnly: true
+            env:
+            - name: HCPNS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "etcd-hcp-backup.name" . }}-scripts
+                  key: env.hcpns
+            - name: FILEPREFIX
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "etcd-hcp-backup.name" . }}-scripts
+                  key: env.fileprefix
+            - name: COMPRESS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "etcd-hcp-backup.name" . }}-scripts
+                  key: env.compress
+          containers:
+          - name: s3backup
+            image: {{ .Values.image.awscli }}
+            command: ["/bin/bash", "/usr/local/bin/s3upload.sh"]
+            volumeMounts:
+            - name: workdir
+              mountPath: /backup
+            - name: scripts
+              mountPath: /usr/local/bin/s3upload.sh
+              subPath: s3upload.sh
+              readOnly: true
+            {{- if and (hasKey .Values "selfSignedCertificate") (hasKey .Values.selfSignedCertificate "name") (hasKey .Values.selfSignedCertificate "key") }}
+            - name: s3ca
+              mountPath: /etc/ssl/certs/s3ca.crt
+              subPath: {{ .Values.selfSignedCertificate.key }}
+              readOnly: true
+            {{- end }}
+            env:
+            - name: RETENTION
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "etcd-hcp-backup.name" . }}-scripts
+                  key: env.retention
+            - name: FILEPREFIX
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "etcd-hcp-backup.name" . }}-scripts
+                  key: env.fileprefix
+            {{- if and (hasKey .Values "selfSignedCertificate") (hasKey .Values.selfSignedCertificate "name") (hasKey .Values.selfSignedCertificate "key") }}
+            - name: AWS_CA_BUNDLE
+              value: "/etc/ssl/certs/s3ca.crt"
+            {{- end }}
+            envFrom:
+            - secretRef:
+                name: {{ include "etcd-hcp-backup.name" . }}
+            - configMapRef:
+                name: {{ include "etcd-hcp-backup.name" . }}
+            resources:
+              requests:
+                memory: "100Mi"
+                cpu: "50m"
+              limits:
+                memory: "512Mi"
+                cpu: "200m"
+          volumes:
+          - name: workdir
+            emptyDir:
+              sizeLimit: 10Gi
+          - name: scripts
+            configMap:
+              name: {{template "etcd-hcp-backup.name" . }}-scripts
+              defaultMode: 0555
+          {{- if and (hasKey .Values "selfSignedCertificate") (hasKey .Values.selfSignedCertificate "name") }}
+          - name: s3ca
+            configMap:
+              name: {{ .Values.selfSignedCertificate.name }}
+          {{- end }}

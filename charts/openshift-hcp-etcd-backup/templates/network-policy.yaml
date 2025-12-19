@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "etcd-hcp-backup.name" . }}
+  namespace: {{ include "etcd-hcp-backup.namespace" . }}
+  labels:
+    {{- include "common.labels" . | nindent 4 }}
+spec:
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ .Release.Namespace }}
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: {{ include "etcd-hcp-backup.name" . }}
+          app.kubernetes.io/instance: {{ include "etcd-hcp-backup.name" . }}
+  podSelector:
+    matchExpressions:
+    - key: "statefulset.kubernetes.io/pod-name"
+      operator: In
+      values:
+      {{- range $idx := untilStep 0 5 1 }}
+      - {{ default "etcd" $.Values.etcdStatefulSetName }}-{{ $idx }}
+      {{- end }}
+  policyTypes:
+  - Ingress
