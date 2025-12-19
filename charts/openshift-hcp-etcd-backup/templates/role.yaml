@@ -2,8 +2,8 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ include "openshift-hcp-etcd-backup.name" . }}
-  namespace: {{ include "openshift-hcp-etcd-backup.namespace" . }}
+  name: {{ include "etcd-hcp-backup.name" . }}
+  namespace: {{ include "etcd-hcp-backup.namespace" . }}
   labels:
     {{- include "common.labels" . | nindent 4 }}
 rules:

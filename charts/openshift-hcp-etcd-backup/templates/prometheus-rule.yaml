@@ -2,7 +2,7 @@
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: {{ include "openshift-hcp-etcd-backup.name" . }}-rules
+  name: {{ include "etcd-hcp-backup.name" . }}-rules
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "common.labels" . | nindent 4 }}
@@ -10,9 +10,9 @@ spec:
   groups:
   - name: cronjob.rules
     rules:
-      {{- $clusterName := include "openshift-hcp-etcd-backup.clusterName" . }}
+      {{- $clusterName := include "etcd-hcp-backup.clusterName" . }}
       - alert: EtcdBackupJobFailure
-        expr: kube_job_status_failed{namespace="{{ .Release.Namespace }}", job_name=~"{{ include "openshift-hcp-etcd-backup.name" . }}-.*"} > 0
+        expr: kube_job_status_failed{namespace="{{ .Release.Namespace }}", job_name=~"{{ include "etcd-hcp-backup.name" . }}-.*"} > 0
         labels:
           severity: critical
         annotations:

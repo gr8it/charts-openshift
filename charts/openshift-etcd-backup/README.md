@@ -42,7 +42,7 @@ image:
 # add repo
 $ helm repo add gr8it https://raw.githubusercontent.com/gr8it/charts/main/
 # install
-$ helm -n apc-backup install -f my-values.yaml etcd-ocpdemo-backup gr8it/openshift-etcd-backup
+$ helm -n apc-backup install -f my-values.yaml etcd-ocpdemo-backup gr8it/etcd-backup
 NAME: etcd-ocpdemo-backup
 LAST DEPLOYED: Fri Mar 30 12:07:19 2025
 NAMESPACE: apc-backup
