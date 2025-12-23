@@ -1,0 +1,185 @@
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: blackbox-exporter-prometheus-blackbox-exporter-openshift-console
+  namespace: apc-blackbox-exporter
+  labels:
+    helm.sh/chart: prometheus-blackbox-exporter-11.6.1
+    app.kubernetes.io/name: prometheus-blackbox-exporter
+    app.kubernetes.io/instance: blackbox-exporter
+    app.kubernetes.io/version: "v0.28.0"
+    app.kubernetes.io/managed-by: Helm
+    component: openshift-console
+    module: http_openshift_console
+    team: platform
+    vendor: aspecta
+spec:
+  endpoints:
+  - port: http
+    scheme: http
+    path: /probe
+    interval: 30s
+    scrapeTimeout: 30s
+    honorTimestamps: true
+    params:
+      module:
+      - http_openshift_console
+      target:
+      - https://console-openshift-console.apps.hub01.example.com/health
+    metricRelabelings:
+      - sourceLabels: [instance]
+        targetLabel: instance
+        replacement: https://console-openshift-console.apps.hub01.example.com/health
+        action: replace
+      - sourceLabels: [target]
+        targetLabel: target
+        replacement: openshift-console
+        action: replace
+  jobLabel: "blackbox-exporter"
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus-blackbox-exporter
+      app.kubernetes.io/instance: blackbox-exporter
+  namespaceSelector:
+    matchNames:
+      - apc-blackbox-exporter
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: blackbox-exporter-prometheus-blackbox-exporter-openshift-api
+  namespace: apc-blackbox-exporter
+  labels:
+    helm.sh/chart: prometheus-blackbox-exporter-11.6.1
+    app.kubernetes.io/name: prometheus-blackbox-exporter
+    app.kubernetes.io/instance: blackbox-exporter
+    app.kubernetes.io/version: "v0.28.0"
+    app.kubernetes.io/managed-by: Helm
+    component: openshift-api
+    module: http_openshift_api
+    team: platform
+    vendor: aspecta
+spec:
+  endpoints:
+  - port: http
+    scheme: http
+    path: /probe
+    interval: 10s
+    scrapeTimeout: 10s
+    honorTimestamps: true
+    params:
+      module:
+      - http_openshift_api
+      target:
+      - https://api.hub01.example.com:6443/readyz
+    metricRelabelings:
+      - sourceLabels: [instance]
+        targetLabel: instance
+        replacement: https://api.hub01.example.com:6443/readyz
+        action: replace
+      - sourceLabels: [target]
+        targetLabel: target
+        replacement: openshift-api
+        action: replace
+  jobLabel: "blackbox-exporter"
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus-blackbox-exporter
+      app.kubernetes.io/instance: blackbox-exporter
+  namespaceSelector:
+    matchNames:
+      - apc-blackbox-exporter
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: blackbox-exporter-prometheus-blackbox-exporter-hw-xca
+  namespace: apc-blackbox-exporter
+  labels:
+    helm.sh/chart: prometheus-blackbox-exporter-11.6.1
+    app.kubernetes.io/name: prometheus-blackbox-exporter
+    app.kubernetes.io/instance: blackbox-exporter
+    app.kubernetes.io/version: "v0.28.0"
+    app.kubernetes.io/managed-by: Helm
+    component: xca
+    module: http_2xx
+    team: platform
+    vendor: aspecta
+spec:
+  endpoints:
+  - port: http
+    scheme: http
+    path: /probe
+    interval: 10s
+    scrapeTimeout: 10s
+    honorTimestamps: true
+    params:
+      module:
+      - http_2xx
+      target:
+      - https://sr-ba-xapc1xca-p11.hw.example.com
+    metricRelabelings:
+      - sourceLabels: [instance]
+        targetLabel: instance
+        replacement: https://sr-ba-xapc1xca-p11.hw.example.com
+        action: replace
+      - sourceLabels: [target]
+        targetLabel: target
+        replacement: hw-xca
+        action: replace
+  jobLabel: "blackbox-exporter"
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus-blackbox-exporter
+      app.kubernetes.io/instance: blackbox-exporter
+  namespaceSelector:
+    matchNames:
+      - apc-blackbox-exporter
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: blackbox-exporter-prometheus-blackbox-exporter-gitlab-webui
+  namespace: apc-blackbox-exporter
+  labels:
+    helm.sh/chart: prometheus-blackbox-exporter-11.6.1
+    app.kubernetes.io/name: prometheus-blackbox-exporter
+    app.kubernetes.io/instance: blackbox-exporter
+    app.kubernetes.io/version: "v0.28.0"
+    app.kubernetes.io/managed-by: Helm
+    component: gitlab-webui
+    module: http_2xx
+    team: platform
+    vendor: aspecta
+spec:
+  endpoints:
+  - port: http
+    scheme: http
+    path: /probe
+    interval: 10s
+    scrapeTimeout: 10s
+    honorTimestamps: true
+    params:
+      module:
+      - http_2xx
+      target:
+      - https://git.apps.hub01.example.com
+    metricRelabelings:
+      - sourceLabels: [instance]
+        targetLabel: instance
+        replacement: https://git.apps.hub01.example.com
+        action: replace
+      - sourceLabels: [target]
+        targetLabel: target
+        replacement: gitlab-webui
+        action: replace
+  jobLabel: "blackbox-exporter"
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus-blackbox-exporter
+      app.kubernetes.io/instance: blackbox-exporter
+  namespaceSelector:
+    matchNames:
+      - apc-blackbox-exporter
