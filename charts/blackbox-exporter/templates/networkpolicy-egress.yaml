@@ -1,0 +1,20 @@
+{{- if .Values.networkPolicy.egress.enabled }}
+{{- range .Values.networkPolicy.egress.to }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "blackbox-exporter.fullname" $ }}-egress-{{ .name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "blackbox-exporter.labels" $ | nindent 4 }}
+spec:
+  egress:
+  - to:
+    - ipBlock:
+        cidr: {{ .ipBlock.cidr }}
+  podSelector: {}
+  policyTypes:
+  - Egress
+{{- end }}
+{{- end }}

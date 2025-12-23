@@ -1,0 +1,40 @@
+
+---
+apiVersion: v1
+kind: clusterRole
+metadata:
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+  name: blackbox-exporter-probe-edit
+rules:
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - probes
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+
+---
+apiVersion: v1
+kind: clusterRole
+metadata:
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-view: "true"
+  name: blackbox-exporter-probe-view
+rules:
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - probes
+  verbs:
+  - get
+  - list
+  - watch
+
