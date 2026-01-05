@@ -1,3 +1,5 @@
+{{- $clusterName := include "etcd-hcp-backup.clusterName" . -}}
+{{- $filePrefix := printf "etcd-%s" (default "snapshot" (regexReplaceAll "[+._]" $clusterName "-")) -}}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -7,10 +9,9 @@ metadata:
   labels:
     {{- include "common.labels" . | nindent 4 }}
 data:
-  {{- $clusterName := include "etcd-hcp-backup.clusterName" . }}
-  env.etcdsts: {{ default "etcd" .Values.etcdStatefulSetName }}
-  env.fileprefix: etcd-{{ default "snapshot" (regexReplaceAll "[+._]" $clusterName "-") }}
-  env.hcpns: {{ include "etcd-hcp-backup.namespace" . }}
+  env.etcdsts: {{ default "etcd" .Values.etcdStatefulSetName  | quote }}
+  env.fileprefix: {{ $filePrefix | quote }}
+  env.hcpns: {{ include "etcd-hcp-backup.namespace" . | quote }}
   env.retention: {{ .Values.retentionDays | quote }}
   env.compress: {{ (default "false" ( .Values.compressSnapshot )) | quote }}
   init.sh: |

@@ -1,3 +1,4 @@
+{{- $clusterName := include "etcd-hcp-backup.clusterName" . -}}
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
@@ -10,7 +11,6 @@ spec:
   groups:
   - name: cronjob.rules
     rules:
-      {{- $clusterName := include "etcd-hcp-backup.clusterName" . }}
       - alert: EtcdBackupJobFailure
         expr: kube_job_status_failed{namespace="{{ .Release.Namespace }}", job_name=~"{{ include "etcd-hcp-backup.name" . }}-.*"} > 0
         labels:

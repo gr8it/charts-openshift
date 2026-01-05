@@ -3,10 +3,20 @@
 {{- default .Chart.Name .Values.nameOverride | trunc 40 | trimSuffix "-" -}}
 {{- end -}}
 
-{{/* Resolve cluster name using global overrides helper */}}
+{{/* Resolve cluster name with defaults */}}
 {{- define "etcd-backup.clusterName" -}}
-{{- $ctx := dict "Values" (dict "cluster" (dict "name" .Values.clusterName) "global" .Values.global) -}}
-{{- include "apc-global-overrides.require-clusterName" $ctx -}}
+{{- if .Values.clusterName -}}
+  {{- .Values.clusterName | trunc 20 | trimSuffix "-" -}}
+{{- else if and
+      (hasKey .Values "apc-global-overrides")
+      (hasKey (index .Values "apc-global-overrides") "cluster")
+      (hasKey (index (index .Values "apc-global-overrides") "cluster") "name")
+      (index (index (index .Values "apc-global-overrides") "cluster") "name")
+-}}
+  {{- index (index (index .Values "apc-global-overrides") "cluster") "name" | trunc 20 | trimSuffix "-" -}}
+{{- else -}}
+  {{- .Release.Name | trunc 20 | trimSuffix "-" -}}
+{{- end -}}
 {{- end -}}
 
 {{/* Fullname = chart name + cluster name */}}
@@ -21,7 +31,7 @@
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end -}}
 
-{{/* Genereate ObjectBucketClaim name */}}
+{{/* Generate ObjectBucketClaim name */}}
 {{- define "etcd-backup.obcName" -}}
 {{- $clusterName := include "etcd-backup.name" . -}}
 {{- if and (hasKey .Values "objectBucketClaim") (hasKey .Values.objectBucketClaim "name") (.Values.objectBucketClaim.name) -}}

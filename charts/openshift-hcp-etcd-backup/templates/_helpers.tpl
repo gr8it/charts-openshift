@@ -1,38 +1,68 @@
-{{/*  Chart name */}}
+{{/*
+Chart name
+*/}}
 {{- define "etcd-hcp-backup.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 40 | trimSuffix "-" -}}
 {{- end -}}
 
-{{/* Fullname = chart name + cluster name */}}
-{{- define "etcd-hcp-backup.fullname" -}}
-{{- $chartName := default .Chart.Name .Values.nameOverride | trunc 40 | trimSuffix "-" -}}
-{{- $clusterName := .Values.clusterName | trunc 20 | trimSuffix "-" | required "clusterName is required" -}}
-{{- printf "%s-%s" $chartName $clusterName | replace "+" "_" | trunc 50 | trimSuffix "-" }}
-{{- end -}}
-
-{{/* Create chart name and version as used by the chart label. */}}
-{{- define "etcd-hcp-backup.chart" -}}
-{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
-{{- end -}}
-
-{{/* Generate hosted clsuter namespace - if not defined in values file */}}
-{{- define "etcd-hcp-backup.namespace" -}}
-{{- $clusterName := .Values.clusterName | required "clusterName is required" -}}
-{{- $clusterNamespace := default (printf "%s-%s" $clusterName $clusterName) (.Values.clusterNamespace) -}}
-{{- printf "%s" $clusterNamespace | trimSuffix "-" | required "clusterNamespace cannot be empty" -}}
-{{- end -}}
-
-{{/* Genereate ObjectBucketClaim name */}}
-{{- define "etcd-hcp-backup.obcName" -}}
-{{- $clusterName := .Values.clusterName | required "clusterName is required" -}}
-{{- if and (hasKey .Values "objectBucketClaim") (hasKey .Values.objectBucketClaim "name") (.Values.objectBucketClaim.name) -}}
-{{- printf "%s" .Values.objectBucketClaim.name | required "objectBucketClaim.name is invalid" -}}
+{{/*
+Resolve cluster name with defaults
+*/}}
+{{- define "etcd-hcp-backup.clusterName" -}}
+{{- if .Values.clusterName -}}
+  {{- .Values.clusterName | trunc 20 | trimSuffix "-" -}}
+{{- else if and
+      (hasKey .Values "apc-global-overrides")
+      (hasKey (index .Values "apc-global-overrides") "cluster")
+      (hasKey (index (index .Values "apc-global-overrides") "cluster") "name")
+      (index (index (index .Values "apc-global-overrides") "cluster") "name")
+-}}
+  {{- index (index (index .Values "apc-global-overrides") "cluster") "name" | trunc 20 | trimSuffix "-" -}}
 {{- else -}}
-{{- printf "%s-%s-%s" "etcd-hcp" $clusterName "backup" | trunc 40 | trimSuffix "-" -}}
+  {{- .Release.Name | trunc 20 | trimSuffix "-" -}}
 {{- end -}}
 {{- end -}}
 
-{{/* Common labels */}}
+{{/*
+Fullname = chart name + cluster name
+*/}}
+{{- define "etcd-hcp-backup.fullname" -}}
+{{- $chartName := include "etcd-hcp-backup.name" . -}}
+{{- $clusterName := include "etcd-hcp-backup.clusterName" . -}}
+{{- printf "%s-%s" $chartName $clusterName | replace "+" "_" | trunc 50 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Chart name and version for labels
+*/}}
+{{- define "etcd-hcp-backup.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Generate hosted cluster namespace
+*/}}
+{{- define "etcd-hcp-backup.namespace" -}}
+{{- $clusterName := include "etcd-hcp-backup.clusterName" . -}}
+{{- $clusterNamespace := default (printf "%s-%s" $clusterName $clusterName) .Values.clusterNamespace -}}
+{{- $clusterNamespace | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Generate ObjectBucketClaim name
+*/}}
+{{- define "etcd-hcp-backup.obcName" -}}
+{{- $clusterName := include "etcd-hcp-backup.clusterName" . -}}
+{{- if and (hasKey .Values "objectBucketClaim") (hasKey .Values.objectBucketClaim "name") (.Values.objectBucketClaim.name) -}}
+  {{- .Values.objectBucketClaim.name | required "objectBucketClaim.name is invalid" -}}
+{{- else -}}
+  {{- printf "etcd-hcp-%s-backup" $clusterName | trunc 40 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Common labels
+*/}}
 {{- define "common.labels" -}}
 app.kubernetes.io/name: {{ include "etcd-hcp-backup.name" . }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
