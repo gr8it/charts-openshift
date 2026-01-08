@@ -20,6 +20,7 @@ spec:
         name: {{ include "group-sync-config.fullname" $ }}-ca-groupSync
         key: ca.crt
       credentialsSecret:
+        kind: Secret
         namespace: {{ $.Release.Namespace }}
         name: {{ $groupSyncName }}-{{ .name }}    
     {{- end }}
