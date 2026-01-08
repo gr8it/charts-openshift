@@ -4,10 +4,10 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "blackbox-exporter.fullname" $ }}-egress-{{ .name }}
+  name: {{ include "blackbox-exporter-helm.fullname" $ }}-egress-{{ .name }}
   namespace: {{ $.Release.Namespace }}
   labels:
-    {{- include "blackbox-exporter.labels" $ | nindent 4 }}
+    {{- include "blackbox-exporter-helm.labels" $ | nindent 4 }}
 spec:
   egress:
   - to:

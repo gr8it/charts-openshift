@@ -1,0 +1,10 @@
+manifests should match snapshot:
+  1: |
+    raw: |
+      See https://github.com/prometheus/blackbox_exporter/ for how to configure Prometheus and the Blackbox Exporter.
+
+      1. Get the application URL by running these commands:
+        export POD_NAME=$(kubectl get pods --namespace apc-blackbox-exporter -l "app.kubernetes.io/name=prometheus-blackbox-exporter,app.kubernetes.io/instance=blackbox-exporter" -o jsonpath="{.items[0].metadata.name}")
+        export CONTAINER_PORT=$(kubectl get pod --namespace apc-blackbox-exporter $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+        echo "Visit http://127.0.0.1:8080 to use your application"
+        kubectl --namespace apc-blackbox-exporter port-forward $POD_NAME 8080:$CONTAINER_PORT
