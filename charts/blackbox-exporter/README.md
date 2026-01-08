@@ -36,7 +36,7 @@ This Helm chart deploys Blackbox exporter in following configuration:
 
 ### Key Parameters
 
-- `prometheus-blackbox-exporter.serviceMonitor.targets`: list target to monitoring from cluster where Blacbox exporter is deployed
+- `prometheus-blackbox-exporter.serviceMonitor.targets`: list target to monitor from cluster where Blackbox exporter is deployed
 
 Examples:
   - cluster test01:
