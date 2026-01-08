@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.3.1] - 2025-12-23
 
+### Changed
+
 _([SPEXAPC-10277]https://aspecta.atlassian.net/browse/SPEXAPC-10277)_
 - update dependency
 - bump count replicaset for default quota from 30 to 100
