@@ -39,13 +39,13 @@ This Helm chart deploys Blackbox exporter in following configuration:
 - `prometheus-blackbox-exporter.serviceMonitor.targets`: list target to monitor from cluster where Blackbox exporter is deployed
 
 Examples:
-  - cluster test01:
+  - cluster spoke:
     ```yaml
     serviceMonitor:
       enabled: true
       targets:
         - name: openshift-console
-          url: https://console-openshift-console.apps.test01.cloud.socpoist.sk/health
+          url: https://console-openshift-console.apps.spoke.example.com/health
           labels:
             vendor: aspecta
             team: platform
@@ -55,7 +55,7 @@ Examples:
           scrapeTimeout: 30s
           module: http_openshift_console
         - name: openshift-api
-          url: https://api.test01.cloud.socpoist.sk:6443/readyz
+          url: https://api.spoke.example.com:6443/readyz
           labels:
             vendor: aspecta
             team: platform
@@ -65,13 +65,13 @@ Examples:
           scrapeTimeout: 10s
           module: http_openshift_api
     ```
-  - cluster hub01:
+  - cluster hub :
     ```yaml
     serviceMonitor:
       enabled: true
       targets:
         - name: openshift-console
-          url: https://console-openshift-console.apps.hub01.cloud.socpoist.sk/health
+          url: https://console-openshift-console.apps.hub.example.com/health
           labels:
             vendor: aspecta
             team: platform
@@ -81,7 +81,7 @@ Examples:
           scrapeTimeout: 30s
           module: http_openshift_console
         - name: openshift-api
-          url: https://api.hub01.cloud.socpoist.sk:6443/readyz
+          url: https://api.hub.example.com:6443/readyz
           labels:
             vendor: aspecta
             team: platform
@@ -91,7 +91,7 @@ Examples:
           scrapeTimeout: 10s
           module: http_openshift_api
         - name: hw-xca
-          url: https://sr-ba-xapc1xca-p11.hw.apc.socpoist.sk
+          url: https://sca.hw.apc.example.com
           labels:
             vendor: aspecta
             team: platform
@@ -101,7 +101,7 @@ Examples:
           scrapeTimeout: 10s
           module: http_2xx
         - name: gitlab-webui
-          url: https://git.apps.hub01.cloud.socpoist.sk
+          url: https://git.apps.hub.example.com
           labels:
             vendor: aspecta
             team: platform

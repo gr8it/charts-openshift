@@ -1,18 +1,19 @@
-{{- if .Values.networkPolicy.egress.enabled }}
-{{- range .Values.networkPolicy.egress.to }}
----
+{{- if .Values.networkPolicy.allowProxyEgress }}
+{{- if (include "apc-global-overrides.proxyCIDRs" . | fromYamlArray ) }}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "blackbox-exporter-helm.fullname" $ }}-egress-{{ .name }}
-  namespace: {{ $.Release.Namespace }}
+  name: {{ include "blackbox-exporter-helm.fullname" $ }}-allow-proxy
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "blackbox-exporter-helm.labels" $ | nindent 4 }}
 spec:
   egress:
   - to:
+    {{- range (include "apc-global-overrides.proxyCIDRs" . | fromYamlArray ) }}
     - ipBlock:
-        cidr: {{ .ipBlock.cidr }}
+        cidr: {{ . }}
+    {{- end }}
   podSelector: {}
   policyTypes:
   - Egress

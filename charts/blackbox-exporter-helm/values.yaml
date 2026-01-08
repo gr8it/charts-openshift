@@ -1,15 +1,9 @@
 ## uses following global values => do not set here
 # global:
 #   apc:
-#     environmentShort:
-#     caCertificates:
-# services:
-#   externalSecretsOperator:
-#     defaultClusterSecretStore:
+#     proxyCIDRs: []
 ## and their local overrides
-# environmentShort:
-# defaultClusterSecretStore:
-# caCertificates:
+# proxyCIDRs: [] # if set, communication to these IP will be allowed
 
 # Who manages the service
 releaseServiceOverride: ArgoCD
@@ -20,12 +14,8 @@ releaseServiceOverride: ArgoCD
 namespaceOverride: ""
 
 networkPolicy:
-  egress:
-    enabled: true
-    to:
-      - name: allow-proxy
-        ipBlock:
-          cidr: 10.1.1.7/32
+  allowProxyEgress: true
+
 
 prometheus-blackbox-exporter:
   ### Proxy Setup
