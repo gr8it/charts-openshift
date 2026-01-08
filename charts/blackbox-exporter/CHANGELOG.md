@@ -9,6 +9,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _([SPEXAPC-10252]https://aspecta.atlassian.net/browse/SPEXAPC-10252)_
 _Initial release._
-- Move to GitOps
-- Added tcp probe
-- Added Clusterroles blackbox-exporter-probe-edit and lackbox-exporter-probe-view
