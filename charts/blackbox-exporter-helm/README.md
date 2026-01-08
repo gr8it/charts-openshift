@@ -9,6 +9,7 @@ This Helm chart deploys Blackbox exporter in following configuration:
   - modules:
     - icmp
     - tcp_probe
+    - tcp_probe_tls
     - http_2xx
       http_openshift_api
     - http_openshift_console
@@ -16,8 +17,6 @@ This Helm chart deploys Blackbox exporter in following configuration:
     - defaults:
       - openshift-console
       - openshift-api
-      - hw-xca
-      - gitlab-webui
 - prometheus rules for APC platform team
 - cluster roles:
    - blackbox-exporter-probe-edit
@@ -36,16 +35,16 @@ This Helm chart deploys Blackbox exporter in following configuration:
 
 ### Key Parameters
 
-- `prometheus-blackbox-exporter.serviceMonitor.targets`: list target to monitor from cluster where Blackbox exporter is deployed
+- `prometheus-blackbox-exporter.serviceMonitor.targets`: list OCP console and API to monitor from cluster where Blackbox exporter is deployed
 
 Examples:
-  - cluster spoke:
+  - cluster:
     ```yaml
     serviceMonitor:
       enabled: true
       targets:
         - name: openshift-console
-          url: https://console-openshift-console.apps.spoke.example.com/health
+          url: https://console-openshift-console.apps.cluster.example.com/health
           labels:
             vendor: aspecta
             team: platform
@@ -55,7 +54,7 @@ Examples:
           scrapeTimeout: 30s
           module: http_openshift_console
         - name: openshift-api
-          url: https://api.spoke.example.com:6443/readyz
+          url: https://api.cluster.example.com:6443/readyz
           labels:
             vendor: aspecta
             team: platform
@@ -64,52 +63,6 @@ Examples:
           interval: 10s
           scrapeTimeout: 10s
           module: http_openshift_api
-    ```
-  - cluster hub :
-    ```yaml
-    serviceMonitor:
-      enabled: true
-      targets:
-        - name: openshift-console
-          url: https://console-openshift-console.apps.hub.example.com/health
-          labels:
-            vendor: aspecta
-            team: platform
-            module: http_openshift_console
-            component: "openshift-console"
-          interval: 30s
-          scrapeTimeout: 30s
-          module: http_openshift_console
-        - name: openshift-api
-          url: https://api.hub.example.com:6443/readyz
-          labels:
-            vendor: aspecta
-            team: platform
-            module: http_openshift_api
-            component: "openshift-api"
-          interval: 10s
-          scrapeTimeout: 10s
-          module: http_openshift_api
-        - name: hw-xca
-          url: https://sca.hw.apc.example.com
-          labels:
-            vendor: aspecta
-            team: platform
-            module: http_2xx
-            component: "xca"
-          interval: 10s
-          scrapeTimeout: 10s
-          module: http_2xx
-        - name: gitlab-webui
-          url: https://git.apps.hub.example.com
-          labels:
-            vendor: aspecta
-            team: platform
-            module: http_2xx
-            component: "gitlab-webui"
-          interval: 10s
-          scrapeTimeout: 10s
-          module: http_2xx
     ```
 
 

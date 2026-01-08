@@ -69,7 +69,7 @@ prometheus-blackbox-exporter:
   ############################
   config:
     modules:
-
+  ### ICMP ping
       icmp:
         prober: icmp
         timeout: 5s
@@ -82,6 +82,16 @@ prometheus-blackbox-exporter:
         timeout: 10s
         tcp:
           preferred_ip_protocol: ip4
+
+  ### TCP check with TLS
+      tcp_probe_tls:
+        prober: tcp
+        timeout: 10s
+        tcp:
+          preferred_ip_protocol: ip4
+          tls: true
+          tls_config:
+            insecure_skip_verify: true
 
   ### HTTP Response code 200
       http_2xx:
@@ -129,51 +139,10 @@ prometheus-blackbox-exporter:
   ##### Service Monitors #####
   ############################
   serviceMonitor:
+    selfMonitor:
+       enabled: true
     enabled: true
-    targets:
-      - name: openshift-console
-        url: https://console-openshift-console.apps.hub01.cloud.socpoist.sk/health
-        labels:
-          vendor: aspecta
-          team: platform
-          module: http_openshift_console
-          component: "openshift-console"
-        interval: 30s
-        scrapeTimeout: 30s
-        module: http_openshift_console
-
-      - name: openshift-api
-        url: https://api.hub01.cloud.socpoist.sk:6443/readyz
-        labels:
-          vendor: aspecta
-          team: platform
-          module: http_openshift_api
-          component: "openshift-api"
-        interval: 10s
-        scrapeTimeout: 10s
-        module: http_openshift_api
-
-      - name: hw-xca
-        url: https://sr-ba-xapc1xca-p11.hw.apc.socpoist.sk
-        labels:
-          vendor: aspecta
-          team: platform
-          module: http_2xx
-          component: "xca"
-        interval: 10s
-        scrapeTimeout: 10s
-        module: http_2xx
-
-      - name: gitlab-webui
-        url: https://git.apps.hub01.cloud.socpoist.sk
-        labels:
-          vendor: aspecta
-          team: platform
-          module: http_2xx
-          component: "gitlab-webui"
-        interval: 10s
-        scrapeTimeout: 10s
-        module: http_2xx
+    targets: []
 
   ## Custom PrometheusRules 
   prometheusRule:
