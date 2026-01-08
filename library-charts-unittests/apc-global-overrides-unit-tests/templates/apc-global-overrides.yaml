@@ -52,8 +52,12 @@ data:
       defaultClusterIssuer: {{ include "apc-global-overrides.certManagerDefaultClusterIssuer" . }}
     crossplane:
       kubeVaultProviderConfigName: {{ include "apc-global-overrides.crossplaneKubeVaultProviderConfigName" . }}
+      kubeKeycloakProviderConfigName: {{ include "apc-global-overrides.crossplaneKubeKeycloakProviderConfigName" . }}
     externalSecretsOperator:
       defaultClusterSecretStore: {{ include "apc-global-overrides.ESODefaultClusterSecretStore" . }}
+    keycloak:
+      url: {{ include "apc-global-overrides.keycloakUrl" . }}
+      realm: {{ include "apc-global-overrides.keycloakName" . }}
     metallb:
       namespace: {{ include "apc-global-overrides.metallbNamespace" . }}
     quay:

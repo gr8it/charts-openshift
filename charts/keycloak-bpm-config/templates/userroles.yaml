@@ -1,0 +1,150 @@
+apiVersion: user.keycloak.crossplane.io/v1alpha1
+kind: User
+metadata:
+  name: apc.bartosm
+  # annotations:
+  #   crossplane.io/external-name: apc.bartosm
+spec:
+  managementPolicies: ["Observe"]
+  forProvider:
+    realmId: apps
+    username: apc.bartosm
+  providerConfigRef:
+    name: keycloak-local-config
+---
+apiVersion: user.keycloak.crossplane.io/v1alpha1
+kind: Roles
+metadata:
+  name: apc.bartosm-bpm-admin
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    realmId: apps
+    userIdRef:
+      name: apc.bartosm
+    roleIdsRefs:
+    - name: bpm-admin
+    # not gitopsy!
+    exhaustive: false
+  providerConfigRef:
+    name: keycloak-local-config
+
+---
+apiVersion: user.keycloak.crossplane.io/v1alpha1
+kind: User
+metadata:
+  name: apc.spirengp
+spec:
+  managementPolicies: ["Observe"]
+  forProvider:
+    realmId: apps
+    username: apc.spirengp
+  providerConfigRef:
+    name: keycloak-local-config
+---
+apiVersion: user.keycloak.crossplane.io/v1alpha1
+kind: Roles
+metadata:
+  name: apc.spirengp-bpm-admin
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    realmId: apps
+    userIdRef:
+      name: apc.spirengp
+    roleIdsRefs:
+    - name: bpm-admin
+    # not gitopsy!
+    exhaustive: false
+  providerConfigRef:
+    name: keycloak-local-config
+
+---
+apiVersion: user.keycloak.crossplane.io/v1alpha1
+kind: User
+metadata:
+  name: apc.vaculam
+spec:
+  managementPolicies: ["Observe"]
+  forProvider:
+    realmId: apps
+    username: apc.vaculam
+  providerConfigRef:
+    name: keycloak-local-config
+---
+apiVersion: user.keycloak.crossplane.io/v1alpha1
+kind: Roles
+metadata:
+  name: apc.vaculam-bpm-admin
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    realmId: apps
+    userIdRef:
+      name: apc.vaculam
+    roleIdsRefs:
+    - name: bpm-admin
+    # not gitopsy!
+    exhaustive: false
+  providerConfigRef:
+    name: keycloak-local-config
+
+---
+apiVersion: user.keycloak.crossplane.io/v1alpha1
+kind: User
+metadata:
+  name: apc.koplingerr
+spec:
+  managementPolicies: ["Observe"]
+  forProvider:
+    realmId: apps
+    username: apc.koplingerr
+  providerConfigRef:
+    name: keycloak-local-config
+---
+apiVersion: user.keycloak.crossplane.io/v1alpha1
+kind: Roles
+metadata:
+  name: apc.koplingerr-bpm-admin
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    realmId: apps
+    userIdRef:
+      name: apc.koplingerr
+    roleIdsRefs:
+    - name: bpm-admin
+    # not gitopsy!
+    exhaustive: false
+  providerConfigRef:
+    name: keycloak-local-config
+
+---
+apiVersion: user.keycloak.crossplane.io/v1alpha1
+kind: User
+metadata:
+  name: apc.bedlekj
+spec:
+  managementPolicies: ["Observe"]
+  forProvider:
+    realmId: apps
+    username: apc.bedlekj
+  providerConfigRef:
+    name: keycloak-local-config
+---
+apiVersion: user.keycloak.crossplane.io/v1alpha1
+kind: Roles
+metadata:
+  name: apc.bedlekj-bpm-admin
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    realmId: apps
+    userIdRef:
+      name: apc.bedlekj
+    roleIdsRefs:
+    - name: bpm-admin
+    # not gitopsy!
+    exhaustive: false
+  providerConfigRef:
+    name: keycloak-local-config

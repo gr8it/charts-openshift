@@ -1,0 +1,31 @@
+
+apiVersion: group.keycloak.crossplane.io/v1alpha1
+kind: Group
+metadata:
+  name: apc-l-bpm-test-prime-pja
+  # annotations:
+  #   crossplane.io/external-name: apc.bartosm
+spec:
+  managementPolicies: ["Observe"]
+  forProvider:
+    realmId: apps
+    name: APC-L-BPM-TEST-PRIME-PJA
+  providerConfigRef:
+    name: keycloak-local-config
+---
+apiVersion: group.keycloak.crossplane.io/v1alpha1
+kind: Roles
+metadata:
+  name: apc-l-bpm-test-prime-pja
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    realmId: apps
+    groupIdRef:
+      name: apc-l-bpm-test-prime-pja
+    roleIdsRefs:
+    - name: bpm-admin
+    # not gitopsy!
+    exhaustive: false
+  providerConfigRef:
+    name: keycloak-local-config
