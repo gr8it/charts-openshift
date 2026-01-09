@@ -1,4 +1,3 @@
-{{- if (include "apc-global-overrides.require-clusterApiURL" . ) }}
 apiVersion: monitoring.coreos.com/v1
 kind: Probe
 metadata:
@@ -15,11 +14,10 @@ spec:
   scrapeTimeout: 10s
   module: http_openshift_api
   prober:
-    url: blackbox-exporter-prometheus-blackbox-exporter.apc-blackbox-exporter.svc:9115
+    url: blackbox-exporter-prometheus-blackbox-exporter.{{ .Release.Namespace }}.svc:9115
     scheme: http
     path: /probe
   targets:
     staticConfig:
       static:
-      - {{ include "apc-global-overrides.clusterApiURL" . }}/readyz
-{{- end }}
+      - {{ include "apc-global-overrides.require-clusterApiURL" . }}/readyz
