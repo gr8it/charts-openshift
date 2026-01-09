@@ -18,8 +18,8 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.0
-      name: group-sync-config-ca-groupSync
+        helm.sh/chart: group-sync-config-1.0.2
+      name: group-sync-config-ca-groupsync
   2: |
     apiVersion: redhatcop.redhat.io/v1alpha1
     kind: GroupSync
@@ -29,7 +29,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.0
+        helm.sh/chart: group-sync-config-1.0.2
       name: alfa
     spec:
       providers:
@@ -37,9 +37,10 @@ manifests should match snapshot:
             ca:
               key: ca.crt
               kind: ConfigMap
-              name: group-sync-config-ca-groupSync
+              name: group-sync-config-ca-groupsync
               namespace: group-sync-operator
             credentialsSecret:
+              kind: Secret
               name: alfa-prov-1
               namespace: group-sync-operator
             insecure: false
@@ -73,9 +74,10 @@ manifests should match snapshot:
             ca:
               key: ca.crt
               kind: ConfigMap
-              name: group-sync-config-ca-groupSync
+              name: group-sync-config-ca-groupsync
               namespace: group-sync-operator
             credentialsSecret:
+              kind: Secret
               name: alfa-prov-2
               namespace: group-sync-operator
             insecure: false
@@ -115,7 +117,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.0
+        helm.sh/chart: group-sync-config-1.0.2
       name: beta
     spec:
       providers:
@@ -123,9 +125,10 @@ manifests should match snapshot:
             ca:
               key: ca.crt
               kind: ConfigMap
-              name: group-sync-config-ca-groupSync
+              name: group-sync-config-ca-groupsync
               namespace: group-sync-operator
             credentialsSecret:
+              kind: Secret
               name: beta-prov-a
               namespace: group-sync-operator
             insecure: false
@@ -165,7 +168,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.0
+        helm.sh/chart: group-sync-config-1.0.2
       name: alfa-prov-1
       namespace: group-sync-operator
     spec:
@@ -195,7 +198,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.0
+        helm.sh/chart: group-sync-config-1.0.2
       name: alfa-prov-2
       namespace: group-sync-operator
     spec:
@@ -225,7 +228,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.0
+        helm.sh/chart: group-sync-config-1.0.2
       name: beta-prov-a
       namespace: group-sync-operator
     spec:
