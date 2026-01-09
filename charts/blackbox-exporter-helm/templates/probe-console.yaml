@@ -1,0 +1,25 @@
+{{- if (include "apc-global-overrides.require-clusterAppsDomain" . ) }}
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: oopenshift-console
+  namespace: {{ .Release.Namespace }}
+  labels:
+    vendor: aspecta
+    team: platform
+    module: http_openshift_console
+    component: openshift-console
+spec:
+  jobName: openshift-console
+  interval: 10s
+  scrapeTimeout: 10s
+  module: http_openshift_console
+  prober:
+    url: blackbox-exporter-prometheus-blackbox-exporter.apc-blackbox-exporter.svc:9115
+    scheme: http
+    path: /probe
+  targets:
+    staticConfig:
+      static:
+      - https://console-openshift-console.{{ include "apc-global-overrides.require-clusterAppsDomain" . }}/health
+{{- end }}
