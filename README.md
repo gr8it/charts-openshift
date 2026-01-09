@@ -30,7 +30,7 @@ For best practices / contributing rules see [CONTRIBUTING.md](.github/CONTRIBUTI
   - [ACM Operator policy](charts/acm-operatorpolicy/)
   - [Operators Installer](charts/operators-installer/)
 - components
-  - [blackbox exporter](charts/blackbox-exporter)
+  - [blackbox exporter helm](charts/blackbox-exporter-helm)
   - [Remove kubeadmin](charts/remove-kubeadmin/)
   - ...
 
