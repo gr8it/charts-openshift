@@ -6,8 +6,16 @@ Chart name
 {{- end -}}
 
 {{/*
+Resolve cluster name with defaults*/}}
+{{- define "etcd-hcp-backup.clusterName" -}}
+{{- $ctx := dict "Values" (dict "cluster" (dict "name" .Values.clusterName) "global" .Values.global) -}}
+{{- include "apc-global-overrides.require-clusterName" $ctx -}}
+{{- end -}}
+
+
+{{/*
 Resolve cluster name with defaults
-*/}}
+
 {{- define "etcd-hcp-backup.clusterName" -}}
 {{- if .Values.clusterName -}}
   {{- .Values.clusterName | trunc 20 | trimSuffix "-" -}}
@@ -22,14 +30,15 @@ Resolve cluster name with defaults
   {{- .Release.Name | trunc 20 | trimSuffix "-" -}}
 {{- end -}}
 {{- end -}}
+*/}}
+
 
 {{/*
-Fullname = chart name + cluster name
+Fullname = etcd-hcp-backup prefix + cluster name
 */}}
 {{- define "etcd-hcp-backup.fullname" -}}
-{{- $chartName := include "etcd-hcp-backup.name" . -}}
 {{- $clusterName := include "etcd-hcp-backup.clusterName" . -}}
-{{- printf "%s-%s" $chartName $clusterName | replace "+" "_" | trunc 50 | trimSuffix "-" -}}
+{{- printf "%s-%s" "etcd-hcp-backup" $clusterName | replace "+" "_" | trunc 50 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*

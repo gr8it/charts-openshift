@@ -3,20 +3,11 @@
 {{- default .Chart.Name .Values.nameOverride | trunc 40 | trimSuffix "-" -}}
 {{- end -}}
 
-{{/* Resolve cluster name with defaults */}}
+{{/*
+Resolve cluster name with defaults*/}}
 {{- define "etcd-backup.clusterName" -}}
-{{- if .Values.clusterName -}}
-  {{- .Values.clusterName | trunc 20 | trimSuffix "-" -}}
-{{- else if and
-      (hasKey .Values "apc-global-overrides")
-      (hasKey (index .Values "apc-global-overrides") "cluster")
-      (hasKey (index (index .Values "apc-global-overrides") "cluster") "name")
-      (index (index (index .Values "apc-global-overrides") "cluster") "name")
--}}
-  {{- index (index (index .Values "apc-global-overrides") "cluster") "name" | trunc 20 | trimSuffix "-" -}}
-{{- else -}}
-  {{- .Release.Name | trunc 20 | trimSuffix "-" -}}
-{{- end -}}
+{{- $ctx := dict "Values" (dict "cluster" (dict "name" .Values.clusterName) "global" .Values.global) -}}
+{{- include "apc-global-overrides.require-clusterName" $ctx -}}
 {{- end -}}
 
 {{/* Fullname = chart name + cluster name */}}
