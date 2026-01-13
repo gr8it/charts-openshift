@@ -1,0 +1,143 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  annotations:
+  name: blackbox-exporter-app-probe-promrules
+  labels:
+    {{- include "blackbox-exporter-config.labels" . | nindent 4 }}
+spec:
+  admission: true
+  background: true
+  emitWarning: false
+  generateExisting: true
+  rules:
+  - name: bb-app-probe-checks
+    match:
+      any:
+      - resources:
+          kinds:
+          - monitoring.coreos.com/v1/Probe
+    exclude:
+      any:
+      - resources:
+          namespaces:
+          - apc-blackbox-exporter
+    generate:
+      synchronize: true
+      apiVersion: monitoring.coreos.com/v1
+      kind: PrometheusRule
+      name: blackbox-exporter-application
+      namespace: {{ `"{{ request.object.metadata.namespace }}"` }}
+      data:
+        spec:
+          groups:
+          - name: target-down-alerts
+            rules:
+              - alert: TargetDown
+                expr: up == 0
+                for: 1m
+                labels:
+                  severity: critical
+                annotations:
+                  business_impact: Zber aplikačného monitoringu nie je možný, riziko nedostupnosti aplikácie pre používateľov.
+                  description: Target instance \{{ `{{ $labels.instance }}` }}, job \{{ `{{ $labels.job }}` }} je nedostupný.
+                  operations_impact: Nedostupná aplikácia - Kritický incident vyžadujúci okamžitý zásah.
+                  runbook: Overte funkčnosť pod-ov, servicemonitor, probe, sieťového pripojenia pre inštanciu \{{ `{{ $labels.instance }}` }}.
+                  summary: Monitoring target \{{ `{{ $labels.instance }}` }} je nedostupný.
+          - name: blackbox-exporter-app
+            rules:
+            - alert: BBAppLBDown
+              annotations:
+                business_impact: Používatelia nemôžu pristupovať k aplikácii prostredníctvom LB.
+                description: Aplikácia na URL (\{{ `{{ $labels.instance }}` }}) je nedostupná už 5 minút.
+                operations_impact: Nedostupná aplikácia - Kritický incident vyžadujúci okamžitý zásah.
+                runbook: Overte funkčnosť podov, skontrolujte stav ingressu, sieťového pripojenia pre inštanciu \{{ `{{ $labels.instance }}` }}.
+                summary: Neúšpešná kontrola aplikačného healthchecku na Ingresse v APC.
+              expr: probe_success == 0
+              for: 5m
+              labels:
+                severity: critical
+            - alert: BBAppSSLExpWarn
+              annotations:
+                business_impact: Riziko nedostupnosti systému po expirácii certifikátu, bezpečnostné varovania pre používateľov
+                description: Certifikát pre (\{{ `{{ $labels.instance }}` }}) na APC platforme expiruje za menej ako 30 dní
+                operations_impact: Potrebná plánovaná údržba na obnovu certifikátu
+                runbook: Overte certifikát pre ingress, skontrolujte platnosť a konfiguráciu certifikátu
+                summary: Certifikát pre aplikáciu na APC platforme čoskoro expiruje
+              expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 30
+              labels:
+                severity: warning
+            - alert: BBAppSSLExpCrit
+              annotations:
+                business_impact: Riziko nedostupnosti systému po expirácii certifikátu, bezpečnostné varovania pre používateľov.
+                description: Certifikát pre (\{{ `{{ $labels.instance }}` }}) na APC platforme expiruje za menej ako 3 dni.
+                operations_impact: Potrebná plánovaná údržba na obnovu certifikátu.
+                runbook: Overte certifikát pre ingress, skontrolujte platnosť a konfiguráciu certifikátu.
+                summary: Certifikát pre aplikáciu na APC platforme čoskoro expiruje.
+              expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 3
+              labels:
+                severity: critical
+            - alert: BBAppHttpCodeWarn
+              expr: count without (pod) (probe_http_status_code <= 199 OR probe_http_status_code >= 400)  > 0
+              for: 0m
+              annotations:
+                business_impact: Riziko aplikačnej nedostupnosti pre používateľov.
+                description: Aplikácia (\{{ `{{ $labels.instance }}` }}) odpovedá s HTTP kódom mimo rozsahu 200-399.
+                operations_impact: Aplikačná nedostupnosť.        
+                description: HTTP status code nie je 200-399.
+                runbook: Overte funkčnosť podov, skontrolujte stav ingressu, sieťového pripojenia pre inštanciu (\{{ `{{ $labels.instance }}` }}).
+                summary: Blackbox HTTP chybová odozva pre inštanciu (\{{ `{{ $labels.instance }}` }}).
+              labels:
+                severity: warning
+            - alert: BBAppDurWarn
+              expr: avg without(pod) (avg_over_time(probe_duration_seconds[1m]) > 1) > 1
+              for: 1m
+              annotations:
+                business_impact: Riziko pomalej odozvy aplikácie pre používateľov.
+                description: Blackbox probe trvá viac ako 1s pre (\{{ `{{ $labels.instance }}` }}).
+                operations_impact: Pomalá odozva aplikácie.
+                runbook: Overte funkčnosť podov, skontrolujte stav ingressu, sieťového pripojenia pre inštanciu (\{{ `{{ $labels.instance }}` }}).
+                summary: Pomalá odozva BB probe pre inštanciu (\{{ `{{ $labels.instance }}` }}).
+              labels:
+                severity: warning
+            - alert: BBAppHttpDurWarn
+              expr: avg without(pod) ( avg_over_time(probe_http_duration_seconds[1m]) > 1) > 1
+              for: 1m
+              annotations:
+                business_impact: Riziko pomalej odozvy aplikácie pre používateľov.
+                description: Trvanie HTTP požiadavky je viac ako 1s.
+                operations_impact: Pomalá odozva aplikácie.
+                runbook: Overte funkčnosť podov, skontrolujte stav ingressu, sieťového pripojenia pre inštanciu (\{{ `{{ $labels.instance }}` }}).
+                summary: Pomalá HTTP odozva pre inštanciu (\{{ `{{ $labels.instance }}` }}).
+              labels:
+                severity: warning
+            - alert: BBAppIcmpDurWarn
+              expr: avg without(pod) ( avg_over_time(probe_icmp_duration_seconds[1m]) )> 1
+              for: 1m
+              annotations:
+                business_impact: Riziko pomalej odozvy aplikácie pre používateľov.
+                description: Trvanie ICMP požiadavky je viac ako 1s.
+                operations_impact: Pomalá odozva aplikácie.
+                runbook: Overte funkčnosť podov, skontrolujte stav ingressu, sieťového pripojenia pre inštanciu (\{{ `{{ $labels.instance }}` }}).
+                summary: Pomalá ICMP odozva pre inštanciu (\{{ `{{ $labels.instance }}` }}).
+              labels:
+                severity: warning
+            - alert: BBAppTcpDurWarn
+              expr: avg without(pod) ( avg_over_time(probe_tcp_duration_seconds[1m]) )> 1
+              for: 1m
+              annotations:
+                business_impact: Riziko pomalej odozvy aplikácie pre používateľov.
+                description: Trvanie TCP požiadavky je viac ako 1s.
+                operations_impact: Pomalá odozva aplikácie.
+                runbook: Overte funkčnosť podov, skontrolujte stav ingressu, sieťového pripojenia pre inštanciu (\{{ `{{ $labels.instance }}` }}).
+                summary: Pomalá TCP odozva pre inštanciu (\{{ `{{ $labels.instance }}` }}).
+              labels:
+                severity: warning
+    preconditions:
+      any:
+      - key: '{{ `{{ request.object.spec.prober.url }}` }}'
+        operator: Equals
+        value: blackbox-exporter-prometheus-blackbox-exporter.apc-blackbox-exporter.svc.cluster.local:9115
+      - key: '{{ `{{ request.object.spec.prober.url }}` }}'
+        operator: Equals
+        value: blackbox-exporter-prometheus-blackbox-exporter.apc-blackbox-exporter.svc:9115
