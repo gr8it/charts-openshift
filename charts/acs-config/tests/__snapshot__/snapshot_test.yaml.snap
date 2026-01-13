@@ -195,7 +195,9 @@ should render all manifests for hub cluster:
                 avg_over_time(up{pod=~"central-.*"}[10m]) < 0.5 and ON(pod) kube_pod_container_status_ready{container="central"} == 1
               for: 20m
               labels:
-                severity: critical
+                severity: warning
+                team: platform
+                vendor: aspecta
             - alert: RHACSCentralContainerDown
               annotations:
                 description: Central container `{{ $labels.pod }}/{{ $labels.container }}` in namespace `{{ $labels.namespace }}` has been down or in a CrashLoopBackOff status for at least 10 minutes.
@@ -206,6 +208,8 @@ should render all manifests for hub cluster:
               for: 20m
               labels:
                 severity: critical
+                team: platform
+                vendor: aspecta
             - alert: RHACSCentralContainerFrequentlyRestarting
               annotations:
                 description: Central container `{{ $labels.pod }}/{{ $labels.container }}` in namespace `{{ $labels.namespace }}` has restarted more than 3 times during the last 30 minutes.
@@ -214,7 +218,9 @@ should render all manifests for hub cluster:
               expr: |
                 increase(kube_pod_container_status_restarts_total{container="central"}[30m]) > 3
               labels:
-                severity: critical
+                severity: warning
+                team: platform
+                vendor: aspecta
             - alert: RHACSCentralPostgresConnectionDown
               annotations:
                 description: Central container `{{ $labels.pod }}/{{ $labels.container }}` database connection in namespace `{{ $labels.namespace }}` has been down or is in a bad shape for at least 10 minutes.
@@ -223,7 +229,9 @@ should render all manifests for hub cluster:
               expr: avg_over_time(rox_central_postgres_connected{container="central"}[10m]) < 0.5
               for: 20m
               labels:
-                severity: critical
+                severity: warning
+                team: platform
+                vendor: aspecta
         - name: rhacs-scanner
           rules:
             - alert: RHACSScannerScrapeFailed
@@ -235,7 +243,9 @@ should render all manifests for hub cluster:
                 avg_over_time(up{pod=~"scanner-.*"}[10m]) < 0.5 and ON(pod) kube_pod_container_status_ready{pod=~"scanner.*", container=~"scanner|db"} == 1
               for: 20m
               labels:
-                severity: critical
+                severity: warning
+                team: platform
+                vendor: aspecta
             - alert: RHACSScannerContainerDown
               annotations:
                 description: Scanner container `{{ $labels.pod }}/{{ $labels.container }}` in namespace `{{ $labels.namespace }}` has been down or in a CrashLoopBackOff status for at least 10 minutes.
@@ -245,7 +255,9 @@ should render all manifests for hub cluster:
                 avg_over_time(kube_pod_container_status_ready{pod=~"scanner.*", container=~"scanner|db"}[10m]) < 0.5
               for: 20m
               labels:
-                severity: critical
+                severity: warning
+                team: platform
+                vendor: aspecta
             - alert: RHACSScannerContainerFrequentlyRestarting
               annotations:
                 description: Scanner container `{{ $labels.pod }}/{{ $labels.container }}` in namespace `{{ $labels.namespace }}` has restarted more than 3 times during the last 30 minutes.
@@ -255,6 +267,8 @@ should render all manifests for hub cluster:
                 increase(kube_pod_container_status_restarts_total{pod=~"scanner.*", container=~"scanner|db"}[30m]) > 3
               labels:
                 severity: warning
+                team: platform
+                vendor: aspecta
   3: |
     apiVersion: platform.stackrox.io/v1alpha1
     kind: SecuredCluster
