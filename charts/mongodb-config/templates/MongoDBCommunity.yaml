@@ -1,0 +1,123 @@
+apiVersion: mongodbcommunity.mongodb.com/v1
+kind: MongoDBCommunity
+metadata:
+  name: {{ printf "%s-mongodb" .Release.Namespace }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mongodb-config.labels" . | nindent 4 }}
+spec:
+  members: {{ .Values.mongodbInstance.replicas }}
+  type: ReplicaSet
+  version: {{ .Values.mongodbInstance.mongoVersion }}
+  security:
+    authentication:
+      modes:
+        - "SCRAM"
+  {{- if .Values.mongodbInstance.tls.enabled }}
+    tls:
+      enabled: true
+      caCertificateSecretRef:
+        name: {{ printf "%s-mongodb-tls" .Release.Namespace }}
+      certificateKeySecretRef:
+        name: {{ printf "%s-mongodb-tls" .Release.Namespace }}
+  {{- end }}
+  replicaSetHorizons:
+{{- range $fqdn := .Values.mongodbInstance.fqdns}}
+  - horizon: {{ printf "%s:%s" $fqdn $.Values.mongodbInstance.port }}
+{{- end }}
+  users:
+  {{- range $user, $userdata := .Values.users }}
+    {{- if $userdata.roles }}
+    - name: {{ $userdata.name | quote }}
+      connectionStringSecretName: {{ printf "mongodb-%s-connection-string" $userdata.function }}
+      db: admin
+      passwordSecretRef:
+        name: {{ printf "mongodb-%s-pwd" $userdata.function }}
+      roles:
+      {{- range $role, $roledata := $userdata.roles }}
+        - name: {{ $roledata.role }}
+          db: {{ $roledata.database }}
+      {{- end }}
+      scramCredentialsSecretName: {{ $userdata.function }}
+    {{- end }}
+  {{- end }}
+
+  # You can expose metrics for Prometheus polling using the
+  # `prometheus` entry.
+  prometheus:
+  {{- range $user, $userdata := .Values.users }}
+    {{- if eq $userdata.function "monitoring" }}
+    # Metrics endpoint HTTP Basic Auth username
+    username: {{ $userdata.name | quote }}
+    # Metrics endpoint HTTP Basic Auth password
+    passwordSecretRef:
+      name: {{ printf "mongodb-%s-pwd" $userdata.function }}
+    # Optional, defaults to `/metrics`
+    # metricsPath: /metrics
+    # Optional defaults to 9216
+    # port: 9216
+    # Prometheus endpoint can be configured to use HTTPS
+    # tlsSecretKeyRef:
+    #   name: "<kubernetes.io/tls secret name>"
+    {{- end }}
+  {{- end }}
+  statefulSet:
+    spec:
+      selector:
+        matchLabels:
+          app.kubernetes.io/name: {{ .Release.Name }}
+      template:
+        metadata:
+          # Label the pod which is used by the "labelSelector" in podAntiAffinity
+          labels:
+            app.kubernetes.io/name: {{ .Release.Name }}
+        spec:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser:
+            runAsGroup:
+          containers:
+          - name: mongod
+            securityContext:
+              runAsUser:
+              runAsGroup:
+              runAsNonRoot: true
+              privileged: false
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+            resources:
+              limits:
+                cpu: {{ .Values.mongodbInstance.mongod.cpuLimits }}
+                memory: {{ .Values.mongodbInstance.mongod.memoryLimits }}
+              requests:
+                cpu: {{ .Values.mongodbInstance.mongod.cpuRequests }}
+                memory: {{ .Values.mongodbInstance.mongod.memoryRequests }}
+          - name: mongodb-agent
+            securityContext:
+              runAsUser:
+              runAsGroup:
+              runAsNonRoot: true
+              privileged: false
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+            resources:
+              limits:
+                memory: {{ .Values.mongodbInstance.mongodbAgent.memoryLimits }}
+              requests:
+                memory: {{ .Values.mongodbInstance.mongodbAgent.memoryRequests }}
+      serviceName: {{ printf "%s-svc" .Release.Name }}
+      volumeClaimTemplates:
+        - metadata:
+            name: data-volume
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: {{ .Values.mongodbInstance.storage.dataVolumeSize }}
+        - metadata:
+            name: logs-volume
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: {{ .Values.mongodbInstance.storage.logsVolumeSize }}
