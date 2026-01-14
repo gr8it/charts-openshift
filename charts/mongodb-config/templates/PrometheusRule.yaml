@@ -1,0 +1,52 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ printf "%s-rules" .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mongodb-config.labels" . | nindent 4 }}
+spec:
+  groups:
+    - name: mongodb.rules
+      rules:
+        - alert: MongoDBDown
+          expr: mongodb_up == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "MongoDB instance {{`{{ $labels.cl_name }}`}} is down."
+            description: "MongoDB instance {{`{{ $labels.cl_name }}`}} has been down for more than 1 minute."
+          labels:
+            namespace: {{ .Release.Namespace }}
+            severity: critical
+            team: developers
+            vendor: socpoist
+        - alert: MongoDBFlowControlLagged
+          expr: mongodb_flowControl_isLagged == 1
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "MongoDB flow control engaged"
+            description: "Replica set {{`{{ $labels.rs_nm }}`}} is lagged; flow control may throttle writes"
+          labels:
+            namespace: {{ .Release.Namespace }}
+            severity: warning
+            team: developers
+            vendor: socpoist
+        - alert: MongoDBMemberHealth
+          expr: mongodb_members_health == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "MongoDB replica set member unhealthy"
+            description: "Replica set member {{`{{ $labels.member_idx }}`}} is unhealthy for more than 5 minutes."
+          labels:
+            namespace: {{ .Release.Namespace }}
+            severity: critical
+            team: developers
+            vendor: socpoist
+{{- end }}
