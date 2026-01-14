@@ -8,14 +8,14 @@ metadata:
 spec:
   groups:
     - name: group-sync.rules
-      interval: 30s
+      interval: 5m
       rules:
         - alert: GroupSyncErrors
           annotations:
             description: Group sync {{ `{{ $labels.name }}` }} errors detected in namespace {{ `{{ $labels.namespace }}` }}."
             summary: Group sync service {{ `{{ $labels.name }}` }} is experiencing errors.
           expr: 'group_sync_error > 0'
-          for: 5m
+          for: 65m
           labels:
             severity: warning
             team: platform
