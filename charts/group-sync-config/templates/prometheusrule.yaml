@@ -1,0 +1,22 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "group-sync-config.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "group-sync-config.labels" . | nindent 4 }}
+spec:
+  groups:
+    - name: group-sync.rules
+      interval: 30s
+      rules:
+        - alert: GroupSyncErrors
+          annotations:
+            description: Group sync {{ `{{ $labels.name }}` }} errors detected in namespace {{ `{{ $labels.namespace }}` }}."
+            summary: Group sync service {{ `{{ $labels.name }}` }} is experiencing errors.
+          expr: 'group_sync_error > 0'
+          for: 5m
+          labels:
+            severity: warning
+            team: platform
+            vendor: aspecta

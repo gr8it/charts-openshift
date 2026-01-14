@@ -18,7 +18,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.4
+        helm.sh/chart: group-sync-config-1.0.5
       name: group-sync-config-ca-groupsync
   2: |
     apiVersion: redhatcop.redhat.io/v1alpha1
@@ -29,7 +29,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.4
+        helm.sh/chart: group-sync-config-1.0.5
       name: alfa
     spec:
       providers:
@@ -117,7 +117,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.4
+        helm.sh/chart: group-sync-config-1.0.5
       name: beta
     spec:
       providers:
@@ -160,6 +160,33 @@ manifests should match snapshot:
           name: prov-a
       schedule: 10 * * *
   4: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: group-sync-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: group-sync-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: group-sync-config-1.0.5
+      name: group-sync-config
+      namespace: group-sync-operator
+    spec:
+      groups:
+        - interval: 30s
+          name: group-sync.rules
+          rules:
+            - alert: GroupSyncErrors
+              annotations:
+                description: Group sync {{ $labels.name }} errors detected in namespace {{ $labels.namespace }}."
+                summary: Group sync service {{ $labels.name }} is experiencing errors.
+              expr: group_sync_error > 0
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+  5: |
     apiVersion: external-secrets.io/v1beta1
     kind: ExternalSecret
     metadata:
@@ -168,7 +195,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.4
+        helm.sh/chart: group-sync-config-1.0.5
       name: alfa-prov-1
       namespace: group-sync-operator
     spec:
@@ -189,7 +216,7 @@ manifests should match snapshot:
         creationPolicy: Orphan
         deletionPolicy: Retain
         name: alfa-prov-1
-  5: |
+  6: |
     apiVersion: external-secrets.io/v1beta1
     kind: ExternalSecret
     metadata:
@@ -198,7 +225,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.4
+        helm.sh/chart: group-sync-config-1.0.5
       name: alfa-prov-2
       namespace: group-sync-operator
     spec:
@@ -219,7 +246,7 @@ manifests should match snapshot:
         creationPolicy: Orphan
         deletionPolicy: Retain
         name: alfa-prov-2
-  6: |
+  7: |
     apiVersion: external-secrets.io/v1beta1
     kind: ExternalSecret
     metadata:
@@ -228,7 +255,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.4
+        helm.sh/chart: group-sync-config-1.0.5
       name: beta-prov-a
       namespace: group-sync-operator
     spec:
