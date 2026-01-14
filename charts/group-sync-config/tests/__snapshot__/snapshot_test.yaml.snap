@@ -172,21 +172,21 @@ manifests should match snapshot:
       name: alfa-prov-1
       namespace: group-sync-operator
     spec:
+      data:
+        - remoteRef:
+            key: apc-platform//group-sync-operator/group-sync/alfa-prov-1
+            property: username
+          secretKey: username
+        - remoteRef:
+            key: apc-platform//group-sync-operator/group-sync/alfa-prov-1
+            property: password
+          secretKey: password
       refreshInterval: 15m
       secretStoreRef:
         kind: ClusterSecretStore
         name: null
       target:
         creationPolicy: Orphan
-        data:
-          - remoteRef:
-              key: apc-platform//group-sync-operator/group-sync/alfa-prov-1
-              property: username
-            secretKey: username
-          - remoteRef:
-              key: apc-platform//group-sync-operator/group-sync/alfa-prov-1
-              property: password
-            secretKey: password
         deletionPolicy: Retain
         name: alfa-prov-1
   5: |
@@ -202,21 +202,21 @@ manifests should match snapshot:
       name: alfa-prov-2
       namespace: group-sync-operator
     spec:
+      data:
+        - remoteRef:
+            key: apc-platform//group-sync-operator/group-sync/alfa-prov-2
+            property: username
+          secretKey: username
+        - remoteRef:
+            key: apc-platform//group-sync-operator/group-sync/alfa-prov-2
+            property: password
+          secretKey: password
       refreshInterval: 15m
       secretStoreRef:
         kind: ClusterSecretStore
         name: null
       target:
         creationPolicy: Orphan
-        data:
-          - remoteRef:
-              key: apc-platform//group-sync-operator/group-sync/alfa-prov-2
-              property: username
-            secretKey: username
-          - remoteRef:
-              key: apc-platform//group-sync-operator/group-sync/alfa-prov-2
-              property: password
-            secretKey: password
         deletionPolicy: Retain
         name: alfa-prov-2
   6: |
@@ -232,20 +232,20 @@ manifests should match snapshot:
       name: beta-prov-a
       namespace: group-sync-operator
     spec:
+      data:
+        - remoteRef:
+            key: apc-platform//group-sync-operator/group-sync/beta-prov-a
+            property: username
+          secretKey: username
+        - remoteRef:
+            key: apc-platform//group-sync-operator/group-sync/beta-prov-a
+            property: password
+          secretKey: password
       refreshInterval: 15m
       secretStoreRef:
         kind: ClusterSecretStore
         name: null
       target:
         creationPolicy: Orphan
-        data:
-          - remoteRef:
-              key: apc-platform//group-sync-operator/group-sync/beta-prov-a
-              property: username
-            secretKey: username
-          - remoteRef:
-              key: apc-platform//group-sync-operator/group-sync/beta-prov-a
-              property: password
-            secretKey: password
         deletionPolicy: Retain
         name: beta-prov-a
