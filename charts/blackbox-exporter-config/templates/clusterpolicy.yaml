@@ -40,18 +40,18 @@ spec:
                   severity: critical
                 annotations:
                   business_impact: Zber aplikačného monitoringu nie je možný, riziko nedostupnosti aplikácie pre používateľov.
-                  description: Target instance \{{ `{{ $labels.instance }}` }}, job \{{ `{{ $labels.job }}` }} je nedostupný.
+                  description: Target instance {{ `\{{ $labels.instance }}` }}, job {{ `\{{ $labels.job }}` }} je nedostupný.
                   operations_impact: Nedostupná aplikácia - Kritický incident vyžadujúci okamžitý zásah.
-                  runbook: Overte funkčnosť pod-ov, servicemonitor, probe, sieťového pripojenia pre inštanciu \{{ `{{ $labels.instance }}` }}.
-                  summary: Monitoring target \{{ `{{ $labels.instance }}` }} je nedostupný.
+                  runbook: Overte funkčnosť pod-ov, servicemonitor, probe, sieťového pripojenia pre inštanciu {{ `\{{ $labels.instance }}` }}.
+                  summary: Monitoring target {{ `\{{ $labels.instance }}` }} je nedostupný.
           - name: blackbox-exporter-app
             rules:
             - alert: BBAppLBDown
               annotations:
                 business_impact: Používatelia nemôžu pristupovať k aplikácii prostredníctvom LB.
-                description: Aplikácia na URL (\{{ `{{ $labels.instance }}` }}) je nedostupná už 5 minút.
+                description: Aplikácia na URL ({{ `\{{ $labels.instance }}` }}) je nedostupná už 5 minút.
                 operations_impact: Nedostupná aplikácia - Kritický incident vyžadujúci okamžitý zásah.
-                runbook: Overte funkčnosť podov, skontrolujte stav ingressu, sieťového pripojenia pre inštanciu \{{ `{{ $labels.instance }}` }}.
+                runbook: Overte funkčnosť podov, skontrolujte stav ingressu, sieťového pripojenia pre inštanciu {{ `\{{ $labels.instance }}` }}.
                 summary: Neúšpešná kontrola aplikačného healthchecku na Ingresse v APC.
               expr: probe_success == 0
               for: 5m
@@ -60,7 +60,7 @@ spec:
             - alert: BBAppSSLExpWarn
               annotations:
                 business_impact: Riziko nedostupnosti systému po expirácii certifikátu, bezpečnostné varovania pre používateľov
-                description: Certifikát pre (\{{ `{{ $labels.instance }}` }}) na APC platforme expiruje za menej ako 30 dní
+                description: Certifikát pre ({{ `\{{ $labels.instance }}` }}) na APC platforme expiruje za menej ako 30 dní
                 operations_impact: Potrebná plánovaná údržba na obnovu certifikátu
                 runbook: Overte certifikát pre ingress, skontrolujte platnosť a konfiguráciu certifikátu
                 summary: Certifikát pre aplikáciu na APC platforme čoskoro expiruje
@@ -70,7 +70,7 @@ spec:
             - alert: BBAppSSLExpCrit
               annotations:
                 business_impact: Riziko nedostupnosti systému po expirácii certifikátu, bezpečnostné varovania pre používateľov.
-                description: Certifikát pre (\{{ `{{ $labels.instance }}` }}) na APC platforme expiruje za menej ako 3 dni.
+                description: Certifikát pre ({{ `\{{ $labels.instance }}` }}) na APC platforme expiruje za menej ako 3 dni.
                 operations_impact: Potrebná plánovaná údržba na obnovu certifikátu.
                 runbook: Overte certifikát pre ingress, skontrolujte platnosť a konfiguráciu certifikátu.
                 summary: Certifikát pre aplikáciu na APC platforme čoskoro expiruje.
@@ -82,11 +82,11 @@ spec:
               for: 0m
               annotations:
                 business_impact: Riziko aplikačnej nedostupnosti pre používateľov.
-                description: Aplikácia (\{{ `{{ $labels.instance }}` }}) odpovedá s HTTP kódom mimo rozsahu 200-399.
+                description: Aplikácia ({{ `\{{ $labels.instance }}` }}) odpovedá s HTTP kódom mimo rozsahu 200-399.
                 operations_impact: Aplikačná nedostupnosť.        
                 description: HTTP status code nie je 200-399.
-                runbook: Overte funkčnosť podov, skontrolujte stav ingressu, sieťového pripojenia pre inštanciu (\{{ `{{ $labels.instance }}` }}).
-                summary: Blackbox HTTP chybová odozva pre inštanciu (\{{ `{{ $labels.instance }}` }}).
+                runbook: Overte funkčnosť podov, skontrolujte stav ingressu, sieťového pripojenia pre inštanciu ({{ `\{{ $labels.instance }}` }}).
+                summary: Blackbox HTTP chybová odozva pre inštanciu ({{ `\{{ $labels.instance }}` }}).
               labels:
                 severity: warning
             - alert: BBAppDurWarn
@@ -94,10 +94,10 @@ spec:
               for: 1m
               annotations:
                 business_impact: Riziko pomalej odozvy aplikácie pre používateľov.
-                description: Blackbox probe trvá viac ako 1s pre (\{{ `{{ $labels.instance }}` }}).
+                description: Blackbox probe trvá viac ako 1s pre ({{ `\{{ $labels.instance }}` }}).
                 operations_impact: Pomalá odozva aplikácie.
-                runbook: Overte funkčnosť podov, skontrolujte stav ingressu, sieťového pripojenia pre inštanciu (\{{ `{{ $labels.instance }}` }}).
-                summary: Pomalá odozva BB probe pre inštanciu (\{{ `{{ $labels.instance }}` }}).
+                runbook: Overte funkčnosť podov, skontrolujte stav ingressu, sieťového pripojenia pre inštanciu ({{ `\{{ $labels.instance }}` }}).
+                summary: Pomalá odozva BB probe pre inštanciu ({{ `\{{ $labels.instance }}` }}).
               labels:
                 severity: warning
             - alert: BBAppHttpDurWarn
@@ -107,8 +107,8 @@ spec:
                 business_impact: Riziko pomalej odozvy aplikácie pre používateľov.
                 description: Trvanie HTTP požiadavky je viac ako 1s.
                 operations_impact: Pomalá odozva aplikácie.
-                runbook: Overte funkčnosť podov, skontrolujte stav ingressu, sieťového pripojenia pre inštanciu (\{{ `{{ $labels.instance }}` }}).
-                summary: Pomalá HTTP odozva pre inštanciu (\{{ `{{ $labels.instance }}` }}).
+                runbook: Overte funkčnosť podov, skontrolujte stav ingressu, sieťového pripojenia pre inštanciu ({{ `\{{ $labels.instance }}` }}).
+                summary: Pomalá HTTP odozva pre inštanciu ({{ `\{{ $labels.instance }}` }}).
               labels:
                 severity: warning
             - alert: BBAppIcmpDurWarn
@@ -118,8 +118,8 @@ spec:
                 business_impact: Riziko pomalej odozvy aplikácie pre používateľov.
                 description: Trvanie ICMP požiadavky je viac ako 1s.
                 operations_impact: Pomalá odozva aplikácie.
-                runbook: Overte funkčnosť podov, skontrolujte stav ingressu, sieťového pripojenia pre inštanciu (\{{ `{{ $labels.instance }}` }}).
-                summary: Pomalá ICMP odozva pre inštanciu (\{{ `{{ $labels.instance }}` }}).
+                runbook: Overte funkčnosť podov, skontrolujte stav ingressu, sieťového pripojenia pre inštanciu ({{ `\{{ $labels.instance }}` }}).
+                summary: Pomalá ICMP odozva pre inštanciu ({{ `\{{ $labels.instance }}` }}).
               labels:
                 severity: warning
             - alert: BBAppTcpDurWarn
@@ -129,8 +129,8 @@ spec:
                 business_impact: Riziko pomalej odozvy aplikácie pre používateľov.
                 description: Trvanie TCP požiadavky je viac ako 1s.
                 operations_impact: Pomalá odozva aplikácie.
-                runbook: Overte funkčnosť podov, skontrolujte stav ingressu, sieťového pripojenia pre inštanciu (\{{ `{{ $labels.instance }}` }}).
-                summary: Pomalá TCP odozva pre inštanciu (\{{ `{{ $labels.instance }}` }}).
+                runbook: Overte funkčnosť podov, skontrolujte stav ingressu, sieťového pripojenia pre inštanciu ({{ `\{{ $labels.instance }}` }}).
+                summary: Pomalá TCP odozva pre inštanciu ({{ `\{{ $labels.instance }}` }}).
               labels:
                 severity: warning
     preconditions:
