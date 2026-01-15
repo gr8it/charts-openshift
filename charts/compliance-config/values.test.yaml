@@ -1,0 +1,41 @@
+nameOverride: ""
+fullnameOverride: ""
+
+# Simulate hub cluster for testing multiple profiles in scanSettingBinding
+global:
+  apc:
+    cluster:
+      name: hub01
+      isHub: true
+
+# ScanSetting configuration (same as default)
+scanSetting:
+  name: cis-scan-settings
+  includeMasterRole: false
+  rawResultStorage:
+    nodeSelector:
+      node-role.kubernetes.io/worker: ""
+    pvAccessModes:
+      - ReadWriteOnce
+    rotation: 3
+    size: 1Gi
+    tolerations:
+      - operator: Exists
+  roles:
+    - worker
+  scanTolerations:
+    - operator: Exists
+  schedule: "0 1 * * *"
+  showNotApplicable: false
+  maxRetryOnTimeout: 3
+  strictNodeScan: true
+  suspend: false
+  timeout: 30m0s
+
+# ScanSettingBinding configuration (will include TailoredProfiles for hub clusters)
+scanSettingBinding:
+  name: cis-compliance
+  settingsRef:
+    name: cis-scan-settings
+    kind: ScanSetting
+    apiGroup: compliance.openshift.io/v1alpha1

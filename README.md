@@ -30,6 +30,7 @@ For best practices / contributing rules see [CONTRIBUTING.md](.github/CONTRIBUTI
   - [ACM Operator policy](charts/acm-operatorpolicy/)
   - [Operators Installer](charts/operators-installer/)
 - components
+  - [blackbox exporter helm](charts/blackbox-exporter-helm)
   - [Remove kubeadmin](charts/remove-kubeadmin/)
   - ...
 
@@ -85,6 +86,9 @@ Where \<chart dir name\> is a directory name in the charts folder.
 
 > [!WARNING]  
 > Charts won't be pushed to destination if the same tag already exists! Either chart version must be increased, or the chart version deleted in the oci registry (usually using registry GUI)
+
+> [!NOTE]  
+> Under the hood the publish command uses `helm registry login` to authenticate to the registry
 
 ### Cleanup of decommission charts
 

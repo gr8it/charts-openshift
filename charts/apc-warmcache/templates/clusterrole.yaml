@@ -1,0 +1,10 @@
+{{- if .Values.rbac.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ printf "%s-%s" (include "apc-warmcache.fullname" .) .Values.rbac.clusterRole.name }}
+  labels:
+    {{- include "apc-warmcache.labels" . | nindent 4 }}
+rules:
+  {{- toYaml .Values.rbac.clusterRole.rules | nindent 2 }}
+{{- end }}
