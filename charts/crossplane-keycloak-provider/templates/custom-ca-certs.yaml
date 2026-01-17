@@ -1,0 +1,10 @@
+apiVersion: v1
+data:
+  ca-bundle.crt: |
+    {{- (include "apc-global-overrides.caCertificatesBundle" .) | nindent 4 }}
+kind: ConfigMap
+metadata:
+  name: custom-ca-certs
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "crossplane-keycloak-provider.labels" . | nindent 4 }}

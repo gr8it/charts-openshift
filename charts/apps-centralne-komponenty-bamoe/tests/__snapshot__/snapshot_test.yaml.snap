@@ -1,0 +1,21 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+    kind: Client
+    metadata:
+      name: bamoe-management-console
+    spec:
+      deletionPolicy: Delete
+      forProvider:
+        accessType: PUBLIC
+        clientId: bamoe-management-console
+        description: bamoe manazment konzola
+        frontchannelLogoutEnabled: true
+        fullScopeAllowed: false
+        name: bamoe
+        pkceCodeChallengeMethod: S256
+        realmId: apps
+        standardFlowEnabled: true
+        validRedirectUris: null
+      providerConfigRef:
+        name: keycloak-local-config

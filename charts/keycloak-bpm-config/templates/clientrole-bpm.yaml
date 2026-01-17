@@ -1,0 +1,41 @@
+apiVersion: role.keycloak.crossplane.io/v1alpha1
+kind: Role
+metadata:
+  name: bpm-admin
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    realmId: apps
+    name: admin
+    clientIdRef:
+      name: bpm
+  providerConfigRef:
+    name: keycloak-local-config
+---
+apiVersion: role.keycloak.crossplane.io/v1alpha1
+kind: Role
+metadata:
+  name: bpm-worker
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    realmId: apps
+    name: worker
+    clientIdRef:
+      name: bpm
+  providerConfigRef:
+    name: keycloak-local-config
+---
+apiVersion: role.keycloak.crossplane.io/v1alpha1
+kind: Role
+metadata:
+  name: bpm-reader
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    realmId: apps
+    name: reader
+    clientIdRef:
+      name: bpm
+  providerConfigRef:
+    name: keycloak-local-config
