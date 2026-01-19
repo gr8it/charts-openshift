@@ -1,0 +1,284 @@
+manifests should match snapshot with hub cluster (multiple profiles):
+  1: |
+    apiVersion: compliance.openshift.io/v1alpha1
+    kind: ScanSetting
+    metadata:
+      labels:
+        app.kubernetes.io/instance: compliance-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: compliance-config
+        app.kubernetes.io/version: "1.0"
+        helm.sh/chart: compliance-config-1.0.0
+      name: cis-scan-settings
+      namespace: openshift-compliance
+    spec:
+      maxRetryOnTimeout: 3
+      rawResultStorage:
+        nodeSelector:
+          node-role.kubernetes.io/worker: ""
+        pvAccessModes:
+          - ReadWriteOnce
+        rotation: 3
+        size: 1Gi
+        tolerations:
+          - operator: Exists
+      roles:
+        - worker
+      scanTolerations:
+        - operator: Exists
+      schedule: 0 1 * * *
+      showNotApplicable: false
+      strictNodeScan: true
+      suspend: false
+      timeout: 30m0s
+  2: |
+    apiVersion: compliance.openshift.io/v1alpha1
+    kind: ScanSettingBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: compliance-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: compliance-config
+        app.kubernetes.io/version: "1.0"
+        helm.sh/chart: compliance-config-1.0.0
+      name: cis-compliance
+      namespace: openshift-compliance
+    spec:
+      profiles:
+        - apiGroup: compliance.openshift.io/v1alpha1
+          kind: Profile
+          name: ocp4-cis-node
+        - apiGroup: compliance.openshift.io/v1alpha1
+          kind: TailoredProfile
+          name: apc-ocp4-cis
+        - apiGroup: compliance.openshift.io/v1alpha1
+          kind: TailoredProfile
+          name: apc-dev01-hypershift
+        - apiGroup: compliance.openshift.io/v1alpha1
+          kind: TailoredProfile
+          name: apc-prod01-hypershift
+        - apiGroup: compliance.openshift.io/v1alpha1
+          kind: TailoredProfile
+          name: apc-test01-hypershift
+      settingsRef:
+        apiGroup: compliance.openshift.io/v1alpha1
+        kind: ScanSetting
+        name: cis-scan-settings
+  3: |
+    apiVersion: compliance.openshift.io/v1alpha1
+    kind: TailoredProfile
+    metadata:
+      labels:
+        app.kubernetes.io/instance: compliance-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: compliance-config
+        app.kubernetes.io/version: "1.0"
+        helm.sh/chart: compliance-config-1.0.0
+      name: apc-dev01-hypershift
+      namespace: openshift-compliance
+    spec:
+      description: This profile is for scanning spoke clusters
+      disableRules:
+        - name: ocp4-api-server-audit-log-maxbackup
+          rationale: |
+            This control is not applicable because audit logs are being forwarded to a centralized logging system on the hub cluster. As a result, retaining 10 local rotated copies is unnecessary and does not align with our centralized log retention strategy.
+        - name: ocp4-api-server-audit-log-maxsize
+          rationale: |
+            This control is not applicable because audit logs are being forwarded to a centralized logging system on the hub cluster. As a result, retaining 10 local rotated copies is unnecessary and does not align with our centralized log retention strategy.
+        - name: ocp4-api-server-encryption-provider-cipher
+          rationale: |
+            ETCD encryption is not enabled due to a known limitation in the current OpenShift architecture: the etcd restore procedure is not fully supported when encryption is enabled in multi-node control plane clusters.
+        - name: ocp4-audit-log-forwarding-webhook
+          rationale: |
+            Forwarding of OpenShift API audit logs to an external system is not currently configured due to capacity limitations in the existing SIEM infrastructure.
+        - name: ocp4-audit-profile-set
+          rationale: |
+            The audit log policy is not configured to use WriteRequestBodies due to resource constraints. Enabling this setting would significantly increase the volume of audit logs, leading to higher CPU, memory, and storage consumption on the API server.
+        - name: ocp4-kubelet-configure-tls-cipher-suites-ingresscontroller
+          rationale: |
+            The default TLS cipher suites used by the IngressController already meet the organization's security standards and compatibility requirements. Custom configuration is not required at this time.
+        - name: ocp4-ocp-api-server-audit-log-maxbackup
+          rationale: |
+            This control is not applicable because audit logs are being forwarded to a centralized logging system on the hub cluster. As a result, retaining 10 local rotated copies is unnecessary and does not align with our centralized log retention strategy.
+        - name: ocp4-ocp-api-server-audit-log-maxsize
+          rationale: |
+            This control is not applicable because audit logs are being forwarded to a centralized logging system on the hub cluster. As a result, retaining 10 local rotated copies is unnecessary and does not align with our centralized log retention strategy.
+        - name: ocp4-ocp-allowed-registries
+          rationale: |
+            A centralized mirror registry configuration is not used in the current setup.
+        - name: ocp4-ocp-allowed-registries-for-import
+          rationale: |
+            A centralized mirror registry is not used for image imports.
+      extends: ocp4-cis
+      setValues:
+        - name: ocp4-hypershift-cluster
+          rationale: This value is used for HyperShift version detection
+          value: dev01
+        - name: ocp4-hypershift-namespace-prefix
+          rationale: This value is used for HyperShift control plane namespace detection
+          value: dev01
+        - name: ocp4-var-sccs-with-allowed-capabilities-regex
+          rationale: |
+            Exempt only the following custom SCCs from the "allowed-capabilities" check: kubevirt-controller, netobserv-ebpf-agent, noobaa-endpoint, rook-ceph, rook-ceph-csi, unrestricted-apc-gitlab-runner
+          value: ^(hostnetwork-v2|nonroot-v2|privileged|restricted-v2|kubevirt-controller|netobserv-ebpf-agent|noobaa-endpoint|rook-ceph|rook-ceph-csi)$
+      title: Management namespace profile
+  4: |
+    apiVersion: compliance.openshift.io/v1alpha1
+    kind: TailoredProfile
+    metadata:
+      labels:
+        app.kubernetes.io/instance: compliance-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: compliance-config
+        app.kubernetes.io/version: "1.0"
+        helm.sh/chart: compliance-config-1.0.0
+      name: apc-ocp4-cis
+      namespace: openshift-compliance
+    spec:
+      description: OCP4 CIS profile with selected rules excluded for APC environment.
+      disableRules:
+        - name: ocp4-audit-log-forwarding-enabled
+          rationale: |
+            Forwarding of OpenShift API audit logs to an external system is not currently configured due to capacity limitations in the existing SIEM infrastructure.
+        - name: ocp4-audit-profile-set
+          rationale: |
+            The audit log policy is not configured to use WriteRequestBodies due to resource constraints. Enabling this setting would significantly increase the volume of audit logs, leading to higher CPU, memory, and storage consumption on the API server.
+        - name: ocp4-kubelet-configure-tls-cipher-suites-ingresscontroller
+          rationale: |
+            The default TLS cipher suites used by the IngressController already meet the organization's security standards and compatibility requirements. Custom configuration is not required at this time.
+        - name: ocp4-api-server-encryption-provider-cipher
+          rationale: |
+            The encryption provider's cipher configuration uses defaults suitable for compatibility and performance; custom ciphers are not required at this time.
+        - name: ocp4-ocp-allowed-registries
+          rationale: |
+            A centralized mirror registry configuration is not used in the current setup.
+        - name: ocp4-ocp-allowed-registries-for-import
+          rationale: |
+            A centralized mirror registry is not used for image imports.
+      extends: ocp4-cis
+      setValues:
+        - name: ocp4-var-network-policies-namespaces-exempt-regex
+          rationale: |
+            These namespaces are used for OpenShift platform components, infrastructure, HyperShift control planes, and cluster management tooling. NetworkPolicy requirements are either handled differently or not applicable for these system-managed projects.
+          value: ^(assisted-installer|cert-manager|cert-manager-operator|cert-utils-operator|default-broker|dev-broker|dev01|dev01-dev01|etcd-backup|group-sync-operator|hive|hypershift|infrastructure-dev01|infrastructure-prod01|infrastructure-test01|klusterlet-dev01|klusterlet-prod01|klusterlet-test01|local-cluster|metallb-system|multicluster-engine|open-cluster-management|open-cluster-management-agent|open-cluster-management-agent-addon|open-cluster-management-global-set|open-cluster-management-hub|open-cluster-management-observability|open-cluster-management-policies|prod-broker|prod01|prod01-prod01|prometheus-pushgateway|quay|rhacs-operator|stackrox|test-broker|test01|test01-test01|veeam|vm-templates|apc-kyverno)$
+        - name: ocp4-var-sccs-with-allowed-capabilities-regex
+          rationale: |
+            Exempt only the following custom SCCs from the "allowed-capabilities" check: kubevirt-controller, netobserv-ebpf-agent, noobaa-endpoint, rook-ceph, rook-ceph-csi, unrestricted-apc-gitlab-runner
+          value: ^(hostnetwork-v2|nonroot-v2|privileged|restricted-v2|kubevirt-controller|netobserv-ebpf-agent|noobaa-endpoint|rook-ceph|rook-ceph-csi)$
+      title: APC OCP4 CIS Custom Profile
+  5: |
+    apiVersion: compliance.openshift.io/v1alpha1
+    kind: TailoredProfile
+    metadata:
+      labels:
+        app.kubernetes.io/instance: compliance-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: compliance-config
+        app.kubernetes.io/version: "1.0"
+        helm.sh/chart: compliance-config-1.0.0
+      name: apc-prod01-hypershift
+      namespace: openshift-compliance
+    spec:
+      description: This profile is for scanning spoke clusters
+      disableRules:
+        - name: ocp4-api-server-audit-log-maxbackup
+          rationale: |
+            This control is not applicable because audit logs are being forwarded to a centralized logging system on the hub cluster. As a result, retaining 10 local rotated copies is unnecessary and does not align with our centralized log retention strategy.
+        - name: ocp4-api-server-audit-log-maxsize
+          rationale: |
+            This control is not applicable because audit logs are being forwarded to a centralized logging system on the hub cluster. As a result, retaining 10 local rotated copies is unnecessary and does not align with our centralized log retention strategy.
+        - name: ocp4-api-server-encryption-provider-cipher
+          rationale: |
+            ETCD encryption is not enabled due to a known limitation in the current OpenShift architecture: the etcd restore procedure is not fully supported when encryption is enabled in multi-node control plane clusters.
+        - name: ocp4-audit-log-forwarding-webhook
+          rationale: |
+            Forwarding of OpenShift API audit logs to an external system is not currently configured due to capacity limitations in the existing SIEM infrastructure.
+        - name: ocp4-audit-profile-set
+          rationale: |
+            The audit log policy is not configured to use WriteRequestBodies due to resource constraints. Enabling this setting would significantly increase the volume of audit logs, leading to higher CPU, memory, and storage consumption on the API server.
+        - name: ocp4-kubelet-configure-tls-cipher-suites-ingresscontroller
+          rationale: |
+            The default TLS cipher suites used by the IngressController already meet the organization's security standards and compatibility requirements. Custom configuration is not required at this time.
+        - name: ocp4-ocp-api-server-audit-log-maxbackup
+          rationale: |
+            This control is not applicable because audit logs are being forwarded to a centralized logging system on the hub cluster. As a result, retaining 10 local rotated copies is unnecessary and does not align with our centralized log retention strategy.
+        - name: ocp4-ocp-api-server-audit-log-maxsize
+          rationale: |
+            This control is not applicable because audit logs are being forwarded to a centralized logging system on the hub cluster. As a result, retaining 10 local rotated copies is unnecessary and does not align with our centralized log retention strategy.
+        - name: ocp4-ocp-allowed-registries
+          rationale: |
+            A centralized mirror registry configuration is not used in the current setup.
+        - name: ocp4-ocp-allowed-registries-for-import
+          rationale: |
+            A centralized mirror registry is not used for image imports.
+      extends: ocp4-cis
+      setValues:
+        - name: ocp4-hypershift-cluster
+          rationale: This value is used for HyperShift version detection
+          value: prod01
+        - name: ocp4-hypershift-namespace-prefix
+          rationale: This value is used for HyperShift control plane namespace detection
+          value: prod01
+        - name: ocp4-var-sccs-with-allowed-capabilities-regex
+          rationale: |
+            Exempt only the following custom SCCs from the "allowed-capabilities" check: kubevirt-controller, netobserv-ebpf-agent, noobaa-endpoint, rook-ceph, rook-ceph-csi, unrestricted-apc-gitlab-runner
+          value: ^(hostnetwork-v2|nonroot-v2|privileged|restricted-v2|kubevirt-controller|netobserv-ebpf-agent|noobaa-endpoint|rook-ceph|rook-ceph-csi)$
+      title: Management namespace profile
+  6: |
+    apiVersion: compliance.openshift.io/v1alpha1
+    kind: TailoredProfile
+    metadata:
+      labels:
+        app.kubernetes.io/instance: compliance-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: compliance-config
+        app.kubernetes.io/version: "1.0"
+        helm.sh/chart: compliance-config-1.0.0
+      name: apc-test01-hypershift
+      namespace: openshift-compliance
+    spec:
+      description: This profile is for scanning spoke clusters
+      disableRules:
+        - name: ocp4-api-server-audit-log-maxbackup
+          rationale: |
+            This control is not applicable because audit logs are being forwarded to a centralized logging system on the hub cluster. As a result, retaining 10 local rotated copies is unnecessary and does not align with our centralized log retention strategy.
+        - name: ocp4-api-server-audit-log-maxsize
+          rationale: |
+            This control is not applicable because audit logs are being forwarded to a centralized logging system on the hub cluster. As a result, retaining 10 local rotated copies is unnecessary and does not align with our centralized log retention strategy.
+        - name: ocp4-api-server-encryption-provider-cipher
+          rationale: |
+            ETCD encryption is not enabled due to a known limitation in the current OpenShift architecture: the etcd restore procedure is not fully supported when encryption is enabled in multi-node control plane clusters.
+        - name: ocp4-audit-log-forwarding-webhook
+          rationale: |
+            Forwarding of OpenShift API audit logs to an external system is not currently configured due to capacity limitations in the existing SIEM infrastructure.
+        - name: ocp4-audit-profile-set
+          rationale: |
+            The audit log policy is not configured to use WriteRequestBodies due to resource constraints. Enabling this setting would significantly increase the volume of audit logs, leading to higher CPU, memory, and storage consumption on the API server.
+        - name: ocp4-kubelet-configure-tls-cipher-suites-ingresscontroller
+          rationale: |
+            The default TLS cipher suites used by the IngressController already meet the organization's security standards and compatibility requirements. Custom configuration is not required at this time.
+        - name: ocp4-ocp-api-server-audit-log-maxbackup
+          rationale: |
+            This control is not applicable because audit logs are being forwarded to a centralized logging system on the hub cluster. As a result, retaining 10 local rotated copies is unnecessary and does not align with our centralized log retention strategy.
+        - name: ocp4-ocp-api-server-audit-log-maxsize
+          rationale: |
+            This control is not applicable because audit logs are being forwarded to a centralized logging system on the hub cluster. As a result, retaining 10 local rotated copies is unnecessary and does not align with our centralized log retention strategy.
+        - name: ocp4-ocp-allowed-registries
+          rationale: |
+            A centralized mirror registry configuration is not used in the current setup.
+        - name: ocp4-ocp-allowed-registries-for-import
+          rationale: |
+            A centralized mirror registry is not used for image imports.
+      extends: ocp4-cis
+      setValues:
+        - name: ocp4-hypershift-cluster
+          rationale: This value is used for HyperShift version detection
+          value: test01
+        - name: ocp4-hypershift-namespace-prefix
+          rationale: This value is used for HyperShift control plane namespace detection
+          value: test01
+        - name: ocp4-var-sccs-with-allowed-capabilities-regex
+          rationale: |
+            Exempt only the following custom SCCs from the "allowed-capabilities" check: kubevirt-controller, netobserv-ebpf-agent, noobaa-endpoint, rook-ceph, rook-ceph-csi, unrestricted-apc-gitlab-runner
+          value: ^(hostnetwork-v2|nonroot-v2|privileged|restricted-v2|kubevirt-controller|netobserv-ebpf-agent|noobaa-endpoint|rook-ceph|rook-ceph-csi)$
+      title: Management namespace profile

@@ -1,0 +1,255 @@
+nameOverride: "kafka"
+fullnameOverride: ""
+
+# Chart version
+appVersion: "4.0.0"
+
+## uses following global values => do not set here
+# global:
+#   apc:
+#     services:
+#       certManager:
+#         defaultClusterIssuer: ~
+## and their local overrides
+# services:
+#   certManager:
+#     defaultClusterIssuer: ~
+
+# Kafka cluster configuration
+kafka:
+  # Kafka version to deploy
+  version: "4.0.0"
+  metadataVersion: "4.0-IV1"
+  interBrokerProtocolVersion: "4.0"
+  
+  # Broker node pool configuration
+  brokers:
+    replicas: 3
+    storage:
+      size: "100Gi"
+      deleteClaim: false
+    resources:
+      requests:
+        cpu: "1000m"
+        memory: "2Gi"
+      limits:
+        cpu: "2000m"
+        memory: "4Gi"
+  
+  # Controller node pool configuration (KRaft mode)
+  controllers:
+    replicas: 3
+    storage:
+      size: "20Gi"
+      deleteClaim: false
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "1Gi"
+      limits:
+        cpu: "1000m"
+        memory: "2Gi"
+  
+  # Topic/Event Operator configuration
+  topicOperator:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "500m"
+        memory: "256Mi"
+  
+  userOperator:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "500m"
+        memory: "256Mi"
+  
+  # Kafka broker configuration
+  config:
+    # Replication and durability (HA settings)
+    offsetsReplicationFactor: 3
+    offsetsPartitions: 50
+    transactionReplicationFactor: 3
+    transactionMinISR: 2
+    transactionPartitions: 50
+    
+    # Default topic settings
+    defaultReplicationFactor: 3
+    minISR: 2
+    defaultPartitions: 3
+    
+    # Log retention settings
+    logRetentionHours: 168  # 7 days
+    logCleanupPolicy: "delete"  # or "compact" for compacted topics
+    
+    # Performance tuning
+    numNetworkThreads: 8
+    numIOThreads: 8
+    socketSendBufferBytes: 102400
+    socketReceiveBufferBytes: 102400
+    
+    # KRaft quorum settings
+    quorumElectionTimeoutMs: 10000
+    quorumFetchTimeoutMs: 2000
+  
+  # Super user (cluster admin)
+  superUser: superadminuser
+
+  rack:
+    topologyKey: topology.kubernetes.io/zone
+
+  # External access configuration (for clients outside the cluster)
+  externalAccess:
+    enabled: false
+    # type: "loadbalancer"  # or "nodeport" for cloud providers
+    # bootstrap:
+    #   host: "kafka.example.com"
+    #   port: 9094
+    # brokers:
+    #   - host: "kafka-0.example.com"
+    #     port: 9094
+    #   - host: "kafka-1.example.com"
+    #     port: 9094
+    #   - host: "kafka-2.example.com"
+    #     port: 9094
+
+# Kafka Topics - automatically created on deployment
+kafkaTopics:
+  enabled: false  # Set to true to auto-create topics
+  topics: []
+  # Example topics (uncomment to use):
+  # - name: "events"
+  #   partitions: 3
+  #   replicas: 3
+  #   config:
+  #     retention.ms: "604800000"  # 7 days
+  #     compression.type: "snappy"
+  #
+  # - name: "logs"
+  #   partitions: 6
+  #   replicas: 3
+  #   config:
+  #     retention.ms: "86400000"  # 1 day
+  #
+  # - name: "compacted-events"
+  #   partitions: 3
+  #   replicas: 3
+  #   config:
+  #     cleanup.policy: "compact"
+  #     min.cleanable.dirty.ratio: "0.5"
+
+# Kafka Users with SCRAM-SHA-512 authentication
+kafkaUsers:
+  enabled: false
+  users: []
+  #   # Application user with produce/consume permissions
+  #   - name: app-producer
+  #     acls:
+  #       - resourceType: topic
+  #         resourceName: "*"
+  #         patternType: Prefix
+  #         operations:
+  #           - Write
+  #           - Create
+    
+  #   # Consumer application user
+  #   - name: app-consumer
+  #     acls:
+  #       - resourceType: topic
+  #         resourceName: "*"
+  #         patternType: Prefix
+  #         operations:
+  #           - Read
+  #       - resourceType: group
+  #         resourceName: "*"
+  #         patternType: Prefix
+  #         operations:
+  #           - Read
+
+  #   # Admin user for operations
+  #   - name: superadminuser
+
+networkpolicy:
+  enabled: false
+  namespaces: []
+
+# Monitoring and Prometheus integration
+monitoring:
+  enabled: true
+  scrapeInterval: "30s"
+  scrapeTimeout: "10s"
+
+  alerts:
+    # Minimum number of brokers that must be up (for critical alert)
+    minBrokersUp: 2
+
+    # Consumer lag threshold (messages behind latest offset)
+    consumerLagThreshold: 100000
+
+# https://github.com/kafbat/helm-charts/blob/main/charts/kafka-ui/values.yaml
+kafka-ui:
+  enabled: false
+
+  image:
+    tag: 18c8b7e
+
+  securityContext:
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: ~
+    allowPrivilegeEscalation: false
+    seccompProfile:
+      type: RuntimeDefault
+
+  volumes:
+    # map ca bundle secret to kafka-ui pod
+    - name: cluster-ca-cert
+      secret:
+        secretName: ca-cert-bundle
+  volumeMounts:
+    # map ca bundle secret to kafka-ui pod
+    - name: cluster-ca-cert
+      mountPath: /etc/kafka/cluster-ca
+      readOnly: true
+
+  envs:
+    config:
+      DYNAMIC_CONFIG_ENABLED: "false"
+      KAFKA_ADMIN-CLIENT-TIMEOUT: "10000"
+
+    # TODO!
+    auth:
+      type: disabled
+
+    # management:
+    #   health:
+    #     ldap:
+    #       enabled: false
+  
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+  
+  ingress:
+    enabled: false # do not enable until auth is configured
+    host: ~ # To be specified per environment
+    annotations:
+      route.openshift.io/termination: edge
+      route.openshift.io/insecureEdgeTerminationPolicy: Redirect
+
+
+  # env:
+  # - name: DYNAMIC_CONFIG_ENABLED
+  #   value: "true"

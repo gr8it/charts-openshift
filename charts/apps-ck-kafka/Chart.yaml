@@ -1,0 +1,24 @@
+apiVersion: v2
+name: apps-ck-kafka
+description: Production-ready Kafka cluster using Strimzi operator with KRaft mode
+type: application
+version: 1.0.0
+kubeVersion: ">=1.25.0"
+keywords:
+  - kafka
+  - strimzi
+  - kraft
+home: https://github.com/gr8it/charts-openshift
+sources:
+  - https://github.com/gr8it/charts-openshift
+  - https://strimzi.io/
+icon: https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/main/documentation/logo/strimzi_logo.png
+
+dependencies:
+  - name: apc-global-overrides
+    version: 1.5.0
+    repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+  - name: kafka-ui
+    version: 1.5.3
+    repository: https://kafbat.github.io/helm-charts
+    condition: kafka-ui.enabled

@@ -1,0 +1,155 @@
+global:
+  apc:
+    services:
+      certManager:
+        defaultClusterIssuer: vault-issuer
+
+kafka:
+  brokers:
+    replicas: 5  # 5-node cluster for higher throughput
+    storage:
+      size: "500Gi"  # Larger disks
+    resources:
+      requests:
+        cpu: "2000m"
+        memory: "4Gi"
+      limits:
+        cpu: "4000m"
+        memory: "8Gi"
+
+  # Additional listeners for external access
+  # NOTE: This requires extending kafka-singlenode.yaml template to add these listeners
+  # Example listeners configuration:
+  externalAccess:
+    enabled: true
+    type: loadbalancer
+    bootstrap:
+      host: kafka.example.com
+      port: 9094
+    brokers:
+    - host: kafka-0.example.com
+      port: 9094
+    - host: kafka-1.example.com
+      port: 9094
+    - host: kafka-2.example.com
+      port: 9094
+  
+  listeners:
+    - name: external
+      port: 9094
+      type: loadbalancer
+      tls: true
+      authentication:
+        type: scram-sha-512
+      configuration:
+        brokerCertChainAndKey:
+          secretName: kafka-brokers
+          certificate: tls.crt
+          key: tls.key
+        bootstrap:
+          host: kafka.example.com       # External DNS
+          port: 9094
+        brokers:
+          - broker: 0
+            host: kafka-0.example.com
+            port: 9094
+          - broker: 1
+            host: kafka-1.example.com
+            port: 9094
+          - broker: 2
+            host: kafka-2.example.com
+            port: 9094
+
+  controllers:
+    replicas: 5  # 5-node controller quorum for resilience
+    storage:
+      size: "50Gi"
+    resources:
+      requests:
+        cpu: "1000m"
+        memory: "2Gi"
+      limits:
+        cpu: "2000m"
+        memory: "4Gi"
+
+  superUsers:
+    - admin
+
+  config:
+    offsetsReplicationFactor: 3
+    offsetsPartitions: 100
+    transactionReplicationFactor: 3
+    transactionMinISR: 2
+    transactionPartitions: 100
+    defaultReplicationFactor: 3
+    minISR: 2
+    defaultPartitions: 10  # More partitions by default for parallelism
+    logRetentionHours: 336  # 14 days retention
+    numNetworkThreads: 16
+    numIOThreads: 16
+    socketSendBufferBytes: 524288
+    socketReceiveBufferBytes: 524288
+
+monitoring:
+  scrapeInterval: "30s"  # More frequent scraping
+  alerts:
+    minBrokersUp: 3
+    consumerLagThreshold: 500000  # Higher threshold for large volumes
+
+kafkaUsers:
+  enabled: true
+  users:
+    - name: app-producer-high-volume
+      acls:
+        - resourceType: topic
+          resourceName: "*"
+          patternType: Prefix
+          operations: [Write, Create, Describe]
+    
+    - name: app-consumer-analytics
+      acls:
+        - resourceType: topic
+          resourceName: "*"
+          patternType: Prefix
+          operations: [Read, Describe]
+        - resourceType: group
+          resourceName: "*"
+          patternType: Prefix
+          operations: [Read]
+    
+    - name: platform-admin
+      acls:
+        - resourceType: "*"
+          resourceName: "*"
+          patternType: literal
+          operations: [All]
+
+    - name: admin
+
+networkpolicy:
+  enabled: true
+  namespaces:
+  - source-namespace-1
+  - source-namespace-2
+
+kafka-ui:
+  enabled: true
+
+  envs:
+    config:
+      KAFKA_CLUSTERS_0_NAME: kafka
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-kafka-bootstrap.kafka.svc:9093
+      KAFKA_CLUSTERS_0_SSL_VERIFYSSL: "false"
+      KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM: SCRAM-SHA-512
+      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: SASL_SSL
+      # https://github.com/kafbat/kafka-ui/discussions/1260#discussioncomment-14275371
+      KAFKA_CLUSTERS_0_SSL_TRUSTSTORELOCATION: "/etc/kafka/cluster-ca/ca-bundle.jks"
+      KAFKA_CLUSTERS_0_SSL_TRUSTSTORE_TYPE: JKS
+      KAFKA_CLUSTERS_0_SSL_TRUSTSTOREPASSWORD: "changeit"
+      # KAFKA_CLUSTERS_0_METRICS_SSL: "false"
+      # KAFKA_CLUSTERS_0_METRICS_PORT: "9404"
+      # KAFKA_CLUSTERS_0_METRICS_TYPE: PROMETHEUS
+    secretMappings:
+      KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG:
+        name: admin
+        keyName: sasl.jaas.config

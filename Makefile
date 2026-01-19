@@ -26,57 +26,15 @@ REGISTRY_TOKEN := $(shell echo $${REGISTRY_TOKEN:-})
 REPO_PATH      := $(shell echo $$(git config --get remote.origin.url | sed -E 's!(git@github.com:|https://github.com/)!!;s!\.git$$!!' || echo "notfound"))
 REGISTRY_URL   := $(shell echo $${REGISTRY_URL:-ghcr.io/$(REPO_PATH)})
 
+info:
+	@echo "CHARTFOLDER = $(CHARTFOLDER)"
+
 debug:
 	@echo "$(REGISTRY_USER)"
 	@echo "$(REGISTRY_TOKEN)"
 	@echo "$(REPO_PATH)"
 	@echo "$(REGISTRY_URL)"
 	@echo "$(YQ)"
-
-lint:
-	@echo -e "\033[0;36m~> Starting helm lint checks on all chart folders ...\033[0m"
-	@for folder in $(CHARTFOLDERS); do \
-		echo -n "$$(basename $${folder}): Lint check "; \
-		helm_args=""; \
-		if [ -f $${folder}/values.lint.yaml ]; then \
-			helm_args="--values $${folder}/values.lint.yaml"; \
-		fi; \
-		if out=$$(helm lint $$folder --quiet 2>&1 $$helm_args); then \
-			echo -e "\033[0;32mOK\033[0m."; \
-			if test -n "$$out"; then echo "$$out"; fi; \
-		else \
-			echo -e "\033[0;31mFAILED\033[0m."; \
-			echo "$$out"; \
-			exit 1; \
-		fi; \
-	done
-
-unittest:
-	@echo -e "\033[0;36m~> Starting helm unittests on all chart folders ...\033[0m"
-	@for folder in $(CHARTFOLDERS); do \
-		echo -n "$$(basename $${folder}): Unittest "; \
-		if [ -d $${folder}/tests/ ]; then \
-			if out=$$(helm unittest --strict $$folder); then \
-				echo -e "\033[0;32mOK\033[0m "; \
-			else \
-				echo -e "\033[0;31mFAILED\033[0m "; \
-				echo "$$out"; \
-				exit 1; \
-			fi; \
-		else \
-		  echo "NA"; \
-		fi; \
-	done
-
-gitpull:
-	@echo -e "\033[0;36m~> Synchronizing with the latest Git repository state ...\033[0m"
-	@if ! git pull; then \
-		echo -e "\033[0;31mFailed to update git repo.\033[0m"; \
-		exit 1; \
-	fi
-
-package: check-helm check-helm-unittest
-	scripts/package.sh
 
 check-yq:
 	@if (command -v $(YQ) >/dev/null 2>&1); then \
@@ -109,11 +67,50 @@ check-helm:
 		exit 1; \
 	fi
 
-check-helm-unittest:
+check-helm-unittest: check-helm
 	@if (! helm plugin list | grep unittest >/dev/null 2>&1); then \
 		echo -e "\033[0;31mhelm unittest plugin not found; please install it.\033[0m"; \
 		exit 1; \
 	fi; \
+
+lint: check-helm
+	@echo -e "\033[0;36m~> Starting helm lint checks on all chart folders ...\033[0m"
+	@for folder in $(CHARTFOLDERS); do \
+		echo -n "$$(basename $${folder}): Lint check "; \
+		helm_args=""; \
+		if [ -f $${folder}/values.lint.yaml ]; then \
+			helm_args="--values $${folder}/values.lint.yaml"; \
+		fi; \
+		if out=$$(helm lint $$folder --quiet 2>&1 $$helm_args); then \
+			echo -e "\033[0;32mOK\033[0m."; \
+			if test -n "$$out"; then echo "$$out"; fi; \
+		else \
+			echo -e "\033[0;31mFAILED\033[0m."; \
+			echo "$$out"; \
+			exit 1; \
+		fi; \
+	done
+
+unittest: check-helm check-helm-unittest
+	@echo -e "\033[0;36m~> Starting helm unittests on all chart folders ...\033[0m"
+	@for folder in $(CHARTFOLDERS); do \
+		echo -n "$$(basename $${folder}): Unittest "; \
+		if [ -d $${folder}/tests/ ]; then \
+			if out=$$(helm unittest --strict $$folder); then \
+				echo -e "\033[0;32mOK\033[0m "; \
+			else \
+				echo -e "\033[0;31mFAILED\033[0m "; \
+				echo "$$out"; \
+				exit 1; \
+			fi; \
+		else \
+		  echo "NA"; \
+		fi; \
+	done
+
+# lints, unittests, checks release notes, and packages charts
+package: info check-helm check-helm-unittest check-yq
+	scripts/package.sh
 
 reset-index:
 	@echo -e "\033[0;36m~> Regenerating charts index file ...\033[0m"
@@ -148,7 +145,7 @@ publish: check-helm
 		done \
 	done
 
-clean: check-yq
+clean: check-helm check-yq
 	@echo -e "\033[0;36m~> Cleanup of orphaned helm packages and index references ...\033[0m"
   # Cleanup all references and artefacts for charts that are no logner available
 	@YQ_USED=0; \
@@ -210,8 +207,6 @@ clean: check-yq
 	fi
 	@rm -rf $(TEMP_DIR);
 
-build: package update-versions
-
 # update versions.txt with all chart names and versions
 update-versions: check-yq
 	@ find charts -name Chart.yaml -exec yq -M '.name + ":" + .version' {} \; | sort > versions.txt
@@ -219,7 +214,7 @@ update-versions: check-yq
 # Gets particular chart version (specified via CHARTFOLDER) and updates all other charts that depend on it
 # usage:
 # CHARTFOLDER=<chart_folder_name> make update-chart-deps
-update-chart-deps: check-yq
+update-chart-deps: check-helm check-yq
 	@chart_name="$(CHARTFOLDER)"; \
 	chart_path="charts/$${chart_name}/Chart.yaml"; \
 	if [ ! -f "$${chart_path}" ]; then \
@@ -242,3 +237,5 @@ update-chart-deps: check-yq
 			yq -i '.dependencies[] |= (select(.name == "'$${chart_name}'") .repository = "'$${orig_repo}'")' "$${lock_file}"; \
 		fi; \
 	done
+
+build: package update-versions

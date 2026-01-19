@@ -1,0 +1,102 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.cronJob.name | default (include "apc-warmcache.fullname" .) }}
+  namespace: {{ include "apc-warmcache.namespace" . }}
+  labels:
+    {{- include "apc-warmcache.labels" . | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  schedule: {{ .Values.cronJob.schedule | quote }}
+  {{- with .Values.cronJob.concurrencyPolicy }}
+  concurrencyPolicy: {{ . }}
+  {{- end }}
+  {{- with .Values.cronJob.failedJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ . }}
+  {{- end }}
+  {{- with .Values.cronJob.successfulJobsHistoryLimit }}
+  successfulJobsHistoryLimit: {{ . }}
+  {{- end }}
+  {{- with .Values.cronJob.startingDeadlineSeconds }}
+  startingDeadlineSeconds: {{ . }}
+  {{- end }}
+  jobTemplate:
+    metadata:
+      labels:
+        {{- include "apc-warmcache.labels" . | nindent 8 }}
+    spec:
+      {{- with .Values.cronJob.backoffLimit }}
+      backoffLimit: {{ . }}
+      {{- end }}
+      template:
+        metadata:
+          labels:
+            {{- include "apc-warmcache.labels" . | nindent 12 }}
+        spec:
+          restartPolicy: {{ .Values.pod.restartPolicy | default "OnFailure" }}
+          securityContext:
+            {{- toYaml .Values.pod.securityContext | nindent 12 }}
+          serviceAccountName: {{ include "apc-warmcache.serviceAccountName" . }}
+          initContainers:
+          - name: {{ .Values.initContainer.name }}
+            image: "{{ .Values.initContainer.image.repository }}:{{ .Values.initContainer.image.tag }}"
+            imagePullPolicy: {{ .Values.initContainer.image.pullPolicy }}
+            command: ["/bin/bash", "/usr/local/bin/getimages.sh"]
+            volumeMounts:
+              - name: imglist
+                mountPath: /imglist
+              - name: getimagesscript
+                mountPath: /usr/local/bin/getimages.sh
+                subPath: getimages.sh
+                readOnly: true
+            {{- with .Values.initContainer.resources }}
+            resources:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+          containers:
+          - name: {{ .Values.container.name }}
+            image: "{{ .Values.container.image.repository }}:{{ .Values.container.image.tag }}"
+            imagePullPolicy: {{ .Values.container.image.pullPolicy }}
+            command: ["/bin/bash", "/usr/local/bin/warmcache.sh"]
+            volumeMounts:
+              - name: regca
+                mountPath: /etc/regca
+                readOnly: true
+              - name: imglist
+                mountPath: /imglist
+              - name: warmcachescript
+                mountPath: /usr/local/bin/warmcache.sh
+                subPath: warmcache.sh
+                readOnly: true
+            env:
+              - name: REGISTRIES
+                value: {{ join " " .Values.registries | quote }}
+              - name: APCREGISTRY
+                value: {{ .Values.apcRegistry | quote }}
+              - name: RETRY
+                value: {{ .Values.retry | quote }}
+            envFrom:
+              - secretRef:
+                  name: {{ .Values.externalSecrets.regrobot.targetSecretName }}
+            {{- with .Values.container.resources }}
+            resources:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+          volumes: 
+            - name: regca
+              secret:
+                secretName: {{ .Values.secrets.regca.name }}
+            - name: imglist
+              emptyDir:
+                sizeLimit: {{ .Values.volumes.imglist.sizeLimit }}
+            - name: getimagesscript
+              configMap:
+                name: {{ .Values.configMaps.imagescript.name }}
+                defaultMode: {{ .Values.volumes.scriptDefaultMode }}
+            - name: warmcachescript
+              configMap: 
+                name: {{ .Values.configMaps.cachescript.name }}
+                defaultMode: {{ .Values.volumes.scriptDefaultMode }}
