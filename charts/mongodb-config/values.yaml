@@ -1,0 +1,89 @@
+## uses following global values => do not set here
+# global:
+#   apc:
+#     environmentShort:
+#     services:
+#       certManager:
+#         defaultClusterIssuer:
+## and their local overrides
+# environmentShort:
+# require-certManagerDefaultClusterIssuer
+
+releaseServiceOverride: ArgoCD
+
+mongodbInstance:
+  fqdns: []
+  ips: []
+  port: "27017"
+  replicas: 3
+  mongoVersion: "8.2.3"
+  tls:
+    enabled: true
+  mongod:
+    cpuLimits: 2
+    memoryLimits: 16Gi
+    cpuRequests: 1
+    memoryRequests: 12Gi
+  mongodbAgent:
+    memoryLimits: 2Gi
+    memoryRequests: 128Mi
+  storage:
+    dataVolumeSize: 500Gi
+    logsVolumeSize: 1Gi
+
+users:
+  - name: "eds_admin/EDS.adm.2026"
+    function: admin
+    roles:
+      - role: userAdminAnyDatabase
+        database: admin
+      - role: dbAdminAnyDatabase
+        database: admin
+      - role: clusterMonitor
+        database: admin
+    externalSecretKey: mongodb_admin_credentials
+  - name: "eds/EDS.be"
+    function: techuser
+    roles:
+      - role: readWrite
+        database: eds
+      - role: dbAdmin
+        database: eds
+  - name: prom
+    function: monitoring
+
+resourceQuotas:
+  enabled: false
+  hardLimitsCpu: "12"
+  hardRequestsCpu: "6"
+  hardLimitsMemory: 60Gi
+  hardRequestsMemory: 40Gi
+  hardRequestsStorage: 1700Gi
+  hardServicesLoadBalancers: "3"
+
+backup:
+  enabled: false
+  retention: 3
+  schedule: "50 23 * * 6"
+  successfulJobsHistoryLimit: 7
+  failedJobsHistoryLimit: 7
+  jobBackoffLimit: 0
+  s3DefaultRegion: us-east-1
+  image:
+    repository: ghcr.io/gr8it/apc-images/mongobackup
+    tag: latest
+  s3Internal:
+    enabled: true
+    storageClass: ocs-storagecluster-ceph-rgw
+
+monitoring:
+  enabled: false
+  port: prometheus
+  scrapeInterval: 30s
+  scrapeTimeout: 25s
+
+saName: mongodb-kubernetes-appdb
+secretStore:  vault-hub01
+metallbNs: metallb-system
+ipPoolAddresses: []
+l2Interface: br-ex

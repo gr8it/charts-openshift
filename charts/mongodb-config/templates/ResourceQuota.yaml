@@ -1,0 +1,17 @@
+{{- if .Values.resourceQuotas.enabled }}
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: default-resource-quota
+  namespace: eds
+  annotations:
+    argocd.argoproj.io/sync-options: ServerSideApply=true
+spec:
+  hard:
+    limits.cpu: {{ .Values.resourceQuotas.hardLimitsCpu }}
+    requests.cpu: {{ .Values.resourceQuotas.hardRequestsCpu }}
+    limits.memory: {{ .Values.resourceQuotas.hardLimitsMemory }}
+    requests.memory: {{ .Values.resourceQuotas.hardRequestsMemory }}
+    requests.storage: {{ .Values.resourceQuotas.hardRequestsStorage }}
+    services.loadbalancers: {{ .Values.resourceQuotas.hardServicesLoadBalancers }}
+{{- end }}

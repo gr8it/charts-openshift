@@ -1,0 +1,90 @@
+{{- if .Values.backup.enabled }}
+
+{{- $adminUser := "" }}
+{{- $found := false }}
+
+{{- range .Values.users }}
+  {{- if and (not $found) (eq .function "admin") }}
+    {{- $adminUser = .name }}
+    {{- $found = true }}
+  {{- end }}
+{{- end }}
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ printf "%s-backup" .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mongodb-config.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.backup.schedule }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: {{ .Values.backup.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.backup.failedJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      backoffLimit: {{ .Values.backup.jobBackoffLimit }}
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: mongodb-backup
+            image: {{ .Values.backup.image.repository }}
+            volumeMounts:
+            - name: s3ca
+              mountPath: /etc/ssl/certs/service-ca.crt
+              subPath: service-ca.crt
+            - name: ca-bundle
+              mountPath: /etc/ssl/certs/ca-bundle.crt
+              subPath: ca-bundle.crt
+            env:
+            - name: RETENTION
+              value: {{ .Values.backup.retention | quote}}
+            - name: AWS_CA_BUNDLE
+              value: "/etc/ssl/certs/service-ca.crt"
+            - name: CA_BUNDLE
+              value: "/etc/ssl/certs/ca-bundle.crt"
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-backup-allinfo" .Release.Name }}
+                  key: access_key
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-backup-allinfo" .Release.Name }}
+                  key: access_key_secret
+            - name: S3_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-backup-allinfo" .Release.Name }}
+                  key: bucket
+            - name: S3_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-backup-allinfo" .Release.Name }}
+                  key: endpoint
+            - name: AWS_DEFAULT_REGION
+              value: {{ .Values.backup.s3DefaultRegion | quote }}
+            - name: MONGODB_USER
+              value: {{ $adminUser | quote }}
+            - name: MONGODB_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-admin-pwd
+                  key: password
+            - name: MONGO_SVC
+              value: {{ printf "%s-0.%s-svc.%s.svc.cluster.local" .Release.Name .Release.Name .Release.Namespace | quote }}
+            - name: MONGO_PORT
+              value: {{ .Values.mongodbInstance.port | quote }}
+            - name: S3INTERNAL
+              value: {{ .Values.backup.s3Internal.enabled | quote }}
+          volumes:
+          - name: s3ca
+            configMap:
+              name: openshift-service-ca.crt
+          - name: ca-bundle
+            configMap:
+              name: ca-cert-bundle
+{{- end }}
