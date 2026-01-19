@@ -1,6 +1,13 @@
-# Default values for mongodb-config.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
+## uses following global values => do not set here
+# global:
+#   apc:
+#     environmentShort:
+#     services:
+#       certManager:
+#         defaultClusterIssuer:
+## and their local overrides
+# environmentShort:
+# require-certManagerDefaultClusterIssuer
 
 releaseServiceOverride: ArgoCD
 
@@ -46,7 +53,7 @@ users:
     function: monitoring
 
 resourceQuotas:
-  enabled: true
+  enabled: false
   hardLimitsCpu: "12"
   hardRequestsCpu: "6"
   hardLimitsMemory: 60Gi
@@ -70,7 +77,7 @@ backup:
     storageClass: ocs-storagecluster-ceph-rgw
 
 monitoring:
-  enabled: true
+  enabled: false
   port: prometheus
   scrapeInterval: 30s
   scrapeTimeout: 25s

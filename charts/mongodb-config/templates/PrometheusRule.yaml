@@ -49,4 +49,30 @@ spec:
             severity: critical
             team: developers
             vendor: socpoist
+        - alert: MongoDBHighConnections
+          expr: mongodb_connections_current > 0.8 * mongodb_connections_available
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "MongoDB connection usage high"
+            description: "MongoDB connections above 80%% of capacity on {{`{{ $labels.instance }}`}}"
+          labels:
+            namespace: {{ .Release.Namespace }}
+            severity: critical
+            team: developers
+            vendor: socpoist
+        - alert: MongoDBDiskSpaceLow
+          expr: hardware_disk_metrics_disk_space_free_bytes / (hardware_disk_metrics_disk_space_free_bytes + hardware_disk_metrics_disk_space_used_bytes) < 0.15
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: "MongoDB disk space critically low"
+            description: "Less than 15%% free disk space for {{`{{ $labels.instance }}`}}"
+          labels:
+            namespace: {{ .Release.Namespace }}
+            severity: critical
+            team: developers
+            vendor: socpoist
 {{- end }}
