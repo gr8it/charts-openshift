@@ -56,10 +56,10 @@ spec:
             severity: warning
           annotations:
             summary: "MongoDB connection usage high"
-            description: "MongoDB connections above 80%% of capacity on {{`{{ $labels.instance }}`}}"
+            description: "MongoDB connections above 80% of capacity on {{`{{ $labels.instance }}`}}"
           labels:
             namespace: {{ .Release.Namespace }}
-            severity: critical
+            severity: warning
             team: developers
             vendor: socpoist
         - alert: MongoDBDiskSpaceLow
@@ -69,7 +69,7 @@ spec:
             severity: critical
           annotations:
             summary: "MongoDB disk space critically low"
-            description: "Less than 15%% free disk space for {{`{{ $labels.instance }}`}}"
+            description: "Less than 15% free disk space for {{`{{ $labels.instance }}`}}"
           labels:
             namespace: {{ .Release.Namespace }}
             severity: critical

@@ -12,9 +12,6 @@ spec:
   {{- range $fqdn := .Values.mongodbInstance.fqdns }}
     - {{ $fqdn }}
   {{- end }}
-  usages:
-    - server auth
-    - client auth
   commonName: {{ printf "\"*.%s-svc.%s.svc.cluster.local\"" .Release.Name .Release.Namespace }}
   issuerRef:
     name: {{ include "apc-global-overrides.require-certManagerDefaultClusterIssuer" . }}

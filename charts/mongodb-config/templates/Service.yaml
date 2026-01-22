@@ -1,21 +1,22 @@
 
-{{- range $ip := .Values.mongodbInstance.ips }}
+{{- range $index, $ip := .Values.mongodbInstance.ips }}
 kind: Service
 apiVersion: v1
 metadata:
-  name: external-mongodb-{{ $ip.index }}
-  namespace: {{ .Release.Namespace }}
+  name: external-mongodb-{{ $index }}
+  namespace: {{ $.Release.Namespace }}
   labels:
     {{- include "mongodb-config.labels" $ | nindent 4 }}
   annotations:
-    metallb.io/address-pool: {{ printf "%s-mongodb" .Release.Namespace }}
-    metallb.io/loadBalancerIPs: "{{ $ip.address }}"
+    metallb.io/address-pool: {{ printf "%s-mongodb" $.Release.Namespace }}
+    metallb.io/loadBalancerIPs: {{ $ip | trimSuffix "/32" | quote }}
 spec:
   type: LoadBalancer
   selector:
-    app: {{ printf "%s-mongodb-svc" .Release.Namespace }}
-    statefulset.kubernetes.io/pod-name: {{ printf "%s-mongodb-%d" .Release.Namespace $ip.index }}
+    app: {{ printf "%s-mongodb-svc" $.Release.Namespace }}
+    statefulset.kubernetes.io/pod-name: {{ printf "%s-mongodb-%d" $.Release.Namespace $index }}
   ports:
-    - port: {{ .Values.mongodbInstance.port }}
-      targetPort: {{ .Values.mongodbInstance.port }}  
+    - port: {{ $.Values.mongodbInstance.port }}
+      targetPort: {{ $.Values.mongodbInstance.port }}
+---
 {{- end }}
