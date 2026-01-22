@@ -1,0 +1,20 @@
+# kind: OAuthClient
+# apiVersion: oauth.openshift.io/v1
+# metadata:
+#  name: {{ include "apps-ck-kafka.fullname" . }}-kafka-ui
+# secret: ajsJHJ8y2hjklghag73GjkH@#37uiaaZ
+# redirectURIs:
+#   - https://{{ include "apps-ck-kafka.fullname" . }}-kafka-ui-{{ .Release.Namespace }}.{{ include "apc-global-overrides.clusterAppsDomain" . }}/login/oauth2/code/openshift
+#   - https://{{ include "apps-ck-kafka.fullname" . }}-kafka-ui-{{ .Release.Namespace }}.{{ include "apc-global-overrides.clusterAppsDomain" . }}/login/oauth2/code/keycloak
+#   - https://{{ include "apps-ck-kafka.fullname" . }}-kafka-ui-{{ .Release.Namespace }}.{{ include "apc-global-overrides.clusterAppsDomain" . }}/login/oauth2/code/github
+#   - https://{{ include "apps-ck-kafka.fullname" . }}-kafka-ui-{{ .Release.Namespace }}.{{ include "apc-global-overrides.clusterAppsDomain" . }}/login/oauth2/code/oauth
+# grantMethod: prompt
+# # scopeRestrictions:
+# #   clusterRole:
+# #     - namespaces: 
+# #         - ck-kafka
+# #       roleNames:
+# #         - cluster-admin
+# #       allowEscalation: false
+# #   literals:
+# #     - "openid"

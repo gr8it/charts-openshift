@@ -98,7 +98,8 @@ kafka:
     quorumFetchTimeoutMs: 2000
   
   # Super user (cluster admin)
-  superUser: superadminuser
+  superUsers:
+    - apc-kafka-admin
 
   rack:
     topologyKey: topology.kubernetes.io/zone
@@ -193,7 +194,7 @@ monitoring:
 
 # https://github.com/kafbat/helm-charts/blob/main/charts/kafka-ui/values.yaml
 kafka-ui:
-  enabled: false
+  enabled: true
 
   image:
     tag: 18c8b7e
@@ -225,7 +226,7 @@ kafka-ui:
       DYNAMIC_CONFIG_ENABLED: "false"
       KAFKA_ADMIN-CLIENT-TIMEOUT: "10000"
 
-    # TODO!
+  yamlApplicationConfig:
     auth:
       type: disabled
 

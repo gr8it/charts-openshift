@@ -19,7 +19,8 @@ spec:
           for: 5m
           labels:
             severity: {{ if eq (int .Values.kafka.brokers.replicas) 1 }}warning{{ else }}critical{{ end }}
-            component: kafka
+            vendor: aspecta
+            team: platform
           annotations:
             summary: "Kafka broker is down"
             description: "Kafka broker {{ `{{ $labels.pod }}` }} is down. Only {{ `{{ $value }}` }} brokers are up."
@@ -31,7 +32,8 @@ spec:
           for: 5m
           labels:
             severity: warning
-            component: kafka
+            vendor: aspecta
+            team: platform
           annotations:
             summary: "Kafka has under-replicated partitions"
             description: "Broker {{ `{{ $labels.pod }}` }} has {{ `{{ $value }}` }} under-replicated partitions"
@@ -42,8 +44,10 @@ spec:
             kafka_controller_kafkacontroller_offlinepartitionscount > 0
           for: 2m
           labels:
-            severity: critical
-            component: kafka
+            # severity: critical
+            severity: warning
+            vendor: aspecta
+            team: platform
           annotations:
             summary: "Kafka has offline partitions"
             description: "Kafka cluster has {{ `{{ $value }}` }} offline partitions (with no leader). Data loss risk!"
@@ -55,7 +59,8 @@ spec:
           for: 5m
           labels:
             severity: warning
-            component: kafka
+            vendor: aspecta
+            team: platform
           annotations:
             summary: "High failed fetch requests rate"
             description: "Broker {{ `{{ $labels.pod }}` }} has {{ `{{ $value | humanize }}` }} failed fetch requests/sec"
@@ -67,7 +72,8 @@ spec:
           for: 5m
           labels:
             severity: warning
-            component: kafka
+            vendor: aspecta
+            team: platform
           annotations:
             summary: "High failed produce requests rate"
             description: "Broker {{ `{{ $labels.pod }}` }} has {{ `{{ $value | humanize }}` }} failed produce requests/sec"
@@ -78,8 +84,10 @@ spec:
             kafka_controller_kafkacontroller_activecontrollercount != 1
           for: 2m
           labels:
-            severity: critical
-            component: kafka
+            # severity: critical
+            severity: warning
+            vendor: aspecta
+            team: platform
           annotations:
             summary: "KRaft quorum is unhealthy"
             description: "KRaft quorum does not have exactly 1 active controller. Active controllers: {{ `{{ $value }}` }}"
@@ -90,7 +98,8 @@ spec:
           for: 5m
           labels:
             severity: warning
-            component: kafka
+            vendor: aspecta
+            team: platform
           annotations:
             summary: "Kafka is running out of free disk space"
             description: "There are only {{ `{{ $value }}` }} percent available at {{ `{{ $labels.persistentvolumeclaim }}` }} PVC"
@@ -101,7 +110,8 @@ spec:
           for: 5m
           labels:
             severity: warning
-            component: kafka
+            vendor: aspecta
+            team: platform
           annotations:
             summary: "Kafka abnormal controller state"
             description: "Kafka instance {{ `{{ $labels.strimzi_io_name }}` }} on namespace {{ `{{ $labels.namespace }}` }} has {{ `{{ $value }}` }} active controllers"
@@ -112,7 +122,8 @@ spec:
           for: 5m
           labels:
             severity: warning
-            component: kafka
+            vendor: aspecta
+            team: platform
           annotations:
             summary: "Kafka under min ISR partitions"
             description: "There are {{ `{{ $value }}` }} partitions under the min ISR on {{ `{{ $labels.kubernetes_pod_name }}` }}"
@@ -123,7 +134,8 @@ spec:
           for: 5m
           labels:
             severity: warning
-            component: kafka
+            vendor: aspecta
+            team: platform
           annotations:
             summary: "Kafka offline log directories"
             description: "There are {{ `{{ $value }}` }} offline log directories on {{ `{{ $labels.kubernetes_pod_name }}` }}"
@@ -134,7 +146,8 @@ spec:
           for: 5m
           labels:
             severity: warning
-            component: kafka
+            vendor: aspecta
+            team: platform
           annotations:
             summary: "One or more Kafka containers restarted too often"
             description: "One or more Kafka containers were restarted too often within the last 5 minutes"
