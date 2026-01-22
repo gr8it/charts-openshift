@@ -2,35 +2,34 @@ manifests should match snapshot with hub cluster (multiple profiles):
   1: |
     apiVersion: compliance.openshift.io/v1alpha1
     kind: ScanSetting
+    maxRetryOnTimeout: 3
     metadata:
       labels:
         app.kubernetes.io/instance: compliance-config
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: compliance-config
         app.kubernetes.io/version: "1.0"
-        helm.sh/chart: compliance-config-1.0.0
+        helm.sh/chart: compliance-config-1.0.1
       name: cis-scan-settings
       namespace: openshift-compliance
-    spec:
-      maxRetryOnTimeout: 3
-      rawResultStorage:
-        nodeSelector:
-          node-role.kubernetes.io/worker: ""
-        pvAccessModes:
-          - ReadWriteOnce
-        rotation: 3
-        size: 1Gi
-        tolerations:
-          - operator: Exists
-      roles:
-        - worker
-      scanTolerations:
+    rawResultStorage:
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
+      pvAccessModes:
+        - ReadWriteOnce
+      rotation: 3
+      size: 1Gi
+      tolerations:
         - operator: Exists
-      schedule: 0 1 * * *
-      showNotApplicable: false
-      strictNodeScan: true
-      suspend: false
-      timeout: 30m0s
+    roles:
+      - worker
+    scanTolerations:
+      - operator: Exists
+    schedule: 0 1 * * *
+    showNotApplicable: false
+    strictNodeScan: true
+    suspend: false
+    timeout: 30m0s
   2: |
     apiVersion: compliance.openshift.io/v1alpha1
     kind: ScanSettingBinding
@@ -40,30 +39,29 @@ manifests should match snapshot with hub cluster (multiple profiles):
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: compliance-config
         app.kubernetes.io/version: "1.0"
-        helm.sh/chart: compliance-config-1.0.0
+        helm.sh/chart: compliance-config-1.0.1
       name: cis-compliance
       namespace: openshift-compliance
-    spec:
-      profiles:
-        - apiGroup: compliance.openshift.io/v1alpha1
-          kind: Profile
-          name: ocp4-cis-node
-        - apiGroup: compliance.openshift.io/v1alpha1
-          kind: TailoredProfile
-          name: apc-ocp4-cis
-        - apiGroup: compliance.openshift.io/v1alpha1
-          kind: TailoredProfile
-          name: apc-dev01-hypershift
-        - apiGroup: compliance.openshift.io/v1alpha1
-          kind: TailoredProfile
-          name: apc-prod01-hypershift
-        - apiGroup: compliance.openshift.io/v1alpha1
-          kind: TailoredProfile
-          name: apc-test01-hypershift
-      settingsRef:
-        apiGroup: compliance.openshift.io/v1alpha1
-        kind: ScanSetting
-        name: cis-scan-settings
+    profiles:
+      - apiGroup: compliance.openshift.io/v1alpha1
+        kind: Profile
+        name: ocp4-cis-node
+      - apiGroup: compliance.openshift.io/v1alpha1
+        kind: TailoredProfile
+        name: apc-ocp4-cis
+      - apiGroup: compliance.openshift.io/v1alpha1
+        kind: TailoredProfile
+        name: apc-dev01-hypershift
+      - apiGroup: compliance.openshift.io/v1alpha1
+        kind: TailoredProfile
+        name: apc-prod01-hypershift
+      - apiGroup: compliance.openshift.io/v1alpha1
+        kind: TailoredProfile
+        name: apc-test01-hypershift
+    settingsRef:
+      apiGroup: compliance.openshift.io/v1alpha1
+      kind: ScanSetting
+      name: cis-scan-settings
   3: |
     apiVersion: compliance.openshift.io/v1alpha1
     kind: TailoredProfile
@@ -73,7 +71,7 @@ manifests should match snapshot with hub cluster (multiple profiles):
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: compliance-config
         app.kubernetes.io/version: "1.0"
-        helm.sh/chart: compliance-config-1.0.0
+        helm.sh/chart: compliance-config-1.0.1
       name: apc-dev01-hypershift
       namespace: openshift-compliance
     spec:
@@ -131,7 +129,7 @@ manifests should match snapshot with hub cluster (multiple profiles):
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: compliance-config
         app.kubernetes.io/version: "1.0"
-        helm.sh/chart: compliance-config-1.0.0
+        helm.sh/chart: compliance-config-1.0.1
       name: apc-ocp4-cis
       namespace: openshift-compliance
     spec:
@@ -175,7 +173,7 @@ manifests should match snapshot with hub cluster (multiple profiles):
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: compliance-config
         app.kubernetes.io/version: "1.0"
-        helm.sh/chart: compliance-config-1.0.0
+        helm.sh/chart: compliance-config-1.0.1
       name: apc-prod01-hypershift
       namespace: openshift-compliance
     spec:
@@ -233,7 +231,7 @@ manifests should match snapshot with hub cluster (multiple profiles):
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: compliance-config
         app.kubernetes.io/version: "1.0"
-        helm.sh/chart: compliance-config-1.0.0
+        helm.sh/chart: compliance-config-1.0.1
       name: apc-test01-hypershift
       namespace: openshift-compliance
     spec:

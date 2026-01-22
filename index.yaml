@@ -340,35 +340,6 @@ entries:
     urls:
     - packaged_charts/apps-ck-kafka-1.0.0.tgz
     version: 1.0.0
-  apps-kafka-config:
-  - apiVersion: v2
-    created: "2025-12-17T12:24:24.759814409+01:00"
-    dependencies:
-    - name: apc-global-overrides
-      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
-      version: 1.5.0
-    - condition: kafka-ui.enabled
-      name: kafka-ui
-      repository: https://kafbat.github.io/helm-charts
-      version: 1.5.3
-    description: Production-ready Kafka cluster using Strimzi operator with KRaft
-      mode
-    digest: 3316568794a1f83a375d057b1edaf59063a8ab2efda85ad6889251119b4eda1f
-    home: https://github.com/gr8it/charts-openshift
-    icon: https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/main/documentation/logo/strimzi_logo.png
-    keywords:
-    - kafka
-    - strimzi
-    - kraft
-    kubeVersion: '>=1.25.0'
-    name: apps-kafka-config
-    sources:
-    - https://github.com/gr8it/charts-openshift
-    - https://strimzi.io/
-    type: application
-    urls:
-    - packaged_charts/apps-kafka-config-1.0.0.tgz
-    version: 1.0.0
   argo-events-helm:
   - apiVersion: v2
     appVersion: 2.4.13
@@ -472,23 +443,6 @@ entries:
     type: application
     urls:
     - packaged_charts/argocd-app-of-apps-1.0.0.tgz
-    version: 1.0.0
-  blackbox-exporter:
-  - apiVersion: v2
-    appVersion: 11.6.1
-    created: "2025-12-23T13:38:53.238295348+01:00"
-    dependencies:
-    - name: prometheus-blackbox-exporter
-      repository: https://prometheus-community.github.io/helm-charts/
-      version: 11.6.1
-    - name: apc-global-overrides
-      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
-      version: 1.5.0
-    description: A Helm chart to install Blackbox exporter
-    digest: c4dc482b33e62ee2cb47985ae5303be6092094f9bf3c5353cab452f723a9861d
-    name: blackbox-exporter
-    urls:
-    - packaged_charts/blackbox-exporter-1.0.0.tgz
     version: 1.0.0
   blackbox-exporter-config:
   - apiVersion: v2
@@ -868,6 +822,21 @@ entries:
   compliance-config:
   - apiVersion: v2
     appVersion: "1.0"
+    created: "2026-01-22T08:55:38.476155+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: Configuration resources (ScanSettings, bindings, TailoredProfiles)
+      for the OpenShift Compliance Operator
+    digest: 3fc1c682bf1fef458d6ad70263ec017c8465b57b822c77e4e0add227cef95a15
+    name: compliance-config
+    type: application
+    urls:
+    - packaged_charts/compliance-config-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
+    appVersion: "1.0"
     created: "2025-12-18T13:45:51.510286+01:00"
     dependencies:
     - name: apc-global-overrides
@@ -882,6 +851,20 @@ entries:
     - packaged_charts/compliance-config-1.0.0.tgz
     version: 1.0.0
   compliance-operator:
+  - apiVersion: v2
+    appVersion: stable
+    created: "2026-01-22T08:42:36.319845+01:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install OpenShift Compliance Operator
+    digest: b93b701b2f122275dc7eb0eaf0501f97912d53b877bcc6420a750d57e80a7253
+    name: compliance-operator
+    type: application
+    urls:
+    - packaged_charts/compliance-operator-1.0.1.tgz
+    version: 1.0.1
   - apiVersion: v2
     appVersion: stable
     created: "2025-12-18T13:45:51.510504+01:00"
@@ -2542,4 +2525,4 @@ entries:
     urls:
     - packaged_charts/user-workload-monitoring-policy-1.0.0.tgz
     version: 1.0.0
-generated: "2026-01-20T11:44:04.544282355+01:00"
+generated: "2026-01-22T08:55:38.475372+01:00"
