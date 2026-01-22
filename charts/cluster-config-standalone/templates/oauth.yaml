@@ -1,0 +1,89 @@
+apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster
+  annotations:
+spec:
+{{- if .Values.oauth.identityProviders }}
+  identityProviders:
+  {{- range .Values.oauth.identityProviders }}
+    {{- if eq .type "LDAP" }}
+    - type: LDAP
+      name: {{ .name }}
+      mappingMethod: {{ .mappingMethod }}
+      ldap:
+        attributes:
+          {{- with .ldap.attributes }}
+          id: {{ .id | default "dn" }}
+          email: {{ .email | default "mail" }}
+          name: {{ .name | default "cn" }}
+          preferredUsername: {{ .preferredUsername | default "uid" }}
+          {{- end }}
+        bindDN: {{ .ldap.bindDN }}
+        bindPassword:
+          {{- with .ldap.bindPassword }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        ca:
+          name: oauth-idp-ca-bundle
+        insecure: {{ .ldap.insecure | default false }}
+        url: {{ .ldap.url }}
+    {{- else if eq .type "OpenID" }}
+    - type: OpenID
+      name: {{ .name }}
+      mappingMethod: {{ .mappingMethod }}
+      openID:
+        ca:
+          name: oauth-idp-ca-bundle
+        clientID: "{{ .openID.clientID }}"
+        issuer: "{{ .openID.issuer }}"
+        clientSecret:
+          {{- with .openID.clientSecret }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- if .openID.extraScopes }}
+        extraScopes:
+          {{- range .openID.extraScopes }}
+          - {{ . }}
+        {{- end }}    
+        {{- end }}
+        {{- if .openID.extraAuthorizeParameters }}
+        extraAuthorizeParameters:
+          {{- range $key, $value := .openID.extraAuthorizeParameters }}
+          {{ $key }}: "{{ $value }}"
+          {{- end }}
+        {{- end }}
+        {{- if .openID.claims }}
+        claims:
+          {{- with .openID.claims }}
+          preferredUsername:
+            {{- range .preferredUsername }}
+            - {{ . }}
+            {{- end }}
+          name:
+            {{- range .name }}
+            - {{ . }}
+            {{- end }}
+          email:
+            {{- range .email }}
+            - {{ . }}
+            {{- end }}
+          groups:
+            {{- range .groups }}
+            - {{ . }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+    {{- else }}
+    {{ list . | toYaml | nindent 4 }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- if .Values.oauth.templates }}
+  templates:
+{{- toYaml .Values.oauth.templates | nindent 4 }}
+{{- end }}
+{{- if .Values.oauth.tokenConfig }}
+  tokenConfig:
+{{- toYaml .Values.oauth.tokenConfig | nindent 4 }}
+{{- end }}  

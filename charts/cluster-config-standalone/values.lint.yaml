@@ -6,3 +6,80 @@ global:
         defaultClusterSecretStore: vault-issuer
       vault:
         KVmountPlatform: apc-platform
+
+oauth:
+  identityProviders:
+    - ldap:
+        attributes:
+          email:
+            - mail
+          id:
+            - sAMAccountName
+          name:
+            - cn
+          preferredUsername:
+            - sAMAccountName
+        bindDN: 'CN=1BA-SA-APC-OCP_AD_r,OU=T1-Service Accounts,OU=Tier 1,OU=Admin Tier Model,DC=example,DC=com'
+        bindPassword:
+          name: ad-ldap-bind-secret
+        ca:
+          name: ad-ldap-ca
+        insecure: false
+        url: 'ldaps://example.com/DC=example,DC=com?sAMAccountName?sub?(objectClass=person)'
+      mappingMethod: claim
+      name: Prihlásenie pre používateľov APC
+      type: LDAP
+    - name: APC LDAP
+      mappingMethod: claim 
+      type: LDAP
+      ldap:
+        attributes:
+          id: 
+          - dn
+          email: 
+          - mail
+          name: 
+          - cn
+          preferredUsername: 
+          - uid
+        bindDN: cn=OCP HUB01,ou=Technical-Accounts,ou=hub,ou=Project-Users,dc=example,dc=com
+        bindPassword: 
+          name: comm-ldap-bind-secret
+        ca: 
+          name: comm-ldap-ca
+        insecure: false
+        url: ldaps://ldap.comm.apc.example.com/OU=Project-Users,dc=example,dc=com?uid
+    - name: oidcidp
+      mappingMethod: claim
+      type: OpenID
+      openID:
+        clientID: "idp-client-id"
+        clientSecret:
+          name: oidcidp-secret
+        extraScopes:
+        - email
+        - profile
+        extraAuthorizeParameters:
+          include_granted_scopes: "true"
+        claims:
+          preferredUsername:
+          - preferred_username
+          - email
+          name:
+          - nickname
+          - given_name
+          - name
+          email:
+          - custom_email_claim
+          - email
+          groups:
+          - groups
+        issuer: https://www.idp-issuer.com
+    - name: my_htpasswd_provider
+      mappingMethod: claim
+      type: HTPasswd
+      htpasswd:
+        fileData:
+          name: htpass-secret
+  tokenConfig:
+    accessTokenMaxAgeSeconds : 3600 
