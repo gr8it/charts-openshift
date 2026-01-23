@@ -461,6 +461,98 @@ manifests should match snapshot:
             type: persistent-claim
   8: |
     apiVersion: kafka.strimzi.io/v1beta2
+    kind: KafkaTopic
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.2.0
+        strimzi.io/cluster: kafka
+      name: events
+      namespace: kafka
+    spec:
+      config:
+        compression.type: snappy
+        min.insync.replicas: "2"
+        retention.ms: "604800000"
+      partitions: 6
+      replicas: 3
+  9: |
+    apiVersion: kafka.strimzi.io/v1beta2
+    kind: KafkaTopic
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.2.0
+        strimzi.io/cluster: kafka
+      name: application-logs
+      namespace: kafka
+    spec:
+      config:
+        compression.type: lz4
+        retention.ms: "86400000"
+      partitions: 3
+      replicas: 3
+  10: |
+    apiVersion: kafka.strimzi.io/v1beta2
+    kind: KafkaTopic
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.2.0
+        strimzi.io/cluster: kafka
+      name: state-store
+      namespace: kafka
+    spec:
+      config:
+        cleanup.policy: compact
+        min.cleanable.dirty.ratio: "0.5"
+        segment.ms: "86400000"
+      partitions: 1
+      replicas: 3
+  11: |
+    apiVersion: kafka.strimzi.io/v1beta2
+    kind: KafkaTopic
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.2.0
+        strimzi.io/cluster: kafka
+      name: audit-trail
+      namespace: kafka
+    spec:
+      config:
+        compression.type: snappy
+        min.insync.replicas: "2"
+        retention.ms: "2592000000"
+      partitions: 3
+      replicas: 3
+  12: |
+    apiVersion: kafka.strimzi.io/v1beta2
+    kind: KafkaTopic
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.2.0
+        strimzi.io/cluster: kafka
+      name: dlq
+      namespace: kafka
+    spec:
+      config:
+        retention.ms: "604800000"
+      partitions: 3
+      replicas: 3
+  13: |
+    apiVersion: kafka.strimzi.io/v1beta2
     kind: KafkaUser
     metadata:
       labels:
@@ -486,7 +578,7 @@ manifests should match snapshot:
               patternType: Prefix
               type: topic
         type: simple
-  9: |
+  14: |
     apiVersion: kafka.strimzi.io/v1beta2
     kind: KafkaUser
     metadata:
@@ -519,7 +611,7 @@ manifests should match snapshot:
               patternType: Prefix
               type: group
         type: simple
-  10: |
+  15: |
     apiVersion: kafka.strimzi.io/v1beta2
     kind: KafkaUser
     metadata:
@@ -544,7 +636,7 @@ manifests should match snapshot:
               patternType: literal
               type: '*'
         type: simple
-  11: |
+  16: |
     apiVersion: kafka.strimzi.io/v1beta2
     kind: KafkaUser
     metadata:
@@ -562,7 +654,7 @@ manifests should match snapshot:
       authorization:
         acls: []
         type: simple
-  12: |
+  17: |
     apiVersion: kafka.strimzi.io/v1beta2
     kind: KafkaUser
     metadata:
@@ -580,7 +672,7 @@ manifests should match snapshot:
       authorization:
         acls: []
         type: simple
-  13: |
+  18: |
     apiVersion: networking.k8s.io/v1
     kind: NetworkPolicy
     metadata:
@@ -610,7 +702,7 @@ manifests should match snapshot:
           app.kubernetes.io/instance: kafka
       policyTypes:
         - Ingress
-  14: |
+  19: |
     apiVersion: generators.external-secrets.io/v1alpha1
     kind: Password
     metadata:
@@ -627,7 +719,7 @@ manifests should match snapshot:
       length: 20
       noUpper: false
       symbols: 0
-  15: |
+  20: |
     apiVersion: monitoring.coreos.com/v1
     kind: PodMonitor
     metadata:
@@ -681,7 +773,7 @@ manifests should match snapshot:
         matchLabels:
           strimzi.io/cluster: kafka
           strimzi.io/kind: Kafka
-  16: |
+  21: |
     apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule
     metadata:
@@ -819,7 +911,7 @@ manifests should match snapshot:
                 severity: warning
                 team: platform
                 vendor: aspecta
-  17: |
+  22: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: Role
     metadata:
@@ -839,7 +931,7 @@ manifests should match snapshot:
           - kafka
         verbs:
           - get
-  18: |
+  23: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
@@ -857,7 +949,7 @@ manifests should match snapshot:
     subjects:
       - kind: ServiceAccount
         name: kafka-oauth-proxy
-  19: |
+  24: |
     apiVersion: route.openshift.io/v1
     kind: Route
     metadata:
@@ -879,7 +971,7 @@ manifests should match snapshot:
         name: kafka-oauth-proxy
         weight: 100
       wildcardPolicy: None
-  20: |
+  25: |
     apiVersion: velero.io/v1
     kind: Schedule
     metadata:
@@ -900,7 +992,7 @@ manifests should match snapshot:
           - '*'
         snapshotVolumes: true
         ttl: 72h
-  21: |
+  26: |
     apiVersion: v1
     kind: Service
     metadata:
@@ -920,7 +1012,7 @@ manifests should match snapshot:
       selector:
         app: kafka-oauth-proxy
       type: ClusterIP
-  22: |
+  27: |
     apiVersion: v1
     kind: ServiceAccount
     metadata:
