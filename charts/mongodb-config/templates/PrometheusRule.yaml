@@ -13,8 +13,6 @@ spec:
         - alert: MongoDBDown
           expr: mongodb_up == 0
           for: 1m
-          labels:
-            severity: critical
           annotations:
             summary: "MongoDB instance {{`{{ $labels.cl_name }}`}} is down."
             description: "MongoDB instance {{`{{ $labels.cl_name }}`}} has been down for more than 1 minute."
@@ -26,8 +24,6 @@ spec:
         - alert: MongoDBFlowControlLagged
           expr: mongodb_flowControl_isLagged == 1
           for: 2m
-          labels:
-            severity: warning
           annotations:
             summary: "MongoDB flow control engaged"
             description: "Replica set {{`{{ $labels.rs_nm }}`}} is lagged; flow control may throttle writes"
@@ -39,8 +35,6 @@ spec:
         - alert: MongoDBMemberHealth
           expr: mongodb_members_health == 0
           for: 5m
-          labels:
-            severity: critical
           annotations:
             summary: "MongoDB replica set member unhealthy"
             description: "Replica set member {{`{{ $labels.member_idx }}`}} is unhealthy for more than 5 minutes."
@@ -52,8 +46,6 @@ spec:
         - alert: MongoDBHighConnections
           expr: mongodb_connections_current > 0.8 * mongodb_connections_available
           for: 5m
-          labels:
-            severity: warning
           annotations:
             summary: "MongoDB connection usage high"
             description: "MongoDB connections above 80% of capacity on {{`{{ $labels.instance }}`}}"
@@ -65,8 +57,6 @@ spec:
         - alert: MongoDBDiskSpaceLow
           expr: hardware_disk_metrics_disk_space_free_bytes / (hardware_disk_metrics_disk_space_free_bytes + hardware_disk_metrics_disk_space_used_bytes) < 0.15
           for: 10m
-          labels:
-            severity: critical
           annotations:
             summary: "MongoDB disk space critically low"
             description: "Less than 15% free disk space for {{`{{ $labels.instance }}`}}"

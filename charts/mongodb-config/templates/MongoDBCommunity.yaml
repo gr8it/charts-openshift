@@ -42,24 +42,13 @@ spec:
     {{- end }}
   {{- end }}
 
-  # You can expose metrics for Prometheus polling using the
-  # `prometheus` entry.
+  {{- if .Values.monitoring.enabled }}
   prometheus:
-  {{- range $user, $userdata := .Values.users }}
-    {{- if eq $userdata.function "monitoring" }}
     # Metrics endpoint HTTP Basic Auth username
-    username: {{ $userdata.name | quote }}
+    username: {{ .Values.monitoring.promuser | quote }}
     # Metrics endpoint HTTP Basic Auth password
     passwordSecretRef:
-      name: {{ printf "mongodb-%s-pwd" $userdata.function }}
-    # Optional, defaults to `/metrics`
-    # metricsPath: /metrics
-    # Optional defaults to 9216
-    # port: 9216
-    # Prometheus endpoint can be configured to use HTTPS
-    # tlsSecretKeyRef:
-    #   name: "<kubernetes.io/tls secret name>"
-    {{- end }}
+      name: mongodb-monitoring-pwd
   {{- end }}
   statefulSet:
     spec:

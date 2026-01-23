@@ -25,5 +25,5 @@ Most important configuration options, for full list consult values.yaml file.
 | users | list | List of users. User have to be created in Vault under path apc/<envShort>/<project_name>/mongodb/<user_function> and have to contain "username" and "password" keys |
 | users.roles | list | List of MongoDB roles assigned to user |
 | resourceQuotas | disabled | Specific resource quotas values if deployment has higher resource requirements than default project resource quotas |
-| backup | disabled | Backup configuration of MongoDB instance |
-| Monitoring | disabled | Configuration values for MongoDB monitoring |
+| backup | enabled | Backup configuration of MongoDB instance |
+| Monitoring | enabled | Configuration values for MongoDB monitoring. Monitoring user credentials have to be stored in vault under path apc/<envShort>/<project_name>/mongodb/monitoring |

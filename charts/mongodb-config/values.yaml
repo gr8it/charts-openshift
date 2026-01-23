@@ -5,9 +5,12 @@
 #     services:
 #       certManager:
 #         defaultClusterIssuer:
+#       metallb:
+#         namespace:
 ## and their local overrides
 # environmentShort:
-# require-certManagerDefaultClusterIssuer
+# require-certManagerDefaultClusterIssuer:
+# metallbNamespace:
 
 releaseServiceOverride: ArgoCD
 
@@ -49,8 +52,6 @@ users:
         database: eds
       - role: dbAdmin
         database: eds
-  - name: prom
-    function: monitoring
 
 resourceQuotas:
   enabled: false
@@ -62,9 +63,9 @@ resourceQuotas:
   hardServicesLoadBalancers: "3"
 
 backup:
-  enabled: false
+  enabled: true
   retention: 3
-  schedule: "50 23 * * 6"
+  schedule: "0 4 * * *"
   successfulJobsHistoryLimit: 7
   failedJobsHistoryLimit: 7
   jobBackoffLimit: 0
@@ -77,10 +78,11 @@ backup:
     storageClass: ocs-storagecluster-ceph-rgw
 
 monitoring:
-  enabled: false
+  enabled: true
   port: prometheus
   scrapeInterval: 30s
   scrapeTimeout: 25s
+  promuser: prom
 
 saName: mongodb-kubernetes-appdb
 secretStore:  vault-hub01
