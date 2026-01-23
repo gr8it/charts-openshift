@@ -1,5 +1,7 @@
 global:
   apc:
+    cluster:
+      appsDomain: apps.test.example.com
     services:
       certManager:
         defaultClusterIssuer: vault-issuer
@@ -149,7 +151,54 @@ kafka-ui:
       # KAFKA_CLUSTERS_0_METRICS_SSL: "false"
       # KAFKA_CLUSTERS_0_METRICS_PORT: "9404"
       # KAFKA_CLUSTERS_0_METRICS_TYPE: PROMETHEUS
+
+      # https://github.com/kafbat/kafka-ui/issues/759#issuecomment-2615337590
+      JAVA_OPTS: -Djavax.net.ssl.trustStore=/etc/kafka/cluster-ca/ca-bundle.jks -Djavax.net.ssl.trustStorePassword=changeit
+
     secretMappings:
       KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG:
         name: admin
         keyName: sasl.jaas.config
+      AUTH_OAUTH2_CLIENT_OPENSHIFT_CLIENT_ID:
+        name: openshift-oauth-client-secret
+        keyName: client-id
+      AUTH_OAUTH2_CLIENT_OPENSHIFT_CLIENT_SECRET:
+        name: openshift-oauth-client-secret
+        keyName: client-secret
+
+  ## requires version 1.5, or a nightly version newer than 1.4 - https://github.com/kafbat/kafka-ui/pull/1636 => po upgrade na v1.5 vyskusat
+  yamlApplicationConfig:
+    auth:
+      type: OAUTH2
+      oauth2:
+        client:
+          openshift:
+            ## read from secret using mapping
+            # clientId:
+            # clientSecret:
+            scope: openid
+            client-name: Openshift OAUTH # will be displayed on the login page
+            provider: oauth
+            redirect-uri: https://ck-kafka-kafka-ui-ck-kafka.apps.example/com/login/oauth2/code/oauth
+            authorization-grant-type: authorization_code
+            issuer-uri: https://openshift.default.svc/.well-known/oauth-authorization-server
+            authorization-uri: https://oauth.dev01.cloud.socpoist.sk:30302/oauth/authorize
+            token-uri: https://oauth.dev01.cloud.socpoist.sk:30302/oauth/token
+            # openshift oauth server has no user info endpoint = can't be used for authentication!!!
+            user-info-uri: http(s)://HOSTNAME/api/v3/user
+            user-name-attribute: preferred_username
+            custom-params:
+              type: oauth
+              roles-field: groups
+
+    rbac:
+      roles:
+        - name: "admins"
+          subjects:
+            - provider: oauth
+              type: role
+              value: ".*-ADMIN"
+              regex: true
+            - provider: oauth
+              type: role
+              value: "ocp_admins_dev"

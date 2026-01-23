@@ -1,5 +1,7 @@
 global:
   apc:
+    cluster:
+      appsDomain: apps.dev.example.com
     services:
       certManager:
         defaultClusterIssuer: vault-issuer
@@ -35,9 +37,6 @@ kafka:
     transactionMinISR: 1
     defaultReplicationFactor: 1
     minISR: 1
-
-  superUsers:
-    - admin
 
 monitoring:
   enabled: false  # Disable for small clusters
@@ -149,6 +148,9 @@ kafka-ui:
 
   envs:
     config:
+      LOGGING_LEVEL_ROOT: DEBUG
+      LOGGING_LEVEL_IO_KAFBAT_UI: DEBUG
+
       KAFKA_CLUSTERS_0_NAME: kafka
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-kafka-bootstrap.kafka.svc:9093
       KAFKA_CLUSTERS_0_SSL_VERIFYSSL: "false"
@@ -158,41 +160,7 @@ kafka-ui:
       KAFKA_CLUSTERS_0_SSL_TRUSTSTORELOCATION: "/etc/kafka/cluster-ca/ca-bundle.jks"
       KAFKA_CLUSTERS_0_SSL_TRUSTSTORE_TYPE: JKS
       KAFKA_CLUSTERS_0_SSL_TRUSTSTOREPASSWORD: "changeit"
-      LOGGING_LEVEL_ROOT: DEBUG
-      LOGGING_LEVEL_IO_KAFBAT_UI: DEBUG
     secretMappings:
       KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG:
         name: admin
         keyName: sasl.jaas.config
-
-  yamlApplicationConfig:
-    auth:
-      type: OAUTH2
-      oauth2:
-        client:
-          openshift:
-            clientId: ck-kafka-kafka-ui
-            clientSecret: aaabbbccc
-            scope: openid
-            client-name: Openshift OAUTH # will be displayed on the login page
-            # provider: oauth
-            redirect-uri: ck-kafka-kafka-ui-ck-kafka.apps.dev01.cloud.socpoist.sk/login/oauth2/code/openshift
-            authorization-grant-type: authorization_code
-            issuer-uri: https://openshift.default.svc/.well-known/oauth-authorization-server
-            # jwk-set-uri: https://yyy/.well-known/jwks.json
-            user-name-attribute: preferred_username
-            custom-params:
-              type: oauth # fill this if you're gonna use RBAC. Supported values: cognito, google, github, oauth (for other generic providers)
-              roles-field: groups
-
-    rbac:
-      roles:
-        - name: "admins"
-          subjects:
-            - provider: oauth
-              type: role
-              value: ".*-ADMIN"
-              regex: true
-            - provider: oauth
-              type: role
-              value: "ocp_admins_dev"

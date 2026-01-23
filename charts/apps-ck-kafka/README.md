@@ -13,27 +13,19 @@ This chart creates a Strimzi Kafka instance:
 - monitoring is realized using Podmonitor and Prometheusrules
 - backup is done by OADP using standard schedule
 - with Kafbat Kafka GUI via kafka-ui dependency
+  - authenticated using openshift oauth proxy with subject access review (sar) requiring read privilege for the created kafka resource 
 
 For configuration options see <values.yaml>, or <values.small.example.yaml> / <values.large.example.yaml> (HA).
 
-## Credentials
-
-### Oauth
-
-OAuth credentials are stored in Vault at apc-platform/\<environment-short>/\<namespace>/oauth-credentials, e.g. apc-platform/d/ck-kafka/oauth-credentials as client-id, and client-secret keys.
-
-Openshift Oauth client is created using oauthclient
-
-
-
 ## Assumptions
 
-- cert-manager installed with default issuer configured
+- cert-manager installed with default issuer configured used to secure the Kafka cluster
 - trust-manager configured with ca bundle available at ca-cert-bundle configMap
+- external-secrets installed used for creation of kafka UI cookie secret
 
 ## Kafka UI
 
-UI has authentication disabled (see TODO) and as such is currently available using port forwarding only!
+- external secret is used to generate cookie secret
 
 ## TODO
 
@@ -46,8 +38,6 @@ UI has authentication disabled (see TODO) and as such is currently available usi
 - Kafka external access -> define defaults, e.g. service of type loadbalancer
 - Backup through Kafka Connect
 - kafka-ui
-  - add Auth => with auth enabled, add ingress ## probably not working due to a bug from https://github.com/kafbat/kafka-ui/pull/1636 => after upgrade to v1.5 try out
-    - commented out resources in templates: oauthclient, externalsecret, route + config in conf repo
   - integrate metrics in brokers.metrics GUI
 - user credentials secret synchronization to target namespace, e.g. eds?
 - set jvmOptions in Kafka CR (commented out) ? Should be set optimally
