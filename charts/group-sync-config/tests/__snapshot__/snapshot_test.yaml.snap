@@ -18,8 +18,8 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.0
-      name: group-sync-config-ca-groupSync
+        helm.sh/chart: group-sync-config-1.0.5
+      name: group-sync-config-ca-groupsync
   2: |
     apiVersion: redhatcop.redhat.io/v1alpha1
     kind: GroupSync
@@ -29,7 +29,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.0
+        helm.sh/chart: group-sync-config-1.0.5
       name: alfa
     spec:
       providers:
@@ -37,9 +37,10 @@ manifests should match snapshot:
             ca:
               key: ca.crt
               kind: ConfigMap
-              name: group-sync-config-ca-groupSync
+              name: group-sync-config-ca-groupsync
               namespace: group-sync-operator
             credentialsSecret:
+              kind: Secret
               name: alfa-prov-1
               namespace: group-sync-operator
             insecure: false
@@ -73,9 +74,10 @@ manifests should match snapshot:
             ca:
               key: ca.crt
               kind: ConfigMap
-              name: group-sync-config-ca-groupSync
+              name: group-sync-config-ca-groupsync
               namespace: group-sync-operator
             credentialsSecret:
+              kind: Secret
               name: alfa-prov-2
               namespace: group-sync-operator
             insecure: false
@@ -115,7 +117,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.0
+        helm.sh/chart: group-sync-config-1.0.5
       name: beta
     spec:
       providers:
@@ -123,9 +125,10 @@ manifests should match snapshot:
             ca:
               key: ca.crt
               kind: ConfigMap
-              name: group-sync-config-ca-groupSync
+              name: group-sync-config-ca-groupsync
               namespace: group-sync-operator
             credentialsSecret:
+              kind: Secret
               name: beta-prov-a
               namespace: group-sync-operator
             insecure: false
@@ -157,35 +160,32 @@ manifests should match snapshot:
           name: prov-a
       schedule: 10 * * *
   4: |
-    apiVersion: external-secrets.io/v1beta1
-    kind: ExternalSecret
+    apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
     metadata:
       labels:
         app.kubernetes.io/instance: group-sync-config
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.0
-      name: alfa-prov-1
+        helm.sh/chart: group-sync-config-1.0.5
+      name: group-sync-config
       namespace: group-sync-operator
     spec:
-      refreshInterval: 15m
-      secretStoreRef:
-        kind: clusterSecretStore
-        name: null
-      target:
-        creationPolicy: Orphan
-        data:
-          - remoteRef:
-              key: apc-platform//group-sync-operator/group-sync/alfa-prov-1
-              property: username
-            secretKey: username
-          - remoteRef:
-              key: apc-platform//group-sync-operator/group-sync/alfa-prov-1
-              property: password
-            secretKey: password
-        deletionPolicy: Retain
-        name: alfa-prov-1
+      groups:
+        - interval: 30s
+          name: group-sync.rules
+          rules:
+            - alert: GroupSyncErrors
+              annotations:
+                description: Group sync {{ $labels.name }} errors detected in namespace {{ $labels.namespace }}."
+                summary: Group sync service {{ $labels.name }} is experiencing errors.
+              expr: group_sync_error > 0
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
   5: |
     apiVersion: external-secrets.io/v1beta1
     kind: ExternalSecret
@@ -195,27 +195,27 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.0
-      name: alfa-prov-2
+        helm.sh/chart: group-sync-config-1.0.5
+      name: alfa-prov-1
       namespace: group-sync-operator
     spec:
+      data:
+        - remoteRef:
+            key: apc-platform//group-sync-operator/group-sync/alfa-prov-1
+            property: username
+          secretKey: username
+        - remoteRef:
+            key: apc-platform//group-sync-operator/group-sync/alfa-prov-1
+            property: password
+          secretKey: password
       refreshInterval: 15m
       secretStoreRef:
-        kind: clusterSecretStore
+        kind: ClusterSecretStore
         name: null
       target:
         creationPolicy: Orphan
-        data:
-          - remoteRef:
-              key: apc-platform//group-sync-operator/group-sync/alfa-prov-2
-              property: username
-            secretKey: username
-          - remoteRef:
-              key: apc-platform//group-sync-operator/group-sync/alfa-prov-2
-              property: password
-            secretKey: password
         deletionPolicy: Retain
-        name: alfa-prov-2
+        name: alfa-prov-1
   6: |
     apiVersion: external-secrets.io/v1beta1
     kind: ExternalSecret
@@ -225,24 +225,54 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.0
-      name: beta-prov-a
+        helm.sh/chart: group-sync-config-1.0.5
+      name: alfa-prov-2
       namespace: group-sync-operator
     spec:
+      data:
+        - remoteRef:
+            key: apc-platform//group-sync-operator/group-sync/alfa-prov-2
+            property: username
+          secretKey: username
+        - remoteRef:
+            key: apc-platform//group-sync-operator/group-sync/alfa-prov-2
+            property: password
+          secretKey: password
       refreshInterval: 15m
       secretStoreRef:
-        kind: clusterSecretStore
+        kind: ClusterSecretStore
         name: null
       target:
         creationPolicy: Orphan
-        data:
-          - remoteRef:
-              key: apc-platform//group-sync-operator/group-sync/beta-prov-a
-              property: username
-            secretKey: username
-          - remoteRef:
-              key: apc-platform//group-sync-operator/group-sync/beta-prov-a
-              property: password
-            secretKey: password
+        deletionPolicy: Retain
+        name: alfa-prov-2
+  7: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: group-sync-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: group-sync-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: group-sync-config-1.0.5
+      name: beta-prov-a
+      namespace: group-sync-operator
+    spec:
+      data:
+        - remoteRef:
+            key: apc-platform//group-sync-operator/group-sync/beta-prov-a
+            property: username
+          secretKey: username
+        - remoteRef:
+            key: apc-platform//group-sync-operator/group-sync/beta-prov-a
+            property: password
+          secretKey: password
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: null
+      target:
+        creationPolicy: Orphan
         deletionPolicy: Retain
         name: beta-prov-a

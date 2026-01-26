@@ -1,0 +1,48 @@
+- name: rhacs-central
+  rules:
+    - alert: RHACSCentralScrapeFailed
+      expr: |
+        avg_over_time(up{pod=~"central-.*"}[10m]) < 0.5 and ON(pod) kube_pod_container_status_ready{container="central"} == 1
+      for: 20m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "Prometheus unable to scrape metrics from target `{{ $labels.pod }}` in namespace `{{ $labels.namespace }}`."
+        description: "During the last 10 minutes, only `{{ $value | humanizePercentage }}` of scrapes of target `{{ $labels.pod }}` in namespace `{{ $labels.namespace }}` were successful. This alert is raised when less than 50% of scrapes are successful."
+        sop_url: "https://gitlab.cee.redhat.com/stackrox/acs-managed-service-runbooks/blob/master/sops/dp-003-rhacs-instance-unavailable.md"
+    - alert: RHACSCentralContainerDown
+      expr: |
+        avg_over_time(kube_pod_container_status_ready{container="central"}[10m]) < 0.5
+      for: 20m
+      labels:
+        severity: critical
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "Central container `{{ $labels.pod }}/{{ $labels.container }}` in namespace `{{ $labels.namespace }}` is down or in a CrashLoopBackOff status."
+        description: "Central container `{{ $labels.pod }}/{{ $labels.container }}` in namespace `{{ $labels.namespace }}` has been down or in a CrashLoopBackOff status for at least 10 minutes."
+        sop_url: "https://gitlab.cee.redhat.com/stackrox/acs-managed-service-runbooks/blob/master/sops/dp-003-rhacs-instance-unavailable.md"
+    - alert: RHACSCentralContainerFrequentlyRestarting
+      expr: |
+        increase(kube_pod_container_status_restarts_total{container="central"}[30m]) > 3
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "Central container `{{ $labels.pod }}/{{ $labels.container }}` in namespace `{{ $labels.namespace }}` restarted more than 3 times."
+        description: "Central container `{{ $labels.pod }}/{{ $labels.container }}` in namespace `{{ $labels.namespace }}` has restarted more than 3 times during the last 30 minutes."
+        sop_url: "https://gitlab.cee.redhat.com/stackrox/acs-managed-service-runbooks/blob/master/sops/dp-003-rhacs-instance-unavailable.md"
+    - alert: RHACSCentralPostgresConnectionDown
+      expr: avg_over_time(rox_central_postgres_connected{container="central"}[10m]) < 0.5
+      for: 20m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "Central container `{{ $labels.pod }}/{{ $labels.container }}` database connection in namespace `{{ $labels.namespace }}` is down or is in a bad shape."
+        description: "Central container `{{ $labels.pod }}/{{ $labels.container }}` database connection in namespace `{{ $labels.namespace }}` has been down or is in a bad shape for at least 10 minutes."
+        sop_url: "https://gitlab.cee.redhat.com/stackrox/acs-managed-service-runbooks/blob/master/sops/dp-010-rhacs-instance-db-unavailable.md"

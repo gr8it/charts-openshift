@@ -17,11 +17,12 @@ spec:
       ca:
         kind: ConfigMap
         namespace: {{ $.Release.Namespace }}
-        name: {{ include "group-sync-config.fullname" $ }}-ca-groupSync
+        name: {{ include "group-sync-config.fullname" $ }}-ca-groupsync
         key: ca.crt
       credentialsSecret:
+        kind: Secret
         namespace: {{ $.Release.Namespace }}
-        name: {{ $groupSyncName }}-{{ .name }}    
+        name: {{ $groupSyncName }}-{{ .name | lower }}
     {{- end }}
   {{- end }}
 ---
