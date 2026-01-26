@@ -1,0 +1,29 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kyverno-policy-results
+  namespace: {{ .Release.Namespace }}
+spec:
+  groups:
+    - name: kyverno.rules
+      rules:
+        - alert: KyvernoPolicyResultsError
+          expr: sum by (policy_name) (increase(kyverno_policy_results_total{rule_result="error"}[1h])) > 0
+          for: 30m
+          labels:
+            severity: warning
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: Kyverno policy errors detected
+            description: "Kyverno policy errors detected in policy:{{ `{{ $labels.policy_name }}` }}"
+        - alert: KyvernoPolicyResultsFail
+          expr: sum(increase(kyverno_policy_results_total{rule_result="fail"}[5d])) by (policy_name)
+          for: 1h
+          labels:
+            severity: warning
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: Kyverno policy detected increase in fail results
+            description: "Kyverno policy detected increase in fail results in policy:{{ `{{ $labels.policy_name }}` }}"            
