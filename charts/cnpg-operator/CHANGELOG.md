@@ -10,4 +10,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Change
 
-- Upgrade operator verson from 1.26 to 1.28_
+- Upgrade operator verson from 1.26 to 1.28
