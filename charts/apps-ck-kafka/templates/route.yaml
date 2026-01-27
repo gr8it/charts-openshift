@@ -1,0 +1,21 @@
+{{- if .Values.oauthProxy.enabled }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+#   name: ck-kafka-kafka-ui
+  name: {{ include "apps-ck-kafka.fullname" . }}-kafka-ui
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "apps-ck-kafka.labels" . | nindent 4 }}
+spec:
+  host: {{ include "apps-ck-kafka.fullname" . }}-kafka-ui.{{ include "apc-global-overrides.require-clusterAppsDomain" . }}
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+  to:
+    kind: Service
+    name: {{ include "apps-ck-kafka.fullname" . }}-oauth-proxy
+    weight: 100
+  wildcardPolicy: None
+{{- end }}
