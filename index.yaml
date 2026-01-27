@@ -340,6 +340,34 @@ entries:
     version: 1.0.0
   apps-ck-kafka:
   - apiVersion: v2
+    created: "2026-01-23T08:22:27.199756305+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - condition: kafka-ui.enabled
+      name: kafka-ui
+      repository: https://kafbat.github.io/helm-charts
+      version: 1.5.3
+    description: Production-ready Kafka cluster using Strimzi operator with KRaft
+      mode
+    digest: c9764c11c1c3d544fcb4ea2ba026a7c696a30136aab4590751727948cc5623db
+    home: https://github.com/gr8it/charts-openshift
+    icon: https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/main/documentation/logo/strimzi_logo.png
+    keywords:
+    - kafka
+    - strimzi
+    - kraft
+    kubeVersion: '>=1.25.0'
+    name: apps-ck-kafka
+    sources:
+    - https://github.com/gr8it/charts-openshift
+    - https://strimzi.io/
+    type: application
+    urls:
+    - packaged_charts/apps-ck-kafka-1.2.0.tgz
+    version: 1.2.0
+  - apiVersion: v2
     created: "2025-12-17T15:25:25.33669661+01:00"
     dependencies:
     - name: apc-global-overrides
@@ -483,6 +511,22 @@ entries:
     - packaged_charts/blackbox-exporter-config-1.0.0.tgz
     version: 1.0.0
   blackbox-exporter-helm:
+  - apiVersion: v2
+    appVersion: 11.6.1
+    created: "2026-01-22T21:13:29.221917135+01:00"
+    dependencies:
+    - name: prometheus-blackbox-exporter
+      repository: https://prometheus-community.github.io/helm-charts/
+      version: 11.6.1
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart to install Blackbox exporter
+    digest: 6a255a9b035069ca45042bf81f809a54206ee086f30a0affa4a25ccc1fba848e
+    name: blackbox-exporter-helm
+    urls:
+    - packaged_charts/blackbox-exporter-helm-1.0.7.tgz
+    version: 1.0.7
   - apiVersion: v2
     appVersion: 11.6.1
     created: "2026-01-20T11:19:27.068581256+01:00"
@@ -878,6 +922,20 @@ entries:
     - packaged_charts/compliance-config-1.0.0.tgz
     version: 1.0.0
   compliance-operator:
+  - apiVersion: v2
+    appVersion: stable
+    created: "2026-01-22T13:47:24.964877+01:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install OpenShift Compliance Operator
+    digest: 1778b3be7830d562f657669f805a5f1d46b1e3b027551a1782b7394c00824bba
+    name: compliance-operator
+    type: application
+    urls:
+    - packaged_charts/compliance-operator-1.1.0.tgz
+    version: 1.1.0
   - apiVersion: v2
     appVersion: stable
     created: "2026-01-22T08:42:36.319845+01:00"
@@ -1624,6 +1682,20 @@ entries:
     - packaged_charts/group-sync-config-1.0.0.tgz
     version: 1.0.0
   group-sync-operator:
+  - apiVersion: v2
+    appVersion: 0.0.32
+    created: "2026-01-22T21:31:58.835188949+01:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install Group Sync Operator using ACM operator policy
+    digest: 802e072614038d38076a7bfbf21af6dfae32b771fd64489f5fe62f539ef01e6d
+    name: group-sync-operator
+    type: application
+    urls:
+    - packaged_charts/group-sync-operator-1.0.1.tgz
+    version: 1.0.1
   - apiVersion: v2
     appVersion: 0.0.31
     created: "2025-10-29T13:46:15.985887582+01:00"

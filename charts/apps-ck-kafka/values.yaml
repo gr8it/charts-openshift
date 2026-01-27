@@ -98,7 +98,8 @@ kafka:
     quorumFetchTimeoutMs: 2000
   
   # Super user (cluster admin)
-  superUser: superadminuser
+  superUsers:
+    - apc-kafka-admin
 
   rack:
     topologyKey: topology.kubernetes.io/zone
@@ -106,73 +107,14 @@ kafka:
   # External access configuration (for clients outside the cluster)
   externalAccess:
     enabled: false
-    # type: "loadbalancer"  # or "nodeport" for cloud providers
-    # bootstrap:
-    #   host: "kafka.example.com"
-    #   port: 9094
-    # brokers:
-    #   - host: "kafka-0.example.com"
-    #     port: 9094
-    #   - host: "kafka-1.example.com"
-    #     port: 9094
-    #   - host: "kafka-2.example.com"
-    #     port: 9094
 
 # Kafka Topics - automatically created on deployment
 kafkaTopics:
-  enabled: false  # Set to true to auto-create topics
   topics: []
-  # Example topics (uncomment to use):
-  # - name: "events"
-  #   partitions: 3
-  #   replicas: 3
-  #   config:
-  #     retention.ms: "604800000"  # 7 days
-  #     compression.type: "snappy"
-  #
-  # - name: "logs"
-  #   partitions: 6
-  #   replicas: 3
-  #   config:
-  #     retention.ms: "86400000"  # 1 day
-  #
-  # - name: "compacted-events"
-  #   partitions: 3
-  #   replicas: 3
-  #   config:
-  #     cleanup.policy: "compact"
-  #     min.cleanable.dirty.ratio: "0.5"
 
 # Kafka Users with SCRAM-SHA-512 authentication
 kafkaUsers:
-  enabled: false
   users: []
-  #   # Application user with produce/consume permissions
-  #   - name: app-producer
-  #     acls:
-  #       - resourceType: topic
-  #         resourceName: "*"
-  #         patternType: Prefix
-  #         operations:
-  #           - Write
-  #           - Create
-    
-  #   # Consumer application user
-  #   - name: app-consumer
-  #     acls:
-  #       - resourceType: topic
-  #         resourceName: "*"
-  #         patternType: Prefix
-  #         operations:
-  #           - Read
-  #       - resourceType: group
-  #         resourceName: "*"
-  #         patternType: Prefix
-  #         operations:
-  #           - Read
-
-  #   # Admin user for operations
-  #   - name: superadminuser
 
 networkpolicy:
   enabled: false
@@ -191,9 +133,23 @@ monitoring:
     # Consumer lag threshold (messages behind latest offset)
     consumerLagThreshold: 100000
 
+oauthProxy:
+  enabled: true
+  image:
+    repository: registry.redhat.io/openshift4/ose-oauth-proxy
+    tag: v4.13
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 20m
+      memory: 128Mi
+    limits:
+      cpu: 100m
+      memory: 256Mi
+
 # https://github.com/kafbat/helm-charts/blob/main/charts/kafka-ui/values.yaml
 kafka-ui:
-  enabled: false
+  enabled: true
 
   image:
     tag: 18c8b7e
@@ -225,14 +181,9 @@ kafka-ui:
       DYNAMIC_CONFIG_ENABLED: "false"
       KAFKA_ADMIN-CLIENT-TIMEOUT: "10000"
 
-    # TODO!
+  yamlApplicationConfig:
     auth:
       type: disabled
-
-    # management:
-    #   health:
-    #     ldap:
-    #       enabled: false
   
   resources:
     limits:
@@ -248,7 +199,6 @@ kafka-ui:
     annotations:
       route.openshift.io/termination: edge
       route.openshift.io/insecureEdgeTerminationPolicy: Redirect
-
 
   # env:
   # - name: DYNAMIC_CONFIG_ENABLED

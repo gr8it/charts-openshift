@@ -1,0 +1,48 @@
+{{- if .Values.oauthProxy.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "apps-ck-kafka.fullname" . }}-oauth-proxy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "apps-ck-kafka.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "apps-ck-kafka.fullname" . }}-oauth-proxy
+  template:
+    metadata:
+      labels:
+        app: {{ include "apps-ck-kafka.fullname" . }}-oauth-proxy
+    spec:
+      serviceAccountName: {{ include "apps-ck-kafka.fullname" . }}-oauth-proxy
+      containers:
+      - name: oauth-proxy
+        image: {{ .Values.oauthProxy.image.repository }}:{{ .Values.oauthProxy.image.tag }}
+        imagePullPolicy: {{ .Values.oauthProxy.image.pullPolicy}}
+        env:
+        - name: COOKIE_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "apps-ck-kafka.fullname" . }}-oauth-proxy-cookie-secret
+              key: secret
+        args:
+        - --http-address=:8080
+        - --https-address=
+        - --provider=openshift
+        - --openshift-service-account={{ include "apps-ck-kafka.fullname" . }}-oauth-proxy
+        - --upstream=http://{{ include "apps-ck-kafka.fullname" . }}-kafka-ui.{{ .Release.Namespace }}.svc.cluster.local:80
+        - --cookie-secret=${COOKIE_SECRET}
+        - --openshift-sar={"namespace":"{{ .Release.Namespace }}","resource":"kafka","group":"kafka.strimzi.io","resourceName":"{{ include "apps-ck-kafka.fullname" . }}","verb":"get"}
+        ports:
+        - containerPort: 8080
+          name: http
+        resources:
+          requests:
+            memory: "{{ .Values.oauthProxy.resources.requests.memory }}"
+            cpu: "{{ .Values.oauthProxy.resources.requests.cpu }}"
+          limits:
+            memory: "{{ .Values.oauthProxy.resources.limits.memory }}"
+            cpu: "{{ .Values.oauthProxy.resources.limits.cpu }}"
+{{- end }}

@@ -1,5 +1,10 @@
-{{- if .Values.kafkaUsers.enabled }}
-{{- range $user := .Values.kafkaUsers.users }}
+{{- /* convert superUsers list to a list of dictionaries name = value of the superUsers */ -}}
+{{- $transformedB := list -}}
+{{- range .Values.kafka.superUsers -}}
+  {{- $transformedB = append $transformedB (dict "name" .) -}}
+{{- end -}}
+
+{{- range $user := (concat .Values.kafkaUsers.users $transformedB) }}
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaUser
 metadata:
@@ -33,5 +38,4 @@ spec:
     acls: []
     {{- end }}
 ---
-{{- end }}
 {{- end }}
