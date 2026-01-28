@@ -294,6 +294,34 @@ entries:
     version: 1.0.0
   apps-ck-kafka:
   - apiVersion: v2
+    created: "2026-01-28T10:03:52.102030821+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - condition: kafka-ui.enabled
+      name: kafka-ui
+      repository: https://kafbat.github.io/helm-charts
+      version: 1.5.3
+    description: Production-ready Kafka cluster using Strimzi operator with KRaft
+      mode
+    digest: 5e792e7260d817ae53657b4d3c2dd31fc16e7abe0515ed56fb507e7085f5540a
+    home: https://github.com/gr8it/charts-openshift
+    icon: https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/main/documentation/logo/strimzi_logo.png
+    keywords:
+    - kafka
+    - strimzi
+    - kraft
+    kubeVersion: '>=1.25.0'
+    name: apps-ck-kafka
+    sources:
+    - https://github.com/gr8it/charts-openshift
+    - https://strimzi.io/
+    type: application
+    urls:
+    - packaged_charts/apps-ck-kafka-1.2.1.tgz
+    version: 1.2.1
+  - apiVersion: v2
     created: "2026-01-23T08:22:27.199756305+01:00"
     dependencies:
     - name: apc-global-overrides
@@ -1441,6 +1469,21 @@ entries:
     urls:
     - packaged_charts/ingress-configuration-1.0.0.tgz
     version: 1.0.0
+  kafka-backup-operator:
+  - apiVersion: v2
+    appVersion: 0.2.6
+    created: "2026-01-28T10:03:52.10403355+01:00"
+    dependencies:
+    - name: kafka-backup-operator
+      repository: https://osodevops.github.io/helm-charts/
+      version: 0.2.6
+    description: A Helm chart to install OSO Kafka Backup Operator
+    digest: 859bfbf96d6c9ce8ec1784866a94fe82cc8d6892f8d807f706614c93ee9dda94
+    name: kafka-backup-operator
+    type: application
+    urls:
+    - packaged_charts/kafka-backup-operator-0.1.0.tgz
+    version: 0.1.0
   keycloak:
   - apiVersion: v2
     appVersion: v26.0
@@ -2283,4 +2326,4 @@ entries:
     urls:
     - packaged_charts/user-workload-monitoring-policy-1.0.0.tgz
     version: 1.0.0
-generated: "2026-01-23T08:22:27.195468059+01:00"
+generated: "2026-01-28T10:03:52.096243485+01:00"
