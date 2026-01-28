@@ -8,22 +8,22 @@ spec:
     - name: kyverno.rules
       rules:
         - alert: KyvernoPolicyResultsError
-          expr: sum by (policy_name) (increase(kyverno_policy_results_total{rule_result="error"}[1h])) > 0
-          for: 30m
+          expr: sum by (policy_name) (rate(kyverno_policy_results_total{rule_result="error"}[15m])) > 0
+          for: 5m
           labels:
             severity: warning
             vendor: aspecta
             team: platform
           annotations:
-            summary: Kyverno policy errors detected
-            description: "Kyverno policy errors detected in policy:{{ `{{ $labels.policy_name }}` }}"
+            summary: Kyverno policy:{{ `{{ $labels.policy_name }}` }} run with errors.
+            description: Kyverno policy {{ `{{ $labels.policy_name }}` }} run with errors, please investigate kyverno logs for root cause.
         - alert: KyvernoPolicyResultsFail
-          expr: sum(increase(kyverno_policy_results_total{rule_result="fail"}[5d])) by (policy_name)
-          for: 1h
+          expr: sum by (policy_name) (rate(kyverno_policy_results_total{rule_result="fail"}[5d])) > 0
+          for: 5m
           labels:
             severity: warning
             vendor: aspecta
             team: platform
           annotations:
-            summary: Kyverno policy detected increase in fail results
-            description: "Kyverno policy detected increase in fail results in policy:{{ `{{ $labels.policy_name }}` }}"            
+            summary: Kyverno policy {{ `{{ $labels.policy_name }}` }} failed.
+            description: Kyverno policy {{ `{{ $labels.policy_name }}` }} failed, please investigate kyverno logs for root cause.
