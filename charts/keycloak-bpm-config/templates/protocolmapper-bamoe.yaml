@@ -1,0 +1,20 @@
+apiVersion: client.keycloak.crossplane.io/v1alpha1
+kind: ProtocolMapper
+metadata:
+  name: bamoe-management-console-audience-bpm
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    realmId: apps
+    clientIdRef:
+      name: bamoe-management-console
+    protocol: openid-connect
+    protocolMapper: oidc-audience-mapper
+    name: add bpm audience
+    # https://github.com/keycloak/keycloak/blob/0f01444543cf5e755b13a62c233a5c9feef72888/services/src/main/java/org/keycloak/protocol/oidc/mappers/OIDCAttributeMapperHelper.java#L60
+    config:
+      "included.client.audience": "bpm"
+      "access.token.claim": "true"
+      "introspection.token.claim": "true"
+  providerConfigRef:
+    name: keycloak-local-config

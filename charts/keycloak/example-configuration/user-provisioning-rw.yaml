@@ -1,0 +1,20 @@
+# creates an user for provisioning
+# creates an user for provisioning
+apiVersion: user.keycloak.crossplane.io/v1alpha1
+kind: User
+metadata:
+  name: provisioning
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    realmId: "master"
+    username: "provisioning"
+    emailVerified: true
+    initialPassword:
+      - valueSecretRef:
+          key: "password"
+          name: "keycloak-provisioning-credentials"
+          namespace: "apc-keycloak"
+        temporary: false
+  providerConfigRef:
+    name: keycloak-local-config

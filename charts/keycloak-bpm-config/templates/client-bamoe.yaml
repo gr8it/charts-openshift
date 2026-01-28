@@ -1,0 +1,28 @@
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: Client
+metadata:
+  name: bamoe-management-console
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    realmId: apps
+    clientId: bamoe-management-console
+    name: BAMOE
+    description: BAMOE manazment konzola
+    accessType: PUBLIC # CONFIDENTIAL, PUBLIC, BEARER-ONLY
+    standardFlowEnabled: true
+    # directAccessGrantsEnabled: true
+    rootUrl: https://bamoe-mgmt.apps.s1.lab.sp.gr8it.cloud
+    baseUrl: https://bamoe-mgmt.apps.s1.lab.sp.gr8it.cloud
+    validRedirectUris:
+      - https://bamoe-mgmt.apps.s1.lab.sp.gr8it.cloud/login
+    # validPostLogoutRedirectUris:
+    #   - https://bamoe-mgmt.apps.s1.lab.sp.gr8it.cloud
+    webOrigins:
+      - https://bamoe-mgmt.apps.s1.lab.sp.gr8it.cloud
+    # adminUrl: https://bamoe-mgmt.apps.s1.lab.sp.gr8it.cloud
+    frontchannelLogoutEnabled: true
+    pkceCodeChallengeMethod: S256
+    fullScopeAllowed: false
+  providerConfigRef:
+    name: keycloak-local-config
