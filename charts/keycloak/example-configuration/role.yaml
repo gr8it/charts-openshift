@@ -25,20 +25,3 @@ spec:
 #     name: admin2
 #   providerConfigRef:
 #     name: keycloak-local-config
----
-apiVersion: user.keycloak.crossplane.io/v1alpha1
-kind: Roles
-metadata:
-  name: provisioning-admin
-spec:
-  deletionPolicy: Delete
-  forProvider:
-    realmId: master
-    userIdRef:
-      name: provisioning
-    roleIdsRefs:
-    - name: admin
-    # not gitopsy!
-    exhaustive: false
-  providerConfigRef:
-    name: keycloak-local-config
