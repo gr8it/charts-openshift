@@ -2202,6 +2202,15 @@ entries:
     version: 1.0.0
   monitoring-prometheusrules:
   - apiVersion: v2
+    created: "2026-01-29T14:22:30.814516629+01:00"
+    description: A Helm chart for prometheusrules used in other helm charts.
+    digest: af77f2cf5817cac73bbb771fb3bf6183f9e0570ef4f0fe74dc0e988604c62afc
+    name: monitoring-prometheusrules
+    type: library
+    urls:
+    - packaged_charts/monitoring-prometheusrules-1.0.4.tgz
+    version: 1.0.4
+  - apiVersion: v2
     created: "2025-11-07T09:51:38.135312+01:00"
     description: A Helm chart for prometheusrules used in other helm charts.
     digest: ced815ba8576ef68d33bee32fb85debd977d51cf8c2204d88affaf71bb42c349
@@ -2550,6 +2559,23 @@ entries:
     version: 1.0.0
   user-workload-monitoring-policy:
   - apiVersion: v2
+    created: "2026-01-29T14:22:30.816501085+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.4
+    description: A Helm chart that automatically creates PrometheusRules for app /
+      non-app workload namespaces
+    digest: 0827ffe7c1606a64815a9acd28ac97451216f840120e43505285f327f53488c8
+    name: user-workload-monitoring-policy
+    type: application
+    urls:
+    - packaged_charts/user-workload-monitoring-policy-1.0.6.tgz
+    version: 1.0.6
+  - apiVersion: v2
     created: "2025-11-14T14:34:45.916843244+01:00"
     dependencies:
     - name: apc-global-overrides
@@ -2650,4 +2676,4 @@ entries:
     urls:
     - packaged_charts/user-workload-monitoring-policy-1.0.0.tgz
     version: 1.0.0
-generated: "2026-01-26T16:06:00.647639862+01:00"
+generated: "2026-01-29T14:22:30.81213164+01:00"
