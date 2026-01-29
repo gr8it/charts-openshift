@@ -1,0 +1,109 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: metallbappips.metallb.crossplane.io
+spec:
+  group: metallb.crossplane.io
+  names:
+    kind: MetalLBAppIP
+    plural: metallbappips
+  claimNames:
+    kind: MetalLBAppIPClaim
+    plural: metallbappipsclaims
+  connectionSecretKeys:
+    - kubeconfig
+  defaultCompositeDeletePolicy: Background
+  defaultCompositionRef:
+    name: metallb-app-ip
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                autoAssign:
+                  type: boolean
+                  default: true
+                  description: Whether to allow automatic assignment of addresses from the pool
+                advertisementName:
+                  type: string
+                  description: Name of the L2Advertisement resource
+                interfaces:
+                  type: array
+                  items:
+                    type: string
+                  description: Interfaces to advertise from (optional, for L2 advertisement)
+              required: []
+            status:
+              type: object
+              properties:
+                existingAddresses:
+                  type: array
+                  items:
+                    type: string
+                  description: List of IP addresses found in existing IPAddressPools
+                discoveredPoolCount:
+                  type: integer
+                  description: Number of existing IPAddressPools discovered
+                availableRanges:
+                  type: array
+                  items:
+                    type: string
+                  description: Address ranges available for allocation (excluding existing)
+                excludedRangeCount:
+                  type: integer
+                  description: Number of ranges excluded due to conflicts
+                addressPool:
+                  type: object
+                  description: Status of the created IPAddressPool
+                  properties:
+                    name:
+                      type: string
+                    ready:
+                      type: boolean
+                    conditions:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                          status:
+                            type: string
+                          reason:
+                            type: string
+                          message:
+                            type: string
+                assignedIPs:
+                  type: array
+                  items:
+                    type: string
+                  description: List of currently assigned IP addresses from the pool
+                l2Advertisement:
+                  type: object
+                  description: Status of the created L2Advertisement
+                  properties:
+                    name:
+                      type: string
+                    ready:
+                      type: boolean
+                    conditions:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                          status:
+                            type: string
+                          reason:
+                            type: string
+                          message:
+                            type: string
+                observedGeneration:
+                  type: integer

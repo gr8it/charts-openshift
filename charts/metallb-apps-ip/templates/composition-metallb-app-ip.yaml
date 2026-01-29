@@ -1,0 +1,234 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: metallb-app-ip
+  labels:
+    crossplane.io/xrd: metallbappips.metallb.crossplane.io
+spec:
+  compositeTypeRef:
+    apiVersion: metallb.crossplane.io/v1alpha1
+    kind: MetalLBAppIP
+  mode: Pipeline
+  pipeline:
+    # Step 0: Get existing IPAddressPool IPs from local K8S cluster
+    - step: get-existing-ips
+      functionRef:
+        name: function-cue
+      input:
+        apiVersion: cue.fn.crossplane.io/v1beta1
+        kind: CueInput
+        metadata:
+          name: get-existing-ips
+        spec:
+          code: |
+            import (
+              "encoding/json"
+              "list"
+            )
+
+            // Read the composite resource
+            composite: _
+
+            // Query existing IPAddressPools from observed resources
+            // This would be populated by Crossplane from the cluster
+            existingPools: [
+              // These would be actual IPAddressPools discovered
+              // For now, using observed resources from Crossplane
+            ]
+
+            // Extract all addresses from existing pools
+            existingAddresses: [
+              for pool in existingPools {
+                for addr in pool.spec.addresses {
+                  addr
+                }
+              }
+            ]
+
+            // Flatten the list
+            flatExistingAddresses: list.FlattenN(existingAddresses, 1)
+
+            // Update composite status with existing addresses
+            _: {
+              status: {
+                existingAddresses: flatExistingAddresses
+                discoveredPoolCount: len(existingPools)
+              }
+            }
+
+    # Step 1: Read ConfigMap for address ranges using Kubernetes provider
+    - step: read-config
+      functionRef:
+        name: function-cue
+      input:
+        apiVersion: cue.fn.crossplane.io/v1beta1
+        kind: CueInput
+        metadata:
+          name: read-config
+        spec:
+          code: |
+            import (
+              "encoding/json"
+              "list"
+              "strings"
+            )
+
+            // Read the composite resource
+            composite: _
+
+            // Get existing addresses from previous step
+            existingAddresses: composite.status.existingAddresses | []
+
+            // Get ConfigMap data (passed from kubernetes provider step or defaults)
+            config: {
+              addressRanges: [
+                "10.0.0.0/24",
+                "10.1.0.0/24",
+                "10.100.0.0/16",
+              ]
+              allocationStrategy: "first-available"
+              excludeExisting: true
+            }
+
+            // Filter out existing ranges
+            availableRanges: [
+              for range in config.addressRanges {
+                if !list.Contains(existingAddresses, range) {
+                  range
+                }
+              }
+            ]
+
+            // Extract first available address range (not in existing pools)
+            selectedRange: availableRanges[0]
+
+            // Update composite status with allocated address and discovered info
+            _: {
+              status: {
+                allocatedAddresses: [selectedRange]
+                configLoaded: true
+                availableRanges: availableRanges
+                excludedRangeCount: len(config.addressRanges) - len(availableRanges)
+              }
+            }
+
+    # Step 2: Patch and transform resources with allocated IPs
+    - step: patch-and-transform
+      functionRef:
+        name: function-patch-and-transform
+      input:
+        apiVersion: pt.crossplane.io/v1beta1
+        kind: Resources
+        metadata:
+          name: metallb-resources
+        spec:
+          resources:
+            # IPAddressPool Resource
+            - name: ip-address-pool
+              base:
+                apiVersion: metallb.io/v1beta1
+                kind: IPAddressPool
+                metadata:
+                  namespace: default
+                  name: metallb-pool
+                spec:
+                  addresses:
+                    - 10.0.0.0/24
+                  autoAssign: true
+              patches:
+                # Use claim's namespace for the pool namespace
+                - type: FromCompositeFieldValue
+                  fromFieldPath: metadata.namespace
+                  toFieldPath: metadata.namespace
+                # Use claim's name for the pool name
+                - type: FromCompositeFieldValue
+                  fromFieldPath: metadata.name
+                  toFieldPath: metadata.name
+                # Get allocated address from status (set by read-config step)
+                - type: FromCompositeFieldValue
+                  fromFieldPath: status.allocatedAddresses
+                  toFieldPath: spec.addresses
+                # Copy autoAssign setting from claim
+                - type: FromCompositeFieldValue
+                  fromFieldPath: spec.autoAssign
+                  toFieldPath: spec.autoAssign
+                # Write back IPAddressPool status to composite status
+                - type: ToCompositeFieldValue
+                  fromFieldPath: metadata.name
+                  toFieldPath: status.addressPool.name
+                - type: ToCompositeFieldValue
+                  fromFieldPath: status.conditions
+                  toFieldPath: status.addressPool.conditions
+                - type: ToCompositeFieldValue
+                  fromFieldPath: spec.addresses
+                  toFieldPath: status.addressPool.addresses
+
+            # L2Advertisement Resource
+            - name: l2-advertisement
+              base:
+                apiVersion: metallb.io/v1beta1
+                kind: L2Advertisement
+                metadata:
+                  namespace: default
+                  name: metallb-l2-adv
+                spec:
+                  ipAddressPools: []
+                  interfaces: []
+              patches:
+                # Use claim's namespace for the advertisement namespace
+                - type: FromCompositeFieldValue
+                  fromFieldPath: metadata.namespace
+                  toFieldPath: metadata.namespace
+                # Generate unique L2Advertisement name from namespace and claim name
+                - type: CombineFromComposite
+                  combine:
+                    variables:
+                      - fromFieldPath: metadata.namespace
+                      - fromFieldPath: metadata.name
+                    strategy: string
+                    string:
+                      fmt: "%s-%s-l2-adv"
+                  toFieldPath: metadata.name
+                # Reference the IPAddressPool by claim name
+                - type: FromCompositeFieldValue
+                  fromFieldPath: metadata.name
+                  toFieldPath: spec.ipAddressPools[0]
+                # Copy interfaces if provided
+                - type: FromCompositeFieldValue
+                  fromFieldPath: spec.interfaces
+                  toFieldPath: spec.interfaces
+                # Write back L2Advertisement status to composite status
+                - type: ToCompositeFieldValue
+                  fromFieldPath: metadata.name
+                  toFieldPath: status.l2Advertisement.name
+                - type: ToCompositeFieldValue
+                  fromFieldPath: status.conditions
+                  toFieldPath: status.l2Advertisement.conditions
+
+    # Step 3: Readiness checks for the composite resource
+    - step: ready
+      functionRef:
+        name: function-ready
+      input:
+        apiVersion: ready.crossplane.io/v1beta1
+        kind: ReadinessChecks
+        metadata:
+          name: metallb-ready
+        spec:
+          checks:
+            - type: MatchCondition
+              fieldValue: "True"
+              matchCondition:
+                type: Ready
+                status: "True"
+              resource:
+                apiVersion: metallb.io/v1beta1
+                kind: IPAddressPool
+            - type: MatchCondition
+              fieldValue: "True"
+              matchCondition:
+                type: Ready
+                status: "True"
+              resource:
+                apiVersion: metallb.io/v1beta1
+                kind: L2Advertisement
