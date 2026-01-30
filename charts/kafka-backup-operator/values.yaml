@@ -1,0 +1,83 @@
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+kafka-backup-operator:
+  replicaCount: 1
+
+  # Leader election configuration (for HA deployments)
+  # leaderElection:
+  #   enabled: true
+  #   leaseDuration: 15s
+  #   renewDeadline: 10s
+  #   retryPeriod: 2s
+
+  image:
+    tag: "0.2.6"
+
+  podAnnotations: {}
+
+  podSecurityContext:
+    runAsNonRoot: true
+    # runAsUser: 1000
+    # fsGroup: 1000
+    runAsUser: ~
+    fsGroup: ~
+
+  # securityContext:
+  #   allowPrivilegeEscalation: false
+  #   readOnlyRootFilesystem: true
+  #   capabilities:
+  #     drop:
+  #       - ALL
+
+  # podDisruptionBudget:
+  #   enabled: true
+  #   minAvailable: 1
+
+  # affinity:
+  #   podAntiAffinity:
+  #     preferredDuringSchedulingIgnoredDuringExecution:
+  #       - weight: 100
+  #         podAffinityTerm:
+  #           labelSelector:
+  #             matchLabels:
+  #               app.kubernetes.io/name: kafka-backup-operator
+  #           topologyKey: kubernetes.io/hostname
+
+  # resources:
+  #   requests:
+  #     cpu: 100m
+  #     memory: 128Mi
+  #   limits:
+  #     cpu: 500m
+  #     memory: 512Mi
+
+  # Logging configuration
+  # logging:
+  #   level: "info,kafka_backup_operator=debug"
+  #   format: json
+
+  # Metrics configuration
+  metrics:
+    serviceMonitor:
+      enabled: true
+      labels:
+        vendor: aspecta
+        team: platform
+
+  # CRD installation
+  crds:
+    # Install CRDs with the chart
+    install: true
+    # Keep CRDs on chart uninstall
+    keep: true
+
+  # Network policy
+  networkPolicy:
+    enabled: false
+    # ingress:
+    #   - from:
+    #       - namespaceSelector:
+    #           matchLabels:
+    #             name: monitoring

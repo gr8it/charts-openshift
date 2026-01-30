@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0] - 2025-10-29
 
-_([JIRA-843](https://example.atlassian.net/browse/JIRA-843)) (Bob J)_
+_([JIRA-843](https://example.atlassian.net/browse/JIRA-843))_
 _If you are upgrading: please see [`UPGRADING.md`](UPGRADING.md)._
 
 ### Changed

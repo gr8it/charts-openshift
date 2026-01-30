@@ -1,0 +1,260 @@
+## uses following global values => do not set here
+# global:
+#   apc:
+#     proxyCIDRs: []
+## and their local overrides
+# proxyCIDRs: [] # if set, communication to these IP will be allowed
+
+# Who manages the service
+releaseServiceOverride: ArgoCD
+
+
+# Namespace where the application will be deployed
+# If not set, it will use the namespace from helm install/upgrade command
+namespaceOverride: ""
+
+networkPolicy:
+  allowProxyEgress: true
+
+# Proxy Overrides (when unset, defaults to global.apc.proxy)
+proxy: ~
+noProxy: ~
+proxyCIDRs: []
+
+
+prometheus-blackbox-exporter:
+  ### Proxy Setup
+  extraEnvFrom:
+  - configMapRef:
+      name: proxy
+
+  ### Deployment
+  replicas: 2
+
+  ### User and Group to run blackbox-exporter container as
+  podSecurityContext:
+    runAsUser:
+    runAsGroup:
+    runAsNonRoot: true
+
+  securityContext:
+    runAsUser:
+    runAsGroup:
+    privileged: false
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: RuntimeDefault
+      
+  configReloader:
+    securityContext:
+      runAsUser:
+      runAsGroup:
+      privileged: false
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+      seccompProfile:
+        type: RuntimeDefault
+        
+  ############################
+  ######### Modules ##########
+  ############################
+  config:
+    modules:
+  ### ICMP ping
+      icmp:
+        prober: icmp
+        timeout: 5s
+        icmp:
+          preferred_ip_protocol: ip4
+
+  ### TCP check
+      tcp_probe:
+        prober: tcp
+        timeout: 10s
+        tcp:
+          preferred_ip_protocol: ip4
+
+  ### TCP check with TLS
+      tcp_probe_tls:
+        prober: tcp
+        timeout: 10s
+        tcp:
+          preferred_ip_protocol: ip4
+          tls: true
+          tls_config:
+            insecure_skip_verify: true
+
+  ### HTTP Response code 200
+      http_2xx:
+        prober: http
+        timeout: 30s
+        http:
+          valid_http_versions: ["HTTP/1.0", "HTTP/1.1", "HTTP/2", "HTTP/2.0"]
+          preferred_ip_protocol: ip4
+          no_follow_redirects: false
+          method: GET
+          tls_config:
+            insecure_skip_verify: true
+
+  ### OpenShift API
+      http_openshift_api:
+        prober: http
+        timeout: 10s
+        http:
+          valid_http_versions: ["HTTP/2.0"]
+          valid_status_codes: [200]
+          preferred_ip_protocol: ip4
+          no_follow_redirects: false
+          method: GET
+          tls_config:
+            insecure_skip_verify: true
+          fail_if_body_not_matches_regexp:
+            - "^ok"
+
+  ### OpenShift Console
+      http_openshift_console:
+        prober: http
+        timeout: 15s
+        http:
+          valid_http_versions: ["HTTP/1.1","HTTP/2.0"]
+          valid_status_codes: [200]
+          preferred_ip_protocol: ip4
+          no_follow_redirects: false
+          method: GET
+          tls_config:
+            insecure_skip_verify: true
+
+  ############################
+
+  ############################
+  ##### Service Monitors #####
+  ############################
+  serviceMonitor:
+    selfMonitor:
+       enabled: true
+    enabled: true
+    targets: []
+
+  ## Custom PrometheusRules 
+  prometheusRule:
+    enabled: true
+    namespace: "apc-blackbox-exporter"
+    rules:
+    - alert: Blackbox
+      expr: up{job="blackbox-exporter-prometheus-blackbox-exporter"}== 0
+      for: 5m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform      
+      annotations:
+        summary: "Blackbox Exporter is down"
+        description: "The Blackbox Exporter instance is not reachable. Please check the service and pod status."
+    - alert: Blackbox
+      expr: sum without (pod) (probe_success{namespace="apc-blackbox-exporter"} == 0) 
+      for: 0m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform      
+      annotations:
+        summary: Blackbox probe failed (instance {{ $labels.instance }})
+        description: "Probe failed\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+    - alert: Blackbox
+      expr: avg without(pod) (avg_over_time(probe_duration_seconds[1m]) > 1) > 1
+      for: 1m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: Blackbox slow probe (instance {{ $labels.instance }})
+        description: "Blackbox probe took more than 1s to complete\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+    - alert: Blackbox
+      expr: count without (pod) (probe_http_status_code <= 199 OR probe_http_status_code >= 400)  > 0
+      for: 0m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: Blackbox probe HTTP failure (instance {{ $labels.instance }})
+        description: "HTTP status code is not 200-399\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+    - alert: Blackbox
+      expr: avg without(pod) ( avg_over_time(probe_http_duration_seconds[1m]) > 1) > 1
+      for: 1m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: Blackbox probe slow HTTP (instance {{ $labels.instance }})
+        description: "HTTP request took more than 1s\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+    - alert: Blackbox
+      expr: avg without(pod) ( avg_over_time(probe_icmp_duration_seconds[1m]) )> 1
+      for: 1m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: Blackbox probe slow ping (instance {{ $labels.instance }})
+        description: "Blackbox ping took more than 1s\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"      
+    - alert: Blackbox
+      expr: avg without(pod) ( avg_over_time(probe_tcp_duration_seconds[1m]) )> 1
+      for: 1m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: Blackbox probe slow TCP (instance {{ $labels.instance }})
+        description: "Blackbox TCP took more than 1s\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"      
+
+  #extraManifests:
+  extraManifests:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: blackbox-exporter-probe-edit
+        labels:
+          rbac.authorization.k8s.io/aggregate-to-admin: 'true'
+          rbac.authorization.k8s.io/aggregate-to-edit: 'true'
+      rules:
+        - apiGroups:
+            - monitoring.coreos.com
+          resources:
+            - probes
+          verbs:
+            - get
+            - list
+            - watch
+            - create
+            - update
+            - patch
+            - delete
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: blackbox-exporter-probe-view
+        labels:
+          rbac.authorization.k8s.io/aggregate-to-view: 'true'
+      rules:
+        - apiGroups:
+            - monitoring.coreos.com
+          resources:
+            - probes
+          verbs:
+            - get
+            - list
+            - watch
+
+
+

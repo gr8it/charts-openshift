@@ -12,10 +12,23 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.0.0
+        helm.sh/chart: cluster-config-standalone-1.1.0
       name: registry-ca-bundle
       namespace: openshift-config
   2: |
+    apiVersion: v1
+    data:
+      ca.crt: "---BEGIN CERTIFICATE---\nMIIDdzCCAl+gAwIBAgIEb1pQszANBg\n---END CERTIFICATE--- "
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-config-standalone
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-config-standalone
+        helm.sh/chart: cluster-config-standalone-1.1.0
+      name: oauth-idp-ca-bundle
+      namespace: openshift-config
+  3: |
     apiVersion: external-secrets.io/v1beta1
     kind: ExternalSecret
     metadata:
@@ -23,7 +36,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.0.0
+        helm.sh/chart: cluster-config-standalone-1.1.0
       name: pull-secret
       namespace: openshift-config
     spec:
@@ -43,7 +56,107 @@ manifests should match snapshot:
           data:
             .dockerconfigjson: '{{ .pullsecret | toString }}'
           type: kubernetes.io/dockerconfigjson
-  3: |
+  4: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-config-standalone
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-config-standalone
+        helm.sh/chart: cluster-config-standalone-1.1.0
+      name: ad-ldap-bind-secret
+      namespace: openshift-config
+    spec:
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: clusterSecretStore
+        name: vault-issuer
+      target:
+        creationPolicy: Orphan
+        data:
+          - remoteRef:
+              key: /d/openshift-config/oauth/identityProvider/ad-ldap-bind-secret
+              property: bindPassword
+            secretKey: bindPassword
+        deletionPolicy: Retain
+        name: ad-ldap-bind-secret
+  5: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-config-standalone
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-config-standalone
+        helm.sh/chart: cluster-config-standalone-1.1.0
+      name: comm-ldap-bind-secret
+      namespace: openshift-config
+    spec:
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: clusterSecretStore
+        name: vault-issuer
+      target:
+        creationPolicy: Orphan
+        data:
+          - remoteRef:
+              key: /d/openshift-config/oauth/identityProvider/comm-ldap-bind-secret
+              property: bindPassword
+            secretKey: bindPassword
+        deletionPolicy: Retain
+        name: comm-ldap-bind-secret
+  6: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-config-standalone
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-config-standalone
+        helm.sh/chart: cluster-config-standalone-1.1.0
+      name: oidcidp-secret
+      namespace: openshift-config
+    spec:
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: clusterSecretStore
+        name: vault-issuer
+      target:
+        creationPolicy: Orphan
+        data:
+          - remoteRef:
+              key: /d/openshift-config/oauth/identityProvider/oidcidp-secret
+              property: clientSecret
+            secretKey: clientSecret
+        deletionPolicy: Retain
+        name: oidcidp-secret
+  7: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-config-standalone
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-config-standalone
+        helm.sh/chart: cluster-config-standalone-1.1.0
+      name: htpass-secret
+      namespace: openshift-config
+    spec:
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: clusterSecretStore
+        name: vault-issuer
+      target:
+        creationPolicy: Orphan
+        data:
+          - remoteRef:
+              key: /d/openshift-config/oauth/identityProvider/htpass-secret
+              property: fileData
+            secretKey: fileData
+        deletionPolicy: Retain
+        name: htpass-secret
+  8: |
     apiVersion: config.openshift.io/v1
     kind: Image
     metadata:
@@ -53,7 +166,7 @@ manifests should match snapshot:
     spec:
       additionalTrustedCA:
         name: registry-ca-bundle
-  4: |
+  9: |
     apiVersion: config.openshift.io/v1
     kind: ImageDigestMirrorSet
     metadata:
@@ -61,7 +174,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.0.0
+        helm.sh/chart: cluster-config-standalone-1.1.0
       name: quay.apps.example.com
     spec:
       imageDigestMirrors:
@@ -80,7 +193,7 @@ manifests should match snapshot:
         - mirrors:
             - quay.apps.example.com/ghcr.io
           source: ghcr.io
-  5: |
+  10: |
     apiVersion: config.openshift.io/v1
     kind: ImageTagMirrorSet
     metadata:
@@ -88,7 +201,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.0.0
+        helm.sh/chart: cluster-config-standalone-1.1.0
       name: quay.apps.example.com
     spec:
       imageTagMirrors:
@@ -107,3 +220,87 @@ manifests should match snapshot:
         - mirrors:
             - quay.apps.example.com/ghcr.io
           source: ghcr.io
+  11: |
+    apiVersion: config.openshift.io/v1
+    kind: OAuth
+    metadata:
+      annotations: null
+      name: cluster
+    spec:
+      identityProviders:
+        - ldap:
+            attributes:
+              email:
+                - mail
+              id:
+                - sAMAccountName
+              name:
+                - cn
+              preferredUsername:
+                - sAMAccountName
+            bindDN: CN=1BA-SA-APC-OCP_AD_r,OU=T1-Service Accounts,OU=Tier 1,OU=Admin Tier Model,DC=example,DC=com
+            bindPassword:
+              name: ad-ldap-bind-secret
+            ca:
+              name: oauth-idp-ca-bundle
+            insecure: false
+            url: ldaps://example.com/DC=example,DC=com?sAMAccountName?sub?(objectClass=person)
+          mappingMethod: claim
+          name: Prihlásenie pre používateľov APC
+          type: LDAP
+        - ldap:
+            attributes:
+              email:
+                - mail
+              id:
+                - dn
+              name:
+                - cn
+              preferredUsername:
+                - uid
+            bindDN: cn=OCP HUB01,ou=Technical-Accounts,ou=hub,ou=Project-Users,dc=example,dc=com
+            bindPassword:
+              name: comm-ldap-bind-secret
+            ca:
+              name: oauth-idp-ca-bundle
+            insecure: false
+            url: ldaps://ldap.comm.apc.example.com/OU=Project-Users,dc=example,dc=com?uid
+          mappingMethod: claim
+          name: APC LDAP
+          type: LDAP
+        - mappingMethod: claim
+          name: oidcidp
+          openID:
+            ca:
+              name: oauth-idp-ca-bundle
+            claims:
+              email:
+                - custom_email_claim
+                - email
+              groups:
+                - groups
+              name:
+                - nickname
+                - given_name
+                - name
+              preferredUsername:
+                - preferred_username
+                - email
+            clientID: idp-client-id
+            clientSecret:
+              name: oidcidp-secret
+            extraAuthorizeParameters:
+              include_granted_scopes: "true"
+            extraScopes:
+              - email
+              - profile
+            issuer: https://www.idp-issuer.com
+          type: OpenID
+        - htpasswd:
+            fileData:
+              name: htpass-secret
+          mappingMethod: claim
+          name: my_htpasswd_provider
+          type: HTPasswd
+      tokenConfig:
+        accessTokenMaxAgeSeconds: 3600
