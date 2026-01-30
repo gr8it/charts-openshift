@@ -340,6 +340,34 @@ entries:
     version: 1.0.0
   apps-ck-kafka:
   - apiVersion: v2
+    created: "2026-01-28T10:03:52.102030821+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - condition: kafka-ui.enabled
+      name: kafka-ui
+      repository: https://kafbat.github.io/helm-charts
+      version: 1.5.3
+    description: Production-ready Kafka cluster using Strimzi operator with KRaft
+      mode
+    digest: 5e792e7260d817ae53657b4d3c2dd31fc16e7abe0515ed56fb507e7085f5540a
+    home: https://github.com/gr8it/charts-openshift
+    icon: https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/main/documentation/logo/strimzi_logo.png
+    keywords:
+    - kafka
+    - strimzi
+    - kraft
+    kubeVersion: '>=1.25.0'
+    name: apps-ck-kafka
+    sources:
+    - https://github.com/gr8it/charts-openshift
+    - https://strimzi.io/
+    type: application
+    urls:
+    - packaged_charts/apps-ck-kafka-1.2.1.tgz
+    version: 1.2.1
+  - apiVersion: v2
     created: "2026-01-23T08:22:27.199756305+01:00"
     dependencies:
     - name: apc-global-overrides
@@ -1793,6 +1821,21 @@ entries:
     urls:
     - packaged_charts/ingress-configuration-1.0.0.tgz
     version: 1.0.0
+  kafka-backup-operator:
+  - apiVersion: v2
+    appVersion: 0.2.6
+    created: "2026-01-28T10:07:24.324372715+01:00"
+    dependencies:
+    - name: kafka-backup-operator
+      repository: https://osodevops.github.io/helm-charts/
+      version: 0.2.6
+    description: A Helm chart to install OSO Kafka Backup Operator
+    digest: bcf3f73a89ab89d01402d8cb38fd086d0e1dfa5954486037fb662b7b3b9c30f8
+    name: kafka-backup-operator
+    type: application
+    urls:
+    - packaged_charts/kafka-backup-operator-0.1.0.tgz
+    version: 0.1.0
   keycloak:
   - apiVersion: v2
     appVersion: v26.0
@@ -1904,6 +1947,20 @@ entries:
     - packaged_charts/keycloak-operator-1.0.1.tgz
     version: 1.0.1
   kyverno:
+  - apiVersion: v2
+    appVersion: 3.5.2
+    created: "2026-01-26T22:37:13.342915499+01:00"
+    dependencies:
+    - name: kyverno
+      repository: https://kyverno.github.io/kyverno
+      version: 3.5.2
+    description: A Helm chart to install kyverno
+    digest: d42b91aa92c9daf317b503c9e3abc70a086f5a615ee323280ca4478f710d9182
+    name: kyverno
+    type: application
+    urls:
+    - packaged_charts/kyverno-1.4.0.tgz
+    version: 1.4.0
   - apiVersion: v2
     appVersion: 3.5.2
     created: "2026-01-14T09:05:09.286203+01:00"
