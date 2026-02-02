@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Refactor Kyverno policies to use label selectors instead of preconditions for namespace type filtering.
 
-
 ## [1.0.0] - 2025-08-23
 
 _Initial release._
