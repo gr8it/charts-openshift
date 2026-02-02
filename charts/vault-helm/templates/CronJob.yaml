@@ -1,0 +1,114 @@
+{{- if .Values.backup.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: vault-snapshot-job
+  namespace: {{ .Release.Namespace }}
+  labels:
+  {{- include "vault-helm.labels" $ | nindent 4 }}
+spec:
+  schedule: {{ .Values.backup.schedule | quote }}
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 3600
+      backoffLimit: 0
+      template:
+        spec:
+          serviceAccountName: {{ .Release.Name }}
+          containers:
+          - name: snapshot
+            image: {{ .Values.backup.containers.snapshot.image }}:{{ .Values.backup.containers.snapshot.tag }}
+            command: ["sh", "-c"]
+            args:
+            - |
+              set -eu
+              echo "Getting the active Vault pod"
+              VAULT_POD=$(kubectl get po -l app.kubernetes.io/name=vault -l vault-active=true -o=custom-columns=NAME:.metadata.name --no-headers)
+              echo "Active Vault pod: $VAULT_POD"
+
+              VAULT_TOKEN=$(kubectl exec "$VAULT_POD" -- vault write auth/approle/login role_id="$ROLE_ID" secret_id="$SECRET_ID" -format=json | jq -r .auth.client_token)
+              echo "Logging in to Vault and starting snapshot creation"
+              if kubectl exec "$VAULT_POD" -- env VAULT_TOKEN="$VAULT_TOKEN" vault operator raft snapshot save /vault/data/vault-raft.snap; then
+              echo "Local snapshot creation succeeded."
+              else
+              echo "Local snapshot creation failed."
+              exit 1
+              fi
+
+              echo "Copying local snapshot file"
+              if kubectl cp "$VAULT_POD":/vault/data/vault-raft.snap /share/vault-raft.snap; then
+              echo "Snapshot file copied successfully."
+              else
+              echo "Failed to copy snapshot file."
+              exit 1
+              fi
+            env :
+            - name: ROLE_ID
+              valueFrom:
+                secretKeyRef:
+                  name: vault-snapshot-agent
+                  key: VAULT_APPROLE_ROLE_ID
+            - name: SECRET_ID
+              valueFrom:
+                secretKeyRef:
+                  name: vault-snapshot-agent
+                  key: VAULT_APPROLE_SECRET_ID
+            volumeMounts:
+            - mountPath: /share
+              name: share
+          - name: upload
+            image: {{ .Values.backup.containers.upload.image }}:{{ .Values.backup.containers.upload.tag }}
+            imagePullPolicy: IfNotPresent
+            command: ["sh", "-c"]
+            args:
+            - |
+              set -eu
+
+              echo "Checking for required environment variables"
+              if [ -z "${AWS_ACCESS_KEY_ID+x}" ] || [ -z "${AWS_SECRET_ACCESS_KEY+x}" ] || [ -z "${BUCKET+x}" ] || [ -z "${ENDPOINT+x}" ]; then
+              echo "One or more required environment variables are missing."
+              exit 1
+              fi
+
+              echo "Waiting for snapshot file to be created..."
+              until [ -f /share/vault-raft.snap ]; do sleep 5; done;
+              echo "Snapshot file found. Starting upload to S3..."
+              if aws s3 cp /share/vault-raft.snap "s3://${BUCKET}/vault_raft_$(date +"%Y%m%d_%H%M%S").snap" --endpoint-url https://"${ENDPOINT}" --no-verify-ssl; then
+              echo "Upload to S3 succeeded."
+              else
+              echo "Upload to S3 failed."
+              exit 1
+              fi
+            env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  optional: true
+                  name: {{ .Values.backup.s3bucketCredentials }}
+                  key: aws_access_key_id
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  optional: true
+                  name: {{ .Values.backup.s3bucketCredentials }}
+                  key: aws_secret_access_key
+            - name: BUCKET
+              valueFrom:
+                secretKeyRef:
+                  optional: true
+                  name: {{ .Values.backup.s3bucketCredentials }}
+                  key: bucket
+            - name: ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  optional: true
+                  name: {{ .Values.backup.s3bucketCredentials }}
+                  key: endpoint
+            volumeMounts:
+            - mountPath: /share
+              name: share
+          volumes:
+          - name: share
+            emptyDir: {}
+          restartPolicy: Never
+{{- end }}

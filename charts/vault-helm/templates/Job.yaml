@@ -1,0 +1,75 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vault-init-job
+  namespace: {{ .Release.Namespace }}
+  labels:
+  {{- include "vault-helm.labels" $ | nindent 4 }}
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      serviceAccountName: {{ .Release.Name }}
+      containers:
+        - name: vault-init-container
+          image: registry.redhat.io/openshift4/ose-cli:v4.15
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -eu
+
+              log_message() {
+                local timestamp
+                timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+                echo -e "$timestamp $1"
+              }
+
+              stat="$(oc -n ${VAULT_INSTANCE} get pod ${VAULT_INSTANCE}-0 -o jsonpath='{ .status.phase }')"
+              count=0
+
+              log_message "INFO: Checking if the vault pod for initialization is ready"
+
+              until [[ "$stat" == "Running" || $count -gt 3 ]]; do
+                stat=$(oc -n ${VAULT_INSTANCE} get pod ${VAULT_INSTANCE}-0 -o jsonpath='{ .status.phase }')
+                count=$(($count + 1))
+                sleep 3
+              done
+
+              if [[ "$stat" == "Running" ]]; then
+                log_message "INFO: Vault pod is $stat"
+              else
+                log_message "ERROR: Vault pod is $stat"
+                exit 1
+              fi
+
+              log_message "INFO: Checking if the Vault is already initialized"
+              vault_init_state=$(oc -n ${VAULT_INSTANCE} exec ${VAULT_INSTANCE}-0 -c vault -- vault status -format=json 2>/dev/null | grep -o '"initialized": true' || echo "not_initialied")
+
+              if [[ "${vault_init_state}" == '"initialized": true' ]]; then
+                log_message "INFO: Vault is already initialized. Exiting."
+                exit 0
+              else
+                log_message "INFO: Initilizing Vault..."
+
+                if oc -n ${VAULT_INSTANCE} exec ${VAULT_INSTANCE}-0 -c vault -- vault operator init > /tmp/init.txt 2>&1; then
+                  log_message "INFO: Vault initialized."
+                else
+                  log_message "ERROR: Problem with initialazing Vault instance."
+                  exit 1
+                fi
+
+                log_message "INFO: Creating secret with Vault init information."
+
+                if oc create -n ${VAULT_INSTANCE} secret generic init-log-$(date +%Y%m%d%H%M%S) --from-file=/tmp/init.txt; then
+                  log_message "INFO: Secret with Vault init information created."
+                else
+                  log_message "ERROR: Problem with creating Vault init information secret."
+                  exit 1
+                fi
+              fi
+
+          securityContext: {}
+          env:
+          - name: VAULT_INSTANCE
+            value: "{{ .Release.Name }}"
+      restartPolicy: Never
