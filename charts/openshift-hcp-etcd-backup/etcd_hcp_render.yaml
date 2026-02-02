@@ -1,0 +1,532 @@
+---
+# Source: openshift-hcp-etcd-backup/templates/network-policy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: openshift-hcp-etcd-backup
+  namespace: openshift-compliance
+  labels:
+    app.kubernetes.io/name: openshift-hcp-etcd-backup
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: etcd-hcp-backup-dev01
+    app.kubernetes.io/version: "1.0.0"
+    helm.sh/chart: openshift-hcp-etcd-backup-1.0.0
+spec:
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: openshift-compliance
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: openshift-hcp-etcd-backup
+          app.kubernetes.io/instance: openshift-hcp-etcd-backup
+  podSelector:
+    matchExpressions:
+    - key: "statefulset.kubernetes.io/pod-name"
+      operator: In
+      values:
+      - etcd-0
+      - etcd-1
+      - etcd-2
+      - etcd-3
+      - etcd-4
+  policyTypes:
+  - Ingress
+---
+# Source: openshift-hcp-etcd-backup/templates/service-account.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: openshift-hcp-etcd-backup
+  namespace: openshift-compliance
+  labels:
+    app.kubernetes.io/name: openshift-hcp-etcd-backup
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: etcd-hcp-backup-dev01
+    app.kubernetes.io/version: "1.0.0"
+    helm.sh/chart: openshift-hcp-etcd-backup-1.0.0
+---
+# Source: openshift-hcp-etcd-backup/templates/backup-scripts-cm.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: etcd-hcp-backup-dev01-scripts
+  namespace: openshift-compliance
+  labels:
+    app.kubernetes.io/name: openshift-hcp-etcd-backup
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: etcd-hcp-backup-dev01
+    app.kubernetes.io/version: "1.0.0"
+    helm.sh/chart: openshift-hcp-etcd-backup-1.0.0
+data:
+  env.etcdsts: "etcd"
+  env.fileprefix: "etcd-dev01"
+  env.hcpns: "dev01-dev01"
+  env.retention: "30"
+  env.compress: "false"
+  init.sh: |
+    #!/bin/bash
+    set -euo pipefail
+
+    log_message() {
+      local timestamp
+      timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+      echo -e "$timestamp $1"
+    }
+
+    log_messagef() {
+      while read -r line; do
+        log_message "$line"
+      done < $1
+    }
+
+    # cleanup
+    find /backup -path '*/backup/*' -delete
+
+    # check etcd deployment
+    if ! READY=$( kubectl get statefulset "$STATEFULSET" -n "$HCPNS" -o jsonpath='{.status.readyReplicas}' 2>/dev/shm/out.err ); then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Failed to get readyReplicas for StatefulSet/$STATEFULSET"
+      exit 1
+    fi
+
+    if ! TOTAL=$( kubectl get statefulset "$STATEFULSET" -n "$HCPNS" -o jsonpath='{.status.replicas}' 2>/dev/shm/out.err ); then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Failed to get replicas for StatefulSet/$STATEFULSET"
+      exit 1
+    fi
+
+    if test $READY -ne $TOTAL || test $(expr $READY + $TOTAL ) -eq 0; then
+      log_message "ERROR: Insufficient readyReplicas in StatefulSet/$STATEFULSET"
+      exit 1
+    fi
+
+    # get a random running etcd pod
+    if ! ETCDPOD=$( kubectl -n $HCPNS get po -l app=etcd -o custom-columns=":metadata.name,:status.conditions[?(@.type=='Ready')].status" 2>/dev/shm/out.err | awk '$2 == "True" {print $1}' | shuf -n 1 ); then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Failed to get a list of running etcd pods"
+      exit 1
+    fi
+
+    if [ -z ${ETCDPOD+x} ]; then
+      log_message "ERROR: Failed to find a running etcd pod"
+      exit 1
+    fi
+
+    # copy certificates
+    mkdir /backup/certs
+
+    if ! kubectl -n "$HCPNS" -c etcd cp "$ETCDPOD":/etc/etcd/tls/etcd-ca/..data/ca.crt /backup/certs/ca.crt 2>/dev/shm/out.err 1>/dev/null; then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Failed to get ca.crt from $ETCDPOD"
+      exit 1
+    fi
+
+    if ! kubectl -n "$HCPNS" -c etcd cp "$ETCDPOD":/etc/etcd/tls/client/..data/etcd-client.crt /backup/certs/etcd-client.crt 2>/dev/shm/out.err 1>/dev/null; then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Failed to get etcd-client.crt from $ETCDPOD"
+      exit 1
+    fi
+
+    if ! kubectl -n "$HCPNS" -c etcd cp "$ETCDPOD":/etc/etcd/tls/client/..data/etcd-client.key /backup/certs/etcd-client.key 2>/dev/shm/out.err 1>/dev/null; then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Failed to get etcd-client.key from $ETCDPOD"
+      exit 1
+    fi
+
+    log_message "Init complete."
+    exit 0
+
+  etcdsnap.sh: |
+    #!/bin/bash
+    set -euo pipefail
+
+    log_message() {
+      local timestamp
+      timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+      echo -e "$timestamp $1"
+    }
+
+    log_messagef() {
+      while read -r line; do
+        log_message "$line"
+      done < $1
+    }
+
+    export ETCDCTL_API=3
+
+    # select random running etcd endpoint
+    if ! ENDPOINT=$(etcdctl --cacert=/backup/certs/ca.crt --cert=/backup/certs/etcd-client.crt --key=/backup/certs/etcd-client.key --endpoints=https://etcd-client."$HCPNS".svc:2379 member list 2>/dev/shm/out.err | awk -F', ' '$2 == "started" {print $5}'  | shuf -n 1); then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Failed to get a list of etcd endpoints"
+      exit 1
+    fi
+
+    if [ -z ${ENDPOINT+x} ]; then
+      log_message "ERROR: Failed to select a running etcd endpoint"
+      exit 1
+    fi
+
+    # check etcd endpoint health
+    if ! etcdctl --cacert=/backup/certs/ca.crt --cert=/backup/certs/etcd-client.crt --key=/backup/certs/etcd-client.key --endpoints="$ENDPOINT" endpoint health 2>/dev/shm/out.err 1>/dev/null; then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Endpoint $ENDPOINT is not healthy"
+      exit 1
+    fi
+
+    # create snapshot
+    DATESTRING=$(date -u "+%F_%H%M%SZ")
+    SNAPSHOT_FILE="/backup/${FILEPREFIX}_${DATESTRING}.db"
+    if ! etcdctl --cacert=/backup/certs/ca.crt --cert=/backup/certs/etcd-client.crt --key=/backup/certs/etcd-client.key --endpoints="$ENDPOINT" snapshot save "$SNAPSHOT_FILE" 2>/dev/shm/out.err 1>/dev/null; then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Failed to create snapshot"
+      exit 2
+    fi
+
+    # verify snapshot
+    if ! etcdutl snapshot status "$SNAPSHOT_FILE" 2>/dev/shm/out.err 1>/dev/null; then
+      rm -f "$SNAPSHOT_FILE"
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Snapshot file integrity verification failed"
+      exit 2
+    fi
+
+    if (echo 'yes true enable enabled 1'|grep -wqi "$COMPRESS"); then
+      # archive
+      if ! gzip --best "$SNAPSHOT_FILE" 2>/dev/shm/out.err 1>/dev/null; then
+        log_messagef /dev/shm/out.err
+        log_message "ERROR: Failed to compress the snapshot file"
+        exit 3
+      fi
+
+      if ! gzip --test "${SNAPSHOT_FILE}.gz" 2>/dev/shm/out.err 1>/dev/null; then
+        log_messagef /dev/shm/out.err
+        log_message "ERROR: Failed to test the archive integrity"
+        exit 3
+      fi
+
+      log_message "Snapshot saved to ${SNAPSHOT_FILE}.gz"
+    else
+      log_message "Snapshot saved to ${SNAPSHOT_FILE}"
+    fi
+
+    exit 0
+
+  s3upload.sh: |
+    #!/bin/bash
+    set -euo pipefail
+
+    log_message() {
+      local timestamp
+      timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+      echo -e "$timestamp $1"
+    }
+
+    log_messagef() {
+      while read -r line; do
+        log_message "$line"
+      done < $1
+    }
+
+    # check snapshot file
+    SNAPSHOT_FILE=$(find /backup -type f -mmin -30 -name "${FILEPREFIX}*db*" | sort | tail -1)
+    if ! test -r "$SNAPSHOT_FILE"; then
+      log_message "ERROR: Failed to locate a valid snapshot file."
+      exit 1
+    fi
+
+    # setup aws env variables
+    export AWS_REQUEST_CHECKSUM_CALCULATION=when_required
+    export AWS_RESPONSE_CHECKSUM_VALIDATION=when_required
+    export AWS_ENDPOINT_URL="https://${BUCKET_HOST}:${BUCKET_PORT}"
+
+    # upload etcd backup to s3 bucket
+    if ! aws s3 cp "$SNAPSHOT_FILE" "s3://$BUCKET_NAME" --no-progress 2>/dev/shm/out.err 1>/dev/null; then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Failed to upload $(basename "$SNAPSHOT_FILE") to s3://$BUCKET_NAME "
+      exit 2
+    fi
+
+    if ! aws s3api head-object --bucket "$BUCKET_NAME" --key $(basename "$SNAPSHOT_FILE") 2>/dev/shm/out.err 1>/dev/null; then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Unable to verify uploaded object s3://${BUCKET_NAME}/$(basename "$SNAPSHOT_FILE")"
+      exit 2
+    fi
+
+    log_message "Snapshot has been uploaded to s3://${BUCKET_NAME}/$(basename "$SNAPSHOT_FILE")"
+
+    # run cleanup
+    if ! expr "$RETENTION" : '^[0-9]\+$' 2>/dev/shm/out.err 1>/dev/null; then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Value for retention is not a valid integer"
+      exit 1
+    fi
+
+    if ! RETENTION_DATE=$( date -u --date="${RETENTION} days ago" +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/shm/out.err ); then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Faield to set a retention date"
+      exit 1
+    fi
+
+    if ! aws s3api list-objects-v2 --bucket $BUCKET_NAME --query "Contents[?LastModified<='$RETENTION_DATE'].{Key: Key} | {Objects: [*]}" 2>/dev/shm/out.err 1>/backup/delete.json; then
+      log_messagef /dev/shm/out.err
+      log_message "ERROR: Failed to generate a list of objects to delete"
+      exit 1
+    fi
+
+    if grep -qE '"Objects":\s*\[\s*\]' /backup/delete.json; then
+      log_message "No objects older than $RETENTION days found - skipping cleanup."
+      exit 0
+    fi
+
+    log_message "Removing obejcts older than $RETENTION days:"
+    if ! aws s3api delete-objects --bucket $BUCKET_NAME --delete file:///backup/delete.json --output text >/dev/shm/out 2>&1; then
+      log_messagef /dev/shm/out
+      log_message "ERROR: Failed to remove objects."
+      exit 1
+    fi
+
+    log_messagef /dev/shm/out
+    log_message "Cleanup complete."
+    exit 0
+---
+# Source: openshift-hcp-etcd-backup/templates/role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: openshift-hcp-etcd-backup
+  namespace: openshift-compliance
+  labels:
+    app.kubernetes.io/name: openshift-hcp-etcd-backup
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: etcd-hcp-backup-dev01
+    app.kubernetes.io/version: "1.0.0"
+    helm.sh/chart: openshift-hcp-etcd-backup-1.0.0
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs:     ["list"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs:     ["get"]
+  resourceNames:
+  - etcd-0
+  - etcd-1
+  - etcd-2
+  - etcd-3
+  - etcd-4
+- apiGroups: [""]
+  resources: ["pods/exec"]
+  verbs:     ["create"]
+  resourceNames:
+  - etcd-0
+  - etcd-1
+  - etcd-2
+  - etcd-3
+  - etcd-4
+- apiGroups: ["apps"]
+  resources: ["statefulsets"]
+  verbs:     ["get"]
+  resourceNames: ["etcd"]
+---
+# Source: openshift-hcp-etcd-backup/templates/role-binding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: openshift-hcp-etcd-backup
+  namespace: openshift-compliance
+  labels:
+    app.kubernetes.io/name: openshift-hcp-etcd-backup
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: etcd-hcp-backup-dev01
+    app.kubernetes.io/version: "1.0.0"
+    helm.sh/chart: openshift-hcp-etcd-backup-1.0.0
+subjects:
+  - kind: ServiceAccount
+    name: openshift-hcp-etcd-backup
+    namespace: openshift-compliance
+roleRef:
+  kind: Role
+  name: openshift-hcp-etcd-backup
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: openshift-hcp-etcd-backup/templates/backup-job.yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: etcd-hcp-backup-dev01
+  namespace: openshift-compliance
+  labels:
+    app.kubernetes.io/name: openshift-hcp-etcd-backup
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: etcd-hcp-backup-dev01
+    app.kubernetes.io/version: "1.0.0"
+    helm.sh/chart: openshift-hcp-etcd-backup-1.0.0
+spec:
+  schedule: "0 * * * *"
+  concurrencyPolicy: Forbid
+  suspend: false
+  successfulJobsHistoryLimit: 7
+  failedJobsHistoryLimit: 7
+  jobTemplate:
+    metadata:
+      labels:
+        app.kubernetes.io/name: openshift-hcp-etcd-backup
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/instance: etcd-hcp-backup-dev01
+        app.kubernetes.io/version: "1.0.0"
+        helm.sh/chart: openshift-hcp-etcd-backup-1.0.0
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: openshift-hcp-etcd-backup
+            app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/instance: etcd-hcp-backup-dev01
+            app.kubernetes.io/version: "1.0.0"
+            helm.sh/chart: openshift-hcp-etcd-backup-1.0.0
+        spec:
+          serviceAccountName: openshift-hcp-etcd-backup
+          restartPolicy: Never
+          initContainers:
+          - name: init
+            image: registry.redhat.io/openshift4/ose-cli:v4.15
+            command: ["/bin/bash", "/usr/local/bin/init.sh"]
+            volumeMounts:
+            - name: workdir
+              mountPath: /backup
+            - name: scripts
+              mountPath: /usr/local/bin/init.sh
+              subPath: init.sh
+              readOnly: true
+            env:
+            - name: STATEFULSET
+              valueFrom:
+                configMapKeyRef:
+                  name: openshift-hcp-etcd-backup-scripts
+                  key: env.etcdsts
+            - name: HCPNS
+              valueFrom:
+                configMapKeyRef:
+                  name: openshift-hcp-etcd-backup-scripts
+                  key: env.hcpns
+          - name: snapshot
+            image: registry.redhat.io/openshift4/ose-etcd:v4.12
+            command: ["/bin/bash", "/usr/local/bin/etcdsnap.sh"]
+            volumeMounts:
+            - name: workdir
+              mountPath: /backup
+            - name: scripts
+              mountPath: /usr/local/bin/etcdsnap.sh
+              subPath: etcdsnap.sh
+              readOnly: true
+            env:
+            - name: HCPNS
+              valueFrom:
+                configMapKeyRef:
+                  name: openshift-hcp-etcd-backup-scripts
+                  key: env.hcpns
+            - name: FILEPREFIX
+              valueFrom:
+                configMapKeyRef:
+                  name: openshift-hcp-etcd-backup-scripts
+                  key: env.fileprefix
+            - name: COMPRESS
+              valueFrom:
+                configMapKeyRef:
+                  name: openshift-hcp-etcd-backup-scripts
+                  key: env.compress
+          containers:
+          - name: s3backup
+            image: amazon/aws-cli:2.24.27
+            command: ["/bin/bash", "/usr/local/bin/s3upload.sh"]
+            volumeMounts:
+            - name: workdir
+              mountPath: /backup
+            - name: scripts
+              mountPath: /usr/local/bin/s3upload.sh
+              subPath: s3upload.sh
+              readOnly: true
+            - name: s3ca
+              mountPath: /etc/ssl/certs/s3ca.crt
+              subPath: service-ca.crt
+              readOnly: true
+            env:
+            - name: RETENTION
+              valueFrom:
+                configMapKeyRef:
+                  name: openshift-hcp-etcd-backup-scripts
+                  key: env.retention
+            - name: FILEPREFIX
+              valueFrom:
+                configMapKeyRef:
+                  name: openshift-hcp-etcd-backup-scripts
+                  key: env.fileprefix
+            - name: AWS_CA_BUNDLE
+              value: "/etc/ssl/certs/s3ca.crt"
+            envFrom:
+            - secretRef:
+                name: openshift-hcp-etcd-backup
+            - configMapRef:
+                name: openshift-hcp-etcd-backup
+            resources:
+              requests:
+                memory: "100Mi"
+                cpu: "50m"
+              limits:
+                memory: "512Mi"
+                cpu: "200m"
+          volumes:
+          - name: workdir
+            emptyDir:
+              sizeLimit: 10Gi
+          - name: scripts
+            configMap:
+              name: openshift-hcp-etcd-backup-scripts
+              defaultMode: 0555
+          - name: s3ca
+            configMap:
+              name: openshift-service-ca.crt
+---
+# Source: openshift-hcp-etcd-backup/templates/object-bucket-claim.yaml
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: etcd-hcp-dev01-backup
+  namespace: openshift-compliance
+  labels:
+    app.kubernetes.io/name: openshift-hcp-etcd-backup
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: etcd-hcp-backup-dev01
+    app.kubernetes.io/version: "1.0.0"
+    helm.sh/chart: openshift-hcp-etcd-backup-1.0.0
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  generateBucketName: etcd-hcp-dev01-backup
+  storageClassName: ocs-storagecluster-ceph-rgw
+---
+# Source: openshift-hcp-etcd-backup/templates/prometheus-rule.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: openshift-hcp-etcd-backup-rules
+  namespace: openshift-compliance
+  labels:
+    app.kubernetes.io/name: openshift-hcp-etcd-backup
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: etcd-hcp-backup-dev01
+    app.kubernetes.io/version: "1.0.0"
+    helm.sh/chart: openshift-hcp-etcd-backup-1.0.0
+spec:
+  groups:
+  - name: cronjob.rules
+    rules:
+      - alert: EtcdBackupJobFailure
+        expr: kube_job_status_failed{namespace="openshift-compliance", job_name=~"openshift-hcp-etcd-backup-.*"} > 0
+        labels:
+          severity: critical
+        annotations:
+          summary: "ETCD backup job for dev01 has failed"
+          description: "ETCD backup job for dev01 {{ $labels.namespace }}/{{ $labels.job_name}} has failed."
