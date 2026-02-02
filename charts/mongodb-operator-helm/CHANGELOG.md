@@ -12,4 +12,4 @@ _([SPEXAPC-12156](https://aspecta.atlassian.net/browse/SPEXAPC-12156))_
 
 ### Fixed
 
-- Selector label for monitoring service to poing to operator pod  
+- Selector label for monitoring service to point to operator pod  
