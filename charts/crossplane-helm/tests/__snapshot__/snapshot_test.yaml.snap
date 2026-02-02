@@ -21,24 +21,3 @@ manifests should match snapshot:
       podSelector: {}
       policyTypes:
         - Egress
-  2: |
-    apiVersion: monitoring.coreos.com/v1
-    kind: PodMonitor
-    metadata:
-      labels:
-        app.kubernetes.io/instance: crossplane-helm
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: crossplane-helm
-        app.kubernetes.io/version: 2.0.6
-        helm.sh/chart: crossplane-helm-2.0.0
-      name: crossplane-helm
-      namespace: apc-crossplane-system
-    spec:
-      namespaceSelector:
-        matchNames:
-          - apc-crossplane-system
-      podMetricsEndpoints:
-        - port: metrics
-      selector:
-        matchLabels:
-          app: crossplane
