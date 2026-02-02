@@ -13,6 +13,15 @@ There are two XRDs:
 
 Usage of APC Keycloak is preferred due to operational complexity of running a Keycloak instance 24/7
 
+## Prerequisites
+
+- Crossplane 2.0+ installed (required for namespaced resources)
+- Crossplane XR functions go-templating / auto-ready installed (see[crossplane-xr-functions](../crossplane-xr-functions/))
+- Keycloak instance with admin privilege
+- Crossplane keycloak provider installed (see [crossplane-keycloak-provider](../crossplane-keycloak-provider/)) and configured (see [](../crossplane-keycloak-provider-bootstrap/))
+  - Requires local user with admin role in the master realm of Keycloak!
+- Bamoe client configured in Keycloak (see [apps-centralne-komponenty-bamoe](../apps-centralne-komponenty-bamoe/))
+
 ### Microservice
 
 Using the microservice.ck.socpoist.sk XR allows projet admins / operators to:
@@ -53,3 +62,12 @@ To transform the OpenAPI schemas into XRD, yq can be used, e.g.:
 ```bash
 yq ".spec.versions[0].schema.openAPIV3Schema = \"$(yq -p json -o yaml openapischemas/xrd-microservice.json)\"" --inplace templates/xrd-microservice.yaml
 ```
+
+## TODO
+
+- migrate Crossplane to v2.0+
+- finish crossplane keycloak provider bootstrap (either manual setup, or automatic)
+- test in SP dev01
+  - deploy to test / prod
+- agree on interconnection of APC Keycloak with SP Keycloak
+  - implement (in code?)
