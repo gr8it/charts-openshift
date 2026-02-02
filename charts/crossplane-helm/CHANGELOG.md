@@ -5,6 +5,14 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-02-02
+
+_([SPEXAPC-12155](https://aspecta.atlassian.net/browse/SPEXAPC-12155))_
+
+### Changed
+
+- Bump `Crossplane` to 2.1.3
+
 ## [2.0.0] - 2026-02-02
 
 _([SPEXAPC-12155](https://aspecta.atlassian.net/browse/SPEXAPC-12155))_
