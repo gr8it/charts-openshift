@@ -26,93 +26,100 @@ spec:
               "list"
             )
 
-            // Read the composite resource
-            composite: _
-
-            // Query existing IPAddressPools from observed resources
-            // This would be populated by Crossplane from the cluster
-            existingPools: [
-              // These would be actual IPAddressPools discovered
-              // For now, using observed resources from Crossplane
-            ]
-
-            // Extract all addresses from existing pools
-            existingAddresses: [
-              for pool in existingPools {
-                for addr in pool.spec.addresses {
-                  addr
-                }
-              }
-            ]
-
-            // Flatten the list
-            flatExistingAddresses: list.FlattenN(existingAddresses, 1)
-
-            // Update composite status with existing addresses
-            _: {
-              status: {
-                existingAddresses: flatExistingAddresses
-                discoveredPoolCount: len(existingPools)
-              }
+            // Read all IPAddressPool resources from the cluster
+            pools: {
+              apiVersion: "metallb.io/v1beta1"
+              kind: "IPAddressPool"
             }
 
-    # Step 1: Read ConfigMap for address ranges using Kubernetes provider
+            // Extract addresses from all pools
+            _poolList: list.Flatten([
+              for pool in __kubeClient.Resources.items {
+                if pool.kind == "IPAddressPool" {
+                  pool.spec.addresses
+                }
+              }
+            ])
+
+            // Output the list of existing IPs to composite status
+            _existingIPs: list.FlattenN(_poolList, 1)
+
+            // Return results for use in pipeline
+            results: {
+              existingIPAddressPools: _existingIPs
+            }
+    # Step 1: Read ConfigMap apc-metallbips-range for metallb address ranges using Kubernetes provider
     - step: read-config
+      functionRef:
+        name: function-kubernetes-read
+      input:
+        apiVersion: k8sfn.crossplane.io/v1beta1
+        kind: ReadResource
+        metadata:
+          name: read-metallb-config
+        spec:
+          forProvider:
+            apiVersion: v1
+            kind: ConfigMap
+            name: apc-metallbips-range
+            namespace: metallb
+          providerConfigRef:
+            name: k8s-provider
+      output:
+        toFieldPath: spec.configMapData
+    # Step 2: Selected 1st available IP from the configured ranges excluding already assigned IPs
+    - step: select-ips
       functionRef:
         name: function-cue
       input:
         apiVersion: cue.fn.crossplane.io/v1beta1
         kind: CueInput
         metadata:
-          name: read-config
+          name: select-ips
         spec:
           code: |
             import (
               "encoding/json"
               "list"
+              "net"
               "strings"
             )
 
-            // Read the composite resource
-            composite: _
+            // Get configured address ranges from ConfigMap
+            _configData: __kubeClient.Resources.configMapData
+            _ranges: json.Unmarshal(_configData["ranges"])
 
-            // Get existing addresses from previous step
-            existingAddresses: composite.status.existingAddresses | []
+            // Get existing IPs from previous step
+            _existingIPs: __kubeClient.Resources.existingIPAddressPools
 
-            // Get ConfigMap data (passed from kubernetes provider step or defaults)
-            config: {
-              addressRanges: [
-                "10.0.0.0/24",
-                "10.1.0.0/24",
-                "10.100.0.0/16",
-              ]
-              allocationStrategy: "first-available"
-              excludeExisting: true
+            // Parse CIDR ranges and generate available IPs
+            _generateAvailableIPs: {
+              for cidr in _ranges {
+                let network = net.ParseCIDR(cidr)
+                let ips = net.HostsInNetwork(network)
+                for ip in ips {
+                  ip
+                }
+              }
             }
 
-            // Filter out existing ranges
-            availableRanges: [
-              for range in config.addressRanges {
-                if !list.Contains(existingAddresses, range) {
-                  range
+            // Filter out already assigned IPs
+            _availableIPs: [
+              for ip in _generateAvailableIPs {
+                if !list.Contains(_existingIPs, ip) {
+                  ip
                 }
               }
             ]
 
-            // Extract first available address range (not in existing pools)
-            selectedRange: availableRanges[0]
+            // Select first available IP
+            _selectedIP: _availableIPs[0]
 
-            // Update composite status with allocated address and discovered info
-            _: {
-              status: {
-                allocatedAddresses: [selectedRange]
-                configLoaded: true
-                availableRanges: availableRanges
-                excludedRangeCount: len(config.addressRanges) - len(availableRanges)
-              }
+            // Return results
+            results: {
+              allocatedAddresses: [_selectedIP]
             }
-
-    # Step 2: Patch and transform resources with allocated IPs
+    # Step 3: Patch and transform resources with allocated IPs
     - step: patch-and-transform
       functionRef:
         name: function-patch-and-transform

@@ -1,34 +1,14 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: metallb-address-ranges
+  name: apc-metallbips-range
   namespace: metallb-system
 data:
   address-ranges: |
     {
-      "ranges": [
+      "range":
         {
-          "name": "primary",
           "start": "10.0.0.1",
           "end": "10.0.0.254",
-          "cidr": "10.0.0.0/24",
-          "description": "Primary IP pool for applications"
-        },
-        {
-          "name": "secondary",
-          "start": "10.1.0.1",
-          "end": "10.1.0.254",
-          "cidr": "10.1.0.0/24",
-          "description": "Secondary IP pool for applications"
-        },
-        {
-          "name": "services",
-          "start": "10.100.0.1",
-          "end": "10.100.255.254",
-          "cidr": "10.100.0.0/16",
-          "description": "IP pool for services"
         }
-      ],
-      "allocationStrategy": "first-available",
-      "excludeExisting": true
     }
