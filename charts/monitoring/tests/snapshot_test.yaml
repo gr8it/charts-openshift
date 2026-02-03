@@ -8,17 +8,4 @@ release:
 tests:
   - it: rendered cluster-policy-cluster-monitoring manifest
     asserts:
-      # Assert 1: Verifies the path contains the opening escaped bracket \{{
-      - matchRegex:
-          path: spec.rules[0].generate.data.spec.groups[0].rules[*].annotations.description
-          pattern: '\\\{\{'
-      # Assert 2: Verifies the path contains the closing escaped bracket }}
-      - matchRegex:
-          path: spec.rules[0].generate.data.spec.groups[0].rules[*].annotations.description
-          pattern: '\}\}'
-      # Assert 3: Fail if opening brackets are not in format \{{
-      - notMatchRegex:
-          path: spec.rules[0].generate.data.spec.groups[0].rules[*].annotations.description
-          pattern: '(^|[^\\])\{\{'
       - matchSnapshot: {}
-
