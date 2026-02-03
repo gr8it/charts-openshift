@@ -1,0 +1,20 @@
+suite: Rendering prometheus rules
+templates:
+  - cluster-policy-cluster-monitoring.yaml
+release:
+  name: monitoring
+  namespace: openshift-monitoring
+
+tests:
+  - it: cluster-policy-cluster-monitoring manifest should match the escaped variables in description
+    asserts:
+      # Step 1: Verifies the path contains the opening escaped bracket \{{
+      - matchRegex:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].annotations.description
+          pattern: '\\\{\{'
+      # Step 2: Verifies the path contains the closing bracket }}
+      - matchRegex:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].annotations.description
+          pattern: '\}\}'
+      # Step 3: Creates the .snap file
+      - matchSnapshot: {}
