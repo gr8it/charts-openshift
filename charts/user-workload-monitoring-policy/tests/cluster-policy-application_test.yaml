@@ -1,0 +1,11 @@
+suite: Rendering prometheus rules
+templates:
+  - cluster-policy-application.yaml
+release:
+  name: monitoring
+  namespace: openshift-monitoring
+
+tests:
+  - it: rendered cluster-policy-cluster-application manifest
+    asserts:
+      - matchSnapshot: {}
