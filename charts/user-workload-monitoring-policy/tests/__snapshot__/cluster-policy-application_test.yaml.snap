@@ -31,7 +31,7 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubePodCrashLooping
                         annotations:
                           description: Pod \{{ $labels.pod }}, container \{{ $labels.container }} in namespace \{{ $labels.namespace }} is in a CrashLoopBackOff state.
-                          summary: Pod is crash looping.
+                          summary: Pod is crash looping
                         expr: max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m]) >= 1
                         for: 15m
                         labels:
@@ -42,7 +42,7 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubePodNotReady
                         annotations:
                           description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been in a non-ready state for longer than 15 minutes.
-                          summary: Pod has been in a non-ready state for more than 15 minutes.
+                          summary: Pod has been in a non-ready state for more than 15 minutes
                         expr: |-
                           sum by (namespace, pod, cluster) (
                             max by (namespace, pod, cluster) (
@@ -74,7 +74,7 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubeDeploymentReplicasMismatch
                         annotations:
                           description: Deployment \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} has not matched the expected number of replicas for longer than 15 minutes.
-                          summary: Deployment has not matched the expected number of replicas.
+                          summary: Deployment has not matched the expected number of replicas
                         expr: |-
                           (
                             kube_deployment_spec_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -94,7 +94,7 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubeDeploymentRolloutStuck
                         annotations:
                           description: Rollout of deployment \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} is not progressing for longer than 15 minutes.
-                          summary: Deployment rollout is not progressing.
+                          summary: Deployment rollout is not progressing
                         expr: |-
                           kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                           != 0
@@ -107,7 +107,7 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubeStatefulSetReplicasMismatch
                         annotations:
                           description: StatefulSet \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} has not matched the expected number of replicas for longer than 15 minutes.
-                          summary: StatefulSet has not matched the expected number of replicas.
+                          summary: StatefulSet has not matched the expected number of replicas
                         expr: |-
                           (
                             kube_statefulset_status_replicas_ready{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -141,7 +141,7 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubeStatefulSetUpdateNotRolledOut
                         annotations:
                           description: StatefulSet \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} update has not been rolled out.
-                          summary: StatefulSet update has not been rolled out.
+                          summary: StatefulSet update has not been rolled out
                         expr: |-
                           (
                             max by (namespace, statefulset, job, cluster) (
@@ -169,7 +169,7 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubeDaemonSetRolloutStuck
                         annotations:
                           description: DaemonSet \{{ $labels.daemonset }} in namespace \{{ $labels.namespace }} has not finished or progressed for at least 15m.
-                          summary: DaemonSet rollout is stuck.
+                          summary: DaemonSet rollout is stuck
                         expr: |-
                           (
                             (
@@ -214,7 +214,7 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubeDaemonSetNotScheduled
                         annotations:
                           description: There are \{{ $value }} pods of DaemonSet \{{ $labels.daemonset }} that are not scheduled.
-                          summary: DaemonSet pods are not scheduled.
+                          summary: DaemonSet pods are not scheduled
                         expr: |-
                           kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                             -
@@ -228,7 +228,7 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubeDaemonSetMisScheduled
                         annotations:
                           description: Found \{{ $value }} mis-scheduled pods for DaemonSet \{{ $labels.daemonset }} in namespace \{{ $labels.namespace }}.
-                          summary: DaemonSet pods are misscheduled.
+                          summary: DaemonSet pods are misscheduled
                         expr: kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
                         for: 15m
                         labels:
@@ -253,7 +253,7 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubeJobFailed
                         annotations:
                           description: Job \{{ $labels.job_name }} in namespace \{{ $labels.namespace }} failed to complete. Removing failed job after investigation should clear this alert.
-                          summary: Job failed to complete.
+                          summary: Job failed to complete
                         expr: kube_job_failed{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}  > 0
                         for: 15m
                         labels:
@@ -264,7 +264,7 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubeHpaReplicasMismatch
                         annotations:
                           description: HPA \{{ $labels.horizontalpodautoscaler  }} has not matched the desired number of replicas for longer than 15 minutes.
-                          summary: HPA has not matched desired number of replicas.
+                          summary: HPA has not matched desired number of replicas
                         expr: |-
                           (kube_horizontalpodautoscaler_status_desired_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                             !=
@@ -302,7 +302,7 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubePdbNotEnoughHealthyPods
                         annotations:
                           description: PDB \{{ $labels.poddisruptionbudget }} expects \{{ $value }} more healthy pods. The desired number of healthy pods has not been met for at least 15m.
-                          summary: PDB does not have enough healthy pods.
+                          summary: PDB does not have enough healthy pods
                         expr: |-
                           (
                             kube_poddisruptionbudget_status_desired_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -319,7 +319,7 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubePersistentVolumeFillingUp
                         annotations:
                           description: The PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is only \{{ $value | humanizePercentage }} free.
-                          summary: PersistentVolume is filling up.
+                          summary: PersistentVolume is filling up
                         expr: |-
                           (
                             kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
@@ -341,7 +341,7 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubePersistentVolumeFillingUp
                         annotations:
                           description: Based on recent sampling, the PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is expected to fill up within four days. Currently \{{ $value | humanizePercentage }} is available.
-                          summary: PersistentVolume is filling up.
+                          summary: PersistentVolume is filling up
                         expr: |-
                           (
                             kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
@@ -365,7 +365,7 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubePersistentVolumeInodesFillingUp
                         annotations:
                           description: The PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} has only \{{ $value | humanizePercentage }} free inodes.
-                          summary: PersistentVolumeInodes are filling up.
+                          summary: PersistentVolumeInodes are filling up
                         expr: |-
                           (
                             kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
@@ -387,7 +387,7 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubePersistentVolumeInodesFillingUp
                         annotations:
                           description: Based on recent sampling, the PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is expected to run out of inodes within four days. Currently \{{ $value | humanizePercentage }} of its inodes are free.
-                          summary: PersistentVolumeInodes are filling up.
+                          summary: PersistentVolumeInodes are filling up
                         expr: |-
                           (
                             kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
@@ -411,12 +411,44 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubePersistentVolumeErrors
                         annotations:
                           description: The persistent volume \{{ $labels.persistentvolume }} has status \{{ $labels.phase }}.
-                          summary: PersistentVolume is having issues with provisioning.
+                          summary: PersistentVolume is having issues with provisioning
                         expr: kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"} > 0
                         for: 5m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
                           severity: critical
+                          team: developers
+                          vendor: socpoist
+                      - alert: HighCPUUtilization
+                        annotations:
+                          description: Pod \{{ $labels.pod }} has been utilizing more than 95% of its CPU limit for over 15 minutes. Current value is \{{ $value | humanizePercentage }}.
+                          summary: CPU utilization is above 95%
+                        expr: |-
+                          (
+                            sum by (namespace, pod) (pod:container_cpu_usage:sum)
+                            /
+                            sum by (namespace, pod) (kube_pod_container_resource_limits{resource="cpu"})
+                          ) > 0.95
+                        for: 15m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: developers
+                          vendor: socpoist
+                      - alert: HighMemoryUtilization
+                        annotations:
+                          description: Pod \{{ $labels.pod }} has been utilizing more than 90% of its memory limit for over 15 minutes. Current utilization is \{{ $value | humanizePercentage }}
+                          summary: Memory utilization (90%+) on pod \{{ $labels.pod }}
+                        expr: |-
+                          (
+                            sum by (namespace, pod, container) (container_memory_working_set_bytes{container!=""})
+                            /
+                            sum by (namespace, pod, container) (kube_pod_container_resource_limits{resource="memory"})
+                          ) > 0.90
+                        for: 15m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
                           team: developers
                           vendor: socpoist
             kind: PrometheusRule
