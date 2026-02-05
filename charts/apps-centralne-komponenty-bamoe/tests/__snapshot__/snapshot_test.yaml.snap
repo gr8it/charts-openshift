@@ -3,6 +3,11 @@ manifests should match snapshot:
     apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
     kind: Client
     metadata:
+      labels:
+        app.kubernetes.io/instance: crossplane-xr-functions
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: apps-centralne-komponenty-bamoe
+        helm.sh/chart: apps-centralne-komponenty-bamoe-1.0.0
       name: bamoe-management-console
     spec:
       deletionPolicy: Delete

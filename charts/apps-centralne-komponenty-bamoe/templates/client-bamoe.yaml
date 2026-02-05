@@ -7,7 +7,7 @@ metadata:
 spec:
   deletionPolicy: Delete
   forProvider:
-    realmId: {{ .Values.realmId }}
+    realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
     clientId: {{ .Values.clientId }}
     name: {{ .Values.clientName }}
     description: {{ .Values.clientName }} manazment konzola
@@ -33,4 +33,4 @@ spec:
     pkceCodeChallengeMethod: S256
     fullScopeAllowed: false
   providerConfigRef:
-    name: {{ .Values.providerConfigRef }}
+    name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
