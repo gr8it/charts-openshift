@@ -1,0 +1,299 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: ck-microservice
+  labels:
+    {{- include "apps-centralne-komponenty.labels" . | nindent 4 }}
+spec:
+  compositeTypeRef:
+    apiVersion: ck.socpoist.sk/v1alpha1
+    kind: microservice
+  mode: Pipeline
+  pipeline:
+
+  - step: microservice-client
+    functionRef:
+      name: function-go-templating
+    input:
+      apiVersion: gotemplating.fn.crossplane.io/v1beta1
+      kind: GoTemplate
+      source: Inline
+      inline:
+        template: |
+          apiVersion: openidclient.keycloak.m.crossplane.io/v1alpha1
+          kind: Client
+          metadata:
+            name: {{`{{ .observed.composite.resource.metadata.name }}`}}
+          spec:
+            deletionPolicy: Delete
+            forProvider:
+              realmId: {{ .Values.realmId }}
+              clientId: {{`{{ .observed.composite.resource.metadata.name }}`}}
+              name: {{`{{ .observed.composite.resource.metadata.name }}`}}
+              description: {{`{{ .observed.composite.resource.metadata.name }}`}} mikrosluzba
+              accessType: BEARER-ONLY
+              frontchannelLogoutEnabled: true
+            providerConfigRef:
+              name: {{ .Values.providerConfigRef }}
+
+  - step: microservice-clientroles
+    functionRef:
+      name: function-go-templating
+    input:
+      apiVersion: gotemplating.fn.crossplane.io/v1beta1
+      kind: GoTemplate
+      source: Inline
+      inline:
+        template: |
+          {{`{{- range .observed.composite.resource.spec.roles }}`}}
+          apiVersion: role.keycloak.m.crossplane.io/v1alpha1
+          kind: Role
+          metadata:
+            name: {{`{{ .observed.composite.resource.metadata.name }}`}}-{{`{{ . }}`}}
+          spec:
+            deletionPolicy: Delete
+            forProvider:
+              realmId: {{ .Values.realmId }}
+              name: {{`{{ . }}`}}
+              clientIdRef:
+                name: {{`{{ .observed.composite.resource.metadata.name }}`}}
+            providerConfigRef:
+              name: {{ .Values.providerConfigRef }}
+          ---
+          {{`{{- end }}`}}
+
+  - step: microservice-groups
+    functionRef:
+      name: function-go-templating
+    input:
+      apiVersion: gotemplating.fn.crossplane.io/v1beta1
+      kind: GoTemplate
+      source: Inline
+      inline:
+        template: |
+          {{`{{- range .observed.composite.resource.spec.roles }}`}}
+          apiVersion: group.keycloak.m.crossplane.io/v1alpha1
+          kind: Group
+          metadata:
+            name: apc-{{ include "apc-global-overrides.environmentShort" . }}-ck-{{`{{ .observed.composite.resource.metadata.name }}`}}-{{`{{ . }}`}}
+          spec:
+            managementPolicies: ["Observe"]
+            forProvider:
+              realmId: {{ .Values.realmId }}
+              name: APC-{{ include "apc-global-overrides.environmentShort" . | upper}}-CK-{{`{{ .observed.composite.resource.metadata.name | upper }}`}}-{{`{{ . | upper }}`}}
+            providerConfigRef:
+              name: {{ .Values.providerConfigRef }}
+          ---
+          {{`{{- end }}`}}
+
+  - step: microservice-group-roles
+    functionRef:
+      name: function-go-templating
+    input:
+      apiVersion: gotemplating.fn.crossplane.io/v1beta1
+      kind: GoTemplate
+      source: Inline
+      inline:
+        template: |
+          {{`{{- range .observed.composite.resource.spec.roles }}`}}
+          apiVersion: group.keycloak.m.crossplane.io/v1alpha1
+          kind: Roles
+          metadata:
+            name: apc-{{ include "apc-global-overrides.environmentShort" . }}-ck-{{`{{ .observed.composite.resource.metadata.name }}`}}-{{`{{ . }}`}}
+          spec:
+            deletionPolicy: Delete
+            forProvider:
+              realmId: {{ .Values.realmId }}
+              groupIdRef:
+                name: apc-{{ include "apc-global-overrides.environmentShort" . }}-ck-{{`{{ .observed.composite.resource.metadata.name }}`}}-{{`{{ . }}`}}
+              roleIdsRefs:
+              - name: {{`{{ .observed.composite.resource.metadata.name }}`}}-admin
+              # not gitopsy!
+              exhaustive: false
+            providerConfigRef:
+              name: {{ .Values.providerConfigRef }}
+          ---
+          {{`{{- end }}`}}
+
+  - step: microservice-admin-client
+    functionRef:
+      name: function-go-templating
+    input:
+      apiVersion: gotemplating.fn.crossplane.io/v1beta1
+      kind: GoTemplate
+      source: Inline
+      inline:
+        template: |
+          apiVersion: openidclient.keycloak.m.crossplane.io/v1alpha1
+          kind: Client
+          metadata:
+            name: {{`{{ .observed.composite.resource.metadata.name }}`}}-admin
+          spec:
+            deletionPolicy: Delete
+            forProvider:
+              realmId: {{ .Values.realmId }}
+              clientId: {{`{{ .observed.composite.resource.metadata.name }}`}}-admin
+              name: {{`{{ .observed.composite.resource.metadata.name }}`}}-admin
+              description: {{`{{ .observed.composite.resource.metadata.name }}`}} admin mikrosluzba
+              accessType: PUBLIC
+              standardFlowEnabled: true
+              {{`{{- if or .observed.composite.resource.spec.rootUrl .observed.composite.resource.spec.baseUrl }}`}}
+              rootUrl: {{`{{ .observed.composite.resource.spec.rootUrl | default .observed.composite.resource.spec.baseUrl }}`}}
+              {{`{{- end }}`}}
+              {{`{{- if .observed.composite.resource.spec.baseUrl }}`}}
+              baseUrl: {{`{{ default .observed.composite.resource.spec.baseUrl }}`}}
+              {{`{{- end }}`}}
+              validRedirectUris:
+                {{`{{- range .observed.composite.resource.spec.validRedirectUris }}`}}
+                - {{`{{ . }}`}}
+                {{`{{- end }}`}}
+              {{`{{- if .observed.composite.resource.spec.webOrigins }}`}}
+              webOrigins:
+                {{`{{- range .observed.composite.resource.spec.webOrigins }}`}}
+                - {{`{{ . }}`}}
+                {{`{{- end }}`}}
+              {{`{{- end }}`}}
+              frontchannelLogoutEnabled: true
+              pkceCodeChallengeMethod: S256
+              fullScopeAllowed: false
+            providerConfigRef:
+              name: {{ .Values.providerConfigRef }}
+
+  - step: microservice-admin-rolemappers
+    functionRef:
+      name: function-go-templating
+    input:
+      apiVersion: gotemplating.fn.crossplane.io/v1beta1
+      kind: GoTemplate
+      source: Inline
+      inline:
+        template: |
+          {{`{{- range .observed.composite.resource.spec.roles }}`}}
+          apiVersion: client.keycloak.m.crossplane.io/v1alpha1
+          kind: RoleMapper
+          metadata:
+            name: {{`{{ .observed.composite.resource.metadata.name }}`}}-admin-{{`{{ .observed.composite.resource.metadata.name }}`}}-{{`{{ . }}`}}
+          spec:
+            deletionPolicy: Delete
+            forProvider:
+              realmId: {{ .Values.realmId }}
+              clientIdRef:
+                name: {{`{{ .observed.composite.resource.metadata.name }}`}}-admin
+              roleIdRef:
+                name: {{`{{ .observed.composite.resource.metadata.name }}`}}-{{`{{ . }}`}}
+            providerConfigRef:
+              name: {{ .Values.providerConfigRef }}
+          ---
+          {{`{{- end }}`}}
+
+  - step: microservice-admin-protocolmapper
+    functionRef:
+      name: function-go-templating
+    input:
+      apiVersion: gotemplating.fn.crossplane.io/v1beta1
+      kind: GoTemplate
+      source: Inline
+      inline:
+        template: |
+          apiVersion: client.keycloak.m.crossplane.io/v1alpha1
+          kind: ProtocolMapper
+          metadata:
+            name: {{`{{ .observed.composite.resource.metadata.name }}`}}-admin-audience-{{`{{ .observed.composite.resource.metadata.name }}`}}
+          spec:
+            deletionPolicy: Delete
+            forProvider:
+              realmId: {{ .Values.realmId }}
+              clientIdRef:
+                name: {{`{{ .observed.composite.resource.metadata.name }}`}}-admin
+              protocol: openid-connect
+              protocolMapper: oidc-audience-mapper
+              name: add {{`{{ .observed.composite.resource.metadata.name }}`}} audience
+              # https://github.com/keycloak/keycloak/blob/0f01444543cf5e755b13a62c233a5c9feef72888/services/src/main/java/org/keycloak/protocol/oidc/mappers/OIDCAttributeMapperHelper.java#L60
+              config:
+                "included.client.audience": "{{`{{ .observed.composite.resource.metadata.name }}`}}"
+                "access.token.claim": "true"
+                "introspection.token.claim": "true"
+            providerConfigRef:
+              name: {{ .Values.providerConfigRef }}
+
+  - step: bamoe-client
+    functionRef:
+      name: function-go-templating
+    input:
+      apiVersion: gotemplating.fn.crossplane.io/v1beta1
+      kind: GoTemplate
+      source: Inline
+      inline:
+        template: |
+          apiVersion: openidclient.keycloak.m.crossplane.io/v1alpha1
+          kind: Client
+          metadata:
+            name: {{ .Values.BamoeClientId }}
+          spec:
+            managementPolicies: ["Observe"]
+            forProvider:
+              realmId: {{ .Values.realmId }}
+              clientId: {{ .Values.BamoeClientId }}
+            providerConfigRef:
+              name: {{ .Values.providerConfigRef }}
+
+  - step: bamoe-rolemappers
+    functionRef:
+      name: function-go-templating
+    input:
+      apiVersion: gotemplating.fn.crossplane.io/v1beta1
+      kind: GoTemplate
+      source: Inline
+      inline:
+        template: |
+          {{`{{- range .observed.composite.resource.spec.roles }}`}}
+          apiVersion: client.keycloak.m.crossplane.io/v1alpha1
+          kind: RoleMapper
+          metadata:
+            name: bamoe-{{`{{ .observed.composite.resource.metadata.name }}`}}-{{`{{ . }}`}}
+          spec:
+            deletionPolicy: Delete
+            forProvider:
+              realmId: {{ .Values.realmId }}
+              clientIdRef:
+                name: {{ .Values.BamoeClientId }}
+              roleIdRef:
+                name: {{`{{ .observed.composite.resource.metadata.name }}`}}-{{`{{ . }}`}}
+            providerConfigRef:
+              name: {{ .Values.providerConfigRef }}
+          ---
+          {{`{{- end }}`}}
+
+  - step: bamoe-protolmapper
+    functionRef:
+      name: function-go-templating
+    input:
+      apiVersion: gotemplating.fn.crossplane.io/v1beta1
+      kind: GoTemplate
+      source: Inline
+      inline:
+        template: |
+          apiVersion: client.keycloak.m.crossplane.io/v1alpha1
+          kind: ProtocolMapper
+          metadata:
+            name: bamoe-audience-{{`{{ .observed.composite.resource.metadata.name }}`}}
+          spec:
+            deletionPolicy: Delete
+            forProvider:
+              realmId: {{ .Values.realmId }}
+              clientIdRef:
+                name: {{ .Values.BamoeClientId }}
+              protocol: openid-connect
+              protocolMapper: oidc-audience-mapper
+              name: add {{`{{ .observed.composite.resource.metadata.name }}`}} audience
+              # https://github.com/keycloak/keycloak/blob/0f01444543cf5e755b13a62c233a5c9feef72888/services/src/main/java/org/keycloak/protocol/oidc/mappers/OIDCAttributeMapperHelper.java#L60
+              config:
+                "included.client.audience": "{{`{{ .observed.composite.resource.metadata.name }}`}}"
+                "access.token.claim": "true"
+                "introspection.token.claim": "true"
+            providerConfigRef:
+              name: {{ .Values.providerConfigRef }}
+
+  - step: automatically-detect-readiness
+    functionRef:
+      name: function-auto-ready

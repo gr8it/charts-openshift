@@ -1,0 +1,12 @@
+apiVersion: realm.keycloak.crossplane.io/v1alpha1
+kind: Realm
+metadata:
+  name: apps
+spec:
+  deletionPolicy: Orphan # do not delete whole realm!
+  forProvider:
+    realm: apps
+    loginWithEmailAllowed: true
+    defaultSignatureAlgorithm: RS256
+  providerConfigRef:
+    name: keycloak-local-config

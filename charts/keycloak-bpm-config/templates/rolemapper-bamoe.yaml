@@ -1,0 +1,48 @@
+apiVersion: client.keycloak.crossplane.io/v1alpha1
+kind: RoleMapper
+metadata:
+  name: bamoe-management-console-bpm-reader
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    realmId: apps
+    clientIdRef:
+      name: bamoe-management-console
+    roleIdRef:
+      # must match the manifest name, which created the role!
+      name: bpm-reader
+  providerConfigRef:
+    name: keycloak-local-config
+---
+apiVersion: client.keycloak.crossplane.io/v1alpha1
+kind: RoleMapper
+metadata:
+  name: bamoe-management-console-bpm-worker
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    realmId: apps
+    clientIdRef:
+      name: bamoe-management-console
+    roleIdRef:
+      # must match the manifest name, which created the role!
+      name: bpm-worker
+  providerConfigRef:
+    name: keycloak-local-config
+---
+apiVersion: client.keycloak.crossplane.io/v1alpha1
+kind: RoleMapper
+metadata:
+  name: bamoe-management-console-bpm-admin
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    realmId: apps
+    clientIdRef:
+      name: bamoe-management-console
+    roleIdRef:
+      # must match the manifest name, which created the role!
+      name: bpm-admin
+  providerConfigRef:
+    name: keycloak-local-config
+---

@@ -1,0 +1,34 @@
+apiVersion: ldap.keycloak.crossplane.io/v1alpha1
+kind: UserFederation
+metadata:
+  name: isreg-ad
+spec:
+  forProvider:
+    realmId: apps
+    vendor: AD # AD, or OTHER = LDAP
+    name: ISREG AD
+    connectionUrl: ldap://ad.vm.app.lab.sp.gr8it.cloud
+    startTls: false
+    bindDn: CN=ldap_bind_s1, OU=Service Accounts, OU=Technical Accounts, OU=Users, OU=Ústredie, DC=lab, DC=sp, DC=gr8it, DC=cloud
+    bindCredentialSecretRef:
+      key: "password"
+      name: "keycloak-ad-password"
+      namespace: "apc-keycloak"
+    # editMode: "UNSYNCED"
+    editMode: "READ_ONLY"
+    usersDn: OU=Users,OU=Ústredie,DC=lab,DC=sp,DC=gr8it,DC=cloud
+    usernameLdapAttribute: "sAMAccountName"
+    rdnLdapAttribute: "cn"
+    # uuidLdapAttribute: "sAMAccountName"
+    uuidLdapAttribute: objectGUID
+    userObjectClasses: ["person", "organizationalPerson","user"]
+    searchScope: "SUBTREE"
+    importEnabled: true
+    batchSizeForSync: 1000
+    fullSyncPeriod: 86400
+    changedSyncPeriod: 86400
+    trustEmail: true
+    validatePasswordPolicy: false
+    deleteDefaultMappers: false
+  providerConfigRef:
+    name: keycloak-local-config

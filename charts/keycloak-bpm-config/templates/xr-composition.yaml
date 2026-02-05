@@ -1,0 +1,98 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: example
+spec:
+  compositeTypeRef:
+    apiVersion: apc.cloud.socpoist.sk/v1alpha1
+    kind: mikroservice
+  mode: Pipeline
+  pipeline:
+  - step: patch-and-transform-something
+    functionRef:
+      name: function-patch-and-transform
+    input:
+      apiVersion: pt.fn.crossplane.io/v1beta1
+      kind: Resources
+      resources:
+      # - name: cm
+      #   base:
+      #     apiVersion: v1
+      #     stringData:
+      #       foo: bar
+      #     kind: Secret
+      #     metadata:
+      #       name: crossplane-test
+      #       namespace: test
+  
+      - name: oidc-client
+        base:
+          apiVersion: openidclient.keycloak.m.crossplane.io/v1alpha1
+          kind: Client
+          metadata:
+            name: namespaced-test-patch-and-transform
+            namespace: test
+          spec:
+            forProvider:
+              realmId: apps
+              clientId: namespaced-test-pat
+              name: namespaced-test-pat
+              # description: BPM mikrosluzba
+              accessType: BEARER-ONLY # CONFIDENTIAL, PUBLIC, BEARER-ONLY
+              # frontchannelLogoutEnabled: true
+            providerConfigRef:
+              name: keycloak-local-config
+              kind: ClusterProviderConfig
+      # - name: oidc-client2
+      #   base:
+      #     apiVersion: openidclient.keycloak.m.crossplane.io/v1alpha1
+      #     kind: Client
+      #     metadata:
+      #       name: namespaced-test-patch-and-transform2
+      #       namespace: test2
+      #     spec:
+      #       forProvider:
+      #         realmId: apps
+      #         clientId: namespaced-test-pat2
+      #         name: namespaced-test-pat2
+      #         # description: BPM mikrosluzba
+      #         accessType: BEARER-ONLY # CONFIDENTIAL, PUBLIC, BEARER-ONLY
+      #         # frontchannelLogoutEnabled: true
+      #       providerConfigRef:
+      #         name: keycloak-local-config
+      #         kind: ClusterProviderConfig
+
+  # - step: create-a-bucket
+  #   functionRef:
+  #     name: function-go-templating
+  #   input:
+  #     apiVersion: gotemplating.fn.crossplane.io/v1beta1
+  #     kind: GoTemplate
+  #     source: Inline
+  #     inline:
+  #       options:
+  #         - missingkey=error
+  #       template: |
+
+  #         apiVersion: openidclient.keycloak.m.crossplane.io/v1alpha1
+  #         kind: Client
+  #         metadata:
+  #           name: namespaced-test-go-templating
+  #           namespace: test
+  #         spec:
+  #           forProvider:
+  #             realmId: apps
+  #             clientId: namespaced-test-gt
+  #             name: namespaced-test-gz
+  #             # description: BPM mikrosluzba
+  #             accessType: BEARER-ONLY # CONFIDENTIAL, PUBLIC, BEARER-ONLY
+  #             # frontchannelLogoutEnabled: true
+  #           providerConfigRef:
+  #             name: keycloak-local-config
+  #             kind: ProviderConfig
+
+#     region: {{ .observed.composite.resource.spec.region }}
+
+  - step: automatically-detect-readiness
+    functionRef:
+      name: function-auto-ready

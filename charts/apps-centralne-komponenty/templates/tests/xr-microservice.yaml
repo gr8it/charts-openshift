@@ -1,0 +1,19 @@
+apiVersion: ck.socpoist.sk/v1alpha1
+kind: microservice
+metadata:
+  name: bpm
+  namespace: default
+spec:
+  # uz je v nazve resource
+  # name: bpm
+  roles:
+    - admin
+    - worker
+    - reader
+
+  validRedirectUris:
+    - https://bpm-test-prime.apps.s1.lab.sp.gr8it.cloud/admin/q/oidc/callback
+  webOrigins:
+    - https://bpm-test-prime.apps.s1.lab.sp.gr8it.cloud/admin/processes
+  rootUrl: https://bpm-test-prime.apps.s1.lab.sp.gr8it.cloud/admin/processes
+  baseUrl: https://bpm-test-prime.apps.s1.lab.sp.gr8it.cloud

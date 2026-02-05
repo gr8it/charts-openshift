@@ -1,0 +1,27 @@
+
+apiVersion: role.keycloak.crossplane.io/v1alpha1
+kind: Role
+metadata:
+  name: admin
+  # annotations:
+  #   crossplane.io/external-name: admin
+spec:
+  managementPolicies: ["Observe"]
+  forProvider:
+    realmId: master
+    # import: true
+    name: admin
+  providerConfigRef:
+    name: keycloak-local-config
+# ---
+# apiVersion: role.keycloak.crossplane.io/v1alpha1
+# kind: Role
+# metadata:
+#   name: admin
+# spec:
+#   deletionPolicy: Delete
+#   forProvider:
+#     realmId: apps
+#     name: admin2
+#   providerConfigRef:
+#     name: keycloak-local-config

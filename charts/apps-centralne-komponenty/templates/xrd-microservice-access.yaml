@@ -1,0 +1,42 @@
+# https://json.ophir.dev
+# yq ".spec.versions[0].schema.openAPIV3Schema = \"$(yq -p json -o yaml ../openapischemas/xrd-microservice-access.json)\"" --inplace xrd-microservice-access.yaml
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: microserviceaccesses.ck.socpoist.sk
+  labels:
+    {{- include "apps-centralne-komponenty.labels" . | nindent 4 }}
+spec:
+  # defaultCompositionRef:
+  #   name: example
+  # enforcedCompositionRef:
+  #   name: example
+  scope: Namespaced
+  # scope: Cluster
+  group: ck.socpoist.sk
+  names:
+    kind: Microserviceaccess
+    plural: microserviceaccesses
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema: |-
+          type: object
+          properties:
+            spec:
+              type: object
+              description: Defines access to a microservice
+              properties:
+                clientId:
+                  type: string
+                  description: Keycloak client name to assume the role for
+                clientRole:
+                  type: string
+                  description: 'Client role to assume for the microservice access client '
+              required:
+                - clientRole
+                - clientId
+          required:
+            - spec

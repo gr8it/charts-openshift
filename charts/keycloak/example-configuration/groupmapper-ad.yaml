@@ -1,0 +1,30 @@
+# https://keycloak.apps.s1.lab.sp.gr8it.cloud/admin/master/console/#/apps/user-federation/ldap/Vg-efmhbTReODC1qehxH1g/mappers/f71d91da-66de-42ad-a17c-b4d2c4fe1de4
+apiVersion: ldap.keycloak.crossplane.io/v1alpha1
+kind: GroupMapper
+metadata:
+  name: admin-group
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    realmId: apps
+    ldapUserFederationIdRef:
+      name: isreg-ad
+    name: "AD Groups"
+    ldapGroupsDn: "OU=APC,OU=Application Security Groups,OU=Groups,OU=Ústredie,DC=lab,DC=sp,DC=gr8it,DC=cloud"
+    groupNameLdapAttribute: "cn"
+    groupObjectClasses: ["group"]
+    preserveGroupInheritance: false
+    ignoreMissingGroups: true
+    membershipLdapAttribute: "member"
+    membershipAttributeType: "DN"
+    membershipUserLdapAttribute: "sAMAccountName"
+    groupsLdapFilter: "(&(cn=APC-L*))"
+#     groupsLdapFilter: "(&(objectClass=group)(cn=amsterdam))"
+    mode: "READ_ONLY"
+#     userRolesRetrieveStrategy: "LOAD_GROUPS_BY_MEMBER_ATTRIBUTE"
+    userRolesRetrieveStrategy: "LOAD_GROUPS_BY_MEMBER_ATTRIBUTE_RECURSIVELY"
+    memberofLdapAttribute: "memberOf"
+    dropNonExistingGroupsDuringSync: true
+    groupsPath: "/"
+  providerConfigRef:
+    name: keycloak-local-config

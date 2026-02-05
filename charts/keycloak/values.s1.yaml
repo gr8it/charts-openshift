@@ -1,0 +1,34 @@
+global: # to be overridden by helmfile global meta environment
+  apc:
+    cluster:
+      name: s1l
+      appsDomain: apps.s1.lab.sp.gr8it.cloud
+    caCertificates:
+      isreg.crt: |
+        -----BEGIN CERTIFICATE-----
+        MIIDqTCCApGgAwIBAgIQFSmCOEWAeKdGub/hjCQdQTANBgkqhkiG9w0BAQsFADBn
+        MRUwEwYKCZImiZPyLGQBGRYFY2xvdWQxFTATBgoJkiaJk/IsZAEZFgVncjhpdDES
+        MBAGCgmSJomT8ixkARkWAnNwMRMwEQYKCZImiZPyLGQBGRYDbGFiMQ4wDAYDVQQD
+        EwVJU1JFRzAeFw0yNDA3MDExMjM3MzFaFw0zNDA3MDExMjQ3MzBaMGcxFTATBgoJ
+        kiaJk/IsZAEZFgVjbG91ZDEVMBMGCgmSJomT8ixkARkWBWdyOGl0MRIwEAYKCZIm
+        iZPyLGQBGRYCc3AxEzARBgoJkiaJk/IsZAEZFgNsYWIxDjAMBgNVBAMTBUlTUkVH
+        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0hnNCdeaaTSNYU06jWtf
+        xZDdqK0mt5nPpIEwqwZobiiT+pcYKDroiK9DIoOqIBS065KbuclSB4FFyRLqiuaS
+        2Xyh5GN4lncGQxrgdWs0HjdkzwbkGBpxu98aakYEvpUBaY6w7SaruRpoKFoZY2m/
+        VWCpM+DgWB7vMSXuLoCmqG6jBhM1APnRl+MfE8inF45qXiFzeXucW7qFxRnsZbwU
+        p5eHkHHP5o7tN3Cd5nP2fvjImIw8gWURGQMXOw80wOhr7yJB8fiJpJYOblZ/jrvG
+        yp5P0PG5OY2/1wr0BzYQVrfoQ2RszKaXlSPLk8pVxJ3l9IqbQz23zYmRH1W0RurF
+        YQIDAQABo1EwTzALBgNVHQ8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4E
+        FgQU8lx9Xw02EvwVgWpfUPJJGchl1kwwEAYJKwYBBAGCNxUBBAMCAQAwDQYJKoZI
+        hvcNAQELBQADggEBAHBHjqz/wRkIzdVlO/gJdSDlfkvG8DJ++lXC6CwJYQUflTRm
+        Ori/yY0K5x7gZk+eRJYGNCW98nmLxzrXXzk1/PA1b/Ydkjq5RPT4NY7+2hZDp8En
+        YECb1oo+ssU1C+Eh1eIxLvG0IBYXBSt8nqF4nNC3esdDFBTwt7BiAOj8oxD+5+Sl
+        qRsnVHqSEUu+VhrDUvc1DQOfHimZZtjlwI/HG1LyJLHHfj7k/M4JpRN5fenyNdzb
+        EzKUwFhrumuKj1RHRgv9irMwfIaeeaZWrFcfbScNCB3cy9KJlhdoHku/EqUadpTs
+        vuu5psR44jAH/nCMbzhk+P1dhtwQBMp1I9anfeM=
+        -----END CERTIFICATE-----
+    environmentShort: l
+    services:
+      certManager:
+        defaultClusterIssuer: vault-lab-issuer
+  

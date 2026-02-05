@@ -124,8 +124,12 @@ global:
         defaultClusterIssuer: ~
       crossplane:
         kubeVaultProviderConfigName: ~
+        kubeKeycloakProviderConfigName: ~
       externalSecretsOperator:
         defaultClusterSecretStore: ~
+      keycloak:
+        url: https://login.apps.lab.gr8it.cloud
+        realm: apps
       metallb:
         namespace: metallb-system
       quay:
@@ -195,10 +199,16 @@ Helpers to query a specific service parameters available:
 |---|---|---|---|---|---|
 |apc-global-overrides.certManagerDefaultClusterIssuer|services.certManager.defaultClusterIssuer|global.apc.services.certManager.defaultClusterIssuer|string|-|Cert manager cluster issuer to use for cluster-config certificates|
 |apc-global-overrides.require-certManagerDefaultClusterIssuer|services.certManager.defaultClusterIssuer|global.apc.services.certManager.defaultClusterIssuer|string|-||
-|apc-global-overrides.crossplaneKubeVaultProviderConfigName|services.crossplane.kubeVaultProviderConfigName|global.apc.services.crossplane.kubeVaultProviderConfigName|string|-|name of the crossplane vault provider config to be used when creating vault resources using crossplane|
+|apc-global-overrides.crossplaneKubeVaultProviderConfigName|services.crossplane.kubeVaultProviderConfigName|global.apc.services.crossplane.kubeVaultProviderConfigName|string|-|name of the crossplane Vault provider config to be used when creating Vault resources using crossplane|
 |apc-global-overrides.require-crossplaneKubeVaultProviderConfigName|services.crossplane.kubeVaultProviderConfigName|global.apc.services.crossplane.kubeVaultProviderConfigName|string|-||
+|apc-global-overrides.crossplaneKubeKeycloakProviderConfigName|services.crossplane.kubeKeycloakProviderConfigName|global.apc.services.crossplane.kubeKeycloakProviderConfigName|string|-|name of the crossplane Keycloak provider config to be used when creating Keycloak resources using crossplane|
+|apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName|services.crossplane.kubeKeycloakProviderConfigName|global.apc.services.crossplane.kubeVaultProviderConfigName|string|-||
 |apc-global-overrides.ESODefaultClusterSecretStore|services.externalSecretsOperator.defaultClusterSecretStore|global.apc.services.externalSecretsOperator.defaultClusterSecretStore|string|-|External Secrets Operator default cluster secret store to use for cluster-config externalsecrets|
 |apc-global-overrides.require-ESODefaultClusterSecretStore|services.externalSecretsOperator.defaultClusterSecretStore|global.apc.services.externalSecretsOperator.defaultClusterSecretStore|string|-||
+|apc-global-overrides.keycloakUrl|services.keycloak.url|global.apc.services.keycloak.url|string|-|Keycloak ingress URL|
+|apc-global-overrides.require-keycloakUrl|services.keycloak.url|global.apc.services.keycloak.url|string|-||
+|apc-global-overrides.keycloakRealm|services.keycloak.Realm|global.apc.services.keycloak.Realm|string|-|Keycloak application Realm|
+|apc-global-overrides.require-keycloakRealm|services.keycloak.Realm|global.apc.services.keycloak.Realm|string|-||
 |apc-global-overrides.metallbNamespace|services.metallb.namespace|global.apc.services.metallb.namespace|string|metallb-system|namespace where metallb is installed|
 |apc-global-overrides.quayHost|services.quay.host|global.apc.services.quay.host|string|-|Quay host, e.g. used for mirroring|
 |apc-global-overrides.require-quayHost|services.quay.host|global.apc.services.quay.host|string|-||
