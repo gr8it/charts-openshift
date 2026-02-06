@@ -39,7 +39,7 @@ stringData:
 EOF
 ```
 
-## Initializaiton process
+## Initialization process
 
 Initialization process is done via the k8s jobs and is split into two parts:
 
