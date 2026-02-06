@@ -11,9 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add permissions for objectstore to edit / view clusterroles
 
-### Removed
+## [1.4.0] - 2026-01-27
 
-- **Breaking:** drop support of Node.js 8
+## Change
+
+- Upgrade operator verson from 1.26 to 1.28
 
 ## [1.3.0] - 2025-10-08
 
