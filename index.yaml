@@ -116,6 +116,18 @@ entries:
     urls:
     - packaged_charts/acm-operatorpolicy-1.0.0.tgz
     version: 1.0.0
+  acm-policy:
+  - apiVersion: v2
+    appVersion: v1
+    created: "2026-01-22T13:42:34.72689+01:00"
+    description: A Helm chart to install ACM policy using ACM policy framework, i.e.
+      on hub cluster with placement decisions = deployed to selected managed clusters
+    digest: cea96af1490db28bef3b67d65505e55b7d5568606d20d7e934a759ebb961b1b0
+    name: acm-policy
+    type: application
+    urls:
+    - packaged_charts/acm-policy-1.0.0.tgz
+    version: 1.0.0
   acs-config:
   - apiVersion: v2
     created: "2026-01-13T14:35:45.452159+01:00"
@@ -327,6 +339,34 @@ entries:
     - packaged_charts/application-gitops-1.0.0.tgz
     version: 1.0.0
   apps-ck-kafka:
+  - apiVersion: v2
+    created: "2026-01-28T10:03:52.102030821+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - condition: kafka-ui.enabled
+      name: kafka-ui
+      repository: https://kafbat.github.io/helm-charts
+      version: 1.5.3
+    description: Production-ready Kafka cluster using Strimzi operator with KRaft
+      mode
+    digest: 5e792e7260d817ae53657b4d3c2dd31fc16e7abe0515ed56fb507e7085f5540a
+    home: https://github.com/gr8it/charts-openshift
+    icon: https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/main/documentation/logo/strimzi_logo.png
+    keywords:
+    - kafka
+    - strimzi
+    - kraft
+    kubeVersion: '>=1.25.0'
+    name: apps-ck-kafka
+    sources:
+    - https://github.com/gr8it/charts-openshift
+    - https://strimzi.io/
+    type: application
+    urls:
+    - packaged_charts/apps-ck-kafka-1.2.1.tgz
+    version: 1.2.1
   - apiVersion: v2
     created: "2026-01-23T08:22:27.199756305+01:00"
     dependencies:
@@ -791,6 +831,58 @@ entries:
     version: 1.0.0
   cluster-config-standalone:
   - apiVersion: v2
+    created: "2026-01-30T11:53:23.970872216+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.4.0
+    description: A Helm chart to configure standalone cluster settings
+    digest: dd4279a15500c773d784eaded4cfd45ef0dacabcfb49922584ce0d39bd95ba61
+    name: cluster-config-standalone
+    type: application
+    urls:
+    - packaged_charts/cluster-config-standalone-1.1.2.tgz
+    version: 1.1.2
+  - apiVersion: v2
+    created: "2026-01-29T10:02:32.309869725+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.4.0
+    description: A Helm chart to configure standalone cluster settings
+    digest: e542c93c7476ec596a312328a0f8c10ee6968b7ab1cf3e4e43ab17c16019f7c0
+    name: cluster-config-standalone
+    type: application
+    urls:
+    - packaged_charts/cluster-config-standalone-1.1.1.tgz
+    version: 1.1.1
+  - apiVersion: v2
+    created: "2026-01-26T16:06:00.648974528+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.4.0
+    description: A Helm chart to configure standalone cluster settings
+    digest: 9b95bcda2b7448daea23f2c2ee6abefb1f7508ade186d00619424b469c0122e6
+    name: cluster-config-standalone
+    type: application
+    urls:
+    - packaged_charts/cluster-config-standalone-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
+    created: "2026-01-25T23:08:40.255726492+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.4.0
+    description: A Helm chart to configure standalone cluster settings
+    digest: a6cec3c7b97723d1090a123a1f87d1fbe8b8a2efc902c3742832ac8cb1231ebc
+    name: cluster-config-standalone
+    type: application
+    urls:
+    - packaged_charts/cluster-config-standalone-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
     created: "2025-10-23T13:50:23.865057202+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -804,6 +896,24 @@ entries:
     - packaged_charts/cluster-config-standalone-1.0.0.tgz
     version: 1.0.0
   cnpg-operator:
+  - apiVersion: v2
+    appVersion: v1.28.0
+    created: "2026-01-27T21:14:49.393832+01:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    - name: plugin-barman-cloud
+      repository: https://cloudnative-pg.github.io/charts
+      version: 0.2.0
+    description: A Helm chart to install CNPG Operator using ACM operator policy and
+      Barman plugin
+    digest: bf8dc16e84ea99b230257f5b63f260666a3feebfc9940de35d15f4bcc4e217e0
+    name: cnpg-operator
+    type: application
+    urls:
+    - packaged_charts/cnpg-operator-1.4.0.tgz
+    version: 1.4.0
   - apiVersion: v2
     appVersion: v1.26.0
     created: "2025-10-08T21:34:25.651136156+02:00"
@@ -910,6 +1020,20 @@ entries:
     - packaged_charts/compliance-config-1.0.0.tgz
     version: 1.0.0
   compliance-operator:
+  - apiVersion: v2
+    appVersion: stable
+    created: "2026-01-22T13:47:24.964877+01:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install OpenShift Compliance Operator
+    digest: 1778b3be7830d562f657669f805a5f1d46b1e3b027551a1782b7394c00824bba
+    name: compliance-operator
+    type: application
+    urls:
+    - packaged_charts/compliance-operator-1.1.0.tgz
+    version: 1.1.0
   - apiVersion: v2
     appVersion: stable
     created: "2026-01-22T08:42:36.319845+01:00"
@@ -1173,6 +1297,34 @@ entries:
     - packaged_charts/crossplane-vault-provider-bootstrap-1.0.0.tgz
     version: 1.0.0
   default-network-policies:
+  - apiVersion: v2
+    created: "2026-02-03T10:42:07.6080652+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to apply default network policies for platform and application
+      namespaces.
+    digest: c320c3b6be1b615bd4da8af37347c2cafb9936fa07a0c58183025fc641c7c895
+    name: default-network-policies
+    type: application
+    urls:
+    - packaged_charts/default-network-policies-1.5.1.tgz
+    version: 1.5.1
+  - apiVersion: v2
+    created: "2026-01-30T17:38:21.603447604+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to apply default network policies for platform and application
+      namespaces.
+    digest: d62f59bd1bd00c5756436dc1113e3bb654006d297d5b95c2b089f4fbd9c8dffb
+    name: default-network-policies
+    type: application
+    urls:
+    - packaged_charts/default-network-policies-1.5.0.tgz
+    version: 1.5.0
   - apiVersion: v2
     created: "2025-10-08T15:54:55.164560859+02:00"
     dependencies:
@@ -1728,6 +1880,21 @@ entries:
     urls:
     - packaged_charts/ingress-configuration-1.0.0.tgz
     version: 1.0.0
+  kafka-backup-operator:
+  - apiVersion: v2
+    appVersion: 0.2.6
+    created: "2026-01-28T10:07:24.324372715+01:00"
+    dependencies:
+    - name: kafka-backup-operator
+      repository: https://osodevops.github.io/helm-charts/
+      version: 0.2.6
+    description: A Helm chart to install OSO Kafka Backup Operator
+    digest: bcf3f73a89ab89d01402d8cb38fd086d0e1dfa5954486037fb662b7b3b9c30f8
+    name: kafka-backup-operator
+    type: application
+    urls:
+    - packaged_charts/kafka-backup-operator-0.1.0.tgz
+    version: 0.1.0
   keycloak:
   - apiVersion: v2
     appVersion: v26.0
@@ -1841,6 +2008,20 @@ entries:
   kyverno:
   - apiVersion: v2
     appVersion: 3.5.2
+    created: "2026-02-03T10:52:53.607830064+01:00"
+    dependencies:
+    - name: kyverno
+      repository: https://kyverno.github.io/kyverno
+      version: 3.5.2
+    description: A Helm chart to install kyverno
+    digest: cc9d13eaf101f9c80147e32f822c0f961b4771a47d4b0e0e2fe844ea1790bbc0
+    name: kyverno
+    type: application
+    urls:
+    - packaged_charts/kyverno-1.4.0.tgz
+    version: 1.4.0
+  - apiVersion: v2
+    appVersion: 3.5.2
     created: "2026-01-14T09:05:09.286203+01:00"
     dependencies:
     - name: kyverno
@@ -1924,6 +2105,34 @@ entries:
     - packaged_charts/kyverno-1.0.0.tgz
     version: 1.0.0
   kyverno-app-project:
+  - apiVersion: v2
+    created: "2026-02-03T14:22:16.709647495+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart to create kyverno policies to set specific limits, quotas
+      and proxy for projects.
+    digest: 558eecaa1941581a7e04a7569989c38c4b5af51e8a69da4c87734251d827c88a
+    name: kyverno-app-project
+    type: application
+    urls:
+    - packaged_charts/kyverno-app-project-1.4.1.tgz
+    version: 1.4.1
+  - apiVersion: v2
+    created: "2026-02-03T09:52:29.366151431+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart to create kyverno policies to set specific limits, quotas
+      and proxy for projects.
+    digest: a064a8843509b7ecb13ac032236e36f74a71f8120b5bcd79f812a563d4a8f2d2
+    name: kyverno-app-project
+    type: application
+    urls:
+    - packaged_charts/kyverno-app-project-1.4.0.tgz
+    version: 1.4.0
   - apiVersion: v2
     created: "2025-12-23T14:38:12.61049867+01:00"
     dependencies:
@@ -2021,6 +2230,20 @@ entries:
     - packaged_charts/metallb-operator-1.0.0.tgz
     version: 1.0.0
   mongodb-operator-helm:
+  - apiVersion: v2
+    appVersion: 1.4.0
+    created: "2026-02-02T12:24:32.929305+01:00"
+    dependencies:
+    - name: mongodb-kubernetes
+      repository: https://mongodb.github.io/helm-charts
+      version: 1.4.0
+    description: MongoDB Community Operator Helm Chart
+    digest: 09c18f9009ce404703261e45ba3d32bc64f8a185c54d7870f01e7ac9f5bb6ff1
+    name: mongodb-operator-helm
+    type: application
+    urls:
+    - packaged_charts/mongodb-operator-helm-1.1.1.tgz
+    version: 1.1.1
   - apiVersion: v2
     appVersion: 1.4.0
     created: "2025-10-22T12:51:32.339314+02:00"
@@ -2374,6 +2597,20 @@ entries:
     - packaged_charts/quay-operator-1.0.0.tgz
     version: 1.0.0
   rbac-roles:
+  - apiVersion: v2
+    appVersion: 1.1.0
+    created: "2026-02-03T14:28:34.140901371+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart for managing APC clusterroles.
+    digest: 2c94f8b478899c5251bba7abf598dd30c79be626423c25fa0c4a31f4f7b17d77
+    name: rbac-roles
+    type: application
+    urls:
+    - packaged_charts/rbac-roles-1.1.0.tgz
+    version: 1.1.0
   - apiVersion: v2
     appVersion: 1.0.0
     created: "2025-10-21T07:45:48.824321+02:00"
