@@ -12,7 +12,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.0
+        helm.sh/chart: cluster-config-standalone-1.1.2
       name: registry-ca-bundle
       namespace: openshift-config
   2: |
@@ -25,7 +25,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.0
+        helm.sh/chart: cluster-config-standalone-1.1.2
       name: oauth-idp-ca-bundle
       namespace: openshift-config
   3: |
@@ -36,7 +36,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.0
+        helm.sh/chart: cluster-config-standalone-1.1.2
       name: pull-secret
       namespace: openshift-config
     spec:
@@ -64,21 +64,21 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.0
+        helm.sh/chart: cluster-config-standalone-1.1.2
       name: ad-ldap-bind-secret
       namespace: openshift-config
     spec:
+      data:
+        - remoteRef:
+            key: /d/openshift-config/oauth/identityProvider/ad-ldap-bind-secret
+            property: bindPassword
+          secretKey: bindPassword
       refreshInterval: 15m
       secretStoreRef:
-        kind: clusterSecretStore
+        kind: ClusterSecretStore
         name: vault-issuer
       target:
         creationPolicy: Orphan
-        data:
-          - remoteRef:
-              key: /d/openshift-config/oauth/identityProvider/ad-ldap-bind-secret
-              property: bindPassword
-            secretKey: bindPassword
         deletionPolicy: Retain
         name: ad-ldap-bind-secret
   5: |
@@ -89,21 +89,21 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.0
+        helm.sh/chart: cluster-config-standalone-1.1.2
       name: comm-ldap-bind-secret
       namespace: openshift-config
     spec:
+      data:
+        - remoteRef:
+            key: /d/openshift-config/oauth/identityProvider/comm-ldap-bind-secret
+            property: bindPassword
+          secretKey: bindPassword
       refreshInterval: 15m
       secretStoreRef:
-        kind: clusterSecretStore
+        kind: ClusterSecretStore
         name: vault-issuer
       target:
         creationPolicy: Orphan
-        data:
-          - remoteRef:
-              key: /d/openshift-config/oauth/identityProvider/comm-ldap-bind-secret
-              property: bindPassword
-            secretKey: bindPassword
         deletionPolicy: Retain
         name: comm-ldap-bind-secret
   6: |
@@ -114,21 +114,21 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.0
+        helm.sh/chart: cluster-config-standalone-1.1.2
       name: oidcidp-secret
       namespace: openshift-config
     spec:
+      data:
+        - remoteRef:
+            key: /d/openshift-config/oauth/identityProvider/oidcidp-secret
+            property: clientSecret
+          secretKey: clientSecret
       refreshInterval: 15m
       secretStoreRef:
-        kind: clusterSecretStore
+        kind: ClusterSecretStore
         name: vault-issuer
       target:
         creationPolicy: Orphan
-        data:
-          - remoteRef:
-              key: /d/openshift-config/oauth/identityProvider/oidcidp-secret
-              property: clientSecret
-            secretKey: clientSecret
         deletionPolicy: Retain
         name: oidcidp-secret
   7: |
@@ -139,21 +139,21 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.0
+        helm.sh/chart: cluster-config-standalone-1.1.2
       name: htpass-secret
       namespace: openshift-config
     spec:
+      data:
+        - remoteRef:
+            key: /d/openshift-config/oauth/identityProvider/htpass-secret
+            property: fileData
+          secretKey: fileData
       refreshInterval: 15m
       secretStoreRef:
-        kind: clusterSecretStore
+        kind: ClusterSecretStore
         name: vault-issuer
       target:
         creationPolicy: Orphan
-        data:
-          - remoteRef:
-              key: /d/openshift-config/oauth/identityProvider/htpass-secret
-              property: fileData
-            secretKey: fileData
         deletionPolicy: Retain
         name: htpass-secret
   8: |
@@ -174,7 +174,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.0
+        helm.sh/chart: cluster-config-standalone-1.1.2
       name: quay.apps.example.com
     spec:
       imageDigestMirrors:
@@ -201,7 +201,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.0
+        helm.sh/chart: cluster-config-standalone-1.1.2
       name: quay.apps.example.com
     spec:
       imageTagMirrors:

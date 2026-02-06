@@ -20,11 +20,9 @@ spec:
           - resources:
               kinds:
               - Namespace
-      preconditions:
-        all:
-        - key: '{{ `{{ request.object.metadata.labels."apc.namespace.type" }}` }}'
-          operator: Equals
-          value: application
+              selector:
+                matchLabels:
+                  apc.namespace.type: application
       skipBackgroundRequests: {{ .Values.defaultResourceQuota.skipBackgroundRequests }}
       generate:
         apiVersion: v1
@@ -62,11 +60,9 @@ spec:
           - resources:
               kinds:
               - Namespace
-      preconditions:
-        all:
-        - key: '{{ `{{ request.object.metadata.labels."apc.namespace.type" }}` }}'
-          operator: Equals
-          value: application
+              selector:
+                matchLabels:
+                  apc.namespace.type: application
       skipBackgroundRequests: {{ .Values.cpngCustomResourceQuota.skipBackgroundRequests }}
       generate:
         apiVersion: v1
@@ -88,11 +84,9 @@ spec:
           - resources:
               kinds:
               - Namespace
-      preconditions:
-        all:
-        - key: '{{ `{{ request.object.metadata.labels."apc.namespace.type" }}` }}'
-          operator: Equals
-          value: application
+              selector:
+                matchLabels:
+                  apc.namespace.type: application
       skipBackgroundRequests: {{ .Values.monitoringQuota.skipBackgroundRequests }}
       generate:
         apiVersion: v1
@@ -119,11 +113,9 @@ spec:
           - resources:
               kinds:
               - Namespace
-      preconditions:
-        all:
-        - key: '{{ `{{ request.object.metadata.labels."apc.namespace.type" }}` }}'
-          operator: Equals
-          value: application
+              selector:
+                matchLabels:
+                  apc.namespace.type: application
       skipBackgroundRequests: {{ .Values.grafanaQuota.skipBackgroundRequests }}
       generate:
         apiVersion: v1
@@ -153,11 +145,9 @@ spec:
           - resources:
               kinds:
               - Namespace
-      preconditions:
-        all:
-        - key: '{{ `{{ request.object.metadata.labels."apc.namespace.type" }}` }}'
-          operator: Equals
-          value: application
+              selector:
+                matchLabels:
+                  apc.namespace.type: application
       skipBackgroundRequests: {{ .Values.kubevirtCrQuota.skipBackgroundRequests }}
       generate:
         apiVersion: v1

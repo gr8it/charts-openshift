@@ -37,11 +37,9 @@ spec:
           - resources:
               kinds:
               - Namespace
-      preconditions:
-        all:
-        - key: "{{ `{{ request.object.metadata.labels.\"apc.namespace.type\" }}` }}"
-          operator: Equals
-          value: application
+              selector:
+                matchLabels:
+                  apc.namespace.type: application
       generate:
         generateExisting: true
         synchronize: false
