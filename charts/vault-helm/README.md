@@ -13,7 +13,7 @@ Deployment process steps:
 - create secret with autounseal token (manual step)
 - deploy vault instance via APC Gitops
 
-### Reguirements
+### Requirements
 
 For successful Vault deployment following requirements have to be met:  
 
