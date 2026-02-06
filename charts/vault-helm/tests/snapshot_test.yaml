@@ -1,0 +1,11 @@
+suite: Snapshot test
+templates:
+  - templates/*
+release:
+  name: vault
+  namespace: apc-vault
+
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}

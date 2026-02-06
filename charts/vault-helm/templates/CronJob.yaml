@@ -84,25 +84,25 @@ spec:
               valueFrom:
                 secretKeyRef:
                   optional: true
-                  name: {{ .Values.backup.s3bucketCredentials }}
+                  name: {{ .Values.backup.s3bucket.bucketName }}-cloud-credentials
                   key: aws_access_key_id
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
                   optional: true
-                  name: {{ .Values.backup.s3bucketCredentials }}
+                  name: {{ .Values.backup.s3bucket.bucketName }}-cloud-credentials
                   key: aws_secret_access_key
             - name: BUCKET
               valueFrom:
                 secretKeyRef:
                   optional: true
-                  name: {{ .Values.backup.s3bucketCredentials }}
+                  name: {{ .Values.backup.s3bucket.bucketName }}-cloud-credentials
                   key: bucket
             - name: ENDPOINT
               valueFrom:
                 secretKeyRef:
                   optional: true
-                  name: {{ .Values.backup.s3bucketCredentials }}
+                  name: {{ .Values.backup.s3bucket.bucketName }}-cloud-credentials
                   key: endpoint
             volumeMounts:
             - mountPath: /share

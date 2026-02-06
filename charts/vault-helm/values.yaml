@@ -1,8 +1,13 @@
 releaseServiceOverride: ArgoCD
 
+init:
+  image: registry.redhat.io/openshift4/ose-cli
+  tag: v4.15
+
 backup:
   enabled: true
   schedule: "0 0 * * *"
+  apcBackupNs: apc-backup
   containers:
     snapshot:
       image: bitnamilegacy/kubectl
@@ -10,7 +15,13 @@ backup:
     upload:
       image: amazon/aws-cli
       tag: "2.24.27"
-  s3bucketCredentials: app-hub01-vault-apc-vault-backup-cloud-credentials
+  s3bucket:
+    bucketName: app-hub01-vault-apc-vault-backup
+    storageClass: ocs-storagecluster-ceph-rgw
+    s3bucketNamespace: apc-backup
+
+logging:
+  enabled: true
 
 vault:
   global:
@@ -30,7 +41,7 @@ vault:
       tag: 1.14.8
     route:
       enabled: true
-      host: skvault2.apps.ocpdemo.lab.gr8it.cloud
+      host: vault.apps.hub01.cloud.socpoist.sk
       tls: { termination: passthrough }
     ha:
       enabled: true
@@ -40,15 +51,15 @@ vault:
         setNodeId: true
         config: |
           ui = true
-          cluster_name = "skvault2-raft-cluster"
+          cluster_name = "vault-raft-cluster"
           service_registration "kubernetes" {}
           disable_mlock = true
 
           listener "tcp" {
             address         = "0.0.0.0:8200"
             cluster_address = "0.0.0.0:8201"
-            tls_cert_file   = "/vault/userconfig/certs/skvault2.crt"
-            tls_key_file    = "/vault/userconfig/certs/skvault2.key"
+            tls_cert_file   = "/vault/userconfig/certs/tls.crt"
+            tls_key_file    = "/vault/userconfig/certs/tls.key"
             telemetry { unauthenticated_metrics_access = "true" }
           }
 
@@ -60,22 +71,22 @@ vault:
           storage "raft" {
             path = "/vault/data"
             retry_join {
-              leader_api_addr = "https://skvault2-active.skvault2.svc:8200"
-              leader_ca_cert_file  = "/vault/userconfig/certs/rootca.crt"
+              leader_api_addr = "https://vault-active.apc-vault.svc:8200"
+              leader_ca_cert_file  = "/vault/userconfig/certs/ca.crt"
             }
           }
 
           seal "transit" {
-            address         = "https://skvault1-active.skvault1.svc:8200"
-            key_name        = "autounseal"
+            address         = "https://vault.comm.apc.socpoist.sk:8200"
+            key_name        = "hub-unseal"
             mount_path      = "transit/"
             disable_renewal = "false"
-            tls_ca_cert     = "/vault/userconfig/certs/rootca.crt"
+            tls_ca_cert     = "/vault/userconfig/certs/ca.crt"
           }
     extraEnvironmentVars:
-      VAULT_CACERT: /vault/userconfig/certs/rootca.crt
-      VAULT_TLSCERT: /vault/userconfig/certs/skvault2.crt
-      VAULT_TLSKEY: /vault/userconfig/certs/skvault2.key
+      VAULT_CACERT: /vault/userconfig/certs/ca.crt
+      VAULT_TLSCERT: /vault/userconfig/certs/tls.crt
+      VAULT_TLSKEY: /vault/userconfig/certs/tls.key
     extraSecretEnvironmentVars:
       - envName: VAULT_TOKEN
         secretName: vault-autounseal-token
@@ -88,7 +99,7 @@ vault:
     volumes:
       - name: vault-tls-cert
         secret:
-          secretName: skvault2-tls
+          secretName: vault-tls-cert
           defaultMode: 420
     podDisruptionBudget:
       maxUnavailable: 1

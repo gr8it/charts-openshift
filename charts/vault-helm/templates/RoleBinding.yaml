@@ -27,3 +27,21 @@ roleRef:
   kind: Role
   name: vault-snapshot-role
   apiGroup: rbac.authorization.k8s.io
+{{- if .Values.backup.enabled }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: vault-create-obc-creds-rb
+  namespace: {{ .Values.backup.apcBackupNs }}
+  labels:
+  {{- include "vault-helm.labels" $ | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Release.Name }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: vault-create-obc-creds-role
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
