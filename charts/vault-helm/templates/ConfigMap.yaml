@@ -36,7 +36,7 @@ data:
     fi
 
     log_message "INFO: Checking if the Vault is already initialized"
-    vault_init_state=$(oc -n ${VAULT_INSTANCE} exec ${VAULT_INSTANCE}-0 -c vault -- vault status -format=json 2>/dev/null | grep -o '"initialized": true' || echo "not_initialied")
+    vault_init_state=$(oc -n ${VAULT_INSTANCE} exec ${VAULT_INSTANCE}-0 -c vault -- vault status -format=json 2>/dev/null | grep -o '"initialized": true' || echo "not_initialized")
 
     if [[ "${vault_init_state}" == '"initialized": true' ]]; then
       log_message "INFO: Vault is already initialized."
