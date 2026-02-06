@@ -2,7 +2,7 @@
 
 This repository contains helm chart with custom manifests which will deploy Vault instance, initialize monitoring and backup. The deployment is done partially manually and partially via the APC Gitops framework. The afterwards Vault configuration is executed separately via another helm chart once the Vault instance is deployed.  
 
-## Deployment process overwiev
+## Deployment process overview
 
 Due to certain configuration of APC Vault instance the whole deployment cannot be done automatically and some parts have to be done manually.  
 
