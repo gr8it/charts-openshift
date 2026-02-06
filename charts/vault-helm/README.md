@@ -18,7 +18,7 @@ Deployment process steps:
 For successful Vault deployment following requirements have to be met:  
 
 - [Bastion vault have to be deployed](https://github.com/gr8it/vault/tree/develop) with autounseal functionality enable (transit secret engine enabled)
-- Available intermediate certficate from organization for which the vault will be deployed  
+- Available intermediate certificate from organization for which the vault will be deployed  
 
 ### Autounseal token
 
