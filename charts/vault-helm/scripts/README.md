@@ -13,7 +13,7 @@ Requirements:
 - Issuer certificate (root or intermediate certificate)
 - Issuer certificate key
 
-The script will generate certficate request configuration, certificate request, certificate itself and certficate key. Important and for later use are certificate and key.  
+The script will generate certificate request configuration, certificate request, certificate itself and certificate key. Important and for later use are certificate and key.  
 
 > !NOTE
 It is suggested to use short lived certificate (certificate validation period), just enough time after the Vault configuration is done.
