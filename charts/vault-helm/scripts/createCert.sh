@@ -57,7 +57,7 @@ EOF
 
 # create CSR
 if ! openssl req -new -nodes -key ${vault_instance}.key -config ${vault_instance}.cnf -out ${vault_instance}.csr; then
-  echo "Problem with createing the CSR."
+  echo "Problem with creating the CSR."
   exit 1
 fi
 
