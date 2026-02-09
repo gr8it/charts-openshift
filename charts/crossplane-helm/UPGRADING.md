@@ -6,7 +6,7 @@ While upgrading follow guide at <https://docs.crossplane.io/latest/guides/upgrad
 
 To check whether Crossplane upgrade is not causing any issues, please check:
 
-- that all Crossplane component are running (using the new version)
+- that all Crossplane components are running (using the new version)
 
 - that all Crossplane provider usage is working, e.g vault provider, keycloak provider, ..
   - vault provider = cert-manager, eso
