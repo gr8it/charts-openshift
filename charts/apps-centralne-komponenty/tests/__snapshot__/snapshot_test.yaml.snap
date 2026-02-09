@@ -4,8 +4,12 @@ manifests should match snapshot:
     kind: ClusterRole
     metadata:
       labels:
+        app.kubernetes.io/instance: crossplane-xr-functions
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: apps-centralne-komponenty
+        helm.sh/chart: apps-centralne-komponenty-1.0.0
         rbac.authorization.k8s.io/aggregate-to-apc-project-operator: "true"
-      name: microservice-project-operator
+      name: crossplane-xr-functions-apps-centralne-komponenty-project-operator
     rules:
       - apiGroups:
           - ck.socpoist.sk
@@ -24,8 +28,12 @@ manifests should match snapshot:
     kind: ClusterRole
     metadata:
       labels:
+        app.kubernetes.io/instance: crossplane-xr-functions
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: apps-centralne-komponenty
+        helm.sh/chart: apps-centralne-komponenty-1.0.0
         rbac.authorization.k8s.io/aggregate-to-apc-project-admin: "true"
-      name: microservice-project-admin
+      name: crossplane-xr-functions-apps-centralne-komponenty-project-admin
     rules:
       - apiGroups:
           - ck.socpoist.sk
@@ -43,7 +51,12 @@ manifests should match snapshot:
     apiVersion: apiextensions.crossplane.io/v1
     kind: Composition
     metadata:
-      name: ck-microservice
+      labels:
+        app.kubernetes.io/instance: crossplane-xr-functions
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: apps-centralne-komponenty
+        helm.sh/chart: apps-centralne-komponenty-1.0.0
+      name: crossplane-xr-functions-apps-centralne-komponenty-microservice
     spec:
       compositeTypeRef:
         apiVersion: ck.socpoist.sk/v1alpha1
@@ -70,7 +83,7 @@ manifests should match snapshot:
                     accessType: BEARER-ONLY
                     frontchannelLogoutEnabled: true
                   providerConfigRef:
-                    name: keycloak-local-config
+                    name: keycloak-config
             kind: GoTemplate
             source: Inline
           step: microservice-client
@@ -93,7 +106,7 @@ manifests should match snapshot:
                     clientIdRef:
                       name: {{ .observed.composite.resource.metadata.name }}
                   providerConfigRef:
-                    name: keycloak-local-config
+                    name: keycloak-config
                 ---
                 {{- end }}
             kind: GoTemplate
@@ -116,7 +129,7 @@ manifests should match snapshot:
                     realmId: apps
                     name: APC--CK-{{ .observed.composite.resource.metadata.name | upper }}-{{ . | upper }}
                   providerConfigRef:
-                    name: keycloak-local-config
+                    name: keycloak-config
                 ---
                 {{- end }}
             kind: GoTemplate
@@ -144,7 +157,7 @@ manifests should match snapshot:
                     # not gitopsy!
                     exhaustive: false
                   providerConfigRef:
-                    name: keycloak-local-config
+                    name: keycloak-config
                 ---
                 {{- end }}
             kind: GoTemplate
@@ -189,7 +202,7 @@ manifests should match snapshot:
                     pkceCodeChallengeMethod: S256
                     fullScopeAllowed: false
                   providerConfigRef:
-                    name: keycloak-local-config
+                    name: keycloak-config
             kind: GoTemplate
             source: Inline
           step: microservice-admin-client
@@ -213,7 +226,7 @@ manifests should match snapshot:
                     roleIdRef:
                       name: {{ .observed.composite.resource.metadata.name }}-{{ . }}
                   providerConfigRef:
-                    name: keycloak-local-config
+                    name: keycloak-config
                 ---
                 {{- end }}
             kind: GoTemplate
@@ -244,7 +257,7 @@ manifests should match snapshot:
                       "access.token.claim": "true"
                       "introspection.token.claim": "true"
                   providerConfigRef:
-                    name: keycloak-local-config
+                    name: keycloak-config
             kind: GoTemplate
             source: Inline
           step: microservice-admin-protocolmapper
@@ -264,7 +277,7 @@ manifests should match snapshot:
                     realmId: apps
                     clientId: bamoe-management-console
                   providerConfigRef:
-                    name: keycloak-local-config
+                    name: keycloak-config
             kind: GoTemplate
             source: Inline
           step: bamoe-client
@@ -288,7 +301,7 @@ manifests should match snapshot:
                     roleIdRef:
                       name: {{ .observed.composite.resource.metadata.name }}-{{ . }}
                   providerConfigRef:
-                    name: keycloak-local-config
+                    name: keycloak-config
                 ---
                 {{- end }}
             kind: GoTemplate
@@ -319,7 +332,7 @@ manifests should match snapshot:
                       "access.token.claim": "true"
                       "introspection.token.claim": "true"
                   providerConfigRef:
-                    name: keycloak-local-config
+                    name: keycloak-config
             kind: GoTemplate
             source: Inline
           step: bamoe-protolmapper
@@ -330,7 +343,12 @@ manifests should match snapshot:
     apiVersion: apiextensions.crossplane.io/v1
     kind: Composition
     metadata:
-      name: ck-microservice-access
+      labels:
+        app.kubernetes.io/instance: crossplane-xr-functions
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: apps-centralne-komponenty
+        helm.sh/chart: apps-centralne-komponenty-1.0.0
+      name: crossplane-xr-functions-apps-centralne-komponenty-microserviceaccess
     spec:
       compositeTypeRef:
         apiVersion: ck.socpoist.sk/v1alpha1
@@ -353,7 +371,7 @@ manifests should match snapshot:
                     realmId: apps
                     clientId: {{ .observed.composite.resource.metadata.name }}
                   providerConfigRef:
-                    name: keycloak-local-config
+                    name: keycloak-config
             kind: GoTemplate
             source: Inline
           step: isas-client
@@ -376,7 +394,7 @@ manifests should match snapshot:
                     roleIdRef:
                       name: {{ .observed.composite.resource.spec.clientId }}-{{ .observed.composite.resource.spec.clientRole }}
                   providerConfigRef:
-                    name: keycloak-local-config
+                    name: keycloak-config
             kind: GoTemplate
             source: Inline
           step: isas-rolemapper
@@ -405,7 +423,7 @@ manifests should match snapshot:
                       "access.token.claim": "true"
                       "introspection.token.claim": "true"
                   providerConfigRef:
-                    name: keycloak-local-config
+                    name: keycloak-config
             kind: GoTemplate
             source: Inline
           step: microservice-admin-protocolmapper
@@ -429,7 +447,7 @@ manifests should match snapshot:
                       name: {{ .observed.composite.resource.spec.clientId }}
                     role: {{ .observed.composite.resource.spec.clientRole }}
                   providerConfigRef:
-                    name: keycloak-local-config
+                    name: keycloak-config
             kind: GoTemplate
             source: Inline
           step: bamoe-client
@@ -466,6 +484,11 @@ manifests should match snapshot:
     apiVersion: apiextensions.crossplane.io/v2
     kind: CompositeResourceDefinition
     metadata:
+      labels:
+        app.kubernetes.io/instance: crossplane-xr-functions
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: apps-centralne-komponenty
+        helm.sh/chart: apps-centralne-komponenty-1.0.0
       name: microserviceaccesses.ck.socpoist.sk
     spec:
       group: ck.socpoist.sk
@@ -500,6 +523,11 @@ manifests should match snapshot:
     apiVersion: apiextensions.crossplane.io/v2
     kind: CompositeResourceDefinition
     metadata:
+      labels:
+        app.kubernetes.io/instance: crossplane-xr-functions
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: apps-centralne-komponenty
+        helm.sh/chart: apps-centralne-komponenty-1.0.0
       name: microservices.ck.socpoist.sk
     spec:
       group: ck.socpoist.sk

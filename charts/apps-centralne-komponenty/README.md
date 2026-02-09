@@ -17,10 +17,9 @@ Usage of APC Keycloak is preferred due to operational complexity of running a Ke
 
 - Crossplane 2.0+ installed (required for namespaced resources)
 - Crossplane XR functions go-templating / auto-ready installed (see[crossplane-xr-functions](../crossplane-xr-functions/))
-- Keycloak instance with admin privilege
-- Crossplane keycloak provider installed (see [crossplane-keycloak-provider](../crossplane-keycloak-provider/)) and configured (see [](../crossplane-keycloak-provider-bootstrap/))
+- Keycloak instance user with admin role
+- Crossplane keycloak provider installed (see [crossplane-keycloak-provider](../crossplane-keycloak-provider/)) and configured (see [crossplane-keycloak-provider-bootstrap](../crossplane-keycloak-provider-bootstrap/))
   - Requires local user with admin role in the master realm of Keycloak!
-- Bamoe client configured in Keycloak (see [apps-centralne-komponenty-bamoe](../apps-centralne-komponenty-bamoe/))
 
 ### Microservice
 
@@ -52,6 +51,77 @@ Several options were considered for Agenda Systems connecting to APIs:
 3) connecting AS clients to APC Keycloak = implementation on client side (with client auth implementation is very easy)
 
 Although a requirement on client (AS) side implementation, option 3) has been selected.
+
+## Usage Example
+
+Create a BPM microservice, with roles admin, worker, reader, and set of URLs:
+
+```yaml
+apiVersion: ck.socpoist.sk/v1alpha1
+kind: Microservice
+metadata:
+  name: bpm-test-prime
+  namespace: bpm-test-prime
+spec:
+  roles:
+    - admin
+    - worker
+    - reader
+
+  rootUrl: https://bpm-test-prime.apps.example.com/admin/processes
+  baseUrl: https://bpm-test-prime.apps.example.com
+  validRedirectUris:
+    - https://bpm-test-prime.apps.example.com/admin/q/oidc/callback
+  webOrigins:
+    - https://bpm-test-prime.apps.example.com/admin/processes
+```
+
+### Microservice Access Example
+
+Add reader access for ISAS to BPM microservice
+
+```yaml
+apiVersion: ck.socpoist.sk/v1alpha1
+kind: Microserviceaccess
+metadata:
+  name: isas
+  namespace: bpm-test-prime
+spec:
+  clientId: bpm-test-prime
+  clientRole: reader
+```
+
+> [!NOTE]  
+> as a prerequisite, a client isas must exist in Keycloak! E.g.
+
+```yaml
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: Client
+metadata:
+  name: isas
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    realmId: AppDEV
+    clientId: isas # must match name of the microserviceaccess!
+    name: isas # human readable format
+    description: isas description
+    accessType: CONFIDENTIAL
+    standardFlowEnabled: true
+    serviceAccountsEnabled: true
+    baseUrl: https://isas.example.com
+    rootUrl: https://isas.example.com
+    useRefreshTokens: true
+    validRedirectUris:
+    - https://isas.example.com/login
+    webOrigins:
+    - https://isas.example.com
+    frontchannelLogoutEnabled: true
+    pkceCodeChallengeMethod: S256
+    fullScopeAllowed: false
+  providerConfigRef:
+    name: keycloak-provider-config
+```
 
 ## XRD generation
 

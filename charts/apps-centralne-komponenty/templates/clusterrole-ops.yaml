@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: microservice-project-operator
+  name: {{ include "apps-centralne-komponenty.fullname" . }}-project-operator
   labels:
     rbac.authorization.k8s.io/aggregate-to-apc-project-operator: "true"
     {{- include "apps-centralne-komponenty.labels" . | nindent 4 }}

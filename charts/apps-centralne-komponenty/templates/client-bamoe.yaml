@@ -1,0 +1,36 @@
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: Client
+metadata:
+  name: {{ .Values.bamoe.clientId }}
+  labels:
+    {{- include "apps-centralne-komponenty.labels" . | nindent 4 }}
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
+    clientId: {{ .Values.bamoe.clientId }}
+    name: {{ .Values.bamoe.clientName }}
+    description: {{ .Values.bamoe.clientName }} manazment konzola
+    accessType: PUBLIC
+    standardFlowEnabled: true
+    {{- if or .Values.bamoe.rootUrl .Values.bamoe.baseUrl }}
+    rootUrl: {{ .Values.bamoe.rootUrl | default .Values.bamoe.baseUrl }}
+    {{- end }}
+    {{- if .Values.bamoe.baseUrl }}
+    baseUrl: {{ .Values.bamoe.baseUrl }}
+    {{- end }}
+    validRedirectUris:
+    {{- range .Values.bamoe.validRedirectUris | required "validRedirectUris must be set" }}
+      - {{ . }}
+    {{- end }}
+    {{- if .Values.bamoe.webOrigins }}
+    webOrigins:
+    {{- range .Values.bamoe.webOrigins }}
+      - {{ . }}
+    {{- end }}
+    {{- end }}
+    frontchannelLogoutEnabled: true
+    pkceCodeChallengeMethod: S256
+    fullScopeAllowed: false
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}

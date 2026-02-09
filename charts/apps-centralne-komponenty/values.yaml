@@ -4,7 +4,27 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-BamoeClientId: bamoe-management-console
+bamoe:
+  clientId: bamoe-management-console
+  clientName: bamoe
 
-providerConfigRef: keycloak-local-config # toto by malo ist z globalnych values !!!!!!!!!!!!!!!!!!!!!!!!!!!
-realmId: apps # toto by malo ist z globalnych values !!!!!!!!!!!!!!!!!!!!!!!!!!!
+  rootUrl: ~
+  baseUrl: ~
+  validRedirectUris: []
+  webOrigins: []
+
+## uses following global values => do not set here
+# global:
+#   apc:
+#     services:
+#       crossplane:
+#         kubeKeycloakProviderConfigName: ~
+#       keycloak:
+#         realm: ~
+## and their local overrides
+# environmentShort: ~
+# services:
+#   crossplane:
+#     kubeKeycloakProviderConfigName: ~
+#       keycloak:
+#         realm: ~

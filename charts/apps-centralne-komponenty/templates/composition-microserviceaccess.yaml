@@ -1,19 +1,19 @@
 apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
-  name: ck-microservice-access
+  name: {{ include "apps-centralne-komponenty.fullname" . }}-microserviceaccess
   labels:
     {{- include "apps-centralne-komponenty.labels" . | nindent 4 }}
 spec:
   compositeTypeRef:
     apiVersion: ck.socpoist.sk/v1alpha1
-    kind: microserviceaccess
+    kind: Microserviceaccess
   mode: Pipeline
   pipeline:
 
   - step: isas-client
     functionRef:
-      name: function-go-templating
+      name: crossplane-xr-functions-go-templating
     input:
       apiVersion: gotemplating.fn.crossplane.io/v1beta1
       kind: GoTemplate
@@ -24,17 +24,19 @@ spec:
           kind: Client
           metadata:
             name: {{`{{ .observed.composite.resource.metadata.name }}`}}
+            annotations:
+              gotemplating.fn.crossplane.io/composition-resource-name: msa-client
           spec:
             managementPolicies: ["Observe"]
             forProvider:
-              realmId: {{ .Values.realmId }}
+              realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
               clientId: {{`{{ .observed.composite.resource.metadata.name }}`}}
             providerConfigRef:
-              name: {{ .Values.providerConfigRef }}
+              name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
 
   - step: isas-rolemapper
     functionRef:
-      name: function-go-templating
+      name: crossplane-xr-functions-go-templating
     input:
       apiVersion: gotemplating.fn.crossplane.io/v1beta1
       kind: GoTemplate
@@ -45,20 +47,22 @@ spec:
           kind: RoleMapper
           metadata:
             name: {{`{{ .observed.composite.resource.metadata.name }}`}}-{{`{{ .observed.composite.resource.spec.clientId }}`}}-{{`{{ .observed.composite.resource.spec.clientRole }}`}}
+            annotations:
+              gotemplating.fn.crossplane.io/composition-resource-name: msa-client-rolemapper
           spec:
             deletionPolicy: Delete
             forProvider:
-              realmId: {{ .Values.realmId }}
+              realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
               clientIdRef:
                 name: {{`{{ .observed.composite.resource.metadata.name }}`}}
               roleIdRef:
                 name: {{`{{ .observed.composite.resource.spec.clientId }}`}}-{{`{{ .observed.composite.resource.spec.clientRole }}`}}
             providerConfigRef:
-              name: {{ .Values.providerConfigRef }}
+              name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
 
   - step: microservice-admin-protocolmapper
     functionRef:
-      name: function-go-templating
+      name: crossplane-xr-functions-go-templating
     input:
       apiVersion: gotemplating.fn.crossplane.io/v1beta1
       kind: GoTemplate
@@ -69,10 +73,12 @@ spec:
           kind: ProtocolMapper
           metadata:
             name: {{`{{ .observed.composite.resource.metadata.name }}`}}-audience-{{`{{ .observed.composite.resource.spec.clientId }}`}}
+            annotations:
+              gotemplating.fn.crossplane.io/composition-resource-name: msa-client-protocolmapper
           spec:
             deletionPolicy: Delete
             forProvider:
-              realmId: {{ .Values.realmId }}
+              realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
               clientIdRef:
                 name: {{`{{ .observed.composite.resource.metadata.name }}`}}
               protocol: openid-connect
@@ -84,11 +90,11 @@ spec:
                 "access.token.claim": "true"
                 "introspection.token.claim": "true"
             providerConfigRef:
-              name: {{ .Values.providerConfigRef }}
+              name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
 
   - step: bamoe-client
     functionRef:
-      name: function-go-templating
+      name: crossplane-xr-functions-go-templating
     input:
       apiVersion: gotemplating.fn.crossplane.io/v1beta1
       kind: GoTemplate
@@ -99,18 +105,20 @@ spec:
           kind: ClientServiceAccountRole
           metadata:
             name: {{`{{ .observed.composite.resource.metadata.name }}`}}-{{`{{ .observed.composite.resource.spec.clientId }}`}}-{{`{{ .observed.composite.resource.spec.clientRole }}`}}
+            annotations:
+              gotemplating.fn.crossplane.io/composition-resource-name: msa-clientserviceaccountrole
           spec:
             deletionPolicy: Delete
             forProvider:
-              realmId: {{ .Values.realmId }}
+              realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
               serviceAccountUserClientIdRef:
                 name: {{`{{ .observed.composite.resource.metadata.name }}`}}
               clientIdRef:
                 name: {{`{{ .observed.composite.resource.spec.clientId }}`}}
               role: {{`{{ .observed.composite.resource.spec.clientRole }}`}}
             providerConfigRef:
-              name: {{ .Values.providerConfigRef }}
+              name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
 
   - step: automatically-detect-readiness
     functionRef:
-      name: function-auto-ready
+      name: crossplane-xr-functions-auto-ready

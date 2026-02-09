@@ -1,9 +1,11 @@
 # https://json.ophir.dev
-# yq ".spec.versions[0].schema.openAPIV3Schema = \"$(yq -p json -o yaml openapischemas/xrd-microservice.json)\"" --inplace templates/xrd-microservice.yaml;  sed -E -i 's/^([ ]+)openAPIV3Schema:.*/\1openAPIV3Schema:/' templates/xrd-microservice.yaml
+# yq ".spec.versions[0].schema.openAPIV3Schema = \"$(yq -p json -o yaml ../openapischemas/xrd-microservice.json)\"" --inplace xrd-microservice.yaml
 apiVersion: apiextensions.crossplane.io/v2
 kind: CompositeResourceDefinition
 metadata:
   name: microservices.ck.socpoist.sk
+  labels:
+    {{- include "apps-centralne-komponenty.labels" . | nindent 4 }}
 spec:
   # defaultCompositionRef:
   #   name: example
@@ -15,8 +17,6 @@ spec:
   names:
     kind: Microservice
     plural: microservices
-    shortNames:
-      - ms
   versions:
     - name: v1alpha1
       served: true
@@ -24,16 +24,7 @@ spec:
       schema:
         openAPIV3Schema:
           type: object
-          description: Microservice represents a microservice in the system, defined by its Keycloak client configuration
           properties:
-            apiVersion:
-              type: string
-              description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-            kind:
-              type: string
-              description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-            metadata:
-              type: object
             spec:
               type: object
               description: Defines the microservice
@@ -41,18 +32,12 @@ spec:
                 roles:
                   type: array
                   description: List of microservice Keycloak roles
-                  items:
-                    type: string
                 validRedirectUris:
                   type: array
                   description: List of Keycloak client allowed redirect URIs
-                  items:
-                    type: string
                 webOrigins:
                   type: array
                   description: List of Keycloak client allowed web origins, allowed CORS origins. To permit all origins of Valid Redirect URIs, add '+'. This does not include the '*' wildcard though. To permit all origins, explicitly add '*'.
-                  items:
-                    type: string
                 rootUrl:
                   type: string
                   description: Root URL of the microservice Keycloak client, prepended to all relative URLs
