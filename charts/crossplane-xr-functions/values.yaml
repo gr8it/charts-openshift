@@ -1,6 +1,16 @@
 nameOverride: ""
 fullnameOverride: ""
 
+replicas: 2
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 300Mi
+  requests:
+    cpu: 50m
+    memory: 100Mi
+
 functions:
   - name: auto-ready
     package: xpkg.crossplane.io/crossplane-contrib/function-auto-ready:v0.5.2

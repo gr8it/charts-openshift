@@ -8,30 +8,31 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.5.0
+        helm.sh/chart: keycloak-1.6.0
       name: keycloak-ca-certs
       namespace: apc-keycloak
-    stringData: |
-      -----BEGIN CERTIFICATE-----
-      MIIDVTCCAj2gAwIBAgIUeRYCH56h2vgcgcQTlLVIZW+3t98wDQYJKoZIhvcNAQEL
-      BQAwMjELMAkGA1UEBhMCU0sxDjAMBgNVBAoTBWdyOGl0MRMwEQYDVQQDEwpncjhp
-      dC1yb290MB4XDTIzMTAwNjEzMDA0N1oXDTMzMTAwMzEzMDExNlowMjELMAkGA1UE
-      BhMCU0sxDjAMBgNVBAoTBWdyOGl0MRMwEQYDVQQDEwpncjhpdC1yb290MIIBIjAN
-      BgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA23z4SW7x8jx9GrwCs+2Tuht5UrHB
-      QYPVB+a8knkfX5eHFsD1rXdYhR5n3mWljou2xtuXZRINHv3CxxLySdMMK9LtL8i/
-      mlqPM1gXyH8eW4QM23sulP6kXgTnhIUeZJIX6fzVoECt7j2W5xN6gqWBXGQ0Zm74
-      /dCuBnVLKK43tDc7bQw4SyiaN4S/DgXrNzWsHSlPZXHVpyZhDPLBAFFwt0FDgXLX
-      WbQReNBX44bSbEliJ4CuTkxjlHhhDbMCVxaW283+uNZV239YdlMcC6SEJcy8chnY
-      puFsPznRro0MWbgA3vjNa7g71zuj17pJmYYG9bMxP2z6CFQMQJXsgCGTHQIDAQAB
-      o2MwYTAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU
-      zkeoW/c9qpn5X61YwxAmG62icK8wHwYDVR0jBBgwFoAUzkeoW/c9qpn5X61YwxAm
-      G62icK8wDQYJKoZIhvcNAQELBQADggEBAEvgBYkbG4TKel9xft8HXhaL1dODedpO
-      GPOEV9agmukcyCyrnCcfHYhdWw/gW2Th/ISQ2j/7A3ZtA6eCAbzzN1q4ukdvtzS3
-      fHDnwoG1TU/VGuHnyfx1UWTaj0sBZuaefxCCuRTdsW//ZTj0inIksQ2rVvqy6PD/
-      ZwsLSfyXVFnTbUzkOuBXK4y5zWjvU6BkgJiK+Uf3ZJJ1kGloMyFbcDnzD0ZO7QYT
-      4QPZXa053WFfTvDpAOS4hs87tr2TzcrZ0fgSOLv3O8cDtWBIoY+qfMY/GO0+D7G2
-      jSfZQEwdYLLQ6lslNN9Zrg3E3MOpPdJMGcNpA/LRCa2XbbDuG6jRPH0=
-      -----END CERTIFICATE-----
+    stringData:
+      isreg.crt: |
+        -----BEGIN CERTIFICATE-----
+        MIIDVTCCAj2gAwIBAgIUeRYCH56h2vgcgcQTlLVIZW+3t98wDQYJKoZIhvcNAQEL
+        BQAwMjELMAkGA1UEBhMCU0sxDjAMBgNVBAoTBWdyOGl0MRMwEQYDVQQDEwpncjhp
+        dC1yb290MB4XDTIzMTAwNjEzMDA0N1oXDTMzMTAwMzEzMDExNlowMjELMAkGA1UE
+        BhMCU0sxDjAMBgNVBAoTBWdyOGl0MRMwEQYDVQQDEwpncjhpdC1yb290MIIBIjAN
+        BgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA23z4SW7x8jx9GrwCs+2Tuht5UrHB
+        QYPVB+a8knkfX5eHFsD1rXdYhR5n3mWljou2xtuXZRINHv3CxxLySdMMK9LtL8i/
+        mlqPM1gXyH8eW4QM23sulP6kXgTnhIUeZJIX6fzVoECt7j2W5xN6gqWBXGQ0Zm74
+        /dCuBnVLKK43tDc7bQw4SyiaN4S/DgXrNzWsHSlPZXHVpyZhDPLBAFFwt0FDgXLX
+        WbQReNBX44bSbEliJ4CuTkxjlHhhDbMCVxaW283+uNZV239YdlMcC6SEJcy8chnY
+        puFsPznRro0MWbgA3vjNa7g71zuj17pJmYYG9bMxP2z6CFQMQJXsgCGTHQIDAQAB
+        o2MwYTAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU
+        zkeoW/c9qpn5X61YwxAmG62icK8wHwYDVR0jBBgwFoAUzkeoW/c9qpn5X61YwxAm
+        G62icK8wDQYJKoZIhvcNAQELBQADggEBAEvgBYkbG4TKel9xft8HXhaL1dODedpO
+        GPOEV9agmukcyCyrnCcfHYhdWw/gW2Th/ISQ2j/7A3ZtA6eCAbzzN1q4ukdvtzS3
+        fHDnwoG1TU/VGuHnyfx1UWTaj0sBZuaefxCCuRTdsW//ZTj0inIksQ2rVvqy6PD/
+        ZwsLSfyXVFnTbUzkOuBXK4y5zWjvU6BkgJiK+Uf3ZJJ1kGloMyFbcDnzD0ZO7QYT
+        4QPZXa053WFfTvDpAOS4hs87tr2TzcrZ0fgSOLv3O8cDtWBIoY+qfMY/GO0+D7G2
+        jSfZQEwdYLLQ6lslNN9Zrg3E3MOpPdJMGcNpA/LRCa2XbbDuG6jRPH0=
+        -----END CERTIFICATE-----
     type: Opaque
   2: |
     apiVersion: postgresql.cnpg.io/v1
@@ -42,7 +43,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.5.0
+        helm.sh/chart: keycloak-1.6.0
       name: keycloak-backup-db
       namespace: apc-keycloak
     spec:
@@ -63,7 +64,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.5.0
+        helm.sh/chart: keycloak-1.6.0
       name: keycloak-db
       namespace: apc-keycloak
     spec:
@@ -127,6 +128,20 @@ manifests should match snapshot:
       walStorage:
         size: 1Gi
   4: |
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      annotations:
+        request-egressip: "2"
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.6.0
+      name: keycloak-egressip
+      namespace: apc-keycloak
+  5: |
     apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule
     metadata:
@@ -135,7 +150,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.5.0
+        helm.sh/chart: keycloak-1.6.0
       name: keycloak
       namespace: apc-keycloak
     spec:
@@ -184,7 +199,7 @@ manifests should match snapshot:
                 severity: warning
                 team: platform
                 vendor: aspecta
-  5: |
+  6: |
     apiVersion: cert-manager.io/v1
     kind: Certificate
     metadata:
@@ -193,7 +208,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.5.0
+        helm.sh/chart: keycloak-1.6.0
       name: keycloak-tls-secret
       namespace: apc-keycloak
     spec:
@@ -212,8 +227,8 @@ manifests should match snapshot:
           app.kubernetes.io/managed-by: Helm
           app.kubernetes.io/name: keycloak
           app.kubernetes.io/version: v26.0
-          helm.sh/chart: keycloak-1.5.0
-  6: |
+          helm.sh/chart: keycloak-1.6.0
+  7: |
     apiVersion: k8s.keycloak.org/v2alpha1
     kind: Keycloak
     metadata:
@@ -223,7 +238,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.5.0
+        helm.sh/chart: keycloak-1.6.0
       name: keycloak
       namespace: apc-keycloak
     spec:
@@ -289,7 +304,7 @@ manifests should match snapshot:
                   runAsNonRoot: true
                   seccompProfile:
                     type: RuntimeDefault
-  7: |
+  8: |
     apiVersion: objectbucket.io/v1alpha1
     kind: ObjectBucketClaim
     metadata:
@@ -298,13 +313,13 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.5.0
+        helm.sh/chart: keycloak-1.6.0
       name: keycloak-backup
       namespace: apc-keycloak
     spec:
       bucketName: keycloak-backup
       storageClassName: openshift-storage.noobaa.io
-  8: |
+  9: |
     apiVersion: route.openshift.io/v1
     kind: Route
     metadata:
@@ -314,7 +329,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.5.0
+        helm.sh/chart: keycloak-1.6.0
       name: keycloak-admin-ingress
       namespace: apc-keycloak
     spec:
@@ -328,7 +343,7 @@ manifests should match snapshot:
         kind: Service
         name: keycloak-service
         weight: 100
-  9: |
+  10: |
     apiVersion: route.openshift.io/v1
     kind: Route
     metadata:
@@ -338,7 +353,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.5.0
+        helm.sh/chart: keycloak-1.6.0
       name: keycloak-ingress
       namespace: apc-keycloak
     spec:
@@ -352,7 +367,7 @@ manifests should match snapshot:
         kind: Service
         name: keycloak-service
         weight: 100
-  10: |
+  11: |
     apiVersion: external-secrets.io/v1beta1
     kind: ExternalSecret
     metadata:
@@ -361,7 +376,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.5.0
+        helm.sh/chart: keycloak-1.6.0
       name: keycloak-db-auth
       namespace: apc-keycloak
     spec:
@@ -385,9 +400,9 @@ manifests should match snapshot:
               app.kubernetes.io/managed-by: Helm
               app.kubernetes.io/name: keycloak
               app.kubernetes.io/version: v26.0
-              helm.sh/chart: keycloak-1.5.0
+              helm.sh/chart: keycloak-1.6.0
           type: kubernetes.io/basic-auth
-  11: |
+  12: |
     apiVersion: generators.external-secrets.io/v1alpha1
     kind: Password
     metadata:
@@ -396,7 +411,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.5.0
+        helm.sh/chart: keycloak-1.6.0
       name: keycloak-db-auth
       namespace: apc-keycloak
     spec:
@@ -406,7 +421,7 @@ manifests should match snapshot:
       noUpper: false
       symbolCharacters: -_/!@^)
       symbols: 5
-  12: |
+  13: |
     apiVersion: monitoring.coreos.com/v1
     kind: ServiceMonitor
     metadata:
@@ -415,7 +430,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.5.0
+        helm.sh/chart: keycloak-1.6.0
       name: keycloak
       namespace: apc-keycloak
     spec:

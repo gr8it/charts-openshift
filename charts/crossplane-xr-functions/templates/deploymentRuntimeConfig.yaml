@@ -9,7 +9,7 @@ metadata:
 spec:
   deploymentTemplate:
     spec:
-      replicas: 2
+      replicas: {{ $.Values.replicas }}
       selector: {}
       template:
         spec:
@@ -17,11 +17,11 @@ spec:
           - name: package-runtime
             resources:
               limits:
-                cpu: 500m
-                memory: 300Mi
+                cpu: {{ $.Values.resources.limits.cpu }}
+                memory: {{ $.Values.resources.limits.memory }}
               requests:
-                cpu: 50m
-                memory: 100Mi
+                cpu: {{ $.Values.resources.requests.cpu }}
+                memory: {{ $.Values.resources.requests.memory }}
             securityContext:
               allowPrivilegeEscalation: false
               capabilities:
@@ -30,5 +30,12 @@ spec:
               seccompProfile:
                 type: RuntimeDefault
           securityContext: {}
+          topologySpreadConstraints:
+          - labelSelector:
+              matchLabels:
+                pkg.crossplane.io/function: {{ include "crossplane-xr-functions.fullname" $ }}-{{ .name }}
+            maxSkew: 1
+            topologyKey: kubernetes.io/hostname
+            whenUnsatisfiable: DoNotSchedule
 ---
 {{- end }}

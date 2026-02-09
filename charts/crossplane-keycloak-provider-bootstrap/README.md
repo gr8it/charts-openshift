@@ -1,37 +1,40 @@
 # Crossplane Keycloak Provider bootstrap
 
-**WIP** **WIP** **WIP** **WIP** **WIP**
+Component bootstraps Crossplane Keycloak provider using an admin account.
 
-Configures provider using already existing secret, e.g.:
+## Prerequisites
 
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: keycloak-credentials
-  namespace: apc-crossplane-system
-  labels: 
-    type: provider-credentials
-type: Opaque
-stringData:
-  credentials: |
-    {
-      "client_id":"admin-cli",
-      "username": "provisioning",
-      "password": "<redacted>",
-      "url": "https://keycloak.apps.example.com",
-      "base_path": "/auth",
-      "realm": "apps"
-    }
-```
+- admin user for realm provisioning (created in **master** realm)
+- admin user credentials stored in Vault
 
-- the main question is, whether to include some manual steps
-  - login to keycloak using keycloak-initial-admin secret, create a provisioning user and than create a providerconfig secret with provisioning credentials
-- or use an ACM policy for automation like in crossplane-vault-provider-bootstrap
+### Admin user account
+
+- login to Keycloak using initial admin credentials (secret keycloak-initial-admin)
+- navigate to **master** realm
+- create a local user
+  - name: keycloak-provisioning
+  - email verified: true
+  - add email: \<keycloak-provisioning-apps@example.com>
+  - add name: keycloak
+  - add surname: provisioning
+- set credentials in Credentials
+
+> [!NOTE]  
+> unset `temporary` flag for credentials to persist the credentials indefinitely!
+
+- add admin realm role in Role mapping
+
+### Vault
+
+Store admin user credentials in Vault:
+
+\<vaultKVmountPlatform>/\<environmentShort>/keycloak/<realm>/provisioning, e.g. apc-platform/d/keycloak/appDev/provisioning for Keycloak on dev
+
+With keys username / password holding respective credentials.
+
+## Alternative approaches
+
+- use an ACM policy for automation like in crossplane-vault-provider-bootstrap
   - use keycloak-initial-admin secret to create an provisioning user in keycloak, and change provider config to use the new user
   - the difference here is that Vault provider was installed on all clusters, where as this one is targeting only the cluster with keycloak
     - note: both policy and keycloak are on hub cluster
-
-## Manual steps
-
-............. describe manual steps required to create "provisioning" user per cluster and where to store it ............. 

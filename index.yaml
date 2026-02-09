@@ -130,6 +130,16 @@ entries:
     version: 1.0.0
   apc-global-overrides:
   - apiVersion: v2
+    created: "2026-02-04T16:00:08.786678022+01:00"
+    description: A Helm chart containing helm helper functions to override global
+      APC values by local values
+    digest: 553cd04b1ed7254ab16cde3e8f7507c8ea5b5d8582415957195d8e731302527a
+    name: apc-global-overrides
+    type: library
+    urls:
+    - packaged_charts/apc-global-overrides-1.6.0.tgz
+    version: 1.6.0
+  - apiVersion: v2
     created: "2025-11-03T14:13:58.829102043+01:00"
     description: A Helm chart containing helm helper functions to override global
       APC values by local values
@@ -276,6 +286,30 @@ entries:
     type: application
     urls:
     - packaged_charts/application-gitops-1.0.0.tgz
+    version: 1.0.0
+  apps-centralne-komponenty:
+  - apiVersion: v2
+    created: "2026-02-09T17:23:15.975297889+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.6.0
+    description: A Helm chart to deploy "Centrálny Komponent Integračné Služby" integration
+    digest: 8a05f38ddec801741c5d16eddc9ff385d7dc140262c86ec2d43b1aa1ba92f47a
+    name: apps-centralne-komponenty
+    type: application
+    urls:
+    - packaged_charts/apps-centralne-komponenty-1.0.0.tgz
+    version: 1.0.0
+  apps-centralne-komponenty-bamoe:
+  - apiVersion: v2
+    created: "2026-02-04T16:00:08.788783774+01:00"
+    description: A Helm chart to configure Keycloak for Bamoe of "Centralne Komponenty"
+    digest: 9747a4125f5d4c8a184930d1170be44b31ff78c198b63667f9557e7c1b469236
+    name: apps-centralne-komponenty-bamoe
+    type: application
+    urls:
+    - packaged_charts/apps-centralne-komponenty-bamoe-1.0.0.tgz
     version: 1.0.0
   argo-events-helm:
   - apiVersion: v2
@@ -698,6 +732,31 @@ entries:
     urls:
     - packaged_charts/crossplane-helm-1.2.0.tgz
     version: 1.2.0
+  crossplane-keycloak-provider:
+  - apiVersion: v2
+    appVersion: v2.9.0
+    created: "2026-02-09T17:23:15.975568607+01:00"
+    description: A Helm chart to deploy Crossplane Keycloak provider
+    digest: 984a1e747f54932d1ebf9b741444afc3c9ba8f8f20c4ac99c6450a2bb4dadd10
+    name: crossplane-keycloak-provider
+    type: application
+    urls:
+    - packaged_charts/crossplane-keycloak-provider-1.0.0.tgz
+    version: 1.0.0
+  crossplane-keycloak-provider-bootstrap:
+  - apiVersion: v2
+    created: "2026-02-09T17:23:15.975975651+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.6.0
+    description: A Helm chart to provision Crossplane Keycloak provider
+    digest: d55394397a56fa2f46169ac019637c83420089d163e4f8092aa6ffe22e2af3eb
+    name: crossplane-keycloak-provider-bootstrap
+    type: application
+    urls:
+    - packaged_charts/crossplane-keycloak-provider-bootstrap-1.0.0.tgz
+    version: 1.0.0
   crossplane-vault-provider:
   - apiVersion: v2
     appVersion: v2.2.2
@@ -865,6 +924,16 @@ entries:
     type: application
     urls:
     - packaged_charts/crossplane-vault-provider-bootstrap-1.0.0.tgz
+    version: 1.0.0
+  crossplane-xr-functions:
+  - apiVersion: v2
+    created: "2026-02-09T17:23:15.976137584+01:00"
+    description: A Helm chart to deploy Crossplane functions required for XR deployments
+    digest: c85f3dcb1b39910993fb99f4882a198a01d9eef0b09dd0461baf7c58e43b75fb
+    name: crossplane-xr-functions
+    type: application
+    urls:
+    - packaged_charts/crossplane-xr-functions-1.0.0.tgz
     version: 1.0.0
   default-network-policies:
   - apiVersion: v2
@@ -1310,6 +1379,20 @@ entries:
     - packaged_charts/ingress-configuration-1.0.0.tgz
     version: 1.0.0
   keycloak:
+  - apiVersion: v2
+    appVersion: v26.0
+    created: "2026-02-09T17:31:13.816568782+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.6.0
+    description: A Helm chart for APC keycloak
+    digest: 15cedeb4442f884998e94134212013d1131c0cc0ae02e22fa586f031c056ab57
+    name: keycloak
+    type: application
+    urls:
+    - packaged_charts/keycloak-1.6.0.tgz
+    version: 1.6.0
   - apiVersion: v2
     appVersion: v26.0
     created: "2025-10-23T11:22:39.854102517+02:00"
@@ -2138,4 +2221,4 @@ entries:
     urls:
     - packaged_charts/user-workload-monitoring-policy-1.0.0.tgz
     version: 1.0.0
-generated: "2025-11-19T22:22:58.41499486+01:00"
+generated: "2026-02-09T17:31:13.81532531+01:00"

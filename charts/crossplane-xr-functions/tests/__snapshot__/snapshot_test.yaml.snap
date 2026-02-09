@@ -19,6 +19,13 @@ manifests should match snapshot:
             spec:
               containers:
                 - name: package-runtime
+                  resources:
+                    limits:
+                      cpu: 500m
+                      memory: 300Mi
+                    requests:
+                      cpu: 50m
+                      memory: 100Mi
                   securityContext:
                     allowPrivilegeEscalation: false
                     capabilities:
@@ -27,6 +34,13 @@ manifests should match snapshot:
                     seccompProfile:
                       type: RuntimeDefault
               securityContext: {}
+              topologySpreadConstraints:
+                - labelSelector:
+                    matchLabels:
+                      pkg.crossplane.io/function: crossplane-xr-functions-auto-ready
+                  maxSkew: 1
+                  topologyKey: kubernetes.io/hostname
+                  whenUnsatisfiable: DoNotSchedule
   2: |
     apiVersion: pkg.crossplane.io/v1beta1
     kind: DeploymentRuntimeConfig
@@ -47,6 +61,13 @@ manifests should match snapshot:
             spec:
               containers:
                 - name: package-runtime
+                  resources:
+                    limits:
+                      cpu: 500m
+                      memory: 300Mi
+                    requests:
+                      cpu: 50m
+                      memory: 100Mi
                   securityContext:
                     allowPrivilegeEscalation: false
                     capabilities:
@@ -55,6 +76,13 @@ manifests should match snapshot:
                     seccompProfile:
                       type: RuntimeDefault
               securityContext: {}
+              topologySpreadConstraints:
+                - labelSelector:
+                    matchLabels:
+                      pkg.crossplane.io/function: crossplane-xr-functions-go-templating
+                  maxSkew: 1
+                  topologyKey: kubernetes.io/hostname
+                  whenUnsatisfiable: DoNotSchedule
   3: |
     apiVersion: pkg.crossplane.io/v1
     kind: Function

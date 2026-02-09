@@ -17,22 +17,24 @@ spec:
             args:
               - --debug
               # - --enable-external-secret-stores
-            # resources:
-            #   limits:
-            #     cpu: 500m
-            #     memory: 300Mi
-            #   requests:
-            #     cpu: 20m
-            #     memory: 50Mi
-            securityContext: {}
+            resources:
+              limits:
+                cpu: {{ .Values.resources.limits.cpu }}
+                memory: {{ .Values.resources.limits.memory }}
+              requests:
+                cpu: {{ .Values.resources.requests.cpu }}
+                memory: {{ .Values.resources.requests.memory }}
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+            # securityContext: {}
               # allowPrivilegeEscalation: false
               # privileged: false
               # runAsGroup: ~
               # runAsNonRoot: true
               # runAsUser: ~
-            volumeMounts:
-            - mountPath: /certs/
-              name: custom-ca-certs
             # - mountPath: /etc/ssl/certs/isreg.crt
             #   name: custom-ca-certs
             #   readOnly: true
@@ -49,7 +51,6 @@ spec:
             maxSkew: 1
             topologyKey: kubernetes.io/hostname
             whenUnsatisfiable: DoNotSchedule
-          volumes:
-          - configMap:
-              name: custom-ca-certs
-            name: custom-ca-certs
+          # - configMap:
+          #     name: kube-root-ca.crt
+          #   name: custom-ca-certs
