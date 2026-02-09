@@ -25,7 +25,7 @@ spec:
           metadata:
             name: {{`{{ .observed.composite.resource.metadata.name }}`}}
             annotations:
-              gotemplating.fn.crossplane.io/composition-resource-name: msa-client
+              gotemplating.fn.crossplane.io/composition-resource-name: msa-client-{{`{{ .observed.composite.resource.metadata.name }}`}}
           spec:
             managementPolicies: ["Observe"]
             forProvider:
@@ -49,7 +49,7 @@ spec:
           metadata:
             name: {{`{{ .observed.composite.resource.metadata.name }}`}}-{{`{{ .observed.composite.resource.spec.clientId }}`}}-{{`{{ .observed.composite.resource.spec.clientRole }}`}}
             annotations:
-              gotemplating.fn.crossplane.io/composition-resource-name: msa-client-rolemapper
+              gotemplating.fn.crossplane.io/composition-resource-name: msa-client-rolemapper-{{`{{ .observed.composite.resource.metadata.name }}`}}-{{`{{ .observed.composite.resource.spec.clientId }}`}}-{{`{{ .observed.composite.resource.spec.clientRole }}`}}
           spec:
             forProvider:
               realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
@@ -75,7 +75,7 @@ spec:
           metadata:
             name: {{`{{ .observed.composite.resource.metadata.name }}`}}-audience-{{`{{ .observed.composite.resource.spec.clientId }}`}}
             annotations:
-              gotemplating.fn.crossplane.io/composition-resource-name: msa-client-protocolmapper
+              gotemplating.fn.crossplane.io/composition-resource-name: msa-client-protocolmapper-{{`{{ .observed.composite.resource.metadata.name }}`}}-audience-{{`{{ .observed.composite.resource.spec.clientId }}`}}
           spec:
             forProvider:
               realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
@@ -107,7 +107,7 @@ spec:
           metadata:
             name: {{`{{ .observed.composite.resource.metadata.name }}`}}-{{`{{ .observed.composite.resource.spec.clientId }}`}}-{{`{{ .observed.composite.resource.spec.clientRole }}`}}
             annotations:
-              gotemplating.fn.crossplane.io/composition-resource-name: msa-clientserviceaccountrole
+              gotemplating.fn.crossplane.io/composition-resource-name: msa-clientserviceaccountrole-{{`{{ .observed.composite.resource.metadata.name }}`}}-{{`{{ .observed.composite.resource.spec.clientId }}`}}-{{`{{ .observed.composite.resource.spec.clientRole }}`}}
           spec:
             forProvider:
               realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}

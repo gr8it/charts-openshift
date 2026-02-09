@@ -75,6 +75,7 @@ spec:
       source: Inline
       inline:
         template: |
+          {{`{{- if .observed.composite.resource.spec.createGroupRoleMappings }}`}}
           {{`{{- range  $index, $value := .observed.composite.resource.spec.roles }}`}}
           apiVersion: group.keycloak.m.crossplane.io/v1alpha1
           kind: Group
@@ -92,6 +93,7 @@ spec:
               kind: ClusterProviderConfig
           ---
           {{`{{- end }}`}}
+          {{`{{- end }}`}}
 
   - step: microservice-group-roles
     functionRef:
@@ -102,6 +104,7 @@ spec:
       source: Inline
       inline:
         template: |
+          {{`{{- if .observed.composite.resource.spec.createGroupRoleMappings }}`}}
           {{`{{- range $index, $value := .observed.composite.resource.spec.roles }}`}}
           apiVersion: group.keycloak.m.crossplane.io/v1alpha1
           kind: Roles
@@ -116,12 +119,12 @@ spec:
                 name: apc-{{ include "apc-global-overrides.environmentShort" . }}-ck-{{`{{ $.observed.composite.resource.metadata.name }}`}}-{{`{{ $value }}`}}
               roleIdsRefs:
               - name: {{`{{ $.observed.composite.resource.metadata.name }}`}}-admin
-              # not gitopsy!
               exhaustive: false
             providerConfigRef:
               name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
               kind: ClusterProviderConfig
           ---
+          {{`{{- end }}`}}
           {{`{{- end }}`}}
 
   - step: microservice-admin-client
