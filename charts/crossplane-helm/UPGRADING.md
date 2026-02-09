@@ -14,7 +14,7 @@ To check whether Crossplane upgrade is not causing any issues, please check:
 
 ### Provider config usage
 
-Fortunately Crossplane provides a way to check how it is used = providerconfigusage CR. A vibe coded script than helps to list all usages:
+Fortunately Crossplane provides a way to check how it is used = providerconfigusage CR. A vibe coded script then helps to list all usages:
 
 ```bash
 #!/usr/bin/env bash
