@@ -135,9 +135,8 @@ yq ".spec.versions[0].schema.openAPIV3Schema = \"$(yq -p json -o yaml openapisch
 
 ## TODO
 
-- migrate Crossplane to v2.0+
-- finish crossplane keycloak provider bootstrap (either manual setup, or automatic)
 - test in SP dev01
   - deploy to test / prod
 - agree on interconnection of APC Keycloak with SP Keycloak
   - implement (in code?)
+- make microservice CR be ready without optional groups / roles being ready
