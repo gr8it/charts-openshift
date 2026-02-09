@@ -1,0 +1,51 @@
+## uses following global values => do not set here
+# global:
+#   apc:
+#     proxyCIDRs: []
+## and their local overrides
+# proxyCIDRs: [] # if set, communication to these IP will be allowed
+
+  replicas: 2
+  rbacManager:
+    replicas: 2
+    topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app: crossplane-rbac-manager
+  metrics:
+    enabled: true
+    port: 9090
+  securityContextCrossplane:
+    runAsUser:
+    runAsGroup:
+  securityContextRBACManager:
+    runAsUser:
+    runAsGroup:
+  resourcesCrossplane:
+    limits:
+      cpu: 250m
+      memory: 1024Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+  resourcesRBACManager:
+    limits:
+      cpu: 100m
+      memory: 512Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+  topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app: crossplane
+  # extraEnvVarsCrossplane:
+  #   HTTP_PROXY: ~
+  #   HTTPS_PROXY: ~
+  #   NO_PROXY: ~
