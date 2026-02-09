@@ -4,7 +4,7 @@ set -euo pipefail
 
 # check if we have openssl
 if ! openssl -v > /dev/null 2>&1; then 
-  echo "Openssl is required for the script, actually its not installed. Exitting."
+  echo "Openssl is required for the script, actually its not installed. Exiting."
   exit 1
 fi
 
