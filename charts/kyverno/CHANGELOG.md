@@ -7,9 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.4.1] - 2026-02-09
 
-### Changed memory limits
+### Changed
 
-- Changed memory limit for apc-kyverno-controller 
+- Updated memory limit for `apc-kyverno-controller` in `values.yaml` (key `resources.limits.memory`)
 
 ## [1.4.0] - 2026-02-26
 
