@@ -56,3 +56,8 @@ Initialization process is done via the k8s jobs and is split into two parts:
 
 > [!IMPORTANT]  
 > Backup secrets for snapshot agent and OBC credentials are not managed by argo!!!
+
+
+## TODO 
+
+- use proper CA for backup upload to S3 in backup Cronjob and remove ```--noverify-ssl``` option win ```aws s3 cp``` command
