@@ -1,0 +1,58 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vault-init-job
+  namespace: {{ .Release.Namespace }}
+  labels:
+  {{- include "vault-helm.labels" $ | nindent 4 }}
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      serviceAccountName: {{ .Release.Name }}
+      containers:
+        - name: vault-init-container
+          image: {{ .Values.init.image }}:{{ .Values.init.tag }}
+          command: ["sh", "-c"]
+          args:
+            - |
+              echo "=== Starting Vault initialization ==="
+              /opt/vault-init/vault-init.sh
+              rc=$?
+              if [[ $rc -ne 0 ]]; then
+                echo "ERROR: Vault initialization failed with exit code $rc"
+                exit $rc
+              fi
+              {{- if .Values.logging.enabled}}
+              /opt/vault-init/enable-logging.sh
+              rc=$?
+              if [[ $rc -ne 0 ]]; then
+                echo "ERROR: Vault logging setup failed with exit code $rc"
+                exit $rc
+              fi
+              {{- end }}
+              echo "=== Vault initialization completed ==="
+          securityContext:
+            runAsUser:
+            runAsGroup:
+            runAsNonRoot: true
+            privileged: false
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+              - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+          - name: VAULT_INSTANCE
+            value: "{{ .Release.Name }}"
+          volumeMounts:
+            - name: init-scripts
+              mountPath: /opt/vault-init
+      volumes:
+        - name: init-scripts
+          configMap:
+            name: {{ .Release.Name }}-init-scripts
+            defaultMode: 0755
+      restartPolicy: Never

@@ -10,8 +10,8 @@ Limitations: only 8 alt names allowed as of now
 
 Requirements:
 
-- Issuer certificate (root or intermediate certificate)
-- Issuer certificate key
+- Issuer certificate (root or intermediate certificate), from the organization for which the vault is deployed
+- Issuer certificate key, from the organization for which the vault is deployed
 
 The script will generate certificate request configuration, certificate request, certificate itself and certificate key. Important and for later use are certificate and key.  
 
@@ -20,7 +20,7 @@ It is suggested to use short lived certificate (certificate validation period), 
 
 Created certificate should contain SANs:
 
-- \<route> / \<ingress>, e.g. vault.apps.hub01.cloud.socpoist.sk
+- \<route> / \<ingress>, e.g. vault.apps.hub01.cloud.exmaple.com
 - vault-active.<vault-namespace>.svc, e.g vault-active.apc-vault.svc
 - 127.0.0.1 (in scripted solution this one is inserted automatically, no need to specify) 
 
@@ -32,10 +32,10 @@ $ ./createCert.sh
 Enter the RootCA file name: ../rootCA.pem
 Enter the RootCA key file name: ../rootCA.key
 Enter the certificate validation period in days: 22
-Enter the FQDN: skvault2.apps.ocpdemo.lab.gr8it.cloud
+Enter the FQDN: skvault2.apps.ocpdemo.lab.exmaple.com
 Enter the SANs (delimited by space): skvault2-active.skvault2.svc
 Certificate request self-signature ok
-subject=CN=skvault2.apps.ocpdemo.lab.gr8it.cloud
+subject=CN=skvault2.apps.ocpdemo.lab.exmaple.com
 skvault2.crt: OK
 Certificate verified and ready for use.
 The content of certificate is:

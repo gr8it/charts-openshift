@@ -7,7 +7,7 @@ metadata:
   {{- include "vault-helm.labels" $ | nindent 4 }}
 data:
   vault-init.sh: |
-    #!/bin/sh
+    #!/bin/bash
 
     set -eu
 
@@ -99,7 +99,7 @@ data:
     fi
 {{- if .Values.backup.enabled }}
   backup-init.sh: |
-    #!/bin/sh
+    #!/bin/bash
 
     set -u
 
@@ -145,7 +145,7 @@ data:
         exit 1
       fi
 
-      log_message "INFO: Enabling authrole method in Vault."
+      log_message "INFO: Enabling approle method in Vault."
       if oc -n ${VAULT_INSTANCE} exec ${VAULT_INSTANCE}-0 -c vault -- sh -c "
             export VAULT_TOKEN=$VAULT_TOKEN
             vault auth list" | grep approle >/dev/null 2>&1; then 
@@ -216,7 +216,7 @@ data:
       fi      
     fi
   bucket-credentials.sh: |
-    #!/bin/sh
+    #!/bin/bash
 
     set -u
 
@@ -256,7 +256,7 @@ data:
 {{- end }}
 {{- if .Values.logging.enabled}}
   enable-logging.sh: |
-    #!/bin/sh
+    #!/bin/bash
 
     set -u
 

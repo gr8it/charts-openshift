@@ -23,6 +23,11 @@ backup:
 logging:
   enabled: true
 
+global:
+  vault:
+    transit:
+      address: ""
+
 vault:
   global:
     enabled: true
@@ -41,7 +46,7 @@ vault:
       tag: 1.14.8
     route:
       enabled: true
-      host: vault.apps.hub01.cloud.socpoist.sk
+      host: ""
       tls: { termination: passthrough }
     ha:
       enabled: true
@@ -77,7 +82,7 @@ vault:
           }
 
           seal "transit" {
-            address         = "https://vault.comm.apc.socpoist.sk:8200"
+            address         = "{{ .Values.global.vault.transit.address | required "Vault address for unseal vault is required!"}}"
             key_name        = "hub-unseal"
             mount_path      = "transit/"
             disable_renewal = "false"

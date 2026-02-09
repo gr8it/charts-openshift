@@ -39,6 +39,17 @@ stringData:
 EOF
 ```
 
+## Configuration
+
+Configuration of Vault deployment is done via the values.yaml file. Configuration options are mostly self explanatory.  
+
+Most important configuration options:
+> [!NOTE]
+> The configuration options are set in component values in conf repository
+
+- ```.global.vault.transit.address```: sets the adress of vault which is used for auto unseal of deployed vault
+- ```.vault.server.route.host```: vault FQDN 
+
 ## Initialization process
 
 Initialization process is done via the k8s jobs and is split into two parts:
