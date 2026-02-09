@@ -22,7 +22,7 @@ For successful Vault deployment following requirements have to be met:
 
 ### Autounseal token
 
-Autonseal token have to be stored in secretd placed in namespace where vault will be deployed.  
+Autonseal token have to be stored in secret placed in namespace where vault will be deployed.  
 
 Secret example:
 
