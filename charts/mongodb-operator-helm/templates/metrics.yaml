@@ -8,7 +8,7 @@ metadata:
     name: {{ (index .Values "mongodb-kubernetes").operator.name }}
 spec:
   selector:
-    name: {{ (index .Values "mongodb-kubernetes").operator.name }}
+    app.kubernetes.io/name: {{ (index .Values "mongodb-kubernetes").operator.name }}
   ports:
     - name: metrics
       protocol: TCP
