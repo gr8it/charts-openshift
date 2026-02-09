@@ -42,19 +42,19 @@ data:
       log_message "INFO: Vault is already initialized."
       exit 0
     else
-      log_message "INFO: Initilizing Vault..."
+      log_message "INFO: Initializing Vault..."
 
-      if oc -n ${VAULT_INSTANCE} exec ${VAULT_INSTANCE}-0 -c vault -- vault operator init > /tmp/init.txt 2>&1; then
+      if oc -n ${VAULT_INSTANCE} exec ${VAULT_INSTANCE}-0 -c vault -- vault operator init > /dev/shm/init.txt 2>&1; then
         log_message "INFO: Vault initialized."
       else
-        log_message "ERROR: Problem with initialazing Vault instance."
+        log_message "ERROR: Problem with initializing Vault instance."
         exit 1
       fi
 
       log_message "INFO: Preparing Vault init information for creating secret."
 
-      input="/tmp/init.txt"
-      output="/tmp/secrets.txt"
+      input="/dev/shm/init.txt"
+      output="/dev/shm/secrets.txt"
 
       awk '
       BEGIN {
@@ -90,7 +90,7 @@ data:
 
       log_message "INFO: Creating secret with Vault init information."
 
-      if oc create -n ${VAULT_INSTANCE} secret generic init-log-$(date +%Y%m%d) --from-env-file=/tmp/secrets.txt; then
+      if oc create -n ${VAULT_INSTANCE} secret generic init-log-$(date +%Y%m%d) --from-env-file=/dev/shm/secrets.txt; then
         log_message "INFO: Secret with Vault init information created."
       else
         log_message "ERROR: Problem with creating Vault init information secret."
@@ -229,7 +229,8 @@ data:
     log_message "INFO: Creating bucket credentials secret."
 
     if ! oc -n ${VAULT_INSTANCE} get secret ${BACKUP_BUCKET}-cloud-credentials >/dev/null 2>&1; then
-      cat << EOF | oc -n ${VAULT_INSTANCE} create -f -
+    
+      cat << EOF > /dev/shm/bucket-credentials-secret.yaml
     apiVersion: v1
     kind: Secret
     metadata:
@@ -242,7 +243,13 @@ data:
       bucket: "$(oc -n ${APC_BACKUP_NS} get cm ${BACKUP_BUCKET} -o jsonpath='{.data.BUCKET_NAME}' | base64 -w0 | tr -d '\n')"
       endpoint: "$(oc -n ${APC_BACKUP_NS} get cm ${BACKUP_BUCKET} -o jsonpath='{.data.BUCKET_HOST}' | base64 -w0 | tr -d '\n')"
     EOF
-      log_message "INFO: Bucket credentials secret created."
+
+      if oc -n ${VAULT_INSTANCE} create -f /dev/shm/bucket-credentials-secret.yaml; then
+        log_message "INFO: Bucket credentials secret created."
+      else
+        log_message "ERROR: Problem with creating bucket credentials secret."
+        exit 1
+      fi
     else
       log_message "INFO: Bucket credentials secret already in place."
     fi

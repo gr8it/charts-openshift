@@ -32,7 +32,18 @@ spec:
               fi
               {{- end }}
               echo "=== Vault initialization completed ==="
-          securityContext: {}
+          securityContext:
+            runAsUser:
+            runAsGroup:
+            runAsNonRoot: true
+            privileged: false
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+              - ALL
+            seccompProfile:
+              type: RuntimeDefault
           env:
           - name: VAULT_INSTANCE
             value: "{{ .Release.Name }}"
@@ -80,7 +91,18 @@ spec:
                 exit $rc
               fi
               echo "=== Backup initialization completed ==="
-          securityContext: {}
+          securityContext:
+            runAsUser:
+            runAsGroup:
+            runAsNonRoot: true
+            privileged: false
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+              - ALL
+            seccompProfile:
+              type: RuntimeDefault
           env:
           - name: VAULT_INSTANCE
             value: "{{ .Release.Name }}"
@@ -91,10 +113,14 @@ spec:
           volumeMounts:
             - name: init-scripts
               mountPath: /opt/vault-init
+            - name: tmp
+              mountPath: /tmp
       volumes:
         - name: init-scripts
           configMap:
             name: {{ .Release.Name }}-init-scripts
             defaultMode: 0755
+        - name: tmp
+          emptyDir: {}
       restartPolicy: Never
 {{- end }}

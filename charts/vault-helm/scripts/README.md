@@ -22,7 +22,7 @@ Created certificate should contain SANs:
 
 - \<route> / \<ingress>, e.g. vault.apps.hub01.cloud.socpoist.sk
 - vault-active.<vault-namespace>.svc, e.g vault-active.apc-vault.svc
-- 127.0.0.  
+- 127.0.0.1 (in scripted solution this one is inserted automatically, no need to specify) 
 
 
 Usage example:
