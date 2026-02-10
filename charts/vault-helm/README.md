@@ -8,7 +8,7 @@ Due to certain configuration of APC Vault instance the whole deployment cannot b
 
 Deployment process steps:  
 
-- create namespace (manual step)
+- create namespace apc-vault (manual step)
 - [create certificate and secret](./scripts/README.md) with certificate (manual step)
 - create secret with autounseal token (manual step)
 - deploy vault instance via APC Gitops
@@ -64,6 +64,10 @@ Initialization process is done via the k8s jobs and is split into two parts:
 - check if backup is not already in place and if not
 - in vault it will enable approle, create snapshot policy and create specific snapshot approle
 - in k8s it will create secret for snapshot-agent and for OBC used for backup  
+
+> [!IMPORTANT]  
+> Once the backup is initialized it is necessary to add the created OBC to Veeam infrastructure to finish the backup setup!
+
 
 > [!IMPORTANT]  
 > Backup secrets for snapshot agent and OBC credentials are not managed by argo!!!

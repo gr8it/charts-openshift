@@ -47,6 +47,8 @@ spec:
           env:
           - name: VAULT_INSTANCE
             value: "{{ .Release.Name }}"
+          - name: VAULT_NS
+            value: "{{ .Release.Namespace }}"
           volumeMounts:
             - name: init-scripts
               mountPath: /opt/vault-init

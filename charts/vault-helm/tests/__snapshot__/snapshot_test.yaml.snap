@@ -2,7 +2,7 @@ manifests should match snapshot:
   1: |
     apiVersion: v1
     data:
-      backup-init.sh: "#!/bin/bash\n\nset -u\n\nlog_message() {\n  local timestamp\n  timestamp=$(date -u +\"%Y-%m-%dT%H:%M:%SZ\")\n  echo -e \"$timestamp $1\"\n}\n\nif oc -n ${VAULT_INSTANCE} get secret vault-snapshot-agent >/dev/null 2>&1; then\n  log_message \"INFO: Secret with vault-snapshot-agent credentials already exists. Assuming that vault backup initialization was already done.\"\n  exit 0\nelse\n\n  # Check if init job is done\n  job_stat=$(oc -n ${VAULT_INSTANCE} get job vault-init-job -o=jsonpath='{.status.conditions[].type}')\n  count=0\n\n  log_message \"INFO: Checking if the vault initialization is done.\"\n\n  until [[ \"$job_stat\" == \"Complete\" || $count -gt 12 ]]; do\n    job_stat=$(oc -n ${VAULT_INSTANCE} get job vault-init-job -o=jsonpath='{.status.conditions[].type}')\n    if [[ \"$job_stat\" == \"Failed\" ]]; then\n      log_message \"ERROR: Vault initialization job failed.\"\n      exit 1\n    fi\n    count=$(($count + 1))\n    sleep 5\n  done\n\n  if [[ \"$job_stat\" == \"Complete\" ]]; then\n    log_message \"INFO: Vault initialization is $job_stat\"\n  else\n    log_message \"ERROR: Vault initialization is $job_stat\"\n    exit 1\n  fi\n\n  # extract the vault token from secret\n  init_log=$(oc -n ${VAULT_INSTANCE} get secret --sort-by='.metadata.creationTimestamp' | awk '/init-log/ {last=$1} END {if (last) print last}')\n  export VAULT_TOKEN=$(oc -n ${VAULT_INSTANCE} get secret ${init_log} -o jsonpath='{.data.INITIAL_ROOT_TOKEN}' | base64 -d)\n  if [[ -z \"$VAULT_TOKEN\" ]]; then\n    log_message \"ERROR: Cannot get vault token.\"\n    exit 1\n  fi\n\n  log_message \"INFO: Enabling approle method in Vault.\"\n  if oc -n ${VAULT_INSTANCE} exec ${VAULT_INSTANCE}-0 -c vault -- sh -c \"\n        export VAULT_TOKEN=$VAULT_TOKEN\n        vault auth list\" | grep approle >/dev/null 2>&1; then \n    log_message \"INFO: Approle is already set.\"\n  else \n    if ! oc -n ${VAULT_INSTANCE} exec ${VAULT_INSTANCE}-0 -c vault -- sh -c \"\n          export VAULT_TOKEN=$VAULT_TOKEN\n          vault auth enable approle\"; then\n      log_message \"ERROR: Problem with enabling Approle auth method.\"\n      exit 1\n    fi\n  fi\n\n  log_message \"INFO: Creating policy for snapshot agent.\"\n  if oc -n ${VAULT_INSTANCE} exec ${VAULT_INSTANCE}-0 -c vault  -- sh -c \"\n        export VAULT_TOKEN=$VAULT_TOKEN\n        vault policy list\" | grep snapshot >/dev/null 2>&1; then\n    log_message \"INFO: Snapshot policy already in place. Assuming that vault backup initialization was already done.\"\n  else\n    if ! oc -n ${VAULT_INSTANCE} exec ${VAULT_INSTANCE}-0 -c vault -- sh -c \"\n          export VAULT_TOKEN=$VAULT_TOKEN\n          cat << EOF | vault policy write snapshot -\npath \\\"sys/storage/raft/snapshot\\\" {\n  capabilities = [\\\"read\\\"] }\nEOF\"\n    then\n      log_message \"ERROR: Problem with creating snapshot policy.\"\n      exit 1\n    fi\n\n    log_message \"INFO: Creating vault-snap-agent role.\"\n    if oc -n ${VAULT_INSTANCE} exec ${VAULT_INSTANCE}-0 -c vault  -- sh -c \"\n          export VAULT_TOKEN=$VAULT_TOKEN\n          vault read auth/approle/role/vault-snap-agent\" >/dev/null 2>&1; then\n      log_message \"WARNING: vault-snap-agent role already in place. Assuming that vault backup initialization is in place, check the vault backup functionality.\"\n      exit 0\n    else \n      if ! oc -n ${VAULT_INSTANCE} exec ${VAULT_INSTANCE}-0 -c vault  -- sh -c \"\n            export VAULT_TOKEN=$VAULT_TOKEN\n            vault write auth/approle/role/vault-snap-agent token_ttl=120m token_policies=snapshot\"; then\n        log_message \"ERROR: Problem with creating vault-snap-agent role.\"\n        exit 1\n      fi\n      \n      log_message \"INFO: Getting role-id of the snapshot agent.\"\n      if ! role_id=$(oc -n ${VAULT_INSTANCE} exec ${VAULT_INSTANCE}-0 -c vault  -- sh -c \"\n            export VAULT_TOKEN=$VAULT_TOKEN\n            vault read -field=role_id auth/approle/role/vault-snap-agent/role-id\"); then\n        log_message \"ERROR: Problem with getting role-id of the vault-snap-agent.\"\n        exit 1\n      fi\n\n      log_message \"INFO: Generating secret-id of the snapshot agent.\"\n      if ! secret_id=$(oc -n ${VAULT_INSTANCE} exec ${VAULT_INSTANCE}-0 -c vault  -- sh -c \"\n            export VAULT_TOKEN=$VAULT_TOKEN\n            vault write -f -field=secret_id auth/approle/role/vault-snap-agent/secret-id\"); then\n        log_message \"ERROR: Problem with generating secret-id of the vault-snap-agent.\"\n        exit 1\n      fi\n      log_message \"INFO: Creating secret with vault-snap-agent credentials.\"\n      if ! oc -n ${VAULT_INSTANCE} create secret generic vault-snapshot-agent \\\n            --from-literal=VAULT_APPROLE_ROLE_ID=\"$role_id\" \\\n            --from-literal=VAULT_APPROLE_SECRET_ID=\"$secret_id\"; then\n        log_message \"ERROR: Problem with creating secret with vault-snap-agent credentials.\"\n        exit 1\n      fi\n    fi\n  fi      \nfi\n"
+      backup-init.sh: "#!/bin/bash\n\nset -u\n\nlog_message() {\n  local timestamp\n  timestamp=$(date -u +\"%Y-%m-%dT%H:%M:%SZ\")\n  echo -e \"$timestamp $1\"\n}\n\nif oc -n ${VAULT_NS} get secret vault-snapshot-agent >/dev/null 2>&1; then\n  log_message \"INFO: Secret with vault-snapshot-agent credentials already exists. Assuming that vault backup initialization was already done.\"\n  exit 0\nelse\n\n  # Check if init job is done\n  job_stat=$(oc -n ${VAULT_NS} get job vault-init-job -o=jsonpath='{.status.conditions[].type}')\n  count=0\n\n  log_message \"INFO: Checking if the vault initialization is done.\"\n\n  until [[ \"$job_stat\" == \"Complete\" || $count -gt 12 ]]; do\n    job_stat=$(oc -n ${VAULT_NS} get job vault-init-job -o=jsonpath='{.status.conditions[].type}')\n    if [[ \"$job_stat\" == \"Failed\" ]]; then\n      log_message \"ERROR: Vault initialization job failed.\"\n      exit 1\n    fi\n    count=$(($count + 1))\n    sleep 5\n  done\n\n  if [[ \"$job_stat\" == \"Complete\" ]]; then\n    log_message \"INFO: Vault initialization is $job_stat\"\n  else\n    log_message \"ERROR: Vault initialization is $job_stat\"\n    exit 1\n  fi\n\n  # extract the vault token from secret\n  init_log=$(oc -n ${VAULT_NS} get secret --sort-by='.metadata.creationTimestamp' | awk '/init-log/ {last=$1} END {if (last) print last}')\n  export VAULT_TOKEN=$(oc -n ${VAULT_NS} get secret ${init_log} -o jsonpath='{.data.INITIAL_ROOT_TOKEN}' | base64 -d)\n  if [[ -z \"$VAULT_TOKEN\" ]]; then\n    log_message \"ERROR: Cannot get vault token.\"\n    exit 1\n  fi\n\n  log_message \"INFO: Enabling approle method in Vault.\"\n  if oc -n ${VAULT_NS} exec ${VAULT_INSTANCE}-0 -c vault -- sh -c \"\n        export VAULT_TOKEN=$VAULT_TOKEN\n        vault auth list\" | grep approle >/dev/null 2>&1; then \n    log_message \"INFO: Approle is already set.\"\n  else \n    if ! oc -n ${VAULT_NS} exec ${VAULT_INSTANCE}-0 -c vault -- sh -c \"\n          export VAULT_TOKEN=$VAULT_TOKEN\n          vault auth enable approle\"; then\n      log_message \"ERROR: Problem with enabling Approle auth method.\"\n      exit 1\n    fi\n  fi\n\n  log_message \"INFO: Creating policy for snapshot agent.\"\n  if oc -n ${VAULT_NS} exec ${VAULT_INSTANCE}-0 -c vault  -- sh -c \"\n        export VAULT_TOKEN=$VAULT_TOKEN\n        vault policy list\" | grep snapshot >/dev/null 2>&1; then\n    log_message \"INFO: Snapshot policy already in place. Assuming that vault backup initialization was already done.\"\n  else\n    if ! oc -n ${VAULT_NS} exec ${VAULT_INSTANCE}-0 -c vault -- sh -c \"\n          export VAULT_TOKEN=$VAULT_TOKEN\n          cat << EOF | vault policy write snapshot -\npath \\\"sys/storage/raft/snapshot\\\" {\n  capabilities = [\\\"read\\\"] }\nEOF\"\n    then\n      log_message \"ERROR: Problem with creating snapshot policy.\"\n      exit 1\n    fi\n\n    log_message \"INFO: Creating vault-snap-agent role.\"\n    if oc -n ${VAULT_NS} exec ${VAULT_INSTANCE}-0 -c vault  -- sh -c \"\n          export VAULT_TOKEN=$VAULT_TOKEN\n          vault read auth/approle/role/vault-snap-agent\" >/dev/null 2>&1; then\n      log_message \"WARNING: vault-snap-agent role already in place. Assuming that vault backup initialization is in place, check the vault backup functionality.\"\n      exit 0\n    else \n      if ! oc -n ${VAULT_NS} exec ${VAULT_INSTANCE}-0 -c vault  -- sh -c \"\n            export VAULT_TOKEN=$VAULT_TOKEN\n            vault write auth/approle/role/vault-snap-agent token_ttl=120m token_policies=snapshot\"; then\n        log_message \"ERROR: Problem with creating vault-snap-agent role.\"\n        exit 1\n      fi\n      \n      log_message \"INFO: Getting role-id of the snapshot agent.\"\n      if ! role_id=$(oc -n ${VAULT_NS} exec ${VAULT_INSTANCE}-0 -c vault  -- sh -c \"\n            export VAULT_TOKEN=$VAULT_TOKEN\n            vault read -field=role_id auth/approle/role/vault-snap-agent/role-id\"); then\n        log_message \"ERROR: Problem with getting role-id of the vault-snap-agent.\"\n        exit 1\n      fi\n\n      log_message \"INFO: Generating secret-id of the snapshot agent.\"\n      if ! secret_id=$(oc -n ${VAULT_NS} exec ${VAULT_INSTANCE}-0 -c vault  -- sh -c \"\n            export VAULT_TOKEN=$VAULT_TOKEN\n            vault write -f -field=secret_id auth/approle/role/vault-snap-agent/secret-id\"); then\n        log_message \"ERROR: Problem with generating secret-id of the vault-snap-agent.\"\n        exit 1\n      fi\n      log_message \"INFO: Creating secret with vault-snap-agent credentials.\"\n      if ! oc -n ${VAULT_NS} create secret generic vault-snapshot-agent \\\n            --from-literal=VAULT_APPROLE_ROLE_ID=\"$role_id\" \\\n            --from-literal=VAULT_APPROLE_SECRET_ID=\"$secret_id\"; then\n        log_message \"ERROR: Problem with creating secret with vault-snap-agent credentials.\"\n        exit 1\n      fi\n    fi\n  fi      \nfi\n"
       bucket-credentials.sh: |
         #!/bin/bash
 
@@ -16,14 +16,14 @@ manifests should match snapshot:
 
         log_message "INFO: Creating bucket credentials secret."
 
-        if ! oc -n ${VAULT_INSTANCE} get secret ${BACKUP_BUCKET}-cloud-credentials >/dev/null 2>&1; then
+        if ! oc -n ${VAULT_NS} get secret ${BACKUP_BUCKET}-cloud-credentials >/dev/null 2>&1; then
 
           cat << EOF > /dev/shm/bucket-credentials-secret.yaml
         apiVersion: v1
         kind: Secret
         metadata:
           name: ${BACKUP_BUCKET}-cloud-credentials
-          namespace: ${VAULT_INSTANCE}
+          namespace: ${VAULT_NS}
         type: Opaque
         data:
           aws_access_key_id: "$(oc -n ${APC_BACKUP_NS} get secret ${BACKUP_BUCKET} -o jsonpath='{.data.AWS_ACCESS_KEY_ID}')"
@@ -32,7 +32,7 @@ manifests should match snapshot:
           endpoint: "$(oc -n ${APC_BACKUP_NS} get cm ${BACKUP_BUCKET} -o jsonpath='{.data.BUCKET_HOST}' | base64 -w0 | tr -d '\n')"
         EOF
 
-          if oc -n ${VAULT_INSTANCE} create -f /dev/shm/bucket-credentials-secret.yaml; then
+          if oc -n ${VAULT_NS} create -f /dev/shm/bucket-credentials-secret.yaml; then
             log_message "INFO: Bucket credentials secret created."
           else
             log_message "ERROR: Problem with creating bucket credentials secret."
@@ -54,15 +54,15 @@ manifests should match snapshot:
 
         log_message "INFO: Enabling Vault audit logging."
 
-        init_log=$(oc -n ${VAULT_INSTANCE} get secret --sort-by='.metadata.creationTimestamp' | awk '/init-log/ {last=$1} END {if (last) print last}')
-        export VAULT_TOKEN=$(oc -n ${VAULT_INSTANCE} get secret ${init_log} -o jsonpath='{.data.INITIAL_ROOT_TOKEN}' | base64 -d)
+        init_log=$(oc -n ${VAULT_NS} get secret --sort-by='.metadata.creationTimestamp' | awk '/init-log/ {last=$1} END {if (last) print last}')
+        export VAULT_TOKEN=$(oc -n ${VAULT_NS} get secret ${init_log} -o jsonpath='{.data.INITIAL_ROOT_TOKEN}' | base64 -d)
 
-        if oc -n ${VAULT_INSTANCE} exec ${VAULT_INSTANCE}-0 -c vault -- sh -c "
+        if oc -n ${VAULT_NS} exec ${VAULT_INSTANCE}-0 -c vault -- sh -c "
           export VAULT_TOKEN=$VAULT_TOKEN
           vault audit list" | grep file >/dev/null 2>&1; then
           log_message "INFO: Vault audit logging is already enabled."
         else
-          if oc -n ${VAULT_INSTANCE} exec ${VAULT_INSTANCE}-0 -c vault -- sh -c "
+          if oc -n ${VAULT_NS} exec ${VAULT_INSTANCE}-0 -c vault -- sh -c "
                 export VAULT_TOKEN=$VAULT_TOKEN
                 vault audit enable file file_path=stdout"; then
             log_message "INFO: Vault audit logging enabled."
@@ -82,13 +82,13 @@ manifests should match snapshot:
           echo -e "$timestamp $1"
         }
 
-        stat="$(oc -n ${VAULT_INSTANCE} get pod ${VAULT_INSTANCE}-0 -o jsonpath='{ .status.phase }')"
+        stat="$(oc -n ${VAULT_NS} get pod ${VAULT_INSTANCE}-0 -o jsonpath='{ .status.phase }')"
         count=0
 
         log_message "INFO: Checking if the vault pod for initialization is ready"
 
         until [[ "$stat" == "Running" || $count -gt 3 ]]; do
-          stat=$(oc -n ${VAULT_INSTANCE} get pod ${VAULT_INSTANCE}-0 -o jsonpath='{ .status.phase }')
+          stat=$(oc -n ${VAULT_NS} get pod ${VAULT_INSTANCE}-0 -o jsonpath='{ .status.phase }')
           count=$(($count + 1))
           sleep 3
         done
@@ -101,7 +101,7 @@ manifests should match snapshot:
         fi
 
         log_message "INFO: Checking if the Vault is already initialized"
-        vault_init_state=$(oc -n ${VAULT_INSTANCE} exec ${VAULT_INSTANCE}-0 -c vault -- vault status -format=json 2>/dev/null | grep -o '"initialized": true' || echo "not_initialized")
+        vault_init_state=$(oc -n ${VAULT_NS} exec ${VAULT_INSTANCE}-0 -c vault -- vault status -format=json 2>/dev/null | grep -o '"initialized": true' || echo "not_initialized")
 
         if [[ "${vault_init_state}" == '"initialized": true' ]]; then
           log_message "INFO: Vault is already initialized."
@@ -109,7 +109,7 @@ manifests should match snapshot:
         else
           log_message "INFO: Initializing Vault..."
 
-          if oc -n ${VAULT_INSTANCE} exec ${VAULT_INSTANCE}-0 -c vault -- vault operator init > /dev/shm/init.txt 2>&1; then
+          if oc -n ${VAULT_NS} exec ${VAULT_INSTANCE}-0 -c vault -- vault operator init > /dev/shm/init.txt 2>&1; then
             log_message "INFO: Vault initialized."
           else
             log_message "ERROR: Problem with initializing Vault instance."
@@ -155,7 +155,7 @@ manifests should match snapshot:
 
           log_message "INFO: Creating secret with Vault init information."
 
-          if oc create -n ${VAULT_INSTANCE} secret generic init-log-$(date +%Y%m%d) --from-env-file=/dev/shm/secrets.txt; then
+          if oc create -n ${VAULT_NS} secret generic init-log-$(date +%Y%m%d) --from-env-file=/dev/shm/secrets.txt; then
             log_message "INFO: Secret with Vault init information created."
           else
             log_message "ERROR: Problem with creating Vault init information secret."
@@ -332,6 +332,8 @@ manifests should match snapshot:
               env:
                 - name: VAULT_INSTANCE
                   value: vault
+                - name: VAULT_NS
+                  value: apc-vault
                 - name: BACKUP_BUCKET
                   value: app-hub01-vault-apc-vault-backup
                 - name: APC_BACKUP_NS
@@ -403,6 +405,8 @@ manifests should match snapshot:
               env:
                 - name: VAULT_INSTANCE
                   value: vault
+                - name: VAULT_NS
+                  value: apc-vault
               image: registry.redhat.io/openshift4/ose-cli:v4.15
               name: vault-init-container
               securityContext:
