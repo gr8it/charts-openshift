@@ -343,6 +343,38 @@ spec:
                   podSelector: {}
                   policyTypes:
                   - Egress
+
+    - extraDependencies:
+        - name: {{ include "gitops-bootstrap.fullname" . }}-namespace
+          namespace: ""
+          apiVersion: policy.open-cluster-management.io/v1
+          kind: ConfigurationPolicy
+          compliance: Compliant
+      objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: {{ include "gitops-bootstrap.fullname" . }}-kubeapi-netpol
+        spec:
+          remediationAction: enforce
+          severity: high
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: networking.k8s.io/v1
+                kind: NetworkPolicy
+                metadata:
+                  name: allow-kubeapi-egress
+                  namespace: {{ .Values.namespace }}
+                spec:
+                  egress:
+                    - to:
+                        # kube api service is accessible via node IP => adding whole RFC1918 private address space (10...), which should be sufficient
+                        - ipBlock:
+                            cidr: 10.0.0.0/8
+                  podSelector: {}
+                  policyTypes:
+                  - Egress
     {{- end }}
 
     - objectDefinition:
