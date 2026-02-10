@@ -377,6 +377,38 @@ spec:
                   - Egress
     {{- end }}
 
+    - extraDependencies:
+        - name: {{ include "gitops-bootstrap.fullname" . }}-namespace
+          namespace: ""
+          apiVersion: policy.open-cluster-management.io/v1
+          kind: ConfigurationPolicy
+          compliance: Compliant
+      objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: {{ include "gitops-bootstrap.fullname" . }}-openshift-ingress-netpol
+        spec:
+          remediationAction: enforce
+          severity: high
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: networking.k8s.io/v1
+                kind: NetworkPolicy
+                metadata:
+                  name: apc-gitops-allow-from-openshift-ingress-acm
+                  namespace: apc-gitops
+                spec:
+                  ingress:
+                  - from:
+                    - namespaceSelector:
+                        matchLabels:
+                          network.openshift.io/policy-group: ingress
+                  podSelector: {}
+                  policyTypes:
+                  - Ingress
+
     - objectDefinition:
         apiVersion: policy.open-cluster-management.io/v1
         kind: ConfigurationPolicy

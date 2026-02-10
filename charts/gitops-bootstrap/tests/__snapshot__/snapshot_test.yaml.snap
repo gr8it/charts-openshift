@@ -435,6 +435,37 @@ manifests should match snapshot:
                         - Egress
               remediationAction: enforce
               severity: high
+        - extraDependencies:
+            - apiVersion: policy.open-cluster-management.io/v1
+              compliance: Compliant
+              kind: ConfigurationPolicy
+              name: gitops-bootstrap-namespace
+              namespace: ""
+          objectDefinition:
+            apiVersion: policy.open-cluster-management.io/v1
+            kind: ConfigurationPolicy
+            metadata:
+              name: gitops-bootstrap-openshift-ingress-netpol
+            spec:
+              object-templates:
+                - complianceType: musthave
+                  objectDefinition:
+                    apiVersion: networking.k8s.io/v1
+                    kind: NetworkPolicy
+                    metadata:
+                      name: apc-gitops-allow-from-openshift-ingress-acm
+                      namespace: apc-gitops
+                    spec:
+                      ingress:
+                        - from:
+                            - namespaceSelector:
+                                matchLabels:
+                                  network.openshift.io/policy-group: ingress
+                      podSelector: {}
+                      policyTypes:
+                        - Ingress
+              remediationAction: enforce
+              severity: high
         - objectDefinition:
             apiVersion: policy.open-cluster-management.io/v1
             kind: ConfigurationPolicy

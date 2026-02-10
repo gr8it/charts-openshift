@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - add egress netpol for kubeapi if egress proxy netpol is created
+- add ingress netpol for openshift ingress
 
 ## [2.8.1] - 2026-01-19
 
