@@ -5,6 +5,14 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.6] - 2026-01-29
+
+_([SPEXAPC-8954](https://aspecta.atlassian.net/browse/SPEXAPC-8954))_
+
+### Changed
+
+- Bump dependency on `monitoring-prometheusrules` to 1.0.4
+
 ## [1.0.5] - 2025-11-14
 
 ### Changed
