@@ -369,7 +369,7 @@ spec:
                 spec:
                   egress:
                     - to:
-                        # kube api service is accessible via node IP => adding whole RFC1918 private address space (10...), which should be sufficient
+                        # kube api service is accessible via node IP => allow RFC1918 10.0.0.0/8 private address range, which should be sufficient
                         - ipBlock:
                             cidr: 10.0.0.0/8
                   podSelector: {}
