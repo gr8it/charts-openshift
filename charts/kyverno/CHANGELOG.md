@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed KyvernoPolicyResultsFail alert rate window from `[5d]` to `[15m]` — 5-day window was keeping alert active long after a single historical failure
 
+## [1.4.1] - 2026-02-09
+
+### Changed
+
+- Updated memory limit for `apc-kyverno-controller` in `values.yaml` (key `resources.limits.memory`)
+
 ## [1.4.0] - 2026-02-26
 
 ### Added
