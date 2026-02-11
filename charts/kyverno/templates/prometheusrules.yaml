@@ -8,8 +8,8 @@ spec:
     - name: kyverno.rules
       rules:
         - alert: KyvernoPolicyResultsError
-          expr: sum by (policy_name) (rate(kyverno_policy_results_total{rule_result="error"}[15m])) > 0
-          for: 5m
+          expr: sum by (policy_name) (increase(kyverno_policy_results_total{rule_result="error"}[15m])) > 0
+          for: 10m
           labels:
             severity: warning
             vendor: aspecta
@@ -27,3 +27,33 @@ spec:
           annotations:
             summary: Kyverno policy {{ `{{ $labels.policy_name }}` }} failed.
             description: Kyverno policy {{ `{{ $labels.policy_name }}` }} failed, please investigate kyverno logs for root cause.
+        - alert: KyvernoPolicyGenerateError
+          expr: increase(kyverno_policy_results_total{rule_name=~"generate-prometheus-rules.*", rule_result="error"}[1h]) > 0
+          for: 10m
+          labels:
+            severity: warning
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: Kyverno generate rule {{ `{{ $labels.rule_name }}` }} for policy {{ `{{ $labels.policy_name }}` }} encountered errors.
+            description: Kyverno failed to generate PrometheusRule resources via rule {{ `{{ $labels.rule_name }}` }}. Affected namespaces may be missing monitoring alerts. Investigate Kyverno background controller logs.
+        - alert: KyvernoBackgroundControllerDown
+          expr: absent(up{job=~".*kyverno-background-controller.*"}) == 1
+          for: 10m
+          labels:
+            severity: warning
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: Kyverno background controller is down.
+            description: Kyverno background controller is not running. This controller is responsible for generating resources (e.g. PrometheusRules) for existing namespaces. New and existing namespaces may be missing monitoring alerts.
+        - alert: KyvernoAdmissionControllerDown
+          expr: absent(up{job=~".*kyverno-admission-controller.*"}) == 1
+          for: 10m
+          labels:
+            severity: warning
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: Kyverno admission controller is down.
+            description: Kyverno admission controller is not running. This controller is responsible for generating resources (e.g. PrometheusRules) when new namespaces are created. New namespaces will not receive monitoring alerts.
