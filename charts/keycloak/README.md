@@ -10,6 +10,19 @@ Helm chart installs:
 - routes to access Keycloak GUI (admin / login)
 - servicemonitor for the Keycloak instance
 
+- identity provider if configured (using crossplane + ESO)
+- authentication first broker flow without profile review
+
+## Prerequisites
+
+If identity provider is configured, client credentials should be available in Vault at `<apc-platform-kv>/<env-short-name>/keycloak/<realm>/identity-providers/<idp-name>/credentials` as keys `client-id` and `client-id`, e.g. `apc-platform/d/keycloak/AppDev/identity-providers/keycloak-oidc/credentials`
+
+## Post installation
+
+If identity provider is configured, modify `authnetication` -> `browser` flow -> `identity provider redirector` set `Default Identity Provider` to name of the IDP from .Values.identityProviders, e.g. keycloak-oidc.
+
+See [TODO](#todo) for automation.
+
 ## Configuration examples
 
 See [example-configuration](./example-configuration/) for Keycloak configuration examples using Crossplane Keycloak Provider.
@@ -20,3 +33,4 @@ See [example-configuration](./example-configuration/) for Keycloak configuration
 ## TODO
 
 - make example-configuration configurable and include in the template to be provisioned based on the environment values file
+- modify authnetication browser flow `identity provider redirector` Default Identity Provider in code. Probably a new custom flow must be created, and bound as default.

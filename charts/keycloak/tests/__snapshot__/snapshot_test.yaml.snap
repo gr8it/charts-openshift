@@ -35,6 +35,38 @@ manifests should match snapshot:
         -----END CERTIFICATE-----
     type: Opaque
   2: |
+    apiVersion: openidclient.keycloak.m.crossplane.io/v1alpha1
+    kind: Client
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.6.0
+      name: isas
+      namespace: apc-keycloak
+    spec:
+      forProvider:
+        accessType: CONFIDENTIAL
+        baseUrl: null
+        clientId: isas
+        description: ISAS client for Keycloak
+        directAccessGrantsEnabled: false
+        frontchannelLogoutEnabled: true
+        fullScopeAllowed: false
+        implicitFlowEnabled: false
+        name: ISAS
+        pkceCodeChallengeMethod: S256
+        realmId: internal
+        rootUrl: null
+        serviceAccountsEnabled: true
+        standardFlowEnabled: false
+        useRefreshTokens: true
+      providerConfigRef:
+        kind: ClusterProviderConfig
+        name: keycloak-provider-config
+  3: |
     apiVersion: postgresql.cnpg.io/v1
     kind: ScheduledBackup
     metadata:
@@ -54,7 +86,7 @@ manifests should match snapshot:
       method: barmanObjectStore
       schedule: 0 0 1 * * 0
       suspend: false
-  3: |
+  4: |
     apiVersion: postgresql.cnpg.io/v1
     kind: Cluster
     metadata:
@@ -127,7 +159,7 @@ manifests should match snapshot:
         size: 1Gi
       walStorage:
         size: 1Gi
-  4: |
+  5: |
     apiVersion: v1
     kind: ConfigMap
     metadata:
@@ -141,7 +173,484 @@ manifests should match snapshot:
         helm.sh/chart: keycloak-1.6.0
       name: keycloak-egressip
       namespace: apc-keycloak
-  5: |
+  6: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.6.0
+      name: idp-internal-keycloak-oidc-credentials
+      namespace: apc-keycloak
+    spec:
+      data:
+        - remoteRef:
+            key: apc-platform/l/keycloak/internal/identity-providers/keycloak-oidc/credentials
+            property: client-id
+          secretKey: client-id
+        - remoteRef:
+            key: apc-platform/l/keycloak/internal/identity-providers/keycloak-oidc/credentials
+            property: client-secret
+          secretKey: client-secret
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: vault-hub-secret-store
+      target:
+        creationPolicy: Owner
+        name: idp-internal-keycloak-oidc-credentials
+        template:
+          data:
+            client-id: '{{ .client-id }}'
+            client-secret: '{{ .client-secret }}'
+  7: |
+    apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+    kind: Flow
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.6.0
+      name: first-broker-login-without-profile-review
+      namespace: apc-keycloak
+    spec:
+      forProvider:
+        alias: first broker login without profile review
+        description: Actions taken after first broker login with identity provider account, which is not yet linked to any Keycloak account
+        realmId: internal
+      providerConfigRef:
+        kind: ClusterProviderConfig
+        name: keycloak-provider-config-dev
+  8: |
+    apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+    kind: Execution
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.6.0
+      name: first-broker-login-without-profile-review-review-profile
+      namespace: apc-keycloak
+    spec:
+      forProvider:
+        authenticator: idp-review-profile
+        parentFlowAlias: first broker login without profile review
+        priority: 1
+        realmId: internal
+        requirement: DISABLED
+      providerConfigRef:
+        kind: ClusterProviderConfig
+        name: keycloak-provider-config-dev
+  9: |
+    apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+    kind: ExecutionConfig
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.6.0
+      name: first-broker-login-without-profile-review-review-profile
+      namespace: apc-keycloak
+    spec:
+      forProvider:
+        alias: first broker login without profile review review profile config
+        config:
+          update.profile.on.first.login: missing
+        executionIdRef:
+          name: first-broker-login-without-profile-review-review-profile
+        realmId: internal
+      providerConfigRef:
+        kind: ClusterProviderConfig
+        name: keycloak-provider-config-dev
+  10: |
+    apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+    kind: Subflow
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.6.0
+      name: first-broker-login-without-profile-review-user-creation-or-linking
+      namespace: apc-keycloak
+    spec:
+      forProvider:
+        alias: first broker login without profile review User creation or linking config
+        description: Flow for the existing/non-existing user alternatives
+        parentFlowAlias: first broker login without profile review
+        priority: 2
+        realmId: internal
+        requirement: REQUIRED
+      providerConfigRef:
+        kind: ClusterProviderConfig
+        name: keycloak-provider-config-dev
+  11: |
+    apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+    kind: Execution
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.6.0
+      name: first-broker-login-without-profile-review-create-user-if-unique
+      namespace: apc-keycloak
+    spec:
+      forProvider:
+        authenticator: idp-create-user-if-unique
+        parentFlowAlias: first broker login without profile review User creation or linking config
+        priority: 1
+        realmId: internal
+        requirement: ALTERNATIVE
+      providerConfigRef:
+        kind: ClusterProviderConfig
+        name: keycloak-provider-config-dev
+  12: |
+    apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+    kind: ExecutionConfig
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.6.0
+      name: first-broker-login-without-profile-review-create-user-if-unique
+      namespace: apc-keycloak
+    spec:
+      forProvider:
+        alias: first broker login without profile review create unique user config
+        config:
+          require.password.update.after.registration: "false"
+        executionIdRef:
+          name: first-broker-login-without-profile-review-create-user-if-unique
+        realmId: internal
+      providerConfigRef:
+        kind: ClusterProviderConfig
+        name: keycloak-provider-config-dev
+  13: |
+    apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+    kind: Subflow
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.6.0
+      name: first-broker-login-without-profile-review-handle-existing
+      namespace: apc-keycloak
+    spec:
+      forProvider:
+        alias: first broker login without profile review Handle Existing Account
+        description: Handle what to do if there is existing account with same email/username like authenticated identity provider
+        parentFlowAlias: first broker login without profile review User creation or linking config
+        priority: 2
+        realmId: internal
+        requirement: ALTERNATIVE
+      providerConfigRef:
+        kind: ClusterProviderConfig
+        name: keycloak-provider-config-dev
+  14: |
+    apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+    kind: Execution
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.6.0
+      name: first-broker-login-without-profile-review-confirm-link
+      namespace: apc-keycloak
+    spec:
+      forProvider:
+        authenticator: idp-confirm-link
+        parentFlowAlias: first broker login without profile review Handle Existing Account
+        priority: 1
+        realmId: internal
+        requirement: REQUIRED
+      providerConfigRef:
+        kind: ClusterProviderConfig
+        name: keycloak-provider-config-dev
+  15: |
+    apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+    kind: Subflow
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.6.0
+      name: first-broker-login-without-profile-review-account-verification
+      namespace: apc-keycloak
+    spec:
+      forProvider:
+        alias: first broker login without profile review Account verification options
+        description: Method with which to verify the existing account
+        parentFlowAlias: first broker login without profile review Handle Existing Account
+        priority: 2
+        realmId: internal
+        requirement: REQUIRED
+      providerConfigRef:
+        kind: ClusterProviderConfig
+        name: keycloak-provider-config-dev
+  16: |
+    apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+    kind: Execution
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.6.0
+      name: first-broker-login-without-profile-review-email-verification
+      namespace: apc-keycloak
+    spec:
+      forProvider:
+        authenticator: idp-email-verification
+        parentFlowAlias: first broker login without profile review Account verification options
+        priority: 1
+        realmId: internal
+        requirement: ALTERNATIVE
+      providerConfigRef:
+        kind: ClusterProviderConfig
+        name: keycloak-provider-config-dev
+  17: |
+    apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+    kind: Subflow
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.6.0
+      name: first-broker-login-without-profile-review-reauthenticate
+      namespace: apc-keycloak
+    spec:
+      forProvider:
+        alias: first broker login without profile review Verify Existing Account by Re-authentication
+        description: Reauthentication of existing account
+        parentFlowAlias: first broker login without profile review Account verification options
+        priority: 2
+        realmId: internal
+        requirement: ALTERNATIVE
+      providerConfigRef:
+        kind: ClusterProviderConfig
+        name: keycloak-provider-config-dev
+  18: |
+    apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+    kind: Execution
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.6.0
+      name: first-broker-login-without-profile-review-credentials-form
+      namespace: apc-keycloak
+    spec:
+      forProvider:
+        authenticator: idp-username-password-form
+        parentFlowAlias: first broker login without profile review Verify Existing Account by Re-authentication
+        priority: 1
+        realmId: internal
+        requirement: REQUIRED
+      providerConfigRef:
+        kind: ClusterProviderConfig
+        name: keycloak-provider-config-dev
+  19: |
+    apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+    kind: Subflow
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.6.0
+      name: first-broker-login-without-profile-review-conditional-otp
+      namespace: apc-keycloak
+    spec:
+      forProvider:
+        alias: first broker login without profile review First broker login - Conditional OTP
+        description: Flow to determine if the OTP is required for the authentication
+        parentFlowAlias: first broker login without profile review Verify Existing Account by Re-authentication
+        priority: 2
+        realmId: internal
+        requirement: CONDITIONAL
+      providerConfigRef:
+        kind: ClusterProviderConfig
+        name: keycloak-provider-config-dev
+  20: |
+    apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+    kind: Execution
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.6.0
+      name: first-broker-login-without-profile-review-conditional-user
+      namespace: apc-keycloak
+    spec:
+      forProvider:
+        authenticator: conditional-user-configured
+        parentFlowAlias: first broker login without profile review First broker login - Conditional OTP
+        priority: 1
+        realmId: internal
+        requirement: REQUIRED
+      providerConfigRef:
+        kind: ClusterProviderConfig
+        name: keycloak-provider-config-dev
+  21: |
+    apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+    kind: Execution
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.6.0
+      name: first-broker-login-without-profile-review-otp-form
+      namespace: apc-keycloak
+    spec:
+      forProvider:
+        authenticator: auth-otp-form
+        parentFlowAlias: first broker login without profile review First broker login - Conditional OTP
+        priority: 2
+        realmId: internal
+        requirement: REQUIRED
+      providerConfigRef:
+        kind: ClusterProviderConfig
+        name: keycloak-provider-config-dev
+  22: |
+    apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+    kind: Subflow
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.6.0
+      name: first-broker-login-without-profile-review-organization
+      namespace: apc-keycloak
+    spec:
+      forProvider:
+        alias: first broker login without profile review First Broken Login - Conditional Organization
+        description: Flow to determine if the authenticator that adds organization members is to be used
+        parentFlowAlias: first broker login without profile review
+        priority: 3
+        realmId: internal
+        requirement: CONDITIONAL
+      providerConfigRef:
+        kind: ClusterProviderConfig
+        name: keycloak-provider-config-dev
+  23: |
+    apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+    kind: Execution
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.6.0
+      name: first-broker-login-without-profile-review-conditional-user-org
+      namespace: apc-keycloak
+    spec:
+      forProvider:
+        authenticator: conditional-user-configured
+        parentFlowAlias: first broker login without profile review First Broken Login - Conditional Organization
+        priority: 1
+        realmId: internal
+        requirement: REQUIRED
+      providerConfigRef:
+        kind: ClusterProviderConfig
+        name: keycloak-provider-config-dev
+  24: |
+    apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+    kind: Execution
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.6.0
+      name: first-broker-login-without-profile-review-org-member-onboard
+      namespace: apc-keycloak
+    spec:
+      forProvider:
+        authenticator: idp-add-organization-member
+        parentFlowAlias: first broker login without profile review First Broken Login - Conditional Organization
+        priority: 2
+        realmId: internal
+        requirement: REQUIRED
+      providerConfigRef:
+        kind: ClusterProviderConfig
+        name: keycloak-provider-config-dev
+  25: |
+    apiVersion: oidc.keycloak.m.crossplane.io/v1alpha1
+    kind: IdentityProvider
+    metadata:
+      labels:
+        app.kubernetes.io/instance: keycloak
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/version: v26.0
+        helm.sh/chart: keycloak-1.6.0
+      name: keycloak-oidc
+      namespace: apc-keycloak
+    spec:
+      forProvider:
+        alias: keycloak-oidc
+        authorizationUrl: http://keycloak.example.com/realms/internal/protocol/openid-connect/auth
+        clientIdSecretRef:
+          key: client-id
+          name: idp-internal-keycloak-oidc-credentials
+        clientSecretSecretRef:
+          key: client-secret
+          name: idp-internal-keycloak-oidc-credentials
+        displayName: Keycloak OIDC IDP
+        enabled: true
+        extraConfig:
+          isAccessTokenJWT: true
+          pkceEnabled: "true"
+          pkceMethod: S256
+        firstBrokerLoginFlowAlias: first broker login without profile review
+        guiOrder: "0"
+        issuer: http://keycloak.example.com/realms/internal
+        jwksUrl: http://keycloak.example.com/realms/internal/protocol/openid-connect/certs
+        logoutUrl: http://keycloak.example.com/realms/internal/protocol/openid-connect/logout
+        realm: internal
+        storeToken: false
+        syncMode: FORCE
+        tokenUrl: http://keycloak.example.com/realms/internal/protocol/openid-connect/token
+        trustEmail: true
+        userInfoUrl: http://keycloak.example.com/realms/internal/protocol/openid-connect/userinfo
+        validateSignature: true
+      providerConfigRef:
+        kind: ClusterProviderConfig
+        name: keycloak-provider-config-dev
+  26: |
     apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule
     metadata:
@@ -199,7 +708,7 @@ manifests should match snapshot:
                 severity: warning
                 team: platform
                 vendor: aspecta
-  6: |
+  27: |
     apiVersion: cert-manager.io/v1
     kind: Certificate
     metadata:
@@ -228,7 +737,7 @@ manifests should match snapshot:
           app.kubernetes.io/name: keycloak
           app.kubernetes.io/version: v26.0
           helm.sh/chart: keycloak-1.6.0
-  7: |
+  28: |
     apiVersion: k8s.keycloak.org/v2alpha1
     kind: Keycloak
     metadata:
@@ -304,7 +813,7 @@ manifests should match snapshot:
                   runAsNonRoot: true
                   seccompProfile:
                     type: RuntimeDefault
-  8: |
+  29: |
     apiVersion: objectbucket.io/v1alpha1
     kind: ObjectBucketClaim
     metadata:
@@ -319,7 +828,7 @@ manifests should match snapshot:
     spec:
       bucketName: keycloak-backup
       storageClassName: openshift-storage.noobaa.io
-  9: |
+  30: |
     apiVersion: route.openshift.io/v1
     kind: Route
     metadata:
@@ -343,7 +852,7 @@ manifests should match snapshot:
         kind: Service
         name: keycloak-service
         weight: 100
-  10: |
+  31: |
     apiVersion: route.openshift.io/v1
     kind: Route
     metadata:
@@ -367,7 +876,7 @@ manifests should match snapshot:
         kind: Service
         name: keycloak-service
         weight: 100
-  11: |
+  32: |
     apiVersion: external-secrets.io/v1beta1
     kind: ExternalSecret
     metadata:
@@ -402,7 +911,7 @@ manifests should match snapshot:
               app.kubernetes.io/version: v26.0
               helm.sh/chart: keycloak-1.6.0
           type: kubernetes.io/basic-auth
-  12: |
+  33: |
     apiVersion: generators.external-secrets.io/v1alpha1
     kind: Password
     metadata:
@@ -421,7 +930,7 @@ manifests should match snapshot:
       noUpper: false
       symbolCharacters: -_/!@^)
       symbols: 5
-  13: |
+  34: |
     apiVersion: monitoring.coreos.com/v1
     kind: ServiceMonitor
     metadata:

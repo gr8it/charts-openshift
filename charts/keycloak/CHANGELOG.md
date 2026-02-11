@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - add egress ip configmap
+- add identity provider config using crossplane
+- add externalsecret identity provider credentials
+- add custom first broker flow authentication using crossplane
 
 ### Changed
 

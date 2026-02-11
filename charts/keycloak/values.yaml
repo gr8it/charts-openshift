@@ -10,6 +10,12 @@
 #     services:
 #       certManager:
 #         defaultClusterIssuer: ~
+#       crossplane:
+#         kubeKeycloakProviderConfigName: ~
+#       externalSecretsOperator:
+#         defaultClusterSecretStore: ~
+#       keycloak:
+#         realm: ~
 #   releaseServiceOverride: ~
 ## and their local overrides
 # cluster:
@@ -20,6 +26,12 @@
 # services:
 #   certManager:
 #     defaultClusterIssuer: ~
+#   crossplane:
+#     kubeKeycloakProviderConfigName: ~
+#   externalSecretsOperator:
+#     defaultClusterSecretStore: ~
+#   keycloak:
+#     realm: ~
 
 releaseServiceOverride: ~
 
@@ -82,9 +94,45 @@ keycloak:
 storageClassName: "openshift-storage.noobaa.io" 
 bucketName: ~
 
-dbAuth:
-  username: keycloak
-
 egressIP:
   enabled: true
   count: 2
+
+identityProviders: []
+# - name: keycloak-oidc
+#   enabled: true
+#   displayName: Keycloak OIDC IDP
+#   guiOrder: 0 # default 0, no need to specify
+#   authorizationUrl: http://keycloak.example.com/realms/internal/protocol/openid-connect/auth # required
+#   tokenUrl: http://keycloak.example.com/realms/internal/protocol/openid-connect/token # required
+#   logoutUrl: http://keycloak.example.com/realms/internal/protocol/openid-connect/logout
+#   userInfoUrl: http://keycloak.example.com/realms/internal/protocol/openid-connect/userinfo
+#   issuer: http://keycloak.example.com/realms/internal
+#   validateSignature: true # default, no need to specify
+#   jwksUrl: http://keycloak.example.com/realms/internal/protocol/openid-connect/certs
+#   storeToken: false # default, no need to specify
+#   trustEmail: true # default, no need to specify
+#   pkceMethod: # one of "S256" (default), "plain". When not specified PKCE is disabled
+#   isAccessTokenJWT: true # default, no need to specify
+
+# creata a custom first broken login flow without profile review and use as default for created IDP
+customFirstBrokerLoginFlowEnabled: true
+
+clients: []
+# - name: isas
+#   displayName: IS Agendovy system 1
+#   description: IS Agendovy system jedna interny
+#   accessType: # one of "CONFIDENTIAL", "PUBLIC", "BEARER-ONLY"
+#   ## at lease one of standardFlowEnabled, implicitFlowEnabled, directAccessGrantsEnabled or serviceAccountsEnabled must be true !!
+#   standardFlowEnabled: false # default, no need to specify
+#   implicitFlowEnabled: false # default, no need to specify
+#   directAccessGrantsEnabled: false # default, no need to specify
+#   serviceAccountsEnabled: false # default, no need to specify
+#   useRefreshTokens: true # default, no need to specify
+#   pkceCodeChallengeMethod: S256 # one of "S256", "plain". When not specified PKCE is disabled
+#   fullScopeAllowed: false # default, no need to specify
+#   rootUrl: https://isas.example.com/welcome
+#   baseUrl: https://isas.example.com
+#   validRedirectUris: [] # required for standard and implicit flows
+#   webOrigins: [] # required for standard and implicit flows. If set '+' is used = all validRedirectUris are allowed. If set to '*', all uris are allowed, but this is not recommended for production environments.
+#   frontchannelLogoutEnabled: true # default, no need to specify

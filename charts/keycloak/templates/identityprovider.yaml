@@ -1,0 +1,45 @@
+{{- range .Values.identityProviders }}
+apiVersion: oidc.keycloak.m.crossplane.io/v1alpha1
+kind: IdentityProvider
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+  {{- include "keycloak.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    enabled: {{ .enabled | default true }}
+    realm: {{ include "apc-global-overrides.require-keycloakRealm" $ }}
+    alias: {{ .name }}
+    displayName: {{ .displayName | default .name}}
+    guiOrder: {{ .guiOrder | default 0 | quote }}
+    authorizationUrl: {{ .authorizationUrl | required "authorizationUrl is required" }}
+    tokenUrl: {{ .tokenUrl | required "tokenUrl is required" }}
+    logoutUrl: {{ .logoutUrl }}
+    userInfoUrl: {{ .userInfoUrl }}
+    issuer: {{ .issuer }}
+    validateSignature: {{ .validateSignature | default true }}
+    jwksUrl: {{ .jwksUrl }}
+    clientIdSecretRef:
+      name: idp-{{ include "apc-global-overrides.require-keycloakRealm" $ }}-{{ .name }}-credentials
+      key: client-id
+    clientSecretSecretRef:
+      name: idp-{{ include "apc-global-overrides.require-keycloakRealm" $ }}-{{ .name }}-credentials
+      key: client-secret
+    storeToken: {{ .storeToken | default false }}
+    trustEmail: {{ .trustEmail | default true }}
+    {{- if $.Values.customFirstBrokerLoginFlowEnabled }}
+    firstBrokerLoginFlowAlias: first broker login without profile review
+    {{- end }}
+    syncMode: FORCE
+    extraConfig:
+      {{- if .pkceMethod }}
+      pkceEnabled: "true"
+      pkceMethod: {{ .pkceMethod }}
+      {{- end }}
+      isAccessTokenJWT: {{ .isAccessTokenJWT | default true }}
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" $ }}
+    kind: ClusterProviderConfig
+---
+{{- end }}

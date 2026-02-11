@@ -1,0 +1,44 @@
+{{- range .Values.clients }}
+apiVersion: openidclient.keycloak.m.crossplane.io/v1alpha1
+kind: Client
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "keycloak.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    realmId: {{ include "apc-global-overrides.require-keycloakRealm" $ }}
+    clientId: {{ .name }} # must match name of the microserviceaccess!
+    name: {{ .displayName | default .name }}
+    description: {{ .description }}
+    accessType: {{ .accessType | required "accessType is required for client "}}
+    
+    standardFlowEnabled: {{ .standardFlowEnabled | default false }}
+    implicitFlowEnabled: {{ .implicitFlowEnabled | default false }}
+    directAccessGrantsEnabled: {{ .directAccessGrantsEnabled | default false }}
+    serviceAccountsEnabled: {{ .serviceAccountsEnabled | default false }}
+
+    useRefreshTokens: {{ .useRefreshTokens | default true }}
+    pkceCodeChallengeMethod: {{ .pkceCodeChallengeMethod | default "S256" }}
+    fullScopeAllowed: {{ .fullScopeAllowed | default false }}
+
+    rootUrl: {{ .rootUrl }}
+    baseUrl: {{ .baseUrl }}
+    {{- if or .standardFlowEnabled .implicitFlowEnabled }}
+    validRedirectUris:
+    {{- range .validRedirectUris | required "validRedirectUris is required for client with standard or implicit flow enabled" }}
+    - {{ . }}
+    {{- end }}
+    webOrigins:
+    {{- range .webOrigins | required "webOrigins is required for client with standard or implicit flow enabled" }}
+    - {{ . }}
+    {{- end }}
+    {{- end }}
+    frontchannelLogoutEnabled: {{ .frontchannelLogoutEnabled | default true }}
+ 
+  providerConfigRef:
+    name: keycloak-provider-config
+    kind: ClusterProviderConfig
+---
+{{- end }}

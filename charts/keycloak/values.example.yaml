@@ -29,4 +29,29 @@ global: # to be overridden by helmfile global meta environment
     services:
       certManager:
         defaultClusterIssuer: rozdavaccertifikatov
-  
+      crossplane:
+        kubeKeycloakProviderConfigName: keycloak-provider-config-dev
+      externalSecretsOperator:
+        defaultClusterSecretStore: vault-hub-secret-store
+      keycloak:
+        realm: internal
+
+identityProviders:
+- name: keycloak-oidc
+  enabled: true
+  displayName: Keycloak OIDC IDP
+  guiOrder: 0
+  authorizationUrl: http://keycloak.example.com/realms/internal/protocol/openid-connect/auth # required
+  tokenUrl: http://keycloak.example.com/realms/internal/protocol/openid-connect/token # required
+  logoutUrl: http://keycloak.example.com/realms/internal/protocol/openid-connect/logout
+  userInfoUrl: http://keycloak.example.com/realms/internal/protocol/openid-connect/userinfo
+  issuer: http://keycloak.example.com/realms/internal
+  jwksUrl: http://keycloak.example.com/realms/internal/protocol/openid-connect/certs
+  pkceMethod: S256 # one of "S256" (default), "plain". When not specified PKCE is disabled
+
+clients:
+- name: isas
+  displayName: ISAS
+  description: ISAS client for Keycloak
+  accessType: CONFIDENTIAL
+  serviceAccountsEnabled: true
