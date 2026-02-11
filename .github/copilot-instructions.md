@@ -1,7 +1,7 @@
 # Copilot — Repository-wide Custom Instructions
 
 ## Project overview
-This repo contains helm chart for OpenShift. Use clear, actionable explanations and propose minimal diffs. If context is missing, ask 1–2 targeted follow‑up questions before proceeding.
+This repo contains Helm charts for OpenShift. Use clear, actionable explanations and propose minimal diffs. If context is missing, ask 1–2 targeted follow‑up questions before proceeding.
 
 ## General guidance for reviews
 - Prefer concise bullet points; include code snippets when helpful.
