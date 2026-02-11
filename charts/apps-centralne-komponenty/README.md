@@ -52,6 +52,36 @@ Several options were considered for Agenda Systems connecting to APIs:
 
 Although a requirement on client (AS) side implementation, option 3) has been selected.
 
+Such clients should be created using Keycloak component via `.Values.clients[]`. The resulting client should look like:
+
+```yaml
+# Source: keycloak/templates/client.yaml
+apiVersion: openidclient.keycloak.m.crossplane.io/v1alpha1
+kind: Client
+metadata:
+  name: isas
+  namespace: apc-keycloak
+spec:
+  forProvider:
+    realmId: AppDEV
+    clientId: isas # must match name of the microserviceaccess!
+    name: ISAS
+    description: ISAS client for Keycloak
+    accessType: CONFIDENTIAL
+
+    serviceAccountsEnabled: true
+
+    pkceCodeChallengeMethod: S256
+    useRefreshTokens: true
+    fullScopeAllowed: false
+
+    frontchannelLogoutEnabled: true
+
+  providerConfigRef:
+    name: keycloak-provider-config
+    kind: ClusterProviderConfig
+```
+
 ## Usage Example
 
 Create a BPM microservice, with roles admin, worker, reader, and set of URLs:

@@ -120,13 +120,13 @@ manifests should match snapshot:
             apiVersion: gotemplating.fn.crossplane.io/v1beta1
             inline:
               template: |
-                {{- range $index, $value := .observed.composite.resource.spec.roles }}
+                {{- range $value := .observed.composite.resource.spec.roles }}
                 apiVersion: role.keycloak.m.crossplane.io/v1alpha1
                 kind: Role
                 metadata:
                   name: {{ $.observed.composite.resource.metadata.name }}-{{ $value }}
                   annotations:
-                    gotemplating.fn.crossplane.io/composition-resource-name: ms-client-role-{{ $index }}
+                    gotemplating.fn.crossplane.io/composition-resource-name: ms-client-role-{{ $value }}
                 spec:
                   forProvider:
                     realmId: apps
@@ -147,18 +147,25 @@ manifests should match snapshot:
             apiVersion: gotemplating.fn.crossplane.io/v1beta1
             inline:
               template: |
-                {{- range  $index, $value := .observed.composite.resource.spec.roles }}
-                apiVersion: group.keycloak.m.crossplane.io/v1alpha1
-                kind: Group
+                {{- range $value := .observed.composite.resource.spec.roles }}
+                apiVersion: identityprovider.keycloak.m.crossplane.io/v1alpha1
+                kind: IdentityProviderMapper
                 metadata:
-                  name: apc--ck-{{ $.observed.composite.resource.metadata.name }}-{{ $value }}
+                  name: keycloak-oidc-{{ $.observed.composite.resource.metadata.name }}-{{ $value }}
                   annotations:
-                    gotemplating.fn.crossplane.io/composition-resource-name: ms-client-group-{{ $index }}
+                    gotemplating.fn.crossplane.io/composition-resource-name: ms-idp-mapper-roles-{{ $value }}
                 spec:
-                  managementPolicies: ["Observe"]
                   forProvider:
-                    realmId: apps
-                    name: APC--CK-{{ $.observed.composite.resource.metadata.name | upper }}-{{ $value | upper }}
+                    realm: apps
+                    identityProviderAlias: keycloak-oidc
+                    name: {{ $.observed.composite.resource.metadata.name }} {{ $value }} role mapper
+                    identityProviderMapper: "oidc-advanced-role-idp-mapper"
+                    extraConfig:
+                      syncMode: "FORCE"
+                      are.claim.values.regex: "true"
+                      role: "{{ $.observed.composite.resource.metadata.name }}.{{ $value }}"
+                      claims: '[{"key": "groups", "value": "(?<!\\w)/APPS-CK--{{ $.observed.composite.resource.metadata.name | upper }}-{{ $value | upper }}(?!\\w)"}]'
+
                   providerConfigRef:
                     name: keycloak-config
                     kind: ClusterProviderConfig
@@ -166,37 +173,7 @@ manifests should match snapshot:
                 {{- end }}
             kind: GoTemplate
             source: Inline
-          step: microservice-groups
-        - functionRef:
-            name: crossplane-xr-functions-go-templating
-          input:
-            apiVersion: gotemplating.fn.crossplane.io/v1beta1
-            inline:
-              template: |
-                {{- range $index, $value := .observed.composite.resource.spec.roles }}
-                apiVersion: group.keycloak.m.crossplane.io/v1alpha1
-                kind: Roles
-                metadata:
-                  name: apc--ck-{{ $.observed.composite.resource.metadata.name }}-{{ $value }}
-                  annotations:
-                    gotemplating.fn.crossplane.io/composition-resource-name: ms-client-group-role-{{ $index }}
-                spec:
-                  forProvider:
-                    realmId: apps
-                    groupIdRef:
-                      name: apc--ck-{{ $.observed.composite.resource.metadata.name }}-{{ $value }}
-                    roleIdsRefs:
-                    - name: {{ $.observed.composite.resource.metadata.name }}-admin
-                    # not gitopsy!
-                    exhaustive: false
-                  providerConfigRef:
-                    name: keycloak-config
-                    kind: ClusterProviderConfig
-                ---
-                {{- end }}
-            kind: GoTemplate
-            source: Inline
-          step: microservice-group-roles
+          step: microservice-identityprovider-mapper-roles
         - functionRef:
             name: crossplane-xr-functions-go-templating
           input:
@@ -248,13 +225,13 @@ manifests should match snapshot:
             apiVersion: gotemplating.fn.crossplane.io/v1beta1
             inline:
               template: |
-                {{- range $index, $value := .observed.composite.resource.spec.roles }}
+                {{- range $value := .observed.composite.resource.spec.roles }}
                 apiVersion: client.keycloak.m.crossplane.io/v1alpha1
                 kind: RoleMapper
                 metadata:
                   name: {{ $.observed.composite.resource.metadata.name }}-admin-{{ $.observed.composite.resource.metadata.name }}-{{ $value }}
                   annotations:
-                    gotemplating.fn.crossplane.io/composition-resource-name: ms-admin-client-rolemapper-{{ $index }}
+                    gotemplating.fn.crossplane.io/composition-resource-name: ms-admin-client-rolemapper-{{ $value }}
                 spec:
                   forProvider:
                     realmId: apps
@@ -289,7 +266,7 @@ manifests should match snapshot:
                       name: {{ $.observed.composite.resource.metadata.name }}-admin
                     protocol: openid-connect
                     protocolMapper: oidc-audience-mapper
-                    name: add {{ $.observed.composite.resource.metadata.name }} audience
+                    name: {{ $.observed.composite.resource.metadata.name }} audience
                     # https://github.com/keycloak/keycloak/blob/0f01444543cf5e755b13a62c233a5c9feef72888/services/src/main/java/org/keycloak/protocol/oidc/mappers/OIDCAttributeMapperHelper.java#L60
                     config:
                       "included.client.audience": "{{ $.observed.composite.resource.metadata.name }}"
@@ -330,13 +307,13 @@ manifests should match snapshot:
             apiVersion: gotemplating.fn.crossplane.io/v1beta1
             inline:
               template: |
-                {{- range $index, $value := .observed.composite.resource.spec.roles }}
+                {{- range $value := .observed.composite.resource.spec.roles }}
                 apiVersion: client.keycloak.m.crossplane.io/v1alpha1
                 kind: RoleMapper
                 metadata:
                   name: bamoe-{{ $.observed.composite.resource.metadata.name }}-{{ $value }}
                   annotations:
-                    gotemplating.fn.crossplane.io/composition-resource-name: bamoe-client-rolemapper-{{ $index }}
+                    gotemplating.fn.crossplane.io/composition-resource-name: bamoe-client-rolemapper-{{ $value }}
                 spec:
                   forProvider:
                     realmId: apps
@@ -413,7 +390,7 @@ manifests should match snapshot:
                 metadata:
                   name: {{ .observed.composite.resource.metadata.name }}
                   annotations:
-                    gotemplating.fn.crossplane.io/composition-resource-name: msa-client
+                    gotemplating.fn.crossplane.io/composition-resource-name: msa-client-{{ .observed.composite.resource.metadata.name }}
                 spec:
                   managementPolicies: ["Observe"]
                   forProvider:
@@ -436,7 +413,7 @@ manifests should match snapshot:
                 metadata:
                   name: {{ .observed.composite.resource.metadata.name }}-{{ .observed.composite.resource.spec.clientId }}-{{ .observed.composite.resource.spec.clientRole }}
                   annotations:
-                    gotemplating.fn.crossplane.io/composition-resource-name: msa-client-rolemapper
+                    gotemplating.fn.crossplane.io/composition-resource-name: msa-client-rolemapper-{{ .observed.composite.resource.metadata.name }}-{{ .observed.composite.resource.spec.clientId }}-{{ .observed.composite.resource.spec.clientRole }}
                 spec:
                   forProvider:
                     realmId: apps
@@ -461,7 +438,7 @@ manifests should match snapshot:
                 metadata:
                   name: {{ .observed.composite.resource.metadata.name }}-audience-{{ .observed.composite.resource.spec.clientId }}
                   annotations:
-                    gotemplating.fn.crossplane.io/composition-resource-name: msa-client-protocolmapper
+                    gotemplating.fn.crossplane.io/composition-resource-name: msa-client-protocolmapper-{{ .observed.composite.resource.metadata.name }}-audience-{{ .observed.composite.resource.spec.clientId }}
                 spec:
                   forProvider:
                     realmId: apps
@@ -469,7 +446,7 @@ manifests should match snapshot:
                       name: {{ .observed.composite.resource.metadata.name }}
                     protocol: openid-connect
                     protocolMapper: oidc-audience-mapper
-                    name: add {{ .observed.composite.resource.spec.clientId }} audience
+                    name: {{ .observed.composite.resource.spec.clientId }} audience
                     # https://github.com/keycloak/keycloak/blob/0f01444543cf5e755b13a62c233a5c9feef72888/services/src/main/java/org/keycloak/protocol/oidc/mappers/OIDCAttributeMapperHelper.java#L60
                     config:
                       "included.client.audience": "{{ .observed.composite.resource.spec.clientId }}"
@@ -492,7 +469,7 @@ manifests should match snapshot:
                 metadata:
                   name: {{ .observed.composite.resource.metadata.name }}-{{ .observed.composite.resource.spec.clientId }}-{{ .observed.composite.resource.spec.clientRole }}
                   annotations:
-                    gotemplating.fn.crossplane.io/composition-resource-name: msa-clientserviceaccountrole
+                    gotemplating.fn.crossplane.io/composition-resource-name: msa-clientserviceaccountrole-{{ .observed.composite.resource.metadata.name }}-{{ .observed.composite.resource.spec.clientId }}-{{ .observed.composite.resource.spec.clientRole }}
                 spec:
                   forProvider:
                     realmId: apps

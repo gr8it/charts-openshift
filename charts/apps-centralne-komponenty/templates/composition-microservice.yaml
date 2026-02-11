@@ -47,13 +47,13 @@ spec:
       source: Inline
       inline:
         template: |
-          {{`{{- range $index, $value := .observed.composite.resource.spec.roles }}`}}
+          {{`{{- range $value := .observed.composite.resource.spec.roles }}`}}
           apiVersion: role.keycloak.m.crossplane.io/v1alpha1
           kind: Role
           metadata:
             name: {{`{{ $.observed.composite.resource.metadata.name }}`}}-{{`{{ $value }}`}}
             annotations:
-              gotemplating.fn.crossplane.io/composition-resource-name: ms-client-role-{{`{{ $index }}`}}
+              gotemplating.fn.crossplane.io/composition-resource-name: ms-client-role-{{`{{ $value }}`}}
           spec:
             forProvider:
               realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
@@ -66,7 +66,7 @@ spec:
           ---
           {{`{{- end }}`}}
 
-  - step: microservice-groups
+  - step: microservice-identityprovider-mapper-roles
     functionRef:
       name: crossplane-xr-functions-go-templating
     input:
@@ -75,56 +75,29 @@ spec:
       source: Inline
       inline:
         template: |
-          {{`{{- if .observed.composite.resource.spec.createGroupRoleMappings }}`}}
-          {{`{{- range  $index, $value := .observed.composite.resource.spec.roles }}`}}
-          apiVersion: group.keycloak.m.crossplane.io/v1alpha1
-          kind: Group
+          {{`{{- range $value := .observed.composite.resource.spec.roles }}`}}
+          apiVersion: identityprovider.keycloak.m.crossplane.io/v1alpha1
+          kind: IdentityProviderMapper
           metadata:
-            name: apc-{{ include "apc-global-overrides.environmentShort" . }}-ck-{{`{{ $.observed.composite.resource.metadata.name }}`}}-{{`{{ $value }}`}}
+            name: {{ .Values.identityProviderAlias }}-{{`{{ $.observed.composite.resource.metadata.name }}`}}-{{`{{ $value }}`}}
             annotations:
-              gotemplating.fn.crossplane.io/composition-resource-name: ms-client-group-{{`{{ $index }}`}}
+              gotemplating.fn.crossplane.io/composition-resource-name: ms-idp-mapper-roles-{{`{{ $value }}`}}
           spec:
-            managementPolicies: ["Observe"]
             forProvider:
-              realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
-              name: APC-{{ include "apc-global-overrides.environmentShort" . | upper}}-CK-{{`{{ $.observed.composite.resource.metadata.name | upper }}`}}-{{`{{ $value | upper }}`}}
-            providerConfigRef:
-              name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
-              kind: ClusterProviderConfig
-          ---
-          {{`{{- end }}`}}
-          {{`{{- end }}`}}
+              realm: {{ include "apc-global-overrides.require-keycloakRealm" . }}
+              identityProviderAlias: {{ .Values.identityProviderAlias }}
+              name: {{`{{ $.observed.composite.resource.metadata.name }}`}} {{`{{ $value }}`}} role mapper
+              identityProviderMapper: "oidc-advanced-role-idp-mapper"
+              extraConfig:
+                syncMode: "FORCE"
+                are.claim.values.regex: "true"
+                role: "{{`{{ $.observed.composite.resource.metadata.name }}`}}.{{`{{ $value }}`}}"
+                claims: '[{"key": "groups", "value": "(?<!\\w)/APPS-CK-{{ include "apc-global-overrides.environmentShort" . | upper }}-{{`{{ $.observed.composite.resource.metadata.name | upper }}`}}-{{`{{ $value | upper }}`}}(?!\\w)"}]'
 
-  - step: microservice-group-roles
-    functionRef:
-      name: crossplane-xr-functions-go-templating
-    input:
-      apiVersion: gotemplating.fn.crossplane.io/v1beta1
-      kind: GoTemplate
-      source: Inline
-      inline:
-        template: |
-          {{`{{- if .observed.composite.resource.spec.createGroupRoleMappings }}`}}
-          {{`{{- range $index, $value := .observed.composite.resource.spec.roles }}`}}
-          apiVersion: group.keycloak.m.crossplane.io/v1alpha1
-          kind: Roles
-          metadata:
-            name: apc-{{ include "apc-global-overrides.environmentShort" . }}-ck-{{`{{ $.observed.composite.resource.metadata.name }}`}}-{{`{{ $value }}`}}
-            annotations:
-              gotemplating.fn.crossplane.io/composition-resource-name: ms-client-group-role-{{`{{ $index }}`}}
-          spec:
-            forProvider:
-              realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
-              groupIdRef:
-                name: apc-{{ include "apc-global-overrides.environmentShort" . }}-ck-{{`{{ $.observed.composite.resource.metadata.name }}`}}-{{`{{ $value }}`}}
-              roleIdsRefs:
-              - name: {{`{{ $.observed.composite.resource.metadata.name }}`}}-admin
-              exhaustive: false
             providerConfigRef:
               name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
               kind: ClusterProviderConfig
           ---
-          {{`{{- end }}`}}
           {{`{{- end }}`}}
 
   - step: microservice-admin-client
@@ -167,7 +140,7 @@ spec:
                 {{`{{- end }}`}}
               {{`{{- end }}`}}
               frontchannelLogoutEnabled: true
-              pkceCodeChallengeMethod: S256
+              pkceCodeChallengeMethod: {{ .Values.pkceCodeChallengeMethod }}
               fullScopeAllowed: false
             providerConfigRef:
               name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
@@ -182,13 +155,13 @@ spec:
       source: Inline
       inline:
         template: |
-          {{`{{- range $index, $value := .observed.composite.resource.spec.roles }}`}}
+          {{`{{- range $value := .observed.composite.resource.spec.roles }}`}}
           apiVersion: client.keycloak.m.crossplane.io/v1alpha1
           kind: RoleMapper
           metadata:
             name: {{`{{ $.observed.composite.resource.metadata.name }}`}}-admin-{{`{{ $.observed.composite.resource.metadata.name }}`}}-{{`{{ $value }}`}}
             annotations:
-              gotemplating.fn.crossplane.io/composition-resource-name: ms-admin-client-rolemapper-{{`{{ $index }}`}}
+              gotemplating.fn.crossplane.io/composition-resource-name: ms-admin-client-rolemapper-{{`{{ $value }}`}}
           spec:
             forProvider:
               realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
@@ -224,7 +197,7 @@ spec:
                 name: {{`{{ $.observed.composite.resource.metadata.name }}`}}-admin
               protocol: openid-connect
               protocolMapper: oidc-audience-mapper
-              name: add {{`{{ $.observed.composite.resource.metadata.name }}`}} audience
+              name: {{`{{ $.observed.composite.resource.metadata.name }}`}} audience
               # https://github.com/keycloak/keycloak/blob/0f01444543cf5e755b13a62c233a5c9feef72888/services/src/main/java/org/keycloak/protocol/oidc/mappers/OIDCAttributeMapperHelper.java#L60
               config:
                 "included.client.audience": "{{`{{ $.observed.composite.resource.metadata.name }}`}}"
@@ -267,13 +240,13 @@ spec:
       source: Inline
       inline:
         template: |
-          {{`{{- range $index, $value := .observed.composite.resource.spec.roles }}`}}
+          {{`{{- range $value := .observed.composite.resource.spec.roles }}`}}
           apiVersion: client.keycloak.m.crossplane.io/v1alpha1
           kind: RoleMapper
           metadata:
             name: bamoe-{{`{{ $.observed.composite.resource.metadata.name }}`}}-{{`{{ $value }}`}}
             annotations:
-              gotemplating.fn.crossplane.io/composition-resource-name: bamoe-client-rolemapper-{{`{{ $index }}`}}
+              gotemplating.fn.crossplane.io/composition-resource-name: bamoe-client-rolemapper-{{`{{ $value }}`}}
           spec:
             forProvider:
               realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
