@@ -18,8 +18,8 @@ spec:
             summary: Kyverno policy:{{ `{{ $labels.policy_name }}` }} run with errors.
             description: Kyverno policy {{ `{{ $labels.policy_name }}` }} run with errors, please investigate kyverno logs for root cause.
         - alert: KyvernoPolicyResultsFail
-          expr: sum by (policy_name) (rate(kyverno_policy_results_total{rule_result="fail"}[5d])) > 0
-          for: 5m
+          expr: sum by (policy_name) (increase(kyverno_policy_results_total{rule_result="fail"}[15m])) > 0
+          for: 10m
           labels:
             severity: warning
             vendor: aspecta
