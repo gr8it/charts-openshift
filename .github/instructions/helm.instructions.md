@@ -70,15 +70,19 @@ Check for violations of Kubernetes Security, OpenShift SCCs, and kube‑score ru
   - Avoid `privileged: true`, host namespaces, host networking/ports.
 - OpenShift UID‑specific requirements:
   - Do **not** assume a fixed UID; OpenShift assigns random high UIDs.  
+  - "restricted” SCC are used in OpenShift for service accounts by default
   - Avoid hard‑coded UIDs unless necessary; instead set:  
     ```yaml
     runAsNonRoot: true
-    runAsUser: null
+    runAsUser: ~
+    runAsGroup: ~
     ```
 - _Refs_:
   - [Kubernetes Pod Security Standards](https://kubernetes.io/docs/concepts/security/pod-security-standards/)
   - [Kubernetes securityContext guidance](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/)
   - [OpenShift securityContext constraints](https://docs.openshift.com/container-platform/latest/authentication/managing-security-context-constraints.html)
+  - [Managing SCCs in OpenShift](https://www.redhat.com/en/blog/managing-sccs-in-openshift)
+  - [A Guide to OpenShift and UIDs](https://www.redhat.com/en/blog/a-guide-to-openshift-and-uids)
 
 
 ### 6) **Resources, probes, and policies**
