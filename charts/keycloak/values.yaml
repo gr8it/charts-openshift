@@ -131,8 +131,12 @@ clients: []
 #   useRefreshTokens: true # default, no need to specify
 #   pkceCodeChallengeMethod: S256 # one of "S256", "plain". When not specified PKCE is disabled
 #   fullScopeAllowed: false # default, no need to specify
-#   rootUrl: https://isas.example.com/welcome
-#   baseUrl: https://isas.example.com
-#   validRedirectUris: [] # required for standard and implicit flows
-#   webOrigins: [] # required for standard and implicit flows. If set '+' is used = all validRedirectUris are allowed. If set to '*', all uris are allowed, but this is not recommended for production environments.
+#   rootUrl: https://isas.example.com # prepended to relative uris
+#   baseUrl: https://isas.example.com/welcome # homepage reference
+#   validRedirectUris: [] # required for standard and implicit flows, * can be used as wildcard. Relative paths are relative to the root URL
+#   # - "http://example.com/*" # default, no need to specify
+#   # - "/my/relative/path/*"
+#   webOrigins: [] # If not set, uses '+' = all validRedirectUris are allowed. If set to '*', all uris are allowed, but this is not recommended for production environments.
+#   # - "+" # default, no need to specify
+#   # - "*"
 #   frontchannelLogoutEnabled: true # default, no need to specify

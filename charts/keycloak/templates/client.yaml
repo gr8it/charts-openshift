@@ -2,7 +2,7 @@
 apiVersion: openidclient.keycloak.m.crossplane.io/v1alpha1
 kind: Client
 metadata:
-  name: {{ .name }}
+  name: {{ .name | required "name is required for client" }}
   namespace: {{ $.Release.Namespace }}
   labels:
     {{- include "keycloak.labels" $ | nindent 4 }}
@@ -11,7 +11,9 @@ spec:
     realmId: {{ include "apc-global-overrides.require-keycloakRealm" $ }}
     clientId: {{ .name }} # must match name of the microserviceaccess!
     name: {{ .displayName | default .name }}
+    {{- if .description }}
     description: {{ .description }}
+    {{- end }}
     accessType: {{ .accessType | required "accessType is required for client "}}
     
     standardFlowEnabled: {{ .standardFlowEnabled | default false }}
@@ -23,16 +25,20 @@ spec:
     pkceCodeChallengeMethod: {{ .pkceCodeChallengeMethod | default "S256" }}
     fullScopeAllowed: {{ .fullScopeAllowed | default false }}
 
+    {{- if .rootUrl }}
     rootUrl: {{ .rootUrl }}
+    {{- end }}
+    {{- if .baseUrl }}
     baseUrl: {{ .baseUrl }}
+    {{- end }}
     {{- if or .standardFlowEnabled .implicitFlowEnabled }}
     validRedirectUris:
     {{- range .validRedirectUris | required "validRedirectUris is required for client with standard or implicit flow enabled" }}
-    - {{ . }}
+    - {{ . | quote }}
     {{- end }}
     webOrigins:
-    {{- range .webOrigins | required "webOrigins is required for client with standard or implicit flow enabled" }}
-    - {{ . }}
+    {{- range (.webOrigins | default (list "+")) }}
+    - {{ . | quote }}
     {{- end }}
     {{- end }}
     frontchannelLogoutEnabled: {{ .frontchannelLogoutEnabled | default true }}

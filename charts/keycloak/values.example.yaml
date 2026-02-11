@@ -55,3 +55,19 @@ clients:
   description: ISAS client for Keycloak
   accessType: CONFIDENTIAL
   serviceAccountsEnabled: true
+- name: sf
+  displayName: SF
+  description: Standard Flow client for Keycloak with default webOrigins applied = "+"
+  accessType: CONFIDENTIAL
+  standardFlowEnabled: true
+  validRedirectUris:
+  - https://sf.app.example.com/*
+- name: sf2
+  displayName: SF
+  description: Standard Flow client for Keycloak with "*" webOrigins
+  accessType: PUBLIC
+  standardFlowEnabled: true
+  validRedirectUris:
+  - /my/relative/path/*
+  webOrigins:
+  - "*"
