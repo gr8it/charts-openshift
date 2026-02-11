@@ -372,6 +372,9 @@ spec:
                         # kube api service is accessible via node IP => allow RFC1918 10.0.0.0/8 private address range, which should be sufficient
                         - ipBlock:
                             cidr: 10.0.0.0/8
+                      ports:
+                        - protocol: TCP
+                          port: 6443
                   podSelector: {}
                   policyTypes:
                   - Egress
