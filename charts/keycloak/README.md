@@ -13,6 +13,16 @@ Helm chart installs:
 - identity provider if configured (using crossplane + ESO)
 - authentication first broker flow without profile review
 
+## Identity Provider Config
+
+At IDP a client must be created:
+
+- CONFIDENTIAL
+- Standard Flow enabled
+- Client scopes (keycloak-apc-dedicated) => Group Membership mapper => `groups` claim, Full group path
+
+All groups used by clients of this Keycloak instance must be loaded in IDP per environment, i.e. groups `APPS-CK-<envshorName | upper>-*`, e.g. `APPS-CK-D-BPM-READER`
+
 ## Prerequisites
 
 If identity provider is configured, client credentials should be available in Vault at `<apc-platform-kv>/<env-short-name>/keycloak/<realm>/identity-providers/<idp-name>/credentials` as keys `client-id` and `client-id`, e.g. `apc-platform/d/keycloak/AppDev/identity-providers/keycloak-oidc/credentials`
