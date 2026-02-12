@@ -33,7 +33,7 @@ Enter the RootCA file name: ../rootCA.pem
 Enter the RootCA key file name: ../rootCA.key
 Enter the certificate validation period in days: 22
 Enter the FQDN: vault.apps.ocpdemo.lab.example.com
-Enter the SANs (delimited by space): vault-active.apc-vault.svc
+Enter the namespace name where vault is deployed: apc-vault
 Certificate request self-signature ok
 subject=CN=vault.apps.ocpdemo.lab.example.com
 vault.crt: OK
