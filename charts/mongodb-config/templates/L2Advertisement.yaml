@@ -7,6 +7,6 @@ metadata:
     {{- include "mongodb-config.labels" . | nindent 4 }}
 spec:
   interfaces:
-  - {{ .Values.l2Interface}}
+  - {{ include "apc-global-overrides.metallbL2Interface" . }}
   ipAddressPools:
   - {{ printf "%s-mongodb" .Release.Namespace }}
