@@ -9,20 +9,13 @@ if ! openssl -v > /dev/null 2>&1; then
 fi
 
 # requesting info needed for cert creation
-read -p "Enter the RootCA file name: " rootca
-read -p "Enter the RootCA key file name: " rootcakey
+read -p "Enter the root CA (or intermediate CA) file name: " rootca
+read -p "Enter the root CA (or intermediate CA) key file name: " rootcakey
 read -p "Enter the certificate validation period in days: " certlife
 read -p "Enter the FQDN: " fqdn
-read -p "Enter the SANs (delimited by space): " sans
+read -p "Enter the namespace name where vault is deployed: " namespace
 
 vault_instance=$(echo $fqdn | cut -f 1 -d ".")
-# prepare SANs
-count=2
-altnames=""
-altnames=$(for san in $sans; do
-  echo "DNS.$count = $san"
-  ((count++))
-done)
 
 # create the certificate key
 if ! openssl genrsa -out ${vault_instance}.key 2048; then
@@ -35,7 +28,6 @@ cat <<EOF > ${vault_instance}.cnf
 [req]
 default_bits = 2048
 prompt = no
-encrypt_key = yes
 default_md = sha256
 distinguished_name = req_dn
 req_extensions = v3_req
@@ -52,7 +44,7 @@ subjectAltName = @alt_names
 [alt_names]
 IP.1 = 127.0.0.1
 DNS.1 = ${fqdn}
-${altnames}
+DNS.2 = ${vault_instance}-active.${namespace}.svc
 EOF
 
 # create CSR
