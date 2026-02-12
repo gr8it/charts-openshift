@@ -27,16 +27,6 @@ spec:
           annotations:
             summary: Kyverno policy {{ `{{ $labels.policy_name }}` }} failed.
             description: Kyverno policy {{ `{{ $labels.policy_name }}` }} failed, please investigate kyverno logs for root cause.
-        - alert: KyvernoPolicyGenerateError
-          expr: increase(kyverno_policy_results_total{rule_name=~"generate-prometheus-rules.*", rule_result="error"}[1h]) > 0
-          for: 10m
-          labels:
-            severity: warning
-            vendor: aspecta
-            team: platform
-          annotations:
-            summary: Kyverno generate rule {{ `{{ $labels.rule_name }}` }} for policy {{ `{{ $labels.policy_name }}` }} encountered errors.
-            description: Kyverno failed to generate PrometheusRule resources via rule {{ `{{ $labels.rule_name }}` }}. Affected namespaces may be missing monitoring alerts. Investigate Kyverno background controller logs.
         - alert: KyvernoBackgroundControllerDown
           expr: absent(up{job=~".*kyverno-background-controller.*"}) == 1
           for: 10m

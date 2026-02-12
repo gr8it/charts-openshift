@@ -9,7 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added `KyvernoPolicyGenerateError` alert — detects failures in generate rules for PrometheusRule resources per namespace
 - Added `KyvernoBackgroundControllerDown` alert — detects background controller outage (responsible for generating resources for existing namespaces)
 - Added `KyvernoAdmissionControllerDown` alert — detects admission controller outage (responsible for generating resources for new namespaces)
 
