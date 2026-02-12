@@ -22,7 +22,7 @@ For successful Vault deployment following requirements have to be met:
 
 ### Autounseal token
 
-Autonseal token have to be stored in secret placed in namespace where vault will be deployed.  
+Autounseal token have to be stored in secret placed in namespace where vault will be deployed.  
 
 Secret example:
 
@@ -47,7 +47,7 @@ Most important configuration options:
 > [!NOTE]
 > The configuration options are set in component values in conf repository
 
-- ```.global.vault.transit.address```: sets the adress of vault which is used for auto unseal of deployed vault
+- ```.global.vault.transit.address```: sets the address of vault which is used for auto unseal of deployed vault
 - ```.vault.server.route.host```: vault FQDN 
 
 ## Initialization process
@@ -75,4 +75,4 @@ Initialization process is done via the k8s jobs and is split into two parts:
 
 ## TODO 
 
-- use proper CA for backup upload to S3 in backup Cronjob and remove ```--noverify-ssl``` option win ```aws s3 cp``` command
+- use proper CA for backup upload to S3 in [backup Cronjob](./templates/CronJob.yaml) and remove ```--no-verify-ssl``` option in ```aws s3 cp``` command
