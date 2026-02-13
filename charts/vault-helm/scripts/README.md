@@ -2,11 +2,11 @@
 
 Easy script to generate TLS certificates for initial APC VAULT deployment.  
 
-> !NOTE
-No extra error handling in place, no extra validation of inputs in place.  
+> [!NOTE]
+> No extra error handling in place, no extra validation of inputs in place.  
 
-> !NOTE
-Limitations: only 8 alt names allowed as of now
+> [!NOTE]
+> Limitations: only 8 alt names allowed as of now
 
 Requirements:
 
@@ -15,15 +15,14 @@ Requirements:
 
 The script will generate certificate request configuration, certificate request, certificate itself and certificate key. Important and for later use are certificate and key.  
 
-> !NOTE
-It is suggested to use short lived certificate (certificate validation period), just enough time after the Vault configuration is done.
+> [!NOTE]
+> It is suggested to use short lived certificate (certificate validation period), just enough time after the Vault configuration is done.
 
 Created certificate should contain SANs:
 
 - \<route> / \<ingress>, e.g. vault.apps.hub01.cloud.example.com
 - vault-active.<vault-namespace>.svc, e.g vault-active.apc-vault.svc
-- 127.0.0.1 (in scripted solution this one is inserted automatically, no need to specify) 
-
+- 127.0.0.1 (in scripted solution this one is inserted automatically)  
 
 Usage example:
 
