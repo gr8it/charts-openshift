@@ -1,0 +1,74 @@
+---
+apiVersion: platform.stackrox.io/v1alpha1
+kind: SecuredCluster
+metadata:
+  name: {{ .Values.securedCluster.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "acs-config.labels" . | nindent 4 }}
+spec:
+  admissionControl:
+    bypass: {{ .Values.securedCluster.admissionControl.bypass }}
+    contactImageScanners: {{ .Values.securedCluster.admissionControl.contactImageScanners }}
+    listenOnCreates: {{ .Values.securedCluster.admissionControl.listenOnCreates }}
+    listenOnEvents: {{ .Values.securedCluster.admissionControl.listenOnEvents }}
+    listenOnUpdates: {{ .Values.securedCluster.admissionControl.listenOnUpdates }}
+    replicas: {{ .Values.securedCluster.admissionControl.replicas }}
+    timeoutSeconds: {{ .Values.securedCluster.admissionControl.timeoutSeconds }}
+  auditLogs:
+    collection: {{ .Values.securedCluster.auditLogs.collection }}
+  clusterName: {{ include "apc-global-overrides.clusterName" . }}
+  centralEndpoint: {{ .Values.securedCluster.centralEndpoint }}
+  monitoring:
+    openshift:
+      enabled: {{ .Values.securedCluster.monitoring.openshift.enabled }}
+  network:
+    policies: {{ .Values.securedCluster.network.policies }}
+  perNode:
+    collector:
+      collection: {{ .Values.securedCluster.perNode.collector.collection }}
+      forceCollection: {{ .Values.securedCluster.perNode.collector.forceCollection }}
+      imageFlavor: {{ .Values.securedCluster.perNode.collector.imageFlavor }}
+    taintToleration: {{ .Values.securedCluster.perNode.taintToleration }}
+  sensor:
+    resources:
+      limits:
+        cpu: {{ .Values.securedCluster.sensor.resources.limits.cpu | quote }}
+        memory: {{ .Values.securedCluster.sensor.resources.limits.memory }}
+      requests:
+        cpu: {{ .Values.securedCluster.sensor.resources.requests.cpu | quote }}
+        memory: {{ .Values.securedCluster.sensor.resources.requests.memory }}
+  scanner:
+    analyzer:
+      scaling:
+        autoScaling: {{ .Values.securedCluster.scanner.analyzer.scaling.autoScaling }}
+        maxReplicas: {{ .Values.securedCluster.scanner.analyzer.scaling.maxReplicas }}
+        minReplicas: {{ .Values.securedCluster.scanner.analyzer.scaling.minReplicas }}
+        replicas: {{ .Values.securedCluster.scanner.analyzer.scaling.replicas }}
+      resources:
+        limits:
+          cpu: {{ .Values.securedCluster.scanner.analyzer.resources.limits.cpu | quote }}
+          memory: {{ .Values.securedCluster.scanner.analyzer.resources.limits.memory }}
+        requests:
+          cpu: {{ .Values.securedCluster.scanner.analyzer.resources.requests.cpu | quote }}
+          memory: {{ .Values.securedCluster.scanner.analyzer.resources.requests.memory }}
+    scannerComponent: {{ .Values.securedCluster.scanner.scannerComponent }}
+  scannerV4:
+    db:
+      persistence:
+        persistentVolumeClaim:
+          claimName: {{ .Values.securedCluster.scannerV4.db.persistence.persistentVolumeClaim.claimName }}
+      resources:
+        limits:
+          cpu: {{ .Values.securedCluster.scannerV4.db.resources.limits.cpu | quote }}
+          memory: {{ .Values.securedCluster.scannerV4.db.resources.limits.memory }}
+        requests:
+          cpu: {{ .Values.securedCluster.scannerV4.db.resources.requests.cpu | quote }}
+          memory: {{ .Values.securedCluster.scannerV4.db.resources.requests.memory }}
+    indexer:
+      scaling:
+        autoScaling: {{ .Values.securedCluster.scannerV4.indexer.scaling.autoScaling }}
+        maxReplicas: {{ .Values.securedCluster.scannerV4.indexer.scaling.maxReplicas }}
+        minReplicas: {{ .Values.securedCluster.scannerV4.indexer.scaling.minReplicas }}
+        replicas: {{ .Values.securedCluster.scannerV4.indexer.scaling.replicas }}
+    scannerComponent: {{ .Values.securedCluster.scannerV4.scannerComponent }}

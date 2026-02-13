@@ -1,0 +1,19 @@
+{{- if include "apc-global-overrides.proxy" . | default false }}
+{{- $httpProxy := (include "apc-global-overrides.proxy" .) }}
+{{- $noProxy   := (include "apc-global-overrides.noProxy" .) | default "" }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: proxy
+  namespace: {{ .Release.Namespace }}
+  labels:
+     {{- include "blackbox-exporter-helm.labels" $ | nindent 4 }}
+data:
+  HTTP_PROXY:  {{ $httpProxy }}
+  http_proxy:  {{ $httpProxy }}
+  HTTPS_PROXY: {{ $httpProxy }}
+  https_proxy: {{ $httpProxy }}
+  NO_PROXY:    {{ $noProxy }}
+  no_proxy:    {{ $noProxy }}
+{{- end }}

@@ -1,0 +1,26 @@
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: {{ include "apps-ck-kafka.fullname" . }}-brokers
+  namespace: openshift-adp
+  labels:
+    {{- include "apps-ck-kafka.labels" . | nindent 4 }}
+spec:
+  schedule: 0 * * * *
+  skipImmediately: false
+  template:
+    includedNamespaces:
+    - {{ .Release.Namespace }}
+    # includedResources:
+    # - Kafka.kafka.strimzi.io
+    # - KafkaNodePool.kafka.strimzi.io
+    # - KafkaTopic.kafka.strimzi.io
+    # - KafkaUser.kafka.strimzi.io
+    # - persistentvolumes
+    # - persistentvolumeclaims
+    # - secrets
+    # - configmaps
+    includedResources:
+    - '*'
+    snapshotVolumes: true
+    ttl: 72h

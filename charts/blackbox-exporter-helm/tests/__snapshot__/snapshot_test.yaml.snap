@@ -1,0 +1,71 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      labels:
+        app.kubernetes.io/instance: blackbox-exporter
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: blackbox-exporter-helm
+        app.kubernetes.io/version: 11.6.1
+        helm.sh/chart: blackbox-exporter-helm-1.0.7
+      name: blackbox-exporter-blackbox-exporter-helm-allow-proxy
+      namespace: apc-blackbox-exporter
+    spec:
+      egress:
+        - to:
+            - ipBlock:
+                cidr: 1.1.1.1/32
+            - ipBlock:
+                cidr: 8.8.8.8/32
+      podSelector: {}
+      policyTypes:
+        - Egress
+  2: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: Probe
+    metadata:
+      name: openshift-api
+      namespace: apc-blackbox-exporter
+    spec:
+      interval: 10s
+      jobName: openshift-api
+      module: http_openshift_api
+      prober:
+        path: /probe
+        scheme: http
+        url: blackbox-exporter-prometheus-blackbox-exporter.apc-blackbox-exporter.svc:9115
+      scrapeTimeout: 10s
+      targets:
+        staticConfig:
+          labels:
+            component: openshift-api
+            module: http_openshift_api
+            team: platform
+            vendor: aspecta
+          static:
+            - https://api.cluster.example.com:6443/readyz
+  3: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: Probe
+    metadata:
+      name: openshift-console
+      namespace: apc-blackbox-exporter
+    spec:
+      interval: 10s
+      jobName: openshift-console
+      module: http_openshift_console
+      prober:
+        path: /probe
+        scheme: http
+        url: blackbox-exporter-prometheus-blackbox-exporter.apc-blackbox-exporter.svc:9115
+      scrapeTimeout: 10s
+      targets:
+        staticConfig:
+          labels:
+            component: openshift-console
+            module: http_openshift_console
+            team: platform
+            vendor: aspecta
+          static:
+            - https://console-openshift-console.apps.cluster.example.com/health

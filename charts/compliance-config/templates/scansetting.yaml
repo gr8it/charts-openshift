@@ -1,0 +1,24 @@
+---
+apiVersion: compliance.openshift.io/v1alpha1
+kind: ScanSetting
+metadata:
+  name: {{ .Values.scanSetting.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "compliance-config.labels" . | nindent 4 }}
+{{- $roles := deepCopy (default (list) .Values.scanSetting.roles) }}
+{{- if and .Values.scanSetting.includeMasterRole (not (has "master" $roles)) }}
+  {{- $roles = prepend $roles "master" }}
+{{- end }}
+rawResultStorage:
+  {{- toYaml .Values.scanSetting.rawResultStorage | nindent 2 }}
+roles:
+  {{- toYaml $roles | nindent 2 }}
+scanTolerations:
+  {{- toYaml .Values.scanSetting.scanTolerations | nindent 2 }}
+schedule: {{ .Values.scanSetting.schedule | quote }}
+showNotApplicable: {{ .Values.scanSetting.showNotApplicable }}
+maxRetryOnTimeout: {{ .Values.scanSetting.maxRetryOnTimeout }}
+strictNodeScan: {{ .Values.scanSetting.strictNodeScan }}
+suspend: {{ .Values.scanSetting.suspend }}
+timeout: {{ .Values.scanSetting.timeout }}

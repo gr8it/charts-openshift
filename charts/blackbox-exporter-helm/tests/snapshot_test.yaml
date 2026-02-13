@@ -1,0 +1,12 @@
+suite: Snapshot test
+templates:
+  - templates/*
+values:
+  - ../values.lint.yaml
+release:
+  name: blackbox-exporter
+  namespace: apc-blackbox-exporter
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}

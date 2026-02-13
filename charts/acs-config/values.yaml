@@ -1,0 +1,170 @@
+# SecuredCluster configuration
+securedCluster:
+  name: stackrox-secured-cluster-services
+  # Override this in gitops with your actual Central endpoint URL
+  centralEndpoint: 'https://central-stackrox.apps.example.com:443'
+
+  admissionControl:
+    bypass: BreakGlassAnnotation
+    contactImageScanners: DoNotScanInline
+    listenOnCreates: true
+    listenOnEvents: true
+    listenOnUpdates: true
+    replicas: 3
+    timeoutSeconds: 10
+  
+  auditLogs:
+    collection: Auto
+  
+  monitoring:
+    openshift:
+      enabled: true
+  
+  network:
+    policies: Enabled
+  
+  perNode:
+    collector:
+      collection: CORE_BPF
+      forceCollection: false
+      imageFlavor: Regular
+    taintToleration: TolerateTaints
+  
+  sensor:
+    resources:
+      limits:
+        cpu: '2'
+        memory: 4Gi
+      requests:
+        cpu: '500m'
+        memory: 1Gi
+  
+  scanner:
+    analyzer:
+      scaling:
+        autoScaling: Enabled
+        maxReplicas: 5
+        minReplicas: 2
+        replicas: 3
+      resources:
+        limits:
+          cpu: '2'
+          memory: 4Gi
+        requests:
+          cpu: '200m'
+          memory: 512Mi
+    scannerComponent: AutoSense
+  
+  scannerV4:
+    db:
+      persistence:
+        persistentVolumeClaim:
+          claimName: scanner-v4-db
+      resources:
+        limits:
+          cpu: '2'
+          memory: 4Gi
+        requests:
+          cpu: '200m'
+          memory: 512Mi
+    indexer:
+      scaling:
+        autoScaling: Enabled
+        maxReplicas: 5
+        minReplicas: 2
+        replicas: 3
+    scannerComponent: Default
+
+# Central configuration (deployed only on hub clusters)
+central:
+  name: stackrox-central-services
+  spec:
+    central:
+      resources:
+        limits:
+          cpu: '4'
+          memory: 8Gi
+        requests:
+          cpu: '500m'
+          memory: 2Gi
+      db:
+        isEnabled: Default
+        persistence:
+          persistentVolumeClaim:
+            claimName: central-db
+        resources:
+          limits:
+            cpu: '8'
+            memory: 16Gi
+          requests:
+            cpu: '500m'
+            memory: 2Gi
+      exposure:
+        loadBalancer:
+          enabled: false
+          port: 443
+        nodePort:
+          enabled: false
+        route:
+          enabled: true
+      notifierSecretsEncryption:
+        enabled: false
+      persistence:
+        persistentVolumeClaim:
+          claimName: stackrox-db
+      telemetry:
+        enabled: true
+    egress:
+      connectivityPolicy: Online
+    monitoring:
+      openshift:
+        enabled: true
+    network:
+      policies: Enabled
+    scanner:
+      analyzer:
+        scaling:
+          autoScaling: Enabled
+          maxReplicas: 5
+          minReplicas: 2
+          replicas: 3
+        resources:
+          limits:
+            cpu: '2'
+            memory: 4Gi
+          requests:
+            cpu: '200m'
+            memory: 512Mi
+    scannerV4:
+      db:
+        persistence:
+          persistentVolumeClaim:
+            claimName: scanner-v4-db
+        resources:
+          limits:
+            cpu: '2'
+            memory: 4Gi
+          requests:
+            cpu: '200m'
+            memory: 512Mi
+      indexer:
+        scaling:
+          autoScaling: Enabled
+          maxReplicas: 5
+          minReplicas: 2
+          replicas: 3
+      matcher:
+        scaling:
+          autoScaling: Enabled
+          maxReplicas: 5
+          minReplicas: 2
+          replicas: 3
+      scannerComponent: Default
+
+# PrometheusRule configuration (hub01 only via apc-global-overrides)
+prometheusRule:
+  name: rhacs-prometheus-rules
+  labels:
+    app: rhacs
+
+

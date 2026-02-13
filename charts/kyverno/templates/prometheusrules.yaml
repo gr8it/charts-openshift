@@ -1,0 +1,29 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kyverno-policy-results
+  namespace: {{ .Release.Namespace }}
+spec:
+  groups:
+    - name: kyverno.rules
+      rules:
+        - alert: KyvernoPolicyResultsError
+          expr: sum by (policy_name) (rate(kyverno_policy_results_total{rule_result="error"}[15m])) > 0
+          for: 5m
+          labels:
+            severity: warning
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: Kyverno policy:{{ `{{ $labels.policy_name }}` }} run with errors.
+            description: Kyverno policy {{ `{{ $labels.policy_name }}` }} run with errors, please investigate kyverno logs for root cause.
+        - alert: KyvernoPolicyResultsFail
+          expr: sum by (policy_name) (rate(kyverno_policy_results_total{rule_result="fail"}[5d])) > 0
+          for: 5m
+          labels:
+            severity: warning
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: Kyverno policy {{ `{{ $labels.policy_name }}` }} failed.
+            description: Kyverno policy {{ `{{ $labels.policy_name }}` }} failed, please investigate kyverno logs for root cause.

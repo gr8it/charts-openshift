@@ -1,0 +1,13 @@
+suite: Snapshot test
+templates:
+  - templates/*.yaml
+values:
+  - ../values.yaml
+release:
+  name: trust-manager-config
+  namespace: apc-trust-manager
+
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}

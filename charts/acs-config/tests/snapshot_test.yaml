@@ -1,0 +1,18 @@
+suite: Snapshot test for acs-config
+templates:
+  - templates/*
+release:
+  name: acs-config
+
+tests:
+  - it: should render all manifests for hub cluster
+    values:
+      - ../values.test.yaml
+    asserts:
+      - matchSnapshot: {}
+
+  - it: should only render SecuredCluster for managed cluster
+    values:
+      - ../values.test-managed.yaml
+    asserts:
+      - matchSnapshot: {}

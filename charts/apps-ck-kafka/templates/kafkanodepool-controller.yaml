@@ -1,0 +1,32 @@
+{{- with .Values.kafka }}
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaNodePool
+metadata:
+  name: {{ include "apps-ck-kafka.fullname" $ }}-controllers
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    strimzi.io/cluster: {{ include "apps-ck-kafka.fullname" $ }}
+    {{- include "apps-ck-kafka.labels" $ | nindent 4 }}
+spec:
+  replicas: {{ .controllers.replicas | default 3 }}
+  roles:
+    - controller
+  storage:
+    type: jbod
+    volumes:
+      - id: 0
+        type: persistent-claim
+        {{- if .controllers.storage.class }}
+        class: {{ .controllers.storage.class }}
+        {{- end }}
+        size: {{ .controllers.storage.size | default "20Gi" }}
+        deleteClaim: {{ .controllers.storage.deleteClaim | default false }}
+        kraftMetadata: shared
+  resources:
+    requests:
+      cpu: {{ .controllers.resources.requests.cpu | default "500m" }}
+      memory: {{ .controllers.resources.requests.memory | default "1Gi" }}
+    limits:
+      cpu: {{ .controllers.resources.limits.cpu | default "1000m" }}
+      memory: {{ .controllers.resources.limits.memory | default "2Gi" }}
+{{- end }}
