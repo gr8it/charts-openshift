@@ -3,22 +3,17 @@
 apiVersion: apiextensions.crossplane.io/v2
 kind: CompositeResourceDefinition
 metadata:
-  name: microserviceaccesses.ck.socpoist.sk
+  name: microserviceaccesses.bpm.ck.socpoist.sk
   labels:
-    {{- include "apps-centralne-komponenty.labels" . | nindent 4 }}
+    {{- include "apps-centralne-komponenty-bpm.labels" . | nindent 4 }}
 spec:
-  # defaultCompositionRef:
-  #   name: example
-  # enforcedCompositionRef:
-  #   name: example
   scope: Namespaced
-  # scope: Cluster
-  group: ck.socpoist.sk
+  group: bpm.ck.socpoist.sk
   names:
     kind: Microserviceaccess
     plural: microserviceaccesses
     shortNames:
-      - msa
+      - bpmmsa
   versions:
     - name: v1alpha1
       served: true

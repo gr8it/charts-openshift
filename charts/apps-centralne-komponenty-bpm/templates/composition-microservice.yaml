@@ -1,12 +1,12 @@
 apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
-  name: {{ include "apps-centralne-komponenty.fullname" . }}-microservice
+  name: microservices.bpm.ck.socpoist.sk
   labels:
-    {{- include "apps-centralne-komponenty.labels" . | nindent 4 }}
+    {{- include "apps-centralne-komponenty-bpm.labels" . | nindent 4 }}
 spec:
   compositeTypeRef:
-    apiVersion: ck.socpoist.sk/v1alpha1
+    apiVersion: bpm.ck.socpoist.sk/v1alpha1
     kind: Microservice
   mode: Pipeline
   pipeline:
@@ -92,7 +92,7 @@ spec:
                 syncMode: "FORCE"
                 are.claim.values.regex: "true"
                 role: "{{`{{ $.observed.composite.resource.metadata.name }}`}}.{{`{{ $value }}`}}"
-                claims: '[{"key": "groups", "value": "(?<!\\w)/APPS-CK-{{ include "apc-global-overrides.environmentShort" . | upper }}-{{`{{ $.observed.composite.resource.metadata.name | upper }}`}}-{{`{{ $value | upper }}`}}(?!\\w)"}]'
+                claims: '[{"key": "groups", "value": "{{ tpl .Values.groupMatchingRegex . }} "}]'
 
             providerConfigRef:
               name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
@@ -123,8 +123,8 @@ spec:
               description: {{`{{ .observed.composite.resource.metadata.name }}`}} admin mikrosluzba
               accessType: PUBLIC
               standardFlowEnabled: true
-              {{`{{- if or .observed.composite.resource.spec.rootUrl .observed.composite.resource.spec.baseUrl }}`}}
-              rootUrl: {{`{{ .observed.composite.resource.spec.rootUrl | default .observed.composite.resource.spec.baseUrl }}`}}
+              {{`{{- if .observed.composite.resource.spec.rootUrl }}`}}
+              rootUrl: {{`{{ .observed.composite.resource.spec.rootUrl }}`}}
               {{`{{- end }}`}}
               {{`{{- if .observed.composite.resource.spec.baseUrl }}`}}
               baseUrl: {{`{{ default .observed.composite.resource.spec.baseUrl }}`}}

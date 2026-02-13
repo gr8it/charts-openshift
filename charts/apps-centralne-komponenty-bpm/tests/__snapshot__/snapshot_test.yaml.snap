@@ -1,16 +1,16 @@
 manifests should match snapshot:
   1: |
-    apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+    apiVersion: openidclient.keycloak.m.crossplane.io/v1alpha1
     kind: Client
     metadata:
       labels:
         app.kubernetes.io/instance: crossplane-xr-functions
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: apps-centralne-komponenty
-        helm.sh/chart: apps-centralne-komponenty-1.0.0
+        app.kubernetes.io/name: apps-centralne-komponenty-bpm
+        helm.sh/chart: apps-centralne-komponenty-bpm-1.0.0
       name: bamoe-management-console
+      namespace: bamoe
     spec:
-      deletionPolicy: Delete
       forProvider:
         accessType: PUBLIC
         clientId: bamoe-management-console
@@ -21,8 +21,12 @@ manifests should match snapshot:
         pkceCodeChallengeMethod: S256
         realmId: apps
         standardFlowEnabled: true
-        validRedirectUris: null
+        validRedirectUris:
+          - https://bamoe.apps.ocp4.example.com/*
+        webOrigins:
+          - +
       providerConfigRef:
+        kind: ClusterProviderConfig
         name: keycloak-config
   2: |
     apiVersion: rbac.authorization.k8s.io/v1
@@ -31,19 +35,19 @@ manifests should match snapshot:
       labels:
         app.kubernetes.io/instance: crossplane-xr-functions
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: apps-centralne-komponenty
-        helm.sh/chart: apps-centralne-komponenty-1.0.0
+        app.kubernetes.io/name: apps-centralne-komponenty-bpm
+        helm.sh/chart: apps-centralne-komponenty-bpm-1.0.0
         rbac.authorization.k8s.io/aggregate-to-apc-project-operator: "true"
-      name: crossplane-xr-functions-apps-centralne-komponenty-project-operator
+      name: crossplane-xr-functions-apps-centralne-komponenty-bpm-project-operator
     rules:
       - apiGroups:
-          - ck.socpoist.sk
+          - bpm.ck.socpoist.sk
         resources:
           - microservices
         verbs:
           - '*'
       - apiGroups:
-          - ck.socpoist.sk
+          - bpm.ck.socpoist.sk
         resources:
           - microserviceaccess
         verbs:
@@ -55,19 +59,19 @@ manifests should match snapshot:
       labels:
         app.kubernetes.io/instance: crossplane-xr-functions
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: apps-centralne-komponenty
-        helm.sh/chart: apps-centralne-komponenty-1.0.0
+        app.kubernetes.io/name: apps-centralne-komponenty-bpm
+        helm.sh/chart: apps-centralne-komponenty-bpm-1.0.0
         rbac.authorization.k8s.io/aggregate-to-apc-project-admin: "true"
-      name: crossplane-xr-functions-apps-centralne-komponenty-project-admin
+      name: crossplane-xr-functions-apps-centralne-komponenty-bpm-project-admin
     rules:
       - apiGroups:
-          - ck.socpoist.sk
+          - bpm.ck.socpoist.sk
         resources:
           - microservices
         verbs:
           - '*'
       - apiGroups:
-          - ck.socpoist.sk
+          - bpm.ck.socpoist.sk
         resources:
           - microserviceaccess
         verbs:
@@ -79,12 +83,12 @@ manifests should match snapshot:
       labels:
         app.kubernetes.io/instance: crossplane-xr-functions
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: apps-centralne-komponenty
-        helm.sh/chart: apps-centralne-komponenty-1.0.0
-      name: crossplane-xr-functions-apps-centralne-komponenty-microservice
+        app.kubernetes.io/name: apps-centralne-komponenty-bpm
+        helm.sh/chart: apps-centralne-komponenty-bpm-1.0.0
+      name: microservices.bpm.ck.socpoist.sk
     spec:
       compositeTypeRef:
-        apiVersion: ck.socpoist.sk/v1alpha1
+        apiVersion: bpm.ck.socpoist.sk/v1alpha1
         kind: Microservice
       mode: Pipeline
       pipeline:
@@ -164,7 +168,7 @@ manifests should match snapshot:
                       syncMode: "FORCE"
                       are.claim.values.regex: "true"
                       role: "{{ $.observed.composite.resource.metadata.name }}.{{ $value }}"
-                      claims: '[{"key": "groups", "value": "(?<!\\w)/APPS-CK--{{ $.observed.composite.resource.metadata.name | upper }}-{{ $value | upper }}(?!\\w)"}]'
+                      claims: '[{"key": "groups", "value": "(?<!\\w)/APPS-CK--{{ $.observed.composite.resource.metadata.name | upper }}-{{ $value | upper }}(?!\\w) "}]'
 
                   providerConfigRef:
                     name: keycloak-config
@@ -194,8 +198,8 @@ manifests should match snapshot:
                     description: {{ .observed.composite.resource.metadata.name }} admin mikrosluzba
                     accessType: PUBLIC
                     standardFlowEnabled: true
-                    {{- if or .observed.composite.resource.spec.rootUrl .observed.composite.resource.spec.baseUrl }}
-                    rootUrl: {{ .observed.composite.resource.spec.rootUrl | default .observed.composite.resource.spec.baseUrl }}
+                    {{- if .observed.composite.resource.spec.rootUrl }}
+                    rootUrl: {{ .observed.composite.resource.spec.rootUrl }}
                     {{- end }}
                     {{- if .observed.composite.resource.spec.baseUrl }}
                     baseUrl: {{ default .observed.composite.resource.spec.baseUrl }}
@@ -370,12 +374,12 @@ manifests should match snapshot:
       labels:
         app.kubernetes.io/instance: crossplane-xr-functions
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: apps-centralne-komponenty
-        helm.sh/chart: apps-centralne-komponenty-1.0.0
-      name: crossplane-xr-functions-apps-centralne-komponenty-microserviceaccess
+        app.kubernetes.io/name: apps-centralne-komponenty-bpm
+        helm.sh/chart: apps-centralne-komponenty-bpm-1.0.0
+      name: microserviceaccesses.bpm.ck.socpoist.sk
     spec:
       compositeTypeRef:
-        apiVersion: ck.socpoist.sk/v1alpha1
+        apiVersion: bpm.ck.socpoist.sk/v1alpha1
         kind: Microserviceaccess
       mode: Pipeline
       pipeline:
@@ -491,14 +495,14 @@ manifests should match snapshot:
     apiVersion: apiextensions.crossplane.io/v2
     kind: CompositeResourceDefinition
     metadata:
-      name: microservices.ck.socpoist.sk
+      name: microservices.bpm.ck.socpoist.sk
     spec:
-      group: ck.socpoist.sk
+      group: bpm.ck.socpoist.sk
       names:
         kind: Microservice
         plural: microservices
         shortNames:
-          - ms
+          - bpmms
       scope: Namespaced
       versions:
         - name: v1alpha1
@@ -554,16 +558,16 @@ manifests should match snapshot:
       labels:
         app.kubernetes.io/instance: crossplane-xr-functions
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: apps-centralne-komponenty
-        helm.sh/chart: apps-centralne-komponenty-1.0.0
-      name: microserviceaccesses.ck.socpoist.sk
+        app.kubernetes.io/name: apps-centralne-komponenty-bpm
+        helm.sh/chart: apps-centralne-komponenty-bpm-1.0.0
+      name: microserviceaccesses.bpm.ck.socpoist.sk
     spec:
-      group: ck.socpoist.sk
+      group: bpm.ck.socpoist.sk
       names:
         kind: Microserviceaccess
         plural: microserviceaccesses
         shortNames:
-          - msa
+          - bpmmsa
       scope: Namespaced
       versions:
         - name: v1alpha1

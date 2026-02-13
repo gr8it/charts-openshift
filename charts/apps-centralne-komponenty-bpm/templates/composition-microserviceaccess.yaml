@@ -1,12 +1,12 @@
 apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
-  name: {{ include "apps-centralne-komponenty.fullname" . }}-microserviceaccess
+  name: microserviceaccesses.bpm.ck.socpoist.sk
   labels:
-    {{- include "apps-centralne-komponenty.labels" . | nindent 4 }}
+    {{- include "apps-centralne-komponenty-bpm.labels" . | nindent 4 }}
 spec:
   compositeTypeRef:
-    apiVersion: ck.socpoist.sk/v1alpha1
+    apiVersion: bpm.ck.socpoist.sk/v1alpha1
     kind: Microserviceaccess
   mode: Pipeline
   pipeline:
