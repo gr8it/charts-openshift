@@ -132,6 +132,7 @@ global:
         realm: apps
       metallb:
         namespace: metallb-system
+        l2interface: br-ex
       quay:
         host: ~
       vault:
@@ -210,6 +211,7 @@ Helpers to query a specific service parameters available:
 |apc-global-overrides.keycloakRealm|services.keycloak.realm|global.apc.services.keycloak.realm|string|-|Keycloak application Realm|
 |apc-global-overrides.require-keycloakRealm|services.keycloak.realm|global.apc.services.keycloak.realm|string|-||
 |apc-global-overrides.metallbNamespace|services.metallb.namespace|global.apc.services.metallb.namespace|string|metallb-system|namespace where metallb is installed|
+|apc-global-overrides.metallbL2Interface|services.metallb.l2interface|global.apc.services.metallb.l2interface|string|br-ex|interface on which the IP addresses from the IP pool are advertised|
 |apc-global-overrides.quayHost|services.quay.host|global.apc.services.quay.host|string|-|Quay host, e.g. used for mirroring|
 |apc-global-overrides.require-quayHost|services.quay.host|global.apc.services.quay.host|string|-||
 |apc-global-overrides.vaultKubeAuthMountPath|services.vault.kubeAuthMountPath|global.apc.services.vault.kubeAuthMountPath|string|-|Cluster specific auth mount point to be used for kubernetes auth method to Vault|

@@ -190,6 +190,10 @@ entries:
     description: A Helm chart containing helm helper functions to override global
       APC values by local values
     digest: 553cd04b1ed7254ab16cde3e8f7507c8ea5b5d8582415957195d8e731302527a
+    created: "2026-02-11T08:40:34.73084+01:00"
+    description: A Helm chart containing helm helper functions to override global
+      APC values by local values
+    digest: 5b37025789f654c7bb3fd251a25f227f8ac9e44394534d3361843211904bf5fe
     name: apc-global-overrides
     type: library
     urls:
@@ -865,6 +869,19 @@ entries:
     version: 1.0.0
   cluster-config-standalone:
   - apiVersion: v2
+    created: "2026-01-30T11:53:23.970872216+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.4.0
+    description: A Helm chart to configure standalone cluster settings
+    digest: dd4279a15500c773d784eaded4cfd45ef0dacabcfb49922584ce0d39bd95ba61
+    name: cluster-config-standalone
+    type: application
+    urls:
+    - packaged_charts/cluster-config-standalone-1.1.2.tgz
+    version: 1.1.2
+  - apiVersion: v2
     created: "2026-01-29T10:02:32.309869725+01:00"
     dependencies:
     - name: apc-global-overrides
@@ -917,6 +934,60 @@ entries:
     - packaged_charts/cluster-config-standalone-1.0.0.tgz
     version: 1.0.0
   cnpg-operator:
+  - apiVersion: v2
+    appVersion: v1.28.0
+    created: "2026-02-06T15:51:54.783528426+01:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    - name: plugin-barman-cloud
+      repository: https://cloudnative-pg.github.io/charts
+      version: 0.2.0
+    description: A Helm chart to install CNPG Operator using ACM operator policy and
+      Barman plugin
+    digest: fe9dbff3a12de65a23041befc1cd9e35bb5b863b2b864e587f1efb73df6b8aa4
+    name: cnpg-operator
+    type: application
+    urls:
+    - packaged_charts/cnpg-operator-1.4.1.tgz
+    version: 1.4.1
+  - apiVersion: v2
+    appVersion: v1.28.0
+    created: "2026-01-27T21:14:49.393832+01:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    - name: plugin-barman-cloud
+      repository: https://cloudnative-pg.github.io/charts
+      version: 0.2.0
+    description: A Helm chart to install CNPG Operator using ACM operator policy and
+      Barman plugin
+    digest: bf8dc16e84ea99b230257f5b63f260666a3feebfc9940de35d15f4bcc4e217e0
+    name: cnpg-operator
+    type: application
+    urls:
+    - packaged_charts/cnpg-operator-1.4.0.tgz
+    version: 1.4.0
+  - apiVersion: v2
+    appVersion: v1.26.0
+    created: "2026-02-06T14:49:51.408213324+01:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    - name: plugin-barman-cloud
+      repository: https://cloudnative-pg.github.io/charts
+      version: 0.2.0
+    description: A Helm chart to install CNPG Operator using ACM operator policy and
+      Barman plugin
+    digest: d3713585f18469c5eee48cd22f4d2aa4fdbe226398a50e10dc1efa08f5034b6d
+    name: cnpg-operator
+    type: application
+    urls:
+    - packaged_charts/cnpg-operator-1.3.1.tgz
+    version: 1.3.1
   - apiVersion: v2
     appVersion: v1.26.0
     created: "2025-10-08T21:34:25.651136156+02:00"
@@ -1066,6 +1137,57 @@ entries:
     - packaged_charts/compliance-operator-1.0.0.tgz
     version: 1.0.0
   crossplane-helm:
+  - apiVersion: v2
+    appVersion: 2.1.3
+    created: "2026-02-02T16:25:39.333829265+01:00"
+    dependencies:
+    - name: crossplane
+      repository: https://charts.crossplane.io/stable
+      version: 2.1.3
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart to install Crossplane
+    digest: 38480e3c79aa4519d9301681d2ede00228d1d91223e9ba68ca00f15e4ba89fb1
+    name: crossplane-helm
+    type: application
+    urls:
+    - packaged_charts/crossplane-helm-2.1.0.tgz
+    version: 2.1.0
+  - apiVersion: v2
+    appVersion: 2.0.6
+    created: "2026-02-02T16:24:44.097561288+01:00"
+    dependencies:
+    - name: crossplane
+      repository: https://charts.crossplane.io/stable
+      version: 2.0.6
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart to install Crossplane
+    digest: b5edee5ec7f1171efd4b6d451fafa1cc44602336b48fa264b02df9867541ca0b
+    name: crossplane-helm
+    type: application
+    urls:
+    - packaged_charts/crossplane-helm-2.0.0.tgz
+    version: 2.0.0
+  - apiVersion: v2
+    appVersion: 1.20.4
+    created: "2026-02-02T15:45:53.538082588+01:00"
+    dependencies:
+    - name: crossplane
+      repository: https://charts.crossplane.io/stable
+      version: 1.20.4
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart to install Crossplane
+    digest: c02e720fa15e4e1d95a1d31651c989dec2f0029fcd5472e8e88454a51866ab77
+    name: crossplane-helm
+    type: application
+    urls:
+    - packaged_charts/crossplane-helm-1.6.0.tgz
+    version: 1.6.0
   - apiVersion: v2
     appVersion: 1.19.2
     created: "2025-10-22T12:51:32.237785+02:00"
@@ -1336,6 +1458,34 @@ entries:
     version: 1.0.0
   default-network-policies:
   - apiVersion: v2
+    created: "2026-02-03T10:42:07.6080652+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to apply default network policies for platform and application
+      namespaces.
+    digest: c320c3b6be1b615bd4da8af37347c2cafb9936fa07a0c58183025fc641c7c895
+    name: default-network-policies
+    type: application
+    urls:
+    - packaged_charts/default-network-policies-1.5.1.tgz
+    version: 1.5.1
+  - apiVersion: v2
+    created: "2026-01-30T17:38:21.603447604+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to apply default network policies for platform and application
+      namespaces.
+    digest: d62f59bd1bd00c5756436dc1113e3bb654006d297d5b95c2b089f4fbd9c8dffb
+    name: default-network-policies
+    type: application
+    urls:
+    - packaged_charts/default-network-policies-1.5.0.tgz
+    version: 1.5.0
+  - apiVersion: v2
     created: "2025-10-08T15:54:55.164560859+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -1551,6 +1701,34 @@ entries:
     - packaged_charts/external-secrets-operator-1.0.0.tgz
     version: 1.0.0
   gitops-bootstrap:
+  - apiVersion: v2
+    appVersion: v1
+    created: "2026-02-11T14:00:21.118273574+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart to bootstrap APC GitOps using ACM policies
+    digest: 19d8f188a89c4231bb18cd9e59e126825cf93b4132b3f8a58bb954f6f0ee1ca1
+    name: gitops-bootstrap
+    type: application
+    urls:
+    - packaged_charts/gitops-bootstrap-2.9.0.tgz
+    version: 2.9.0
+  - apiVersion: v2
+    appVersion: v1
+    created: "2026-02-11T13:33:32.826780065+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to bootstrap APC GitOps using ACM policies
+    digest: afc050f018a93dc15939f37b5bcb26b713ec6186adb33fa00f8d541efd913aff
+    name: gitops-bootstrap
+    type: application
+    urls:
+    - packaged_charts/gitops-bootstrap-2.8.2.tgz
+    version: 2.8.2
   - apiVersion: v2
     appVersion: v1
     created: "2026-01-20T11:44:04.547837592+01:00"
@@ -2032,13 +2210,27 @@ entries:
   kyverno:
   - apiVersion: v2
     appVersion: 3.5.2
-    created: "2026-01-26T22:37:13.342915499+01:00"
+    created: "2026-02-09T17:53:27.649155+01:00"
     dependencies:
     - name: kyverno
       repository: https://kyverno.github.io/kyverno
       version: 3.5.2
     description: A Helm chart to install kyverno
-    digest: d42b91aa92c9daf317b503c9e3abc70a086f5a615ee323280ca4478f710d9182
+    digest: 84088b52ac379b3ba43100f585755fb806ea5181a885362bfd8a7d2b93066cc1
+    name: kyverno
+    type: application
+    urls:
+    - packaged_charts/kyverno-1.4.1.tgz
+    version: 1.4.1
+  - apiVersion: v2
+    appVersion: 3.5.2
+    created: "2026-02-03T10:52:53.607830064+01:00"
+    dependencies:
+    - name: kyverno
+      repository: https://kyverno.github.io/kyverno
+      version: 3.5.2
+    description: A Helm chart to install kyverno
+    digest: cc9d13eaf101f9c80147e32f822c0f961b4771a47d4b0e0e2fe844ea1790bbc0
     name: kyverno
     type: application
     urls:
@@ -2129,6 +2321,34 @@ entries:
     - packaged_charts/kyverno-1.0.0.tgz
     version: 1.0.0
   kyverno-app-project:
+  - apiVersion: v2
+    created: "2026-02-03T14:22:16.709647495+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart to create kyverno policies to set specific limits, quotas
+      and proxy for projects.
+    digest: 558eecaa1941581a7e04a7569989c38c4b5af51e8a69da4c87734251d827c88a
+    name: kyverno-app-project
+    type: application
+    urls:
+    - packaged_charts/kyverno-app-project-1.4.1.tgz
+    version: 1.4.1
+  - apiVersion: v2
+    created: "2026-02-03T09:52:29.366151431+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart to create kyverno policies to set specific limits, quotas
+      and proxy for projects.
+    digest: a064a8843509b7ecb13ac032236e36f74a71f8120b5bcd79f812a563d4a8f2d2
+    name: kyverno-app-project
+    type: application
+    urls:
+    - packaged_charts/kyverno-app-project-1.4.0.tgz
+    version: 1.4.0
   - apiVersion: v2
     created: "2025-12-23T14:38:12.61049867+01:00"
     dependencies:
@@ -2228,6 +2448,20 @@ entries:
   mongodb-operator-helm:
   - apiVersion: v2
     appVersion: 1.4.0
+    created: "2026-02-02T12:24:32.929305+01:00"
+    dependencies:
+    - name: mongodb-kubernetes
+      repository: https://mongodb.github.io/helm-charts
+      version: 1.4.0
+    description: MongoDB Community Operator Helm Chart
+    digest: 09c18f9009ce404703261e45ba3d32bc64f8a185c54d7870f01e7ac9f5bb6ff1
+    name: mongodb-operator-helm
+    type: application
+    urls:
+    - packaged_charts/mongodb-operator-helm-1.1.1.tgz
+    version: 1.1.1
+  - apiVersion: v2
+    appVersion: 1.4.0
     created: "2025-10-22T12:51:32.339314+02:00"
     dependencies:
     - name: mongodb-kubernetes
@@ -2256,6 +2490,22 @@ entries:
     - packaged_charts/mongodb-operator-helm-1.0.0.tgz
     version: 1.0.0
   monitoring:
+  - apiVersion: v2
+    created: "2026-02-02T16:18:06.003019783+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.4
+    description: A Helm chart for cluster monitoring with Kyverno PrometheusRule generation
+    digest: d075175f8fd8325a3d8da05bf8604284b2285a10e11f017c34001a56ea3830d1
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.0.6.tgz
+    version: 1.0.6
   - apiVersion: v2
     created: "2025-11-14T14:34:45.914856547+01:00"
     dependencies:
@@ -2354,6 +2604,24 @@ entries:
     - packaged_charts/monitoring-1.0.0.tgz
     version: 1.0.0
   monitoring-prometheusrules:
+  - apiVersion: v2
+    created: "2026-02-12T15:14:20.613273438+01:00"
+    description: A Helm chart for prometheusrules used in other helm charts.
+    digest: e117400e6de41328503951065676d7fc8d404106b93427cecda9cdacb91a6b00
+    name: monitoring-prometheusrules
+    type: library
+    urls:
+    - packaged_charts/monitoring-prometheusrules-1.0.5.tgz
+    version: 1.0.5
+  - apiVersion: v2
+    created: "2026-01-29T14:22:30.814516629+01:00"
+    description: A Helm chart for prometheusrules used in other helm charts.
+    digest: af77f2cf5817cac73bbb771fb3bf6183f9e0570ef4f0fe74dc0e988604c62afc
+    name: monitoring-prometheusrules
+    type: library
+    urls:
+    - packaged_charts/monitoring-prometheusrules-1.0.4.tgz
+    version: 1.0.4
   - apiVersion: v2
     created: "2025-11-07T09:51:38.135312+01:00"
     description: A Helm chart for prometheusrules used in other helm charts.
@@ -2580,6 +2848,20 @@ entries:
     version: 1.0.0
   rbac-roles:
   - apiVersion: v2
+    appVersion: 1.1.0
+    created: "2026-02-03T14:28:34.140901371+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart for managing APC clusterroles.
+    digest: 2c94f8b478899c5251bba7abf598dd30c79be626423c25fa0c4a31f4f7b17d77
+    name: rbac-roles
+    type: application
+    urls:
+    - packaged_charts/rbac-roles-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
     appVersion: 1.0.0
     created: "2025-10-21T07:45:48.824321+02:00"
     dependencies:
@@ -2702,6 +2984,23 @@ entries:
     - packaged_charts/trust-manager-helm-1.0.0.tgz
     version: 1.0.0
   user-workload-monitoring-policy:
+  - apiVersion: v2
+    created: "2026-01-29T14:22:30.816501085+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.4
+    description: A Helm chart that automatically creates PrometheusRules for app /
+      non-app workload namespaces
+    digest: 0827ffe7c1606a64815a9acd28ac97451216f840120e43505285f327f53488c8
+    name: user-workload-monitoring-policy
+    type: application
+    urls:
+    - packaged_charts/user-workload-monitoring-policy-1.0.6.tgz
+    version: 1.0.6
   - apiVersion: v2
     created: "2025-11-14T14:34:45.916843244+01:00"
     dependencies:

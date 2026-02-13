@@ -386,6 +386,13 @@ Create the MetalLB namespace
 {{- end }}
 
 {{/*
+Create the MetalLB L2interface
+*/}}
+{{- define "apc-global-overrides.metallbL2Interface" -}}
+{{- (((include "apc-global-overrides.services" .) | fromYaml).metallb).l2interface | default "br-ex" }}
+{{- end }}
+
+{{/*
 Create the Quay host
 */}}
 {{- define "apc-global-overrides.quayHost" -}}
