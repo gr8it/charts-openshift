@@ -36,4 +36,4 @@ pkceCodeChallengeMethod: S256 # S256, plain. When empty, PKCE is disabled for ba
 identityProviderAlias: keycloak-oidc # creates identity provider mapping between groups from access token to client roles of microservice for users
 
 # value gets templated (tpl) = can contain references to other values, e.g. {{ .Values.groupMatchingRegex }}
-groupMatchingRegex: '(?<!\\w)/APPS-CK-{{ include "apc-global-overrides.environmentShort" $ | upper }}-{{`{{ $.observed.composite.resource.metadata.name | upper }}`}}-{{`{{ $value | upper }}`}}(?!\\w)'
+groupMatchingRegex: '(?<!\\w)/APC-{{ include "apc-global-overrides.environmentShort" $ | upper }}-CK-{{`{{ $.observed.composite.resource.metadata.name | upper }}`}}-{{`{{ $value | upper }}`}}(?!\\w)'

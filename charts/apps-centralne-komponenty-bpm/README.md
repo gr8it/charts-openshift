@@ -8,8 +8,8 @@ Due to inefficiencies of RHBK / Kubernetes RBAC (for example allow creation and 
 
 There are two XRDs:
 
-- [microservice.ck.socpoist.sk](#microservice)
-- [microserviceaccess.ck.socpoist.sk](#microservice-access)
+- [microservice.bpm.ck.socpoist.sk](#microservice)
+- [microserviceaccess.bpm.ck.socpoist.sk](#microservice-access)
 
 Usage of APC Keycloak is preferred due to operational complexity of running a Keycloak instance 24/7
 
@@ -20,14 +20,16 @@ Usage of APC Keycloak is preferred due to operational complexity of running a Ke
 - Keycloak instance user with admin role
 - Crossplane keycloak provider installed (see [crossplane-keycloak-provider](../crossplane-keycloak-provider/)) and configured (see [crossplane-keycloak-provider-bootstrap](../crossplane-keycloak-provider-bootstrap/))
   - Requires local user with admin role in the master realm of Keycloak!
+- IDP provider in Keycloak targeting SP Keycloak
 
-### Microservice
+## Microservice
 
-Using the microservice.ck.socpoist.sk XR allows projet admins / operators to:
+Using the microservice.bpm.ck.socpoist.sk XR allows projet admins / operators to create a BPM microservice consisting of:
 
 - create a Keycloak client representing the particular microservice = `client microservice`
 - add list of roles (scopes) to the microservice client = `clientrole microservice`
-- add a mapping between AD groups (read only) and created roles. AD groups must follow naming convention, `APC-<environmentShortName>-CK-<microserviceName>-<roleName>` all in uppercase, e.g. APC-D-CK-BPM-READER = `group microservice` + `role group microservice clientrole`
+
+- add a IDP mapping between AD groups (taken from upstream SP Keycloak access token) and created roles. AD groups must follow naming convention, `APC-<environmentShortName>-CK-<microserviceName>-<roleName>` all in uppercase, e.g. APC-D-CK-BPM-READER = `identityprovider.mapper microservice clientrole`
 
 - create a Keycloak client for the admin interface = `client microservice admin`
 - add microservice roles to tokens created by microservice admin client, required because full scope is disabled for the client to increase security = `rolemapper microservice admin`
@@ -37,10 +39,20 @@ Using the microservice.ck.socpoist.sk XR allows projet admins / operators to:
 - add microservice roles to tokens created by Bamoe client, required because full scope is disabled for the client to increase security = `rolemapper bamoe`
 - add microservice audience to tokens created by Bamoe client, so the access tokens can be used by the microservice API = `protocolmapper bamoe`
 
-### Microservice Access
+See [Usage](#usage-example-microservice) for an example.
+
+## Microservice Access
 
 > [!NOTE]  
-> Keycloak [https://www.keycloak.org/2025/05/fgap-kc-26-2](Fine-Grained Admin Permissions), are not yet available for RHBK, and don't allow required level of RBAC.
+> A client in Keycloak representing IS Agenda System requiring access must exist - see [IS Agenda Systems](#is-agenda-systems) = `client isas`
+
+Using the microserviceaccess.bpm.ck.socpoist.sk XR allows projet admins / operators to manage access to a BPM microservice for IS Agenda Systems consisting of:
+
+- add microservice roles to tokens created by IS Agenda System client, required because full scope is disabled for the client to increase security = `rolemapper isas`
+- add microservice audience to tokens created by IS Agenda System client = `protocol mapper isas (aud)`
+- add a role to the client service account of the IS Agenda System client = `clientserviceaccountrole isas`
+
+See [Usage](#usage-example-microservice-access) for an example.
 
 ### IS Agenda Systems
 
@@ -82,12 +94,12 @@ spec:
     kind: ClusterProviderConfig
 ```
 
-## Usage Example
+## Usage Example Microservice
 
 Create a BPM microservice, with roles admin, worker, reader, and set of URLs:
 
 ```yaml
-apiVersion: ck.socpoist.sk/v1alpha1
+apiVersion: bpm.ck.socpoist.sk/v1alpha1
 kind: Microservice
 metadata:
   name: bpm-test-prime
@@ -106,12 +118,12 @@ spec:
     - https://bpm-test-prime.apps.example.com/admin/processes
 ```
 
-### Microservice Access Example
+### Usage Example Microservice Access
 
 Add reader access for ISAS to BPM microservice
 
 ```yaml
-apiVersion: ck.socpoist.sk/v1alpha1
+apiVersion: bpm.ck.socpoist.sk/v1alpha1
 kind: Microserviceaccess
 metadata:
   name: isas

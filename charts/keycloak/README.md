@@ -21,7 +21,7 @@ At IDP a client must be created:
 - Standard Flow enabled
 - Client scopes (keycloak-apc-dedicated) => Group Membership mapper => `groups` claim, Full group path
 
-All groups used by clients of this Keycloak instance must be loaded in IDP per environment, i.e. groups `APPS-CK-<envshorName | upper>-*`, e.g. `APPS-CK-D-BPM-READER`
+All groups used by clients of this Keycloak instance must be loaded in IDP per environment, i.e. groups `APC-<envshorName | upper>-CK-*`, e.g. `APC-D-CK-BPM-READER`
 
 ## Prerequisites
 
