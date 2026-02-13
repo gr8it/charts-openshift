@@ -21,10 +21,10 @@ spec:
     validateSignature: {{ .validateSignature | default true }}
     jwksUrl: {{ .jwksUrl }}
     clientIdSecretRef:
-      name: idp-{{ include "apc-global-overrides.require-keycloakRealm" $ }}-{{ .name }}-credentials
+      name: idp-{{ include "apc-global-overrides.require-keycloakRealm" $ | lower }}-{{ .name }}-credentials
       key: client-id
     clientSecretSecretRef:
-      name: idp-{{ include "apc-global-overrides.require-keycloakRealm" $ }}-{{ .name }}-credentials
+      name: idp-{{ include "apc-global-overrides.require-keycloakRealm" $ | lower }}-{{ .name }}-credentials
       key: client-secret
     storeToken: {{ .storeToken | default false }}
     trustEmail: {{ .trustEmail | default true }}

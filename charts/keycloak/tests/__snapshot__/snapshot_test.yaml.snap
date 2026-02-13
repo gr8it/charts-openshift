@@ -57,7 +57,7 @@ manifests should match snapshot:
         implicitFlowEnabled: false
         name: ISAS
         pkceCodeChallengeMethod: S256
-        realmId: internal
+        realmId: Internal
         serviceAccountsEnabled: true
         standardFlowEnabled: false
         useRefreshTokens: true
@@ -87,7 +87,7 @@ manifests should match snapshot:
         implicitFlowEnabled: false
         name: SF
         pkceCodeChallengeMethod: S256
-        realmId: internal
+        realmId: Internal
         serviceAccountsEnabled: false
         standardFlowEnabled: true
         useRefreshTokens: true
@@ -121,7 +121,7 @@ manifests should match snapshot:
         implicitFlowEnabled: false
         name: SF
         pkceCodeChallengeMethod: S256
-        realmId: internal
+        realmId: Internal
         serviceAccountsEnabled: false
         standardFlowEnabled: true
         useRefreshTokens: true
@@ -254,11 +254,11 @@ manifests should match snapshot:
     spec:
       data:
         - remoteRef:
-            key: apc-platform/l/keycloak/internal/identity-providers/keycloak-oidc/credentials
+            key: apc-platform/l/keycloak/Internal/identity-providers/keycloak-oidc/credentials
             property: client-id
           secretKey: client-id
         - remoteRef:
-            key: apc-platform/l/keycloak/internal/identity-providers/keycloak-oidc/credentials
+            key: apc-platform/l/keycloak/Internal/identity-providers/keycloak-oidc/credentials
             property: client-secret
           secretKey: client-secret
       secretStoreRef:
@@ -287,7 +287,7 @@ manifests should match snapshot:
       forProvider:
         alias: first broker login without profile review
         description: Actions taken after first broker login with identity provider account, which is not yet linked to any Keycloak account
-        realmId: internal
+        realmId: Internal
       providerConfigRef:
         kind: ClusterProviderConfig
         name: keycloak-provider-config-dev
@@ -308,7 +308,7 @@ manifests should match snapshot:
         authenticator: idp-review-profile
         parentFlowAlias: first broker login without profile review
         priority: 1
-        realmId: internal
+        realmId: Internal
         requirement: DISABLED
       providerConfigRef:
         kind: ClusterProviderConfig
@@ -332,7 +332,7 @@ manifests should match snapshot:
           update.profile.on.first.login: missing
         executionIdRef:
           name: first-broker-login-without-profile-review-review-profile
-        realmId: internal
+        realmId: Internal
       providerConfigRef:
         kind: ClusterProviderConfig
         name: keycloak-provider-config-dev
@@ -354,7 +354,7 @@ manifests should match snapshot:
         description: Flow for the existing/non-existing user alternatives
         parentFlowAlias: first broker login without profile review
         priority: 2
-        realmId: internal
+        realmId: Internal
         requirement: REQUIRED
       providerConfigRef:
         kind: ClusterProviderConfig
@@ -376,7 +376,7 @@ manifests should match snapshot:
         authenticator: idp-create-user-if-unique
         parentFlowAlias: first broker login without profile review User creation or linking config
         priority: 1
-        realmId: internal
+        realmId: Internal
         requirement: ALTERNATIVE
       providerConfigRef:
         kind: ClusterProviderConfig
@@ -400,7 +400,7 @@ manifests should match snapshot:
           require.password.update.after.registration: "false"
         executionIdRef:
           name: first-broker-login-without-profile-review-create-user-if-unique
-        realmId: internal
+        realmId: Internal
       providerConfigRef:
         kind: ClusterProviderConfig
         name: keycloak-provider-config-dev
@@ -422,7 +422,7 @@ manifests should match snapshot:
         description: Handle what to do if there is existing account with same email/username like authenticated identity provider
         parentFlowAlias: first broker login without profile review User creation or linking config
         priority: 2
-        realmId: internal
+        realmId: Internal
         requirement: ALTERNATIVE
       providerConfigRef:
         kind: ClusterProviderConfig
@@ -444,7 +444,7 @@ manifests should match snapshot:
         authenticator: idp-confirm-link
         parentFlowAlias: first broker login without profile review Handle Existing Account
         priority: 1
-        realmId: internal
+        realmId: Internal
         requirement: REQUIRED
       providerConfigRef:
         kind: ClusterProviderConfig
@@ -467,7 +467,7 @@ manifests should match snapshot:
         description: Method with which to verify the existing account
         parentFlowAlias: first broker login without profile review Handle Existing Account
         priority: 2
-        realmId: internal
+        realmId: Internal
         requirement: REQUIRED
       providerConfigRef:
         kind: ClusterProviderConfig
@@ -489,7 +489,7 @@ manifests should match snapshot:
         authenticator: idp-email-verification
         parentFlowAlias: first broker login without profile review Account verification options
         priority: 1
-        realmId: internal
+        realmId: Internal
         requirement: ALTERNATIVE
       providerConfigRef:
         kind: ClusterProviderConfig
@@ -512,7 +512,7 @@ manifests should match snapshot:
         description: Reauthentication of existing account
         parentFlowAlias: first broker login without profile review Account verification options
         priority: 2
-        realmId: internal
+        realmId: Internal
         requirement: ALTERNATIVE
       providerConfigRef:
         kind: ClusterProviderConfig
@@ -534,7 +534,7 @@ manifests should match snapshot:
         authenticator: idp-username-password-form
         parentFlowAlias: first broker login without profile review Verify Existing Account by Re-authentication
         priority: 1
-        realmId: internal
+        realmId: Internal
         requirement: REQUIRED
       providerConfigRef:
         kind: ClusterProviderConfig
@@ -557,7 +557,7 @@ manifests should match snapshot:
         description: Flow to determine if the OTP is required for the authentication
         parentFlowAlias: first broker login without profile review Verify Existing Account by Re-authentication
         priority: 2
-        realmId: internal
+        realmId: Internal
         requirement: CONDITIONAL
       providerConfigRef:
         kind: ClusterProviderConfig
@@ -579,7 +579,7 @@ manifests should match snapshot:
         authenticator: conditional-user-configured
         parentFlowAlias: first broker login without profile review First broker login - Conditional OTP
         priority: 1
-        realmId: internal
+        realmId: Internal
         requirement: REQUIRED
       providerConfigRef:
         kind: ClusterProviderConfig
@@ -601,7 +601,7 @@ manifests should match snapshot:
         authenticator: auth-otp-form
         parentFlowAlias: first broker login without profile review First broker login - Conditional OTP
         priority: 2
-        realmId: internal
+        realmId: Internal
         requirement: REQUIRED
       providerConfigRef:
         kind: ClusterProviderConfig
@@ -624,7 +624,7 @@ manifests should match snapshot:
         description: Flow to determine if the authenticator that adds organization members is to be used
         parentFlowAlias: first broker login without profile review
         priority: 3
-        realmId: internal
+        realmId: Internal
         requirement: CONDITIONAL
       providerConfigRef:
         kind: ClusterProviderConfig
@@ -646,7 +646,7 @@ manifests should match snapshot:
         authenticator: conditional-user-configured
         parentFlowAlias: first broker login without profile review First Broken Login - Conditional Organization
         priority: 1
-        realmId: internal
+        realmId: Internal
         requirement: REQUIRED
       providerConfigRef:
         kind: ClusterProviderConfig
@@ -668,7 +668,7 @@ manifests should match snapshot:
         authenticator: idp-add-organization-member
         parentFlowAlias: first broker login without profile review First Broken Login - Conditional Organization
         priority: 2
-        realmId: internal
+        realmId: Internal
         requirement: REQUIRED
       providerConfigRef:
         kind: ClusterProviderConfig
@@ -706,7 +706,7 @@ manifests should match snapshot:
         issuer: http://keycloak.example.com/realms/internal
         jwksUrl: http://keycloak.example.com/realms/internal/protocol/openid-connect/certs
         logoutUrl: http://keycloak.example.com/realms/internal/protocol/openid-connect/logout
-        realm: internal
+        realm: Internal
         storeToken: false
         syncMode: FORCE
         tokenUrl: http://keycloak.example.com/realms/internal/protocol/openid-connect/token
