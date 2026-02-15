@@ -238,7 +238,7 @@ rendered cluster-policy-cluster-monitoring manifest:
                           vendor: aspecta
                       - alert: KubeJobNotCompleted
                         annotations:
-                          description: Job \{{ $labels.job_name }} in namespace \{{ $labels.namespace }} is taking more than \{{ \"43200\" | humanizeDuration }} to complete.
+                          description: Job \{{ $labels.job_name }} in namespace \{{ $labels.namespace }} has been running for \{{ humanizeDuration $value }} and has not completed.
                           summary: Job did not complete in time
                         expr: |-
                           time() - max by (namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
