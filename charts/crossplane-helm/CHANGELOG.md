@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _If you are upgrading: please see [`UPGRADING.md`](UPGRADING.md)._
 
-## Unreleased
+## [2.2.0] - 2026-02-15
+
+_([SPEXAPC-12529](https://aspecta.atlassian.net/browse/SPEXAPC-12529))_
 
 ### Added
 
