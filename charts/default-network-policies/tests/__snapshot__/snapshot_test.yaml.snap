@@ -7,7 +7,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: default-network-policies
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: default-network-policies
-        helm.sh/chart: default-network-policies-1.5.0
+        helm.sh/chart: default-network-policies-1.5.1
       name: application-anp-policy
     spec:
       egress:
@@ -97,7 +97,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: default-network-policies
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: default-network-policies
-        helm.sh/chart: default-network-policies-1.5.0
+        helm.sh/chart: default-network-policies-1.5.1
       name: app-project-networkpolicy
     spec:
       background: true
@@ -143,12 +143,10 @@ manifests should match snapshot:
               - resources:
                   kinds:
                     - Namespace
+                  selector:
+                    matchLabels:
+                      apc.namespace.type: application
           name: app-project-networkpolicy-ingress
-          preconditions:
-            all:
-              - key: '{{ request.object.metadata.labels."apc.namespace.type" }}'
-                operator: Equals
-                value: application
       validationFailureAction: Audit
   3: |
     apiVersion: policy.networking.k8s.io/v1alpha1
@@ -158,7 +156,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: default-network-policies
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: default-network-policies
-        helm.sh/chart: default-network-policies-1.5.0
+        helm.sh/chart: default-network-policies-1.5.1
       name: default
     spec:
       egress:
@@ -188,7 +186,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: default-network-policies
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: default-network-policies
-        helm.sh/chart: default-network-policies-1.5.0
+        helm.sh/chart: default-network-policies-1.5.1
       name: platform-anp-policy
     spec:
       egress:
@@ -310,7 +308,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: default-network-policies
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: default-network-policies
-        helm.sh/chart: default-network-policies-1.5.0
+        helm.sh/chart: default-network-policies-1.5.1
       name: platform-project-networkpolicy
     spec:
       background: true
@@ -356,12 +354,10 @@ manifests should match snapshot:
               - resources:
                   kinds:
                     - Namespace
+                  selector:
+                    matchLabels:
+                      apc.namespace.type: platform
           name: platform-project-networkpolicy-ingress
-          preconditions:
-            all:
-              - key: '{{ request.object.metadata.labels."apc.namespace.type" }}'
-                operator: Equals
-                value: platform
       validationFailureAction: Audit
   6: |
     apiVersion: policy.networking.k8s.io/v1alpha1
@@ -371,7 +367,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: default-network-policies
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: default-network-policies
-        helm.sh/chart: default-network-policies-1.5.0
+        helm.sh/chart: default-network-policies-1.5.1
       name: cluster-wide-restricted-policy
     spec:
       egress:
