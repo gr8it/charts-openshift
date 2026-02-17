@@ -11,7 +11,9 @@ This chart does **not** manage RHACS policies. It provides an optional Kyverno p
 - the debug pod can run even if it is privileged and currently has critical CVEs,
 - existing workloads can be exempted to avoid reschedule blockage until they are remediated.
 
-Enable it with `stackroxAdmissionBreakGlass` values and target by namespace or labels.
+Break-glass is enabled by default and targets namespaces or workloads labeled with
+`apc.stackrox.io/break-glass: "true"`. You can disable or override the selectors with
+`stackroxAdmissionBreakGlass` values.
 
 ## Decision log (2026-02-03)
 

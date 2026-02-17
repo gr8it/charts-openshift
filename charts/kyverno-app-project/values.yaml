@@ -179,11 +179,15 @@ vaultCapabilitiesOverride:
       - patch
 
 stackroxAdmissionBreakGlass:
-  enabled: false
+  enabled: true
   annotationKey: admission.stackrox.io/break-glass
   annotationValue: "true"
   namespaces: []
-  namespaceSelector: {}
-  workloadSelector: {}
+  namespaceSelector:
+    matchLabels:
+      apc.stackrox.io/break-glass: "true"
+  workloadSelector:
+    matchLabels:
+      apc.stackrox.io/break-glass: "true"
   mutateExistingOnPolicyUpdate: true
   skipBackgroundRequests: true
