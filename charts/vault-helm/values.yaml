@@ -171,14 +171,31 @@ vault:
             severity: warning
           annotations:
             message: The response time of Vault is over 1s on average over the last 5 minutes.
-        - alert: VaultBackupNoSuccessIn24h
+        - alert: VaultBackupNoSuccessIn25h
           expr: |
-            sum by (namespace) (
-              increase(kube_job_status_succeeded{namespace="apc-vault", job_name=~"vault-snapshot.*"}[24h])
-            ) == 0
+            (
+              time() - kube_cronjob_status_last_successful_time{
+                namespace="apc-vault",
+                cronjob="vault-snapshot-job"
+              } > 90000
+            )
+            OR
+            (
+              kube_cronjob_status_last_successful_time{
+                namespace="apc-vault",
+                cronjob="vault-snapshot-job"
+              } == 0
+            )
+            OR
+            absent(
+              kube_cronjob_status_last_successful_time{
+                namespace="apc-vault",
+                cronjob="vault-snapshot-job"
+              }
+            )
           for: 10m
           labels:
             severity: warning
           annotations:
-            summary: "No successful Vault snapshot in last 24h"
-            description: "No jobs matching vault-snapshot.* in namespace {{ $labels.namespace }} have succeeded in the last 24 hours."
+            summary: "No successful Vault snapshot in last 25h"
+            description: "No cronjobs matching vault-snapshot-job in namespace {{ $labels.namespace }} have succeeded in the last 25 hours."
