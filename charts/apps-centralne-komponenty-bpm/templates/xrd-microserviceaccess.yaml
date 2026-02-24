@@ -1,0 +1,48 @@
+# https://json.ophir.dev
+# yq ".spec.versions[0].schema.openAPIV3Schema = \"$(yq -p json -o yaml openapischemas/xrd-microserviceaccess.json)\"" --inplace templates/xrd-microserviceaccess.yaml; sed -E -i 's/^([ ]+)openAPIV3Schema:.*/\1openAPIV3Schema:/' templates/xrd-microserviceaccess.yaml
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: microserviceaccesses.bpm.ck.socpoist.sk
+  labels:
+    {{- include "apps-centralne-komponenty-bpm.labels" . | nindent 4 }}
+spec:
+  scope: Namespaced
+  group: bpm.ck.socpoist.sk
+  names:
+    kind: Microserviceaccess
+    plural: microserviceaccesses
+    shortNames:
+      - bpmmsa
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: Microserviceaccess allows management of access to a microservice
+          properties:
+            apiVersion:
+              type: string
+              description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            kind:
+              type: string
+              description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            metadata:
+              type: object
+            spec:
+              type: object
+              description: Defines access to a microservice
+              properties:
+                clientId:
+                  type: string
+                  description: Keycloak client name of the microservice to assume the role for
+                clientRole:
+                  type: string
+                  description: Keycloak client role to assume for the microservice access client
+              required:
+                - clientRole
+                - clientId
+          required:
+            - spec
