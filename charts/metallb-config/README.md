@@ -8,19 +8,21 @@ Following resources are deployed:
 - metallb instance
 - IP address pool:
   - defines IP pools for spoke API servers
-  - key ```hub``` in component configuration is static as the IP pools are applied on hub only
+  - key `hub` in component configuration is static as the IP pools are applied on hub only
   - IP pools for individual spoke clusters are defined in component values file
 
     <details>
 
     <summary>Example of component customization</summary>
     
+    ```yaml
     ipAddrPool:
       hub:
         dev01: <ip_address/pool>
         test01: <ip_address/pool>
         prod01: <ip_address/pool>
-    
+    ```
+
     </details>
 
 - L2Advertisement:
