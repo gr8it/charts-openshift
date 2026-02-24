@@ -77,8 +77,7 @@ spec:
                 - --openshift-ca=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
                 - --tls-cert=/etc/tls/private/tls.crt
                 - --tls-key=/etc/tls/private/tls.key
-                # while not optimal, it is ok that the cookie-secret changes during lifecycle of the CR. The grafana deployment is restarted with new secret, and all client must reauthenticate to receiver newly encoded cookies
-                - --cookie-secret-file=/etc/tls/private/cookie-secret/cookie-secret-file
+                - --cookie-secret-file=/etc/cookie-secret
                 - --client-id=system:serviceaccount:{{ .Release.Namespace }}:{{ include "grafana-instance.name" . }}-sa
                 - --client-secret-file=/var/run/secrets/kubernetes.io/serviceaccount/token
                 - --cookie-expire=24h
@@ -102,7 +101,7 @@ spec:
                 - name: {{ include "grafana-instance.name" . }}-tls
                   mountPath: /etc/tls/private
                 - name: {{ include "grafana-instance.name" . }}-oauth-proxy-cookie-secret
-                  mountPath: /etc/tls/private/cookie-secret
+                  mountPath: /etc/cookie-secret
                   subPath: cookie-secret-file
           volumes:
             - name: openshift-service-ca
@@ -117,9 +116,6 @@ spec:
             - name: {{ include "grafana-instance.name" . }}-oauth-proxy-cookie-secret
               secret:
                 secretName: {{ include "grafana-instance.name" . }}-oauth-proxy-cookie-secret
-                items:
-                  - key: cookie-secret-file
-                    path: cookie-secret-file
             {{- if .Values.storageClassName | default false }}
             - name: grafana-data
               persistentVolumeClaim:
