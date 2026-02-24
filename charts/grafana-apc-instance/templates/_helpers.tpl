@@ -63,6 +63,6 @@ Render grafana host url
 */}}
 {{- define "grafana-instance.grafanaHost" -}}
 {{- $grafanaHost := .Values.grafanaHostOverride | default (printf "%s-%s" "grafana" .Release.Namespace) }}
-{{- $grafanaDomain := .Values.grafanaDomainOverride | default (include "apc-global-overrides.clusterAppsDomain" .) }}
+{{- $grafanaDomain := .Values.grafanaDomainOverride | default (include "apc-global-overrides.require-clusterAppsDomain" .) }}
 {{- (printf "%s.%s" $grafanaHost $grafanaDomain) | lower }}
 {{- end -}}
