@@ -1,0 +1,77 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: keycloak.m.crossplane.io/v1beta1
+    kind: ClusterProviderConfig
+    metadata:
+      labels:
+        app.kubernetes.io/instance: crossplane-keycloak-provider-bootstrap
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: crossplane-keycloak-provider-bootstrap
+        helm.sh/chart: crossplane-keycloak-provider-bootstrap-1.0.0
+      name: crossplane-keycloak-provider-config
+    spec:
+      credentials:
+        secretRef:
+          key: config.json
+          name: crossplane-keycloak-provider-config
+          namespace: apc-crossplane-system
+        source: Secret
+  2: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: crossplane-keycloak-provider-bootstrap
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: crossplane-keycloak-provider-bootstrap
+        helm.sh/chart: crossplane-keycloak-provider-bootstrap-1.0.0
+        type: provider-credentials
+      name: crossplane-keycloak-provider-config
+      namespace: apc-crossplane-system
+    spec:
+      data:
+        - remoteRef:
+            key: apc-platform/l/keycloak/apps/provisioning
+            property: username
+          secretKey: username
+        - remoteRef:
+            key: apc-platform/l/keycloak/apps/provisioning
+            property: password
+          secretKey: password
+      refreshInterval: 1h
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: vault-hub-secret-store
+      target:
+        creationPolicy: Owner
+        name: crossplane-keycloak-provider-config
+        template:
+          data:
+            config.json: |
+              {
+                "client_id":"admin-cli",
+                "username": "{{ .username }}",
+                "password": "{{ .password }}",
+                "url": "https://keycloak.apps.example.com/auth",
+                "base_path": "",
+                "realm": "master",
+                "tls_insecure_skip_verify": "false"
+                , "root_ca_certificate": "-----BEGIN CERTIFICATE-----\nMIIEjTCCAvWgAwIBAgIQPyqmQ6rwefWluhiTKW055DANBgkqhkiG9w0BAQsFADBf\nMR4wHAYDVQQKExVta2NlcnQgZGV2ZWxvcG1lbnQgQ0ExGjAYBgNVBAsMEXBldG9A\nV1gtT1I3NTA2Njk2MSEwHwYDVQQDDBhta2NlcnQgcGV0b0BXWC1PUjc1MDY2OTYw\nHhcNMjAwNDIyMDY1NDM1WhcNMzAwNDIyMDY1NDM1WjBfMR4wHAYDVQQKExVta2Nl\ncnQgZGV2ZWxvcG1lbnQgQ0ExGjAYBgNVBAsMEXBldG9AV1gtT1I3NTA2Njk2MSEw\nHwYDVQQDDBhta2NlcnQgcGV0b0BXWC1PUjc1MDY2OTYwggGiMA0GCSqGSIb3DQEB\nAQUAA4IBjwAwggGKAoIBgQC6nnePnyWwk6eNPkdJ74EHRTBhVm3GWDylea95VCr+\nvn1RbzCzvvcNKV1PzMEVlQODX3ULGLe9cQ+C15FMXameNsr2VtSVzD3rBjPkTFsH\nqdOfAYu+Xpq0rogFRa7QTPeByIDT7lAVFi8tVmyiVxFDvvirNk0YQUpk8UOifOJk\nE9Fb94pQVg6qLdou9kY1ATJmbl85on2r8A47HOziRqdwFtsIfC0RsiLDuTLXpjQj\nsvAzRGIjDEJctw0yDxzqIV6PdjjhZWEg+79+w6H4iL6iMBiHxk3JeKJAgSHQQR4P\nlRv2lGxxjdfBU7s3So7UEy63GotGZ4pmhHjPeUHSM5PCtGyMhWghYjW5C+BWI9sH\nYMRueNWtcGIQpYD2rvKT06GksPIKMouW2PnK/9y8q0ZdieJn8cV/R0968w6L968K\nIEvhtKLwm9DKCHW5IoCkot2NJ7/9304AV/I0p/AV3d+uUjBaawrXAD64mqDtT4bx\nSl6pwmkFnWbOjPGj83WRmUECAwEAAaNFMEMwDgYDVR0PAQH/BAQDAgIEMBIGA1Ud\nEwEB/wQIMAYBAf8CAQAwHQYDVR0OBBYEFJ6o80IVp/6XlwoNMG2+uox/qHMBMA0G\nCSqGSIb3DQEBCwUAA4IBgQA+CqS+lzlKRA56Qn0sLod6/TvnrFi8g046aRiSpJr7\nAWo60wZm2ah3fwXIHopplFm21vigbXuF228gukXXTU+Pl4cmYfuYQ07oEKZ29ehx\nX8tDkBJs55vAeYyFUvtA32Tn2v3V/aWtU6H9VdZb7LoiZkmaMcuR7lYSL894lrKM\nEyaedseP7LKh/rqf5zhjYjSeGQRUjuzKboUB4FRaXgAWmqOCjKoq0EV1Eq7/2WHJ\n6vBn4DpbndfTaojdHGJFNxNOa/ip90q6don7NxYRoF+OxIw3KoNoLQ68FB72e4YM\nXnyv1qVcJqKpCU2j9cqadLdwMJXxUenq4ikCRa9xF+eC37yfYVAsQobYHvlTqG9M\nuqtjo8xrkGOwvGQ+oik0I+303XLdhSfJuzArUm7KRrdoBL4sSqtlYFm6VSR5Btkm\n7IwJlAeaV+FkMNja0iqKfgJ1hv+OtZJXME7PmdK2IWB9QFZwsbd58R32/3hTgRKF\ng0B7VApEFseK/bSw/CqA2Fw=\n-----END CERTIFICATE-----"
+              }
+  3: |
+    apiVersion: keycloak.crossplane.io/v1beta1
+    kind: ProviderConfig
+    metadata:
+      labels:
+        app.kubernetes.io/instance: crossplane-keycloak-provider-bootstrap
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: crossplane-keycloak-provider-bootstrap
+        helm.sh/chart: crossplane-keycloak-provider-bootstrap-1.0.0
+      name: crossplane-keycloak-provider-config
+    spec:
+      credentials:
+        secretRef:
+          key: config.json
+          name: crossplane-keycloak-provider-config
+          namespace: apc-crossplane-system
+        source: Secret

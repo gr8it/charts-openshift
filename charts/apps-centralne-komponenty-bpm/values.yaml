@@ -1,0 +1,39 @@
+# This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+bamoe:
+  namespace: bamoe # where to install the client
+
+  clientId: bamoe-management-console
+  clientName: bamoe
+
+  rootUrl: ~
+  baseUrl: ~
+  validRedirectUris: []
+  webOrigins: []
+
+## uses following global values => do not set here
+# global:
+#   apc:
+#     services:
+#       crossplane:
+#         kubeKeycloakProviderConfigName: ~
+#       keycloak:
+#         realm: ~
+## and their local overrides
+# environmentShort: ~
+# services:
+#   crossplane:
+#     kubeKeycloakProviderConfigName: ~
+#       keycloak:
+#         realm: ~
+
+pkceCodeChallengeMethod: S256 # S256, plain. When empty, PKCE is disabled for bamoe and ms admin clients
+
+identityProviderAlias: keycloak-oidc # creates identity provider mapping between groups from access token to client roles of microservice for users
+
+# value gets templated (tpl) = can contain references to other values, e.g. {{ .Values.groupMatchingRegex }}
+groupMatchingRegex: '(?<!\\w)/APC-{{ include "apc-global-overrides.environmentShort" $ | upper }}-CK-{{`{{ $.observed.composite.resource.metadata.name | upper }}`}}-{{`{{ $value | upper }}`}}(?!\\w)'

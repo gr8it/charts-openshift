@@ -1,0 +1,37 @@
+apiVersion: openidclient.keycloak.m.crossplane.io/v1alpha1
+kind: Client
+metadata:
+  name: {{ .Values.bamoe.clientId }}
+  namespace: {{ .Values.bamoe.namespace }}
+  labels:
+    {{- include "apps-centralne-komponenty-bpm.labels" . | nindent 4 }}
+spec:
+  forProvider:
+    realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
+    clientId: {{ .Values.bamoe.clientId }}
+    name: {{ .Values.bamoe.clientName }}
+    description: {{ .Values.bamoe.clientName }} manazment konzola
+    accessType: PUBLIC
+    standardFlowEnabled: true
+    {{- if .Values.bamoe.rootUrl }}
+    rootUrl: {{ .Values.bamoe.rootUrl }}
+    {{- end }}
+    {{- if or .Values.bamoe.baseUrl }}
+    baseUrl: {{ .Values.bamoe.baseUrl }}
+    {{- end }}
+    {{- if or (not .Values.bamoe.validRedirectUris) (eq (len .Values.bamoe.validRedirectUris) 0) }}
+      {{- fail "The list .bamoe.validRedirectUris cannot be empty." }}
+    {{- end }}
+    validRedirectUris:
+      {{- .Values.bamoe.validRedirectUris | toYaml | nindent 6}}
+    webOrigins:
+    {{- range (.Values.bamoe.webOrigins | default (list "+")) }}
+      - {{ . | quote }}
+    {{- end }}
+    frontchannelLogoutEnabled: true
+    pkceCodeChallengeMethod: {{ .Values.pkceCodeChallengeMethod }}
+    fullScopeAllowed: false
+
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
+    kind: ClusterProviderConfig
