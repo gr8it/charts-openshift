@@ -7,7 +7,7 @@ rendered cluster-policy-cluster-monitoring manifest:
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.0.7
+        helm.sh/chart: monitoring-1.0.8
       name: cluster-policy-cluster-monitoring
     spec:
       generateExisting: true
@@ -421,13 +421,13 @@ rendered cluster-policy-cluster-monitoring manifest:
                           vendor: aspecta
                       - alert: HighCPUUtilization
                         annotations:
-                          description: Pod \{{ $labels.pod }} has been utilizing more than 95% of its CPU limit for over 15 minutes. Current value is \{{ $value | humanizePercentage }}.
+                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 95% of its CPU limit for over 15 minutes. Current value is \{{ $value | humanizePercentage }}.
                           summary: CPU utilization is above 95%
                         expr: |-
                           (
-                            sum by (namespace, pod) (pod:container_cpu_usage:sum)
+                            sum by (namespace, pod) (pod:container_cpu_usage:sum{namespace="{{ request.object.metadata.name }}"})
                             /
-                            sum by (namespace, pod) (kube_pod_container_resource_limits{resource="cpu"})
+                            sum by (namespace, pod) (kube_pod_container_resource_limits{resource="cpu", namespace="{{ request.object.metadata.name }}"})
                           ) > 0.95
                         for: 15m
                         labels:
@@ -437,13 +437,13 @@ rendered cluster-policy-cluster-monitoring manifest:
                           vendor: aspecta
                       - alert: HighMemoryUtilization
                         annotations:
-                          description: Pod \{{ $labels.pod }} has been utilizing more than 90% of its memory limit for over 15 minutes. Current utilization is \{{ $value | humanizePercentage }}
+                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 90% of its memory limit for over 15 minutes. Current utilization is \{{ $value | humanizePercentage }}
                           summary: Memory utilization (90%+) on pod \{{ $labels.pod }}
                         expr: |-
                           (
-                            sum by (namespace, pod, container) (container_memory_working_set_bytes{container!=""})
+                            sum by (namespace, pod, container) (container_memory_working_set_bytes{container!="", namespace="{{ request.object.metadata.name }}"})
                             /
-                            sum by (namespace, pod, container) (kube_pod_container_resource_limits{resource="memory"})
+                            sum by (namespace, pod, container) (kube_pod_container_resource_limits{resource="memory", namespace="{{ request.object.metadata.name }}"})
                           ) > 0.90
                         for: 15m
                         labels:
