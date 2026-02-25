@@ -1,0 +1,12 @@
+{{- if .Values.backup.enabled }}
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: {{ .Values.backup.s3bucket.bucketName }}
+  namespace: {{ .Values.backup.s3bucket.s3bucketNamespace }}
+  labels:
+    {{- include "vault-helm.labels" . | nindent 4 }}
+spec:
+  storageClassName: {{ .Values.backup.s3bucket.storageClass }}
+  generateBucketName: {{ .Values.backup.s3bucket.bucketName }}
+{{- end }}

@@ -1,0 +1,359 @@
+{{- if .Values.customFirstBrokerLoginFlowEnabled }}
+### This is a duplicate of the inbuilt "First Broker Login Flow" with profile review DISABLED
+apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+kind: Flow
+metadata:
+  name: first-broker-login-without-profile-review
+  namespace: {{ $.Release.Namespace }}
+  labels:
+  {{- include "keycloak.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
+    alias: first broker login without profile review
+    description: Actions taken after first broker login with identity provider account, which is not yet linked to any Keycloak account
+
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
+    kind: ClusterProviderConfig
+---
+apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+kind: Execution
+metadata:
+  name: first-broker-login-without-profile-review-review-profile
+  namespace: {{ $.Release.Namespace }}
+  labels:
+  {{- include "keycloak.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
+    # taken from PROVIDER_ID of https://github.com/keycloak/keycloak/tree/49240b6eace9b591bd443df43fa8bd07764a82a6/services/src/main/java/org/keycloak/authentication/authenticators/broker => https://github.com/keycloak/keycloak/blob/49240b6eace9b591bd443df43fa8bd07764a82a6/services/src/main/java/org/keycloak/authentication/authenticators/broker/IdpReviewProfileAuthenticatorFactory.java#L38
+    authenticator: idp-review-profile
+    parentFlowAlias: first broker login without profile review
+    priority: 1
+    requirement: DISABLED
+
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
+    kind: ClusterProviderConfig
+---
+apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+kind: ExecutionConfig
+metadata:
+  name: first-broker-login-without-profile-review-review-profile
+  namespace: {{ $.Release.Namespace }}
+  labels:
+  {{- include "keycloak.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
+    executionIdRef:
+      name: first-broker-login-without-profile-review-review-profile
+    alias:  first broker login without profile review review profile config
+    config:
+      update.profile.on.first.login: "missing"
+
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
+    kind: ClusterProviderConfig
+---
+apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+kind: Subflow
+metadata:
+  name: first-broker-login-without-profile-review-user-creation-or-linking
+  namespace: {{ $.Release.Namespace }}
+  labels:
+  {{- include "keycloak.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
+    alias: first broker login without profile review User creation or linking config
+    description: Flow for the existing/non-existing user alternatives
+    parentFlowAlias: first broker login without profile review
+    requirement: REQUIRED
+    priority: 2
+
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
+    kind: ClusterProviderConfig
+---
+apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+kind: Execution
+metadata:
+  name: first-broker-login-without-profile-review-create-user-if-unique
+  namespace: {{ $.Release.Namespace }}
+  labels:
+  {{- include "keycloak.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
+    # https://github.com/keycloak/keycloak/blob/5659fa9ac77660f9c1ee88350a82ff9222752f99/services/src/main/java/org/keycloak/authentication/authenticators/broker/IdpCreateUserIfUniqueAuthenticatorFactory.java#L36
+    authenticator: idp-create-user-if-unique
+    parentFlowAlias: first broker login without profile review User creation or linking config
+    priority: 1
+    requirement: ALTERNATIVE
+
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
+    kind: ClusterProviderConfig
+---
+apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+kind: ExecutionConfig
+metadata:
+  name: first-broker-login-without-profile-review-create-user-if-unique
+  namespace: {{ $.Release.Namespace }}
+  labels:
+  {{- include "keycloak.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
+    executionIdRef:
+      name: first-broker-login-without-profile-review-create-user-if-unique
+    alias:  first broker login without profile review create unique user config
+    config:
+      require.password.update.after.registration: "false"
+
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
+    kind: ClusterProviderConfig
+---
+apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+kind: Subflow
+metadata:
+  name: first-broker-login-without-profile-review-handle-existing
+  namespace: {{ $.Release.Namespace }}
+  labels:
+  {{- include "keycloak.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
+    alias: first broker login without profile review Handle Existing Account
+    description: Handle what to do if there is existing account with same email/username like authenticated identity provider
+    parentFlowAlias: first broker login without profile review User creation or linking config
+    requirement: ALTERNATIVE
+    priority: 2
+
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
+    kind: ClusterProviderConfig
+---
+apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+kind: Execution
+metadata:
+  name: first-broker-login-without-profile-review-confirm-link
+  namespace: {{ $.Release.Namespace }}
+  labels:
+  {{- include "keycloak.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
+    # https://github.com/keycloak/keycloak/blob/5659fa9ac77660f9c1ee88350a82ff9222752f99/services/src/main/java/org/keycloak/authentication/authenticators/broker/IdpConfirmLinkAuthenticatorFactory.java#L35
+    authenticator: idp-confirm-link
+    parentFlowAlias: first broker login without profile review Handle Existing Account
+    priority: 1
+    requirement: REQUIRED
+
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
+    kind: ClusterProviderConfig
+---
+apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+kind: Subflow
+metadata:
+  name: first-broker-login-without-profile-review-account-verification
+  namespace: {{ $.Release.Namespace }}
+  labels:
+  {{- include "keycloak.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
+    alias: first broker login without profile review Account verification options
+    description: Method with which to verify the existing account
+    parentFlowAlias: first broker login without profile review Handle Existing Account
+    requirement: REQUIRED
+    priority: 2
+
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
+    kind: ClusterProviderConfig
+---
+apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+kind: Execution
+metadata:
+  name: first-broker-login-without-profile-review-email-verification
+  namespace: {{ $.Release.Namespace }}
+  labels:
+  {{- include "keycloak.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
+    # https://github.com/keycloak/keycloak/blob/5659fa9ac77660f9c1ee88350a82ff9222752f99/services/src/main/java/org/keycloak/authentication/authenticators/broker/IdpEmailVerificationAuthenticatorFactory.java#L35
+    authenticator: idp-email-verification
+    parentFlowAlias: first broker login without profile review Account verification options
+    priority: 1
+    requirement: ALTERNATIVE
+
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
+    kind: ClusterProviderConfig
+---
+apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+kind: Subflow
+metadata:
+  name: first-broker-login-without-profile-review-reauthenticate
+  namespace: {{ $.Release.Namespace }}
+  labels:
+  {{- include "keycloak.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
+    alias: first broker login without profile review Verify Existing Account by Re-authentication
+    description: Reauthentication of existing account
+    parentFlowAlias: first broker login without profile review Account verification options
+    requirement: ALTERNATIVE
+    priority: 2
+
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
+    kind: ClusterProviderConfig
+---
+apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+kind: Execution
+metadata:
+  name: first-broker-login-without-profile-review-credentials-form
+  namespace: {{ $.Release.Namespace }}
+  labels:
+  {{- include "keycloak.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
+    # https://github.com/keycloak/keycloak/blob/5659fa9ac77660f9c1ee88350a82ff9222752f99/services/src/main/java/org/keycloak/authentication/authenticators/broker/IdpUsernamePasswordFormFactory.java#L29
+    authenticator: idp-username-password-form
+    parentFlowAlias: first broker login without profile review Verify Existing Account by Re-authentication
+    priority: 1
+    requirement: REQUIRED
+
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
+    kind: ClusterProviderConfig
+---
+apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+kind: Subflow
+metadata:
+  name: first-broker-login-without-profile-review-conditional-otp
+  namespace: {{ $.Release.Namespace }}
+  labels:
+  {{- include "keycloak.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
+    alias: first broker login without profile review First broker login - Conditional OTP
+    description: Flow to determine if the OTP is required for the authentication
+    parentFlowAlias: first broker login without profile review Verify Existing Account by Re-authentication
+    requirement: CONDITIONAL
+    priority: 2
+
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
+    kind: ClusterProviderConfig
+---
+apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+kind: Execution
+metadata:
+  name: first-broker-login-without-profile-review-conditional-user
+  namespace: {{ $.Release.Namespace }}
+  labels:
+  {{- include "keycloak.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
+    # from https://github.com/keycloak/keycloak/blob/49240b6eace9b591bd443df43fa8bd07764a82a6/services/src/main/java/org/keycloak/authentication/authenticators/conditional/ConditionalUserConfiguredAuthenticatorFactory.java#L12C47-L12C74
+    authenticator: conditional-user-configured
+    parentFlowAlias: first broker login without profile review First broker login - Conditional OTP
+    priority: 1
+    requirement: REQUIRED
+
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
+    kind: ClusterProviderConfig
+---
+apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+kind: Execution
+metadata:
+  name: first-broker-login-without-profile-review-otp-form
+  namespace: {{ $.Release.Namespace }}
+  labels:
+  {{- include "keycloak.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
+    # from https://github.com/keycloak/keycloak/blob/49240b6eace9b591bd443df43fa8bd07764a82a6/services/src/main/java/org/keycloak/authentication/authenticators/browser/OTPFormAuthenticatorFactory.java#L37C47-L37C60
+    authenticator: auth-otp-form
+    parentFlowAlias: first broker login without profile review First broker login - Conditional OTP
+    priority: 2
+    requirement: REQUIRED
+
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
+    kind: ClusterProviderConfig
+---
+apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+kind: Subflow
+metadata:
+  name: first-broker-login-without-profile-review-organization
+  namespace: {{ $.Release.Namespace }}
+  labels:
+  {{- include "keycloak.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
+    alias: first broker login without profile review First Broken Login - Conditional Organization
+    description: Flow to determine if the authenticator that adds organization members is to be used
+    parentFlowAlias: first broker login without profile review
+    requirement: CONDITIONAL
+    priority: 3
+
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
+    kind: ClusterProviderConfig
+---
+apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+kind: Execution
+metadata:
+  name: first-broker-login-without-profile-review-conditional-user-org
+  namespace: {{ $.Release.Namespace }}
+  labels:
+  {{- include "keycloak.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
+    # from https://github.com/keycloak/keycloak/blob/49240b6eace9b591bd443df43fa8bd07764a82a6/services/src/main/java/org/keycloak/authentication/authenticators/conditional/ConditionalUserConfiguredAuthenticatorFactory.java#L12C47-L12C74
+    authenticator: conditional-user-configured
+    parentFlowAlias: first broker login without profile review First Broken Login - Conditional Organization
+    priority: 1
+    requirement: REQUIRED
+
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
+    kind: ClusterProviderConfig
+---
+apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
+kind: Execution
+metadata:
+  name: first-broker-login-without-profile-review-org-member-onboard
+  namespace: {{ $.Release.Namespace }}
+  labels:
+  {{- include "keycloak.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
+    # from https://github.com/keycloak/keycloak/blob/9cd492212b26492b5eea9593905b0f898f0b5398/services/src/main/java/org/keycloak/organization/authentication/authenticators/broker/IdpOrganizationAuthenticatorFactory.java#L36C38-L36C65
+    authenticator: idp-add-organization-member
+    parentFlowAlias: first broker login without profile review First Broken Login - Conditional Organization
+    priority: 2
+    requirement: REQUIRED
+
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
+    kind: ClusterProviderConfig
+{{- end }}
