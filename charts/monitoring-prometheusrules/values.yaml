@@ -348,7 +348,7 @@ rules:
       severity: critical
   - alert: HighCPUUtilization
     annotations:
-      description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }}has been utilizing more than 95% of its CPU limit for over 15 minutes. Current value is \{{ $value | humanizePercentage }}.
+      description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 95% of its CPU limit for over 15 minutes. Current value is \{{ $value | humanizePercentage }}.
       summary: CPU utilization is above 95%
     expr: |-
       (
@@ -361,7 +361,7 @@ rules:
       severity: warning
   - alert: HighMemoryUtilization
     annotations:
-      description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }}has been utilizing more than 90% of its memory limit for over 15 minutes. Current utilization is \{{ $value | humanizePercentage }}
+      description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 90% of its memory limit for over 15 minutes. Current utilization is \{{ $value | humanizePercentage }}
       summary: Memory utilization (90%+) on pod \{{ $labels.pod }}
     expr: |-
       (
