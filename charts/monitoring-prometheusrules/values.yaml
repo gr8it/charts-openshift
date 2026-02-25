@@ -354,7 +354,7 @@ rules:
       (
         sum by (namespace, pod) (pod:container_cpu_usage:sum{namespace="{{ request.object.metadata.name }}"})
         /
-        sum by (namespace, pod) (kube_pod_container_resource_limits{resource="cpu",namespace="{{ request.object.metadata.name }}"})
+        sum by (namespace, pod) (kube_pod_container_resource_limits{resource="cpu", namespace="{{ request.object.metadata.name }}"})
       ) > 0.95
     for: 15m
     labels:
@@ -365,9 +365,9 @@ rules:
       summary: Memory utilization (90%+) on pod \{{ $labels.pod }}
     expr: |-
       (
-        sum by (namespace, pod, container) (container_memory_working_set_bytes{container!="",namespace="{{ request.object.metadata.name }}"})
+        sum by (namespace, pod, container) (container_memory_working_set_bytes{container!="", namespace="{{ request.object.metadata.name }}"})
         /
-        sum by (namespace, pod, container) (kube_pod_container_resource_limits{resource="memory",namespace="{{ request.object.metadata.name }}"})
+        sum by (namespace, pod, container) (kube_pod_container_resource_limits{resource="memory", namespace="{{ request.object.metadata.name }}"})
       ) > 0.90
     for: 15m
     labels:
