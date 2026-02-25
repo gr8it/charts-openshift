@@ -2,7 +2,7 @@ manifests should match snapshot:
   1: |
     apiVersion: v1
     data:
-      ca.crt: |-
+      ca.crt: |
         -----BEGIN CERTIFICATE-----
         MIIFeDCCA2CgAwIBAgIQOwdgFGGlYrpEM2DY1GNmezANBgkqhkiG9w0BAQsFADBD
         MRIwEAYKCZImiZPyLGQBGRYCc2sxGDAWBgoJkiaJk/IsZAEZFghzb2Nwb2lzdDET
@@ -18,8 +18,9 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.5
+        helm.sh/chart: group-sync-config-1.1.0
       name: group-sync-config-ca-groupsync
+      namespace: group-sync-operator
   2: |
     apiVersion: redhatcop.redhat.io/v1alpha1
     kind: GroupSync
@@ -29,7 +30,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.5
+        helm.sh/chart: group-sync-config-1.1.0
       name: alfa
     spec:
       providers:
@@ -117,7 +118,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.5
+        helm.sh/chart: group-sync-config-1.1.0
       name: beta
     spec:
       providers:
@@ -168,12 +169,12 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.5
+        helm.sh/chart: group-sync-config-1.1.0
       name: group-sync-config
       namespace: group-sync-operator
     spec:
       groups:
-        - interval: 30s
+        - interval: 5m
           name: group-sync.rules
           rules:
             - alert: GroupSyncErrors
@@ -181,7 +182,7 @@ manifests should match snapshot:
                 description: Group sync {{ $labels.name }} errors detected in namespace {{ $labels.namespace }}."
                 summary: Group sync service {{ $labels.name }} is experiencing errors.
               expr: group_sync_error > 0
-              for: 5m
+              for: 65m
               labels:
                 severity: warning
                 team: platform
@@ -195,7 +196,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.5
+        helm.sh/chart: group-sync-config-1.1.0
       name: alfa-prov-1
       namespace: group-sync-operator
     spec:
@@ -225,7 +226,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.5
+        helm.sh/chart: group-sync-config-1.1.0
       name: alfa-prov-2
       namespace: group-sync-operator
     spec:
@@ -255,7 +256,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: group-sync-config
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: group-sync-config-1.0.5
+        helm.sh/chart: group-sync-config-1.1.0
       name: beta-prov-a
       namespace: group-sync-operator
     spec:

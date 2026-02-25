@@ -176,6 +176,16 @@ entries:
     version: 1.0.0
   apc-global-overrides:
   - apiVersion: v2
+    created: "2026-02-13T14:20:07.602015836+01:00"
+    description: A Helm chart containing helm helper functions to override global
+      APC values by local values
+    digest: 0897f2ef8703d384ad2c86de3c53374eff6296e635c04e759ea63c905f56e079
+    name: apc-global-overrides
+    type: library
+    urls:
+    - packaged_charts/apc-global-overrides-1.7.0.tgz
+    version: 1.7.0
+  - apiVersion: v2
     created: "2026-02-11T08:40:34.73084+01:00"
     description: A Helm chart containing helm helper functions to override global
       APC values by local values
@@ -347,6 +357,20 @@ entries:
     type: application
     urls:
     - packaged_charts/application-gitops-1.0.0.tgz
+    version: 1.0.0
+  apps-centralne-komponenty-bpm:
+  - apiVersion: v2
+    created: "2026-02-13T14:31:44.631720664+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.7.0
+    description: A Helm chart to deploy "Centrálny Komponent Integračné Služby" integration
+    digest: 6909643cb6aeecf9d4953ec48e1068763833669caa261c394863e544f2199afc
+    name: apps-centralne-komponenty-bpm
+    type: application
+    urls:
+    - packaged_charts/apps-centralne-komponenty-bpm-1.0.0.tgz
     version: 1.0.0
   apps-ck-kafka:
   - apiVersion: v2
@@ -1225,6 +1249,31 @@ entries:
     urls:
     - packaged_charts/crossplane-helm-1.2.0.tgz
     version: 1.2.0
+  crossplane-keycloak-provider:
+  - apiVersion: v2
+    appVersion: v2.9.0
+    created: "2026-02-09T17:23:15.975568607+01:00"
+    description: A Helm chart to deploy Crossplane Keycloak provider
+    digest: 984a1e747f54932d1ebf9b741444afc3c9ba8f8f20c4ac99c6450a2bb4dadd10
+    name: crossplane-keycloak-provider
+    type: application
+    urls:
+    - packaged_charts/crossplane-keycloak-provider-1.0.0.tgz
+    version: 1.0.0
+  crossplane-keycloak-provider-bootstrap:
+  - apiVersion: v2
+    created: "2026-02-13T14:31:44.632132241+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.7.0
+    description: A Helm chart to provision Crossplane Keycloak provider
+    digest: 730c9a4d536acece242a78e11535b883bb1572af1b0edc47235e8fec2fce6baf
+    name: crossplane-keycloak-provider-bootstrap
+    type: application
+    urls:
+    - packaged_charts/crossplane-keycloak-provider-bootstrap-1.0.0.tgz
+    version: 1.0.0
   crossplane-vault-provider:
   - apiVersion: v2
     appVersion: v2.2.2
@@ -1392,6 +1441,16 @@ entries:
     type: application
     urls:
     - packaged_charts/crossplane-vault-provider-bootstrap-1.0.0.tgz
+    version: 1.0.0
+  crossplane-xr-functions:
+  - apiVersion: v2
+    created: "2026-02-09T17:23:15.976137584+01:00"
+    description: A Helm chart to deploy Crossplane functions required for XR deployments
+    digest: c85f3dcb1b39910993fb99f4882a198a01d9eef0b09dd0461baf7c58e43b75fb
+    name: crossplane-xr-functions
+    type: application
+    urls:
+    - packaged_charts/crossplane-xr-functions-1.0.0.tgz
     version: 1.0.0
   default-network-policies:
   - apiVersion: v2
@@ -1803,6 +1862,21 @@ entries:
   grafana-apc-instance:
   - apiVersion: v2
     appVersion: v5
+    created: "2026-02-24T23:24:47.030017493+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart for installing APC Grafana Instance
+    digest: b8fb73df1f3ff39b84c1435d6e24d9cf09daaafd490753e4ab6295f2dab9638d
+    kubeVersion: '>=1.16-0'
+    name: grafana-apc-instance
+    type: application
+    urls:
+    - packaged_charts/grafana-apc-instance-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
+    appVersion: v5
     created: "2025-12-23T13:48:58.937159955+01:00"
     dependencies:
     - name: apc-global-overrides
@@ -1848,6 +1922,20 @@ entries:
     - packaged_charts/grafana-operator-1.0.0.tgz
     version: 1.0.0
   group-sync-config:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2026-02-13T13:47:42.064617582+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart to setup Group Sync
+    digest: ac6b59a9ffdfffc271da054a502a4f8f084130f5424f576907d360cb9de51188
+    name: group-sync-config
+    type: application
+    urls:
+    - packaged_charts/group-sync-config-1.1.0.tgz
+    version: 1.1.0
   - apiVersion: v2
     appVersion: 1.0.0
     created: "2026-01-14T12:27:18.850110474+01:00"
@@ -2021,6 +2109,20 @@ entries:
     - packaged_charts/kafka-backup-operator-0.1.0.tgz
     version: 0.1.0
   keycloak:
+  - apiVersion: v2
+    appVersion: v26.0
+    created: "2026-02-13T15:44:06.817059882+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.7.0
+    description: A Helm chart for APC keycloak
+    digest: 2d724b1bf2624e7ba4f969821d8ef644ccba3fb17376648fefb88af460efc0c0
+    name: keycloak
+    type: application
+    urls:
+    - packaged_charts/keycloak-1.6.0.tgz
+    version: 1.6.0
   - apiVersion: v2
     appVersion: v26.0
     created: "2025-10-23T11:22:39.854102517+02:00"
@@ -3068,4 +3170,4 @@ entries:
     urls:
     - packaged_charts/vault-helm-1.0.0.tgz
     version: 1.0.0
-generated: "2026-02-24T13:30:50.288785+01:00"
+generated: "2026-02-24T23:24:47.028075004+01:00"
