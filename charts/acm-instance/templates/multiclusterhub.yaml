@@ -7,6 +7,6 @@ metadata:
     {{- include "acm-instance.labels" . | nindent 4 }}
 spec:
   availabilityConfig: {{ .Values.availabilityConfig }}
-  {{- if (include "apc-global-overrides.caCertificates" .) }}
+  {{- if (include "apc-global-overrides.caCertificates" .) | fromYaml }}
   customCAConfigmap: {{ include "acm-instance.fullname" . }}-ca-certificates
   {{- end }}
