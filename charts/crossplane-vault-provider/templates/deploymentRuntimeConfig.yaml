@@ -22,11 +22,13 @@ spec:
                 cpu: 50m
                 memory: 100Mi
             securityContext: {}
+            {{- if (include "apc-global-overrides.caCertificates" .) | fromYaml }}
             volumeMounts:
             - mountPath: /etc/ssl/certs/vault-ca.crt
               name: custom-ca-certs
               readOnly: true
               subPath: ca.crt
+            {{- end }}
           securityContext: {}
           topologySpreadConstraints:
           - labelSelector:
@@ -35,7 +37,9 @@ spec:
             maxSkew: 1
             topologyKey: kubernetes.io/hostname
             whenUnsatisfiable: DoNotSchedule
+          {{- if (include "apc-global-overrides.caCertificates" .) | fromYaml }}
           volumes:
           - configMap:
-              name: kube-root-ca.crt
+              name: {{ include "crossplane-vault-provider.fullname" . }}-ca-certificates
             name: custom-ca-certs
+          {{- end }}
