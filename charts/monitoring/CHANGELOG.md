@@ -12,7 +12,7 @@ _([SPEXAPC-12860](https://aspecta.atlassian.net/browse/SPEXAPC-12860))_
 ### Changed
 
 - Bump dependency on `monitoring-prometheusrules` to 1.0.6
-- added missing labels into prometheus rules
+- Added missing labels to Prometheus rules
 
 ## [1.0.7] - 2026-02-13
 
