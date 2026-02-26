@@ -5,6 +5,23 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.8] - 2026-02-25
+
+_([SPEXAPC-12860](https://aspecta.atlassian.net/browse/SPEXAPC-12860))_
+
+### Changed
+
+- Bump dependency on `monitoring-prometheusrules` to 1.0.6
+- Added missing labels to Prometheus rules
+
+## [1.0.7] - 2026-02-13
+
+_([SPEXAPC-8954](https://aspecta.atlassian.net/browse/SPEXAPC-8954))_
+
+### Changed
+
+- Bump dependency on `monitoring-prometheusrules` to 1.0.5
+
 ## [1.0.6] - 2026-02-02
 
 _([SPEXAPC-8954](https://aspecta.atlassian.net/browse/SPEXAPC-8954))_
