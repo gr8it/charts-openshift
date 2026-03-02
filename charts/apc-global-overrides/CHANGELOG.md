@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _([SPEXAPC-13223](https://aspecta.atlassian.net/browse/SPEXAPC-13223))_
 
-## Added
+### Added
 
 - apc-global-overrides.clusterDomain helper
 
