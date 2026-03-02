@@ -8,7 +8,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.9.1
+        helm.sh/chart: gitops-bootstrap-2.9.2
       name: global
       namespace: apc-bootstrap
     spec:
@@ -23,7 +23,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.9.1
+        helm.sh/chart: gitops-bootstrap-2.9.2
       name: apc-bootstrap
   3: |
     apiVersion: cluster.open-cluster-management.io/v1beta1
@@ -34,7 +34,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.9.1
+        helm.sh/chart: gitops-bootstrap-2.9.2
       name: gitops-bootstrap
       namespace: apc-bootstrap
     spec:
@@ -54,7 +54,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.9.1
+        helm.sh/chart: gitops-bootstrap-2.9.2
       name: gitops-bootstrap
       namespace: apc-bootstrap
     placementRef:
@@ -76,7 +76,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.9.1
+        helm.sh/chart: gitops-bootstrap-2.9.2
       name: gitops-bootstrap
       namespace: apc-bootstrap
     spec:
@@ -393,7 +393,7 @@ manifests should match snapshot:
                     apiVersion: networking.k8s.io/v1
                     kind: NetworkPolicy
                     metadata:
-                      name: allow-proxy
+                      name: allow-to-proxy
                       namespace: apc-gitops
                     spec:
                       egress:
@@ -423,7 +423,7 @@ manifests should match snapshot:
                     apiVersion: networking.k8s.io/v1
                     kind: NetworkPolicy
                     metadata:
-                      name: allow-kubeapi-egress
+                      name: allow-to-kubeapi
                       namespace: apc-gitops
                     spec:
                       egress:
@@ -450,6 +450,108 @@ manifests should match snapshot:
             apiVersion: policy.open-cluster-management.io/v1
             kind: ConfigurationPolicy
             metadata:
+              name: gitops-bootstrap-same-namespace-egress-netpol
+            spec:
+              object-templates:
+                - complianceType: musthave
+                  objectDefinition:
+                    apiVersion: networking.k8s.io/v1
+                    kind: NetworkPolicy
+                    metadata:
+                      name: allow-to-same-namespace
+                      namespace: apc-gitops
+                    spec:
+                      egress:
+                        - to:
+                            - podSelector: {}
+                      podSelector: {}
+                      policyTypes:
+                        - Egress
+              remediationAction: enforce
+              severity: high
+        - extraDependencies:
+            - apiVersion: policy.open-cluster-management.io/v1
+              compliance: Compliant
+              kind: ConfigurationPolicy
+              name: gitops-bootstrap-namespace
+              namespace: ""
+          objectDefinition:
+            apiVersion: policy.open-cluster-management.io/v1
+            kind: ConfigurationPolicy
+            metadata:
+              name: gitops-bootstrap-dns-netpol
+            spec:
+              object-templates:
+                - complianceType: musthave
+                  objectDefinition:
+                    apiVersion: networking.k8s.io/v1
+                    kind: NetworkPolicy
+                    metadata:
+                      name: allow-to-dns
+                      namespace: apc-gitops
+                    spec:
+                      egress:
+                        - ports:
+                            - port: 5353
+                              protocol: TCP
+                            - port: 5353
+                              protocol: UDP
+                          to:
+                            - namespaceSelector:
+                                matchExpressions:
+                                  - key: kubernetes.io/metadata.name
+                                    operator: In
+                                    values:
+                                      - openshift-dns
+                      podSelector: {}
+                      policyTypes:
+                        - Egress
+              remediationAction: enforce
+              severity: high
+        - extraDependencies:
+            - apiVersion: policy.open-cluster-management.io/v1
+              compliance: Compliant
+              kind: ConfigurationPolicy
+              name: gitops-bootstrap-namespace
+              namespace: ""
+          objectDefinition:
+            apiVersion: policy.open-cluster-management.io/v1
+            kind: ConfigurationPolicy
+            metadata:
+              name: gitops-bootstrap-external-cidrs-netpol
+            spec:
+              object-templates:
+                - complianceType: musthave
+                  objectDefinition:
+                    apiVersion: networking.k8s.io/v1
+                    kind: NetworkPolicy
+                    metadata:
+                      name: allow-to-external-cidrs
+                      namespace: apc-gitops
+                    spec:
+                      egress:
+                        - to:
+                            - ipBlock:
+                                cidr: 10.0.0.0/8
+                            - ipBlock:
+                                cidr: 172.16.0.0/12
+                            - ipBlock:
+                                cidr: 192.168.0.0/16
+                      podSelector: {}
+                      policyTypes:
+                        - Egress
+              remediationAction: enforce
+              severity: high
+        - extraDependencies:
+            - apiVersion: policy.open-cluster-management.io/v1
+              compliance: Compliant
+              kind: ConfigurationPolicy
+              name: gitops-bootstrap-namespace
+              namespace: ""
+          objectDefinition:
+            apiVersion: policy.open-cluster-management.io/v1
+            kind: ConfigurationPolicy
+            metadata:
               name: gitops-bootstrap-openshift-ingress-netpol
             spec:
               object-templates:
@@ -458,7 +560,7 @@ manifests should match snapshot:
                     apiVersion: networking.k8s.io/v1
                     kind: NetworkPolicy
                     metadata:
-                      name: apc-gitops-allow-from-openshift-ingress-acm
+                      name: allow-from-openshift-ingress
                       namespace: apc-gitops
                     spec:
                       ingress:
@@ -466,6 +568,35 @@ manifests should match snapshot:
                             - namespaceSelector:
                                 matchLabels:
                                   network.openshift.io/policy-group: ingress
+                      podSelector: {}
+                      policyTypes:
+                        - Ingress
+              remediationAction: enforce
+              severity: high
+        - extraDependencies:
+            - apiVersion: policy.open-cluster-management.io/v1
+              compliance: Compliant
+              kind: ConfigurationPolicy
+              name: gitops-bootstrap-namespace
+              namespace: ""
+          objectDefinition:
+            apiVersion: policy.open-cluster-management.io/v1
+            kind: ConfigurationPolicy
+            metadata:
+              name: gitops-bootstrap-from-same-namespace-netpol
+            spec:
+              object-templates:
+                - complianceType: musthave
+                  objectDefinition:
+                    apiVersion: networking.k8s.io/v1
+                    kind: NetworkPolicy
+                    metadata:
+                      name: allow-from-same-namespace
+                      namespace: apc-gitops
+                    spec:
+                      ingress:
+                        - from:
+                            - podSelector: {}
                       podSelector: {}
                       policyTypes:
                         - Ingress
@@ -709,7 +840,7 @@ manifests should match snapshot:
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
         argocd.argoproj.io/secret-type: repo-creds
-        helm.sh/chart: gitops-bootstrap-2.9.1
+        helm.sh/chart: gitops-bootstrap-2.9.2
       name: null
       namespace: apc-bootstrap
     stringData:
