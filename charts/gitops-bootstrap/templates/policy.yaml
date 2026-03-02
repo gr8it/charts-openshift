@@ -582,7 +582,18 @@ spec:
                       annotations:
                         description: Argo CD application {{ "{{ \"{{ $labels.name }}\" }}" }} sync status is Unknown.
                         summary: Argo CD application sync status is Unknown
-                      expr: argocd_app_info{namespace="{{ .Values.namespace }}",sync_status="Unknown"} > 0
+                      expr: |
+                        (
+                          argocd_app_info{namespace="{{ .Values.namespace }}",sync_status="Unknown"}
+                          unless on(dest_namespace)
+                            label_replace(
+                              kube_namespace_labels{label_apc_namespace_type="application"},
+                              "dest_namespace",
+                              "$1",
+                              "namespace",
+                              "(.*)"
+                            )
+                        ) > 0
                       for: 5m
                       labels:
                         severity: warning
@@ -591,9 +602,32 @@ spec:
                     - alert: ArgoCDAppsSyncMajorityUnknownAlert
                       expr: |
                         (
-                          count(argocd_app_info{namespace="{{ .Values.namespace }}", sync_status="Unknown"})
+                          count(
+                            argocd_app_info{namespace="{{ .Values.namespace }}", sync_status="Unknown"}
+                            unless on(dest_namespace)
+                              label_replace(
+                                kube_namespace_labels{label_apc_namespace_type="application"},
+                                "dest_namespace",
+                                "$1",
+                                "namespace",
+                                "(.*)"
+                              )
+                          )
                           /
-                          clamp_min(count(argocd_app_info{namespace="{{ .Values.namespace }}"}), 1)
+                          clamp_min(
+                            count(
+                              argocd_app_info{namespace="{{ .Values.namespace }}"}
+                              unless on(dest_namespace)
+                                label_replace(
+                                  kube_namespace_labels{label_apc_namespace_type="application"},
+                                  "dest_namespace",
+                                  "$1",
+                                  "namespace",
+                                  "(.*)"
+                                )
+                            ),
+                            1
+                          )
                         ) > 0.5
                       for: 15m
                       labels:
@@ -617,7 +651,18 @@ spec:
                   - name: ArgoCDAppUnhealthyAlerts
                     rules:
                     - alert: ArgocdServiceUnhealthy
-                      expr: argocd_app_info{health_status!="Healthy"} != 0
+                      expr: |
+                        (
+                          argocd_app_info{namespace="{{ .Values.namespace }}",health_status!="Healthy"}
+                          unless on(dest_namespace)
+                            label_replace(
+                              kube_namespace_labels{label_apc_namespace_type="application"},
+                              "dest_namespace",
+                              "$1",
+                              "namespace",
+                              "(.*)"
+                            )
+                        ) != 0
                       for: 1h
                       labels:
                         severity: warning
