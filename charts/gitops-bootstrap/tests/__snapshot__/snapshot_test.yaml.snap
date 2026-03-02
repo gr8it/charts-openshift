@@ -8,7 +8,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.9.0
+        helm.sh/chart: gitops-bootstrap-2.9.1
       name: global
       namespace: apc-bootstrap
     spec:
@@ -23,7 +23,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.9.0
+        helm.sh/chart: gitops-bootstrap-2.9.1
       name: apc-bootstrap
   3: |
     apiVersion: cluster.open-cluster-management.io/v1beta1
@@ -34,7 +34,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.9.0
+        helm.sh/chart: gitops-bootstrap-2.9.1
       name: gitops-bootstrap
       namespace: apc-bootstrap
     spec:
@@ -54,7 +54,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.9.0
+        helm.sh/chart: gitops-bootstrap-2.9.1
       name: gitops-bootstrap
       namespace: apc-bootstrap
     placementRef:
@@ -76,7 +76,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.9.0
+        helm.sh/chart: gitops-bootstrap-2.9.1
       name: gitops-bootstrap
       namespace: apc-bootstrap
     spec:
@@ -623,7 +623,18 @@ manifests should match snapshot:
                               annotations:
                                 description: Argo CD application {{ "{{ $labels.name }}" }} sync status is Unknown.
                                 summary: Argo CD application sync status is Unknown
-                              expr: argocd_app_info{namespace="apc-gitops",sync_status="Unknown"} > 0
+                              expr: |
+                                (
+                                  argocd_app_info{namespace="apc-gitops",sync_status="Unknown"}
+                                  unless on(dest_namespace)
+                                    label_replace(
+                                      kube_namespace_labels{label_apc_namespace_type="application"},
+                                      "dest_namespace",
+                                      "$1",
+                                      "namespace",
+                                      "(.*)"
+                                    )
+                                ) > 0
                               for: 5m
                               labels:
                                 severity: warning
@@ -637,9 +648,32 @@ manifests should match snapshot:
                                 summary: Majority of Argo CD applications sync status is Unknown
                               expr: |
                                 (
-                                  count(argocd_app_info{namespace="apc-gitops", sync_status="Unknown"})
+                                  count(
+                                    argocd_app_info{namespace="apc-gitops", sync_status="Unknown"}
+                                    unless on(dest_namespace)
+                                      label_replace(
+                                        kube_namespace_labels{label_apc_namespace_type="application"},
+                                        "dest_namespace",
+                                        "$1",
+                                        "namespace",
+                                        "(.*)"
+                                      )
+                                  )
                                   /
-                                  clamp_min(count(argocd_app_info{namespace="apc-gitops"}), 1)
+                                  clamp_min(
+                                    count(
+                                      argocd_app_info{namespace="apc-gitops"}
+                                      unless on(dest_namespace)
+                                        label_replace(
+                                          kube_namespace_labels{label_apc_namespace_type="application"},
+                                          "dest_namespace",
+                                          "$1",
+                                          "namespace",
+                                          "(.*)"
+                                        )
+                                    ),
+                                    1
+                                  )
                                 ) > 0.5
                               for: 15m
                               labels:
@@ -661,7 +695,18 @@ manifests should match snapshot:
                               annotations:
                                 description: Service {{ "{{ $labels.name }}" }} run by argo is currently not healthy.\n  VALUE = {{ "{{ $value }}" }}\n  LABELS = {{ "{{ $labels }}" }}
                                 summary: ArgoCD service unhealthy (instance {{ "{{ $labels.instance }}" }})
-                              expr: argocd_app_info{health_status!="Healthy"} != 0
+                              expr: |
+                                (
+                                  argocd_app_info{namespace="apc-gitops",health_status!="Healthy"}
+                                  unless on(dest_namespace)
+                                    label_replace(
+                                      kube_namespace_labels{label_apc_namespace_type="application"},
+                                      "dest_namespace",
+                                      "$1",
+                                      "namespace",
+                                      "(.*)"
+                                    )
+                                ) != 0
                               for: 1h
                               labels:
                                 severity: warning
@@ -707,7 +752,7 @@ manifests should match snapshot:
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
         argocd.argoproj.io/secret-type: repo-creds
-        helm.sh/chart: gitops-bootstrap-2.9.0
+        helm.sh/chart: gitops-bootstrap-2.9.1
       name: null
       namespace: apc-bootstrap
     stringData:
