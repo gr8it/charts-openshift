@@ -1,0 +1,47 @@
+## uses following global values => do not set here
+# global:
+#   apc:
+#     cluster:
+#       baseDomain:
+#       appsDomain:
+#     services:
+#       crossplane:
+#         kubeVaultProviderConfigName:
+## and their local overrides
+# cluster.baseDomain:
+# cluster.appsDomain:
+# services.crossplane.kubeVaultProviderConfigName:
+
+releaseServiceOverride: ArgoCD
+
+secretEngines:
+  apc:
+    type: kv-2
+  apc-platform:
+    type: kv-2
+  pki:
+    type: pki
+    
+pkiIssuers:
+  default:
+    createIssuer: true # change to false after dev
+  pkiRoles:
+    defaultSettings:
+      ttl: "365d"
+      maxTtl: "365d"
+      allowBareDomains: true
+      allowSubdomains: true
+      allowLocalhost: false
+    roles: {}
+
+policies:
+  vault-admin-policy:
+    rules: |
+      path "*" {
+        capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+      }
+  snapshot:
+    rules: |
+      path "sys/storage/raft/snapshot" {
+        capabilities = ["read"]
+      }
