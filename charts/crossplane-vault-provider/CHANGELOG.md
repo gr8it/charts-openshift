@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.5.1] - 2026-02-26
 
+### Changed
 - increased memory limits
 - increased apc-global-overrides subchart version
 
