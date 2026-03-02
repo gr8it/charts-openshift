@@ -1,0 +1,106 @@
+global:
+  apc:
+    services:
+      certManager:
+        defaultClusterIssuer: vault-hub-issuer
+
+kafka:
+  brokers:
+    replicas: 3
+    storage:
+      size: "100Gi"
+    resources:
+      requests:
+        cpu: "2000m"
+        memory: "4Gi"
+      limits:
+        cpu: "4000m"
+        memory: "8Gi"
+
+  controllers:
+    replicas: 3
+    storage:
+      size: "50Gi"
+    resources:
+      requests:
+        cpu: "1000m"
+        memory: "2Gi"
+      limits:
+        cpu: "2000m"
+        memory: "4Gi"
+
+  superUsers:
+    - apc-kafka-admin
+
+
+# Enable and define topics to auto-create
+kafkaTopics:
+  enabled: true
+  topics:
+    # High-throughput events topic
+    - name: eds
+      partitions: 1
+      replicas: 1
+      config:
+        retention.ms: "86400000"  # 1 day
+        compression.type: "snappy"
+        min.insync.replicas: "1"
+
+    # Dead letter queue
+    - name: dlq
+      partitions: 1
+      replicas: 1
+      config:
+        retention.ms: "86400000"  # 1 day
+
+# Users with permissions for the topics
+kafkaUsers:
+  enabled: true
+  users:
+    - name: eds
+      acls:
+        - resourceType: topic
+          resourceName: events
+          patternType: literal
+          operations: [Write, Describe]
+        - resourceType: topic
+          resourceName: dlq
+          patternType: literal
+          operations: [Write, Describe]
+
+    - name: example-consumer
+      acls:
+        - resourceType: topic
+          resourceName: "events"
+          patternType: literal
+          operations: [Read, Describe]
+        - resourceType: group
+          resourceName: example-consumer
+          patternType: literal
+          operations: [Read, Describe]
+
+    - name: apc-kafka-admin
+
+kafka-ui:
+  enabled: true
+
+  envs:
+    config:
+      DYNAMIC_CONFIG_ENABLED: "false"
+      KAFKA_ADMIN-CLIENT-TIMEOUT: "10000"
+      KAFKA_CLUSTERS_0_NAME: ck-kafka
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: ck-kafka-kafka-bootstrap.ck-kafka.svc:9093
+      KAFKA_CLUSTERS_0_SSL_VERIFYSSL: "false"
+      KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM: SCRAM-SHA-512
+      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: SASL_SSL
+      # https://github.com/kafbat/kafka-ui/discussions/1260#discussioncomment-14275371
+      KAFKA_CLUSTERS_0_SSL_TRUSTSTORELOCATION: "/etc/kafka/cluster-ca/ca-bundle.jks"
+      KAFKA_CLUSTERS_0_SSL_TRUSTSTORE_TYPE: JKS
+      KAFKA_CLUSTERS_0_SSL_TRUSTSTOREPASSWORD: "changeit"
+      # KAFKA_CLUSTERS_0_METRICS_SSL: "false"
+      # KAFKA_CLUSTERS_0_METRICS_PORT: "9404"
+      # KAFKA_CLUSTERS_0_METRICS_TYPE: PROMETHEUS
+    secretMappings:
+      KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG:
+        name: apc-kafka-admin
+        keyName: sasl.jaas.config

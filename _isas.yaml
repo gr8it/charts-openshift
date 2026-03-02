@@ -1,0 +1,25 @@
+# Source: keycloak/templates/client.yaml
+apiVersion: openidclient.keycloak.m.crossplane.io/v1alpha1
+kind: Client
+metadata:
+  name: isas
+  namespace: apc-keycloak
+spec:
+  forProvider:
+    realmId: AppDEV
+    clientId: isas # must match name of the microserviceaccess!
+    name: ISAS
+    description: ISAS client for Keycloak
+    accessType: CONFIDENTIAL
+
+    serviceAccountsEnabled: true
+
+    useRefreshTokens: true
+    pkceCodeChallengeMethod: S256
+    fullScopeAllowed: false
+
+    frontchannelLogoutEnabled: true
+
+  providerConfigRef:
+    name: keycloak-provider-config
+    kind: ClusterProviderConfig

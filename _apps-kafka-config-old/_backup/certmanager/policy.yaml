@@ -1,0 +1,19 @@
+# apiVersion: vault.vault.upbound.io/v1alpha1
+# kind: Policy
+# metadata:
+#   name: dev01--cert-manager-ca
+# spec:
+#   deletionPolicy: Delete
+#   forProvider:
+#     name: dev01--cert-manager-ca
+#     policy: |
+#
+#       path "pki/root/sign-intermediate" {
+#         capabilities = ["create", "update"]
+#       }
+#
+#   initProvider: {}
+#   managementPolicies:
+#   - '*'
+#   providerConfigRef:
+#     name: vault-hub-provider-config

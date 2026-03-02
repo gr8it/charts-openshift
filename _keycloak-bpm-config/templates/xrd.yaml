@@ -1,0 +1,43 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+# kind: ManagedResourceDefinition
+metadata:
+  name: mikroservices.apc.cloud.socpoist.sk
+spec:
+  # defaultCompositionRef:
+  #   name: example
+  # enforcedCompositionRef:
+  #   name: example
+  scope: Namespaced
+  # scope: Cluster
+  group: apc.cloud.socpoist.sk
+  names:
+    kind: Mikroservice
+    plural: mikroservices
+  versions:
+  - name: v1alpha1
+    served: true
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              name:
+                type: string
+              # size:
+              #   type: string
+              # location:
+              #   type: object
+              #   properties:
+              #     country:
+              #       type: string
+              #     zone:
+              #       type: string
+                # required:
+                #   - country
+            # required:
+            #   - region
+            #   - size

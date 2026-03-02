@@ -1,0 +1,44 @@
+extraEnvVarsCrossplane:
+  HTTP_PROXY: http://10.11.0.10:3128
+  HTTPS_PROXY: http://10.11.0.10:3128
+  NO_PROXY: localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc,.cluster.local,172.20.0.1,.lab.local,.sp.gr8it.cloud,.lab.gr8it.cloud,.apc-crossplane-system
+metrics:
+  enabled: true
+  port: 9090
+rbacManager:
+  replicas: 2
+  topologySpreadConstraints:
+  - labelSelector:
+      matchLabels:
+        app: crossplane-rbac-manager
+    maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+replicas: 2
+resourcesCrossplane:
+  limits:
+    cpu: 250m
+    memory: 1024Mi
+  requests:
+    cpu: 50m
+    memory: 128Mi
+resourcesRBACManager:
+  limits:
+    cpu: 100m
+    memory: 512Mi
+  requests:
+    cpu: 50m
+    memory: 128Mi
+securityContextCrossplane:
+  runAsGroup: null
+  runAsUser: null
+securityContextRBACManager:
+  runAsGroup: null
+  runAsUser: null
+topologySpreadConstraints:
+- labelSelector:
+    matchLabels:
+      app: crossplane
+  maxSkew: 1
+  topologyKey: kubernetes.io/hostname
+  whenUnsatisfiable: ScheduleAnyway

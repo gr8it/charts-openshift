@@ -1,0 +1,151 @@
+# {{- if .Values.kafka.externalAccess.enabled }}
+# ---
+# # Example ConfigMap with client configuration for connecting to Kafka from outside the cluster
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: {{ include "apps-kafka-config.fullname" . }}-client-config
+#   namespace: {{ .Release.Namespace }}
+#   labels:
+#     app: kafka
+# data:
+#   # Java properties format for confluent/kafka clients
+#   client.properties: |
+#     # Bootstrap servers for external clients
+#     bootstrap.servers={{ .Values.kafka.externalAccess.bootstrapServers }}
+    
+#     # Security settings
+#     security.protocol=SASL_SSL
+#     sasl.mechanism=SCRAM-SHA-512
+#     sasl.username=<YOUR_USERNAME>
+#     sasl.password=<YOUR_PASSWORD>
+    
+#     # TLS configuration
+#     ssl.truststore.location=/etc/kafka/secrets/ca-cert
+#     ssl.truststore.password=<truststore-password>
+#     ssl.ca.location=/etc/kafka/secrets/ca.crt
+    
+#     # Producer settings
+#     acks=all
+#     retries=3
+#     compression.type=snappy
+#     linger.ms=10
+#     batch.size=16384
+    
+#     # Consumer settings
+#     group.id=my-consumer-group
+#     auto.offset.reset=earliest
+#     enable.auto.commit=false
+#     session.timeout.ms=30000
+#     heartbeat.interval.ms=10000
+  
+#   # Python client example (kafka-python)
+#   python_example.py: |
+#     from kafka import KafkaProducer, KafkaConsumer
+#     from kafka.errors import KafkaError
+#     import json
+    
+#     producer = KafkaProducer(
+#         bootstrap_servers=['{{ .Values.kafka.externalAccess.bootstrapServers }}'],
+#         security_protocol="SASL_SSL",
+#         sasl_mechanism="SCRAM-SHA-512",
+#         sasl_plain_username="<USERNAME>",
+#         sasl_plain_password="<PASSWORD>",
+#         ssl_cafile="/etc/kafka/secrets/ca.crt",
+#         value_serializer=lambda v: json.dumps(v).encode('utf-8')
+#     )
+    
+#     # Send message
+#     future = producer.send('my-topic', {'key': 'value'})
+#     record_metadata = future.get(timeout=10)
+    
+#     consumer = KafkaConsumer(
+#         'my-topic',
+#         bootstrap_servers=['{{ .Values.kafka.externalAccess.bootstrapServers }}'],
+#         security_protocol="SASL_SSL",
+#         sasl_mechanism="SCRAM-SHA-512",
+#         sasl_plain_username="<USERNAME>",
+#         sasl_plain_password="<PASSWORD>",
+#         ssl_cafile="/etc/kafka/secrets/ca.crt",
+#         auto_offset_reset='earliest',
+#         enable_auto_commit=False,
+#         group_id='my-consumer-group',
+#         value_deserializer=lambda m: json.loads(m.decode('utf-8'))
+#     )
+    
+#     for message in consumer:
+#         print(message.value)
+  
+#   # Go client example (Kafka)
+#   go_example.go: |
+#     package main
+    
+#     import (
+#         "crypto/tls"
+#         "fmt"
+#         "log"
+#         "os"
+#         "strings"
+#         "time"
+        
+#         "github.com/segmentio/kafka-go"
+#         "github.com/segmentio/kafka-go/sasl/scram"
+#     )
+    
+#     func main() {
+#         // TLS configuration
+#         tlsConfig := &tls.Config{
+#             InsecureSkipVerify: false,
+#         }
+        
+#         // SASL SCRAM configuration
+#         mechanism, err := scram.Mechanism(scram.SHA512, func() (username, password string, err error) {
+#             return "<USERNAME>", "<PASSWORD>", nil
+#         })
+#         if err != nil {
+#             log.Fatal(err)
+#         }
+        
+#         // Kafka dialer with SASL/TLS
+#         dialer := &kafka.Dialer{
+#             Timeout:         10 * time.Second,
+#             DualStack:       true,
+#             SASLMechanism:   mechanism,
+#             TLS:             tlsConfig,
+#         }
+        
+#         // Writer (producer)
+#         writer := kafka.NewWriter(kafka.WriterConfig{
+#             Brokers: strings.Split("{{ .Values.kafka.externalAccess.bootstrapServers }}", ","),
+#             Topic:   "my-topic",
+#             Dialer:  dialer,
+#         })
+        
+#         err = writer.WriteMessages(context.Background(),
+#             kafka.Message{
+#                 Key:   []byte("key"),
+#                 Value: []byte("value"),
+#             },
+#         )
+#         if err != nil {
+#             log.Fatal("failed to write messages:", err)
+#         }
+        
+#         // Reader (consumer)
+#         reader := kafka.NewReader(kafka.ReaderConfig{
+#             Brokers: strings.Split("{{ .Values.kafka.externalAccess.bootstrapServers }}", ","),
+#             Topic:   "my-topic",
+#             GroupID: "my-consumer-group",
+#             Dialer:  dialer,
+#         })
+        
+#         for {
+#             message, err := reader.ReadMessage(context.Background())
+#             if err != nil {
+#                 log.Fatal("failed to read message:", err)
+#             }
+#             fmt.Printf("message at offset %d: %s = %s\n", message.Offset, string(message.Key), string(message.Value))
+#         }
+#     }
+
+# {{- end }}

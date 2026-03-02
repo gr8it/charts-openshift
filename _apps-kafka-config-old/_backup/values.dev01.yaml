@@ -1,0 +1,140 @@
+global:
+  apc:
+    services:
+      certManager:
+        defaultClusterIssuer: vault-hub-issuer
+
+kafka:
+  brokers:
+    replicas: 1 # Single broker - not HA!
+    storage:
+      size: "10Gi"
+    resources:
+      requests:
+        cpu: "250m"
+        memory: "512Mi"
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+
+  controllers:
+    replicas: 1 # Single controller - not HA!
+    storage:
+      size: "5Gi"
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+
+  config:
+    offsetsReplicationFactor: 1
+    transactionReplicationFactor: 1
+    transactionMinISR: 1
+    defaultReplicationFactor: 1
+    minISR: 1
+
+  superUsers:
+    - apc-kafka-admin
+
+monitoring:
+  alerts:
+    minBrokersUp: 1 # single-broker setup
+
+# Enable and define topics to auto-create
+kafkaTopics:
+  enabled: true
+  topics:
+    # High-throughput events topic
+    - name: eds
+      partitions: 1
+      replicas: 1
+      config:
+        retention.ms: "86400000"  # 1 day
+        compression.type: "snappy"
+        min.insync.replicas: "1"
+
+    # Dead letter queue
+    - name: dlq
+      partitions: 1
+      replicas: 1
+      config:
+        retention.ms: "86400000"  # 1 day
+
+# Users with permissions for the topics
+kafkaUsers:
+  enabled: true
+  users:
+    - name: eds
+      acls:
+        - resourceType: topic
+          resourceName: events
+          patternType: literal
+          operations: [Write, Describe]
+        - resourceType: topic
+          resourceName: dlq
+          patternType: literal
+          operations: [Write, Describe]
+
+    - name: example-consumer
+      acls:
+        - resourceType: topic
+          resourceName: "events"
+          patternType: literal
+          operations: [Read, Describe]
+        - resourceType: group
+          resourceName: example-consumer
+          patternType: literal
+          operations: [Read, Describe]
+
+    - name: apc-kafka-admin
+
+kafka-ui:
+  enabled: true
+
+  envs:
+    config:
+      DYNAMIC_CONFIG_ENABLED: "false"
+      KAFKA_ADMIN-CLIENT-TIMEOUT: "10000"
+      KAFKA_CLUSTERS_0_NAME: ck-kafka
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: ck-kafka-kafka-bootstrap.ck-kafka.svc:9093
+      KAFKA_CLUSTERS_0_SSL_VERIFYSSL: "false"
+      KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM: SCRAM-SHA-512
+      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: SASL_SSL
+      # https://github.com/kafbat/kafka-ui/discussions/1260#discussioncomment-14275371
+      KAFKA_CLUSTERS_0_SSL_TRUSTSTORELOCATION: "/etc/kafka/cluster-ca/ca-bundle.jks"
+      KAFKA_CLUSTERS_0_SSL_TRUSTSTORE_TYPE: JKS
+      KAFKA_CLUSTERS_0_SSL_TRUSTSTOREPASSWORD: "changeit"
+      # KAFKA_CLUSTERS_0_METRICS_SSL: "false"
+      # KAFKA_CLUSTERS_0_METRICS_PORT: "9404"
+      # KAFKA_CLUSTERS_0_METRICS_TYPE: PROMETHEUS
+      LOGGING_LEVEL_ROOT: DEBUG
+      LOGGING_LEVEL_IO_KAFBAT_UI: DEBUG
+    secretMappings:
+      KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG:
+        name: apc-kafka-admin
+        keyName: sasl.jaas.config
+  
+  # yamlApplicationConfig:
+  #   kafka:
+  #     clusters:
+  #       - name: ck-kafka
+  #         bootstrapServers: ck-kafka-kafka-bootstrap.ck-kafka.svc:9093
+  #         ssl:
+  #           verify-ssl: "false"
+  #         # Monitoring and metrics collection from the cluster
+  #         # metrics:
+  #         #   type: JMX  # Available options: JMX or PROMETHEUS
+  #         #   port: 9997  # Port to collect JMX metrics
+  #         #   username: Auth username
+  #         #   password: Auth password
+  #         #   ssl: false  # Whether to use SSL for metrics endpoint
+  #         #   keystore-location: path/to/keystore/file.jks
+  #         #   keystore-password: password
+  #         # Global Kafka client properties
+  #         properties:
+  #           "security.protocol": SASL_SSL
+  #           "sasl.mechanism": SCRAM-SHA-512
+  #           "sasl.jaas.config": org.apache.kafka.common.security.scram.ScramLoginModule required username="apc-kafka-admin" password="dZgdYLjhOAa0MXckmR4oHtToUnVbFHR5";

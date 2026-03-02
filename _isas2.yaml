@@ -1,0 +1,26 @@
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: Client
+metadata:
+  name: isas2
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    realmId: AppDEV
+    clientId: isas2 # must match name of the microserviceaccess!
+    name: isas2 # human readable format
+    description: isas2 description
+    accessType: CONFIDENTIAL
+    standardFlowEnabled: true
+    serviceAccountsEnabled: true
+    baseUrl: https://isas2.example.com
+    rootUrl: https://isas2.example.com
+    useRefreshTokens: true
+    validRedirectUris:
+    - https://isas2.example.com/login
+    webOrigins:
+    - https://isas2.example.com
+    frontchannelLogoutEnabled: true
+    pkceCodeChallengeMethod: S256
+    fullScopeAllowed: false
+  providerConfigRef:
+    name: keycloak-provider-config
