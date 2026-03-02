@@ -368,10 +368,17 @@ spec:
                   namespace: {{ .Values.namespace }}
                 spec:
                   egress:
+                    # kube api service is accessible via node IP for standalone clusters => allow RFC1918 10.0.0.0/8 private address range, which should be sufficient
                     - to:
-                        # kube api service is accessible via node IP => allow RFC1918 10.0.0.0/8 private address range, which should be sufficient
                         - ipBlock:
                             cidr: 10.0.0.0/8
+                      ports:
+                        - protocol: TCP
+                          port: 6443
+                    # kube api service is accessible via magic tunel ip 172.20.0.1 for HCP clusters
+                    - to:
+                        - ipBlock:
+                            cidr: 172.20.0.1/32
                       ports:
                         - protocol: TCP
                           port: 6443
