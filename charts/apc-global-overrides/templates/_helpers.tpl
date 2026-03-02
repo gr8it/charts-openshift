@@ -146,7 +146,7 @@ Create the clusterDomain
 Create the clusterDomain and require it
 */}}
 {{- define "apc-global-overrides.require-clusterDomain" -}}
-{{- include "apc-global-overrides.clusterDomain" . | required "APC cluster.Domain is required" }}
+{{- include "apc-global-overrides.clusterDomain" . | required "APC cluster.domain is required" }}
 {{- end }}
 
 {{/*
