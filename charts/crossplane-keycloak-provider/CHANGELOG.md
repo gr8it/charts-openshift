@@ -7,8 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.1] - 2026-02-26
 
-- memory limit bump for keycloaok-provider
+### Changed
 
+- memory limit bump for keycloak-provider
 ## [1.0.0] - 2026-10-31
 
 _Initial release._
