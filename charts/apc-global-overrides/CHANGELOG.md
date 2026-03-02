@@ -5,6 +5,14 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2026-03-02
+
+_([SPEXAPC-13223](https://aspecta.atlassian.net/browse/SPEXAPC-13223))_
+
+## Added
+
+- apc-global-overrides.clusterDomain helper
+
 ## [1.7.0] - 2026-02-13
 
 _([SPEXAPC-7592](https://example.atlassian.net/browse/SPEXAPC-7592))_
