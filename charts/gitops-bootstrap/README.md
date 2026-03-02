@@ -10,11 +10,11 @@ This helm chart bootstraps APC GitOps using ACM policies to all managed clusters
 
 ## Manual steps
 
-When auto sync is not enabled for the argocd-app-of-apps application (default), the synchronization must be enabled temporarily by manually running:
+When auto sync is not enabled for the argocd-app-of-apps application (default), the synchronization must be enabled temporarily by manually running the following commands **in the GitOps namespace** (the value of `.Values.namespace`, default `apc-gitops`):
 
 ```bash
 # temporarily enable auto sync
-kubectl patch application argocd-app-of-apps -n apc-gitops --type merge -p '{"spec":{"syncPolicy":{"automated":{"selfHeal": true}}}}'
+kubectl patch application argocd-app-of-apps -n <gitops-namespace> --type merge -p '{"spec":{"syncPolicy":{"automated":{"selfHeal": true}}}}'
 # disable auto sync, after the sync started (can be checked in the application CR status)
-kubectl patch application argocd-app-of-apps -n apc-gitops --type merge -p '{"spec":{"syncPolicy":{"automated": null}}}'
+kubectl patch application argocd-app-of-apps -n <gitops-namespace> --type merge -p '{"spec":{"syncPolicy":{"automated": null}}}'
 ```

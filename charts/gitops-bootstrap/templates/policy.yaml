@@ -347,7 +347,7 @@ spec:
     # if proxy egress netpol is defined, all egress netpol need to be defined!
 
     # allows communication to kubeAPI
-    # should be overriden by standard adminnetworkpolicies!
+    # should be overridden by standard adminnetworkpolicies!
     - extraDependencies:
         - name: {{ include "gitops-bootstrap.fullname" . }}-namespace
           namespace: ""
@@ -387,7 +387,7 @@ spec:
                   - Egress
 
     # allows communication between gitops namespace components
-    # should be overriden by standard adminnetworkpolicies!
+    # should be overridden by standard adminnetworkpolicies!
     - extraDependencies:
         - name: {{ include "gitops-bootstrap.fullname" . }}-namespace
           namespace: ""
@@ -419,7 +419,7 @@ spec:
                   - Egress
 
     # allows DNS communication
-    # should be overriden by standard adminnetworkpolicies!
+    # should be overridden by standard adminnetworkpolicies!
     - extraDependencies:
         - name: {{ include "gitops-bootstrap.fullname" . }}-namespace
           namespace: ""
@@ -461,7 +461,8 @@ spec:
                   - Egress
 
     # allows communication to oauth endpoint of hub cluster, which is required for argocd dex with openshift oauth to work
-    # should be overriden by standard adminnetworkpolicies!
+    # should be overridden by standard adminnetworkpolicies!
+    {{- if .Values.externalCidrs }}
     - extraDependencies:
         - name: {{ include "gitops-bootstrap.fullname" . }}-namespace
           namespace: ""
@@ -488,18 +489,23 @@ spec:
                   podSelector: {}
                   egress:
                     - to:
+                      {{- range .Values.externalCidrs }}
                       - ipBlock:
-                          cidr: 10.0.0.0/8
-                      - ipBlock:
-                          cidr: 172.16.0.0/12
-                      - ipBlock:
-                          cidr: 192.168.0.0/16
+                          cidr: {{ . | quote }}
+                      {{- end }}
+                      {{- if .Values.externalCidrsPort }}
+                      ports:
+                        - port: {{ .Values.externalCidrsPort }}
+                          protocol: TCP
+                      {{- end }}
                   policyTypes:
                   - Egress
     {{- end }}
 
+    {{- end }}
+
     # allows ingress controller communication
-    # should be overriden by standard adminnetworkpolicies!
+    # should be overridden by standard adminnetworkpolicies!
     - extraDependencies:
         - name: {{ include "gitops-bootstrap.fullname" . }}-namespace
           namespace: ""
@@ -533,7 +539,7 @@ spec:
                   - Ingress
 
     # allows communication between gitops namespace components
-    # should be overriden by standard adminnetworkpolicies!
+    # should be overridden by standard adminnetworkpolicies!
     - extraDependencies:
         - name: {{ include "gitops-bootstrap.fullname" . }}-namespace
           namespace: ""
