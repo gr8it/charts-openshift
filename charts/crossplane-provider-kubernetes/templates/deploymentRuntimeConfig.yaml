@@ -1,0 +1,35 @@
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: {{ include "crossplane-provider-kubernetes.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "crossplane-provider-kubernetes.labels" . | nindent 4 }}
+spec:
+  serviceAccountTemplate:
+    metadata:
+      name: {{ include "crossplane-provider-kubernetes.fullname" . }}
+  deploymentTemplate:
+    spec:
+      replicas: 2
+      selector: {}
+      template:
+        spec:
+          containers:
+          - name: package-runtime
+            resources:
+              limits:
+                cpu: 500m
+                memory: 300Mi
+              requests:
+                cpu: 20m
+                memory: 50Mi
+            securityContext: {}
+          securityContext: {}
+          topologySpreadConstraints:
+          - labelSelector:
+              matchLabels:
+                pkg.crossplane.io/provider: provider-kubernetes
+            maxSkew: 1
+            topologyKey: kubernetes.io/hostname
+            whenUnsatisfiable: ScheduleAnyway

@@ -1,0 +1,12 @@
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: ObservedObjectCollection
+metadata:
+  name: metallb-observed-ipaddresspools
+  namespace: crossplane-system
+spec:
+  observeObjects:
+    apiVersion: metallb.io/v1beta1
+    kind: IPAddressPool
+  providerConfigRef:
+    kind: ClusterProviderConfig
+    name: kubernetes-provider

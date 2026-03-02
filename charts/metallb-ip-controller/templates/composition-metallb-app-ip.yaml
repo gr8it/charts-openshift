@@ -2,14 +2,24 @@ apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
   name: metallb-app-ip
-  labels:
-    crossplane.io/xrd: metallbappips.metallb.crossplane.io
 spec:
   compositeTypeRef:
-    apiVersion: metallb.crossplane.io/v1alpha1
-    kind: MetalLBAppIP
+    apiVersion: metallb.aspecta.crossplane.io
+    kind: metallbipadresspoll
   mode: Pipeline
   pipeline:
+    # Step 0: Read apc-metallb-ip-range for metallb address ranges
+    - step: environmentConfigs
+      functionRef:
+        name: function-environment-configs
+      input:
+        apiVersion: environmentconfigs.fn.crossplane.io/v1beta1
+        kind: Input
+        spec:
+          environmentConfigs:
+          - type: Reference
+            ref:
+              name: apc-mettalb-ip-range
     # Step 0: Get existing IPAddressPool IPs from local K8S cluster
     - step: get-existing-ips
       functionRef:
@@ -48,25 +58,6 @@ spec:
             results: {
               existingIPAddressPools: _existingIPs
             }
-    # Step 1: Read ConfigMap apc-metallbips-range for metallb address ranges using Kubernetes provider
-    - step: read-config
-      functionRef:
-        name: function-kubernetes-read
-      input:
-        apiVersion: k8sfn.crossplane.io/v1beta1
-        kind: ReadResource
-        metadata:
-          name: read-metallb-config
-        spec:
-          forProvider:
-            apiVersion: v1
-            kind: ConfigMap
-            name: apc-metallbips-range
-            namespace: metallb
-          providerConfigRef:
-            name: k8s-provider
-      output:
-        toFieldPath: spec.configMapData
     # Step 2: Selected 1st available IP from the configured ranges excluding already assigned IPs
     - step: select-ips
       functionRef:
