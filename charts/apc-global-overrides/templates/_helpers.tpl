@@ -136,17 +136,17 @@ Create the clusterType and require it
 {{- end }}
 
 {{/*
-Create the clusterDomain
+Create the clusterRootDomain
 */}}
-{{- define "apc-global-overrides.clusterDomain" -}}
-{{- (.Values.cluster).domain | default ((((.Values.global).apc).cluster).domain) | default "" }}
+{{- define "apc-global-overrides.clusterRootDomain" -}}
+{{- (.Values.cluster).rootDomain | default ((((.Values.global).apc).cluster).rootDomain) | default "" }}
 {{- end }}
 
 {{/*
-Create the clusterDomain and require it
+Create the clusterRootDomain and require it
 */}}
-{{- define "apc-global-overrides.require-clusterDomain" -}}
-{{- include "apc-global-overrides.clusterDomain" . | required "APC cluster.domain is required" }}
+{{- define "apc-global-overrides.require-clusterRootDomain" -}}
+{{- include "apc-global-overrides.clusterRootDomain" . | required "APC cluster.rootDomain is required" }}
 {{- end }}
 
 {{/*

@@ -11,7 +11,7 @@ _([SPEXAPC-13223](https://aspecta.atlassian.net/browse/SPEXAPC-13223))_
 
 ### Added
 
-- apc-global-overrides.clusterDomain helper
+- apc-global-overrides.clusterRootDomain helper
 
 ## [1.7.0] - 2026-02-13
 
