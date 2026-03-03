@@ -8,11 +8,11 @@ metadata:
     {{- include "apps-ck-kafka.labels" . | nindent 4 }}
 spec:
   ingress:
-  {{- range $user := .Values.networkpolicy.namespaces }}
+  {{- range $namespace := .Values.networkpolicy.namespaces }}
   - from:
     - namespaceSelector:
         matchLabels:
-          kubernetes.io/metadata.name: {{ $user }}
+          kubernetes.io/metadata.name: {{ $namespace }}
     ports:
     - port: 9093
   {{- end }}

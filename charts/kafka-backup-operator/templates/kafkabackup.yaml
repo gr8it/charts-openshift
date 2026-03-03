@@ -1,0 +1,74 @@
+# zmenit podla https://kafkabackup.com/operator/guides/scheduled-backups#multi-tier-backup-strategy !!
+
+apiVersion: kafka.oso.sh/v1alpha1
+kind: KafkaBackup
+metadata:
+  name: ck-kafka-instant-backup
+  # generateName: ck-kafka-instant-backup-
+  namespace: ck-kafka
+spec:
+
+  kafkaCluster:
+    bootstrapServers:
+      - ck-kafka-kafka-bootstrap.ck-kafka.svc:9092
+    securityProtocol: PLAINTEXT
+
+    # bootstrapServers:
+    #   - ck-kafka-kafka-bootstrap.ck-kafka.svc:9093
+    # securityProtocol: SASL_SSL
+    # tlsSecret:
+    #   name: ck-kafka-brokers-tls
+    #   # caKey: ca.crt
+    #   # certKey: tls.crt
+    #   # keyKey: tls.key
+    # saslSecret:
+    #   name: apc-kafka-admin-with-username
+    #   # passwordKey: password
+    #   mechanism: SCRAM-SHA-512
+
+  topics:
+    # - eds
+    - test
+    # - "*"
+
+  # storage:
+  #   storageType: pvc
+  #   pvc:
+  #     claimName: ck-kafka-kafka-backup-pvc
+  #     subPath: kafka
+      
+      # create:
+      #   enabled: false
+      #   size: 1Gi
+      #   accessModes:
+      #     - ReadWriteMany
+      #   storageClassName: ocs-storagecluster-cephfs
+
+  storage:
+    storageType: s3
+    s3:
+      endpoint: rook-ceph-rgw-ocs-storagecluster-cephobjectstore.openshift-storage.svc:443
+      bucket: ck-kafka-kafka-backup-bucket
+      # region: eu-west-1
+      region: us-east-1
+      prefix: instant
+      credentialsSecret:
+        # name: eds
+        # accessKeyIdKey: sasl.jaas.config
+        # secretAccessKeyKey: password
+        name: ck-kafka-kafka-backup
+        accessKeyIdKey: AWS_ACCESS_KEY_ID
+        secretAccessKeyKey: AWS_SECRET_ACCESS_KEY
+
+  # rateLimiting:
+  #   bytesPerSec: 
+  #   maxConcurrentPartitions: 
+  #   recordsPerSec: 
+
+  compression: lz4
+  compressionLevel: 3
+
+  # retention:
+  #   backups: 24
+
+  suspend: false
