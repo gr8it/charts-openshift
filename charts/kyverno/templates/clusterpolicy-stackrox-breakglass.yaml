@@ -3,9 +3,9 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: app-project-stackrox-breakglass-namespace-labels
+  name: platform-stackrox-breakglass-namespace-labels
   labels:
-  {{- include "kyverno-app-project.labels" . | nindent 4 }}
+  {{- include "kyverno.labels" . | nindent 4 }}
   annotations:
     policies.kyverno.io/title: Auto-label break-glass namespaces
     policies.kyverno.io/category: Security
@@ -36,9 +36,9 @@ spec:
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: app-project-stackrox-breakglass-bootstrap-existing
+  name: platform-stackrox-breakglass-bootstrap-existing
   labels:
-  {{- include "kyverno-app-project.labels" . | nindent 4 }}
+  {{- include "kyverno.labels" . | nindent 4 }}
   annotations:
     policies.kyverno.io/title: Bootstrap break-glass for existing workloads
     policies.kyverno.io/category: Security
@@ -161,9 +161,9 @@ spec:
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: app-project-stackrox-breakglass
+  name: platform-stackrox-breakglass
   labels:
-  {{- include "kyverno-app-project.labels" . | nindent 4 }}
+  {{- include "kyverno.labels" . | nindent 4 }}
   annotations:
     policies.kyverno.io/title: Apply StackRox/RHACS break-glass annotation
     policies.kyverno.io/category: Security
