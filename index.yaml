@@ -15,6 +15,20 @@ entries:
   acm-instance:
   - apiVersion: v2
     appVersion: v2.12.1
+    created: "2026-02-24T09:50:34.240223206+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.6.0
+    description: A Helm chart to create ACM instance CR
+    digest: ba23785caa6928ff8f2be29e84929208ab4a045284cadc957369bf8979f6bee3
+    name: acm-instance
+    type: application
+    urls:
+    - packaged_charts/acm-instance-1.3.0.tgz
+    version: 1.3.0
+  - apiVersion: v2
+    appVersion: v2.12.1
     created: "2025-10-22T12:51:32.21341+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -175,6 +189,16 @@ entries:
     - packaged_charts/acs-operator-1.0.0.tgz
     version: 1.0.0
   apc-global-overrides:
+  - apiVersion: v2
+    created: "2026-02-13T14:20:07.602015836+01:00"
+    description: A Helm chart containing helm helper functions to override global
+      APC values by local values
+    digest: 0897f2ef8703d384ad2c86de3c53374eff6296e635c04e759ea63c905f56e079
+    name: apc-global-overrides
+    type: library
+    urls:
+    - packaged_charts/apc-global-overrides-1.7.0.tgz
+    version: 1.7.0
   - apiVersion: v2
     created: "2026-02-11T08:40:34.73084+01:00"
     description: A Helm chart containing helm helper functions to override global
@@ -347,6 +371,20 @@ entries:
     type: application
     urls:
     - packaged_charts/application-gitops-1.0.0.tgz
+    version: 1.0.0
+  apps-centralne-komponenty-bpm:
+  - apiVersion: v2
+    created: "2026-02-13T14:31:44.631720664+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.7.0
+    description: A Helm chart to deploy "Centrálny Komponent Integračné Služby" integration
+    digest: 6909643cb6aeecf9d4953ec48e1068763833669caa261c394863e544f2199afc
+    name: apps-centralne-komponenty-bpm
+    type: application
+    urls:
+    - packaged_charts/apps-centralne-komponenty-bpm-1.0.0.tgz
     version: 1.0.0
   apps-ck-kafka:
   - apiVersion: v2
@@ -1242,7 +1280,46 @@ entries:
     urls:
     - packaged_charts/crossplane-helm-1.2.0.tgz
     version: 1.2.0
+  crossplane-keycloak-provider:
+  - apiVersion: v2
+    appVersion: v2.9.0
+    created: "2026-02-09T17:23:15.975568607+01:00"
+    description: A Helm chart to deploy Crossplane Keycloak provider
+    digest: 984a1e747f54932d1ebf9b741444afc3c9ba8f8f20c4ac99c6450a2bb4dadd10
+    name: crossplane-keycloak-provider
+    type: application
+    urls:
+    - packaged_charts/crossplane-keycloak-provider-1.0.0.tgz
+    version: 1.0.0
+  crossplane-keycloak-provider-bootstrap:
+  - apiVersion: v2
+    created: "2026-02-13T14:31:44.632132241+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.7.0
+    description: A Helm chart to provision Crossplane Keycloak provider
+    digest: 730c9a4d536acece242a78e11535b883bb1572af1b0edc47235e8fec2fce6baf
+    name: crossplane-keycloak-provider-bootstrap
+    type: application
+    urls:
+    - packaged_charts/crossplane-keycloak-provider-bootstrap-1.0.0.tgz
+    version: 1.0.0
   crossplane-vault-provider:
+  - apiVersion: v2
+    appVersion: v2.2.2
+    created: "2026-02-24T11:41:05.27915725+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart to deploy Crossplane Vault provider
+    digest: eee7aef37bc49553d8611467de774cbb21cb163faa4ee3bb8942b7923b3d14b0
+    name: crossplane-vault-provider
+    type: application
+    urls:
+    - packaged_charts/crossplane-vault-provider-1.5.0.tgz
+    version: 1.5.0
   - apiVersion: v2
     appVersion: v2.2.2
     created: "2025-10-22T12:51:32.238561+02:00"
@@ -1409,6 +1486,16 @@ entries:
     type: application
     urls:
     - packaged_charts/crossplane-vault-provider-bootstrap-1.0.0.tgz
+    version: 1.0.0
+  crossplane-xr-functions:
+  - apiVersion: v2
+    created: "2026-02-09T17:23:15.976137584+01:00"
+    description: A Helm chart to deploy Crossplane functions required for XR deployments
+    digest: c85f3dcb1b39910993fb99f4882a198a01d9eef0b09dd0461baf7c58e43b75fb
+    name: crossplane-xr-functions
+    type: application
+    urls:
+    - packaged_charts/crossplane-xr-functions-1.0.0.tgz
     version: 1.0.0
   default-network-policies:
   - apiVersion: v2
@@ -1657,6 +1744,34 @@ entries:
   gitops-bootstrap:
   - apiVersion: v2
     appVersion: v1
+    created: "2026-03-02T16:04:15.608442483+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.7.0
+    description: A Helm chart to bootstrap APC GitOps using ACM policies
+    digest: 55aa661211ce6fd92f17ac719f128a06b5d22bbf2047c21408403b865f7afe9a
+    name: gitops-bootstrap
+    type: application
+    urls:
+    - packaged_charts/gitops-bootstrap-2.9.2.tgz
+    version: 2.9.2
+  - apiVersion: v2
+    appVersion: v1
+    created: "2026-03-02T10:09:38.398516979+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart to bootstrap APC GitOps using ACM policies
+    digest: 6f9313ed8d9cdee7c79c7574b3d3a18a2e911624da97bb76c839a6305b78caa3
+    name: gitops-bootstrap
+    type: application
+    urls:
+    - packaged_charts/gitops-bootstrap-2.9.1.tgz
+    version: 2.9.1
+  - apiVersion: v2
+    appVersion: v1
     created: "2026-02-11T14:00:21.118273574+01:00"
     dependencies:
     - name: apc-global-overrides
@@ -1820,6 +1935,21 @@ entries:
   grafana-apc-instance:
   - apiVersion: v2
     appVersion: v5
+    created: "2026-02-24T23:24:47.030017493+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart for installing APC Grafana Instance
+    digest: b8fb73df1f3ff39b84c1435d6e24d9cf09daaafd490753e4ab6295f2dab9638d
+    kubeVersion: '>=1.16-0'
+    name: grafana-apc-instance
+    type: application
+    urls:
+    - packaged_charts/grafana-apc-instance-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
+    appVersion: v5
     created: "2025-12-23T13:48:58.937159955+01:00"
     dependencies:
     - name: apc-global-overrides
@@ -1865,6 +1995,20 @@ entries:
     - packaged_charts/grafana-operator-1.0.0.tgz
     version: 1.0.0
   group-sync-config:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2026-02-13T13:47:42.064617582+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart to setup Group Sync
+    digest: ac6b59a9ffdfffc271da054a502a4f8f084130f5424f576907d360cb9de51188
+    name: group-sync-config
+    type: application
+    urls:
+    - packaged_charts/group-sync-config-1.1.0.tgz
+    version: 1.1.0
   - apiVersion: v2
     appVersion: 1.0.0
     created: "2026-01-14T12:27:18.850110474+01:00"
@@ -2038,6 +2182,20 @@ entries:
     - packaged_charts/kafka-backup-operator-0.1.0.tgz
     version: 0.1.0
   keycloak:
+  - apiVersion: v2
+    appVersion: v26.0
+    created: "2026-02-13T15:44:06.817059882+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.7.0
+    description: A Helm chart for APC keycloak
+    digest: 2d724b1bf2624e7ba4f969821d8ef644ccba3fb17376648fefb88af460efc0c0
+    name: keycloak
+    type: application
+    urls:
+    - packaged_charts/keycloak-1.6.0.tgz
+    version: 1.6.0
   - apiVersion: v2
     appVersion: v26.0
     created: "2025-10-23T11:22:39.854102517+02:00"
@@ -2358,6 +2516,20 @@ entries:
   metallb-config:
   - apiVersion: v2
     appVersion: 1.0.0
+    created: "2026-02-24T13:30:50.289418+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart for MetalLB configuration
+    digest: 03e9786d12081880762ffe2e3ffe72e93b0b0088480890b87a1480cbd0ca9e86
+    name: metallb-config
+    type: application
+    urls:
+    - packaged_charts/metallb-config-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
+    appVersion: 1.0.0
     created: "2025-11-05T10:13:42.240688+01:00"
     dependencies:
     - name: apc-global-overrides
@@ -2430,6 +2602,38 @@ entries:
     - packaged_charts/mongodb-operator-helm-1.0.0.tgz
     version: 1.0.0
   monitoring:
+  - apiVersion: v2
+    created: "2026-02-25T18:20:30.004163337+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.6
+    description: A Helm chart for cluster monitoring with Kyverno PrometheusRule generation
+    digest: c68ee41907955bfba46c635134b84cec29a0a83a7f37ba58fbfff2d6ace06f4b
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.0.8.tgz
+    version: 1.0.8
+  - apiVersion: v2
+    created: "2026-02-13T09:25:09.749725411+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.5
+    description: A Helm chart for cluster monitoring with Kyverno PrometheusRule generation
+    digest: 65c86c175917eebaa3be19a42c325e1be512112b6c97eca0852ec2f972668db5
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.0.7.tgz
+    version: 1.0.7
   - apiVersion: v2
     created: "2026-02-02T16:18:06.003019783+01:00"
     dependencies:
@@ -2544,6 +2748,15 @@ entries:
     - packaged_charts/monitoring-1.0.0.tgz
     version: 1.0.0
   monitoring-prometheusrules:
+  - apiVersion: v2
+    created: "2026-02-25T18:13:02.160322884+01:00"
+    description: A Helm chart for prometheusrules used in other helm charts.
+    digest: 188e60fba3975a4d0843702c41403753a88329ee5df4081e7ffa1a0da9285b54
+    name: monitoring-prometheusrules
+    type: library
+    urls:
+    - packaged_charts/monitoring-prometheusrules-1.0.6.tgz
+    version: 1.0.6
   - apiVersion: v2
     created: "2026-02-12T15:14:20.613273438+01:00"
     description: A Helm chart for prometheusrules used in other helm charts.
@@ -2925,6 +3138,40 @@ entries:
     version: 1.0.0
   user-workload-monitoring-policy:
   - apiVersion: v2
+    created: "2026-02-25T18:31:43.411901873+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.6
+    description: A Helm chart that automatically creates PrometheusRules for app /
+      non-app workload namespaces
+    digest: 8f0f4afa8fefa93433fa661a393a238f63b49a44e5ae186fa566b02adce1e3a8
+    name: user-workload-monitoring-policy
+    type: application
+    urls:
+    - packaged_charts/user-workload-monitoring-policy-1.0.8.tgz
+    version: 1.0.8
+  - apiVersion: v2
+    created: "2026-02-13T09:25:09.752254187+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.5
+    description: A Helm chart that automatically creates PrometheusRules for app /
+      non-app workload namespaces
+    digest: 83cd30bd848472ea18415052c1547f36dbf5b29974b2a74d7a11d949a3c80b9f
+    name: user-workload-monitoring-policy
+    type: application
+    urls:
+    - packaged_charts/user-workload-monitoring-policy-1.0.7.tgz
+    version: 1.0.7
+  - apiVersion: v2
     created: "2026-01-29T14:22:30.816501085+01:00"
     dependencies:
     - name: apc-global-overrides
@@ -3042,4 +3289,33 @@ entries:
     urls:
     - packaged_charts/user-workload-monitoring-policy-1.0.0.tgz
     version: 1.0.0
-generated: "2026-02-12T15:14:20.611861171+01:00"
+  vault-helm:
+  - apiVersion: v2
+    appVersion: 1.14.8
+    created: "2026-02-18T13:59:10.741267+01:00"
+    dependencies:
+    - name: vault
+      repository: https://helm.releases.hashicorp.com
+      version: 0.30.0
+    description: A Helm chart for bootstrapping the Vault in APC
+    digest: e2ecfb89a1dc6361ab1d4e18a549fc5aeb58b3c062ae597b56c52356cd7f5963
+    name: vault-helm
+    type: application
+    urls:
+    - packaged_charts/vault-helm-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
+    appVersion: 1.14.8
+    created: "2026-02-12T13:14:45.263857+01:00"
+    dependencies:
+    - name: vault
+      repository: https://helm.releases.hashicorp.com
+      version: 0.30.0
+    description: A Helm chart for bootstrapping the Vault in APC
+    digest: c714ab4a090d7653bff3bf4f1efdf6b3a321304e7cfd83011638237e491b32c0
+    name: vault-helm
+    type: application
+    urls:
+    - packaged_charts/vault-helm-1.0.0.tgz
+    version: 1.0.0
+generated: "2026-03-02T16:04:15.606144806+01:00"
