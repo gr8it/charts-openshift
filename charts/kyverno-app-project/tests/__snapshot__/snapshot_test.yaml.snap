@@ -12,7 +12,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno-app-project
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.4.1
+        helm.sh/chart: kyverno-app-project-1.5.0
       name: app-project-vault-groups-cleanup
     spec:
       conditions:
@@ -50,7 +50,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno-app-project
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.4.1
+        helm.sh/chart: kyverno-app-project-1.5.0
       name: app-project-internetproxy-cm
     spec:
       background: false
@@ -96,7 +96,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno-app-project
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.4.1
+        helm.sh/chart: kyverno-app-project-1.5.0
       name: app-project-limitrange
     spec:
       background: true
@@ -142,7 +142,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno-app-project
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.4.1
+        helm.sh/chart: kyverno-app-project-1.5.0
       name: app-project-quotas
     spec:
       background: true
@@ -325,6 +325,187 @@ manifests should match snapshot:
     kind: ClusterPolicy
     metadata:
       annotations:
+        policies.kyverno.io/category: Security
+        policies.kyverno.io/minversion: 1.13.0
+        policies.kyverno.io/subject: namespace
+        policies.kyverno.io/title: Auto-label break-glass namespaces
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-1.5.0
+      name: app-project-stackrox-breakglass-namespace-labels
+    spec:
+      background: true
+      mutateExistingOnPolicyUpdate: true
+      rules:
+        - match:
+            any:
+              - resources:
+                  kinds:
+                    - Namespace
+                  names:
+                    - apc-debug
+          mutate:
+            patchStrategicMerge:
+              metadata:
+                labels:
+                  apc.stackrox.io/break-glass: "true"
+          name: label-breakglass-namespaces
+          skipBackgroundRequests: false
+      validationFailureAction: Audit
+  6: |
+    apiVersion: kyverno.io/v1
+    kind: ClusterPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: Security
+        policies.kyverno.io/minversion: 1.13.0
+        policies.kyverno.io/subject: workload
+        policies.kyverno.io/title: Bootstrap break-glass for existing workloads
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-1.5.0
+      name: app-project-stackrox-breakglass-bootstrap-existing
+    spec:
+      background: true
+      mutateExistingOnPolicyUpdate: true
+      rules:
+        - match:
+            any:
+              - resources:
+                  kinds:
+                    - Deployment
+                    - DeploymentConfig
+                    - StatefulSet
+                    - DaemonSet
+                    - ReplicaSet
+                    - Job
+                  namespaceSelector:
+                    matchLabels:
+                      apc.namespace.type: application
+          mutate:
+            patchStrategicMerge:
+              spec:
+                template:
+                  metadata:
+                    annotations:
+                      admission.stackrox.io/break-glass: "true"
+          name: bootstrap-breakglass-existing-workloads
+          preconditions:
+            all:
+              - key: '{{ request.operation || '''' }}'
+                operator: Equals
+                value: BACKGROUND
+          skipBackgroundRequests: false
+        - match:
+            any:
+              - resources:
+                  kinds:
+                    - CronJob
+                  namespaceSelector:
+                    matchLabels:
+                      apc.namespace.type: application
+          mutate:
+            patchStrategicMerge:
+              spec:
+                jobTemplate:
+                  spec:
+                    template:
+                      metadata:
+                        annotations:
+                          admission.stackrox.io/break-glass: "true"
+          name: bootstrap-breakglass-existing-cronjobs
+          preconditions:
+            all:
+              - key: '{{ request.operation || '''' }}'
+                operator: Equals
+                value: BACKGROUND
+          skipBackgroundRequests: false
+      validationFailureAction: Audit
+  7: |
+    apiVersion: kyverno.io/v1
+    kind: ClusterPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: Security
+        policies.kyverno.io/minversion: 1.13.0
+        policies.kyverno.io/subject: workload
+        policies.kyverno.io/title: Apply StackRox/RHACS break-glass annotation
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-1.5.0
+      name: app-project-stackrox-breakglass
+    spec:
+      background: true
+      mutateExistingOnPolicyUpdate: true
+      rules:
+        - match:
+            any:
+              - resources:
+                  kinds:
+                    - Pod
+                  namespaceSelector:
+                    matchLabels:
+                      apc.stackrox.io/break-glass: "true"
+          mutate:
+            patchStrategicMerge:
+              metadata:
+                annotations:
+                  admission.stackrox.io/break-glass: "true"
+          name: add-breakglass-annotation-to-pods
+          skipBackgroundRequests: true
+        - match:
+            any:
+              - resources:
+                  kinds:
+                    - Deployment
+                    - DeploymentConfig
+                    - StatefulSet
+                    - DaemonSet
+                    - ReplicaSet
+                    - Job
+                  namespaceSelector:
+                    matchLabels:
+                      apc.stackrox.io/break-glass: "true"
+          mutate:
+            patchStrategicMerge:
+              spec:
+                template:
+                  metadata:
+                    annotations:
+                      admission.stackrox.io/break-glass: "true"
+          name: add-breakglass-annotation-to-workloads
+          skipBackgroundRequests: true
+        - match:
+            any:
+              - resources:
+                  kinds:
+                    - CronJob
+                  namespaceSelector:
+                    matchLabels:
+                      apc.stackrox.io/break-glass: "true"
+          mutate:
+            patchStrategicMerge:
+              spec:
+                jobTemplate:
+                  spec:
+                    template:
+                      metadata:
+                        annotations:
+                          admission.stackrox.io/break-glass: "true"
+          name: add-breakglass-annotation-to-cronjobs
+          skipBackgroundRequests: true
+      validationFailureAction: Audit
+  8: |
+    apiVersion: kyverno.io/v1
+    kind: ClusterPolicy
+    metadata:
+      annotations:
         policies.kyverno.io/category: Secrets
         policies.kyverno.io/minversion: 1.13.0
         policies.kyverno.io/subject: project
@@ -333,7 +514,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno-app-project
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.4.1
+        helm.sh/chart: kyverno-app-project-1.5.0
       name: app-project-vault-groups
     spec:
       background: true
@@ -472,7 +653,7 @@ manifests should match snapshot:
                       apc.namespace.type: application
           name: project-vault-policy-group
           skipBackgroundRequests: true
-  6: |
+  9: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -480,7 +661,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno-app-project
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.4.1
+        helm.sh/chart: kyverno-app-project-1.5.0
         rbac.kyverno.io/aggregate-to-background-controller: "true"
       name: kyverno:background-controller:project-vault-groups
     rules:
@@ -498,7 +679,7 @@ manifests should match snapshot:
         verbs:
           - get
           - create
-  7: |
+  10: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -506,7 +687,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno-app-project
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.4.1
+        helm.sh/chart: kyverno-app-project-1.5.0
         rbac.kyverno.io/aggregate-to-cleanup-controller: "true"
       name: kyverno:cleanup-controller:project-vault-groups
     rules:

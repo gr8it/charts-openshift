@@ -186,8 +186,23 @@ stackroxAdmissionBreakGlass:
   namespaceSelector:
     matchLabels:
       apc.stackrox.io/break-glass: "true"
-  workloadSelector:
-    matchLabels:
-      apc.stackrox.io/break-glass: "true"
+  workloadSelector: {}
   mutateExistingOnPolicyUpdate: true
   skipBackgroundRequests: true
+  autoNamespaceLabeling:
+    enabled: true
+    namespaces:
+      - apc-debug
+    labelKey: apc.stackrox.io/break-glass
+    labelValue: "true"
+    mutateExistingOnPolicyUpdate: true
+    skipBackgroundRequests: false
+  bootstrapExistingWorkloads:
+    enabled: true
+    namespaces: []
+    namespaceSelector:
+      matchLabels:
+        apc.namespace.type: application
+    workloadSelector: {}
+    mutateExistingOnPolicyUpdate: true
+    skipBackgroundRequests: false

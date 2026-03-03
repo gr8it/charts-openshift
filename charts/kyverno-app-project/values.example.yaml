@@ -12,13 +12,27 @@ stackroxAdmissionBreakGlass:
   enabled: true
   annotationKey: admission.stackrox.io/break-glass
   annotationValue: "true"
-  namespaces:
-    - apc-debug
+  namespaces: []
   namespaceSelector:
     matchLabels:
       apc.stackrox.io/break-glass: "true"
-  workloadSelector:
-    matchLabels:
-      apc.stackrox.io/break-glass: "true"
+  workloadSelector: {} # optional; set matchLabels to target only specific workloads
   mutateExistingOnPolicyUpdate: true
   skipBackgroundRequests: true
+  autoNamespaceLabeling:
+    enabled: true
+    namespaces:
+      - apc-debug
+    labelKey: apc.stackrox.io/break-glass
+    labelValue: "true"
+    mutateExistingOnPolicyUpdate: true
+    skipBackgroundRequests: false
+  bootstrapExistingWorkloads:
+    enabled: true
+    namespaces: []
+    namespaceSelector:
+      matchLabels:
+        apc.namespace.type: application
+    workloadSelector: {}
+    mutateExistingOnPolicyUpdate: true
+    skipBackgroundRequests: false

@@ -1,4 +1,163 @@
-{{- if .Values.stackroxAdmissionBreakGlass.enabled }}
+{{- $bg := .Values.stackroxAdmissionBreakGlass -}}
+{{- if and $bg.enabled $bg.autoNamespaceLabeling.enabled $bg.autoNamespaceLabeling.namespaces }}
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: app-project-stackrox-breakglass-namespace-labels
+  labels:
+  {{- include "kyverno-app-project.labels" . | nindent 4 }}
+  annotations:
+    policies.kyverno.io/title: Auto-label break-glass namespaces
+    policies.kyverno.io/category: Security
+    policies.kyverno.io/subject: namespace
+    policies.kyverno.io/minversion: 1.13.0
+spec:
+  background: true
+  validationFailureAction: Audit
+  mutateExistingOnPolicyUpdate: {{ $bg.autoNamespaceLabeling.mutateExistingOnPolicyUpdate }}
+  rules:
+    - name: label-breakglass-namespaces
+      match:
+        any:
+          - resources:
+              kinds:
+                - Namespace
+              names:
+              {{- toYaml $bg.autoNamespaceLabeling.namespaces | nindent 16 }}
+      skipBackgroundRequests: {{ $bg.autoNamespaceLabeling.skipBackgroundRequests }}
+      mutate:
+        patchStrategicMerge:
+          metadata:
+            labels:
+              {{ $bg.autoNamespaceLabeling.labelKey }}: {{ $bg.autoNamespaceLabeling.labelValue | quote }}
+{{- end }}
+{{- if and $bg.enabled $bg.bootstrapExistingWorkloads.enabled }}
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: app-project-stackrox-breakglass-bootstrap-existing
+  labels:
+  {{- include "kyverno-app-project.labels" . | nindent 4 }}
+  annotations:
+    policies.kyverno.io/title: Bootstrap break-glass for existing workloads
+    policies.kyverno.io/category: Security
+    policies.kyverno.io/subject: workload
+    policies.kyverno.io/minversion: 1.13.0
+spec:
+  background: true
+  validationFailureAction: Audit
+  mutateExistingOnPolicyUpdate: {{ $bg.bootstrapExistingWorkloads.mutateExistingOnPolicyUpdate }}
+  rules:
+    - name: bootstrap-breakglass-existing-workloads
+      match:
+        any:
+          {{- if $bg.bootstrapExistingWorkloads.namespaces }}
+          - resources:
+              kinds:
+                - Deployment
+                - DeploymentConfig
+                - StatefulSet
+                - DaemonSet
+                - ReplicaSet
+                - Job
+              namespaces:
+              {{- toYaml $bg.bootstrapExistingWorkloads.namespaces | nindent 16 }}
+          {{- end }}
+          {{- if $bg.bootstrapExistingWorkloads.namespaceSelector }}
+          - resources:
+              kinds:
+                - Deployment
+                - DeploymentConfig
+                - StatefulSet
+                - DaemonSet
+                - ReplicaSet
+                - Job
+              namespaceSelector:
+              {{- toYaml $bg.bootstrapExistingWorkloads.namespaceSelector | nindent 16 }}
+          {{- end }}
+          {{- if $bg.bootstrapExistingWorkloads.workloadSelector }}
+          - resources:
+              kinds:
+                - Deployment
+                - DeploymentConfig
+                - StatefulSet
+                - DaemonSet
+                - ReplicaSet
+                - Job
+              selector:
+              {{- toYaml $bg.bootstrapExistingWorkloads.workloadSelector | nindent 16 }}
+          {{- end }}
+          {{- if and (not $bg.bootstrapExistingWorkloads.namespaces) (not $bg.bootstrapExistingWorkloads.namespaceSelector) (not $bg.bootstrapExistingWorkloads.workloadSelector) }}
+          - resources:
+              kinds:
+                - Deployment
+                - DeploymentConfig
+                - StatefulSet
+                - DaemonSet
+                - ReplicaSet
+                - Job
+          {{- end }}
+      preconditions:
+        all:
+          - key: "{{ "{{ request.operation || '' }}" }}"
+            operator: Equals
+            value: BACKGROUND
+      skipBackgroundRequests: {{ $bg.bootstrapExistingWorkloads.skipBackgroundRequests }}
+      mutate:
+        patchStrategicMerge:
+          spec:
+            template:
+              metadata:
+                annotations:
+                  {{ $bg.annotationKey }}: {{ $bg.annotationValue | quote }}
+    - name: bootstrap-breakglass-existing-cronjobs
+      match:
+        any:
+          {{- if $bg.bootstrapExistingWorkloads.namespaces }}
+          - resources:
+              kinds:
+                - CronJob
+              namespaces:
+              {{- toYaml $bg.bootstrapExistingWorkloads.namespaces | nindent 16 }}
+          {{- end }}
+          {{- if $bg.bootstrapExistingWorkloads.namespaceSelector }}
+          - resources:
+              kinds:
+                - CronJob
+              namespaceSelector:
+              {{- toYaml $bg.bootstrapExistingWorkloads.namespaceSelector | nindent 16 }}
+          {{- end }}
+          {{- if $bg.bootstrapExistingWorkloads.workloadSelector }}
+          - resources:
+              kinds:
+                - CronJob
+              selector:
+              {{- toYaml $bg.bootstrapExistingWorkloads.workloadSelector | nindent 16 }}
+          {{- end }}
+          {{- if and (not $bg.bootstrapExistingWorkloads.namespaces) (not $bg.bootstrapExistingWorkloads.namespaceSelector) (not $bg.bootstrapExistingWorkloads.workloadSelector) }}
+          - resources:
+              kinds:
+                - CronJob
+          {{- end }}
+      preconditions:
+        all:
+          - key: "{{ "{{ request.operation || '' }}" }}"
+            operator: Equals
+            value: BACKGROUND
+      skipBackgroundRequests: {{ $bg.bootstrapExistingWorkloads.skipBackgroundRequests }}
+      mutate:
+        patchStrategicMerge:
+          spec:
+            jobTemplate:
+              spec:
+                template:
+                  metadata:
+                    annotations:
+                      {{ $bg.annotationKey }}: {{ $bg.annotationValue | quote }}
+{{- end }}
+{{- if $bg.enabled }}
+---
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
@@ -13,35 +172,47 @@ metadata:
 spec:
   background: true
   validationFailureAction: Audit
-  mutateExistingOnPolicyUpdate: {{ .Values.stackroxAdmissionBreakGlass.mutateExistingOnPolicyUpdate }}
+  mutateExistingOnPolicyUpdate: {{ $bg.mutateExistingOnPolicyUpdate }}
   rules:
     - name: add-breakglass-annotation-to-pods
       match:
         any:
+          {{- if $bg.namespaces }}
           - resources:
               kinds:
                 - Pod
-              {{- if .Values.stackroxAdmissionBreakGlass.namespaces }}
               namespaces:
-              {{- toYaml .Values.stackroxAdmissionBreakGlass.namespaces | nindent 14 }}
-              {{- end }}
-              {{- if .Values.stackroxAdmissionBreakGlass.namespaceSelector }}
+              {{- toYaml $bg.namespaces | nindent 16 }}
+          {{- end }}
+          {{- if $bg.namespaceSelector }}
+          - resources:
+              kinds:
+                - Pod
               namespaceSelector:
-              {{- toYaml .Values.stackroxAdmissionBreakGlass.namespaceSelector | nindent 14 }}
-              {{- end }}
-              {{- if .Values.stackroxAdmissionBreakGlass.workloadSelector }}
+              {{- toYaml $bg.namespaceSelector | nindent 16 }}
+          {{- end }}
+          {{- if $bg.workloadSelector }}
+          - resources:
+              kinds:
+                - Pod
               selector:
-              {{- toYaml .Values.stackroxAdmissionBreakGlass.workloadSelector | nindent 14 }}
-              {{- end }}
-      skipBackgroundRequests: {{ .Values.stackroxAdmissionBreakGlass.skipBackgroundRequests }}
+              {{- toYaml $bg.workloadSelector | nindent 16 }}
+          {{- end }}
+          {{- if and (not $bg.namespaces) (not $bg.namespaceSelector) (not $bg.workloadSelector) }}
+          - resources:
+              kinds:
+                - Pod
+          {{- end }}
+      skipBackgroundRequests: {{ $bg.skipBackgroundRequests }}
       mutate:
         patchStrategicMerge:
           metadata:
             annotations:
-              {{ .Values.stackroxAdmissionBreakGlass.annotationKey }}: {{ .Values.stackroxAdmissionBreakGlass.annotationValue | quote }}
+              {{ $bg.annotationKey }}: {{ $bg.annotationValue | quote }}
     - name: add-breakglass-annotation-to-workloads
       match:
         any:
+          {{- if $bg.namespaces }}
           - resources:
               kinds:
                 - Deployment
@@ -50,45 +221,81 @@ spec:
                 - DaemonSet
                 - ReplicaSet
                 - Job
-              {{- if .Values.stackroxAdmissionBreakGlass.namespaces }}
               namespaces:
-              {{- toYaml .Values.stackroxAdmissionBreakGlass.namespaces | nindent 14 }}
-              {{- end }}
-              {{- if .Values.stackroxAdmissionBreakGlass.namespaceSelector }}
+              {{- toYaml $bg.namespaces | nindent 16 }}
+          {{- end }}
+          {{- if $bg.namespaceSelector }}
+          - resources:
+              kinds:
+                - Deployment
+                - DeploymentConfig
+                - StatefulSet
+                - DaemonSet
+                - ReplicaSet
+                - Job
               namespaceSelector:
-              {{- toYaml .Values.stackroxAdmissionBreakGlass.namespaceSelector | nindent 14 }}
-              {{- end }}
-              {{- if .Values.stackroxAdmissionBreakGlass.workloadSelector }}
+              {{- toYaml $bg.namespaceSelector | nindent 16 }}
+          {{- end }}
+          {{- if $bg.workloadSelector }}
+          - resources:
+              kinds:
+                - Deployment
+                - DeploymentConfig
+                - StatefulSet
+                - DaemonSet
+                - ReplicaSet
+                - Job
               selector:
-              {{- toYaml .Values.stackroxAdmissionBreakGlass.workloadSelector | nindent 14 }}
-              {{- end }}
-      skipBackgroundRequests: {{ .Values.stackroxAdmissionBreakGlass.skipBackgroundRequests }}
+              {{- toYaml $bg.workloadSelector | nindent 16 }}
+          {{- end }}
+          {{- if and (not $bg.namespaces) (not $bg.namespaceSelector) (not $bg.workloadSelector) }}
+          - resources:
+              kinds:
+                - Deployment
+                - DeploymentConfig
+                - StatefulSet
+                - DaemonSet
+                - ReplicaSet
+                - Job
+          {{- end }}
+      skipBackgroundRequests: {{ $bg.skipBackgroundRequests }}
       mutate:
         patchStrategicMerge:
           spec:
             template:
               metadata:
                 annotations:
-                  {{ .Values.stackroxAdmissionBreakGlass.annotationKey }}: {{ .Values.stackroxAdmissionBreakGlass.annotationValue | quote }}
+                  {{ $bg.annotationKey }}: {{ $bg.annotationValue | quote }}
     - name: add-breakglass-annotation-to-cronjobs
       match:
         any:
+          {{- if $bg.namespaces }}
           - resources:
               kinds:
                 - CronJob
-              {{- if .Values.stackroxAdmissionBreakGlass.namespaces }}
               namespaces:
-              {{- toYaml .Values.stackroxAdmissionBreakGlass.namespaces | nindent 14 }}
-              {{- end }}
-              {{- if .Values.stackroxAdmissionBreakGlass.namespaceSelector }}
+              {{- toYaml $bg.namespaces | nindent 16 }}
+          {{- end }}
+          {{- if $bg.namespaceSelector }}
+          - resources:
+              kinds:
+                - CronJob
               namespaceSelector:
-              {{- toYaml .Values.stackroxAdmissionBreakGlass.namespaceSelector | nindent 14 }}
-              {{- end }}
-              {{- if .Values.stackroxAdmissionBreakGlass.workloadSelector }}
+              {{- toYaml $bg.namespaceSelector | nindent 16 }}
+          {{- end }}
+          {{- if $bg.workloadSelector }}
+          - resources:
+              kinds:
+                - CronJob
               selector:
-              {{- toYaml .Values.stackroxAdmissionBreakGlass.workloadSelector | nindent 14 }}
-              {{- end }}
-      skipBackgroundRequests: {{ .Values.stackroxAdmissionBreakGlass.skipBackgroundRequests }}
+              {{- toYaml $bg.workloadSelector | nindent 16 }}
+          {{- end }}
+          {{- if and (not $bg.namespaces) (not $bg.namespaceSelector) (not $bg.workloadSelector) }}
+          - resources:
+              kinds:
+                - CronJob
+          {{- end }}
+      skipBackgroundRequests: {{ $bg.skipBackgroundRequests }}
       mutate:
         patchStrategicMerge:
           spec:
@@ -97,5 +304,5 @@ spec:
                 template:
                   metadata:
                     annotations:
-                      {{ .Values.stackroxAdmissionBreakGlass.annotationKey }}: {{ .Values.stackroxAdmissionBreakGlass.annotationValue | quote }}
+                      {{ $bg.annotationKey }}: {{ $bg.annotationValue | quote }}
 {{- end }}

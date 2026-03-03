@@ -11,9 +11,22 @@ This chart does **not** manage RHACS policies. It provides an optional Kyverno p
 - the debug pod can run even if it is privileged and currently has critical CVEs,
 - existing workloads can be exempted to avoid reschedule blockage until they are remediated.
 
-Break-glass is enabled by default and targets namespaces or workloads labeled with
-`apc.stackrox.io/break-glass: "true"`. You can disable or override the selectors with
-`stackroxAdmissionBreakGlass` values.
+Break-glass is enabled by default and can target resources via:
+- explicit namespace list (`stackroxAdmissionBreakGlass.namespaces`),
+- namespace label selector (`stackroxAdmissionBreakGlass.namespaceSelector`),
+- workload label selector (`stackroxAdmissionBreakGlass.workloadSelector`).
+
+The selectors are evaluated as **OR** (any match applies), so namespace-level targeting works
+without requiring workload labels.
+
+This chart also supports automatic namespace labeling through
+`stackroxAdmissionBreakGlass.autoNamespaceLabeling` (enabled by default for `apc-debug`).
+That removes the need to label namespaces manually in each cluster.
+
+For first rollout safety, this chart also includes bootstrap coverage for already existing workloads via
+`stackroxAdmissionBreakGlass.bootstrapExistingWorkloads` (enabled by default). It mutates existing workloads
+in background mode so reschedules/upgrades are not blocked immediately, while new workloads can still be
+enforced once you tighten selectors.
 
 ## Decision log (2026-02-03)
 
@@ -24,5 +37,6 @@ Break-glass is enabled by default and targets namespaces or workloads labeled wi
 ## Follow-up tasks
 
 - Enable enforcement for the RHACS policy in Central (GUI) for deploy-time blocking.
-- Label or namespace-label workloads that need temporary exemptions.
+- Configure `stackroxAdmissionBreakGlass.autoNamespaceLabeling.namespaces` and/or selectors in Git.
+- Review and then tighten/disable `stackroxAdmissionBreakGlass.bootstrapExistingWorkloads` after remediation.
 - Remove exemptions after remediation.
