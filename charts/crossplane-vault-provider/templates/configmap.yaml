@@ -1,0 +1,12 @@
+{{- if (include "apc-global-overrides.caCertificates" .) | fromYaml }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "crossplane-vault-provider.fullname" . }}-ca-certificates
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "crossplane-vault-provider.labels" . | nindent 4 }}
+data:
+  ca.crt: |
+    {{- (include "apc-global-overrides.caCertificatesBundle" .) | nindent 4 }}
+{{- end }}

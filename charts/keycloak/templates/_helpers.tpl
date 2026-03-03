@@ -66,7 +66,7 @@ Create the name of the service account to use
 Create the name of URL for login
 */}}
 {{- define "keycloak.loginURL" -}}
-login.{{ include "apc-global-overrides.clusterAppsDomain" . }}
+login.{{ include "apc-global-overrides.require-clusterAppsDomain" . }}
 {{- end }}
 
 {{/*

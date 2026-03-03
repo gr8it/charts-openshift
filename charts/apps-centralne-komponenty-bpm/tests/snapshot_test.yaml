@@ -1,0 +1,13 @@
+suite: Snapshot test
+templates:
+  - templates/*
+release:
+  name: crossplane-xr-functions
+  namespace: apc-crossplane-system
+values:
+  - ../values.lint.yaml
+
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}

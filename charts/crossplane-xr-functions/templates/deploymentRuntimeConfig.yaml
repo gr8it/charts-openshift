@@ -1,0 +1,41 @@
+{{- range .Values.functions }}
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: {{ include "crossplane-xr-functions.fullname" $ }}-{{ .name }}-runtime-config
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "crossplane-xr-functions.labels" $ | nindent 4 }}
+spec:
+  deploymentTemplate:
+    spec:
+      replicas: {{ $.Values.replicas }}
+      selector: {}
+      template:
+        spec:
+          containers:
+          - name: package-runtime
+            resources:
+              limits:
+                cpu: {{ $.Values.resources.limits.cpu }}
+                memory: {{ $.Values.resources.limits.memory }}
+              requests:
+                cpu: {{ $.Values.resources.requests.cpu }}
+                memory: {{ $.Values.resources.requests.memory }}
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+              seccompProfile:
+                type: RuntimeDefault
+          securityContext: {}
+          topologySpreadConstraints:
+          - labelSelector:
+              matchLabels:
+                pkg.crossplane.io/function: {{ include "crossplane-xr-functions.fullname" $ }}-{{ .name }}
+            maxSkew: 1
+            topologyKey: kubernetes.io/hostname
+            whenUnsatisfiable: DoNotSchedule
+---
+{{- end }}

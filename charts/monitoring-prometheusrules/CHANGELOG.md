@@ -5,6 +5,31 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.6] - 2026-02-25
+
+_([SPEXAPC-12860](https://aspecta.atlassian.net/browse/SPEXAPC-12860))_
+
+### Changed
+
+- added missing labels into prometheus rules
+
+## [1.0.5] - 2026-02-12
+
+_([SPEXAPC-8954](https://aspecta.atlassian.net/browse/SPEXAPC-8954))_
+
+### Changed
+
+- reformat description in KubeJobNotCompleted alert
+
+## [1.0.4] - 2026-02-03
+
+_([SPEXAPC-8954](https://aspecta.atlassian.net/browse/SPEXAPC-8954))_
+
+### Changed
+
+- reformat alerts description for correct label rendering
+- added alerts HighMemoryUtilization and HighCPUUtilization
+
 ## [1.0.3] - 2025-11-07
 
 _Rules logic update_
@@ -21,7 +46,3 @@ _([SPEXAPC-7193](https://aspecta.atlassian.net/jira/software/c/projects/SPEXAPC/
 ### Added
 
 - Provide PrometheusRule manifests as a reusable library chart that other Helm charts can import.
-
-
-
-
