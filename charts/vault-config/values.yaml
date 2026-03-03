@@ -25,6 +25,9 @@ secretEngines:
 pkiIssuers:
   default:
     createIssuer: true # change to false after dev
+    pkiName: pki
+  existing:
+    issuerName: ~
   pkiRoles:
     defaultSettings:
       ttl: "365d"
@@ -45,3 +48,13 @@ policies:
       path "sys/storage/raft/snapshot" {
         capabilities = ["read"]
       }
+
+authMethods:
+  approle:
+    - name: approle
+      enable: true
+  ldap:
+    - name: ldap
+      enable: true
+    - name: ad
+      enable: true
