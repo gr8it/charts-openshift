@@ -1,0 +1,150 @@
+{{- if .Values.hub.alertingRules.acs.enabled }}
+---
+apiVersion: loki.grafana.com/v1
+kind: AlertingRule
+metadata:
+  name: apc-acs-policy-alerts
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "logging-helm.labels" . | nindent 4 }}
+    openshift.io/log-alerting: 'true'
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  tenantID: "audit"
+  groups:
+    - name: apc-acs-policy-alerts.rules
+      rules:
+        - alert: ACS-Policy-Notification-Critical
+          expr: sum by (acs_alert_clustername,acs_alert_id,acs_alert_policy_name,acs_alert_policy_description,acs_alert_namespace) (count_over_time({log_type="audit",acs_alert_policy_severity="CRITICAL_SEVERITY", acs_alert_namespace=~{{ .Values.hub.alertingRules.acs.namespaceRegex | quote }}}[15m]) >0 )
+          for: 5m
+          labels:
+            severity: critical
+            customerName: {{ .Values.hub.alertingRules.customerName }}
+            clusterName: "{{ `{{ $labels.acs_alert_clustername }}` }}"
+            appnamespace: "{{ `{{ $labels.acs_alert_namespace }}` }}"
+            environment: hub
+            vendor: aspecta
+            team: security
+            acs_alert_id: "{{ `{{ $labels.acs_alert_id }}` }}"
+          annotations:
+            summary: "ACS Alert - cluster:{{ `{{ $labels.acs_alert_clustername }}` }} - appns: {{ `{{ $labels.acs_alert_namespace }}` }} - policy:{{ `{{ $labels.acs_alert_policy_name }}` }}"
+            description: "{{ `{{ $labels.acs_alert_policy_description }}` }}, Source: https://{{ .Values.hub.alertingRules.acs.centralUrl }}/main/violations/{{ `{{ $labels.acs_alert_id }}` }} "
+            message: "ACS-Policy-Notification-CriticalSeverity"
+        - alert: ACS-Policy-Notification-Warning
+          expr: sum by (acs_alert_clustername,acs_alert_id,acs_alert_policy_name,acs_alert_policy_description,acs_alert_namespace) (count_over_time({log_type="audit",acs_alert_policy_severity="HIGH_SEVERITY", acs_alert_namespace=~{{ .Values.hub.alertingRules.acs.namespaceRegex | quote }}}[15m]) >0)
+          for: 5m
+          labels:
+            severity: warning
+            customerName: {{ .Values.hub.alertingRules.customerName }}
+            clusterName: "{{ `{{ $labels.acs_alert_clustername }}` }}"
+            appnamespace: "{{ `{{ $labels.acs_alert_namespace }}` }}"
+            environment: hub
+            vendor: aspecta
+            team: security
+            acs_alert_id: "{{ `{{ $labels.acs_alert_id }}` }}"
+          annotations:
+            summary: "ACS Alert - cluster:{{ `{{ $labels.acs_alert_clustername }}` }} - appns: {{ `{{ $labels.acs_alert_namespace }}` }} - policy:{{ `{{ $labels.acs_alert_policy_name }}` }}"
+            description: "{{ `{{ $labels.acs_alert_policy_description }}` }}, Source: https://{{ .Values.hub.alertingRules.acs.centralUrl }}/main/violations/{{ `{{ $labels.acs_alert_id }}` }} "
+            message: "ACS-Policy-Notification-HighSeverity"
+        - alert: ACS-Policy-Notification-Info
+          expr: sum by (acs_alert_clustername,acs_alert_id,acs_alert_policy_name,acs_alert_policy_description,acs_alert_namespace) (count_over_time({log_type="audit",acs_alert_policy_severity="MEDIUM_SEVERITY", acs_alert_namespace=~{{ .Values.hub.alertingRules.acs.namespaceRegex | quote }}}[15m]) >0)
+          for: 5m
+          labels:
+            severity: info
+            customerName: {{ .Values.hub.alertingRules.customerName }}
+            clusterName: "{{ `{{ $labels.acs_alert_clustername }}` }}"
+            appnamespace: "{{ `{{ $labels.acs_alert_namespace }}` }}"
+            environment: hub
+            vendor: aspecta
+            team: security
+            acs_alert_id: "{{ `{{ $labels.acs_alert_id }}` }}"
+          annotations:
+            summary: "ACS Alert - cluster:{{ `{{ $labels.acs_alert_clustername }}` }} - appns: {{ `{{ $labels.acs_alert_namespace }}` }} - policy:{{ `{{ $labels.acs_alert_policy_name }}` }}"
+            description: "{{ `{{ $labels.acs_alert_policy_description }}` }}, Source: https://{{ .Values.hub.alertingRules.acs.centralUrl }}/main/violations/{{ `{{ $labels.acs_alert_id }}` }} "
+            message: "ACS-Policy-Notification-MediumSeverity"
+        - alert: ACS-Policy-Notification-None
+          expr: sum by (acs_alert_clustername,acs_alert_id,acs_alert_policy_name,acs_alert_policy_description,acs_alert_namespace) (count_over_time({log_type="audit",acs_alert_policy_severity="LOW_SEVERITY", acs_alert_namespace=~{{ .Values.hub.alertingRules.acs.namespaceRegex | quote }}}[15m]) >0)
+          for: 5m
+          labels:
+            severity: info
+            customerName: {{ .Values.hub.alertingRules.customerName }}
+            clusterName: "{{ `{{ $labels.acs_alert_clustername }}` }}"
+            environment: hub
+            vendor: aspecta
+            team: security
+            acs_alert_id: "{{ `{{ $labels.acs_alert_id }}` }}"
+          annotations:
+            summary: "ACS Alert - cluster:{{ `{{ $labels.acs_alert_clustername }}` }} - appns: {{ `{{ $labels.acs_alert_namespace }}` }} - policy:{{ `{{ $labels.acs_alert_policy_name }}` }}"
+            description: "{{ `{{ $labels.acs_alert_policy_description }}` }}, Source: https://{{ .Values.hub.alertingRules.acs.centralUrl }}/main/violations/{{ `{{ $labels.acs_alert_id }}` }} "
+            message: "ACS-Policy-Notification-LowSeverity"
+{{- end }}
+{{- if .Values.hub.alertingRules.hwEvents.enabled }}
+---
+apiVersion: loki.grafana.com/v1
+kind: AlertingRule
+metadata:
+  name: apc-hw-events-alerts
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "logging-helm.labels" . | nindent 4 }}
+    openshift.io/log-alerting: 'true'
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  tenantID: "audit"
+  groups:
+    - name: apc-hw-events-alerts.rules
+      rules:
+        - alert: HW-Events-Notification-Critical
+          expr: sum by (hostname,source_ip,message) (count_over_time({log_type="audit",environment="infrastructure",hw_type=~"ups|pdu|xca",severity="critical"}[15m]) >0 )
+          for: 5m
+          labels:
+            severity: critical
+            customerName: {{ .Values.hub.alertingRules.customerName }}
+            hostname: "{{ `{{ $labels.hostname }}` }}"
+            environment: infrastructure
+            source_ip: "{{ `{{ $labels.source_ip }}` }}"
+            message: "{{ `{{ $labels.message }}` }}"
+            source: logs
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: "HW Event - hostname:{{ `{{ $labels.hostname }}` }}"
+            description: "HW Event - Source: https://{{ `{{ $labels.source_ip }}` }}"
+            message: "{{ `{{ $labels.message }}` }}"
+        - alert: HW-Events-Notification-Warning
+          expr: sum by (hostname,source_ip,message) (count_over_time({log_type="audit",hw_type=~"ups|pdu|xca",severity="warning"}[15m]) >0 )
+          for: 5m
+          labels:
+            severity: warning
+            customerName: {{ .Values.hub.alertingRules.customerName }}
+            hostname: "{{ `{{ $labels.hostname }}` }}"
+            environment: infrastructure
+            source_ip: "{{ `{{ $labels.source_ip }}` }}"
+            message: "{{ `{{ $labels.message }}` }}"
+            source: logs
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: "HW Event - hostname:{{ `{{ $labels.hostname }}` }}"
+            description: "HW Event - Source: https://{{ `{{ $labels.source_ip }}` }}"
+            message: "{{ `{{ $labels.message }}` }}"
+        - alert: HW-Events-Notification-Info
+          expr: sum by (hostname,source_ip,message) (count_over_time({log_type="audit",hw_type=~"ups|pdu|xca",severity="info"}[15m]) >0 )
+          for: 5m
+          labels:
+            severity: info
+            customerName: {{ .Values.hub.alertingRules.customerName }}
+            hostname: "{{ `{{ $labels.hostname }}` }}"
+            environment: infrastructure
+            source_ip: "{{ `{{ $labels.source_ip }}` }}"
+            message: "{{ `{{ $labels.message }}` }}"
+            source: logs
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: "HW Event - hostname:{{ `{{ $labels.hostname }}` }}"
+            description: "HW Event - Source: https://{{ `{{ $labels.source_ip }}` }}"
+            message: "{{ `{{ $labels.message }}` }}"
+{{- end }}

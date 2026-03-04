@@ -1,0 +1,106 @@
+apiVersion: observability.openshift.io/v1
+kind: ClusterLogForwarder
+metadata:
+  name: {{ .Values.clusterLogForwarder.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "logging-helm.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  managementState: {{ .Values.clusterLogForwarder.managementState }}
+  serviceAccount:
+    name: {{ .Values.serviceAccount.name }}
+  collector:
+    resources:
+      {{- toYaml .Values.clusterLogForwarder.collector.resources | nindent 6 }}
+  {{- if or .Values.clusterLogForwarder.filters.pgaudit.enabled .Values.clusterLogForwarder.filters.extra }}
+  filters:
+    {{- if .Values.clusterLogForwarder.filters.pgaudit.enabled }}
+    - name: {{ .Values.clusterLogForwarder.filters.pgaudit.name }}
+      type: drop
+      drop:
+        {{- toYaml .Values.clusterLogForwarder.filters.pgaudit.drop | nindent 8 }}
+    {{- end }}
+    {{- range .Values.clusterLogForwarder.filters.extra }}
+    - {{ toYaml . | nindent 6 | trim }}
+    {{- end }}
+  {{- end }}
+  {{- if or .Values.clusterLogForwarder.inputs.pgaudit.enabled .Values.clusterLogForwarder.inputs.extra }}
+  inputs:
+    {{- if .Values.clusterLogForwarder.inputs.pgaudit.enabled }}
+    - name: {{ .Values.clusterLogForwarder.inputs.pgaudit.name }}
+      type: application
+      application:
+        selector:
+          matchExpressions:
+            {{- toYaml .Values.clusterLogForwarder.inputs.pgaudit.matchExpressions | nindent 12 }}
+    {{- end }}
+    {{- range .Values.clusterLogForwarder.inputs.extra }}
+    - {{ toYaml . | nindent 6 | trim }}
+    {{- end }}
+  {{- end }}
+  outputs:
+    - name: {{ .Values.clusterLogForwarder.outputs.lokistack.name }}
+      type: lokiStack
+      lokiStack:
+        authentication:
+          token:
+            from: serviceAccount
+        target:
+          name: {{ .Values.clusterLogForwarder.outputs.lokistack.lokiStack.target.name }}
+          namespace: {{ .Values.clusterLogForwarder.outputs.lokistack.lokiStack.target.namespace }}
+      {{- if .Values.clusterLogForwarder.outputs.lokistack.tls.enabled }}
+      tls:
+        ca:
+          configMapName: {{ .Values.clusterLogForwarder.outputs.lokistack.tls.caConfigMapName }}
+          key: {{ .Values.clusterLogForwarder.outputs.lokistack.tls.caKey }}
+      {{- end }}
+    {{- if .Values.clusterLogForwarder.outputs.hubForwarding.enabled }}
+    - name: {{ .Values.clusterLogForwarder.outputs.hubForwarding.name }}
+      type: loki
+      loki:
+        url: {{ .Values.clusterLogForwarder.outputs.hubForwarding.url | quote }}
+        authentication:
+          token:
+            from: secret
+            secret:
+              key: {{ .Values.clusterLogForwarder.outputs.hubForwarding.secret.key }}
+              name: {{ .Values.clusterLogForwarder.outputs.hubForwarding.secret.name }}
+    {{- end }}
+    {{- if .Values.clusterLogForwarder.outputs.vectorWebhook.enabled }}
+    - name: {{ .Values.clusterLogForwarder.outputs.vectorWebhook.name }}
+      type: http
+      http:
+        url: {{ .Values.clusterLogForwarder.outputs.vectorWebhook.url | quote }}
+      tls:
+        ca:
+          configMapName: {{ .Values.clusterLogForwarder.outputs.vectorWebhook.tls.caConfigMapName }}
+          key: {{ .Values.clusterLogForwarder.outputs.vectorWebhook.tls.caKey }}
+        insecureSkipVerify: {{ .Values.clusterLogForwarder.outputs.vectorWebhook.tls.insecureSkipVerify }}
+    {{- end }}
+  pipelines:
+    - name: {{ .Values.clusterLogForwarder.pipelines.allToLoki.name }}
+      inputRefs:
+        {{- toYaml .Values.clusterLogForwarder.pipelines.allToLoki.inputRefs | nindent 8 }}
+      outputRefs:
+        {{- toYaml .Values.clusterLogForwarder.pipelines.allToLoki.outputRefs | nindent 8 }}
+    {{- if and .Values.clusterLogForwarder.outputs.hubForwarding.enabled .Values.clusterLogForwarder.pipelines.auditToHub.enabled }}
+    - name: {{ .Values.clusterLogForwarder.pipelines.auditToHub.name }}
+      inputRefs:
+        {{- toYaml .Values.clusterLogForwarder.pipelines.auditToHub.inputRefs | nindent 8 }}
+      outputRefs:
+        - {{ .Values.clusterLogForwarder.outputs.hubForwarding.name }}
+    {{- end }}
+    {{- if and .Values.clusterLogForwarder.inputs.pgaudit.enabled .Values.clusterLogForwarder.outputs.vectorWebhook.enabled }}
+    - name: {{ .Values.clusterLogForwarder.pipelines.pgauditToHub.name }}
+      filterRefs:
+        - {{ .Values.clusterLogForwarder.filters.pgaudit.name }}
+      inputRefs:
+        - {{ .Values.clusterLogForwarder.inputs.pgaudit.name }}
+      outputRefs:
+        - {{ .Values.clusterLogForwarder.outputs.vectorWebhook.name }}
+    {{- end }}
+    {{- range .Values.clusterLogForwarder.pipelines.extra }}
+    - {{ toYaml . | nindent 6 | trim }}
+    {{- end }}

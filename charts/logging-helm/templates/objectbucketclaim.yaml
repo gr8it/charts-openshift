@@ -1,0 +1,14 @@
+{{- if .Values.objectBucketClaim.enabled }}
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: {{ .Values.objectBucketClaim.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "logging-helm.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-30"
+spec:
+  generateBucketName: {{ .Values.objectBucketClaim.generateBucketName }}
+  storageClassName: {{ .Values.objectBucketClaim.storageClassName }}
+{{- end }}

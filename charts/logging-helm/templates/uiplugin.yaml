@@ -1,0 +1,18 @@
+{{- if .Values.uiplugin.enabled }}
+apiVersion: observability.openshift.io/v1alpha1
+kind: UIPlugin
+metadata:
+  name: {{ .Values.uiplugin.name }}
+  labels:
+    {{- include "logging-helm.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+spec:
+  type: Logging
+  logging:
+    lokiStack:
+      name: {{ .Values.lokistack.name }}
+    {{- if .Values.uiplugin.timeout }}
+    timeout: {{ .Values.uiplugin.timeout }}
+    {{- end }}
+{{- end }}
