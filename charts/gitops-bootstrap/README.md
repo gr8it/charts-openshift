@@ -21,7 +21,7 @@ kubectl patch application argocd-app-of-apps -n <gitops-namespace> --type merge 
 
 ## OperatorPolicies not working
 
-Because of a bug in ACM <https://access.redhat.com/support/cases/#/case/04386303/discussion> / <https://issues.redhat.com/browse/ACM-30555>, operator policy controller is not enabled (= missing --enable-operator-policy=true flag) in ACM configuration controller addon until cluster installation is finished, i.e. ingress controller cluster operator reporting not being healthy. However we need OperatorPolicy to finish the installation = install MetalLB and configure it. Resulting in a chicken egg problem.
+Because of a bug in ACM <https://access.redhat.com/support/cases/#/case/04386303/discussion> / <https://issues.redhat.com/browse/ACM-30555>, the operator policy controller is not enabled in the ACM configuration controller addon until cluster installation is finished (that is, until the ingress controller cluster operator reports as healthy). The controller is missing the `--enable-operator-policy=true` flag. However, we need OperatorPolicy to finish the installation (installing MetalLB and configuring it), resulting in a chicken-and-egg problem.
 
 The workaround until a permanent solution is available is to annotate the particular `managedclusteraddon` on the hub cluster:
 
