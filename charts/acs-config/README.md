@@ -32,33 +32,18 @@ prometheusRule:
   enabled: true
 ```
 
-## Policy import and break-glass
+## Security Policies
 
-This chart includes the policy JSON for **Privileged Containers with Important and Critical Fixable CVEs** at
-`policies/privileged-containers-important-critical-fixable-cves.json`. The policy is intended to be enforced at
-deploy time (it includes `FAIL_KUBE_REQUEST` in `enforcementActions`). The policy is not active in Central until
-it is imported.
+This chart includes ACS security policies in `policies/` directory.
 
-### Manual policy import
+**Included policy:** Detects non-privileged containers with fixable Important/Critical CVEs (inform-only mode).
 
-Because RHACS policies are managed in Central (not as Kubernetes CRDs) and short-lived tokens are used in this
-environment, policy import is a manual step.
+**How to use:**
+1. Import policy via Central UI: **Platform Configuration → Policy Management → Import policy**
+2. Upload `policies/containers-important-critical-fixable-cves.json`
+3. Configure Jira integration in **Platform Configuration → Integrations → Notifier Integrations** to receive alerts
 
-Import options:
-
-- Central UI: import the JSON policy and enable enforcement for DEPLOY.
-- `roxctl` from a trusted admin workstation:
-
-```bash
-roxctl -e https://central-stackrox.apps.<cluster>.<domain>:443 \
-  --token <central_api_token> policy import --overwrite \
-  --file policies/privileged-containers-important-critical-fixable-cves.json
-```
-
-To allow exceptions (e.g., privileged debug pods or legacy workloads that must not be blocked on reschedule),
-use the Kyverno break-glass policy from the `kyverno-app-project` chart. Enable it in GitOps and target
-namespaces or workloads (example in that chart's values). This adds `admission.stackrox.io/break-glass: "true"`
-so RHACS admission control bypasses enforcement for those workloads.
+**📖 Full documentation:** See [policies/README.md](policies/README.md) for detailed setup instructions, namespace exclusions, notifier configuration, and troubleshooting.
 
 ## Additional OpenShift setup
 

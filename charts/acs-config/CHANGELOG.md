@@ -9,11 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- add RHACS policy JSON `privileged-containers-important-critical-fixable-cves.json` for deploy-time blocking
+- add RHACS policy JSON `containers-important-critical-fixable-cves.json` for detecting containers with fixable Important/Critical CVEs (inform-only mode)
+- add comprehensive policy documentation in `policies/README.md` with import instructions, notifier setup, and troubleshooting
+- add notifier configuration guide in `docs/notifier-configuration.md`
 
 ### Changed
 
-- document manual RHACS policy import and break-glass workflow in README
+- document manual RHACS policy import workflow in README
 
 ## [1.0.0] - 2025-12-13
 
