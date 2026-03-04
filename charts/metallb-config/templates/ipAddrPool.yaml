@@ -1,4 +1,7 @@
 {{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
+{{- if eq (len .Values.ipAddrPool.hub) 0 -}}
+{{- fail "The dictionary '.Values.ipAddrPool.hub' is defined but contains no items." -}}
+{{- end -}}
 {{- range $clusterName, $ipAddrPool := .Values.ipAddrPool.hub }}
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool

@@ -108,6 +108,7 @@ global:
       name: ~
       acmName: ~
       type: ~
+      rootDomain: ~
       baseDomain: ~
       appsDomain: ~
       apiURL: ~
@@ -167,6 +168,8 @@ global:
 |apc-global-overrides.require-clusterAcmName|cluster.acmName|global.apc.cluster.acmName|string|-||
 |apc-global-overrides.clusterType|cluster.type|global.apc.cluster.type|string|-|one of standalone, hcp|
 |apc-global-overrides.require-clusterType|cluster.type|global.apc.cluster.type|string|-||
+|apc-global-overrides.clusterRootDomain|cluster.rootDomain|global.apc.cluster.rootDomain|string|-||
+|apc-global-overrides.require-clusterRootDomain|cluster.rootDomain|global.apc.cluster.rootDomain|string|-||
 |apc-global-overrides.clusterBaseDomain|cluster.baseDomain|global.apc.cluster.baseDomain|string|-||
 |apc-global-overrides.require-clusterBaseDomain|cluster.baseDomain|global.apc.cluster.baseDomain|string|-||
 |apc-global-overrides.clusterAppsDomain|cluster.appsDomain|global.apc.cluster.appsDomain|string|-|ingress URL suffix|
