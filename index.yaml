@@ -204,6 +204,16 @@ entries:
     version: 1.0.0
   apc-global-overrides:
   - apiVersion: v2
+    created: "2026-03-03T16:37:21.46015+01:00"
+    description: A Helm chart containing helm helper functions to override global
+      APC values by local values
+    digest: f146cd9a2e15d2859cab871d84ac6dd8fb1f5a93db18af2c617b7a404d59325c
+    name: apc-global-overrides
+    type: library
+    urls:
+    - packaged_charts/apc-global-overrides-1.8.0.tgz
+    version: 1.8.0
+  - apiVersion: v2
     created: "2026-02-13T14:20:07.602015836+01:00"
     description: A Helm chart containing helm helper functions to override global
       APC values by local values
@@ -2599,6 +2609,22 @@ entries:
     - packaged_charts/mongodb-operator-helm-1.0.0.tgz
     version: 1.0.0
   monitoring:
+  - apiVersion: v2
+    created: "2026-02-27T09:19:47.96675+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.6
+    description: A Helm chart for cluster monitoring with Kyverno PrometheusRule generation
+    digest: e3ce1a1fe44d922df0832b7ee10fcdd90f90c4a791445b576ffcc3476af7d913
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.0.9.tgz
+    version: 1.0.9
   - apiVersion: v2
     created: "2026-02-25T18:20:30.004163337+01:00"
     dependencies:
