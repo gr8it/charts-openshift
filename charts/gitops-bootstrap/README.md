@@ -18,3 +18,13 @@ kubectl patch application argocd-app-of-apps -n <gitops-namespace> --type merge 
 # disable auto sync, after the sync started (can be checked in the application CR status)
 kubectl patch application argocd-app-of-apps -n <gitops-namespace> --type merge -p '{"spec":{"syncPolicy":{"automated": null}}}'
 ```
+
+## OperatorPolicies not working
+
+Because of a bug in ACM <https://access.redhat.com/support/cases/#/case/04386303/discussion> / <https://issues.redhat.com/browse/ACM-30555>, operator policy controller is not enabled (= missing --enable-operator-policy=true flag) in ACM configuration controller addon until cluster installation is finished, i.e. ingress controller cluster operator reporting not being healthy. However we need OperatorPolicy to finish the installation = install MetalLB and configure it. Resulting in a chicken egg problem.
+
+The workaround until a permanent solution is available is to annotate the particular `managedclusteraddon` on the hub cluster:
+
+```bash
+kubectl annotate managedclusteraddon config-policy-controller -n <hosted-cluster-namespace> operator-policy-disabled=false
+```
