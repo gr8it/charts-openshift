@@ -8,7 +8,7 @@ spec:
     - name: kyverno.rules
       rules:
         - alert: KyvernoPolicyResultsError
-          expr: sum by (policy_name) (increase(kyverno_policy_results_total{rule_result="error"}[15m])) > 0
+          expr: sum by (policy_name) (increase(kyverno_policy_results_total{rule_result="error"}[2h])) > 0
           for: 10m
           labels:
             severity: warning
@@ -18,7 +18,7 @@ spec:
             summary: Kyverno policy:{{ `{{ $labels.policy_name }}` }} run with errors.
             description: Kyverno policy {{ `{{ $labels.policy_name }}` }} run with errors, please investigate kyverno logs for root cause.
         - alert: KyvernoPolicyResultsFail
-          expr: sum by (policy_name) (increase(kyverno_policy_results_total{rule_result="fail"}[15m])) > 0
+          expr: sum by (policy_name) (increase(kyverno_policy_results_total{rule_result="fail"}[2h])) > 0
           for: 10m
           labels:
             severity: warning
