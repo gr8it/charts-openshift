@@ -305,32 +305,3 @@ kyverno:
       # Histogram disabled
       kyverno_admission_review_duration_seconds:
         enabled: true
-
-stackroxAdmissionBreakGlass:
-  enabled: false
-  annotationKey: admission.stackrox.io/break-glass
-  annotationValue: "true"
-  namespaces: []
-  namespaceSelector:
-    matchLabels:
-      apc.stackrox.io/break-glass: "true"
-  workloadSelector: {}
-  mutateExistingOnPolicyUpdate: true
-  skipBackgroundRequests: true
-  autoNamespaceLabeling:
-    enabled: true
-    namespaces:
-      - apc-debug
-    labelKey: apc.stackrox.io/break-glass
-    labelValue: "true"
-    mutateExistingOnPolicyUpdate: true
-    skipBackgroundRequests: false
-  bootstrapExistingWorkloads:
-    enabled: true
-    namespaces: []
-    namespaceSelector:
-      matchLabels:
-        apc.namespace.type: application
-    workloadSelector: {}
-    mutateExistingOnPolicyUpdate: true
-    skipBackgroundRequests: false
