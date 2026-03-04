@@ -1,0 +1,18 @@
+{{- if .Values.operators.loki.enabled }}
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: loki-operator
+  namespace: {{ .Values.operators.loki.namespace }}
+  labels:
+    {{- include "logging-operators.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-40"
+spec:
+  channel: {{ .Values.operators.loki.channel | quote }}
+  installPlanApproval: {{ .Values.operators.loki.installPlanApproval | quote }}
+  name: loki-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  startingCSV: {{ .Values.operators.loki.csv | quote }}
+{{- end }}

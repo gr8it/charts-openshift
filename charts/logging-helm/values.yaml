@@ -1,0 +1,181 @@
+# --- Namespace ---
+namespace:
+  create: true
+
+# --- ObjectBucketClaim ---
+objectBucketClaim:
+  enabled: true
+  name: logging-loki-rgw
+  storageClassName: ocs-storagecluster-ceph-rgw
+  generateBucketName: logging-loki-rgw
+
+# --- LokiStack ---
+lokistack:
+  name: logging-loki
+  size: 1x.pico
+  managementState: Managed
+  storage:
+    secret:
+      name: logging-loki-rgw-allinfo
+      type: s3
+    schemas:
+      - effectiveDate: "2024-10-01"
+        version: v13
+    tls:
+      caKey: service-ca.crt
+      caName: openshift-service-ca.crt
+  storageClassName: ocs-storagecluster-ceph-rbd
+  replication:
+    factor: 2
+    zones:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+  hashRing:
+    type: memberlist
+    memberlist:
+      instanceAddrType: podIP
+  limits:
+    global:
+      ingestion:
+        ingestionRate: 6
+        ingestionBurstSize: 32
+        perStreamRateLimit: 4
+        perStreamRateLimitBurst: 17
+        maxLineSize: null
+      queries:
+        queryTimeout: 60s
+    retention:
+      days: 7
+      streams: []
+  rules:
+    enabled: false
+    selector:
+      matchLabels:
+        openshift.io/log-alerting: 'true'
+  tenants:
+    mode: openshift-logging
+    openshift:
+      adminGroups:
+        - cluster-admin
+
+# --- UIPlugin ---
+uiplugin:
+  enabled: true
+  name: logging
+  timeout: 120s
+
+# --- ServiceAccount ---
+serviceAccount:
+  name: collector
+
+# --- ClusterRoleBindings ---
+clusterRoleBindings:
+  - name: collect-application-logs-collector
+    clusterRole: collect-application-logs
+  - name: collect-audit-logs-collector
+    clusterRole: collect-audit-logs
+  - name: collect-infrastructure-logs-collector
+    clusterRole: collect-infrastructure-logs
+  - name: logging-collector-logs-writer-collector
+    clusterRole: logging-collector-logs-writer
+
+# --- ClusterLogForwarder ---
+clusterLogForwarder:
+  name: instance
+  managementState: Managed
+  collector:
+    resources:
+      limits:
+        cpu: "6"
+        memory: 4Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+  outputs:
+    lokistack:
+      name: default-lokistack
+      tls:
+        enabled: true
+        caConfigMapName: openshift-service-ca.crt
+        caKey: service-ca.crt
+      lokiStack:
+        target:
+          name: logging-loki
+          namespace: openshift-logging
+    hubForwarding:
+      enabled: false
+      name: hub-loki-audit
+      url: ""
+      secret:
+        name: hub-spoke-logforward
+        key: TOKEN
+    vectorWebhook:
+      enabled: false
+      name: vector-webhook
+      url: ""
+      tls:
+        caConfigMapName: kube-root-ca.crt
+        caKey: ca.crt
+        insecureSkipVerify: false
+  filters:
+    pgaudit:
+      enabled: false
+      name: pgaudit-filter
+      drop:
+        - test:
+            - field: .message
+              notMatches: '"logger":"pgaudit"'
+            - field: .message
+              notMatches: '"command_tag":"authentication"'
+            - field: .message
+              notMatches: '"command_tag":"startup"'
+    extra: []
+  inputs:
+    pgaudit:
+      enabled: false
+      name: pgaudit
+      matchExpressions:
+        - key: cnpg.io/cluster
+          operator: exists
+    extra: []
+  pipelines:
+    allToLoki:
+      name: all-to-loki
+      inputRefs:
+        - infrastructure
+        - application
+        - audit
+      outputRefs:
+        - default-lokistack
+    auditToHub:
+      enabled: false
+      name: audit-to-hub
+      inputRefs:
+        - audit
+    pgauditToHub:
+      name: postgres-audit-to-hub
+    extra: []
+
+# --- ExternalSecret (hub-spoke token) ---
+externalSecret:
+  enabled: false
+  name: hub-spoke-logforward
+  refreshInterval: "15m"
+  secretKey: TOKEN
+
+# --- Hub-specific resources ---
+hub:
+  spokeLogforward:
+    enabled: false
+    serviceAccount:
+      name: spoke-logforward
+    clusterRoleBinding:
+      name: cluster-logging-write-audit-logs-spoke-logforward
+  alertingRules:
+    customerName: ""
+    acs:
+      enabled: false
+      centralUrl: ""
+      namespaceRegex: "apc-.*|cert-manager.*|cert-utils|crossplane-system|default|group-sync-operator|kube.*|nodepool-.*|open-cluster-management.*|openshift.*|rhacs-operator|stackrox|veeam|vm-templates"
+    hwEvents:
+      enabled: false

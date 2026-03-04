@@ -1,0 +1,64 @@
+apiVersion: loki.grafana.com/v1
+kind: LokiStack
+metadata:
+  name: {{ .Values.lokistack.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "logging-helm.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-20"
+spec:
+  size: {{ .Values.lokistack.size }}
+  managementState: {{ .Values.lokistack.managementState }}
+  storage:
+    secret:
+      name: {{ .Values.lokistack.storage.secret.name }}
+      type: {{ .Values.lokistack.storage.secret.type }}
+    schemas:
+      {{- toYaml .Values.lokistack.storage.schemas | nindent 6 }}
+    {{- if .Values.lokistack.storage.tls }}
+    tls:
+      caKey: {{ .Values.lokistack.storage.tls.caKey }}
+      caName: {{ .Values.lokistack.storage.tls.caName }}
+    {{- end }}
+  storageClassName: {{ .Values.lokistack.storageClassName }}
+  replication:
+    factor: {{ .Values.lokistack.replication.factor }}
+    {{- if .Values.lokistack.replication.zones }}
+    zones:
+      {{- toYaml .Values.lokistack.replication.zones | nindent 6 }}
+    {{- end }}
+  hashRing:
+    type: {{ .Values.lokistack.hashRing.type }}
+    memberlist:
+      instanceAddrType: {{ .Values.lokistack.hashRing.memberlist.instanceAddrType }}
+  limits:
+    global:
+      ingestion:
+        ingestionRate: {{ .Values.lokistack.limits.global.ingestion.ingestionRate }}
+        ingestionBurstSize: {{ .Values.lokistack.limits.global.ingestion.ingestionBurstSize }}
+        perStreamRateLimit: {{ .Values.lokistack.limits.global.ingestion.perStreamRateLimit }}
+        perStreamRateLimitBurst: {{ .Values.lokistack.limits.global.ingestion.perStreamRateLimitBurst }}
+        {{- if .Values.lokistack.limits.global.ingestion.maxLineSize }}
+        maxLineSize: {{ .Values.lokistack.limits.global.ingestion.maxLineSize }}
+        {{- end }}
+      queries:
+        queryTimeout: {{ .Values.lokistack.limits.global.queries.queryTimeout }}
+    retention:
+      days: {{ .Values.lokistack.limits.retention.days }}
+      {{- if .Values.lokistack.limits.retention.streams }}
+      streams:
+        {{- toYaml .Values.lokistack.limits.retention.streams | nindent 8 }}
+      {{- end }}
+  {{- if .Values.lokistack.rules.enabled }}
+  rules:
+    enabled: true
+    selector:
+      matchLabels:
+        {{- toYaml .Values.lokistack.rules.selector.matchLabels | nindent 8 }}
+  {{- end }}
+  tenants:
+    mode: {{ .Values.lokistack.tenants.mode }}
+    openshift:
+      adminGroups:
+        {{- toYaml .Values.lokistack.tenants.openshift.adminGroups | nindent 8 }}

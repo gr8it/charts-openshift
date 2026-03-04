@@ -1,0 +1,240 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: observability.openshift.io/v1
+    kind: ClusterLogForwarder
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "10"
+      labels:
+        app.kubernetes.io/instance: logging-helm
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: logging-helm
+        helm.sh/chart: logging-helm-1.0.0
+      name: instance
+      namespace: openshift-logging
+    spec:
+      collector:
+        resources:
+          limits:
+            cpu: 8
+            memory: 8Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+      managementState: Managed
+      outputs:
+        - lokiStack:
+            authentication:
+              token:
+                from: serviceAccount
+            target:
+              name: logging-loki
+              namespace: openshift-logging
+          name: default-lokistack
+          tls:
+            ca:
+              configMapName: openshift-service-ca.crt
+              key: service-ca.crt
+          type: lokiStack
+      pipelines:
+        - inputRefs:
+            - infrastructure
+            - application
+            - audit
+          name: all-to-loki
+          outputRefs:
+            - default-lokistack
+      serviceAccount:
+        name: collector
+  2: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-40"
+      labels:
+        app.kubernetes.io/instance: logging-helm
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: logging-helm
+        helm.sh/chart: logging-helm-1.0.0
+      name: collect-application-logs-collector
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: collect-application-logs
+    subjects:
+      - kind: ServiceAccount
+        name: collector
+        namespace: openshift-logging
+  3: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-40"
+      labels:
+        app.kubernetes.io/instance: logging-helm
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: logging-helm
+        helm.sh/chart: logging-helm-1.0.0
+      name: collect-audit-logs-collector
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: collect-audit-logs
+    subjects:
+      - kind: ServiceAccount
+        name: collector
+        namespace: openshift-logging
+  4: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-40"
+      labels:
+        app.kubernetes.io/instance: logging-helm
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: logging-helm
+        helm.sh/chart: logging-helm-1.0.0
+      name: collect-infrastructure-logs-collector
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: collect-infrastructure-logs
+    subjects:
+      - kind: ServiceAccount
+        name: collector
+        namespace: openshift-logging
+  5: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-40"
+      labels:
+        app.kubernetes.io/instance: logging-helm
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: logging-helm
+        helm.sh/chart: logging-helm-1.0.0
+      name: logging-collector-logs-writer-collector
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: logging-collector-logs-writer
+    subjects:
+      - kind: ServiceAccount
+        name: collector
+        namespace: openshift-logging
+  6: |
+    apiVersion: loki.grafana.com/v1
+    kind: LokiStack
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-20"
+      labels:
+        app.kubernetes.io/instance: logging-helm
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: logging-helm
+        helm.sh/chart: logging-helm-1.0.0
+      name: logging-loki
+      namespace: openshift-logging
+    spec:
+      hashRing:
+        memberlist:
+          instanceAddrType: podIP
+        type: memberlist
+      limits:
+        global:
+          ingestion:
+            ingestionBurstSize: 40
+            ingestionRate: 20
+            perStreamRateLimit: 4
+            perStreamRateLimitBurst: 17
+          queries:
+            queryTimeout: 60s
+        retention:
+          days: 20
+      managementState: Managed
+      replication:
+        factor: 2
+        zones:
+          - maxSkew: 1
+            topologyKey: topology.kubernetes.io/zone
+      size: 1x.small
+      storage:
+        schemas:
+          - effectiveDate: "2024-10-01"
+            version: v13
+        secret:
+          name: logging-loki-rgw-allinfo
+          type: s3
+        tls:
+          caKey: service-ca.crt
+          caName: openshift-service-ca.crt
+      storageClassName: ocs-storagecluster-ceph-rbd
+      tenants:
+        mode: openshift-logging
+        openshift:
+          adminGroups:
+            - cluster-admin
+  7: |
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-50"
+      labels:
+        apc.namespace.type: platform
+        app.kubernetes.io/instance: logging-helm
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: logging-helm
+        helm.sh/chart: logging-helm-1.0.0
+      name: openshift-logging
+  8: |
+    apiVersion: objectbucket.io/v1alpha1
+    kind: ObjectBucketClaim
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-30"
+      labels:
+        app.kubernetes.io/instance: logging-helm
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: logging-helm
+        helm.sh/chart: logging-helm-1.0.0
+      name: logging-loki-rgw
+      namespace: openshift-logging
+    spec:
+      generateBucketName: logging-loki-rgw
+      storageClassName: ocs-storagecluster-ceph-rgw
+  9: |
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-40"
+      labels:
+        app.kubernetes.io/instance: logging-helm
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: logging-helm
+        helm.sh/chart: logging-helm-1.0.0
+      name: collector
+      namespace: openshift-logging
+  10: |
+    apiVersion: observability.openshift.io/v1alpha1
+    kind: UIPlugin
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-10"
+      labels:
+        app.kubernetes.io/instance: logging-helm
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: logging-helm
+        helm.sh/chart: logging-helm-1.0.0
+      name: logging
+    spec:
+      logging:
+        lokiStack:
+          name: logging-loki
+        timeout: 120s
+      type: Logging

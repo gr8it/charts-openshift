@@ -1,0 +1,14 @@
+{{- if .Values.operators.coo.enabled }}
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: {{ .Values.operators.coo.namespace }}
+  namespace: {{ .Values.operators.coo.namespace }}
+  labels:
+    {{- include "logging-operators.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-50"
+spec:
+  targetNamespaces:
+    - {{ .Values.operators.coo.namespace }}
+{{- end }}
