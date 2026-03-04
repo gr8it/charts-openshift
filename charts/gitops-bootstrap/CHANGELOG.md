@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - excluding argocd alerts on apc_namespace_type="application"
 
-## [2.9.1] - 2026-02-10
+## [2.9.0] - 2026-02-10
 
 ### Added
 
