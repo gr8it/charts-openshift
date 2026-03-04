@@ -92,7 +92,7 @@ spec:
       outputRefs:
         - {{ .Values.clusterLogForwarder.outputs.hubForwarding.name }}
     {{- end }}
-    {{- if and .Values.clusterLogForwarder.inputs.pgaudit.enabled .Values.clusterLogForwarder.outputs.vectorWebhook.enabled }}
+    {{- if and .Values.clusterLogForwarder.inputs.pgaudit.enabled .Values.clusterLogForwarder.filters.pgaudit.enabled .Values.clusterLogForwarder.outputs.vectorWebhook.enabled }}
     - name: {{ .Values.clusterLogForwarder.pipelines.pgauditToHub.name }}
       filterRefs:
         - {{ .Values.clusterLogForwarder.filters.pgaudit.name }}
