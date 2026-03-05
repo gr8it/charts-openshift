@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Separated ArgoCD alerts into two alert groups: platform team alerts for apc-gitops namespace (with routing to Jira) and developer team alerts for non-apc-gitops namespaces (with separate routing). Added three new alert rules (ArgoCDDeveloperAppSyncUnknownAlert, ArgoCDDeveloperAppsSyncMajorityUnknownAlert, ArgoCDDeveloperServiceUnhealthy) to monitor developer-managed ArgoCD instances with team=developers label for different notification routing
+- Kept original ArgoCD alerts in apc-gitops namespace (single ruleset) and removed temporary developer-duplicate rules. Alert routing split is to be solved in Alertmanager routing configuration.
 
 ## [2.9.0] - 2026-02-10
 
