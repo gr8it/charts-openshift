@@ -2,14 +2,12 @@
 # global:
 #   apc:
 #     cluster:
-#       baseDomain:
-#       appsDomain:
+#       rootDomain:
 #     services:
 #       crossplane:
 #         kubeVaultProviderConfigName:
 ## and their local overrides
-# cluster.baseDomain:
-# cluster.appsDomain:
+# cluster.rootDomain:
 # services.crossplane.kubeVaultProviderConfigName:
 
 releaseServiceOverride: ArgoCD
@@ -31,19 +29,41 @@ pkiIssuers:
       allowBareDomains: true
       allowSubdomains: true
       allowLocalhost: false
-    roles: {}
+    roles: 
+      cluster:
+        name: ~
+        backend: pki
+        allowedDomains: []  # default domains defined in helper vault-config.defaultAllowedDomains for the target cluster, separate domains for separate roles defined in component values
 
 policies:
-  admin:
-    rules: |
-      path "*" {
-        capabilities = ["create", "read", "update", "delete", "list", "sudo"]
-      }
-  snapshot:
-    rules: |
-      path "sys/storage/raft/snapshot" {
-        capabilities = ["read"]
-      }
+  customPolicies:
+    admin:
+      rules: |
+        path "*" {
+          capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+        }
+    snapshot:
+      rules: |
+        path "sys/storage/raft/snapshot" {
+          capabilities = ["read"]
+        }
+    pki-spoke-cluster-issuer:
+      rules: |
+        path "pki/sign/*" {
+          capabilities = ["create", "update"]
+        }
+        path "pki/issuer/*" {
+          capabilities = ["read"]
+        }
+        path "pki/roles/*" {
+          capabilities = ["list"]
+        }
+        path "pki_int/sign/*" {
+          capabilities = ["create", "update"]
+        }
+        path "pki/issue/apc.socpoist.sk" {
+          capabilities = ["create", "update"]
+        }
 
 authMethods:
   approle:

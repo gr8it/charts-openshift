@@ -12,10 +12,10 @@ This repository contains basic configuration for APC Vault deployment in HUB. Th
 
 Following Vault configuration can be created/managed by the helm chart:
 
-- enable secret engines (kv-2, pki, etc...)
-- create roles for PKI issuer
-- create Vault policies 
-- enable auth methods 
+- secret engines (kv-2, pki, etc...)
+- roles for PKI issuer
+- Vault policies 
+- auth methods 
 
 ## Detailed configuration
 
@@ -32,58 +32,72 @@ secretEngines:
 
 ### PKI issuer roles
 
-- configuration placeholder in `values.yaml` at `pkiIssuers.pkiRoles.roles`, main configuration done via the components values
+- chart will create one role for the cluster the chart is deployed to (hub01 for example)
+- additonal roles can be specified in component values at `pkiIssuers.pkiRoles.roles`
 - actual implementation configure default settings for created roles, defaults are specified at `pkiIssuers.pkiRoles.defaltSettings`
-- for now only default settings are prepared
+- default settings can be adjusted in component values
 
 <details>
 
-<summary> Issuer role example </summary>
+<summary> additional issuer role example </summary>
 
 ```yaml
 pkiIssuers:
   issuerName: APCCAi-Sp2
   pkiRoles:
     roles:
-      dev01:
-        name: apps.dev01.{{ .Values.global.apc.cluster.domain }}
-        backend: pki # mount path of pki secret engine
+      apc:
+        name: apc.socpoist.sk
+        backend: pki
+        defaultPkiPolicy: true
+        settings:
+          allowBareDomains: false
         allowedDomains:
-          - apps.dev01.{{ .Values.global.apc.cluster.appsDomain }}
-          - cluster.local
-          - svc
-          - service.dev01.{{ .Values.global.apc.cluster.baseDomain }}
-      test01:
-        name: apps.test01.{{ .Values.global.apc.cluster.domain }}
-        backend: pki # mount path of pki secret engine
+          - "apc.socpoist.sk"
+      hw:
+        name: hw.apc.socpoist.sk
+        backend: pki
+        defaultPkiPolicy: true
+        settings:
+          allowSubdomains: false
+          allowGlobDomains: true
+          allowWildcardCertificates: false
         allowedDomains:
-          - apps.test01.{{ .Values.global.apc.cluster.appsDomain }}
-          - cluster.local
-          - svc
-          - service.test01.{{ .Values.global.apc.cluster.baseDomain }}
-      prod01:
-        name: apps.prod01.{{ .Values.global.apc.cluster.baseDomain }}
-        backend: pki # mount path of pki secret engine
+          - "*.hw.apc.socpoist.sk"
+          - SR-BA-xAPC1-P1HM01i
+          - SR-BA-xAPC1-P1HM02i
+          - SR-BA-xAPC1-P1HW01i
+          - SR-BA-xAPC1-P1HW02i
+          - SR-BA-xAPC1-P1PW01i
+          - SR-BA-xAPC1-P1PW02i
+          - SR-BA-xAPC1-P1TW01i
+          - SR-BA-xAPC1-P1DW01i
+          - SR-BA-xAPC1-P2HM03i
+          - SR-BA-xAPC1-P2HW03i
+          - SR-BA-xAPC1-P2PW03i
+          - SR-BA-xAPC1-P2PW04i
+          - SR-BA-xAPC1-P2TW02i
+          - SR-BA-xAPC1-P2TW03i
+          - SR-BA-xAPC1-P2DW02i
+          - SR-BA-xAPC1-P2DW03i
+          - SR-BA-xAPC1XCA-P11
+          - SR-BA-wAPC1-P1BKP1i
+      cloud:
+        name: cloud.socpoist.sk
+        backend: pki
+        defaultPkiPolicy: true
         allowedDomains:
-          - apps.prod01.{{ .Values.global.apc.cluster.baseDomain }}
-          - cluster.local
+          - cloud.socpoist.sk
           - svc
-          - service.prod01.{{ .Values.global.apc.cluster.baseDomain }}
-      hub01:
-        name: apps.hub01.{{ .Values.global.apc.cluster.baseDomain }}
-        backend: pki # mount path of pki secret engine
-        allowedDomains:
-          - apps.hub01.{{ .Values.global.apc.cluster.baseDomain }}
           - cluster.local
-          - svc
-          - service.hub01.{{ .Values.global.apc.cluster.baseDomain }}
 ```
 
 </details>
 
 ### Vault policies
 
-- configuration done under `policies.<policy_name>.rules`
+- you can create default PKI policy by specifying `pkiIssuers.pkiRoles.roles.<role_name>.defaultPkiPolicy: true`
+- other policies are specified in values under `policies.customPolicies.<policy_name>.rules`
 - rules are standard vault policy definition
 
 ### Auth methods

@@ -60,3 +60,10 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{- define "vault-config.defaultAllowedDomains" -}}
+- svc
+- cluster.local
+- {{ include "apc-global-overrides.clusterName" . }}.{{ include "apc-global-overrides.clusterAppsDomain" . }}
+- service.{{ include "apc-global-overrides.clusterName" . }}.{{ include "apc-global-overrides.clusterAppsDomain" . }}
+{{- end }}
