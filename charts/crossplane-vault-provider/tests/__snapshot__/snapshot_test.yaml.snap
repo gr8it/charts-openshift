@@ -16,7 +16,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: crossplane-vault-provider
         app.kubernetes.io/version: v2.2.2
-        helm.sh/chart: crossplane-vault-provider-1.5.0
+        helm.sh/chart: crossplane-vault-provider-1.5.1
       name: crossplane-vault-provider-ca-certificates
       namespace: apc-crossplane-system
   2: |
@@ -28,7 +28,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: crossplane-vault-provider
         app.kubernetes.io/version: v2.2.2
-        helm.sh/chart: crossplane-vault-provider-1.5.0
+        helm.sh/chart: crossplane-vault-provider-1.5.1
       name: crossplane-vault-provider-config
       namespace: apc-crossplane-system
     spec:
@@ -43,10 +43,10 @@ manifests should match snapshot:
                   resources:
                     limits:
                       cpu: 500m
-                      memory: 300Mi
+                      memory: 600Mi
                     requests:
-                      cpu: 20m
-                      memory: 50Mi
+                      cpu: 50m
+                      memory: 200Mi
                   securityContext: {}
                   volumeMounts:
                     - mountPath: /etc/ssl/certs/vault-ca.crt
@@ -57,10 +57,10 @@ manifests should match snapshot:
               topologySpreadConstraints:
                 - labelSelector:
                     matchLabels:
-                      pkg.crossplane.io/provider: provider-vault
+                      pkg.crossplane.io/provider: crossplane-vault-provider
                   maxSkew: 1
                   topologyKey: kubernetes.io/hostname
-                  whenUnsatisfiable: ScheduleAnyway
+                  whenUnsatisfiable: DoNotSchedule
               volumes:
                 - configMap:
                     name: crossplane-vault-provider-ca-certificates
@@ -74,10 +74,11 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: crossplane-vault-provider
         app.kubernetes.io/version: v2.2.2
-        helm.sh/chart: crossplane-vault-provider-1.5.0
+        helm.sh/chart: crossplane-vault-provider-1.5.1
       name: crossplane-vault-provider
       namespace: apc-crossplane-system
     spec:
       package: xpkg.upbound.io/upbound/provider-vault:v2.2.2
+      revisionHistoryLimit: 2
       runtimeConfigRef:
         name: crossplane-vault-provider-config
