@@ -1,0 +1,22 @@
+{{- range $authMethod, $authData := .Values.authMethods }}
+{{- range $data := $authData }}
+{{- if $data.enable }}
+apiVersion: auth.vault.upbound.io/v1alpha1
+kind: Backend
+metadata:
+  name: {{ $authMethod }}-auth
+  annotations:
+    crossplane.io/external-name: {{ $data.name }}
+    {{- include "vault-config.labels" $ | nindent 4 }}
+spec:
+  deletionPolicy: Orphan
+  managementPolicy: ["Create","Update", "Observe", "LateInitialize"]
+  forProvider:
+    type: {{ $authMethod}}
+    path: {{ $data.name }}
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.crossplaneKubeVaultProviderConfigName" $ }}
+---
+{{- end }}
+{{- end }}
+{{- end }}

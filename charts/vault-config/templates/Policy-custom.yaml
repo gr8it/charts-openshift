@@ -1,0 +1,19 @@
+{{- range $policy, $policyData := .Values.policies.customPolicies }}
+apiVersion: vault.vault.upbound.io/v1alpha1
+kind: Policy
+metadata:
+  name: {{ $policy }}-policy
+  annotations:
+    crossplane.io/external-name: {{ $policy }}
+    {{- include "vault-config.labels" $ | nindent 4 }}
+spec:
+  deletionPolicy: Orphan
+  managementPolicy: ["Create", "Update", "Observe", "LateInitialize"]
+  forProvider:
+    name: {{ $policy }}
+    policy: | 
+      {{- $policyData.rules | nindent 6 }}
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.crossplaneKubeVaultProviderConfigName" $ }}
+---
+{{- end }}
