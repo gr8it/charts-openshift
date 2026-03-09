@@ -101,6 +101,9 @@ pkiIssuers:
 - other policies are specified in values under `policies.customPolicies.<policy_name>.rules`
 - rules are standard vault policy definition
 
+> [!IMPORTANT]
+> `policies.customPolicies.pki-spoke-cluster-issuer` would need to be specified in component values for deployments on other type of clusers as value holds hardcoded domain name
+
 ### Auth methods
 
 - enable auth methods
@@ -116,3 +119,7 @@ authMethods:
 ### Audit
 
 - enable audit to stdout
+
+## TODO
+
+- Review the possibility to break the `pki-spoke-cluster-issuer` policy for each of the spoke cluster separately.

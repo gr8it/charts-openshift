@@ -1,0 +1,298 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: vault.vault.upbound.io/v1alpha1
+    kind: Audit
+    metadata:
+      annotations:
+        crossplane.io/external-name: file
+      labels:
+        app.kubernetes.io/instance: vault-config
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: vault-config
+        helm.sh/chart: vault-config-1.0.0
+      name: audit
+    spec:
+      deletionPolicy: Orphan
+      forProvider:
+        options:
+          file_path: stdout
+        type: file
+      managementPolicy:
+        - Create
+        - Update
+        - Observe
+        - LateInitialize
+      providerConfigRef:
+        name: null
+  2: |
+    apiVersion: auth.vault.upbound.io/v1alpha1
+    kind: Backend
+    metadata:
+      annotations:
+        crossplane.io/external-name: approle
+      labels:
+        app.kubernetes.io/instance: vault-config
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: vault-config
+        helm.sh/chart: vault-config-1.0.0
+      name: approle-auth
+    spec:
+      deletionPolicy: Orphan
+      forProvider:
+        path: approle
+        type: approle
+      managementPolicy:
+        - Create
+        - Update
+        - Observe
+        - LateInitialize
+      providerConfigRef:
+        name: null
+  3: |
+    apiVersion: auth.vault.upbound.io/v1alpha1
+    kind: Backend
+    metadata:
+      annotations:
+        crossplane.io/external-name: ldap
+      labels:
+        app.kubernetes.io/instance: vault-config
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: vault-config
+        helm.sh/chart: vault-config-1.0.0
+      name: ldap-auth
+    spec:
+      deletionPolicy: Orphan
+      forProvider:
+        path: ldap
+        type: ldap
+      managementPolicy:
+        - Create
+        - Update
+        - Observe
+        - LateInitialize
+      providerConfigRef:
+        name: null
+  4: |
+    apiVersion: auth.vault.upbound.io/v1alpha1
+    kind: Backend
+    metadata:
+      annotations:
+        crossplane.io/external-name: ad
+      labels:
+        app.kubernetes.io/instance: vault-config
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: vault-config
+        helm.sh/chart: vault-config-1.0.0
+      name: ad-auth
+    spec:
+      deletionPolicy: Orphan
+      forProvider:
+        path: ad
+        type: ldap
+      managementPolicy:
+        - Create
+        - Update
+        - Observe
+        - LateInitialize
+      providerConfigRef:
+        name: null
+  5: |
+    apiVersion: vault.vault.upbound.io/v1alpha1
+    kind: Mount
+    metadata:
+      annotations:
+        crossplane.io/external-name: apc
+      labels:
+        app.kubernetes.io/instance: vault-config
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: vault-config
+        helm.sh/chart: vault-config-1.0.0
+      name: apc-secret-engine
+    spec:
+      deletionPolicy: Orphan
+      forProvider:
+        path: apc
+        type: kv-2
+      managementPolicy:
+        - Create
+        - Update
+        - Observe
+        - LateInitialize
+      providerConfigRef:
+        name: null
+  6: |
+    apiVersion: vault.vault.upbound.io/v1alpha1
+    kind: Mount
+    metadata:
+      annotations:
+        crossplane.io/external-name: apc-platform
+      labels:
+        app.kubernetes.io/instance: vault-config
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: vault-config
+        helm.sh/chart: vault-config-1.0.0
+      name: apc-platform-secret-engine
+    spec:
+      deletionPolicy: Orphan
+      forProvider:
+        path: apc-platform
+        type: kv-2
+      managementPolicy:
+        - Create
+        - Update
+        - Observe
+        - LateInitialize
+      providerConfigRef:
+        name: null
+  7: |
+    apiVersion: vault.vault.upbound.io/v1alpha1
+    kind: Mount
+    metadata:
+      annotations:
+        crossplane.io/external-name: pki
+      labels:
+        app.kubernetes.io/instance: vault-config
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: vault-config
+        helm.sh/chart: vault-config-1.0.0
+      name: pki-secret-engine
+    spec:
+      deletionPolicy: Orphan
+      forProvider:
+        path: pki
+        type: pki
+      managementPolicy:
+        - Create
+        - Update
+        - Observe
+        - LateInitialize
+      providerConfigRef:
+        name: null
+  8: |
+    apiVersion: vault.vault.upbound.io/v1alpha1
+    kind: Policy
+    metadata:
+      annotations:
+        crossplane.io/external-name: admin
+      labels:
+        app.kubernetes.io/instance: vault-config
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: vault-config
+        helm.sh/chart: vault-config-1.0.0
+      name: admin-policy
+    spec:
+      deletionPolicy: Orphan
+      forProvider:
+        name: admin
+        policy: |
+          path "*" {
+            capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+          }
+      managementPolicy:
+        - Create
+        - Update
+        - Observe
+        - LateInitialize
+      providerConfigRef:
+        name: null
+  9: |
+    apiVersion: vault.vault.upbound.io/v1alpha1
+    kind: Policy
+    metadata:
+      annotations:
+        crossplane.io/external-name: pki-spoke-cluster-issuer
+      labels:
+        app.kubernetes.io/instance: vault-config
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: vault-config
+        helm.sh/chart: vault-config-1.0.0
+      name: pki-spoke-cluster-issuer-policy
+    spec:
+      deletionPolicy: Orphan
+      forProvider:
+        name: pki-spoke-cluster-issuer
+        policy: |
+          path "pki/sign/*" {
+            capabilities = ["create", "update"]
+          }
+          path "pki/issuer/*" {
+            capabilities = ["read"]
+          }
+          path "pki/roles/*" {
+            capabilities = ["list"]
+          }
+          path "pki_int/sign/*" {
+            capabilities = ["create", "update"]
+          }
+          path "pki/issue/apc.socpoist.sk" {
+            capabilities = ["create", "update"]
+          }
+      managementPolicy:
+        - Create
+        - Update
+        - Observe
+        - LateInitialize
+      providerConfigRef:
+        name: null
+  10: |
+    apiVersion: vault.vault.upbound.io/v1alpha1
+    kind: Policy
+    metadata:
+      annotations:
+        crossplane.io/external-name: snapshot
+      labels:
+        app.kubernetes.io/instance: vault-config
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: vault-config
+        helm.sh/chart: vault-config-1.0.0
+      name: snapshot-policy
+    spec:
+      deletionPolicy: Orphan
+      forProvider:
+        name: snapshot
+        policy: |
+          path "sys/storage/raft/snapshot" {
+            capabilities = ["read"]
+          }
+      managementPolicy:
+        - Create
+        - Update
+        - Observe
+        - LateInitialize
+      providerConfigRef:
+        name: null
+  11: |
+    apiVersion: pki.vault.upbound.io/v1alpha1
+    kind: SecretBackendRole
+    metadata:
+      annotations:
+        crossplane.io/external-name: pki/roles/.
+      labels:
+        app.kubernetes.io/instance: vault-config
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: vault-config
+        helm.sh/chart: vault-config-1.0.0
+      name: .
+    spec:
+      deletionPolicy: Orphan
+      forProvider:
+        allowBareDomains: true
+        allowLocalhost: false
+        allowSubdomains: true
+        allowedDomains:
+          - svc
+          - cluster.local
+          - .
+          - service..
+        backend: pki
+        issuerRef: default
+        maxTtl: 365d
+        name: .
+        ttl: 365d
+      managementPolicy:
+        - Create
+        - Update
+        - Observe
+        - LateInitialize
+      providerConfigRef:
+        name: null
