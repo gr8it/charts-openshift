@@ -1,0 +1,84 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: v1
+    data:
+      ca.crt: |
+        -----BEGIN CERTIFICATE-----
+        aaa
+        -----END CERTIFICATE-----
+        -----BEGIN CERTIFICATE-----
+        bbb
+        -----END CERTIFICATE-----
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/instance: crossplane-vault-provider
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: crossplane-vault-provider
+        app.kubernetes.io/version: v2.2.2
+        helm.sh/chart: crossplane-vault-provider-1.5.1
+      name: crossplane-vault-provider-ca-certificates
+      namespace: apc-crossplane-system
+  2: |
+    apiVersion: pkg.crossplane.io/v1beta1
+    kind: DeploymentRuntimeConfig
+    metadata:
+      labels:
+        app.kubernetes.io/instance: crossplane-vault-provider
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: crossplane-vault-provider
+        app.kubernetes.io/version: v2.2.2
+        helm.sh/chart: crossplane-vault-provider-1.5.1
+      name: crossplane-vault-provider-config
+      namespace: apc-crossplane-system
+    spec:
+      deploymentTemplate:
+        spec:
+          replicas: 2
+          selector: {}
+          template:
+            spec:
+              containers:
+                - name: package-runtime
+                  resources:
+                    limits:
+                      cpu: 500m
+                      memory: 600Mi
+                    requests:
+                      cpu: 50m
+                      memory: 200Mi
+                  securityContext: {}
+                  volumeMounts:
+                    - mountPath: /etc/ssl/certs/vault-ca.crt
+                      name: custom-ca-certs
+                      readOnly: true
+                      subPath: ca.crt
+              securityContext: {}
+              topologySpreadConstraints:
+                - labelSelector:
+                    matchLabels:
+                      pkg.crossplane.io/provider: crossplane-vault-provider
+                  maxSkew: 1
+                  topologyKey: kubernetes.io/hostname
+                  whenUnsatisfiable: DoNotSchedule
+              volumes:
+                - configMap:
+                    name: crossplane-vault-provider-ca-certificates
+                  name: custom-ca-certs
+  3: |
+    apiVersion: pkg.crossplane.io/v1
+    kind: Provider
+    metadata:
+      labels:
+        app.kubernetes.io/instance: crossplane-vault-provider
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: crossplane-vault-provider
+        app.kubernetes.io/version: v2.2.2
+        helm.sh/chart: crossplane-vault-provider-1.5.1
+      name: crossplane-vault-provider
+      namespace: apc-crossplane-system
+    spec:
+      package: xpkg.upbound.io/upbound/provider-vault:v2.2.2
+      revisionHistoryLimit: 2
+      runtimeConfigRef:
+        name: crossplane-vault-provider-config
