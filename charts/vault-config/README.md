@@ -34,8 +34,8 @@ secretEngines:
 ### PKI issuer roles
 
 - chart will create one role for the cluster the chart is deployed to (hub01 for example)
-- additonal roles can be specified in component values at `pkiIssuers.pkiRoles.roles`
-- actual implementation configure default settings for created roles, defaults are specified at `pkiIssuers.pkiRoles.defaltSettings`
+- additional roles can be specified in component values at `pkiIssuers.pkiRoles.roles`
+- actual implementation configures default settings for created roles; defaults are specified at `pkiIssuers.pkiRoles.defaultSettings`
 - default settings can be adjusted in component values
 
 <details>
