@@ -14,8 +14,9 @@ Following Vault configuration can be created/managed by the helm chart:
 
 - secret engines (kv-2, pki, etc...)
 - roles for PKI issuer
-- Vault policies 
-- auth methods 
+- Vault policies
+- auth methods
+- audit
 
 ## Detailed configuration
 
@@ -111,3 +112,7 @@ authMethods:
     - name: <name of the authMethod>
     - enabled: [true|false]
 ```
+
+### Audit
+
+- enable audit to stdout
