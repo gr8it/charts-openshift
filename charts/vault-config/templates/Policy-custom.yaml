@@ -5,6 +5,7 @@ metadata:
   name: {{ $policy }}-policy
   annotations:
     crossplane.io/external-name: {{ $policy }}
+  labels:
     {{- include "vault-config.labels" $ | nindent 4 }}
 spec:
   deletionPolicy: Orphan

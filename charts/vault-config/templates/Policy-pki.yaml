@@ -6,6 +6,7 @@ metadata:
   name: pki-{{ $roleData.name }}-policy
   annotations:
     crossplane.io/external-name: pki-{{ $roleData.name }}
+  labels:
     {{- include "vault-config.labels" $ | nindent 4 }}
 spec:
   deletionPolicy: Orphan

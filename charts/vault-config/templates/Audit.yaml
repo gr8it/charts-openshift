@@ -4,6 +4,8 @@ metadata:
   name: audit
   annotations:
     crossplane.io/external-name: file
+  labels:
+    {{- include "vault-config.labels" $ | nindent 4 }}
 spec:
   deletionPolicy: Orphan
   managementPolicy: ["Create", "Update", "Observe", "LateInitialize"]

@@ -7,6 +7,7 @@ metadata:
   name: {{ $authMethod }}-auth
   annotations:
     crossplane.io/external-name: {{ $data.name }}
+  labels:
     {{- include "vault-config.labels" $ | nindent 4 }}
 spec:
   deletionPolicy: Orphan
