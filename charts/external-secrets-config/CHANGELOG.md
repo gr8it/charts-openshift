@@ -9,4 +9,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Config map with custom certificate ([SPEXAPC-13224](https://aspecta.atlassian.net/browse/SPEXAPC-13224))
+- Config map with certificate from globals ([SPEXAPC-13224](https://aspecta.atlassian.net/browse/SPEXAPC-13224))
