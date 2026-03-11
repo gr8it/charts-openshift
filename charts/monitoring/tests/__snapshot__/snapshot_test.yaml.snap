@@ -7,7 +7,7 @@ rendered cluster-policy-cluster-monitoring manifest:
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.0.8
+        helm.sh/chart: monitoring-1.0.9
       name: cluster-policy-cluster-monitoring
     spec:
       generateExisting: true
@@ -473,6 +473,10 @@ rendered cluster-policy-cluster-monitoring manifest:
     kind: ClusterRole
     metadata:
       labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.0.9
         rbac.kyverno.io/aggregate-to-admission-controller: "true"
       name: kyverno:admission-controller:monitoring
     rules:
