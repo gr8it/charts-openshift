@@ -1,0 +1,12 @@
+{{- if (include "apc-global-overrides.caCertificates" .) | fromYaml }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "external-secrets-config.fullname" . }}-ca-certificates
+  namespace: {{ .Values.esoNamespace }}
+  labels:
+    {{- include "external-secrets-config.labels" . | nindent 4 }}
+data:
+  ca.crt: |
+    {{- (include "apc-global-overrides.caCertificatesBundle" .) | nindent 4 }}
+{{- end }}
