@@ -36,7 +36,7 @@ spec:
         description: "Crossplane RBAC manager pod has been down for more than 10 minutes"
         summary: "Crossplane RBAC manager is not running"
       expr: |
-        absent(up{job=~".*crossplane-rbac-manager.*"}) == 1
+        absent(up{job="{{ .Release.Namespace }}/{{ include "crossplane-helm.fullname" . }}-rbac-manager"}) == 1
       for: 10m
       labels:
         severity: warning
