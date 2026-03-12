@@ -4,7 +4,7 @@ applyTo: "charts/**"
 
 # Copilot — Helm Chart Review Instructions
 
-You are reviewing **Helm charts**. The repo charts are part of a product, as such they are opinionated to minimize deployment complexity, i.e. adhere to the convention over configuration design paradigm. The charts are orchestrated from (per customer) repositories using `helmfile`. Goal of the helmfile is to install only relevant components (charts), prepare environment values (combined global / per environment / per deployed cluster) and make them available to the charts. These values shouldn't be accessed directly by the charts though, as they are made available via helper functions of the apc-global-overrides, e.g. `{{ include "apc-global-overrides.environmentShort" . }}`, which enables override possibilities.
+You are reviewing **Helm charts**. These charts are part of a product and are intentionally opinionated to minimize deployment complexity and favor a convention-over-configuration design paradigm. They are orchestrated from per-customer repositories using `helmfile`. The goal of Helmfile is to install only relevant components (charts), prepare environment values (combining global, per-environment, and per-cluster settings), and make them available to the charts. Charts should not access these values directly; instead, they should use helper functions from `apc-global-overrides`, such as `{{ include "apc-global-overrides.environmentShort" . }}`, to enable override capabilities.
 
 Focus on chart structure, templating quality, Kubernetes & OpenShift compatibility, runtime security, reliability, and upgrade safety.  
 Always provide: (a) root cause, (b) concrete fix, (c) suggested diff.
