@@ -5,6 +5,14 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-03-09
+
+_([ASPELAB-91](https://aspecta.atlassian.net/browse/ASPELAB-91))_
+
+### Added
+
+- Set `defaultCertificate` on IngressController to use cert-manager issued wildcard certificate
+
 ## [1.1.0] - 2025-11-06
 
 _([SPEXAPC-6770](https://aspecta.atlassian.net/browse/SPEXAPC-6770))_
