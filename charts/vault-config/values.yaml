@@ -47,23 +47,6 @@ policies:
         path "sys/storage/raft/snapshot" {
           capabilities = ["read"]
         }
-    pki-spoke-cluster-issuer:
-      rules: |
-        path "pki/sign/*" {
-          capabilities = ["create", "update"]
-        }
-        path "pki/issuer/*" {
-          capabilities = ["read"]
-        }
-        path "pki/roles/*" {
-          capabilities = ["list"]
-        }
-        path "pki_int/sign/*" {
-          capabilities = ["create", "update"]
-        }
-        path "pki/issue/apc.socpoist.sk" {
-          capabilities = ["create", "update"]
-        }
 
 authMethods:
   approle:

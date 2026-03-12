@@ -99,10 +99,9 @@ pkiIssuers:
 
 - you can create default PKI policy by specifying `pkiIssuers.pkiRoles.roles.<role_name>.defaultPkiPolicy: true`
 - other policies are specified in values under `policies.customPolicies.<policy_name>.rules`
+- if policy holds hardcoded domain identification or any specific value it should be placed in component values
 - rules are standard vault policy definition
 
-> [!IMPORTANT]
-> `policies.customPolicies.pki-spoke-cluster-issuer` would need to be specified in component values for deployments on other type of clusers as value holds hardcoded domain name
 
 ### Auth methods
 

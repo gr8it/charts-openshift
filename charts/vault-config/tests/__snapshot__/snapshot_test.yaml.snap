@@ -73,30 +73,6 @@ manifests should match snapshot:
       providerConfigRef:
         name: null
   4: |
-    apiVersion: auth.vault.upbound.io/v1alpha1
-    kind: Backend
-    metadata:
-      annotations:
-        crossplane.io/external-name: ad
-      labels:
-        app.kubernetes.io/instance: vault-config
-        app.kubernetes.io/managed-by: ArgoCD
-        app.kubernetes.io/name: vault-config
-        helm.sh/chart: vault-config-1.0.0
-      name: ad-auth
-    spec:
-      deletionPolicy: Orphan
-      forProvider:
-        path: ad
-        type: ldap
-      managementPolicy:
-        - Create
-        - Update
-        - Observe
-        - LateInitialize
-      providerConfigRef:
-        name: null
-  5: |
     apiVersion: vault.vault.upbound.io/v1alpha1
     kind: Mount
     metadata:
@@ -120,7 +96,7 @@ manifests should match snapshot:
         - LateInitialize
       providerConfigRef:
         name: null
-  6: |
+  5: |
     apiVersion: vault.vault.upbound.io/v1alpha1
     kind: Mount
     metadata:
@@ -144,7 +120,7 @@ manifests should match snapshot:
         - LateInitialize
       providerConfigRef:
         name: null
-  7: |
+  6: |
     apiVersion: vault.vault.upbound.io/v1alpha1
     kind: Mount
     metadata:
@@ -168,7 +144,7 @@ manifests should match snapshot:
         - LateInitialize
       providerConfigRef:
         name: null
-  8: |
+  7: |
     apiVersion: vault.vault.upbound.io/v1alpha1
     kind: Policy
     metadata:
@@ -195,7 +171,7 @@ manifests should match snapshot:
         - LateInitialize
       providerConfigRef:
         name: null
-  9: |
+  8: |
     apiVersion: vault.vault.upbound.io/v1alpha1
     kind: Policy
     metadata:
@@ -234,7 +210,7 @@ manifests should match snapshot:
         - LateInitialize
       providerConfigRef:
         name: null
-  10: |
+  9: |
     apiVersion: vault.vault.upbound.io/v1alpha1
     kind: Policy
     metadata:
@@ -261,7 +237,172 @@ manifests should match snapshot:
         - LateInitialize
       providerConfigRef:
         name: null
+  10: |
+    apiVersion: vault.vault.upbound.io/v1alpha1
+    kind: Policy
+    metadata:
+      annotations:
+        crossplane.io/external-name: pki-apc.socpoist.sk
+      labels:
+        app.kubernetes.io/instance: vault-config
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: vault-config
+        helm.sh/chart: vault-config-1.0.0
+      name: pki-apc.socpoist.sk-policy
+    spec:
+      deletionPolicy: Orphan
+      forProvider:
+        name: pki-apc.socpoist.sk
+        policy: |
+          path "pki/issue/apc.socpoist.sk" {
+            capabilities = ["create", "update"]
+          }
+          path "pki/issuer/*" {
+            capabilities = ["read"]
+          }
+          path "pki/roles/*" {
+            capabilities = ["list"]
+          }
+      managementPolicy:
+        - Create
+        - Update
+        - Observe
+        - LateInitialize
+      providerConfigRef:
+        name: null
   11: |
+    apiVersion: vault.vault.upbound.io/v1alpha1
+    kind: Policy
+    metadata:
+      annotations:
+        crossplane.io/external-name: pki-cloud.socpoist.sk
+      labels:
+        app.kubernetes.io/instance: vault-config
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: vault-config
+        helm.sh/chart: vault-config-1.0.0
+      name: pki-cloud.socpoist.sk-policy
+    spec:
+      deletionPolicy: Orphan
+      forProvider:
+        name: pki-cloud.socpoist.sk
+        policy: |
+          path "pki/issue/cloud.socpoist.sk" {
+            capabilities = ["create", "update"]
+          }
+          path "pki/issuer/*" {
+            capabilities = ["read"]
+          }
+          path "pki/roles/*" {
+            capabilities = ["list"]
+          }
+      managementPolicy:
+        - Create
+        - Update
+        - Observe
+        - LateInitialize
+      providerConfigRef:
+        name: null
+  12: |
+    apiVersion: vault.vault.upbound.io/v1alpha1
+    kind: Policy
+    metadata:
+      annotations:
+        crossplane.io/external-name: pki-hw.apc.socpoist.sk
+      labels:
+        app.kubernetes.io/instance: vault-config
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: vault-config
+        helm.sh/chart: vault-config-1.0.0
+      name: pki-hw.apc.socpoist.sk-policy
+    spec:
+      deletionPolicy: Orphan
+      forProvider:
+        name: pki-hw.apc.socpoist.sk
+        policy: |
+          path "pki/issue/hw.apc.socpoist.sk" {
+            capabilities = ["create", "update"]
+          }
+          path "pki/issuer/*" {
+            capabilities = ["read"]
+          }
+          path "pki/roles/*" {
+            capabilities = ["list"]
+          }
+      managementPolicy:
+        - Create
+        - Update
+        - Observe
+        - LateInitialize
+      providerConfigRef:
+        name: null
+  13: |
+    apiVersion: pki.vault.upbound.io/v1alpha1
+    kind: SecretBackendRole
+    metadata:
+      annotations:
+        crossplane.io/external-name: pki/roles/apc.socpoist.sk
+      labels:
+        app.kubernetes.io/instance: vault-config
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: vault-config
+        helm.sh/chart: vault-config-1.0.0
+      name: apc.socpoist.sk
+    spec:
+      deletionPolicy: Orphan
+      forProvider:
+        allowBareDomains: false
+        allowLocalhost: false
+        allowSubdomains: true
+        allowedDomains:
+          - apc.socpoist.sk
+        backend: pki
+        issuerRef: APCCAi-Sp2
+        maxTtl: 365d
+        name: apc.socpoist.sk
+        ttl: 365d
+      managementPolicy:
+        - Create
+        - Update
+        - Observe
+        - LateInitialize
+      providerConfigRef:
+        name: null
+  14: |
+    apiVersion: pki.vault.upbound.io/v1alpha1
+    kind: SecretBackendRole
+    metadata:
+      annotations:
+        crossplane.io/external-name: pki/roles/cloud.socpoist.sk
+      labels:
+        app.kubernetes.io/instance: vault-config
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: vault-config
+        helm.sh/chart: vault-config-1.0.0
+      name: cloud.socpoist.sk
+    spec:
+      deletionPolicy: Orphan
+      forProvider:
+        allowBareDomains: true
+        allowLocalhost: false
+        allowSubdomains: true
+        allowedDomains:
+          - cloud.socpoist.sk
+          - svc
+          - cluster.local
+        backend: pki
+        issuerRef: APCCAi-Sp2
+        maxTtl: 365d
+        name: cloud.socpoist.sk
+        ttl: 365d
+      managementPolicy:
+        - Create
+        - Update
+        - Observe
+        - LateInitialize
+      providerConfigRef:
+        name: null
+  15: |
     apiVersion: pki.vault.upbound.io/v1alpha1
     kind: SecretBackendRole
     metadata:
@@ -285,9 +426,61 @@ manifests should match snapshot:
           - .
           - service..
         backend: pki
-        issuerRef: default
+        issuerRef: APCCAi-Sp2
         maxTtl: 365d
         name: .
+        ttl: 365d
+      managementPolicy:
+        - Create
+        - Update
+        - Observe
+        - LateInitialize
+      providerConfigRef:
+        name: null
+  16: |
+    apiVersion: pki.vault.upbound.io/v1alpha1
+    kind: SecretBackendRole
+    metadata:
+      annotations:
+        crossplane.io/external-name: pki/roles/hw.apc.socpoist.sk
+      labels:
+        app.kubernetes.io/instance: vault-config
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: vault-config
+        helm.sh/chart: vault-config-1.0.0
+      name: hw.apc.socpoist.sk
+    spec:
+      deletionPolicy: Orphan
+      forProvider:
+        allowBareDomains: true
+        allowGlobDomains: true
+        allowLocalhost: false
+        allowSubdomains: false
+        allowWildcardCertificates: false
+        allowedDomains:
+          - '*.hw.apc.socpoist.sk'
+          - SR-BA-xAPC1-P1HM01i
+          - SR-BA-xAPC1-P1HM02i
+          - SR-BA-xAPC1-P1HW01i
+          - SR-BA-xAPC1-P1HW02i
+          - SR-BA-xAPC1-P1PW01i
+          - SR-BA-xAPC1-P1PW02i
+          - SR-BA-xAPC1-P1TW01i
+          - SR-BA-xAPC1-P1DW01i
+          - SR-BA-xAPC1-P2HM03i
+          - SR-BA-xAPC1-P2HW03i
+          - SR-BA-xAPC1-P2PW03i
+          - SR-BA-xAPC1-P2PW04i
+          - SR-BA-xAPC1-P2TW02i
+          - SR-BA-xAPC1-P2TW03i
+          - SR-BA-xAPC1-P2DW02i
+          - SR-BA-xAPC1-P2DW03i
+          - SR-BA-xAPC1XCA-P11
+          - SR-BA-wAPC1-P1BKP1i
+        backend: pki
+        issuerRef: APCCAi-Sp2
+        maxTtl: 365d
+        name: hw.apc.socpoist.sk
         ttl: 365d
       managementPolicy:
         - Create
