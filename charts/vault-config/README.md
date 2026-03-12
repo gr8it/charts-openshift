@@ -113,7 +113,7 @@ pkiIssuers:
 authMethods:
   <auth_type>:
     - name: <name of the authMethod>
-    - enable: [true|false]
+      enable: [true|false]
 ```
 
 ### Audit
