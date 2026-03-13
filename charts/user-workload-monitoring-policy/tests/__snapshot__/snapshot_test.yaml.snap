@@ -7,7 +7,7 @@ rendered cluster-policy-cluster-application manifest:
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: user-workload-monitoring-policy
-        helm.sh/chart: user-workload-monitoring-policy-1.0.8
+        helm.sh/chart: user-workload-monitoring-policy-1.0.9
       name: cluster-policy-application
     spec:
       generateExisting: true
@@ -21,6 +21,25 @@ rendered cluster-policy-cluster-application manifest:
                     - openshift*
                     - kube*
                     - default
+              - resources:
+                  kinds:
+                    - Namespace
+                  selector:
+                    matchExpressions:
+                      - key: openshift.io/cluster-monitoring
+                        operator: In
+                        values:
+                          - "true"
+                          - ""
+              - resources:
+                  kinds:
+                    - Namespace
+                  selector:
+                    matchExpressions:
+                      - key: openshift.io/user-monitoring
+                        operator: In
+                        values:
+                          - "false"
           generate:
             apiVersion: monitoring.coreos.com/v1
             data:
@@ -460,22 +479,20 @@ rendered cluster-policy-cluster-application manifest:
               - resources:
                   kinds:
                     - Namespace
+                  selector:
+                    matchExpressions:
+                      - key: apc.namespace.type
+                        operator: In
+                        values:
+                          - application
+              - resources:
+                  kinds:
+                    - Namespace
+                  selector:
+                    matchExpressions:
+                      - key: apc.project.group
+                        operator: Exists
           name: generate-prometheus-rules-application
-          preconditions:
-            all:
-              - key: '{{request.object.metadata.labels."openshift.io/cluster-monitoring" || ''''}}'
-                operator: In
-                value:
-                  - ""
-                  - "false"
-              - key: '{{request.object.metadata.labels."openshift.io/user-monitoring" || ''''}}'
-                operator: In
-                value:
-                  - ""
-                  - "true"
-              - key: '{{request.object.metadata.labels."apc.namespace.type" || ''''}}'
-                operator: Equals
-                value: application
           skipBackgroundRequests: true
   2: |
     apiVersion: kyverno.io/v1
@@ -485,7 +502,7 @@ rendered cluster-policy-cluster-application manifest:
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: user-workload-monitoring-policy
-        helm.sh/chart: user-workload-monitoring-policy-1.0.8
+        helm.sh/chart: user-workload-monitoring-policy-1.0.9
       name: cluster-policy-non-application
     spec:
       generateExisting: true
@@ -499,6 +516,41 @@ rendered cluster-policy-cluster-application manifest:
                     - openshift*
                     - kube*
                     - default
+              - resources:
+                  kinds:
+                    - Namespace
+                  selector:
+                    matchExpressions:
+                      - key: openshift.io/cluster-monitoring
+                        operator: In
+                        values:
+                          - "true"
+                          - ""
+              - resources:
+                  kinds:
+                    - Namespace
+                  selector:
+                    matchExpressions:
+                      - key: openshift.io/user-monitoring
+                        operator: In
+                        values:
+                          - "false"
+              - resources:
+                  kinds:
+                    - Namespace
+                  selector:
+                    matchExpressions:
+                      - key: apc.namespace.type
+                        operator: In
+                        values:
+                          - application
+              - resources:
+                  kinds:
+                    - Namespace
+                  selector:
+                    matchExpressions:
+                      - key: apc.project.group
+                        operator: Exists
           generate:
             apiVersion: monitoring.coreos.com/v1
             data:
@@ -934,27 +986,11 @@ rendered cluster-policy-cluster-application manifest:
             namespace: '{{request.object.metadata.name}}'
             synchronize: true
           match:
-            any:
+            all:
               - resources:
                   kinds:
                     - Namespace
           name: generate-prometheus-rules-platform
-          preconditions:
-            all:
-              - key: '{{request.object.metadata.labels."openshift.io/cluster-monitoring" || ''''}}'
-                operator: In
-                value:
-                  - ""
-                  - "false"
-              - key: '{{request.object.metadata.labels."openshift.io/user-monitoring"| ''''}}'
-                operator: In
-                value:
-                  - ""
-                  - "true"
-              - key: '{{request.object.metadata.labels."apc.namespace.type" || ''''}}'
-                operator: NotIn
-                value:
-                  - application
           skipBackgroundRequests: true
   3: |
     apiVersion: rbac.authorization.k8s.io/v1
