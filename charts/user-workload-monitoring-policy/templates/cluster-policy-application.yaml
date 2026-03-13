@@ -13,32 +13,37 @@ spec:
     match:
       any:
       - resources:
-          kinds:
-          - Namespace
-    preconditions:
-      all:
-      - key: {{ "{{request.object.metadata.labels.\"openshift.io/cluster-monitoring\" || ''}}" | quote }}
-        operator: In
-        value:
-        - ""
-        - "false"
-      - key: {{ "{{request.object.metadata.labels.\"openshift.io/user-monitoring\" || ''}}" | quote }}
-        operator: In
-        value:
-        - ""
-        - "true"
-      - key: {{ "{{request.object.metadata.labels.\"apc.namespace.type\" || ''}}" | quote }}
-        operator: Equals
-        value: "application"
+          kinds: [Namespace]
+          selector:
+            matchExpressions:
+            - key: apc.namespace.type
+              operator: In
+              values: ["application"]
+      - resources:
+          kinds: [Namespace]
+          selector:
+            matchExpressions:
+            - key: apc.project.group
+              operator: Exists
     exclude:
       any:
       - resources:
-          kinds:
-          - Namespace
-          names:
-          - "openshift*"
-          - "kube*"
-          - "default"
+          kinds: [Namespace]
+          names: ["openshift*", "kube*", "default"]
+      - resources:
+          kinds: [Namespace]
+          selector:
+            matchExpressions:
+            - key: openshift.io/cluster-monitoring
+              operator: In
+              values: ["true", ""]
+      - resources:
+          kinds: [Namespace]
+          selector:
+            matchExpressions:
+            - key: openshift.io/user-monitoring
+              operator: In
+              values: ["false"]
     generate:
       synchronize: true
       apiVersion: monitoring.coreos.com/v1
