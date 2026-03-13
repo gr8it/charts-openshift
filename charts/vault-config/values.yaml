@@ -1,0 +1,60 @@
+## uses following global values => do not set here
+# global:
+#   apc:
+#     cluster:
+#       rootDomain:
+#     services:
+#       crossplane:
+#         kubeVaultProviderConfigName:
+## and their local overrides
+# cluster.rootDomain:
+# services.crossplane.kubeVaultProviderConfigName:
+
+releaseServiceOverride: ArgoCD
+
+secretEngines:
+  apc:
+    type: kv-2
+  apc-platform:
+    type: kv-2
+  pki:
+    type: pki
+    
+pkiIssuer:
+  issuerName: ~       # needed in case we want to import already created roles for named issued, if not specified default issuer is used
+  pkiRoles:
+    defaultSettings:    # default settings for all created roles
+      ttl: "365d"
+      maxTtl: "365d"
+      allowBareDomains: true
+      allowSubdomains: true
+      allowLocalhost: false
+    roles: 
+      cluster:
+        name: ~
+        backend: pki
+        allowedDomains: []  # default domains defined in helper vault-config.defaultAllowedDomains for the target cluster, separate domains for separate roles defined in component values
+
+policies:
+  customPolicies:
+    admin:
+      rules: |
+        path "*" {
+          capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+        }
+    snapshot:
+      rules: |
+        path "sys/storage/raft/snapshot" {
+          capabilities = ["read"]
+        }
+
+authMethods:
+  approle:
+    - name: approle
+      enable: true      # will create the authmethod, or will import the method under crossplane management
+                        #could be omitted but this schema was chosen if we want to add more configuration for specific auth method -> https://marketplace.upbound.io/providers/upbound/provider-vault/v3.0.4/resources/auth.vault.m.upbound.io/Backend/v1alpha1#doc:spec-forProvider-tune
+  ldap:
+    - name: ldap
+      enable: true
+    - name: ad
+      enable: true
