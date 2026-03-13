@@ -67,21 +67,3 @@ policies:
           capabilities = ["create", "update"]
         }
 
-
-authMethods:
-  approle:
-    - name: approle
-      enable: true      
-  ldap:
-    - name: ldap
-      enable: true
-
-releaseServiceOverride: ArgoCD
-
-secretEngines:
-  apc:
-    type: kv-2
-  apc-platform:
-    type: kv-2
-  pki:
-    type: pki
