@@ -7,8 +7,6 @@ metadata:
   labels:
     {{- include "vault-config.labels" $ | nindent 4 }}
 spec:
-  deletionPolicy: Orphan
-  managementPolicy: ["Create", "Update", "Observe", "LateInitialize"]
   forProvider:
     options:
       file_path: stdout

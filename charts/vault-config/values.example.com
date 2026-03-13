@@ -1,4 +1,4 @@
-pkiIssuers:
+pkiIssuer:
   issuerName: APCCAi-Sp2
   pkiRoles:
     roles:

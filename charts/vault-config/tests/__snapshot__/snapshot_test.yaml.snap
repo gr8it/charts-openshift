@@ -12,16 +12,10 @@ manifests should match snapshot:
         helm.sh/chart: vault-config-1.0.0
       name: audit
     spec:
-      deletionPolicy: Orphan
       forProvider:
         options:
           file_path: stdout
         type: file
-      managementPolicy:
-        - Create
-        - Update
-        - Observe
-        - LateInitialize
       providerConfigRef:
         name: null
   2: |
@@ -157,18 +151,12 @@ manifests should match snapshot:
         helm.sh/chart: vault-config-1.0.0
       name: admin-policy
     spec:
-      deletionPolicy: Orphan
       forProvider:
         name: admin
         policy: |
           path "*" {
             capabilities = ["create", "read", "update", "delete", "list", "sudo"]
           }
-      managementPolicy:
-        - Create
-        - Update
-        - Observe
-        - LateInitialize
       providerConfigRef:
         name: null
   8: |
@@ -184,7 +172,6 @@ manifests should match snapshot:
         helm.sh/chart: vault-config-1.0.0
       name: pki-spoke-cluster-issuer-policy
     spec:
-      deletionPolicy: Orphan
       forProvider:
         name: pki-spoke-cluster-issuer
         policy: |
@@ -203,11 +190,6 @@ manifests should match snapshot:
           path "pki/issue/apc.socpoist.sk" {
             capabilities = ["create", "update"]
           }
-      managementPolicy:
-        - Create
-        - Update
-        - Observe
-        - LateInitialize
       providerConfigRef:
         name: null
   9: |
@@ -223,18 +205,12 @@ manifests should match snapshot:
         helm.sh/chart: vault-config-1.0.0
       name: snapshot-policy
     spec:
-      deletionPolicy: Orphan
       forProvider:
         name: snapshot
         policy: |
           path "sys/storage/raft/snapshot" {
             capabilities = ["read"]
           }
-      managementPolicy:
-        - Create
-        - Update
-        - Observe
-        - LateInitialize
       providerConfigRef:
         name: null
   10: |
@@ -250,7 +226,6 @@ manifests should match snapshot:
         helm.sh/chart: vault-config-1.0.0
       name: pki-apc.socpoist.sk-policy
     spec:
-      deletionPolicy: Orphan
       forProvider:
         name: pki-apc.socpoist.sk
         policy: |
@@ -263,11 +238,6 @@ manifests should match snapshot:
           path "pki/roles/*" {
             capabilities = ["list"]
           }
-      managementPolicy:
-        - Create
-        - Update
-        - Observe
-        - LateInitialize
       providerConfigRef:
         name: null
   11: |
@@ -283,7 +253,6 @@ manifests should match snapshot:
         helm.sh/chart: vault-config-1.0.0
       name: pki-cloud.socpoist.sk-policy
     spec:
-      deletionPolicy: Orphan
       forProvider:
         name: pki-cloud.socpoist.sk
         policy: |
@@ -296,11 +265,6 @@ manifests should match snapshot:
           path "pki/roles/*" {
             capabilities = ["list"]
           }
-      managementPolicy:
-        - Create
-        - Update
-        - Observe
-        - LateInitialize
       providerConfigRef:
         name: null
   12: |
@@ -316,7 +280,6 @@ manifests should match snapshot:
         helm.sh/chart: vault-config-1.0.0
       name: pki-hw.apc.socpoist.sk-policy
     spec:
-      deletionPolicy: Orphan
       forProvider:
         name: pki-hw.apc.socpoist.sk
         policy: |
@@ -329,11 +292,6 @@ manifests should match snapshot:
           path "pki/roles/*" {
             capabilities = ["list"]
           }
-      managementPolicy:
-        - Create
-        - Update
-        - Observe
-        - LateInitialize
       providerConfigRef:
         name: null
   13: |

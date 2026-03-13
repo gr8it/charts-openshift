@@ -1,4 +1,4 @@
-{{- range $role, $roleData := .Values.pkiIssuers.pkiRoles.roles }}
+{{- range $role, $roleData := .Values.pkiIssuer.pkiRoles.roles }}
 {{- if $roleData.defaultPkiPolicy }}
 apiVersion: vault.vault.upbound.io/v1alpha1
 kind: Policy
@@ -9,8 +9,6 @@ metadata:
   labels:
     {{- include "vault-config.labels" $ | nindent 4 }}
 spec:
-  deletionPolicy: Orphan
-  managementPolicy: ["Create", "Update", "Observe", "LateInitialize"]
   forProvider:
     name: pki-{{ $roleData.name }}
     policy: | 

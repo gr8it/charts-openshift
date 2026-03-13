@@ -34,8 +34,8 @@ secretEngines:
 ### PKI issuer roles
 
 - chart will create one role for the cluster the chart is deployed to (hub01 for example)
-- additional roles can be specified in component values at `pkiIssuers.pkiRoles.roles`
-- actual implementation configures default settings for created roles; defaults are specified at `pkiIssuers.pkiRoles.defaultSettings`
+- additional roles can be specified in component values at `pkiIssuer.pkiRoles.roles`
+- actual implementation configures default settings for created roles; defaults are specified at `pkiIssuer.pkiRoles.defaultSettings`
 - default settings can be adjusted in component values
 
 <details>
@@ -43,7 +43,7 @@ secretEngines:
 <summary> additional issuer role example </summary>
 
 ```yaml
-pkiIssuers:
+pkiIssuer:
   issuerName: APCCAi-Sp2
   pkiRoles:
     roles:
@@ -97,7 +97,7 @@ pkiIssuers:
 
 ### Vault policies
 
-- you can create default PKI policy by specifying `pkiIssuers.pkiRoles.roles.<role_name>.defaultPkiPolicy: true`
+- you can create default PKI policy by specifying `pkiIssuer.pkiRoles.roles.<role_name>.defaultPkiPolicy: true`
 - other policies are specified in values under `policies.customPolicies.<policy_name>.rules`
 - if policy holds hardcoded domain identification or any specific value it should be placed in component values
 - rules are standard vault policy definition
