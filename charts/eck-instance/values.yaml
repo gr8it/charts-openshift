@@ -1,0 +1,24 @@
+releaseServiceOverride: ArgoCD
+
+elasticsearch:
+  version: 9.3.1
+  nodesCount: 3
+  requests:
+    memory: 1Gi
+    cpu: 500m
+  limits:
+    memory: 2Gi
+    cpu: 1
+  volumeClaim:
+    size: 100Gi
+    storageClass: ocs-storagecluster-ceph-rbd
+
+kibana:
+  version: 9.3.1
+  nodesCount: 1
+  requests:
+    memory: 1Gi
+    cpu: 500m
+  limits:
+    memory: 2Gi
+    cpu: 1

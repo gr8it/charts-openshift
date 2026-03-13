@@ -1,0 +1,31 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: {{ .Release.name }}
+  namespace: {{ .Release.namespace }}
+spec:
+  version: {{ .Values.elasticsearch.version }}
+  nodeSets:
+  - name: default
+    count: {{ .Values.elasticsearch.nodesCount }}
+    podTemplate:
+      spec:
+        containers:
+        - name: elasticsearch
+          resources:
+            requests:
+              memory: {{ .Values.elasticsearch.requests.memory }}
+              cpu: {{ .Values.elasticsearch.requests.cpu }}
+            limits:
+              memory: {{ .Values.elasticsearch.limits.memory }}
+              cpu: {{ .Values.elasticsearch.limits.cpu }}
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.elasticsearch.volumeClaim.size }}
+        storageClassName: {{ .Values.elasticsearch.volumeClaim.storageClass }}
