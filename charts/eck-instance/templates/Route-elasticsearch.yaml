@@ -1,8 +1,11 @@
+{{- if .Values.elasticsearch.route }}
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  name: {{ .Release.name }}-es
-  namespace: {{ .Release.namespace }}
+  name: {{ .Release.Name }}-es
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "eck-instance.labels" . | nindent 4 }}
 spec:
   #host: elasticsearch.example.com
   tls:
@@ -10,4 +13,5 @@ spec:
     insecureEdgeTerminationPolicy: Redirect
   to:
     kind: Service
-    name: {{ .Release.name }}-es-http
+    name: {{ .Release.Name }}-es-http
+{{- end }}

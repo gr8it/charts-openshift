@@ -1,21 +1,27 @@
 apiVersion: kibana.k8s.elastic.co/v1
 kind: Kibana
 metadata:
-  name: {{ .Release.name }}
-  namespace: {{ .Release.namespace }}
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "eck-instance.labels" . | nindent 4 }}
 spec:
   version: {{ .Values.kibana.version }}
   count: {{ .Values.kibana.nodesCount }}
   elasticsearchRef:
-    name: "{{ .Release.name }}"
+    name: "{{ .Release.Name }}"
   podTemplate:
     spec:
       containers:
       - name: kibana
         resources:
           limits:
-            memory: {{ .Values.kibana.requests.memory }}
-            cpu: {{ .Values.kibana.requests.cpu }}
-          requests:
             memory: {{ .Values.kibana.limits.memory }}
             cpu: {{ .Values.kibana.limits.cpu }}
+          requests:
+            memory: {{ .Values.kibana.requests.memory }}
+            cpu: {{ .Values.kibana.requests.cpu }}
+  http:
+    tls:
+      certificate:
+        secretName: {{ .Release.Name }}-kb-tls

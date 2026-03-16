@@ -1,6 +1,16 @@
+# globals values and their overrides in the chart
+# global:
+#   apc:
+#     cluster:
+#       appsDomain:
+# overrides
+# cluster:
+#   appsDomain:
+
 releaseServiceOverride: ArgoCD
 
 elasticsearch:
+  route: true
   version: 9.3.1
   nodesCount: 3
   requests:
@@ -8,12 +18,13 @@ elasticsearch:
     cpu: 500m
   limits:
     memory: 2Gi
-    cpu: 1
+    cpu: 1000m
   volumeClaim:
     size: 100Gi
     storageClass: ocs-storagecluster-ceph-rbd
 
 kibana:
+  route: true
   version: 9.3.1
   nodesCount: 1
   requests:
@@ -21,4 +32,7 @@ kibana:
     cpu: 500m
   limits:
     memory: 2Gi
-    cpu: 1
+    cpu: 1000m
+
+
+secretStore: vault-hub01

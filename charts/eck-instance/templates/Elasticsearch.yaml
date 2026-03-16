@@ -1,14 +1,20 @@
 apiVersion: elasticsearch.k8s.elastic.co/v1
 kind: Elasticsearch
 metadata:
-  name: {{ .Release.name }}
-  namespace: {{ .Release.namespace }}
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "eck-instance.labels" . | nindent 4 }}
 spec:
   version: {{ .Values.elasticsearch.version }}
+  auth:
+    fileRealm:
+    - secretName: es-default-user
   nodeSets:
   - name: default
     count: {{ .Values.elasticsearch.nodesCount }}
     podTemplate:
+      metadata: {}
       spec:
         containers:
         - name: elasticsearch
@@ -29,3 +35,7 @@ spec:
           requests:
             storage: {{ .Values.elasticsearch.volumeClaim.size }}
         storageClassName: {{ .Values.elasticsearch.volumeClaim.storageClass }}
+  http:
+    tls:
+      certificate:
+        secretName: {{ .Release.Name }}-es-tls
