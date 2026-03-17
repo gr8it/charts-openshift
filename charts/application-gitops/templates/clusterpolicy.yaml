@@ -48,9 +48,9 @@ spec:
               - defaultServiceAccount: {{ include "application-gitops.fullname" . }}
                 namespace: {{`"{{ request.object.metadata.namespace }}"`}}
                 server: https://kubernetes.default.svc
-            # allow deployment to current namespace only
+            # allow deployment to any namespace in the cluster, but only using specific service account and rolebinding in the destination namespace.
             destinations:
-            - namespace: {{`"{{ request.object.metadata.namespace }}"`}}
+            - namespace: "*"
               # name: in-cluster
               server: https://kubernetes.default.svc
             # allow applications from current namespace only
