@@ -10,7 +10,7 @@ metadata:
     {{- include "apps-ck-kafka.labels" $ | nindent 4 }}
 spec:
   {{- if $topic.topicName }}
-  topicName: {{ $topic.topicName }}
+  topicName: {{ $topic.topicName | quote }}
   {{- end }}
   partitions: {{ $topic.partitions | default 3 }}
   replicas: {{ $topic.replicas | default 3 }}
