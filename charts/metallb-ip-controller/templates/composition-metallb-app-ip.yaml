@@ -4,11 +4,11 @@ metadata:
   name: metallb-app-ip
 spec:
   compositeTypeRef:
-    apiVersion: metallb.aspecta.crossplane.io
+    apiVersion: metallb.aspecta.crossplane.io/v1alpha1
     kind: metallbipadresspoll
   mode: Pipeline
   pipeline:
-    # Step 0: Read apc-metallb-ip-range for metallb address ranges
+    # Step 1: Read apc-metallb-ip-range for metallb address ranges
     - step: environmentConfigs
       functionRef:
         name: function-environment-configs
@@ -20,213 +20,176 @@ spec:
           - type: Reference
             ref:
               name: apc-mettalb-ip-range
-    # Step 0: Get existing IPAddressPool IPs from local K8S cluster
-    - step: get-existing-ips
+    # debug
+    - step: debug
       functionRef:
-        name: function-cue
+        name: function-debug
       input:
-        apiVersion: cue.fn.crossplane.io/v1beta1
-        kind: CueInput
-        metadata:
-          name: get-existing-ips
+        apiVersion: function-debug.fn.crossplane.io/v1beta1
+        kind: Input
         spec:
-          code: |
-            import (
-              "encoding/json"
-              "list"
-            )
-
-            // Read all IPAddressPool resources from the cluster
-            pools: {
-              apiVersion: "metallb.io/v1beta1"
-              kind: "IPAddressPool"
-            }
-
-            // Extract addresses from all pools
-            _poolList: list.Flatten([
-              for pool in __kubeClient.Resources.items {
-                if pool.kind == "IPAddressPool" {
-                  pool.spec.addresses
-                }
-              }
-            ])
-
-            // Output the list of existing IPs to composite status
-            _existingIPs: list.FlattenN(_poolList, 1)
-
-            // Return results for use in pipeline
-            results: {
-              existingIPAddressPools: _existingIPs
-            }
-    # Step 2: Selected 1st available IP from the configured ranges excluding already assigned IPs
-    - step: select-ips
-      functionRef:
-        name: function-cue
-      input:
-        apiVersion: cue.fn.crossplane.io/v1beta1
-        kind: CueInput
-        metadata:
-          name: select-ips
-        spec:
-          code: |
-            import (
-              "encoding/json"
-              "list"
-              "net"
-              "strings"
-            )
-
-            // Get configured address ranges from ConfigMap
-            _configData: __kubeClient.Resources.configMapData
-            _ranges: json.Unmarshal(_configData["ranges"])
-
-            // Get existing IPs from previous step
-            _existingIPs: __kubeClient.Resources.existingIPAddressPools
-
-            // Parse CIDR ranges and generate available IPs
-            _generateAvailableIPs: {
-              for cidr in _ranges {
-                let network = net.ParseCIDR(cidr)
-                let ips = net.HostsInNetwork(network)
-                for ip in ips {
-                  ip
-                }
-              }
-            }
-
-            // Filter out already assigned IPs
-            _availableIPs: [
-              for ip in _generateAvailableIPs {
-                if !list.Contains(_existingIPs, ip) {
-                  ip
-                }
-              }
-            ]
-
-            // Select first available IP
-            _selectedIP: _availableIPs[0]
-
-            // Return results
-            results: {
-              allocatedAddresses: [_selectedIP]
-            }
-    # Step 3: Patch and transform resources with allocated IPs
-    - step: patch-and-transform
+          depth: 10
+    # step 2: get allocated IP from existing IPAddressPool.metallb.io/v1beta1
+    - step: read-existing-ipadresspool
       functionRef:
         name: function-patch-and-transform
       input:
-        apiVersion: pt.crossplane.io/v1beta1
+        apiVersion: pt.fn.crossplane.io/v1beta1
         kind: Resources
-        metadata:
-          name: metallb-resources
-        spec:
-          resources:
-            # IPAddressPool Resource
-            - name: ip-address-pool
-              base:
-                apiVersion: metallb.io/v1beta1
-                kind: IPAddressPool
-                metadata:
-                  namespace: default
-                  name: metallb-pool
-                spec:
-                  addresses:
-                    - 10.0.0.0/24
-                  autoAssign: true
-              patches:
-                # Use claim's namespace for the pool namespace
-                - type: FromCompositeFieldValue
-                  fromFieldPath: metadata.namespace
-                  toFieldPath: metadata.namespace
-                # Use claim's name for the pool name
-                - type: FromCompositeFieldValue
-                  fromFieldPath: metadata.name
-                  toFieldPath: metadata.name
-                # Get allocated address from status (set by read-config step)
-                - type: FromCompositeFieldValue
-                  fromFieldPath: status.allocatedAddresses
-                  toFieldPath: spec.addresses
-                # Copy autoAssign setting from claim
-                - type: FromCompositeFieldValue
-                  fromFieldPath: spec.autoAssign
-                  toFieldPath: spec.autoAssign
-                # Write back IPAddressPool status to composite status
-                - type: ToCompositeFieldValue
-                  fromFieldPath: metadata.name
-                  toFieldPath: status.addressPool.name
-                - type: ToCompositeFieldValue
-                  fromFieldPath: status.conditions
-                  toFieldPath: status.addressPool.conditions
-                - type: ToCompositeFieldValue
-                  fromFieldPath: spec.addresses
-                  toFieldPath: status.addressPool.addresses
-
-            # L2Advertisement Resource
-            - name: l2-advertisement
-              base:
-                apiVersion: metallb.io/v1beta1
-                kind: L2Advertisement
-                metadata:
-                  namespace: default
-                  name: metallb-l2-adv
-                spec:
-                  ipAddressPools: []
-                  interfaces: []
-              patches:
-                # Use claim's namespace for the advertisement namespace
-                - type: FromCompositeFieldValue
-                  fromFieldPath: metadata.namespace
-                  toFieldPath: metadata.namespace
-                # Generate unique L2Advertisement name from namespace and claim name
-                - type: CombineFromComposite
-                  combine:
-                    variables:
-                      - fromFieldPath: metadata.namespace
-                      - fromFieldPath: metadata.name
-                    strategy: string
-                    string:
-                      fmt: "%s-%s-l2-adv"
-                  toFieldPath: metadata.name
-                # Reference the IPAddressPool by claim name
-                - type: FromCompositeFieldValue
-                  fromFieldPath: metadata.name
-                  toFieldPath: spec.ipAddressPools[0]
-                # Copy interfaces if provided
-                - type: FromCompositeFieldValue
-                  fromFieldPath: spec.interfaces
-                  toFieldPath: spec.interfaces
-                # Write back L2Advertisement status to composite status
-                - type: ToCompositeFieldValue
-                  fromFieldPath: metadata.name
-                  toFieldPath: status.l2Advertisement.name
-                - type: ToCompositeFieldValue
-                  fromFieldPath: status.conditions
-                  toFieldPath: status.l2Advertisement.conditions
-
-    # Step 3: Readiness checks for the composite resource
-    - step: ready
+        resources:
+        - name: existing-ip-pool
+          base:
+            apiVersion: metallb.io/v1beta1
+            kind: IPAddressPool
+    # step 3: create IPAddressPool and L2Advertisement resources with the allocated IP and reference them in the composite status
+    # - step: create-resources
+    #   functionRef:
+    #     name: function-go-templating
+    #   input:
+    #     apiVersion: gotemplate.fn.crossplane.io/v1beta1
+    #     kind: GoTemplate
+    #     source: Inline
+    #     inline:
+    #       template: |
+    - step: create-resources
       functionRef:
-        name: function-ready
+        name: function-patch-and-transform
       input:
-        apiVersion: ready.crossplane.io/v1beta1
-        kind: ReadinessChecks
-        metadata:
-          name: metallb-ready
-        spec:
-          checks:
-            - type: MatchCondition
-              fieldValue: "True"
-              matchCondition:
-                type: Ready
-                status: "True"
-              resource:
-                apiVersion: metallb.io/v1beta1
-                kind: IPAddressPool
-            - type: MatchCondition
-              fieldValue: "True"
-              matchCondition:
-                type: Ready
-                status: "True"
-              resource:
-                apiVersion: metallb.io/v1beta1
-                kind: L2Advertisement
+        apiVersion: pt.fn.crossplane.io/v1beta1
+        kind: Resources
+        resources:
+        - name: crossplane-test-pool
+          base:
+            apiVersion: metallb.io/v1beta1
+            kind: IPAddressPool
+            metadata:
+              name: crossplane-test-pool
+              namespace: default
+            spec:
+              addresses:
+              - 10.11.26.132/32
+              autoAssign: true
+              avoidBuggyIPs: false
+              serviceAllocation:
+                namespaces:
+                  - apc-crossplane-system
+    # # Step 3: Patch and transform resources with allocated IPs
+    # - step: patch-and-transform
+    #   functionRef:
+    #     name: function-patch-and-transform
+    #   input:
+    #     apiVersion: pt.crossplane.io/v1beta1
+    #     kind: Resources
+    #     metadata:
+    #       name: metallb-resources
+    #     spec:
+    #       resources:
+    #         # IPAddressPool Resource
+    #         - name: ip-address-pool
+    #           base:
+    #             apiVersion: metallb.io/v1beta1
+    #             kind: IPAddressPool
+    #             metadata:
+    #               namespace: default
+    #               name: metallb-pool
+    #             spec:
+    #               addresses:
+    #                 - 10.0.0.0/24
+    #               autoAssign: true
+    #           patches:
+    #             # Use claim's namespace for the pool namespace
+    #             - type: FromCompositeFieldValue
+    #               fromFieldPath: metadata.namespace
+    #               toFieldPath: metadata.namespace
+    #             # Use claim's name for the pool name
+    #             - type: FromCompositeFieldValue
+    #               fromFieldPath: metadata.name
+    #               toFieldPath: metadata.name
+    #             # Get allocated address from status (set by read-config step)
+    #             - type: FromCompositeFieldValue
+    #               fromFieldPath: status.allocatedAddresses
+    #               toFieldPath: spec.addresses
+    #             # Copy autoAssign setting from claim
+    #             - type: FromCompositeFieldValue
+    #               fromFieldPath: spec.autoAssign
+    #               toFieldPath: spec.autoAssign
+    #             # Write back IPAddressPool status to composite status
+    #             - type: ToCompositeFieldValue
+    #               fromFieldPath: metadata.name
+    #               toFieldPath: status.addressPool.name
+    #             - type: ToCompositeFieldValue
+    #               fromFieldPath: status.conditions
+    #               toFieldPath: status.addressPool.conditions
+    #             - type: ToCompositeFieldValue
+    #               fromFieldPath: spec.addresses
+    #               toFieldPath: status.addressPool.addresses
+
+    #         # L2Advertisement Resource
+    #         - name: l2-advertisement
+    #           base:
+    #             apiVersion: metallb.io/v1beta1
+    #             kind: L2Advertisement
+    #             metadata:
+    #               namespace: default
+    #               name: metallb-l2-adv
+    #             spec:
+    #               ipAddressPools: []
+    #               interfaces: []
+    #           patches:
+    #             # Use claim's namespace for the advertisement namespace
+    #             - type: FromCompositeFieldValue
+    #               fromFieldPath: metadata.namespace
+    #               toFieldPath: metadata.namespace
+    #             # Generate unique L2Advertisement name from namespace and claim name
+    #             - type: CombineFromComposite
+    #               combine:
+    #                 variables:
+    #                   - fromFieldPath: metadata.namespace
+    #                   - fromFieldPath: metadata.name
+    #                 strategy: string
+    #                 string:
+    #                   fmt: "%s-%s-l2-adv"
+    #               toFieldPath: metadata.name
+    #             # Reference the IPAddressPool by claim name
+    #             - type: FromCompositeFieldValue
+    #               fromFieldPath: metadata.name
+    #               toFieldPath: spec.ipAddressPools[0]
+    #             # Copy interfaces if provided
+    #             - type: FromCompositeFieldValue
+    #               fromFieldPath: spec.interfaces
+    #               toFieldPath: spec.interfaces
+    #             # Write back L2Advertisement status to composite status
+    #             - type: ToCompositeFieldValue
+    #               fromFieldPath: metadata.name
+    #               toFieldPath: status.l2Advertisement.name
+    #             - type: ToCompositeFieldValue
+    #               fromFieldPath: status.conditions
+    #               toFieldPath: status.l2Advertisement.conditions
+
+    # # Step 3: Readiness checks for the composite resource
+    # - step: ready
+    #   functionRef:
+    #     name: function-ready
+    #   input:
+    #     apiVersion: ready.crossplane.io/v1beta1
+    #     kind: ReadinessChecks
+    #     metadata:
+    #       name: metallb-ready
+    #     spec:
+    #       checks:
+    #         - type: MatchCondition
+    #           fieldValue: "True"
+    #           matchCondition:
+    #             type: Ready
+    #             status: "True"
+    #           resource:
+    #             apiVersion: metallb.io/v1beta1
+    #             kind: IPAddressPool
+    #         - type: MatchCondition
+    #           fieldValue: "True"
+    #           matchCondition:
+    #             type: Ready
+    #             status: "True"
+    #           resource:
+    #             apiVersion: metallb.io/v1beta1
+    #             kind: L2Advertisement

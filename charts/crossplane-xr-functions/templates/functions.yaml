@@ -2,7 +2,7 @@
 apiVersion: pkg.crossplane.io/v1
 kind: Function
 metadata:
-  name: {{ include "crossplane-xr-functions.fullname" $ }}-{{ .name }}
+  name: {{ .name }}
   namespace: {{ $.Release.Namespace }}
   labels:
     {{- include "crossplane-xr-functions.labels" $ | nindent 4 }}
@@ -11,6 +11,6 @@ spec:
   runtimeConfigRef:
     apiVersion: pkg.crossplane.io/v1beta1
     kind: DeploymentRuntimeConfig
-    name: {{ include "crossplane-xr-functions.fullname" $ }}-{{ .name }}-runtime-config
+    name: {{ .name }}-runtime-config
 ---
 {{- end }}
