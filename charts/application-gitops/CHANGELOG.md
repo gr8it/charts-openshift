@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Updated Argo AppProject desinations - allowing applications to deploy to different namespaces than sourceNamespace
+- Updated Argo AppProject destinations - allowing applications to deploy to different namespaces than sourceNamespace
 - Updated snapshot tests to match current template rendering
 
 ## [1.5.0] - 2025-11-19
