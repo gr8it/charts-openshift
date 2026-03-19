@@ -9,41 +9,17 @@ lokistack:
     retention:
       days: 20
 
-clusterLogForwarder:
-  collector:
-    resources:
-      limits:
-        cpu: 8
-        memory: 8Gi
-      requests:
-        cpu: 500m
-        memory: 1Gi
-  outputs:
-    hubForwarding:
-      enabled: false
+collector:
+  resources:
+    limits:
+      cpu: 8
+      memory: 8Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+hubForwarding:
+  enabled: false
 
 externalSecret:
   enabled: false
-
-# Example values for spoke cluster (dev01/prod01 - with hub forwarding)
-# lokistack:
-#   size: 1x.pico
-#   limits:
-#     global:
-#       ingestion:
-#         ingestionRate: 6
-#         ingestionBurstSize: 12
-#     retention:
-#       days: 7    # dev01: 7, prod01: 30
-#
-# clusterLogForwarder:
-#   outputs:
-#     hubForwarding:
-#       enabled: true
-#       url: "https://logging-loki-openshift-logging.apps.hub01.cloud.socpoist.sk"
-#   pipelines:
-#     auditToHub:
-#       enabled: true
-#
-# externalSecret:
-#   enabled: true

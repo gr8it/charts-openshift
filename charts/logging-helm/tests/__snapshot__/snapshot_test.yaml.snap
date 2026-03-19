@@ -3,8 +3,6 @@ manifests should match snapshot:
     apiVersion: observability.openshift.io/v1
     kind: ClusterLogForwarder
     metadata:
-      annotations:
-        argocd.argoproj.io/sync-wave: "10"
       labels:
         app.kubernetes.io/instance: logging-helm
         app.kubernetes.io/managed-by: Helm
@@ -50,8 +48,6 @@ manifests should match snapshot:
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
-      annotations:
-        argocd.argoproj.io/sync-wave: "-40"
       labels:
         app.kubernetes.io/instance: logging-helm
         app.kubernetes.io/managed-by: Helm
@@ -70,8 +66,7 @@ manifests should match snapshot:
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
-      annotations:
-        argocd.argoproj.io/sync-wave: "-40"
+      annotations: null
       labels:
         app.kubernetes.io/instance: logging-helm
         app.kubernetes.io/managed-by: Helm
@@ -90,8 +85,7 @@ manifests should match snapshot:
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
-      annotations:
-        argocd.argoproj.io/sync-wave: "-40"
+      annotations: null
       labels:
         app.kubernetes.io/instance: logging-helm
         app.kubernetes.io/managed-by: Helm
@@ -110,8 +104,6 @@ manifests should match snapshot:
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
-      annotations:
-        argocd.argoproj.io/sync-wave: "-40"
       labels:
         app.kubernetes.io/instance: logging-helm
         app.kubernetes.io/managed-by: Helm
@@ -130,8 +122,6 @@ manifests should match snapshot:
     apiVersion: loki.grafana.com/v1
     kind: LokiStack
     metadata:
-      annotations:
-        argocd.argoproj.io/sync-wave: "-20"
       labels:
         app.kubernetes.io/instance: logging-helm
         app.kubernetes.io/managed-by: Helm
@@ -179,24 +169,9 @@ manifests should match snapshot:
           adminGroups:
             - cluster-admin
   7: |
-    apiVersion: v1
-    kind: Namespace
-    metadata:
-      annotations:
-        argocd.argoproj.io/sync-wave: "-50"
-      labels:
-        apc.namespace.type: platform
-        app.kubernetes.io/instance: logging-helm
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: logging-helm
-        helm.sh/chart: logging-helm-1.0.0
-      name: openshift-logging
-  8: |
     apiVersion: objectbucket.io/v1alpha1
     kind: ObjectBucketClaim
     metadata:
-      annotations:
-        argocd.argoproj.io/sync-wave: "-30"
       labels:
         app.kubernetes.io/instance: logging-helm
         app.kubernetes.io/managed-by: Helm
@@ -207,12 +182,10 @@ manifests should match snapshot:
     spec:
       generateBucketName: logging-loki-rgw
       storageClassName: ocs-storagecluster-ceph-rgw
-  9: |
+  8: |
     apiVersion: v1
     kind: ServiceAccount
     metadata:
-      annotations:
-        argocd.argoproj.io/sync-wave: "-40"
       labels:
         app.kubernetes.io/instance: logging-helm
         app.kubernetes.io/managed-by: Helm
@@ -220,12 +193,10 @@ manifests should match snapshot:
         helm.sh/chart: logging-helm-1.0.0
       name: collector
       namespace: openshift-logging
-  10: |
+  9: |
     apiVersion: observability.openshift.io/v1alpha1
     kind: UIPlugin
     metadata:
-      annotations:
-        argocd.argoproj.io/sync-wave: "-10"
       labels:
         app.kubernetes.io/instance: logging-helm
         app.kubernetes.io/managed-by: Helm

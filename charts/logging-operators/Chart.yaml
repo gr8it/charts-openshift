@@ -1,9 +1,21 @@
 apiVersion: v2
 name: logging-operators
-description: A Helm chart to install logging operators (Cluster Observability Operator, Loki Operator, OpenShift Logging Operator)
+description: A Helm chart to install logging operators (Cluster Observability Operator, Loki Operator, OpenShift Logging Operator) using ACM OperatorPolicy
 type: application
-version: 1.0.0
+version: 1.1.0
 dependencies:
-  - name: apc-global-overrides
-    version: 1.6.0
+  - name: acm-operatorpolicy
+    version: "1.3.0"
+    alias: coo-operatorpolicy
+    condition: coo-operatorpolicy.enabled
+    repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+  - name: acm-operatorpolicy
+    version: "1.3.0"
+    alias: loki-operatorpolicy
+    condition: loki-operatorpolicy.enabled
+    repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+  - name: acm-operatorpolicy
+    version: "1.3.0"
+    alias: logging-operatorpolicy
+    condition: logging-operatorpolicy.enabled
     repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/

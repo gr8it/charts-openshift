@@ -2,13 +2,11 @@
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
-  name: {{ .Values.objectBucketClaim.name }}
+  name: {{ include "logging-helm.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "logging-helm.labels" . | nindent 4 }}
-  annotations:
-    argocd.argoproj.io/sync-wave: "-30"
 spec:
-  generateBucketName: {{ .Values.objectBucketClaim.generateBucketName }}
   storageClassName: {{ .Values.objectBucketClaim.storageClassName }}
+  bucketName: {{ .Values.objectBucketClaim.bucketName | default (include "logging-helm.fullname" .) }}
 {{- end }}

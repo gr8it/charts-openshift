@@ -1,26 +1,22 @@
 apiVersion: loki.grafana.com/v1
 kind: LokiStack
 metadata:
-  name: {{ .Values.lokistack.name }}
+  name: {{ include "logging-helm.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "logging-helm.labels" . | nindent 4 }}
-  annotations:
-    argocd.argoproj.io/sync-wave: "-20"
 spec:
   size: {{ .Values.lokistack.size }}
-  managementState: {{ .Values.lokistack.managementState }}
+  managementState: Managed
   storage:
     secret:
-      name: {{ .Values.lokistack.storage.secret.name }}
-      type: {{ .Values.lokistack.storage.secret.type }}
+      name: {{ printf "%s-allinfo" (include "logging-helm.fullname" .) }}
+      type: s3
     schemas:
       {{- toYaml .Values.lokistack.storage.schemas | nindent 6 }}
-    {{- if .Values.lokistack.storage.tls }}
     tls:
-      caKey: {{ .Values.lokistack.storage.tls.caKey }}
-      caName: {{ .Values.lokistack.storage.tls.caName }}
-    {{- end }}
+      caKey: service-ca.crt
+      caName: openshift-service-ca.crt
   storageClassName: {{ .Values.lokistack.storageClassName }}
   replication:
     factor: {{ .Values.lokistack.replication.factor }}
@@ -29,9 +25,9 @@ spec:
       {{- toYaml .Values.lokistack.replication.zones | nindent 6 }}
     {{- end }}
   hashRing:
-    type: {{ .Values.lokistack.hashRing.type }}
+    type: memberlist
     memberlist:
-      instanceAddrType: {{ .Values.lokistack.hashRing.memberlist.instanceAddrType }}
+      instanceAddrType: podIP
   limits:
     global:
       ingestion:
@@ -39,9 +35,6 @@ spec:
         ingestionBurstSize: {{ .Values.lokistack.limits.global.ingestion.ingestionBurstSize }}
         perStreamRateLimit: {{ .Values.lokistack.limits.global.ingestion.perStreamRateLimit }}
         perStreamRateLimitBurst: {{ .Values.lokistack.limits.global.ingestion.perStreamRateLimitBurst }}
-        {{- if .Values.lokistack.limits.global.ingestion.maxLineSize }}
-        maxLineSize: {{ .Values.lokistack.limits.global.ingestion.maxLineSize }}
-        {{- end }}
       queries:
         queryTimeout: {{ .Values.lokistack.limits.global.queries.queryTimeout }}
     retention:
@@ -58,7 +51,7 @@ spec:
         {{- toYaml .Values.lokistack.rules.selector.matchLabels | nindent 8 }}
   {{- end }}
   tenants:
-    mode: {{ .Values.lokistack.tenants.mode }}
+    mode: openshift-logging
     openshift:
       adminGroups:
-        {{- toYaml .Values.lokistack.tenants.openshift.adminGroups | nindent 8 }}
+        - cluster-admin

@@ -7,9 +7,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "logging-helm.labels" . | nindent 4 }}
-    openshift.io/log-alerting: 'true'
-  annotations:
-    argocd.argoproj.io/sync-wave: "0"
+    openshift.io/log-alerting: 'true'  
 spec:
   tenantID: "audit"
   groups:
@@ -88,9 +86,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "logging-helm.labels" . | nindent 4 }}
-    openshift.io/log-alerting: 'true'
-  annotations:
-    argocd.argoproj.io/sync-wave: "0"
+    openshift.io/log-alerting: 'true'  
 spec:
   tenantID: "audit"
   groups:

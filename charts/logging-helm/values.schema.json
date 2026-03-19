@@ -2,45 +2,27 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "properties": {
-    "namespace": {
-      "type": "object",
-      "properties": {
-        "create": { "type": "boolean" }
-      }
-    },
+    "nameOverride": { "type": "string" },
+    "fullnameOverride": { "type": "string" },
     "objectBucketClaim": {
       "type": "object",
       "properties": {
         "enabled": { "type": "boolean" },
-        "name": { "type": "string", "minLength": 1 },
         "storageClassName": { "type": "string", "minLength": 1 },
-        "generateBucketName": { "type": "string", "minLength": 1 }
+        "bucketName": { "type": ["string", "null"] }
       }
     },
     "lokistack": {
       "type": "object",
-      "required": ["name", "size"],
+      "required": ["size"],
       "properties": {
-        "name": { "type": "string", "minLength": 1 },
         "size": {
           "type": "string",
           "enum": ["1x.demo", "1x.extra-small", "1x.pico", "1x.small", "1x.medium"]
         },
-        "managementState": {
-          "type": "string",
-          "enum": ["Managed", "Unmanaged"]
-        },
         "storage": {
           "type": "object",
           "properties": {
-            "secret": {
-              "type": "object",
-              "required": ["name", "type"],
-              "properties": {
-                "name": { "type": "string", "minLength": 1 },
-                "type": { "type": "string", "enum": ["s3", "azure", "gcs", "swift"] }
-              }
-            },
             "schemas": {
               "type": "array",
               "items": {
@@ -51,13 +33,6 @@
                   "version": { "type": "string", "enum": ["v11", "v12", "v13"] }
                 }
               }
-            },
-            "tls": {
-              "type": "object",
-              "properties": {
-                "caKey": { "type": "string", "minLength": 1 },
-                "caName": { "type": "string", "minLength": 1 }
-              }
             }
           }
         },
@@ -67,18 +42,6 @@
           "properties": {
             "factor": { "type": "integer", "minimum": 1 },
             "zones": { "type": "array" }
-          }
-        },
-        "hashRing": {
-          "type": "object",
-          "properties": {
-            "type": { "type": "string" },
-            "memberlist": {
-              "type": "object",
-              "properties": {
-                "instanceAddrType": { "type": "string", "enum": ["podIP", "hostIP"] }
-              }
-            }
           }
         },
         "limits": {
@@ -93,8 +56,7 @@
                     "ingestionRate": { "type": "integer", "minimum": 1 },
                     "ingestionBurstSize": { "type": "integer", "minimum": 1 },
                     "perStreamRateLimit": { "type": "integer", "minimum": 1 },
-                    "perStreamRateLimitBurst": { "type": "integer", "minimum": 1 },
-                    "maxLineSize": { "type": ["integer", "null"] }
+                    "perStreamRateLimitBurst": { "type": "integer", "minimum": 1 }
                   }
                 },
                 "queries": {
@@ -125,214 +87,70 @@
               }
             }
           }
-        },
-        "tenants": {
-          "type": "object",
-          "properties": {
-            "mode": {
-              "type": "string",
-              "enum": ["openshift-logging", "openshift-network", "static"]
-            },
-            "openshift": {
-              "type": "object",
-              "properties": {
-                "adminGroups": {
-                  "type": "array",
-                  "items": { "type": "string" }
-                }
-              }
-            }
-          }
         }
       }
     },
     "uiplugin": {
       "type": "object",
       "properties": {
+        "enabled": { "type": "boolean" }
+      }
+    },
+    "collector": {
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "object",
+          "properties": {
+            "limits": {
+              "type": "object",
+              "properties": {
+                "cpu": { "type": ["integer", "string"] },
+                "memory": { "type": "string", "pattern": "^\\d+[KMGT]i$" }
+              }
+            },
+            "requests": {
+              "type": "object",
+              "properties": {
+                "cpu": { "type": ["integer", "string"] },
+                "memory": { "type": "string", "pattern": "^\\d+[KMGT]i$" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "hubForwarding": {
+      "type": "object",
+      "properties": {
         "enabled": { "type": "boolean" },
-        "name": { "type": "string", "minLength": 1 }
+        "url": { "type": "string" }
       }
     },
-    "serviceAccount": {
+    "auditToHub": {
       "type": "object",
-      "required": ["name"],
       "properties": {
-        "name": { "type": "string", "minLength": 1 }
+        "enabled": { "type": "boolean" }
       }
     },
-    "clusterRoleBindings": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["name", "clusterRole"],
-        "properties": {
-          "name": { "type": "string", "minLength": 1 },
-          "clusterRole": { "type": "string", "minLength": 1 }
-        }
-      }
-    },
-    "clusterLogForwarder": {
+    "vectorWebhook": {
       "type": "object",
-      "required": ["name"],
       "properties": {
-        "name": { "type": "string", "minLength": 1 },
-        "managementState": {
-          "type": "string",
-          "enum": ["Managed", "Unmanaged"]
-        },
-        "collector": {
-          "type": "object",
-          "properties": {
-            "resources": {
-              "type": "object",
-              "properties": {
-                "limits": {
-                  "type": "object",
-                  "properties": {
-                    "cpu": { "type": ["integer", "string"] },
-                    "memory": { "type": "string", "pattern": "^\\d+[KMGT]i$" }
-                  }
-                },
-                "requests": {
-                  "type": "object",
-                  "properties": {
-                    "cpu": { "type": ["integer", "string"] },
-                    "memory": { "type": "string", "pattern": "^\\d+[KMGT]i$" }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "outputs": {
-          "type": "object",
-          "properties": {
-            "lokistack": {
-              "type": "object",
-              "required": ["name"],
-              "properties": {
-                "name": { "type": "string", "minLength": 1 },
-                "tls": {
-                  "type": "object",
-                  "properties": {
-                    "enabled": { "type": "boolean" },
-                    "caConfigMapName": { "type": "string", "minLength": 1 },
-                    "caKey": { "type": "string", "minLength": 1 }
-                  }
-                },
-                "lokiStack": {
-                  "type": "object",
-                  "properties": {
-                    "target": {
-                      "type": "object",
-                      "required": ["name", "namespace"],
-                      "properties": {
-                        "name": { "type": "string", "minLength": 1 },
-                        "namespace": { "type": "string", "minLength": 1 }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "hubForwarding": {
-              "type": "object",
-              "properties": {
-                "enabled": { "type": "boolean" },
-                "name": { "type": "string", "minLength": 1 },
-                "url": { "type": "string" },
-                "secret": {
-                  "type": "object",
-                  "properties": {
-                    "name": { "type": "string", "minLength": 1 },
-                    "key": { "type": "string", "minLength": 1 }
-                  }
-                }
-              }
-            },
-            "vectorWebhook": {
-              "type": "object",
-              "properties": {
-                "enabled": { "type": "boolean" },
-                "name": { "type": "string", "minLength": 1 },
-                "url": { "type": "string" },
-                "tls": {
-                  "type": "object",
-                  "properties": {
-                    "caConfigMapName": { "type": "string", "minLength": 1 },
-                    "caKey": { "type": "string", "minLength": 1 },
-                    "insecureSkipVerify": { "type": "boolean" }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "filters": {
-          "type": "object",
-          "properties": {
-            "pgaudit": {
-              "type": "object",
-              "properties": {
-                "enabled": { "type": "boolean" },
-                "name": { "type": "string", "minLength": 1 },
-                "drop": { "type": "array" }
-              }
-            },
-            "extra": { "type": "array" }
-          }
-        },
-        "inputs": {
-          "type": "object",
-          "properties": {
-            "pgaudit": {
-              "type": "object",
-              "properties": {
-                "enabled": { "type": "boolean" },
-                "name": { "type": "string", "minLength": 1 },
-                "matchExpressions": { "type": "array" }
-              }
-            },
-            "extra": { "type": "array" }
-          }
-        },
-        "pipelines": {
-          "type": "object",
-          "properties": {
-            "allToLoki": {
-              "type": "object",
-              "properties": {
-                "name": { "type": "string", "minLength": 1 },
-                "inputRefs": { "type": "array", "items": { "type": "string" } },
-                "outputRefs": { "type": "array", "items": { "type": "string" } }
-              }
-            },
-            "auditToHub": {
-              "type": "object",
-              "properties": {
-                "enabled": { "type": "boolean" },
-                "name": { "type": "string", "minLength": 1 },
-                "inputRefs": { "type": "array", "items": { "type": "string" } }
-              }
-            },
-            "pgauditToHub": {
-              "type": "object",
-              "properties": {
-                "name": { "type": "string", "minLength": 1 }
-              }
-            },
-            "extra": { "type": "array" }
-          }
-        }
+        "enabled": { "type": "boolean" },
+        "url": { "type": "string" }
+      }
+    },
+    "pgaudit": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" }
       }
     },
     "externalSecret": {
       "type": "object",
       "properties": {
         "enabled": { "type": "boolean" },
-        "name": { "type": "string", "minLength": 1 },
-        "refreshInterval": { "type": "string", "pattern": "^\\d+[smh]$" },
-        "secretKey": { "type": "string", "minLength": 1 }
+        "refreshInterval": { "type": "string", "pattern": "^\\d+[smh]$" }
       }
     },
     "hub": {
@@ -341,19 +159,7 @@
         "spokeLogforward": {
           "type": "object",
           "properties": {
-            "enabled": { "type": "boolean" },
-            "serviceAccount": {
-              "type": "object",
-              "properties": {
-                "name": { "type": "string", "minLength": 1 }
-              }
-            },
-            "clusterRoleBinding": {
-              "type": "object",
-              "properties": {
-                "name": { "type": "string", "minLength": 1 }
-              }
-            }
+            "enabled": { "type": "boolean" }
           }
         },
         "alertingRules": {
