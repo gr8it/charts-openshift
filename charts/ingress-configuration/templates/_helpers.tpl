@@ -62,6 +62,13 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
+Create the ingress cert secret name
+*/}}
+{{- define "ingress-configuration.ingressCertSecretName" -}}
+{{- printf "wildcard-apps-%s-cert" (include "apc-global-overrides.clusterName" .) }}
+{{- end }}
+
+{{/*
 Create the ingress cert CN
 */}}
 {{- define "ingress-configuration.ingressCertCommonName" -}}

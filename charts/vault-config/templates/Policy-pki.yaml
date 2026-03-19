@@ -1,0 +1,28 @@
+{{- range $role, $roleData := .Values.pkiIssuer.pkiRoles.roles }}
+{{- if $roleData.defaultPkiPolicy }}
+apiVersion: vault.vault.upbound.io/v1alpha1
+kind: Policy
+metadata:
+  name: pki-{{ $roleData.name }}-policy
+  annotations:
+    crossplane.io/external-name: pki-{{ $roleData.name }}
+  labels:
+    {{- include "vault-config.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    name: pki-{{ $roleData.name }}
+    policy: | 
+      path "pki/issue/{{ $roleData.name }}" {
+        capabilities = ["create", "update"]
+      }
+      path "pki/issuer/*" {
+        capabilities = ["read"]
+      }
+      path "pki/roles/*" {
+        capabilities = ["list"]
+      }
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.crossplaneKubeVaultProviderConfigName" $ }}
+---
+{{- end }}
+{{- end }}
