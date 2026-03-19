@@ -14,9 +14,9 @@ releaseServiceOverride: ArgoCD
 
 secretEngines:
   apc:
-    type: kv-2
+    type: kv
   apc-platform:
-    type: kv-2
+    type: kv
   pki:
     type: pki
     
@@ -58,3 +58,7 @@ authMethods:
       enable: true
     - name: ad
       enable: true
+      tune:
+        - maxLeaseTtl: 86400s
+          defaultLeaseTtl: 86400s
+        

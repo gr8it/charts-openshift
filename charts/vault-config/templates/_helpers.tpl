@@ -62,8 +62,8 @@ Create the name of the service account to use
 {{- end }}
 
 {{- define "vault-config.defaultAllowedDomains" -}}
-- svc
+- {{ include "apc-global-overrides.clusterAppsDomain" . }}
 - cluster.local
-- {{ include "apc-global-overrides.clusterName" . }}.{{ include "apc-global-overrides.clusterAppsDomain" . }}
-- service.{{ include "apc-global-overrides.clusterName" . }}.{{ include "apc-global-overrides.clusterAppsDomain" . }}
+- svc
+- service.{{ include "apc-global-overrides.clusterName" . }}.{{ include "apc-global-overrides.clusterRootDomain" . }}
 {{- end }}

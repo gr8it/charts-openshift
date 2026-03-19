@@ -35,11 +35,6 @@ manifests should match snapshot:
       forProvider:
         path: approle
         type: approle
-      managementPolicy:
-        - Create
-        - Update
-        - Observe
-        - LateInitialize
       providerConfigRef:
         name: null
   3: |
@@ -59,11 +54,6 @@ manifests should match snapshot:
       forProvider:
         path: ldap
         type: ldap
-      managementPolicy:
-        - Create
-        - Update
-        - Observe
-        - LateInitialize
       providerConfigRef:
         name: null
   4: |
@@ -82,12 +72,10 @@ manifests should match snapshot:
       deletionPolicy: Orphan
       forProvider:
         path: ad
+        tune:
+          - defaultLeaseTtl: 86400s
+            maxLeaseTtl: 86400s
         type: ldap
-      managementPolicy:
-        - Create
-        - Update
-        - Observe
-        - LateInitialize
       providerConfigRef:
         name: null
   5: |
@@ -106,12 +94,7 @@ manifests should match snapshot:
       deletionPolicy: Orphan
       forProvider:
         path: apc
-        type: kv-2
-      managementPolicy:
-        - Create
-        - Update
-        - Observe
-        - LateInitialize
+        type: kv
       providerConfigRef:
         name: null
   6: |
@@ -130,12 +113,7 @@ manifests should match snapshot:
       deletionPolicy: Orphan
       forProvider:
         path: apc-platform
-        type: kv-2
-      managementPolicy:
-        - Create
-        - Update
-        - Observe
-        - LateInitialize
+        type: kv
       providerConfigRef:
         name: null
   7: |
@@ -155,11 +133,6 @@ manifests should match snapshot:
       forProvider:
         path: pki
         type: pki
-      managementPolicy:
-        - Create
-        - Update
-        - Observe
-        - LateInitialize
       providerConfigRef:
         name: null
   8: |
@@ -377,27 +350,27 @@ manifests should match snapshot:
     kind: SecretBackendRole
     metadata:
       annotations:
-        crossplane.io/external-name: pki/roles/.
+        crossplane.io/external-name: pki/roles/
       labels:
         app.kubernetes.io/instance: vault-config
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: vault-config
         helm.sh/chart: vault-config-1.0.0
-      name: .
+      name: null
     spec:
       forProvider:
         allowBareDomains: true
         allowLocalhost: false
         allowSubdomains: true
         allowedDomains:
-          - svc
+          - null
           - cluster.local
-          - .
+          - svc
           - service..
         backend: pki
         issuerRef: APCCAi-Sp2
         maxTtl: 365d
-        name: .
+        name: null
         ttl: 365d
       providerConfigRef:
         name: null
