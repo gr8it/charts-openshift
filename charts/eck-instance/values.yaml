@@ -34,5 +34,30 @@ kibana:
     memory: 2Gi
     cpu: 1000m
 
+backup:
+  enabled: true
+  s3storageClass: ocs-storagecluster-ceph-rgw
+  backupInitContainer:
+    image: quay.io/curl/curl
+    tag: 8.18.0
+  
+prereqs:
+  container:
+    image: registry.redhat.io/openshift4/ose-cli
+    tag: v4.15
+
+defaultSecurityContext:
+  runAsUser:
+  runAsGroup:
+  runAsNonRoot: true
+  privileged: false
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+    - ALL
+  seccompProfile:
+    type: RuntimeDefault
+
 
 secretStore: vault-hub01

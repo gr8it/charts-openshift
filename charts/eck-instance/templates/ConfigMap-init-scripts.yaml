@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-init-scripts
+  namespace: {{ .Release.Namespace }}
+  labels:
+  {{- include "eck-instance.labels" . | nindent 4 }}
+data:
+  snapshot-repo-create.sh: |
+    #/bin/sh
+
+    set -eu
+
+    log_message() {
+      local timestamp
+      timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+      echo -e "$timestamp $1"
+    }
+
+    es_stat() {
+      esstat=$(curl -s --cacert /mnt/ca-cert-bundle -u "elastic:${ELASTIC_PWD}" https://eds-elastic-es-default:9200/_cluster/health | sed -e 's/.*"status":"\([^"]*\)".*/\1/')
+    }
+
+    log_message "INFO: Checking if elastic stack is ready"
+    count=0
+    until [[ $(es_stat) == "green" || $count -gt 12 ]]; do 
+      log_message "INFO: Elastic stack not yet ready..."
+      count=$(($count + 1))
+      sleep 10
+    done
+
+    if [ $(es_stat) == "green" ]; then
+      log_message "INFO: Elastic stack is $(es_stat)"
+    else
+      log_message "ERROR: Elastic stack is $(es_stat)"
+      exit 1
+    fi
+
+    log_message "INFO: Creating snapshot repository"
+
+    snap_user=$(awk -F ":" '/username/ {print $2}' )
+    snap_pwd==$(awk -F ":" '/pasword/ {print $2}' )
+
+    curl --cacert /mnt/ca-cert-bundle/ca-bundle.crt

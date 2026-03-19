@@ -10,6 +10,9 @@ spec:
   auth:
     fileRealm:
     - secretName: es-default-user
+    - secretName: {{ .Release.Name }}-snap-repo-init
+    roles:
+    - secretName: {{ .Release.Name }}-snap-repo-init-role
   nodeSets:
   - name: default
     count: {{ .Values.elasticsearch.nodesCount }}
