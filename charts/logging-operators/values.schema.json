@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "operators": {
+      "type": "object",
+      "properties": {
+        "coo": { "$ref": "#/$defs/operator" },
+        "loki": { "$ref": "#/$defs/operator" },
+        "logging": { "$ref": "#/$defs/operator" }
+      }
+    },
+    "namespaces": {
+      "type": "object",
+      "properties": {
+        "coo": {
+          "type": "object",
+          "properties": {
+            "create": { "type": "boolean" }
+          }
+        },
+        "operatorsRedhat": {
+          "type": "object",
+          "properties": {
+            "create": { "type": "boolean" }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "operator": {
+      "type": "object",
+      "required": ["channel", "csv", "namespace"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "channel": { "type": "string", "minLength": 1 },
+        "csv": { "type": "string", "minLength": 1 },
+        "installPlanApproval": {
+          "type": "string",
+          "enum": ["Manual", "Automatic"]
+        },
+        "namespace": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+suite: Snapshot test
+templates:
+  - charts/coo-operatorpolicy/templates/operatorpolicy.yaml
+  - charts/loki-operatorpolicy/templates/operatorpolicy.yaml
+  - charts/logging-operatorpolicy/templates/operatorpolicy.yaml
+release:
+  name: logging-operators
+  namespace: openshift-logging
+
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}
