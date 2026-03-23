@@ -46,9 +46,10 @@ spec:
             # allow namespaced resources only using specific service account
             destinationServiceAccounts:
               - defaultServiceAccount: {{ include "application-gitops.fullname" . }}
-                namespace: {{`"{{ request.object.metadata.namespace }}"`}}
+                namespace: "*"
                 server: https://kubernetes.default.svc
-            # allow deployment to any namespace in the cluster, but only using specific service account and rolebinding in the destination namespace.
+            # allow deployment to any namespace in the cluster, using rolebinding in the destination namespace, pointing to the service account created by this policy
+            # RBAC of ArgoCD is sidestepped by using "*", but Kubernetes RBAC is still in place
             destinations:
             - namespace: "*"
               # name: in-cluster
