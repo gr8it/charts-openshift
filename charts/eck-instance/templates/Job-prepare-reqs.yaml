@@ -6,9 +6,24 @@ metadata:
   labels:
     {{- include "eck-instance.labels" . | nindent 4 }}
   annotations:
-    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/sync-wave: "1"
 spec:
+  backoffLimit: 0
   template:
     spec:
-      backoffLimit: 0
+      serviceAccountName: {{ .Release.Name }}-bkp
+      restartPolicy: Never
       containers:
+        - name: create-obc-secret
+          image: {{ .Values.prereqs.container.image }}:{{ .Values.prereqs.container.tag }}
+          command: ["/mnt/scripts/create-s3-creds-secret.sh"]
+          volumeMounts:
+          - name: s3-creds
+            mountPath: "/mnt/scripts"
+          securityContext:
+            {{- toYaml .Values.defaultSecurityContext | nindent 12 }}
+      volumes:  
+        - name: s3-creds
+          configMap:
+            name: {{ .Release.Name }}-init-scripts
+            defaultMode: 0755

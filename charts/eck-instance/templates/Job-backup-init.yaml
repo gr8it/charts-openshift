@@ -6,72 +6,58 @@ metadata:
   labels:
     {{- include "eck-instance.labels" . | nindent 4 }}
 spec:
+  backoffLimit: 0
   template:
     spec:
-      backoffLimit: 0
-      initContainers:
-      - name: backup-init
-        image: {{ .Values.backup.backupInitContainer.image }}
-        tag: {{ .Values.backup.backupInitContainer.tag }}
-        command: [ "/bin/sh", "-c" ]
-        args:
-          - |
-            set -e
-
-            ES_HOST="https://my-es-es-http:9200"
-
-            echo "Waiting for Elasticsearch..."
-            until curl -sk $ES_HOST >/dev/null; do
-              sleep 5
-            done
-
-            PASSWORD=$(cat /mnt/elastic-password/elastic)
-
-            API_KEY=$(echo $RESPONSE | grep -o '"api_key":"[^"]*"' | cut -d':' -f2 | tr -d '"')
-            ID=$(echo $RESPONSE | grep -o '"id":"[^"]*"' | cut -d':' -f2 | tr -d '"')
-
-            ENCODED=$(echo -n "$ID:$API_KEY" | base64)
-
-            echo "Creating snapshot repository..."
-
-            curl -sk -X PUT "$ES_HOST/_snapshot/my_s3_repo" \
-              -H "Authorization: ApiKey $ENCODED" \
-              -H "Content-Type: application/json" \
-              -d '{
-                "type": "s3",
-                "settings": {
-                  "bucket": "my-bucket",
-                  "region": "eu-central-1"
-                }
-              }'
-
-            echo "Done"
-        securityContext:
-          {{- toYaml .Values.defaultSecurityContext | nindent 10 }}
-        env:
-          - name: ES_HOST
-            value: "https://{{ .Release.Name }}-es-default:9200"
-          - name: ELASTIC_PWD
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Release.Name }}-es-elastic-user
-                key: elastic
-          - name: BUCKET_NAME
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Release.Name }}-backup-allinfo
-                key: bucket
-        volumeMounts:
-        - name: snap-init-user
-          mountPath: /mnt/snap-init-user
-          readOnly: true
-        - name: ca-cert-bundle
-          mountPath: /mnt/ca-cert-bundle
-          readOnly: true
+      restartPolicy: Never
+      containers:
+        - name: backup-init
+          image: {{ .Values.backup.backupInitContainer.image }}:{{ .Values.backup.backupInitContainer.tag }}
+          command: ["/mnt/scripts/snapshot-repo-create.sh"]
+          securityContext:
+            {{- toYaml .Values.defaultSecurityContext | nindent 12 }}
+          env:
+            - name: ES_HOST
+              value: "https://{{ .Release.Name }}-es-http.{{ .Release.Namespace }}.svc:9200"
+            - name: ELASTIC_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-es-elastic-user
+                  key: elastic
+            - name: BUCKET_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-backup-allinfo
+                  key: bucket
+            - name: BUCKET_EP
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-backup-allinfo
+                  key: endpoint
+          volumeMounts:
+          - name: snap-init-user
+            mountPath: /mnt/snap-init-user
+            readOnly: true
+          - name: slm-admin-user
+            mountPath: /mnt/slm-admin-user
+            readOnly: true
+          - name: es-ca
+            mountPath: /mnt/es-ca
+            readOnly: true
+          - name: backup-init
+            mountPath: "/mnt/scripts"
       volumes:
-      - name: snap-init-user
-        secret:
-          secretName: {{ .Release.Name }}-snap-init-user
-      - name: ca-cert-bundle
-        configMap:
-          name: ca-cert-bundle
+        - name: snap-init-user
+          secret:
+            secretName: {{ .Release.Name }}-snap-repo-init-user
+        - name: slm-admin-user
+          secret:
+            secretName: {{ .Release.Name }}-slm-admin-user
+        - name: es-ca
+          secret:
+            secretName: {{ .Release.Name }}-es-tls
+        - name: backup-init
+          configMap:
+            name: {{ .Release.Name }}-init-scripts
+            defaultMode: 0755
+

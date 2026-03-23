@@ -7,10 +7,12 @@ metadata:
     {{- include "eck-instance.labels" . | nindent 4 }}
 spec:
   version: {{ .Values.elasticsearch.version }}
+  secureSettings:
+  - secretName: snapshot-settings
   auth:
     fileRealm:
     - secretName: es-default-user
-    - secretName: {{ .Release.Name }}-snap-repo-init
+    - secretName: {{ .Release.Name }}-snap-repo-init-user
     roles:
     - secretName: {{ .Release.Name }}-snap-repo-init-role
   nodeSets:
@@ -19,6 +21,10 @@ spec:
     podTemplate:
       metadata: {}
       spec:
+        volumes:
+        - name: custom-truststore
+          secret:
+            secretName: ca-cert-bundle
         containers:
         - name: elasticsearch
           resources:
@@ -28,6 +34,12 @@ spec:
             limits:
               memory: {{ .Values.elasticsearch.limits.memory }}
               cpu: {{ .Values.elasticsearch.limits.cpu }}
+          volumeMounts:
+          - name: custom-truststore
+            mountPath: /usr/share/elasticsearch/config/custom-truststore
+          env:
+          - name: ES_JAVA_OPTS
+            value: "-Djavax.net.ssl.trustStore=/usr/share/elasticsearch/config/custom-truststore/ca-bundle.jks -Djavax.net.ssl.keyStorePassword=changeit"
     volumeClaimTemplates:
     - metadata:
         name: elasticsearch-data
