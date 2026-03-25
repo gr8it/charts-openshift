@@ -17,7 +17,7 @@ data:
       echo -e "$timestamp $1"
     }
 
-    log_message "INFO: Creating secret with credentials to snapshot repository"
+    log_message "INFO: Creating secret with credentials to snapshot repository."
 
     ACCESS_KEY=$(oc get secret {{ .Release.Name }}-backup-allinfo -o go-template='{{`{{.data.access_key | base64decode}}`}}')
     SECRET_ACCESS_KEY=$(oc get secret {{ .Release.Name }}-backup-allinfo -o go-template='{{`{{.data.access_key_secret | base64decode}}`}}')
@@ -29,10 +29,10 @@ data:
         --from-literal=s3.client.default.access_key=${ACCESS_KEY} \
         --from-literal=s3.client.default.secret_key=${SECRET_ACCESS_KEY}
       
-      log_message "INFO: Secret with credentials to snapshot repository created"
+      log_message "INFO: Secret with credentials to snapshot repository created."
     fi
 
-  snapshot-repo-create.sh: |
+  backup-prepare.sh: |
     #!/bin/sh
 
     set -eu
@@ -43,11 +43,14 @@ data:
       echo -e "$timestamp $1"
     }
 
+    monitor_user=$(cat /mnt/monitor-user/username)
+    monitor_pwd=$(cat /mnt/monitor-user/password)
+
     es_stat() {
-      curl -s --cacert /mnt/es-ca/ca.crt -u "elastic:${ELASTIC_PWD}" ${ES_HOST}/_cluster/health | sed -e 's/.*"status":"\([^"]*\)".*/\1/'
+      curl -s --cacert /mnt/es-ca/ca.crt -u "${monitor_user}:${monitor_pwd}" ${ES_HOST}/_cluster/health | sed -e 's/.*"status":"\([^"]*\)".*/\1/'
     }
 
-    log_message "INFO: Checking if elastic stack is ready"
+    log_message "INFO: Checking if elastic stack is ready."
     count=0
     until [[ "$(es_stat)" == "green" || $count -gt 12 ]]; do 
       log_message "INFO: Elastic stack not yet ready..."
@@ -56,10 +59,10 @@ data:
     done
 
     if [ "$(es_stat)" == "green" ]; then
-      log_message "INFO: Elastic stack is $(es_stat)"
+      log_message "INFO: Elastic stack is $(es_stat)."
     else
-      log_message "ERROR: Elastic stack is $(es_stat)"
-      # exit 1
+      log_message "ERROR: Elastic stack is $(es_stat)."
+      exit 1
     fi
 
     log_message "INFO: Creating snapshot repository"
@@ -67,60 +70,56 @@ data:
     snap_user=$(cat /mnt/snap-init-user/username)
     snap_pwd=$(cat /mnt/snap-init-user/password)
 
-    RC=$(curl -o /dev/null -s -w "%{http_code}" --cacert /mnt/es-ca/ca.crt -u "${snap_user}:${snap_pwd}" ${ES_HOST}/_snapshot/backup)
+    RC=$(curl -s -w "%{http_code}" -o /dev/null --cacert /mnt/es-ca/ca.crt \
+      -u "${snap_user}:${snap_pwd}" \
+      -X POST "${ES_HOST}/_snapshot/backup" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "type": "s3",
+        "settings": {
+          "bucket": "'"${BUCKET_NAME}"'",
+          "path_style_access": true,
+          "endpoint": "'"${BUCKET_EP}"'"
+        }
+      }')
 
-    if [[ $RC -ne 200 ]]; then
-      log_message "INFO: Snapshot repository for elastica backup already configured, witl following settings: "
+    if [[ $RC -eq 200 ]]; then
+      log_message "INFO: Snapshot repository created with following settings: "
       curl -s --cacert /mnt/es-ca/ca.crt -u "${snap_user}:${snap_pwd}" ${ES_HOST}/_snapshot/backup
     else
-      RC=$(curl -s -w "%{http_code}" -o /dev/null --cacert /mnt/es-ca/ca.crt \
-        -u "${snap_user}:${snap_pwd}" \
-        -X POST "${ES_HOST}/_snapshot/backup" \
-        -H "Content-Type: application/json" \
-        -d '{
-          "type": "s3",
-          "settings": {
-            "bucket": "'"${BUCKET_NAME}"'",
-            "path_style_access": true,
-            "endpoint": "'"${BUCKET_EP}"'"
-          }
-        }')
-      log_message "INFO: Snapshot repository created"
-
-      if [[ $RC -ne 200 ]]; then
-        log_message "ERROR: Snapshot repository not created.
-        exit 1
-      else
-        slm_user=$(cat /mnt/slm-admin-user/username)
-        slm_pwd=$(cat /mnt/slm-admin-user/password)
-
-        RC=$(curl -s -w "%{http_code}" -o /dev/null --cacert /mnt/es-ca/ca.crt \
-          -u "${slm_user}:${slm_pwd}" \
-          -X POST "$ES_HOST/_slm/policy/daily-snapshots" \
-          -H "Content-Type: application/json" \
-          -d '{
-            "schedule": {{ .Values.backup.schedule | quote }},
-            "name": "<daily-snap-{now/d}>",
-            "repository": "backup",
-            "config": {
-              "indices": "*",
-              "include_global_state": true
-            },
-            "retention": {
-              "expire_after": {{ .Values.backup.retention | quote }},
-              "min_count": {{ .Values.backup.min_count }},
-              "max_count": {{ .Values.backup.max_count }}
-            }
-          }')
-
-          if [[ $RC -ne 200 ]]; then
-            log_message "ERROR: Backup policy not created."
-            exit 1
-          else
-            log_message "INFO: Backup policy created."
-          fi
-      fi
+      log_message "ERROR: Snapshot repository not created."
+      exit 1
     fi
 
+    log_message "INFO: Creating backup policy."
 
-    sleep 3600
+    slm_user=$(cat /mnt/slm-admin-user/username)
+    slm_pwd=$(cat /mnt/slm-admin-user/password)
+
+
+    RC=$(curl -s -w "%{http_code}" -o /dev/null --cacert /mnt/es-ca/ca.crt \
+      -u "${slm_user}:${slm_pwd}" \
+      -X PUT "$ES_HOST/_slm/policy/daily-snapshots" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "schedule": {{ .Values.backup.schedule | quote }},
+        "name": "<daily-snap-{now/d}>",
+        "repository": "backup",
+        "config": {
+          "indices": "*",
+          "include_global_state": true
+        },
+        "retention": {
+          "expire_after": {{ .Values.backup.retention | quote }},
+          "min_count": {{ .Values.backup.min_count }},
+          "max_count": {{ .Values.backup.max_count }}
+        }
+      }')
+
+    if [[ $RC -eq 200 ]]; then
+      log_message "INFO: Backup policy created with following settings: "
+      curl -s --cacert /mnt/es-ca/ca.crt -u "${slm_user}:${slm_pwd}" ${ES_HOST}/_slm/policy/daily-snapshots
+    else
+      log_message "ERROR: Backup policy not created."
+      exit 1
+    fi

@@ -13,17 +13,12 @@ spec:
       containers:
         - name: backup-init
           image: {{ .Values.backup.backupInitContainer.image }}:{{ .Values.backup.backupInitContainer.tag }}
-          command: ["/mnt/scripts/snapshot-repo-create.sh"]
+          command: ["/mnt/scripts/backup-prepare.sh"]
           securityContext:
             {{- toYaml .Values.defaultSecurityContext | nindent 12 }}
           env:
             - name: ES_HOST
               value: "https://{{ .Release.Name }}-es-http.{{ .Release.Namespace }}.svc:9200"
-            - name: ELASTIC_PWD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Release.Name }}-es-elastic-user
-                  key: elastic
             - name: BUCKET_NAME
               valueFrom:
                 secretKeyRef:
@@ -41,6 +36,9 @@ spec:
           - name: slm-admin-user
             mountPath: /mnt/slm-admin-user
             readOnly: true
+          - name: monitor-user
+            mountPath: /mnt/monitor-user
+            readOnly: true
           - name: es-ca
             mountPath: /mnt/es-ca
             readOnly: true
@@ -53,6 +51,9 @@ spec:
         - name: slm-admin-user
           secret:
             secretName: {{ .Release.Name }}-slm-admin-user
+        - name: monitor-user
+          secret:
+            secretName: {{ .Release.Name }}-monitor-user
         - name: es-ca
           secret:
             secretName: {{ .Release.Name }}-es-tls

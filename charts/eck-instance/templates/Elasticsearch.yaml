@@ -13,8 +13,12 @@ spec:
     fileRealm:
     - secretName: es-default-user
     - secretName: {{ .Release.Name }}-snap-repo-init-user
+    - secretName: {{ .Release.Name }}-slm-admin-user
+    - secretName: {{ .Release.Name }}-monitor-user
     roles:
     - secretName: {{ .Release.Name }}-snap-repo-init-role
+    - secretName: {{ .Release.Name }}-slm-admin-role
+    - secretName: {{ .Release.Name }}-monitor-role
   nodeSets:
   - name: default
     count: {{ .Values.elasticsearch.nodesCount }}
