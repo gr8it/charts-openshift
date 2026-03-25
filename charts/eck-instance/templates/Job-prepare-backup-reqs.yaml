@@ -1,3 +1,4 @@
+{{- if and .Values.backup.enabled }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -27,3 +28,4 @@ spec:
           configMap:
             name: {{ .Release.Name }}-init-scripts
             defaultMode: 0755
+{{- end }}
