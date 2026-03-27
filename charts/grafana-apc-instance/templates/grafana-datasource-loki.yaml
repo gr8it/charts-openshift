@@ -5,8 +5,6 @@ kind: GrafanaDatasource
 metadata:
   name: loki
   namespace: {{ .Release.Namespace }}
-  annotations:
-    argocd.argoproj.io/sync-wave: "2"
   labels:
     {{- include "grafana-instance.labels" . | nindent 4 }}
 spec:

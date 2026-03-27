@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Replaced Helm hook ordering with Argo CD sync waves for Grafana, service account token secret, and datasources
+- Removed Helm hook annotations from service account token secret so Argo CD applies it as a regular resource
+- Disabled namespace-scoped monitoring `RoleBinding` generation by default to avoid Argo CD RBAC reconcile failures
 
 ## [1.2.0] - 2026-03-26
 
