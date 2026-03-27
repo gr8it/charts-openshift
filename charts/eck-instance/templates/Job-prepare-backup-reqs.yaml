@@ -16,7 +16,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: create-obc-secret
-          image: {{ .Values.prereqs.container.image }}:{{ .Values.prereqs.container.tag }}
+          image: {{ .Values.backup.prereqs.container.image }}:{{ .Values.backup.prereqs.container.tag }}
           command: ["/mnt/scripts/create-s3-creds-secret.sh"]
           volumeMounts:
           - name: s3-creds

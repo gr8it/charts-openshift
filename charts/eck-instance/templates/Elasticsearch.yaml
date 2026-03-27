@@ -11,14 +11,15 @@ spec:
   - secretName: snapshot-settings
   auth:
     fileRealm:
-    - secretName: es-default-user
-    - secretName: {{ .Release.Name }}-snap-repo-init-user
-    - secretName: {{ .Release.Name }}-slm-admin-user
-    - secretName: {{ .Release.Name }}-monitor-user
+    {{- range $user, $userData := .Values.users }}
+    - secretName: {{ $.Release.Name }}-{{ $userData.name }}-user
+    {{- end }}
     roles:
-    - secretName: {{ .Release.Name }}-snap-repo-init-role
-    - secretName: {{ .Release.Name }}-slm-admin-role
-    - secretName: {{ .Release.Name }}-monitor-role
+    {{- range $user, $userData := .Values.users }}
+    {{- if $userData.customRoles }}
+    - secretName: {{ $.Release.Name }}-{{ $userData.name }}-role
+    {{- end }}
+    {{- end }}
   nodeSets:
   - name: default
     count: {{ .Values.elasticsearch.nodesCount }}

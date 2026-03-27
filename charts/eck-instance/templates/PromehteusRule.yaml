@@ -1,0 +1,182 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ .Release.Name }}-rules
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "eck-instance.labels" . | nindent 4 }}
+spec:
+  groups: 
+  - name: {{ .Release.Name }}-rules
+    rules:
+      # =========================
+      # ES EXPORTER AVAILABILITY
+      # =========================
+      - alert: ElasticsearchMonitoringDown
+        expr: up{job="eds-elastic-prometheus-elasticsearch-exporter", namespace="{{ .Release.Namespace }}"} == 0
+        for: 5m
+        annotations:
+          description: "The Elasticsearch Exporter in namespace {{ `{{ $labels.namespace }}` }} is down for more than 5 minutes."
+          summary: "Elasticsearch Exporter is down"
+        labels:
+          namespace: {{ .Release.Namespace }}
+          severity: critical
+          team: developers
+          vendor: socpoist
+      # =========================
+      # ES CLUSTER HEALTH
+      # =========================
+      - alert: ElasticsearchClusterYellow
+        expr: elasticsearch_cluster_health_status{color="yellow"} == 1
+        for: 10m
+        annotations:
+          description: "Elasticsearch cluster {{ `{{ $labels.cluster }}` }} is in yellow state for more than 10 minutes."
+          summary: "Elasticsearch cluster is in yellow state"
+        labels:
+          namespace: {{ .Release.Namespace }}
+          severity: warning
+          team: developers
+          vendor: socpoist
+      - alert: ElasticsearchClusterRed
+        expr: elasticsearch_cluster_health_status{color="red"} == 1
+        for: 5m
+        annotations:
+          description: "Elasticsearch cluster {{ `{{ $labels.cluster }}` }} is in red state for more than 5 minutes."
+          summary: "Elasticsearch cluster is in red state"
+        labels:
+          namespace: {{ .Release.Namespace }}
+          severity: critical
+          team: developers
+          vendor: socpoist
+      - alert: ElasticsearchUnassignedShards
+        expr: elasticsearch_cluster_health_unassigned_shards > 0
+        for: 5m
+        labels:
+          namespace: {{ .Release.Namespace }}
+          severity: critical
+          team: developers
+          vendor: socpoist
+        annotations:
+          summary: "Unassigned shards detected"
+          description: "Cluster has unassigned shards for more than 5 minutes. Unassigned shards can lead to degraded performance and potential data loss. Please investigate the cluster state and resolve any issues causing shard unassignment."
+      # =========================
+      # JVM / MEMORY
+      # =========================
+      - alert: ElasticsearchHighHeapUsage
+        expr: (elasticsearch_jvm_memory_used_bytes / elasticsearch_jvm_memory_max_bytes) > 0.75
+        for: 10m
+        labels:
+          namespace: {{ .Release.Namespace }}
+          severity: warning
+          team: developers
+          vendor: socpoist
+        annotations:
+          summary: "High JVM heap usage"
+          description: "Heap usage above 75%"
+      - alert: ElasticsearchCriticalHeapUsage
+        expr: (elasticsearch_jvm_memory_used_bytes / elasticsearch_jvm_memory_max_bytes) > 0.85
+        for: 5m
+        labels:
+          namespace: {{ .Release.Namespace }}
+          severity: critical
+          team: developers
+          vendor: socpoist
+        annotations:
+          summary: "Critical JVM heap usage"
+          description: "Heap usage above 85%"
+      # =========================
+      # DISK
+      # =========================
+      - alert: ElasticsearchDiskUsageWarning
+        expr: (1 - elasticsearch_filesystem_data_available_bytes / elasticsearch_filesystem_data_size_bytes) > 0.80
+        for: 10m
+        labels:
+          namespace: {{ .Release.Namespace }}
+          severity: warning
+          team: developers
+          vendor: socpoist
+        annotations:
+          summary: "Disk usage above 80%"
+          description: "Elasticsearch disk usage is high for ES instance in {{ `{{ $labels.namespace }}` }} namespace."
+      - alert: ElasticsearchDiskUsageCritical
+        expr: (1 - elasticsearch_filesystem_data_available_bytes / elasticsearch_filesystem_data_size_bytes) > 0.90
+        for: 5m
+        labels:
+          namespace: {{ .Release.Namespace }}
+          severity: critical
+          team: developers
+          vendor: socpoist
+        annotations:
+          summary: "Disk usage above 90%"
+          description: "Elasticsearch disk usage is critical (risk of write block) for ES instance in {{ `{{ $labels.namespace }}` }} namespace."
+      # =========================
+      # SNAPSHOTS
+      # =========================
+      - alert: ElasticsearchSnapshotFailures
+        expr: increase(elasticsearch_snapshot_stats_snapshot_number_of_failures[24h]) > 1
+        annotations:
+          summary: "Snapshot failures detected"
+          description: "More than 1 snapshot failure in the last 24 hours for ES instance in {{ `{{ $labels.namespace }}` }} namespace."
+        labels:
+          namespace: {{ .Release.Namespace }}
+          severity: warning
+          team: developers
+          vendor: socpoist
+      - alert: ElasticsearchNoRecentSnapshots
+        expr: time() - elasticsearch_snapshot_stats_latest_snapshot_timestamp_seconds > 24 * 3600
+        annotations:
+          summary: "No recent successful snapshots"
+          description: "No successful snapshots in the last 24 hours for ES instance in {{ `{{ $labels.namespace }}` }} namespace."
+        labels:
+          namespace: {{ .Release.Namespace }}
+          severity: warning
+          team: developers
+          vendor: socpoist
+      # =========================
+      # KIBANA AVAILABILITY
+      # =========================
+      - alert: KibanaDown
+        expr: kube_deployment_status_replicas_available{namespace="{{ .Release.Namespace }}", deployment="{{ .Release.Name }}-kb"} == 0
+        for: 5m
+        annotations:
+          description: "Kibana in namespace {{ `{{ $labels.namespace }}` }} is down for more than 5 minutes."
+          summary: "Kibana is down"
+        labels:
+          namespace: {{ .Release.Namespace }}
+          severity: warning
+          team: developers
+          vendor: socpoist
+      - alert: KibanaCrashLooping
+        expr: rate(kube_pod_container_status_restarts_total{namespace="{{ .Release.Namespace }}", pod=~"{{ .Release.Name }}-kb-.*"}[5m]) > 0
+        for: 5m
+        annotations:
+          description: "Kibana in namespace {{ `{{ $labels.namespace }}` }} is crashlooping for more than 5 minutes."
+          summary: "Kibana is crashlooping"
+        labels:
+          namespace: {{ .Release.Namespace }}
+          severity: warning
+          team: developers
+          vendor: socpoist
+      # =========================
+      # ES EXPORTER AVAILABILITY
+      # =========================
+      - alert: ESExporterDown
+        expr: kube_deployment_status_replicas_available{namespace="{{ .Release.Namespace }}", deployment="{{ .Release.Name }}-prometheus-elasticsearch-exporter"} == 0
+        annotations:
+          description: "Elasticsearch exporter in namespace {{ `{{ $labels.namespace }}` }} is down for more than 5 minutes."
+          summary: "Elasticsearch exporter is down"
+        labels:
+          namespace: {{ .Release.Namespace }}
+          severity: warning
+          team: developers
+          vendor: socpoist
+      - alert: ESExporterPodCrashLooping
+        expr: rate(kube_pod_container_status_restarts_total{namespace="{{ .Release.Namespace }}", pod=~"{{ .Release.Name }}-prometheus-elasticsearch-exporter-.*"}[5m]) > 0
+        annotations:
+          description: "Elasticsearch exporter in namespace {{ `{{ $labels.namespace }}` }} is crashlooping for more than 5 minutes."
+          summary: "Elasticsearch exporter is crashlooping"
+        labels:
+          namespace: {{ .Release.Namespace }}
+          severity: warning
+          team: developers
+          vendor: socpoist
