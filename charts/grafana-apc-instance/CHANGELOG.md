@@ -5,6 +5,18 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-03-27
+
+### Fixed
+
+- Replaced Helm hook ordering with Argo CD sync waves for Grafana, service account token secret, and datasources
+
+## [1.2.0] - 2026-03-26
+
+### Added
+
+- Added `namespaceScoped` deployment mode using namespace-scoped `Role` and `RoleBinding` resources instead of cluster-scoped bindings
+
 ## [1.1.0] - 2026-02-23
 
 ### Changed
