@@ -1,6 +1,5 @@
 {{- if (.Values.datasourceThanosUrl | default false) }}
 {{- if .Values.namespaceScoped }}
-{{- if (.Values.namespaceScopedMonitoringRoleBindingEnabled | default false) }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -16,6 +15,5 @@ subjects:
   - kind: ServiceAccount
     name: {{ include "grafana-instance.name" . }}-sa
     namespace: {{ .Release.Namespace }}
-{{- end }}
 {{- end }}
 {{- end }}
