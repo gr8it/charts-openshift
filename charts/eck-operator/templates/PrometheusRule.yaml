@@ -22,7 +22,7 @@ spec:
           summary: "ECK operator is down"
           description: "ECK operator in namespace {{ `{{ $labels.namespace }}` }} is down for more than 5 minutes."
       - alert: ECKOperatorCrashLooping
-        expr: rate(kube_pod_container_status_restarts_total{namespace="{{ .Release.Namespace }}", pod=~"elastic-operator-.*"}[5m]) > 0
+        expr: max_over_time(kube_pod_container_status_waiting_reason{namespace="{{ .Release.Namespace }}", pod=~"elastic-operator-.*", reason="CrashLoopBackOff"}[5m]) > 0
         for: 5m
         labels:
           namespace: {{ .Release.Namespace }}
