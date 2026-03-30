@@ -1,0 +1,33 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ .Release.Name }}-rules
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "eck-operator.labels" . | nindent 4 }}
+spec:
+  groups: 
+  - name: {{ .Release.Name }}-rules
+    rules:
+      - alert: ECKOperatorDown
+        expr: kube_deployment_status_replicas_available{namespace="{{ .Release.Namespace }}", deployment="elastic-operator"} == 0
+        for: 5m
+        labels:
+          namespace: {{ .Release.Namespace }}
+          severity: critical
+          team: platform
+          vendor: aspecta
+        annotations:
+          summary: "ECK operator is down"
+          description: "ECK operator in namespace {{ `{{ $labels.namespace }}` }} is down for more than 5 minutes."
+      - alert: ECKOperatorCrashLooping
+        expr: rate(kube_pod_container_status_restarts_total{namespace="{{ .Release.Namespace }}", pod=~"elastic-operator-.*"}[5m]) > 0
+        for: 5m
+        labels:
+          namespace: {{ .Release.Namespace }}
+          severity: critical
+          team: platform
+          vendor: aspecta
+        annotations:
+          summary: "ECK operator is crashlooping"
+          description: "ECK operator in namespace {{ `{{ $labels.namespace }}` }} is crashlooping for more than 5 minutes."
