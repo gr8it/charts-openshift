@@ -11,6 +11,7 @@ spec:
     rules:
       - alert: ECKOperatorDown
         expr: kube_deployment_status_replicas_available{namespace="{{ .Release.Namespace }}", deployment="elastic-operator"} == 0
+          or absent(kube_deployment_status_replicas_available{namespace="{{ .Release.Namespace }}", deployment="elastic-operator"})
         for: 5m
         labels:
           namespace: {{ .Release.Namespace }}
