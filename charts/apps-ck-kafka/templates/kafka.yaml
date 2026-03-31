@@ -32,6 +32,16 @@ spec:
             secretName: {{ include "apps-ck-kafka.fullname" $ }}-brokers-tls
             certificate: tls.crt
             key: tls.key
+        networkPolicyPeers:
+          # keep to disallow communication from other namespaces
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: {{ $.Release.Namespace }}
+          {{- range $namespace := $.Values.networkpolicy.namespaces }}
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: {{ $namespace }}
+          {{- end }}
       
       {{- if .externalAccess.enabled }}
       # External listener for clients outside the cluster
