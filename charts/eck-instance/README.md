@@ -2,7 +2,7 @@
 
 This repository provides helm chart for deployment of Elasticsearch and Kibana resources into the application namespace.
 
-## Rrequirements
+## Requirements
 
 - deployed ECK operator
 - specific users defined in Vault
@@ -15,7 +15,7 @@ This repository provides helm chart for deployment of Elasticsearch and Kibana r
 
 Elasticsearch and Kibana reuquires minimum amount of predefined users for its functionality. Login credentials and user roles are defined in specific path in Vault. Additional users can be defined afterwards.  
 
-Specific path in Vault where users have to be dfined: `apc/<env_short>/<app_namespace>/elasticsearch/<username>`  
+Specific path in Vault where users have to be defined: `apc/<env_short>/<app_namespace>/elasticsearch/<username>`  
 
 The secret have to contain following fields:  
 
@@ -101,7 +101,7 @@ Helm chart provides options for Elasticsearch, Kibana and backup configuration. 
 | volumeClaim.size | String | 100Gi | Volume size for Elasticsearch pods |
 | volumeClaim.storageClass | String | ocs-storagecluster-ceph-rbd | Storgae class used for volume provisioning |
 
-### Kibana onfiguration options
+### Kibana Configuration options
 
 | Option | Type | Default value | Description |
 |--------|--------|---------------|-------------|
@@ -122,7 +122,7 @@ Helm chart provides options for Elasticsearch, Kibana and backup configuration. 
 | schedule | [Quartz CRON Syntax](https://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html) | "0 30 1 * * ?" | Backup schedule |
 | retention | String | 30d | Backup retention |
 | min_count | Integer | 5 | Number of backups to keep at minimum |
-| max_coung | Integer | 50 | Number of backups to keep at maximum |
+| max_count | Integer | 50 | Number of backups to keep at maximum |
 
 ### Generic configuration options
 
