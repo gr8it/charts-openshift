@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - disallow communication to port 9093 from the whole cluster and allow port 9093 only from specified namespaces
+- allow communication to port 9092 from release namespace only
 
 ## [1.2.2] - 2026-03-18
 

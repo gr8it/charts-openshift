@@ -20,7 +20,12 @@ spec:
         port: 9092
         type: internal
         tls: false
-        
+        networkPolicyPeers:
+          # allow communication from release namespace only
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: {{ $.Release.Namespace }}
+
       - name: tls
         port: 9093
         type: internal
@@ -33,7 +38,7 @@ spec:
             certificate: tls.crt
             key: tls.key
         networkPolicyPeers:
-          # keep to disallow communication from other namespaces
+          # allow communication from release namespace = if no namespaces are defined, stops communication from outside the Kafka cluster
           - namespaceSelector:
               matchLabels:
                 kubernetes.io/metadata.name: {{ $.Release.Namespace }}

@@ -349,6 +349,10 @@ manifests should match snapshot:
           transaction.state.log.replication.factor: 3
         listeners:
           - name: plain
+            networkPolicyPeers:
+              - namespaceSelector:
+                  matchLabels:
+                    kubernetes.io/metadata.name: kafka
             port: 9092
             tls: false
             type: internal
