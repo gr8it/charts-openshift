@@ -141,7 +141,7 @@ prometheus-elasticsearch-exporter:
     ES_USERNAME:
       secret: {{ .Release.Name }}-monitor-user
       key: username
-    ES_USERNAME:
+    ES_PASSWORD:
       secret: {{ .Release.Name }}-monitor-user
       key: password
   secretMounts:
@@ -156,7 +156,7 @@ prometheus-elasticsearch-exporter:
 
 Where:  
 
-- `prometheus-elasticsearch-exporter.\<ES_USERNAME|ES_USERNAME>.secret`: points to secret with `monitor` user credentials
+- `prometheus-elasticsearch-exporter.\<ES_USERNAME|ES_PASSWORD>.secret`: points to secret with `monitor` user credentials
 - `prometheus-elasticsearch-exporter.secretMounts`: secret with CA, created by eck-instance helm chart
 - `prometheus-elasticsearch-exporter.es.uri`: service of the elasticsearch deployment, created by eck-instance helm chart
 - `prometheus-elasticsearch-exporter.serviceMonitor.namespace`: where the serviceMonitor for scraping the metrcis will be created  
