@@ -1,0 +1,707 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eck-instance
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: eck-instance
+        helm.sh/chart: eck-instance-1.0.0
+      name: eck-instance-es-tls
+      namespace: eds
+    spec:
+      commonName: eck-instance-es-eds.
+      dnsNames:
+        - eck-instance-es-http.eds.svc
+        - eck-instance-es-http.eds.svc.cluster.local
+        - eck-instance-es-eds.
+      duration: 8760h
+      issuerRef:
+        group: cert-manager.io
+        kind: ClusterIssuer
+        name: default-issuer
+      secretName: eck-instance-es-tls
+  2: |
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eck-instance
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: eck-instance
+        helm.sh/chart: eck-instance-1.0.0
+      name: eck-instance-kb-tls
+      namespace: eds
+    spec:
+      commonName: eck-instance-kb-eds.
+      dnsNames:
+        - eck-instance-kb-http.eds.svc
+        - eck-instance-kb-http.eds.svc.cluster.local
+        - eck-instance-kb-eds.
+      duration: 8760h
+      issuerRef:
+        group: cert-manager.io
+        kind: ClusterIssuer
+        name: default-issuer
+      secretName: eck-instance-kb-tls
+  3: |
+    apiVersion: v1
+    data:
+      backup-prepare.sh: "#!/bin/sh\n\nset -eu\n\nlog_message() {\n  local timestamp\n  timestamp=$(date -u +\"%Y-%m-%dT%H:%M:%SZ\")\n  echo -e \"$timestamp $1\"\n}\n\nmonitor_user=$(cat /mnt/monitor-user/username)\nmonitor_pwd=$(cat /mnt/monitor-user/password)\n\nes_stat() {\n  curl -s --cacert /mnt/es-ca/ca.crt -u \"${monitor_user}:${monitor_pwd}\" ${ES_HOST}/_cluster/health | sed -e 's/.*\"status\":\"\\([^\"]*\\)\".*/\\1/'\n}\n\nlog_message \"INFO: Checking if elastic stack is ready.\"\ncount=0\nuntil [[ \"$(es_stat)\" == \"green\" || $count -gt 12 ]]; do \n  log_message \"INFO: Elastic stack not yet ready...\"\n  count=$(($count + 1))\n  sleep 10\ndone\n\nif [ \"$(es_stat)\" == \"green\" ]; then\n  log_message \"INFO: Elastic stack is $(es_stat).\"\nelse\n  log_message \"ERROR: Elastic stack is $(es_stat).\"\n  exit 1\nfi\n\nlog_message \"INFO: Creating snapshot repository\"\n\nsnap_user=$(cat /mnt/snap-init-user/username)\nsnap_pwd=$(cat /mnt/snap-init-user/password)\n\nRC=$(curl -s -w \"%{http_code}\" -o /dev/null --cacert /mnt/es-ca/ca.crt \\\n  -u \"${snap_user}:${snap_pwd}\" \\\n  -X POST \"${ES_HOST}/_snapshot/backup\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"type\": \"s3\",\n    \"settings\": {\n      \"bucket\": \"'\"${BUCKET_NAME}\"'\",\n      \"path_style_access\": true,\n      \"endpoint\": \"'\"${BUCKET_EP}\"'\"\n    }\n  }')\n\nif [[ $RC -eq 200 ]]; then\n  log_message \"INFO: Snapshot repository created with following settings: \"\n  curl -s --cacert /mnt/es-ca/ca.crt -u \"${snap_user}:${snap_pwd}\" ${ES_HOST}/_snapshot/backup\nelse\n  log_message \"ERROR: Snapshot repository not created.\"\n  exit 1\nfi\n\nlog_message \"INFO: Creating backup policy.\"\n\nslm_user=$(cat /mnt/slm-admin-user/username)\nslm_pwd=$(cat /mnt/slm-admin-user/password)\n\n\nRC=$(curl -s -w \"%{http_code}\" -o /dev/null --cacert /mnt/es-ca/ca.crt \\\n  -u \"${slm_user}:${slm_pwd}\" \\\n  -X PUT \"$ES_HOST/_slm/policy/daily-snapshots\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"schedule\": \"0 30 1 * * ?\",\n    \"name\": \"<daily-snap-{now/d}>\",\n    \"repository\": \"backup\",\n    \"config\": {\n      \"indices\": \"*\",\n      \"include_global_state\": true\n    },\n    \"retention\": {\n      \"expire_after\": \"30d\",\n      \"min_count\": 5,\n      \"max_count\": 50\n    }\n  }')\n\nif [[ $RC -eq 200 ]]; then\n  log_message \"INFO: Backup policy created with following settings: \"\n  curl -s --cacert /mnt/es-ca/ca.crt -u \"${slm_user}:${slm_pwd}\" ${ES_HOST}/_slm/policy/daily-snapshots\nelse\n  log_message \"ERROR: Backup policy not created.\"\n  exit 1\nfi\n"
+      create-s3-creds-secret.sh: "#!/bin/sh\n\nset -eu\n\nlog_message() {\n  local timestamp\n  timestamp=$(date -u +\"%Y-%m-%dT%H:%M:%SZ\")\n  echo -e \"$timestamp $1\"\n}\n\nlog_message \"INFO: Creating secret with credentials to snapshot repository.\"\n\nACCESS_KEY=$(oc get secret eck-instance-backup-allinfo -o go-template='{{.data.access_key | base64decode}}')\nSECRET_ACCESS_KEY=$(oc get secret eck-instance-backup-allinfo -o go-template='{{.data.access_key_secret | base64decode}}')\n\nif oc get secret snapshot-settings > /dev/null 2>&1; then\n  log_message \"INFO: Secret for Elasticsearch backup already in place.\"\nelse\n  oc create secret generic snapshot-settings \\\n    --from-literal=s3.client.default.access_key=${ACCESS_KEY} \\\n    --from-literal=s3.client.default.secret_key=${SECRET_ACCESS_KEY}\n  \n  log_message \"INFO: Secret with credentials to snapshot repository created.\"\nfi\n"
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eck-instance
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: eck-instance
+        helm.sh/chart: eck-instance-1.0.0
+      name: eck-instance-init-scripts
+      namespace: eds
+  4: |
+    apiVersion: elasticsearch.k8s.elastic.co/v1
+    kind: Elasticsearch
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eck-instance
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: eck-instance
+        helm.sh/chart: eck-instance-1.0.0
+      name: eck-instance
+      namespace: eds
+    spec:
+      auth:
+        fileRealm:
+          - secretName: eck-instance-defaultuser-user
+          - secretName: eck-instance-slmadmin-user
+          - secretName: eck-instance-monitor-user
+          - secretName: eck-instance-snapinit-user
+        roles:
+          - secretName: eck-instance-slmadmin-role
+          - secretName: eck-instance-monitor-role
+          - secretName: eck-instance-snapinit-role
+      http:
+        tls:
+          certificate:
+            secretName: eck-instance-es-tls
+      nodeSets:
+        - count: 3
+          name: default
+          podTemplate:
+            metadata: {}
+            spec:
+              containers:
+                - env:
+                    - name: ES_JAVA_OPTS
+                      value: -Djavax.net.ssl.trustStore=/usr/share/elasticsearch/config/custom-truststore/ca-bundle.jks -Djavax.net.ssl.keyStorePassword=changeit
+                  name: elasticsearch
+                  resources:
+                    limits:
+                      cpu: 1000m
+                      memory: 2Gi
+                    requests:
+                      cpu: 500m
+                      memory: 1Gi
+                  volumeMounts:
+                    - mountPath: /usr/share/elasticsearch/config/custom-truststore
+                      name: custom-truststore
+              volumes:
+                - name: custom-truststore
+                  secret:
+                    secretName: ca-cert-bundle
+          volumeClaimTemplates:
+            - metadata:
+                name: elasticsearch-data
+              spec:
+                accessModes:
+                  - ReadWriteOnce
+                resources:
+                  requests:
+                    storage: 100Gi
+                storageClassName: ocs-storagecluster-ceph-rbd
+      secureSettings:
+        - secretName: snapshot-settings
+      version: 9.3.1
+  5: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eck-instance
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: eck-instance
+        helm.sh/chart: eck-instance-1.0.0
+      name: eck-instance-defaultuser-user
+      namespace: eds
+    spec:
+      dataFrom:
+        - extract:
+            key: /eds/elasticsearch/defaultuser
+      refreshInterval: 1h0m0s
+      secretStoreRef:
+        kind: SecretStore
+        name: vault-hub01
+      target:
+        creationPolicy: Owner
+        deletionPolicy: Retain
+        name: eck-instance-defaultuser-user
+  6: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eck-instance
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: eck-instance
+        helm.sh/chart: eck-instance-1.0.0
+      name: eck-instance-slmadmin-user
+      namespace: eds
+    spec:
+      dataFrom:
+        - extract:
+            key: /eds/elasticsearch/slmadmin
+      refreshInterval: 1h0m0s
+      secretStoreRef:
+        kind: SecretStore
+        name: vault-hub01
+      target:
+        creationPolicy: Owner
+        deletionPolicy: Retain
+        name: eck-instance-slmadmin-user
+  7: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eck-instance
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: eck-instance
+        helm.sh/chart: eck-instance-1.0.0
+      name: eck-instance-monitor-user
+      namespace: eds
+    spec:
+      dataFrom:
+        - extract:
+            key: /eds/elasticsearch/monitor
+      refreshInterval: 1h0m0s
+      secretStoreRef:
+        kind: SecretStore
+        name: vault-hub01
+      target:
+        creationPolicy: Owner
+        deletionPolicy: Retain
+        name: eck-instance-monitor-user
+  8: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eck-instance
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: eck-instance
+        helm.sh/chart: eck-instance-1.0.0
+      name: eck-instance-snapinit-user
+      namespace: eds
+    spec:
+      dataFrom:
+        - extract:
+            key: /eds/elasticsearch/snapinit
+      refreshInterval: 1h0m0s
+      secretStoreRef:
+        kind: SecretStore
+        name: vault-hub01
+      target:
+        creationPolicy: Owner
+        deletionPolicy: Retain
+        name: eck-instance-snapinit-user
+  9: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eck-instance
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: eck-instance
+        helm.sh/chart: eck-instance-1.0.0
+      name: eck-instance-backup-init
+      namespace: eds
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          containers:
+            - command:
+                - /mnt/scripts/backup-prepare.sh
+              env:
+                - name: ES_HOST
+                  value: https://eck-instance-es-http.eds.svc:9200
+                - name: BUCKET_NAME
+                  valueFrom:
+                    secretKeyRef:
+                      key: bucket
+                      name: eck-instance-backup-allinfo
+                - name: BUCKET_EP
+                  valueFrom:
+                    secretKeyRef:
+                      key: endpoint
+                      name: eck-instance-backup-allinfo
+              image: quay.io/curl/curl:8.18.0
+              name: backup-init
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                privileged: false
+                readOnlyRootFilesystem: true
+                runAsGroup: null
+                runAsNonRoot: true
+                runAsUser: null
+                seccompProfile:
+                  type: RuntimeDefault
+              volumeMounts:
+                - mountPath: /mnt/snap-init-user
+                  name: snap-init-user
+                  readOnly: true
+                - mountPath: /mnt/slm-admin-user
+                  name: slm-admin-user
+                  readOnly: true
+                - mountPath: /mnt/monitor-user
+                  name: monitor-user
+                  readOnly: true
+                - mountPath: /mnt/es-ca
+                  name: es-ca
+                  readOnly: true
+                - mountPath: /mnt/scripts
+                  name: backup-init
+          restartPolicy: Never
+          volumes:
+            - name: snap-init-user
+              secret:
+                secretName: eck-instance-snapinit-user
+            - name: slm-admin-user
+              secret:
+                secretName: eck-instance-slmadmin-user
+            - name: monitor-user
+              secret:
+                secretName: eck-instance-monitor-user
+            - name: es-ca
+              secret:
+                secretName: eck-instance-es-tls
+            - configMap:
+                defaultMode: 493
+                name: eck-instance-init-scripts
+              name: backup-init
+  10: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "1"
+      labels:
+        app.kubernetes.io/instance: eck-instance
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: eck-instance
+        helm.sh/chart: eck-instance-1.0.0
+      name: eck-instance-prepare-reqs
+      namespace: eds
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          containers:
+            - command:
+                - /mnt/scripts/create-s3-creds-secret.sh
+              image: registry.redhat.io/openshift4/ose-cli:v4.15
+              name: create-obc-secret
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                privileged: false
+                readOnlyRootFilesystem: true
+                runAsGroup: null
+                runAsNonRoot: true
+                runAsUser: null
+                seccompProfile:
+                  type: RuntimeDefault
+              volumeMounts:
+                - mountPath: /mnt/scripts
+                  name: s3-creds
+          restartPolicy: Never
+          serviceAccountName: eck-instance-bkp
+          volumes:
+            - configMap:
+                defaultMode: 493
+                name: eck-instance-init-scripts
+              name: s3-creds
+  11: |
+    apiVersion: kibana.k8s.elastic.co/v1
+    kind: Kibana
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eck-instance
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: eck-instance
+        helm.sh/chart: eck-instance-1.0.0
+      name: eck-instance
+      namespace: eds
+    spec:
+      count: 1
+      elasticsearchRef:
+        name: eck-instance
+      http:
+        tls:
+          certificate:
+            secretName: eck-instance-kb-tls
+      podTemplate:
+        spec:
+          containers:
+            - name: kibana
+              resources:
+                limits:
+                  cpu: 1000m
+                  memory: 2Gi
+                requests:
+                  cpu: 500m
+                  memory: 1Gi
+      version: 9.3.1
+  12: |
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eck-instance
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: eck-instance
+        helm.sh/chart: eck-instance-1.0.0
+      name: eds-allow-from-eck-operator
+      namespace: eds
+    spec:
+      ingress:
+        - from:
+            - namespaceSelector:
+                matchLabels:
+                  kubernetes.io/metadata.name: eck-operator
+      podSelector: {}
+      policyTypes:
+        - Ingress
+  13: |
+    apiVersion: objectbucket.io/v1alpha1
+    kind: ObjectBucketClaim
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "0"
+      labels:
+        app.kubernetes.io/instance: eck-instance
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: eck-instance
+        helm.sh/chart: eck-instance-1.0.0
+      name: eck-instance-backup
+      namespace: eds
+    spec:
+      generateBucketName: eck-instance-backup
+      storageClassName: ocs-storagecluster-ceph-rgw
+  14: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eck-instance
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: eck-instance
+        helm.sh/chart: eck-instance-1.0.0
+      name: eck-instance-rules
+      namespace: eds
+    spec:
+      groups:
+        - name: eck-instance-rules
+          rules:
+            - alert: ElasticsearchMonitoringDown
+              annotations:
+                description: The Elasticsearch Exporter in namespace {{ $labels.namespace }} is down for more than 5 minutes.
+                summary: Elasticsearch Exporter is down
+              expr: kube_deployment_status_replicas_available{namespace="eds", deployment="eck-instance-prometheus-elasticsearch-exporter"} == 0 or absent(kube_deployment_status_replicas_available{namespace="eds", deployment="eck-instance-prometheus-elasticsearch-exporter"})
+              for: 5m
+              labels:
+                namespace: eds
+                severity: critical
+                team: platform
+                vendor: socpoist
+            - alert: ElasticsearchMonitoringCrashLooping
+              annotations:
+                description: The Elasticsearch Exporter in namespace {{ $labels.namespace }} is crashlooping for more than 5 minutes.
+                summary: Elasticsearch Exporter is crashlooping
+              expr: max_over_time(kube_pod_container_status_waiting_reason{namespace="eds", pod=~"eck-instance-prometheus-elasticsearch-exporter-.*", reason="CrashLoopBackOff"}[5m]) > 0
+              for: 5m
+              labels:
+                namespace: eds
+                severity: critical
+                team: platform
+                vendor: socpoist
+            - alert: ElasticsearchClusterYellow
+              annotations:
+                description: Elasticsearch cluster {{ $labels.cluster }} is in yellow state for more than 10 minutes.
+                summary: Elasticsearch cluster is in yellow state
+              expr: elasticsearch_cluster_health_status{color="yellow", namespace="eds"} == 1
+              for: 10m
+              labels:
+                namespace: eds
+                severity: warning
+                team: developers
+                vendor: socpoist
+            - alert: ElasticsearchClusterRed
+              annotations:
+                description: Elasticsearch cluster {{ $labels.cluster }} is in red state for more than 5 minutes.
+                summary: Elasticsearch cluster is in red state
+              expr: elasticsearch_cluster_health_status{color="red", namespace="eds"} == 1
+              for: 5m
+              labels:
+                namespace: eds
+                severity: critical
+                team: developers
+                vendor: socpoist
+            - alert: ElasticsearchUnassignedShards
+              annotations:
+                description: Cluster has unassigned shards for more than 5 minutes. Unassigned shards can lead to degraded performance and potential data loss. Please investigate the cluster state and resolve any issues causing shard unassignment.
+                summary: Unassigned shards detected
+              expr: elasticsearch_cluster_health_unassigned_shards{namespace="eds"} > 0
+              for: 5m
+              labels:
+                namespace: eds
+                severity: critical
+                team: developers
+                vendor: socpoist
+            - alert: ElasticsearchHighHeapUsage
+              annotations:
+                description: Heap usage above 75%
+                summary: High JVM heap usage
+              expr: (elasticsearch_jvm_memory_used_bytes{namespace="eds"} / elasticsearch_jvm_memory_max_bytes{namespace="eds"}) > 0.75
+              for: 10m
+              labels:
+                namespace: eds
+                severity: warning
+                team: developers
+                vendor: socpoist
+            - alert: ElasticsearchCriticalHeapUsage
+              annotations:
+                description: Heap usage above 85%
+                summary: Critical JVM heap usage
+              expr: (elasticsearch_jvm_memory_used_bytes{namespace="eds"} / elasticsearch_jvm_memory_max_bytes{namespace="eds"}) > 0.85
+              for: 5m
+              labels:
+                namespace: eds
+                severity: critical
+                team: developers
+                vendor: socpoist
+            - alert: ElasticsearchDiskUsageWarning
+              annotations:
+                description: Elasticsearch disk usage is high for ES instance in {{ $labels.namespace }} namespace.
+                summary: Disk usage above 80%
+              expr: (1 - elasticsearch_filesystem_data_available_bytes{namespace="eds"} / elasticsearch_filesystem_data_size_bytes{namespace="eds"}) > 0.80
+              for: 10m
+              labels:
+                namespace: eds
+                severity: warning
+                team: developers
+                vendor: socpoist
+            - alert: ElasticsearchDiskUsageCritical
+              annotations:
+                description: Elasticsearch disk usage is critical (risk of write block) for ES instance in {{ $labels.namespace }} namespace.
+                summary: Disk usage above 90%
+              expr: (1 - elasticsearch_filesystem_data_available_bytes{namespace="eds"} / elasticsearch_filesystem_data_size_bytes{namespace="eds"}) > 0.90
+              for: 5m
+              labels:
+                namespace: eds
+                severity: critical
+                team: developers
+                vendor: socpoist
+            - alert: ElasticsearchSnapshotFailures
+              annotations:
+                description: More than 1 snapshot failure in the last 24 hours for ES instance in {{ $labels.namespace }} namespace.
+                summary: Snapshot failures detected
+              expr: increase(elasticsearch_snapshot_stats_snapshot_number_of_failures{namespace="eds"}[24h]) > 1
+              labels:
+                namespace: eds
+                severity: warning
+                team: platform
+                vendor: socpoist
+            - alert: ElasticsearchNoRecentSnapshots
+              annotations:
+                description: No successful snapshots in the last 24 hours for ES instance in {{ $labels.namespace }} namespace.
+                summary: No recent successful snapshots
+              expr: time() - elasticsearch_snapshot_stats_latest_snapshot_timestamp_seconds{namespace="eds"} > 24 * 3600
+              labels:
+                namespace: eds
+                severity: warning
+                team: platform
+                vendor: socpoist
+            - alert: KibanaDown
+              annotations:
+                description: Kibana in namespace {{ $labels.namespace }} is down for more than 5 minutes.
+                summary: Kibana is down
+              expr: kube_deployment_status_replicas_available{namespace="eds", deployment="eck-instance-kb"} == 0 or absent(kube_deployment_status_replicas_available{namespace="eds", deployment="eck-instance-kb"})
+              for: 5m
+              labels:
+                namespace: eds
+                severity: warning
+                team: developers
+                vendor: socpoist
+            - alert: KibanaCrashLooping
+              annotations:
+                description: Kibana in namespace {{ $labels.namespace }} is crashlooping for more than 5 minutes.
+                summary: Kibana is crashlooping
+              expr: rate(kube_pod_container_status_restarts_total{namespace="eds", pod=~"eck-instance-kb-.*"}[5m]) > 0
+              for: 5m
+              labels:
+                namespace: eds
+                severity: warning
+                team: developers
+                vendor: socpoist
+  15: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eck-instance
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: eck-instance
+        helm.sh/chart: eck-instance-1.0.0
+      name: eck-instance-bkp
+      namespace: eds
+    rules:
+      - apiGroups:
+          - ""
+        resources:
+          - secrets
+        verbs:
+          - get
+          - create
+          - update
+  16: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eck-instance
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: eck-instance
+        helm.sh/chart: eck-instance-1.0.0
+      name: eck-instance-bkp
+      namespace: eds
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: eck-instance-bkp
+    subjects:
+      - kind: ServiceAccount
+        name: eck-instance-bkp
+  17: |
+    apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eck-instance
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: eck-instance
+        helm.sh/chart: eck-instance-1.0.0
+      name: eck-instance-es
+      namespace: eds
+    spec:
+      tls:
+        insecureEdgeTerminationPolicy: Redirect
+        termination: passthrough
+      to:
+        kind: Service
+        name: eck-instance-es-http
+  18: |
+    apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eck-instance
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: eck-instance
+        helm.sh/chart: eck-instance-1.0.0
+      name: eck-instance-kb
+      namespace: eds
+    spec:
+      tls:
+        insecureEdgeTerminationPolicy: Redirect
+        termination: passthrough
+      to:
+        kind: Service
+        name: eck-instance-kb-http
+  19: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eck-instance
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: eck-instance
+        helm.sh/chart: eck-instance-1.0.0
+      name: eck-instance-slmadmin-role
+      namespace: eds
+    stringData:
+      roles.yml: |-
+        slm_admin_role:
+          cluster:
+            - "manage_slm"
+            - "cluster:admin/snapshot/*"
+          indices:
+            - names: [".slm-history-*"]
+              privileges: ["read"]
+  20: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eck-instance
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: eck-instance
+        helm.sh/chart: eck-instance-1.0.0
+      name: eck-instance-monitor-role
+      namespace: eds
+    stringData:
+      roles.yml: |-
+        monitor_role:
+          cluster:
+            - "monitor"
+            - "manage_slm"
+            - cluster:admin/snapshot/*
+            - cluster:admin/repository/get
+          indices:
+          - names: ["*"]
+            privileges:
+              - monitor
+              - view_index_metadata
+  21: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eck-instance
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: eck-instance
+        helm.sh/chart: eck-instance-1.0.0
+      name: eck-instance-snapinit-role
+      namespace: eds
+    stringData:
+      roles.yml: |-
+        snapshot_repo_role:
+          cluster:
+            - "cluster:admin/repository/*"
+  22: |
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eck-instance
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: eck-instance
+        helm.sh/chart: eck-instance-1.0.0
+      name: eck-instance-bkp
+      namespace: eds
