@@ -20,7 +20,12 @@ spec:
         port: 9092
         type: internal
         tls: false
-        
+        networkPolicyPeers:
+          # allow communication from release namespace only
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: {{ $.Release.Namespace }}
+
       - name: tls
         port: 9093
         type: internal
@@ -32,6 +37,16 @@ spec:
             secretName: {{ include "apps-ck-kafka.fullname" $ }}-brokers-tls
             certificate: tls.crt
             key: tls.key
+        networkPolicyPeers:
+          # allow communication from release namespace = if no namespaces are defined, stops communication from outside the Kafka cluster
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: {{ $.Release.Namespace }}
+          {{- range $namespace := $.Values.networkpolicy.namespaces }}
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: {{ $namespace }}
+          {{- end }}
       
       {{- if .externalAccess.enabled }}
       # External listener for clients outside the cluster
