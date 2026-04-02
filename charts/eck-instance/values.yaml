@@ -1,0 +1,113 @@
+# globals values and their overrides in the chart
+# global:
+#   apc:
+#     cluster:
+#       appsDomain:
+# overrides
+# cluster:
+#   appsDomain:
+
+releaseServiceOverride: ArgoCD
+
+elasticsearch:
+  route: true
+  version: 9.3.1
+  nodesCount: 3
+  requests:
+    memory: 1Gi
+    cpu: 500m
+  limits:
+    memory: 2Gi
+    cpu: 1000m
+  volumeClaim:
+    size: 100Gi
+    storageClass: ocs-storagecluster-ceph-rbd
+
+kibana:
+  route: true
+  version: 9.3.1
+  nodesCount: 1
+  requests:
+    memory: 1Gi
+    cpu: 500m
+  limits:
+    memory: 2Gi
+    cpu: 1000m
+
+backup:
+  enabled: true
+  s3StorageClass: ocs-storagecluster-ceph-rgw
+  backupInitContainer:
+    image: quay.io/curl/curl
+    tag: 8.18.0
+  schedule: "0 30 1 * * ?"
+  retention: "30d"
+  min_count: 5
+  max_count: 50  
+  prereqs:
+    container:
+      image: registry.redhat.io/openshift4/ose-cli
+      tag: v4.15
+
+users:
+  - name: defaultuser
+  - name: slmadmin
+    customRoles: |
+      slm_admin_role:
+        cluster:
+          - "manage_slm"
+          - "cluster:admin/snapshot/*"
+        indices:
+          - names: [".slm-history-*"]
+            privileges: ["read"]
+  - name: monitor
+    customRoles: |
+      monitor_role:
+        cluster:
+          - "monitor"
+          - "manage_slm"
+          - cluster:admin/snapshot/*
+          - cluster:admin/repository/get
+        indices:
+        - names: ["*"]
+          privileges:
+            - monitor
+            - view_index_metadata
+  - name: snapinit
+    customRoles: |
+      snapshot_repo_role:
+        cluster:
+          - "cluster:admin/repository/*"
+
+defaultSecurityContext:
+  runAsUser:
+  runAsGroup:
+  runAsNonRoot: true
+  privileged: false
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+    - ALL
+  seccompProfile:
+    type: RuntimeDefault
+
+secretStore: vault-hub01
+
+prometheus-elasticsearch-exporter:
+  es:
+    ssl:
+      enabled: true
+      useExistingSecrets: true
+      ca:
+        path: /ssl/ca.crt
+      client:
+        enabled: false
+  serviceMonitor:
+    enabled: true
+  podSecurityContext:
+      runAsUser:
+      runAsGroup:
+      runAsNonRoot: true
+      seccompProfile:
+        type: RuntimeDefault
