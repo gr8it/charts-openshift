@@ -371,7 +371,7 @@ Create the eso default cluster secret store
 {{- end }}
 
 {{/*
-Create the Keycloak URL
+Create the Keycloak Admin API URL
 */}}
 {{- define "apc-global-overrides.keycloakUrl" -}}
 {{- (((include "apc-global-overrides.services" .) | fromYaml).keycloak).url | default "" }}

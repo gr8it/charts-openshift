@@ -209,7 +209,7 @@ Helpers to query a specific service parameters available:
 |apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName|services.crossplane.kubeKeycloakProviderConfigName|global.apc.services.crossplane.kubeKeycloakProviderConfigName|string|-||
 |apc-global-overrides.ESODefaultClusterSecretStore|services.externalSecretsOperator.defaultClusterSecretStore|global.apc.services.externalSecretsOperator.defaultClusterSecretStore|string|-|External Secrets Operator default cluster secret store to use for cluster-config externalsecrets|
 |apc-global-overrides.require-ESODefaultClusterSecretStore|services.externalSecretsOperator.defaultClusterSecretStore|global.apc.services.externalSecretsOperator.defaultClusterSecretStore|string|-||
-|apc-global-overrides.keycloakUrl|services.keycloak.url|global.apc.services.keycloak.url|string|-|Keycloak ingress URL|
+|apc-global-overrides.keycloakUrl|services.keycloak.url|global.apc.services.keycloak.url|string|-|Keycloak Admin API URL|
 |apc-global-overrides.require-keycloakUrl|services.keycloak.url|global.apc.services.keycloak.url|string|-||
 |apc-global-overrides.keycloakRealm|services.keycloak.realm|global.apc.services.keycloak.realm|string|-|Keycloak application Realm|
 |apc-global-overrides.require-keycloakRealm|services.keycloak.realm|global.apc.services.keycloak.realm|string|-||
