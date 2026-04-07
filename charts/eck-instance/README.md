@@ -162,3 +162,11 @@ Where:
 - `prometheus-elasticsearch-exporter.serviceMonitor.namespace`: where the serviceMonitor for scraping the metrcis will be created  
 
 Detailed configuration for ElasticSearch Exporter can be found [here](https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-elasticsearch-exporter/values.yaml).
+
+
+## TODO
+
+In next phases of development following points are considered for investigation:
+
+- replace curl api calls with k8s native tools
+- consider using [internal native realm](https://www.elastic.co/docs/deploy-manage/users-roles/cluster-or-deployment-auth/native#managing-native-users) for user management
