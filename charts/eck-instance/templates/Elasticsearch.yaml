@@ -1,0 +1,61 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "eck-instance.labels" . | nindent 4 }}
+spec:
+  version: {{ .Values.elasticsearch.version }}
+  secureSettings:
+  - secretName: snapshot-settings
+  auth:
+    fileRealm:
+    {{- range $user, $userData := .Values.users }}
+    - secretName: {{ $.Release.Name }}-{{ $userData.name }}-user
+    {{- end }}
+    roles:
+    {{- range $user, $userData := .Values.users }}
+    {{- if $userData.customRoles }}
+    - secretName: {{ $.Release.Name }}-{{ $userData.name }}-role
+    {{- end }}
+    {{- end }}
+  nodeSets:
+  - name: default
+    count: {{ .Values.elasticsearch.nodesCount }}
+    podTemplate:
+      metadata: {}
+      spec:
+        volumes:
+        - name: custom-truststore
+          secret:
+            secretName: ca-cert-bundle
+        containers:
+        - name: elasticsearch
+          resources:
+            requests:
+              memory: {{ .Values.elasticsearch.requests.memory }}
+              cpu: {{ .Values.elasticsearch.requests.cpu }}
+            limits:
+              memory: {{ .Values.elasticsearch.limits.memory }}
+              cpu: {{ .Values.elasticsearch.limits.cpu }}
+          volumeMounts:
+          - name: custom-truststore
+            mountPath: /usr/share/elasticsearch/config/custom-truststore
+          env:
+          - name: ES_JAVA_OPTS
+            value: "-Djavax.net.ssl.trustStore=/usr/share/elasticsearch/config/custom-truststore/ca-bundle.jks -Djavax.net.ssl.keyStorePassword=changeit"
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.elasticsearch.volumeClaim.size }}
+        storageClassName: {{ .Values.elasticsearch.volumeClaim.storageClass }}
+  http:
+    tls:
+      certificate:
+        secretName: {{ .Release.Name }}-es-tls

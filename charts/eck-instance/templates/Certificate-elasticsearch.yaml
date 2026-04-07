@@ -1,0 +1,19 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Release.Name }}-es-tls
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "eck-instance.labels" . | nindent 4 }}
+spec:
+  duration: 8760h
+  secretName: {{ .Release.Name }}-es-tls
+  dnsNames:
+    - {{ .Release.Name }}-es-http.{{ .Release.Namespace }}.svc
+    - {{ .Release.Name }}-es-http.{{ .Release.Namespace }}.svc.cluster.local
+    - {{ .Release.Name }}-es-{{ .Release.Namespace }}.{{ include "apc-global-overrides.clusterAppsDomain" . }}
+  commonName: {{ .Release.Name }}-es-{{ .Release.Namespace }}.{{ include "apc-global-overrides.clusterAppsDomain" . }}
+  issuerRef:
+    name: {{ include "apc-global-overrides.require-certManagerDefaultClusterIssuer" . }}
+    kind: ClusterIssuer
+    group: cert-manager.io
