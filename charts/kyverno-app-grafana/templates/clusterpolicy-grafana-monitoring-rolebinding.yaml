@@ -1,0 +1,39 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: grafana-monitoring-rolebinding
+  annotations:
+    policies.kyverno.io/title: Generate Grafana monitoring rolebinding
+    policies.kyverno.io/category: RBAC
+    policies.kyverno.io/subject: Grafana
+    policies.kyverno.io/minversion: 1.13.0
+  labels:
+    {{- include "kyverno-app-grafana.labels" . | nindent 4 }}
+spec:
+  background: {{ .Values.policy.background }}
+  validationFailureAction: {{ .Values.policy.validationFailureAction }}
+  rules:
+    - name: generate-grafana-monitoring-rolebinding
+      match:
+        any:
+          - resources:
+              kinds:
+                - grafana.integreatly.org/*/Grafana
+      generate:
+        orphanDownstreamOnPolicyDelete: {{ .Values.policy.orphanDownstreamOnPolicyDelete }}
+        synchronize: {{ .Values.policy.synchronize }}
+        generateExisting: {{ .Values.policy.generateExisting }}
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: RoleBinding
+        name: "{{`{{ request.object.metadata.name }}`}}{{ .Values.policy.roleBindingSuffix }}"
+        namespace: {{ .Values.policy.targetNamespace }}
+        data:
+          roleRef:
+            apiGroup: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: {{ .Values.policy.clusterRoleName }}
+          subjects:
+            - kind: ServiceAccount
+              name: "{{`{{ request.object.metadata.name }}`}}{{ .Values.policy.serviceAccountSuffix }}"
+              namespace: {{`"{{ request.object.metadata.namespace }}"`}}
+      skipBackgroundRequests: {{ .Values.policy.skipBackgroundRequests }}

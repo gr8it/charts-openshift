@@ -1,0 +1,13 @@
+releaseServiceOverride: ArgoCD
+
+policy:
+  validationFailureAction: Audit
+  background: true
+  generateExisting: true
+  synchronize: true
+  orphanDownstreamOnPolicyDelete: true
+  skipBackgroundRequests: true
+  targetNamespace: openshift-monitoring
+  clusterRoleName: cluster-monitoring-view
+  serviceAccountSuffix: -sa
+  roleBindingSuffix: -cluster-monitoring-view
