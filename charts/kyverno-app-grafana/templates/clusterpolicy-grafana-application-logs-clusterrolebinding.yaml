@@ -1,9 +1,9 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: grafana-monitoring-rolebinding
+  name: grafana-application-logs-clusterrolebinding
   annotations:
-    policies.kyverno.io/title: Generate Grafana monitoring rolebinding
+    policies.kyverno.io/title: Generate Grafana application logs clusterrolebinding
     policies.kyverno.io/category: RBAC
     policies.kyverno.io/subject: Grafana
     policies.kyverno.io/minversion: 1.13.0
@@ -13,7 +13,7 @@ spec:
   background: true
   validationFailureAction: Audit
   rules:
-    - name: generate-grafana-monitoring-rolebinding
+    - name: generate-grafana-application-logs-clusterrolebinding
       match:
         any:
           - resources:
@@ -29,14 +29,13 @@ spec:
         synchronize: true
         generateExisting: true
         apiVersion: rbac.authorization.k8s.io/v1
-        kind: RoleBinding
-        name: "{{`{{ request.object.metadata.namespace }}`}}-{{`{{ request.object.metadata.name }}`}}-cluster-monitoring-view"
-        namespace: openshift-monitoring
+        kind: ClusterRoleBinding
+        name: "{{`{{ request.object.metadata.namespace }}`}}-{{`{{ request.object.metadata.name }}`}}-cluster-logging-application-view"
         data:
           roleRef:
             apiGroup: rbac.authorization.k8s.io
             kind: ClusterRole
-            name: cluster-monitoring-view
+            name: cluster-logging-application-view
           subjects:
             - kind: ServiceAccount
               name: "{{`{{ request.object.metadata.name }}`}}-sa"
