@@ -1,0 +1,36 @@
+global:
+  apc:
+    environmentShort: dev
+    services:
+      certManager:
+        defaultClusterIssuer: vault-hub-issuer
+      metallb:
+        namespace: metallb-system
+
+users:
+  - name: "eds_admin/EDS.adm.2026"
+    function: admin
+    roles:
+      - role: userAdminAnyDatabase
+        database: admin
+      - role: dbAdminAnyDatabase
+        database: admin
+      - role: clusterMonitor
+        database: admin
+  - name: "eds/EDS.be"
+    function: techuser
+    roles:
+      - role: readWrite
+        database: eds
+      - role: dbAdmin
+        database: eds
+
+mongodbInstance:
+  fqdns:
+  - eds-mongodb-0.service.dev01.cloud.socpoist.sk
+  - eds-mongodb-1.service.dev01.cloud.socpoist.sk
+  - eds-mongodb-2.service.dev01.cloud.socpoist.sk
+  ips:
+  - 10.14.76.110/32
+  - 10.14.76.111/32
+  - 10.14.76.112/32

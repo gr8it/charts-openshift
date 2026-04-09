@@ -1,0 +1,12 @@
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ include "apc-global-overrides.metallbNamespace" . }}
+  labels:
+    {{- include "mongodb-config.labels" . | nindent 4 }}
+spec:
+  interfaces:
+  - {{ include "apc-global-overrides.metallbL2Interface" . }}
+  ipAddressPools:
+  - {{ .Release.Name }}

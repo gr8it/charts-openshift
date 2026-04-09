@@ -1,0 +1,639 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eds-mongodb
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: mongodb-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: mongodb-config-1.0.0
+      name: eds-mongodb
+      namespace: eds
+    spec:
+      commonName: '*.eds-mongodb-svc.eds.svc.cluster.local'
+      dnsNames:
+        - '*.eds-mongodb-svc.eds.svc.cluster.local'
+        - eds-mongodb-0.service.dev01.cloud.socpoist.sk
+        - eds-mongodb-1.service.dev01.cloud.socpoist.sk
+        - eds-mongodb-2.service.dev01.cloud.socpoist.sk
+      issuerRef:
+        group: cert-manager.io
+        kind: ClusterIssuer
+        name: vault-hub-issuer
+      secretName: eds-mongodb-tls
+  2: |
+    apiVersion: batch/v1
+    kind: CronJob
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eds-mongodb
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: mongodb-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: mongodb-config-1.0.0
+      name: eds-mongodb-backup
+      namespace: eds
+    spec:
+      concurrencyPolicy: Forbid
+      failedJobsHistoryLimit: 7
+      jobTemplate:
+        spec:
+          backoffLimit: 0
+          template:
+            spec:
+              containers:
+                - env:
+                    - name: RETENTION
+                      value: "3"
+                    - name: AWS_CA_BUNDLE
+                      value: /etc/ssl/certs/service-ca.crt
+                    - name: CA_BUNDLE
+                      value: /etc/ssl/certs/ca-bundle.crt
+                    - name: AWS_ACCESS_KEY_ID
+                      valueFrom:
+                        secretKeyRef:
+                          key: access_key
+                          name: eds-mongodb-backup-allinfo
+                    - name: AWS_SECRET_ACCESS_KEY
+                      valueFrom:
+                        secretKeyRef:
+                          key: access_key_secret
+                          name: eds-mongodb-backup-allinfo
+                    - name: S3_BUCKET
+                      valueFrom:
+                        secretKeyRef:
+                          key: bucket
+                          name: eds-mongodb-backup-allinfo
+                    - name: S3_HOST
+                      valueFrom:
+                        secretKeyRef:
+                          key: endpoint
+                          name: eds-mongodb-backup-allinfo
+                    - name: AWS_DEFAULT_REGION
+                      value: us-east-1
+                    - name: MONGODB_USER
+                      value: backupUser
+                    - name: MONGODB_PWD
+                      valueFrom:
+                        secretKeyRef:
+                          key: password
+                          name: mongodb-backup-pwd
+                    - name: MONGO_SVC
+                      value: eds-mongodb-0.eds-mongodb-svc.eds.svc.cluster.local
+                    - name: MONGO_PORT
+                      value: "27017"
+                    - name: S3INTERNAL
+                      value: "true"
+                  image: ghcr.io/gr8it/apc-images/mongobackup:latest
+                  name: mongodb-backup
+                  volumeMounts:
+                    - mountPath: /etc/ssl/certs/service-ca.crt
+                      name: s3ca
+                      subPath: service-ca.crt
+                    - mountPath: /etc/ssl/certs/ca-bundle.crt
+                      name: ca-bundle
+                      subPath: ca-bundle.crt
+              restartPolicy: Never
+              volumes:
+                - configMap:
+                    name: openshift-service-ca.crt
+                  name: s3ca
+                - configMap:
+                    name: ca-cert-bundle
+                  name: ca-bundle
+      schedule: 0 4 * * *
+      successfulJobsHistoryLimit: 7
+  3: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eds-mongodb
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: mongodb-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: mongodb-config-1.0.0
+      name: mongodb-admin
+      namespace: eds
+    spec:
+      dataFrom:
+        - extract:
+            key: dev/eds/mongodb/admin
+      refreshInterval: 1h0m0s
+      secretStoreRef:
+        kind: SecretStore
+        name: vault-hub01
+      target:
+        creationPolicy: Owner
+        deletionPolicy: Retain
+        name: mongodb-admin-pwd
+  4: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eds-mongodb
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: mongodb-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: mongodb-config-1.0.0
+      name: mongodb-techuser
+      namespace: eds
+    spec:
+      dataFrom:
+        - extract:
+            key: dev/eds/mongodb/techuser
+      refreshInterval: 1h0m0s
+      secretStoreRef:
+        kind: SecretStore
+        name: vault-hub01
+      target:
+        creationPolicy: Owner
+        deletionPolicy: Retain
+        name: mongodb-techuser-pwd
+  5: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eds-mongodb
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: mongodb-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: mongodb-config-1.0.0
+      name: mongodb-root
+      namespace: eds
+    spec:
+      dataFrom:
+        - extract:
+            key: dev/eds/mongodb/root
+      refreshInterval: 1h0m0s
+      secretStoreRef:
+        kind: SecretStore
+        name: vault-hub01
+      target:
+        creationPolicy: Owner
+        deletionPolicy: Retain
+        name: mongodb-root-pwd
+  6: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eds-mongodb
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: mongodb-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: mongodb-config-1.0.0
+      name: mongodb-backup
+      namespace: eds
+    spec:
+      dataFrom:
+        - extract:
+            key: dev/eds/mongodb/backup
+      refreshInterval: 1h0m0s
+      secretStoreRef:
+        kind: SecretStore
+        name: vault-hub01
+      target:
+        creationPolicy: Owner
+        deletionPolicy: Retain
+        name: mongodb-backup-pwd
+  7: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eds-mongodb
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: mongodb-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: mongodb-config-1.0.0
+      name: mongodb-monitoring
+      namespace: eds
+    spec:
+      dataFrom:
+        - extract:
+            key: dev/eds/mongodb/monitoring
+      refreshInterval: 1h0m0s
+      secretStoreRef:
+        kind: SecretStore
+        name: vault-hub01
+      target:
+        creationPolicy: Owner
+        deletionPolicy: Retain
+        name: mongodb-monitoring-pwd
+  8: |
+    apiVersion: metallb.io/v1beta1
+    kind: IPAddressPool
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eds-mongodb
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: mongodb-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: mongodb-config-1.0.0
+      name: eds-mongodb
+      namespace: metallb-system
+    spec:
+      addresses:
+        - 10.14.76.110/32
+        - 10.14.76.111/32
+        - 10.14.76.112/32
+      autoAssign: false
+      avoidBuggyIPs: false
+      serviceAllocation:
+        namespaces:
+          - eds
+  9: |
+    apiVersion: metallb.io/v1beta1
+    kind: L2Advertisement
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eds-mongodb
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: mongodb-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: mongodb-config-1.0.0
+      name: eds-mongodb
+      namespace: metallb-system
+    spec:
+      interfaces:
+        - br-ex
+      ipAddressPools:
+        - eds-mongodb
+  10: |
+    apiVersion: mongodbcommunity.mongodb.com/v1
+    kind: MongoDBCommunity
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eds-mongodb
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: mongodb-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: mongodb-config-1.0.0
+      name: eds-mongodb
+      namespace: eds
+    spec:
+      members: 3
+      prometheus:
+        passwordSecretRef:
+          name: mongodb-monitoring-pwd
+        username: prom
+      replicaSetHorizons:
+        - horizon: eds-mongodb-0.service.dev01.cloud.socpoist.sk:27017
+        - horizon: eds-mongodb-1.service.dev01.cloud.socpoist.sk:27017
+        - horizon: eds-mongodb-2.service.dev01.cloud.socpoist.sk:27017
+      security:
+        authentication:
+          modes:
+            - SCRAM
+        tls:
+          caCertificateSecretRef:
+            name: eds-mongodb-tls
+          certificateKeySecretRef:
+            name: eds-mongodb-tls
+          enabled: true
+      statefulSet:
+        spec:
+          selector:
+            matchLabels:
+              app.kubernetes.io/name: eds-mongodb
+          serviceName: eds-mongodb-svc
+          template:
+            metadata:
+              labels:
+                app.kubernetes.io/name: eds-mongodb
+            spec:
+              containers:
+                - name: mongod
+                  resources:
+                    limits:
+                      cpu: 2
+                      memory: 16Gi
+                    requests:
+                      cpu: 1
+                      memory: 12Gi
+                  securityContext:
+                    allowPrivilegeEscalation: false
+                    privileged: false
+                    readOnlyRootFilesystem: true
+                    runAsNonRoot: true
+                    runAsUser: null
+                - name: mongodb-agent
+                  resources:
+                    limits:
+                      memory: 2Gi
+                    requests:
+                      memory: 128Mi
+                  securityContext:
+                    allowPrivilegeEscalation: false
+                    privileged: false
+                    readOnlyRootFilesystem: true
+                    runAsNonRoot: true
+                    runAsUser: null
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: null
+          volumeClaimTemplates:
+            - metadata:
+                name: data-volume
+              spec:
+                accessModes:
+                  - ReadWriteOnce
+                resources:
+                  requests:
+                    storage: 500Gi
+            - metadata:
+                name: logs-volume
+              spec:
+                accessModes:
+                  - ReadWriteOnce
+                resources:
+                  requests:
+                    storage: 1Gi
+      type: ReplicaSet
+      users:
+        - connectionStringSecretName: mongodb-admin-connection-string
+          db: admin
+          name: eds_admin/EDS.adm.2026
+          passwordSecretRef:
+            name: mongodb-admin-pwd
+          roles:
+            - db: admin
+              name: userAdminAnyDatabase
+            - db: admin
+              name: dbAdminAnyDatabase
+            - db: admin
+              name: clusterMonitor
+          scramCredentialsSecretName: admin
+        - connectionStringSecretName: mongodb-techuser-connection-string
+          db: admin
+          name: eds/EDS.be
+          passwordSecretRef:
+            name: mongodb-techuser-pwd
+          roles:
+            - db: eds
+              name: readWrite
+            - db: eds
+              name: dbAdmin
+          scramCredentialsSecretName: techuser
+        - connectionStringSecretName: mongodb-root-connection-string
+          db: admin
+          name: apcAdmin
+          passwordSecretRef:
+            name: mongodb-root-pwd
+          roles:
+            - db: admin
+              name: root
+          scramCredentialsSecretName: root
+        - connectionStringSecretName: mongodb-backup-connection-string
+          db: admin
+          name: backupUser
+          passwordSecretRef:
+            name: mongodb-backup-pwd
+          roles:
+            - db: admin
+              name: backup
+          scramCredentialsSecretName: backup
+      version: 8.2.3
+  11: |
+    apiVersion: objectbucket.io/v1alpha1
+    kind: ObjectBucketClaim
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eds-mongodb
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: mongodb-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: mongodb-config-1.0.0
+      name: eds-mongodb-backup
+      namespace: eds
+    spec:
+      generateBucketName: eds-mongodb-backup
+      storageClassName: ocs-storagecluster-ceph-rgw
+  12: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eds-mongodb
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: mongodb-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: mongodb-config-1.0.0
+      name: eds-mongodb-rules
+      namespace: eds
+    spec:
+      groups:
+        - name: mongodb.rules
+          rules:
+            - alert: MongoDBDown
+              annotations:
+                description: MongoDB instance {{ $labels.cl_name }} has been down for more than 1 minute.
+                summary: MongoDB instance {{ $labels.cl_name }} is down.
+              expr: mongodb_up == 0
+              for: 1m
+              labels:
+                namespace: eds
+                severity: critical
+                team: platform
+                vendor: aspecta
+            - alert: MongoDBFlowControlLagged
+              annotations:
+                description: Replica set {{ $labels.rs_nm }} is lagged; flow control may throttle writes
+                summary: MongoDB flow control engaged
+              expr: mongodb_flowControl_isLagged == 1
+              for: 2m
+              labels:
+                namespace: eds
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: MongoDBMemberHealth
+              annotations:
+                description: Replica set member {{ $labels.member_idx }} is unhealthy for more than 5 minutes.
+                summary: MongoDB replica set member unhealthy
+              expr: mongodb_members_health == 0
+              for: 5m
+              labels:
+                namespace: eds
+                severity: critical
+                team: platform
+                vendor: aspecta
+            - alert: MongoDBHighConnections
+              annotations:
+                description: MongoDB connections above 80% of capacity on {{ $labels.instance }}
+                summary: MongoDB connection usage high
+              expr: mongodb_connections_current > 0.8 * mongodb_connections_available
+              for: 5m
+              labels:
+                namespace: eds
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: MongoDBDiskSpaceLow
+              annotations:
+                description: Less than 15% free disk space for {{ $labels.instance }}
+                summary: MongoDB disk space critically low
+              expr: hardware_disk_metrics_disk_space_free_bytes / (hardware_disk_metrics_disk_space_free_bytes + hardware_disk_metrics_disk_space_used_bytes) < 0.15
+              for: 10m
+              labels:
+                namespace: eds
+                severity: critical
+                team: platform
+                vendor: aspecta
+  13: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eds-mongodb
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: mongodb-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: mongodb-config-1.0.0
+      name: mongodb-database-agent
+      namespace: eds
+    rules:
+      - apiGroups:
+          - ""
+        resources:
+          - secrets
+        verbs:
+          - get
+      - apiGroups:
+          - ""
+        resources:
+          - pods
+        verbs:
+          - get
+          - patch
+          - delete
+  14: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eds-mongodb
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: mongodb-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: mongodb-config-1.0.0
+      name: mongodb-database-agent
+      namespace: eds
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: mongodb-database-agent
+    subjects:
+      - kind: ServiceAccount
+        name: mongodb-kubernetes-appdb
+        namespace: eds
+  15: |
+    apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        metallb.io/address-pool: eds-mongodb
+        metallb.io/loadBalancerIPs: 10.14.76.110
+      labels:
+        app.kubernetes.io/instance: eds-mongodb
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: mongodb-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: mongodb-config-1.0.0
+      name: external-mongodb-0
+      namespace: eds
+    spec:
+      ports:
+        - port: 27017
+          targetPort: 27017
+      selector:
+        app: eds-mongodb-svc
+        statefulset.kubernetes.io/pod-name: eds-mongodb-0
+      type: LoadBalancer
+  16: |
+    apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        metallb.io/address-pool: eds-mongodb
+        metallb.io/loadBalancerIPs: 10.14.76.111
+      labels:
+        app.kubernetes.io/instance: eds-mongodb
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: mongodb-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: mongodb-config-1.0.0
+      name: external-mongodb-1
+      namespace: eds
+    spec:
+      ports:
+        - port: 27017
+          targetPort: 27017
+      selector:
+        app: eds-mongodb-svc
+        statefulset.kubernetes.io/pod-name: eds-mongodb-1
+      type: LoadBalancer
+  17: |
+    apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        metallb.io/address-pool: eds-mongodb
+        metallb.io/loadBalancerIPs: 10.14.76.112
+      labels:
+        app.kubernetes.io/instance: eds-mongodb
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: mongodb-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: mongodb-config-1.0.0
+      name: external-mongodb-2
+      namespace: eds
+    spec:
+      ports:
+        - port: 27017
+          targetPort: 27017
+      selector:
+        app: eds-mongodb-svc
+        statefulset.kubernetes.io/pod-name: eds-mongodb-2
+      type: LoadBalancer
+  18: |
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      labels:
+        app.kubernetes.io/instance: eds-mongodb
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: mongodb-config
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: mongodb-config-1.0.0
+      name: mongodb-kubernetes-appdb
+      namespace: eds
+  19: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      name: eds-mongodb-svcmon
+      namespace: eds
+    spec:
+      endpoints:
+        - basicAuth:
+            password:
+              key: password
+              name: mongodb-monitoring-pwd
+            username:
+              key: username
+              name: mongodb-monitoring-pwd
+          interval: 30s
+          port: prometheus
+          scrapeTimeout: 25s
+      namespaceSelector:
+        matchNames:
+          - eds
+      selector:
+        matchLabels:
+          app: eds-mongodb-svc
