@@ -146,7 +146,7 @@ spec:
                     resources:
                       limits:
                         cpu: '2'
-                        memory: 4Gi
+                        memory: 8Gi
                       requests:
                         cpu: 250m
                         memory: 2Gi
@@ -198,10 +198,8 @@ spec:
                   resourceExclusions: |
                     ### Network resources created by the Kubernetes control plane and excluded to reduce the number of watched events and UI clutter
                     - apiGroups:
-                      - ''
                       - discovery.k8s.io
                       kinds:
-                      - Endpoints
                       - EndpointSlice
                     ### Internal Kubernetes resources excluded reduce the number of watched events
                     - apiGroups:
@@ -333,7 +331,7 @@ spec:
                 apiVersion: networking.k8s.io/v1
                 kind: NetworkPolicy
                 metadata:
-                  name: allow-proxy
+                  name: allow-to-proxy
                   namespace: {{ .Values.namespace }}
                 spec:
                   egress:
@@ -345,7 +343,232 @@ spec:
                   podSelector: {}
                   policyTypes:
                   - Egress
+
+    # if proxy egress netpol is defined, all egress netpol need to be defined!
+
+    # allows communication to kubeAPI
+    # should be overridden by standard adminnetworkpolicies!
+    - extraDependencies:
+        - name: {{ include "gitops-bootstrap.fullname" . }}-namespace
+          namespace: ""
+          apiVersion: policy.open-cluster-management.io/v1
+          kind: ConfigurationPolicy
+          compliance: Compliant
+      objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: {{ include "gitops-bootstrap.fullname" . }}-kubeapi-netpol
+        spec:
+          remediationAction: enforce
+          severity: high
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: networking.k8s.io/v1
+                kind: NetworkPolicy
+                metadata:
+                  name: allow-to-kubeapi
+                  namespace: {{ .Values.namespace }}
+                spec:
+                  egress:
+                    - to:
+                        # kube api service is accessible via node IP for standalone clusters => allow RFC1918 10.0.0.0/8 private address range, which should be sufficient
+                        - ipBlock:
+                            cidr: 10.0.0.0/8
+                        # kube api service is accessible via magic tunel ip 172.20.0.1 for HCP clusters
+                        - ipBlock:
+                            cidr: 172.20.0.1/32
+                      ports:
+                        - protocol: TCP
+                          port: 6443
+                  podSelector: {}
+                  policyTypes:
+                  - Egress
+
+    # allows communication between gitops namespace components
+    # should be overridden by standard adminnetworkpolicies!
+    - extraDependencies:
+        - name: {{ include "gitops-bootstrap.fullname" . }}-namespace
+          namespace: ""
+          apiVersion: policy.open-cluster-management.io/v1
+          kind: ConfigurationPolicy
+          compliance: Compliant
+      objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: {{ include "gitops-bootstrap.fullname" . }}-same-namespace-egress-netpol
+        spec:
+          remediationAction: enforce
+          severity: high
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: networking.k8s.io/v1
+                kind: NetworkPolicy
+                metadata:
+                  name: allow-to-same-namespace
+                  namespace: {{ .Values.namespace }}
+                spec:
+                  podSelector: {}
+                  egress:
+                    - to:
+                        - podSelector: {}
+                  policyTypes:
+                  - Egress
+
+    # allows DNS communication
+    # should be overridden by standard adminnetworkpolicies!
+    - extraDependencies:
+        - name: {{ include "gitops-bootstrap.fullname" . }}-namespace
+          namespace: ""
+          apiVersion: policy.open-cluster-management.io/v1
+          kind: ConfigurationPolicy
+          compliance: Compliant
+      objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: {{ include "gitops-bootstrap.fullname" . }}-dns-netpol
+        spec:
+          remediationAction: enforce
+          severity: high
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: networking.k8s.io/v1
+                kind: NetworkPolicy
+                metadata:
+                  name: allow-to-dns
+                  namespace: {{ .Values.namespace }}
+                spec:
+                  podSelector: {}
+                  egress:
+                    - to:
+                      - namespaceSelector:
+                          matchExpressions:
+                            - key: kubernetes.io/metadata.name
+                              operator: In
+                              values:
+                                - openshift-dns
+                      ports:
+                        - port: 5353
+                          protocol: TCP
+                        - port: 5353
+                          protocol: UDP
+                  policyTypes:
+                  - Egress
+
+    # allows communication to oauth endpoint of hub cluster, which is required for argocd dex with openshift oauth to work
+    # should be overridden by standard adminnetworkpolicies!
+    {{- if .Values.externalCidrs }}
+    - extraDependencies:
+        - name: {{ include "gitops-bootstrap.fullname" . }}-namespace
+          namespace: ""
+          apiVersion: policy.open-cluster-management.io/v1
+          kind: ConfigurationPolicy
+          compliance: Compliant
+      objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: {{ include "gitops-bootstrap.fullname" . }}-external-cidrs-netpol
+        spec:
+          remediationAction: enforce
+          severity: high
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: networking.k8s.io/v1
+                kind: NetworkPolicy
+                metadata:
+                  name: allow-to-external-cidrs
+                  namespace: {{ .Values.namespace }}
+                spec:
+                  podSelector: {}
+                  egress:
+                    - to:
+                      {{- range .Values.externalCidrs }}
+                      - ipBlock:
+                          cidr: {{ . | quote }}
+                      {{- end }}
+                      {{- if .Values.externalCidrsPort }}
+                      ports:
+                        - port: {{ .Values.externalCidrsPort }}
+                          protocol: TCP
+                      {{- end }}
+                  policyTypes:
+                  - Egress
     {{- end }}
+
+    {{- end }}
+
+    # allows ingress controller communication
+    # should be overridden by standard adminnetworkpolicies!
+    - extraDependencies:
+        - name: {{ include "gitops-bootstrap.fullname" . }}-namespace
+          namespace: ""
+          apiVersion: policy.open-cluster-management.io/v1
+          kind: ConfigurationPolicy
+          compliance: Compliant
+      objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: {{ include "gitops-bootstrap.fullname" . }}-openshift-ingress-netpol
+        spec:
+          remediationAction: enforce
+          severity: high
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: networking.k8s.io/v1
+                kind: NetworkPolicy
+                metadata:
+                  name: allow-from-openshift-ingress
+                  namespace: {{ .Values.namespace }}
+                spec:
+                  ingress:
+                  - from:
+                    - namespaceSelector:
+                        matchLabels:
+                          network.openshift.io/policy-group: ingress
+                  podSelector: {}
+                  policyTypes:
+                  - Ingress
+
+    # allows communication between gitops namespace components
+    # should be overridden by standard adminnetworkpolicies!
+    - extraDependencies:
+        - name: {{ include "gitops-bootstrap.fullname" . }}-namespace
+          namespace: ""
+          apiVersion: policy.open-cluster-management.io/v1
+          kind: ConfigurationPolicy
+          compliance: Compliant
+      objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: {{ include "gitops-bootstrap.fullname" . }}-from-same-namespace-netpol
+        spec:
+          remediationAction: enforce
+          severity: high
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: networking.k8s.io/v1
+                kind: NetworkPolicy
+                metadata:
+                  name: allow-from-same-namespace
+                  namespace: {{ .Values.namespace }}
+                spec:
+                  ingress:
+                  - from:
+                    - podSelector: {}
+                  podSelector: {}
+                  policyTypes:
+                  - Ingress
 
     - objectDefinition:
         apiVersion: policy.open-cluster-management.io/v1

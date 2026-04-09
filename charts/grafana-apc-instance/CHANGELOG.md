@@ -5,6 +5,13 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-02-23
+
+### Changed
+
+- Replaced cookie-secret with cookie-secret-file in ose-oauth-proxy
+- cookie-secret-file is using mounted secret, which is provided by generator
+
 ## [1.0.1] - 2025-12-23
 
 ### Fixed

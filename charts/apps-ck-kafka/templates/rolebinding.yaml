@@ -1,0 +1,16 @@
+{{- if .Values.oauthProxy.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "apps-ck-kafka.fullname" . }}-oauth-service-account-access
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "apps-ck-kafka.labels" . | nindent 4 }}
+subjects:
+- kind: ServiceAccount
+  name: {{ include "apps-ck-kafka.fullname" . }}-oauth-proxy
+roleRef:
+  kind: Role
+  name: {{ include "apps-ck-kafka.fullname" . }}-oauth-service-account-access
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

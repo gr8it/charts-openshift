@@ -1,0 +1,58 @@
+# Changelog
+
+All notable changes to this component will be documented in this file.
+
+The format is based on [Common Changelog](https://common-changelog.org/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+_If you are upgrading: please see [`UPGRADING.md`](UPGRADING.md)._
+
+## [2.2.1] - 2026-03-11
+
+_([SPEXAPC-12529](https://aspecta.atlassian.net/browse/SPEXAPC-12529))_
+
+### Fixed
+
+- Added PodMonitor for Crossplane RBAC manager to fix `CrossplaneRBACManagerDown` alert (missing job label caused alert to fire permanently)
+
+## [2.2.0] - 2026-02-15
+
+_([SPEXAPC-12529](https://aspecta.atlassian.net/browse/SPEXAPC-12529))_
+
+### Added
+
+- Added PodMonitor for Crossplane controller metrics scraping
+- Added PrometheusRule with alerts: `CrossplaneControllerDown`, `CrossplaneReconciliationErrors`, `CrossplaneRBACManagerDown`
+
+## [2.1.0] - 2026-02-02
+
+_([SPEXAPC-12155](https://aspecta.atlassian.net/browse/SPEXAPC-12155))_
+
+### Changed
+
+- Bump `Crossplane` to 2.1.3
+
+## [2.0.0] - 2026-02-02
+
+_([SPEXAPC-12155](https://aspecta.atlassian.net/browse/SPEXAPC-12155))_
+
+### Changed
+
+- Bump `Crossplane` to 2.0.6
+
+## [1.6.0] - 2026-02-02
+
+_([SPEXAPC-12155](https://aspecta.atlassian.net/browse/SPEXAPC-12155))_
+
+### Changed
+
+- Bump `Crossplane` to 1.20.4
+- Bump `apc-global-overrides` to 1.5.0
+
+## [1.5.0] - 2025-10-14
+
+..
+
+## [1.0.0] - 2025-06-27
+
+_Initial release._

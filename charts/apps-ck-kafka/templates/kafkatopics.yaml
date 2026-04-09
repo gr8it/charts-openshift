@@ -1,4 +1,3 @@
-{{- if .Values.kafkaTopics.enabled }}
 {{- range $topic := .Values.kafkaTopics.topics }}
 ---
 apiVersion: kafka.strimzi.io/v1beta2
@@ -10,6 +9,9 @@ metadata:
     strimzi.io/cluster: {{ include "apps-ck-kafka.fullname" $ }}
     {{- include "apps-ck-kafka.labels" $ | nindent 4 }}
 spec:
+  {{- if $topic.topicName }}
+  topicName: {{ $topic.topicName | quote }}
+  {{- end }}
   partitions: {{ $topic.partitions | default 3 }}
   replicas: {{ $topic.replicas | default 3 }}
   {{- if $topic.config }}
@@ -18,5 +20,4 @@ spec:
     {{ $key }}: "{{ $value }}"
     {{- end }}
   {{- end }}
-{{- end }}
 {{- end }}

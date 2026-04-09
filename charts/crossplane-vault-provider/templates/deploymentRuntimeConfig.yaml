@@ -16,26 +16,30 @@ spec:
           - name: package-runtime
             resources:
               limits:
-                cpu: 500m
-                memory: 300Mi
+                cpu: {{ .Values.resources.limits.cpu }}
+                memory: {{ .Values.resources.limits.memory }}
               requests:
-                cpu: 20m
-                memory: 50Mi
+                cpu: {{ .Values.resources.requests.cpu }}
+                memory: {{ .Values.resources.requests.memory }}
             securityContext: {}
+            {{- if (include "apc-global-overrides.caCertificates" .) | fromYaml }}
             volumeMounts:
             - mountPath: /etc/ssl/certs/vault-ca.crt
               name: custom-ca-certs
               readOnly: true
               subPath: ca.crt
+            {{- end }}
           securityContext: {}
           topologySpreadConstraints:
           - labelSelector:
               matchLabels:
-                pkg.crossplane.io/provider: provider-vault
+                pkg.crossplane.io/provider: {{ include "crossplane-vault-provider.fullname" . }}
             maxSkew: 1
             topologyKey: kubernetes.io/hostname
-            whenUnsatisfiable: ScheduleAnyway
+            whenUnsatisfiable: DoNotSchedule
+          {{- if (include "apc-global-overrides.caCertificates" .) | fromYaml }}
           volumes:
           - configMap:
-              name: kube-root-ca.crt
+              name: {{ include "crossplane-vault-provider.fullname" . }}-ca-certificates
             name: custom-ca-certs
+          {{- end }}

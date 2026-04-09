@@ -20,6 +20,7 @@ fullnameOverride: ""
 #   vault:
 #     KVmountPlatform:
 
+
 # set image proxy for pulling images from external registries
 imageProxy:
   # enabled, only if host is specified
@@ -34,9 +35,14 @@ imageProxy:
   # - ghcr.io
   caCertificates: ~ # custom CA certificates in PEM format for image proxy. If not specified, .caCertificates / .global.apc.caCertificates is used
 
+# config.openshift.io/v1 OAuth configuration
+oauth:
+  identityProviders: []
+
 # pull secret to use in cluster
 # must exist in <global.apc.vault.KVmountPlatform>/<global.apc.vault.environmentShort>/<vaultKey>
 pullSecret:
   enabled: true
   vaultKey: cluster-config
   vaultProperty: pull-secret
+

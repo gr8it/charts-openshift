@@ -1,0 +1,12 @@
+{{- if .Values.oauth.identityProviders }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oauth-idp-ca-bundle
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "cluster-config-standalone.labels" . | nindent 4 }}
+data:
+  ca.crt: |
+  {{- ( include "apc-global-overrides.caCertificatesBundle" $ ) | nindent 4}}
+{{- end}} 

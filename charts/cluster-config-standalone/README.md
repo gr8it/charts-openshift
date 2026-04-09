@@ -78,3 +78,37 @@ Vault property should contain docker configs auth section to be applied to the c
 
 > [!WARNING]  
 > The pull-secret must always include credentials to `registry.redhat.io`, otherwise cluster won't be able to pull cluster critical images and will stop working!
+
+## Oauth
+
+Configuration of identity providers for your OpenShift cluster.
+
+### IdentityProviders
+
+The oauth.identityProviders  allows you to define and deploy identity provider settings for OpenShift as Kubernetes resources:
+- config.openshift.io/v1/oauth/config - set identity providers in OpenShift built-in OAuth server
+  - except following entries:
+    - identityProvider.ldap|openID.ca - where CA is injected from configmap
+- configMap - cabundle for identity provider integration
+- secret 
+    - required sensitive information ( for example bind password, openID.clientSecret ) for identity provider integration
+    - secret is sync from Vault using external secret operator from path {{ vaultKVmountPlatform }}/{{ environmentShort }}/openshift-config/oauth/identityProvider/{{ idpSecret }}, where
+        - vaultKVmountPlatform - mount point for platform secrets in vault apc-platform
+        - environmentShort - 1st character of environment, e.g. p for prod, h for hub, d for dev, t for test
+        - idpSecret - name of secret for identity provider  identityProviders
+        - details for type / property name can be found in [](./templates/externalsecrets-oauth.yaml)
+    - secret must be available in Vault, created in Vault manually 
+
+
+### Configuration for Oauth
+
+| Parameter         | Description                                                                        | Default   | Example |
+|-------------------|------------------------------------------------------------------------------------|-----------|-----------|
+| `oauth.dentityProviders`       | List of identity provider configs, where identity providers is defined according to [Redhat documentation](https://docs.redhat.com/en/documentation/openshift_container_platform/4.19/html/authentication_and_authorization/understanding-identity-provider)    | `[]` |  [values.example.yaml](values.example.yaml) |
+| `oauth.templates` | templates allow you to customize pages like the login page, see also [oauth.spec.templates](https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/config_apis/oauth-config-openshift-io-v1) | ~ | ~ |
+| `oauth.tokenConfig` | tokenConfig contains options for authorization and access tokens, see also [Configuring the internal OAuth server’s token duration](https://docs.redhat.com/en/documentation/openshift_container_platform/4.17/html/authentication_and_authorization/configuring-internal-oauth#oauth-configuring-internal-oauth_configuring-internal-oauth) | ~ | ~ |
+| `services.externalSecretsOperator.defaultClusterSecretStore`| cluster secret store for ESO, see also [apc-global-overrides](https://github.com/gr8it/charts-openshift/tree/main/charts/apc-global-overrides) | vault-hub-secret-store | vault-hub-secret-store |
+| `environmentShort` | usually 1st character of environment, e.g. p for prod, h for hub, d for dev, t for test, [apc-global-overrides](https://github.com/gr8it/charts-openshift/tree/main/charts/apc-global-overrides)  | ~ | d  |
+| `vaultKVmountPlatform` | mount point for platform secrets in vault apc-platform | apc-platform  | apc-platform  |
+| `caCertificates.caCrt` | CA bundle to trust identity provider, see also [apc-global-overrides](https://github.com/gr8it/charts-openshift/tree/main/charts/apc-global-overrides) | ~ | ~ |
+
