@@ -14,7 +14,7 @@ Most important configuration options, for full list consult values.yaml file.
 > Name of the MongoDB instance is set by the HC Release name.  
 
 > [!NOTE]
-> Some values can be overriden via the component specific value files used in GitOps approach.
+> Some values can be overridden via the component specific value files used in GitOps approach.
 
 | Value/Section | Default setting | Description |
 |-------|---------------|-------------|
@@ -22,7 +22,8 @@ Most important configuration options, for full list consult values.yaml file.
 | mongodbInstance.ips | list | list of IPs for each of the replica member in CIDR format |
 | mongodbInstance.replicas | 3 | Number of MongoDB replicas |
 | mongodbInstance.mongoVersion | 8.2.3 | MongoDB version |
-| users | list | List of users. User have to be created in Vault under path apc/<envShort>/<project_name>/mongodb/<user_function> and have to contain "username" and "password" keys |
+| users | list | List of application users. Have to be defined in component values file. User have to be created in Vault under path apc/<envShort>/<project_name>/mongodb/<user_function> and have to contain "username" and "password" keys |
+| users.function | string | Describes the function of the user, have to be unique. |
 | users.roles | list | List of MongoDB roles assigned to user |
 | resourceQuotas | disabled | Specific resource quotas values if deployment has higher resource requirements than default project resource quotas |
 | backup | enabled | Backup configuration of MongoDB instance |

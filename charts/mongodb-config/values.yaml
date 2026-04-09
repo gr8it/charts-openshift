@@ -34,33 +34,19 @@ mongodbInstance:
     dataVolumeSize: 500Gi
     logsVolumeSize: 1Gi
 
-users:
-  - name: "eds_admin/EDS.adm.2026"
-    function: admin
+defaultUsers:
+  - name: "apcAdmin"
+    function: root
     roles:
-      - role: userAdminAnyDatabase
+      - role: root
         database: admin
-      - role: dbAdminAnyDatabase
-        database: admin
-      - role: clusterMonitor
-        database: admin
-    externalSecretKey: mongodb_admin_credentials
-  - name: "eds/EDS.be"
-    function: techuser
+  - name: "backupUser"
+    function: backup
     roles:
-      - role: readWrite
-        database: eds
-      - role: dbAdmin
-        database: eds
+      - role: backup
+        database: admin
 
-resourceQuotas:
-  enabled: false
-  hardLimitsCpu: "12"
-  hardRequestsCpu: "6"
-  hardLimitsMemory: 60Gi
-  hardRequestsMemory: 40Gi
-  hardRequestsStorage: 1700Gi
-  hardServicesLoadBalancers: "3"
+users: []
 
 backup:
   enabled: true

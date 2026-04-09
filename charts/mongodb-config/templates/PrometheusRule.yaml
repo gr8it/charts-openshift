@@ -19,8 +19,8 @@ spec:
           labels:
             namespace: {{ .Release.Namespace }}
             severity: critical
-            team: developers
-            vendor: socpoist
+            team: platform
+            vendor: aspecta
         - alert: MongoDBFlowControlLagged
           expr: mongodb_flowControl_isLagged == 1
           for: 2m
@@ -30,8 +30,8 @@ spec:
           labels:
             namespace: {{ .Release.Namespace }}
             severity: warning
-            team: developers
-            vendor: socpoist
+            team: platform
+            vendor: aspecta
         - alert: MongoDBMemberHealth
           expr: mongodb_members_health == 0
           for: 5m
@@ -41,8 +41,8 @@ spec:
           labels:
             namespace: {{ .Release.Namespace }}
             severity: critical
-            team: developers
-            vendor: socpoist
+            team: platform
+            vendor: aspecta
         - alert: MongoDBHighConnections
           expr: mongodb_connections_current > 0.8 * mongodb_connections_available
           for: 5m
@@ -52,8 +52,8 @@ spec:
           labels:
             namespace: {{ .Release.Namespace }}
             severity: warning
-            team: developers
-            vendor: socpoist
+            team: platform
+            vendor: aspecta
         - alert: MongoDBDiskSpaceLow
           expr: hardware_disk_metrics_disk_space_free_bytes / (hardware_disk_metrics_disk_space_free_bytes + hardware_disk_metrics_disk_space_used_bytes) < 0.15
           for: 10m
@@ -63,6 +63,6 @@ spec:
           labels:
             namespace: {{ .Release.Namespace }}
             severity: critical
-            team: developers
-            vendor: socpoist
+            team: platform
+            vendor: aspecta
 {{- end }}

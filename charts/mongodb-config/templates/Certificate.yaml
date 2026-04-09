@@ -8,11 +8,11 @@ metadata:
 spec:
   secretName: {{ printf "%s-tls" .Release.Name }}
   dnsNames:
-    - {{ printf "\"*.%s-svc.%s.svc.cluster.local\"" .Release.Name .Release.Namespace }}
+    - {{ printf "*.%s-svc.%s.svc.cluster.local" .Release.Name .Release.Namespace | quote }}
   {{- range $fqdn := .Values.mongodbInstance.fqdns }}
     - {{ $fqdn }}
   {{- end }}
-  commonName: {{ printf "\"*.%s-svc.%s.svc.cluster.local\"" .Release.Name .Release.Namespace }}
+  commonName: {{ printf "*.%s-svc.%s.svc.cluster.local" .Release.Name .Release.Namespace | quote}}
   issuerRef:
     name: {{ include "apc-global-overrides.require-certManagerDefaultClusterIssuer" . }}
     kind: ClusterIssuer

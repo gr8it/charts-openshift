@@ -1,11 +1,11 @@
 {{- if .Values.backup.enabled }}
-
-{{- $adminUser := "" }}
+{{- $users := concat .Values.users .Values.defaultUsers }}
+{{- $backupUser := "" }}
 {{- $found := false }}
 
-{{- range .Values.users }}
-  {{- if and (not $found) (eq .function "admin") }}
-    {{- $adminUser = .name }}
+{{- range $users }}
+  {{- if and (not $found) (eq .function "backup") }}
+    {{- $backupUser = .name }}
     {{- $found = true }}
   {{- end }}
 {{- end }}
@@ -30,7 +30,7 @@ spec:
           restartPolicy: Never
           containers:
           - name: mongodb-backup
-            image: {{ .Values.backup.image.repository }}
+            image: {{ .Values.backup.image.repository }}:{{ .Values.backup.image.tag }}
             volumeMounts:
             - name: s3ca
               mountPath: /etc/ssl/certs/service-ca.crt
@@ -68,11 +68,11 @@ spec:
             - name: AWS_DEFAULT_REGION
               value: {{ .Values.backup.s3DefaultRegion | quote }}
             - name: MONGODB_USER
-              value: {{ $adminUser | quote }}
+              value: {{ $backupUser | quote }}
             - name: MONGODB_PWD
               valueFrom:
                 secretKeyRef:
-                  name: mongodb-admin-pwd
+                  name: mongodb-backup-pwd
                   key: password
             - name: MONGO_SVC
               value: {{ printf "%s-0.%s-svc.%s.svc.cluster.local" .Release.Name .Release.Name .Release.Namespace | quote }}

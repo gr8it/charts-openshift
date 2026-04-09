@@ -1,3 +1,4 @@
+{{- $users := concat .Values.users .Values.defaultUsers }}
 apiVersion: mongodbcommunity.mongodb.com/v1
 kind: MongoDBCommunity
 metadata:
@@ -26,7 +27,7 @@ spec:
   - horizon: {{ printf "%s:%s" $fqdn $.Values.mongodbInstance.port }}
 {{- end }}
   users:
-  {{- range $user, $userdata := .Values.users }}
+  {{- range $user, $userdata := $users }}
     {{- if $userdata.roles }}
     - name: {{ $userdata.name | quote }}
       connectionStringSecretName: {{ printf "mongodb-%s-connection-string" $userdata.function }}
@@ -64,12 +65,10 @@ spec:
           securityContext:
             runAsNonRoot: true
             runAsUser:
-            runAsGroup:
           containers:
           - name: mongod
             securityContext:
               runAsUser:
-              runAsGroup:
               runAsNonRoot: true
               privileged: false
               allowPrivilegeEscalation: false
@@ -84,7 +83,6 @@ spec:
           - name: mongodb-agent
             securityContext:
               runAsUser:
-              runAsGroup:
               runAsNonRoot: true
               privileged: false
               allowPrivilegeEscalation: false
