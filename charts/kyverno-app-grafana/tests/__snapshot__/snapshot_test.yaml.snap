@@ -12,7 +12,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno-app-grafana
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: kyverno-app-grafana
-        helm.sh/chart: kyverno-app-grafana-1.0.2
+        helm.sh/chart: kyverno-app-grafana-1.0.0
       name: grafana-application-logs-clusterrolebinding
     spec:
       background: true
@@ -44,53 +44,5 @@ manifests should match snapshot:
                   kinds:
                     - grafana.integreatly.org/*/Grafana
           name: generate-grafana-application-logs-clusterrolebinding
-          skipBackgroundRequests: true
-      validationFailureAction: Audit
-  2: |
-    apiVersion: kyverno.io/v1
-    kind: ClusterPolicy
-    metadata:
-      annotations:
-        policies.kyverno.io/category: RBAC
-        policies.kyverno.io/minversion: 1.13.0
-        policies.kyverno.io/subject: Grafana
-        policies.kyverno.io/title: Generate Grafana monitoring rolebinding
-      labels:
-        app.kubernetes.io/instance: kyverno-app-grafana
-        app.kubernetes.io/managed-by: ArgoCD
-        app.kubernetes.io/name: kyverno-app-grafana
-        helm.sh/chart: kyverno-app-grafana-1.0.2
-      name: grafana-monitoring-rolebinding
-    spec:
-      background: true
-      rules:
-        - exclude:
-            any:
-              - resources:
-                  namespaces:
-                    - apc-observability
-          generate:
-            apiVersion: rbac.authorization.k8s.io/v1
-            data:
-              roleRef:
-                apiGroup: rbac.authorization.k8s.io
-                kind: ClusterRole
-                name: cluster-monitoring-view
-              subjects:
-                - kind: ServiceAccount
-                  name: '{{ request.object.metadata.name }}-sa'
-                  namespace: '{{ request.object.metadata.namespace }}'
-            generateExisting: true
-            kind: RoleBinding
-            name: '{{ request.object.metadata.namespace }}-{{ request.object.metadata.name }}-cluster-monitoring-view'
-            namespace: openshift-monitoring
-            orphanDownstreamOnPolicyDelete: true
-            synchronize: true
-          match:
-            any:
-              - resources:
-                  kinds:
-                    - grafana.integreatly.org/*/Grafana
-          name: generate-grafana-monitoring-rolebinding
           skipBackgroundRequests: true
       validationFailureAction: Audit
