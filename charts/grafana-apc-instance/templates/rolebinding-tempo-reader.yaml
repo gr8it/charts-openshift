@@ -5,6 +5,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: {{ include "grafana-instance.name" . }}-tempo-traces-reader
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "grafana-instance.labels" . | nindent 4 }}
 roleRef:

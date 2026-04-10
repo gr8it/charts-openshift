@@ -16,6 +16,12 @@ tests:
       - isKind:
           of: Role
       - equal:
+          path: metadata.name
+          value: apc-grafana-view-all-logs
+      - equal:
+          path: metadata.namespace
+          value: NAMESPACE
+      - equal:
           path: rules[0].resources
           value:
             - pods

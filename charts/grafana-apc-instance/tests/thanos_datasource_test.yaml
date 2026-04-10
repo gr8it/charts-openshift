@@ -1,0 +1,66 @@
+suite: Thanos datasource
+values:
+  - ../values.lint.yaml
+release:
+  name: grafana-apc-instance
+
+tests:
+  - it: renders cluster-wide Thanos datasource without scoped query settings when namespaceScoped is false
+    template: templates/grafana-datasource-thanos.yaml
+    set:
+      namespaceScoped: false
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: GrafanaDatasource
+      - equal:
+          path: spec.datasource.url
+          value: https://thanos-querier.openshift-monitoring.svc.cluster.local:9091
+      - equal:
+          path: spec.datasource.jsonData.timeInterval
+          value: 5s
+      - equal:
+          path: spec.datasource.jsonData.httpHeaderName1
+          value: Authorization
+      - notExists:
+          path: spec.datasource.jsonData.customQuery
+      - notExists:
+          path: spec.datasource.jsonData.customQueryParameters
+      - notExists:
+          path: spec.datasource.jsonData.prometheusType
+      - notExists:
+          path: spec.datasource.jsonData.httpMethod
+
+  - it: renders namespace-scoped Thanos datasource with scoped query settings when namespaceScoped is true
+    template: templates/grafana-datasource-thanos.yaml
+    set:
+      namespaceScoped: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: GrafanaDatasource
+      - equal:
+          path: spec.datasource.url
+          value: https://thanos-querier.openshift-monitoring.svc.cluster.local:9092
+      - equal:
+          path: spec.datasource.jsonData.customQuery
+          value: "true"
+      - equal:
+          path: spec.datasource.jsonData.customQueryParameters
+          value: namespace=NAMESPACE
+      - equal:
+          path: spec.datasource.jsonData.prometheusType
+          value: thanos
+      - equal:
+          path: spec.datasource.jsonData.httpMethod
+          value: GET
+
+  - it: does not render Thanos datasource when datasourceThanosUrl is disabled
+    template: templates/grafana-datasource-thanos.yaml
+    set:
+      datasourceThanosUrl: null
+    asserts:
+      - hasDocuments:
+          count: 0
