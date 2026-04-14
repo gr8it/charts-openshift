@@ -8,6 +8,9 @@ metadata:
     strimzi.io/cluster: {{ include "apps-ck-kafka.fullname" $ }}
     {{- include "apps-ck-kafka.labels" $ | nindent 4 }}
 spec:
+  jvmOptions:
+    -Xms: {{ .controllers.jvmOptions.xms | default "512m" }}
+    -Xmx: {{ .controllers.jvmOptions.xmx | default "512m" }}
   replicas: {{ .controllers.replicas | default 3 }}
   roles:
     - controller
@@ -24,8 +27,8 @@ spec:
         kraftMetadata: shared
   resources:
     requests:
-      cpu: {{ .controllers.resources.requests.cpu | default "500m" }}
-      memory: {{ .controllers.resources.requests.memory | default "1Gi" }}
+      cpu: {{ .controllers.resources.requests.cpu | default "250m" }}
+      memory: {{ .controllers.resources.requests.memory | default "2Gi" }}
     limits:
       cpu: {{ .controllers.resources.limits.cpu | default "1000m" }}
       memory: {{ .controllers.resources.limits.memory | default "2Gi" }}
