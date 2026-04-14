@@ -81,7 +81,7 @@ spec:
         # Alert on KRaft controller quorum issues
         - alert: KafkaKRaftQuorumUnhealthy
           expr: |
-            kafka_controller_kafkacontroller_activecontrollercount != 1
+            sum(kafka_controller_kafkacontroller_activecontrollercount) by (strimzi_io_name, namespace) != 1
           for: 2m
           labels:
             # severity: critical
