@@ -4,6 +4,8 @@ kind: Grafana
 metadata:
   name: {{ include "grafana-instance.name" . }}
   namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-options: ServerSideApply=true
   labels:
     dashboards: {{ include "grafana-instance.name" . }}
     datasource: {{ include "grafana-instance.name" . }}
