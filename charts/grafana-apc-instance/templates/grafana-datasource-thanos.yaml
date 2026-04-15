@@ -1,4 +1,8 @@
 {{- if (.Values.datasourceThanosUrl | default false) }}
+{{- $thanosURL := .Values.datasourceThanosUrl }}
+{{- if .Values.namespaceScoped }}
+{{- $thanosURL = .Values.datasourceThanosScopedUrl | default .Values.datasourceThanosUrl }}
+{{- end }}
 ---
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDatasource
@@ -22,11 +26,17 @@ spec:
     type: prometheus
     access: proxy
     basicAuth: true
-    url: "{{ .Values.datasourceThanosUrl }}"
+    url: "{{ $thanosURL }}"
     isDefault: true
     jsonData:
       timeInterval: "5s"
       httpHeaderName1: "Authorization"
+      {{- if .Values.namespaceScoped }}
+      customQuery: "true"
+      customQueryParameters: "namespace={{ .Release.Namespace }}"
+      prometheusType: "thanos"
+      httpMethod: "GET"
+      {{- end }}
     secureJsonData:
       httpHeaderValue1: "Bearer ${token}"
 {{- end }}
