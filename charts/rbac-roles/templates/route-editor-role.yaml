@@ -1,0 +1,17 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: route-editor
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+  annotations:
+    argocd.argoproj.io/sync-options: ServerSideApply=true
+rules:
+- apiGroups:
+  - route.openshift.io
+  - ""
+  resources:
+  - routes/custom-host
+  verbs:
+  - update
