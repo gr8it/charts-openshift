@@ -26,7 +26,7 @@ manifests should match snapshot:
                 description: '{{ request.object.metadata.namespace }} namespace project'
                 destinationServiceAccounts:
                   - defaultServiceAccount: application-gitops
-                    namespace: '{{ request.object.metadata.namespace }}'
+                    namespace: '*'
                     server: https://kubernetes.default.svc
                 destinations:
                   - namespace: '*'
