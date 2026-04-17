@@ -1,0 +1,49 @@
+suite: Monitoring RBAC
+values:
+  - ../values.lint.yaml
+release:
+  name: grafana-apc-instance
+
+tests:
+  - it: renders namespace-scoped monitoring RoleBinding to view when namespaceScoped is true
+    template: templates/rolebinding-monitoring-view.yaml
+    set:
+      namespaceScoped: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: RoleBinding
+      - equal:
+          path: metadata.name
+          value: apc-grafana-view
+      - equal:
+          path: metadata.namespace
+          value: NAMESPACE
+      - equal:
+          path: roleRef.kind
+          value: ClusterRole
+      - equal:
+          path: roleRef.name
+          value: view
+
+  - it: does not render namespace-scoped monitoring RoleBinding when namespaceScoped is false
+    template: templates/rolebinding-monitoring-view.yaml
+    set:
+      namespaceScoped: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders cluster-scoped monitoring ClusterRoleBinding when namespaceScoped is false
+    template: templates/clusterrolebinding-monitoring-view.yaml
+    set:
+      namespaceScoped: false
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ClusterRoleBinding
+      - equal:
+          path: roleRef.name
+          value: cluster-monitoring-view

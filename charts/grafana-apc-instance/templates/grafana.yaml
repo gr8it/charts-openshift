@@ -4,6 +4,8 @@ kind: Grafana
 metadata:
   name: {{ include "grafana-instance.name" . }}
   namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-options: ServerSideApply=true
   labels:
     dashboards: {{ include "grafana-instance.name" . }}
     datasource: {{ include "grafana-instance.name" . }}
@@ -81,7 +83,7 @@ spec:
                 - --client-id=system:serviceaccount:{{ .Release.Namespace }}:{{ include "grafana-instance.name" . }}-sa
                 - --client-secret-file=/var/run/secrets/kubernetes.io/serviceaccount/token
                 - --cookie-expire=24h
-                - '--openshift-sar={"namespace":"{{ .Release.Namespace }}","resource":"route","resourceName":"{{ include "grafana-instance.name" . }}","verb":"get"}'
+                - '--openshift-sar={"namespace":"{{ .Release.Namespace }}","group":"route.openshift.io","resource":"routes","resourceName":"{{ include "grafana-instance.name" . }}-route","verb":"get"}'
                 - --skip-provider-button
                 - --scope=user:info user:check-access user:list-projects
                 - -pass-access-token=true
