@@ -4,9 +4,7 @@ metadata:
   name: route-editor
   labels:
     rbac.authorization.k8s.io/aggregate-to-edit: "true"
-    rbac.authorization.k8s.io/aggregate-to-admin: "true"
-  annotations:
-    argocd.argoproj.io/sync-options: ServerSideApply=true
+  {{- include "rbac-roles.labels" $ | nindent 4 }}
 rules:
 - apiGroups:
   - route.openshift.io
