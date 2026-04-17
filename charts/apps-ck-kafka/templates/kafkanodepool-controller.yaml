@@ -9,8 +9,8 @@ metadata:
     {{- include "apps-ck-kafka.labels" $ | nindent 4 }}
 spec:
   jvmOptions:
-    -Xms: {{ .controllers.jvmOptions.xms | default "512m" }}
-    -Xmx: {{ .controllers.jvmOptions.xmx | default "512m" }}
+    -Xms: {{ .controllers.jvmOptions.xms }}
+    -Xmx: {{ .controllers.jvmOptions.xmx }}
   replicas: {{ .controllers.replicas | default 3 }}
   roles:
     - controller
