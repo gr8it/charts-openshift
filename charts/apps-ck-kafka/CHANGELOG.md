@@ -5,6 +5,13 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.4] - 2026-04-14
+
+### Fixed
+
+- fixing prometheusRule KafkaKRaftQuorumUnhealthy
+- setting up correct jvm options for kafka controllers
+
 ## [1.2.3] - 2026-03-31
 
 ### Fixed
