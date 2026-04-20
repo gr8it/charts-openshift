@@ -1,0 +1,61 @@
+{{- if .Values.userWorkloadMonitoring.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-workload-monitoring-config
+  namespace: openshift-user-workload-monitoring
+  labels:
+    {{- include "metrics-helm.labels" . | nindent 4 }}
+    app.kubernetes.io/managed-by: cluster-monitoring-operator
+    app.kubernetes.io/part-of: openshift-monitoring
+  annotations:
+    argocd.argoproj.io/sync-options: ServerSideApply=true
+data:
+  config.yaml: |
+    alertmanager:
+      enabled: true
+      enableAlertmanagerConfig: true
+    prometheus:
+      retention: {{ .Values.userWorkloadMonitoring.prometheus.retention }}
+      volumeClaimTemplate:
+        metadata:
+          name: prometheus-user-workload-pvc
+        spec:
+          storageClassName: {{ .Values.userWorkloadMonitoring.prometheus.storageClassName }}
+          resources:
+            requests:
+              storage: {{ .Values.userWorkloadMonitoring.prometheus.storageSize }}
+      externalLabels:
+        customerName: {{ include "apc-global-overrides.require-customer" . }}
+        environment: {{ include "apc-global-overrides.require-environment" . }}
+        location: {{ .Values.clusterMonitoring.location }}
+        clusterName: {{ include "apc-global-overrides.require-clusterName" . }}
+      {{- if .Values.userWorkloadMonitoring.prometheus.remoteWrite.enabled }}
+      remoteWrite:
+      - url: {{ .Values.userWorkloadMonitoring.prometheus.remoteWrite.url }}
+        authorization:
+          type: Bearer
+          credentials:
+            key: token
+            name: {{ .Values.userWorkloadMonitoring.prometheus.remoteWrite.secretName }}
+        {{- with (.Values.userWorkloadMonitoring.prometheus.remoteWrite.proxyUrl | default (include "apc-global-overrides.proxy" .)) }}
+        proxyUrl: {{ . }}
+        {{- end }}
+        queueConfig:
+          batchSendDeadline: 1m
+          capacity: 30000
+          maxBackoff: 256s
+          maxSamplesPerSend: 10000
+          minBackoff: 1s
+      {{- end }}
+    prometheusOperator: {}
+    thanosRuler:
+      volumeClaimTemplate:
+        metadata:
+          name: thanos-ruler-user-workload-pvc
+        spec:
+          storageClassName: {{ .Values.userWorkloadMonitoring.thanosRuler.storageClassName }}
+          resources:
+            requests:
+              storage: {{ .Values.userWorkloadMonitoring.thanosRuler.storageSize }}
+{{- end }}

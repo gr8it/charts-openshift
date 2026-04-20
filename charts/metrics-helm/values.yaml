@@ -1,0 +1,74 @@
+nameOverride: ""
+fullnameOverride: ""
+
+# --- ClusterMonitoringConfig (openshift-monitoring) ---
+clusterMonitoring:
+  # UUID of the managed cluster — required, unique per cluster
+  managedClusterUUID: ""
+  location: primary
+  prometheus:
+    retention: "7d"
+    storageSize: "60Gi"
+    storageClassName: ocs-storagecluster-ceph-rbd
+  alertmanager:
+    storageSize: "1Gi"
+    storageClassName: ocs-storagecluster-ceph-rbd
+
+# --- UserWorkloadMonitoringConfig (openshift-user-workload-monitoring) ---
+userWorkloadMonitoring:
+  enabled: true
+  prometheus:
+    retention: "7d"
+    storageSize: "24Gi"
+    storageClassName: ocs-storagecluster-ceph-rbd
+    remoteWrite:
+      enabled: false
+      secretName: telemetry-remote-write
+      url: https://infogw.api.openshift.com/metrics/v1/receive
+      proxyUrl: ~
+  thanosRuler:
+    storageSize: "1Gi"
+    storageClassName: ocs-storagecluster-ceph-rbd
+
+# --- AlertManager main (openshift-monitoring/alertmanager-main) via ESO ---
+alertmanager:
+  eso:
+    enabled: true
+    refreshInterval: "15m"
+    vault:
+      # Full Vault key path for each credential, e.g. customers/socpoist/msteams
+      msteamsKey: ""
+      msteamsProperty: ""
+      healthchecksKey: ""
+      healthchecksProperty: ""
+      opsgenieKey: ""
+      opsgenieProperty: ""
+
+# --- AlertManager UWM (openshift-user-workload-monitoring/alertmanager-user-workload) via ESO ---
+alertmanagerUWM:
+  enabled: true
+  eso:
+    enabled: true
+    refreshInterval: "15m"
+    vault:
+      msteamsKey: ""
+      msteamsProperty: ""
+      healthchecksKey: ""
+      healthchecksProperty: ""
+      opsgenieKey: ""
+      opsgenieProperty: ""
+
+# --- Hub-specific extras (additional alertmanager receivers for security + logs) ---
+hub:
+  enabled: false
+  alertmanager:
+    eso:
+      vault:
+        # Same opsgenieKey as alertmanager.eso.vault.opsgenieKey (shared key, different properties)
+        opsgenieAcsProperty: ""
+        opsgenieLogsProperty: ""
+
+# --- NetworkPolicy (proxy egress for openshift-monitoring + openshift-user-workload-monitoring) ---
+# proxyCIDRs are read from global.apc.proxyCIDRs via apc-global-overrides
+networkPolicy:
+  enabled: true

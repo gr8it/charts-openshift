@@ -1,0 +1,24 @@
+{{- if .Values.userWorkloadMonitoring.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: user-workload-monitoring-thanos-rules
+  namespace: apc-observability
+  labels:
+    {{- include "metrics-helm.labels" . | nindent 4 }}
+spec:
+  groups:
+  - name: apc-observability
+    rules:
+    - alert: WatchdogUWMthanos
+      annotations:
+        description: |
+          This is an alert meant to ensure that the entire alerting pipeline is functional.
+          This alert is always firing, therefore it should always be firing in UWM Alertmanager
+          and always fire against a receiver.
+        summary: An alert that should always be firing to certify that UWM Alertmanager + UWM Thanos ruler + UWM Prometheus are working properly.
+      expr: vector(1)
+      labels:
+        namespace: apc-observability
+        severity: none
+{{- end }}
