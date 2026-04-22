@@ -1,15 +1,13 @@
 global:
   apc:
     customer: socpoistsk
-    environment: dev
+    environment: hub
     cluster:
-      name: dev01
+      name: hub01
     proxy: http://proxysp.socpoist.sk:8080
     noProxy: .socpoist.sk,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1
     proxyCIDRs:
       - 10.1.1.7/32
-    vault:
-      kvMountPlatform: customers
     services:
       externalSecretsOperator:
         defaultClusterSecretStore: apc
@@ -32,7 +30,14 @@ userWorkloadMonitoring:
     storageSize: "24Gi"
     storageClassName: ocs-storagecluster-ceph-rbd
     remoteWrite:
-      enabled: false
+      enabled: true
+      secretName: telemetry-remote-write
+      url: https://infogw.api.openshift.com/metrics/v1/receive
+      writeRelabelConfigs:
+        - action: keep
+          sourceLabels:
+            - __name__
+          regex: (cluster_version|cluster_operator_up|ALERTS)
   thanosRuler:
     storageSize: "1Gi"
     storageClassName: ocs-storagecluster-ceph-rbd
@@ -43,11 +48,11 @@ alertmanager:
     refreshInterval: "15m"
     vault:
       msteamsKey: socpoist/msteams
-      msteamsProperty: dev_url
+      msteamsProperty: hub_url
       healthchecksKey: socpoist/healthchecks.io
-      healthchecksProperty: dev_url
+      healthchecksProperty: hub_url
       opsgenieKey: socpoist/jira
-      opsgenieProperty: dev01_api_key
+      opsgenieProperty: hub01_api_key
 
 alertmanagerUWM:
   enabled: true
@@ -56,11 +61,20 @@ alertmanagerUWM:
     refreshInterval: "15m"
     vault:
       msteamsKey: socpoist/msteams
-      msteamsProperty: dev_uwm_url
+      msteamsProperty: hub_uwm_url
       healthchecksKey: socpoist/healthchecks.io
-      healthchecksProperty: dev_uwm_url
+      healthchecksProperty: hub_uwm_url
       opsgenieKey: socpoist/jira
-      opsgenieProperty: dev01_api_key
+      opsgenieProperty: hub01_uwm_api_key
+
+hub:
+  enabled: true
+  alertmanager:
+    eso:
+      vault:
+        opsgenieKey: socpoist/jira
+        opsgenieAcsProperty: hub01_api_key_acs
+        opsgenieLogsProperty: hub01_api_key_logs
 
 networkPolicy:
   enabled: true
