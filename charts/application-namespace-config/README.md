@@ -17,12 +17,12 @@ Configuration schema:
 
 ```yaml
 resourceQuota:
-  <namespace_where_the_qutoa_is_applied>:
+  <namespace_where_the_quota_is_applied>:
     <name_of_the_quota>:
       <quota>: <value>
 
 limitRange:
-  <namespace_where_the_qutoa_is_applied>:
+  <namespace_where_the_quota_is_applied>:
     <limitRange_name>:
       defaultLimits:
         <resource>: <limit>
