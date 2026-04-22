@@ -116,7 +116,7 @@ spec:
           apiVersion: group.keycloak.m.crossplane.io/v1alpha1
           kind: Group
           metadata:
-            name: {{ tpl .Values.groupRoleMapping.groupTpl . | lower }}
+            name: {{`{{ $.observed.composite.resource.metadata.name }}`}}-{{`{{ $value }}`}}
             annotations:
               gotemplating.fn.crossplane.io/composition-resource-name: ms-groups-{{`{{ $value }}`}}
           spec:
@@ -143,14 +143,14 @@ spec:
           apiVersion: group.keycloak.m.crossplane.io/v1alpha1
           kind: Roles
           metadata:
-            name: {{ tpl .Values.groupRoleMapping.groupTpl . | lower }}
+            name: {{`{{ $.observed.composite.resource.metadata.name }}`}}-{{`{{ $value }}`}}
             annotations:
               gotemplating.fn.crossplane.io/composition-resource-name: ms-group-roles-{{`{{ $value }}`}}
           spec:
             forProvider:
               exhaustive: false
               realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
-              groupIdRef: 
+              groupIdRef:
                 name: {{ tpl .Values.groupRoleMapping.groupTpl . | lower }}
               roleIdsRefs:
               - name: {{`{{ $.observed.composite.resource.metadata.name }}`}}-{{`{{ $value }}`}}
