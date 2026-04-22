@@ -2,7 +2,124 @@
 
 ## Architecture
 
-![architecture](img/architecture.svg)
+```mermaid
+flowchart LR
+
+moxr@{ shape: trap-t, label: "Manual operation" }
+moisas@{ shape: trap-t, label: "Manual operation" }
+class moxr,moisas blue;
+
+subgraph bns[Bamoe NS]
+  cb[Client Bamoe]
+end
+
+subgraph msns[Microservice NS]
+
+  msxr[Microservice XR]
+  msaxr[Microservice access XR]
+  class msxr,msaxr purple;
+
+  moxr --create--> msaxr
+  moxr --create--> msxr
+
+  msxr ---> bg
+  msxr -----> msg
+  msxr ---> msadg
+
+  msaxr ----> msag
+
+  subgraph bg[Bamoe group]
+    cbr[Client Bamoe reference]
+    class cbr gray;
+    cbrm@{ shape: processes, label: "rolemappers Microservice" }
+    cbpm@{ label: "protocolmapper Microservice (aud)"}
+
+    cbrm --> cbr
+  end
+
+  cbr ..-> cb
+
+  subgraph msg[Microservice group]
+    msc[client Microservice]
+    mscr@{ shape: processes, label: "clientroles Microservice" }
+
+    msidpm@{ shape: processes, label: "identityprovider.mapper Microservice clientrole" }
+    gr@{ shape: processes, label: "groups Microservice reference" }
+    class gr gray;
+    grm@{ shape: processes, label: "groups role mapping" }
+
+    mscr --> msc
+    grm --> gr
+    grm --> mscr
+    msidpm ---> mscr
+  end
+
+  cbpm ---> msc
+  cbrm ---> mscr
+
+  subgraph msadg[Microservice admin group]
+    msadc[client Microservice admin]
+    msadrm@{ shape: processes, label: "rolemappers Microservice" }
+    msadpm@{ label: "protocolmapper Microservice (aud)"}
+
+    msadrm --> msadc
+    msadpm --> msadc
+  end
+
+  msadpm ---> msc
+  msadrm ---> mscr
+
+  subgraph msag[Microservice access group]
+    isascr[client isas reference]
+    class isascr gray;
+    msarm[rolemapper Microservice]
+    msapm@{ label: "protocolmapper Microservice (aud)"}
+    msacsr[clientserviceaccountrole isas]
+
+    msarm --> isascr
+    msapm --> isascr
+    msacsr --> isascr
+  end
+
+  msapm --> msc
+  msarm --> mscr
+  msacsr ---> mscr
+end
+
+subgraph kcns[Keycloak NS]
+  idp[identityprovider SP Keycloak]
+  g@{ shape: processes, label: "groups Microservice" }
+end
+
+subgraph isasns[ISAS NS]
+  isasc[client ISAS]
+  g@{ shape: processes, label: "groups Microservice" }
+end
+
+moisas --create------> isasc
+
+isascr .-> isasc
+
+msidpm ----> idp
+gr ...-> g
+
+classDef white fill:#fffafa,color:#000;
+class msns,bns,kcns,isasns white;
+
+classDef peach fill:#ffcc99,color:#000;
+class msg,msadg,msag,bg peach;
+
+classDef gray fill:#d3d3d3,color:#000;
+classDef purple fill:#800080,color:white;
+classDef blue fill:#00f,color:white;
+
+linkStyle 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,25,26,27 stroke:#000,color:white;
+linkStyle 0,1 color:black;
+
+```
+
+DOPLNIT GROUPS a GROUP ROLE MAPPING do obrazku .. 
++ prerobit do mermaid?
 
 Due to inefficiencies of RHBK / Kubernetes RBAC (for example allow creation and modification of a Keycloak client, but don't allow modification of any existing client) it is not possible to allow user selfservice their Keycloak configuration directly using Crossplane Managed Resources (MR). As such Crossplane Composite resources (XR) were used to work around this RBAC limitation, i.e. project admins / operators are able to manage XR composites, which will manage required Keycloak MRs in an controlled way.
 
