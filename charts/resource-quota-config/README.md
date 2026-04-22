@@ -1,6 +1,6 @@
 # Resource quota management
 
-This helm chart configures the resource quotas for application projects. The quotas are craeted by Kyverno policies defined in [kyverno-app-project](../kyverno-app-project/). The quotas are set but synchronization is disabled, if the quotas have to be adjusted for specific applicaiton needs, it can be done via this helm chart.  
+This helm chart configures the resource quotas for application projects. The quotas are created by Kyverno policies defined in [kyverno-app-project](../kyverno-app-project/). The quotas are set but synchronization is disabled, if the quotas have to be adjusted for specific applicaiton needs, it can be done via this helm chart.  
 
 To patch the resources via the ArgoCD the [Server-Side Apply operation](https://argo-cd.readthedocs.io/en/latest/user-guide/sync-options/#server-side-apply) is used, which brings the possibility to patch an existing resources on the cluster that are not fully managed by Argo CD. This approach as well reflects the changes done manually and ArgoCD is correctly showing the drifts.  
 
@@ -17,12 +17,12 @@ Configuration schema:
 
 ```yaml
 ResourceQuota:
-  <namespace_where_the_qutoa_is_applied>:
+  <namespace_where_the_quota_is_applied>:
     <name_of_the_quota>:
       <quota>: <value>
 
 LimitRange:
-  <namespace_where_the_qutoa_is_applied>:
+  <namespace_where_the_quota_is_applied>:
     <limitRange_name>:
       defaultLimits:
         <resource>: <limit>
