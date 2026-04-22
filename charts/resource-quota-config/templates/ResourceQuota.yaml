@@ -1,0 +1,17 @@
+{{- if .Values.ResourceQuota }}
+{{- range $namespace, $quotas := .Values.ResourceQuota }}
+{{- range $quotaName, $quotaData := $quotas }}
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: ServerSideApply=true
+  name: {{ $quotaName }}
+  namespace: {{ $namespace }}
+spec:
+  hard:
+{{ toYaml $quotaData | indent 4 }}
+---
+{{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,24 @@
+{{- if .Values.LimitRange }}
+{{- range $namespace, $limits := .Values.LimitRange }}
+{{- range $limitRangeName, $limitRangeData := $limits }}
+apiVersion: v1
+kind: LimitRange
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: ServerSideApply=true
+  name: {{ $limitRangeName }}
+  namespace: {{ $namespace }}
+spec:
+  limits:
+  - default:
+  {{- if $limitRangeData.defaultLimits }}
+{{ $limitRangeData.defaultLimits | toYaml | indent 6 }}
+  {{- end }}
+  {{- if $limitRangeData.defaultRequests }}
+    defaultRequest:  
+{{ $limitRangeData.defaultRequests | toYaml | indent 6 }}
+  {{- end }}
+    type: Container
+{{- end }}
+{{- end }}
+{{- end }}
