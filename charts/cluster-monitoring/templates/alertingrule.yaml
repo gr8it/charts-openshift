@@ -1,0 +1,30 @@
+apiVersion: monitoring.openshift.io/v1
+kind: AlertingRule
+metadata:
+  name: cluster-alerting-rules
+  namespace: openshift-monitoring
+  labels:
+    {{- include "cluster-monitoring.labels" . | nindent 4 }}
+spec:
+  groups:
+  - name: cluster.rules
+    rules:
+    - alert: PodRepeatedOOMKilled
+      for: 0m
+      expr: |
+        (
+          increase(kube_pod_container_status_restarts_total[30m])
+          * on(namespace,pod,container) group_left()
+            kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}
+        ) > 1
+      labels:
+        severity: warning
+        team: platform
+        vendor: aspecta
+      annotations:
+        summary: |
+          Container {{ `{{ $labels.container }}` }} in pod {{ `{{ $labels.namespace }}` }}/{{ `{{ $labels.pod }}` }} was OOM-killed {{ `{{ printf "%.0f" $value }}` }} times in the last 30 minutes
+        description: |
+          The kernel Out-Of-Memory killer has restarted this container at least
+          twice within the last 30 minutes. Check memory limits, look for leaks or
+          sudden load spikes before the pod enters CrashLoopBackOff.

@@ -1,0 +1,14 @@
+apiVersion: v2
+name: user-workload-monitoring
+description: Helm chart to configure OpenShift user workload monitoring (UserWorkloadMonitoringConfig, UWM AlertManager via ESO file-based secrets)
+type: application
+version: 1.0.0
+dependencies:
+  - name: apc-global-overrides
+    version: 1.8.0
+    repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+  - name: openshift-adp-backups
+    version: "1.0.0"
+    alias: backups
+    condition: backups.enabled
+    repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/

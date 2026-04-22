@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "nameOverride": { "type": "string" },
+    "fullnameOverride": { "type": "string" },
+    "clusterMonitoring": {
+      "type": "object",
+      "required": ["managedClusterUUID"],
+      "properties": {
+        "managedClusterUUID": { "type": "string", "minLength": 1 },
+        "location": { "type": "string" },
+        "prometheus": {
+          "type": "object",
+          "properties": {
+            "retention": { "type": "string", "pattern": "^\\d+[smhdwy]$" },
+            "storageSize": { "type": "string", "minLength": 1 },
+            "storageClassName": { "type": "string", "minLength": 1 }
+          }
+        },
+        "alertmanager": {
+          "type": "object",
+          "properties": {
+            "storageSize": { "type": "string", "minLength": 1 },
+            "storageClassName": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "alertmanager": {
+      "type": "object",
+      "properties": {
+        "eso": { "$ref": "#/$defs/esoConfig" }
+      }
+    },
+    "hub": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "alertmanager": {
+          "type": "object",
+          "properties": {
+            "eso": {
+              "type": "object",
+              "properties": {
+                "vault": {
+                  "type": "object",
+                  "properties": {
+                    "opsgenieKey": { "type": "string" },
+                    "opsgenieAcsProperty": { "type": "string" },
+                    "opsgenieLogsProperty": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "networkPolicy": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" }
+      }
+    },
+    "backups": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "namespace": { "type": "string" },
+        "schedules": { "type": "array" }
+      }
+    }
+  },
+  "$defs": {
+    "esoConfig": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "refreshInterval": { "type": "string" },
+        "vault": {
+          "type": "object",
+          "properties": {
+            "msteamsKey": { "type": "string" },
+            "msteamsProperty": { "type": "string" },
+            "healthchecksKey": { "type": "string" },
+            "healthchecksProperty": { "type": "string" },
+            "opsgenieKey": { "type": "string" },
+            "opsgenieProperty": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

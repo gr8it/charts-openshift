@@ -1,0 +1,45 @@
+global:
+  apc:
+    customer: socpoistsk
+    environment: dev
+    cluster:
+      name: dev01
+    proxy: http://proxysp.socpoist.sk:8080
+    noProxy: .socpoist.sk,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1
+    proxyCIDRs:
+      - 10.1.1.7/32
+    vault:
+      kvMountPlatform: customers
+    services:
+      externalSecretsOperator:
+        defaultClusterSecretStore: apc
+
+userWorkloadMonitoring:
+  location: primary
+  prometheus:
+    retention: "7d"
+    storageSize: "24Gi"
+    storageClassName: ocs-storagecluster-ceph-rbd
+    remoteWrite:
+      enabled: false
+  thanosRuler:
+    storageSize: "1Gi"
+    storageClassName: ocs-storagecluster-ceph-rbd
+
+alertmanager:
+  eso:
+    enabled: true
+    refreshInterval: "15m"
+    vault:
+      msteamsKey: socpoist/msteams
+      msteamsProperty: dev_uwm_url
+      healthchecksKey: socpoist/healthchecks.io
+      healthchecksProperty: dev_uwm_url
+      opsgenieKey: socpoist/jira
+      opsgenieProperty: dev01_api_key
+
+networkPolicy:
+  enabled: true
+
+backups:
+  enabled: false

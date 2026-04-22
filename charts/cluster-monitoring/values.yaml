@@ -1,0 +1,52 @@
+nameOverride: ""
+fullnameOverride: ""
+
+# --- ClusterMonitoringConfig (openshift-monitoring) ---
+clusterMonitoring:
+  # UUID of the managed cluster — required, unique per cluster
+  managedClusterUUID: ""
+  location: primary
+  prometheus:
+    retention: "7d"
+    storageSize: "60Gi"
+    storageClassName: ocs-storagecluster-ceph-rbd
+  alertmanager:
+    storageSize: "1Gi"
+    storageClassName: ocs-storagecluster-ceph-rbd
+
+# --- AlertManager receivers secret (openshift-monitoring/alertmanager-receivers) via ESO ---
+# Credentials are mounted as files into alertmanager pod — alertmanager config uses *_file refs.
+alertmanager:
+  eso:
+    enabled: true
+    refreshInterval: "15m"
+    vault:
+      # Full Vault key path for each credential, e.g. customers/socpoist/msteams
+      msteamsKey: ""
+      msteamsProperty: ""
+      healthchecksKey: ""
+      healthchecksProperty: ""
+      opsgenieKey: ""
+      opsgenieProperty: ""
+
+# --- Hub-specific extras (additional alertmanager receivers for security + logs) ---
+hub:
+  enabled: false
+  alertmanager:
+    eso:
+      vault:
+        # Shared opsgenieKey from alertmanager.eso.vault.opsgenieKey if not set
+        opsgenieKey: ""
+        opsgenieAcsProperty: ""
+        opsgenieLogsProperty: ""
+
+# --- NetworkPolicy (proxy egress for openshift-monitoring) ---
+# proxyCIDRs are read from global.apc.proxyCIDRs via apc-global-overrides
+networkPolicy:
+  enabled: true
+
+# --- Velero backup Schedules via openshift-adp-backups subchart ---
+backups:
+  enabled: false
+  namespace: openshift-adp
+  schedules: []
