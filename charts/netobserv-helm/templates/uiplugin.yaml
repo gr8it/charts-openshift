@@ -1,0 +1,13 @@
+{{- if .Values.uiplugin.enabled }}
+apiVersion: observability.openshift.io/v1alpha1
+kind: UIPlugin
+metadata:
+  name: network-observability
+  labels:
+    {{- include "netobserv-helm.labels" . | nindent 4 }}
+spec:
+  type: NetworkObservability
+  networkObservability:
+    lokiStack:
+      name: {{ include "netobserv-helm.fullname" . }}
+{{- end }}

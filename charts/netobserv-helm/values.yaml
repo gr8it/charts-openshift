@@ -1,0 +1,63 @@
+nameOverride: ""
+fullnameOverride: ""
+
+# --- ObjectBucketClaim (S3 pre LokiStack) ---
+objectBucketClaim:
+  enabled: true
+  storageClassName: ocs-storagecluster-ceph-rgw
+  bucketName: ~
+
+# --- LokiStack pre network flows ---
+lokistack:
+  size: 1x.pico
+  storage:
+    schemas:
+      - effectiveDate: "2024-10-01"
+        version: v13
+  storageClassName: ocs-storagecluster-ceph-rbd
+  replication:
+    factor: 2
+    zones:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+  limits:
+    global:
+      ingestion:
+        ingestionRate: 4
+        ingestionBurstSize: 16
+        perStreamRateLimit: 3
+        perStreamRateLimitBurst: 10
+      queries:
+        queryTimeout: 60s
+    retention:
+      days: 7
+
+# --- ExternalSecret (S3 credentials pre LokiStack) ---
+externalSecret:
+  enabled: true
+  refreshInterval: "15m"
+
+# --- FlowCollector ---
+flowCollector:
+  agent:
+    ebpf:
+      sampling: 50
+      resources:
+        requests:
+          memory: 50Mi
+          cpu: 100m
+        limits:
+          memory: 800Mi
+          cpu: "1"
+  processor:
+    resources:
+      requests:
+        memory: 100Mi
+        cpu: 100m
+      limits:
+        memory: 800Mi
+        cpu: "1"
+
+# --- UIPlugin (OpenShift Console) ---
+uiplugin:
+  enabled: true

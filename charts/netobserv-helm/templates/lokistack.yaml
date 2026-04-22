@@ -1,0 +1,43 @@
+apiVersion: loki.grafana.com/v1
+kind: LokiStack
+metadata:
+  name: {{ include "netobserv-helm.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "netobserv-helm.labels" . | nindent 4 }}
+spec:
+  size: {{ .Values.lokistack.size }}
+  managementState: Managed
+  storage:
+    secret:
+      name: {{ printf "%s-allinfo" (include "netobserv-helm.fullname" .) }}
+      type: s3
+    schemas:
+      {{- toYaml .Values.lokistack.storage.schemas | nindent 6 }}
+    tls:
+      caKey: service-ca.crt
+      caName: openshift-service-ca.crt
+  storageClassName: {{ .Values.lokistack.storageClassName }}
+  replication:
+    factor: {{ .Values.lokistack.replication.factor }}
+    {{- if .Values.lokistack.replication.zones }}
+    zones:
+      {{- toYaml .Values.lokistack.replication.zones | nindent 6 }}
+    {{- end }}
+  hashRing:
+    type: memberlist
+    memberlist:
+      instanceAddrType: podIP
+  limits:
+    global:
+      ingestion:
+        ingestionRate: {{ .Values.lokistack.limits.global.ingestion.ingestionRate }}
+        ingestionBurstSize: {{ .Values.lokistack.limits.global.ingestion.ingestionBurstSize }}
+        perStreamRateLimit: {{ .Values.lokistack.limits.global.ingestion.perStreamRateLimit }}
+        perStreamRateLimitBurst: {{ .Values.lokistack.limits.global.ingestion.perStreamRateLimitBurst }}
+      queries:
+        queryTimeout: {{ .Values.lokistack.limits.global.queries.queryTimeout }}
+    retention:
+      days: {{ .Values.lokistack.limits.retention.days }}
+  tenants:
+    mode: openshift-network
