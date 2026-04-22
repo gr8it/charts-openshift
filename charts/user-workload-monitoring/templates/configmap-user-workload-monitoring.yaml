@@ -54,7 +54,7 @@ data:
           minBackoff: 1s
         {{- with .Values.userWorkloadMonitoring.prometheus.remoteWrite.writeRelabelConfigs }}
         writeRelabelConfigs:
-        {{- . | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
       {{- end }}
     prometheusOperator: {}

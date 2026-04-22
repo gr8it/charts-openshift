@@ -4,6 +4,7 @@ global:
     environment: dev
     cluster:
       name: dev01
+      isHub: true
     proxy: http://proxysp.socpoist.sk:8080
     noProxy: .socpoist.sk,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1
     proxyCIDRs:
@@ -37,8 +38,25 @@ alertmanager:
       opsgenieKey: socpoist/jira
       opsgenieProperty: dev01_api_key
 
+hub:
+  enabled: true
+  alertmanager:
+    eso:
+      vault:
+        opsgenieAcsProperty: dev01_acs_api_key
+        opsgenieLogsProperty: dev01_logs_api_key
+
 networkPolicy:
   enabled: true
 
 backups:
-  enabled: false
+  enabled: true
+  namespace: openshift-adp
+  schedules:
+    - name: monitoring-daily
+      namespace: openshift-adp
+      spec:
+        schedule: "0 2 * * *"
+        template:
+          includedNamespaces:
+            - openshift-monitoring

@@ -114,6 +114,14 @@ manifests should match snapshot:
             key: socpoist/jira
             property: dev01_api_key
           secretKey: opsgenie_key
+        - remoteRef:
+            key: socpoist/jira
+            property: dev01_acs_api_key
+          secretKey: opsgenie_key_acs
+        - remoteRef:
+            key: socpoist/jira
+            property: dev01_logs_api_key
+          secretKey: opsgenie_key_logs
       refreshInterval: 15m
       secretStoreRef:
         kind: ClusterSecretStore
@@ -202,6 +210,47 @@ manifests should match snapshot:
                 {{ "{{" }} with .CommonLabels.team {{ "}}" }}team={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
                 {{ "{{" }} with .CommonLabels.vendor {{ "}}" }}vendor={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
                 {{ "{{" }} with .CommonLabels.app {{ "}}" }}app={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }}
+        - name: atlassian_aspecta_security
+          opsgenie_configs:
+            - send_resolved: false
+              api_key_file: /etc/alertmanager/secrets/alertmanager-receivers/opsgenie_key_acs
+              message: |
+                [{{ "{{" }} .CommonLabels.customerName {{ "}}" }}/{{ "{{" }} .CommonLabels.clusterName {{ "}}" }}/{{ "{{" }} .CommonLabels.severity {{ "}}" }}] -
+                {{ "{{" }} range .Alerts {{ "}}" }}
+                {{ "{{" }} if .Annotations.summary {{ "}}" }}{{ "{{" }} .Annotations.summary {{ "}}" }}{{ "{{" }} else if .Annotations.description {{ "}}" }}{{ "{{" }} .Annotations.description {{ "}}" }}{{ "{{" }} else {{ "}}" }}{{ "{{" }} .Annotations.message {{ "}}" }}{{ "{{" }} end {{ "}}" }}
+                {{ "{{" }} end {{ "}}" }}
+              priority: '{{ "{{" }} if eq .CommonLabels.severity "critical" {{ "}}" }}P1{{ "{{" }} else if eq .CommonLabels.severity "warning" {{ "}}" }}P2{{ "{{" }} else if eq .CommonLabels.severity "info" {{ "}}" }}P3{{ "{{" }} else {{ "}}" }}P4{{ "{{" }} end {{ "}}" }}'
+              tags: |
+                {{ "{{" }} with .CommonLabels.clusterName {{ "}}" }}clusterName={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+                {{ "{{" }} with .CommonLabels.customerName {{ "}}" }}customerName={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+                {{ "{{" }} with .CommonLabels.environment {{ "}}" }}environment={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+                {{ "{{" }} with .CommonLabels.location {{ "}}" }}location={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+                {{ "{{" }} with .CommonLabels.namespace {{ "}}" }}namespace={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+                {{ "{{" }} with .CommonLabels.severity {{ "}}" }}severity={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+                {{ "{{" }} with .CommonLabels.team {{ "}}" }}team={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+                {{ "{{" }} with .CommonLabels.vendor {{ "}}" }}vendor={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+                {{ "{{" }} with .CommonLabels.app {{ "}}" }}app={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }}
+        - name: atlassian_aspecta_logs
+          opsgenie_configs:
+            - send_resolved: false
+              api_key_file: /etc/alertmanager/secrets/alertmanager-receivers/opsgenie_key_logs
+              message: |
+                [{{ "{{" }} .CommonLabels.customerName {{ "}}" }}/{{ "{{" }} .CommonLabels.clusterName {{ "}}" }}/{{ "{{" }} .CommonLabels.severity {{ "}}" }}] -
+                {{ "{{" }} range .Alerts {{ "}}" }}
+                {{ "{{" }} if .Annotations.summary {{ "}}" }}{{ "{{" }} .Annotations.summary {{ "}}" }}{{ "{{" }} else if .Annotations.description {{ "}}" }}{{ "{{" }} .Annotations.description {{ "}}" }}{{ "{{" }} else {{ "}}" }}{{ "{{" }} .Annotations.message {{ "}}" }}{{ "{{" }} end {{ "}}" }}
+                {{ "{{" }} end {{ "}}" }}
+              priority: '{{ "{{" }} if eq .CommonLabels.severity "critical" {{ "}}" }}P1{{ "{{" }} else if eq .CommonLabels.severity "warning" {{ "}}" }}P2{{ "{{" }} else if eq .CommonLabels.severity "info" {{ "}}" }}P3{{ "{{" }} else {{ "}}" }}P4{{ "{{" }} end {{ "}}" }}'
+              tags: |
+                {{ "{{" }} with .CommonLabels.clusterName {{ "}}" }}clusterName={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+                {{ "{{" }} with .CommonLabels.customerName {{ "}}" }}customerName={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+                {{ "{{" }} with .CommonLabels.hostname {{ "}}" }}hostname={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+                {{ "{{" }} with .CommonLabels.environment {{ "}}" }}environment={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+                {{ "{{" }} with .CommonLabels.location {{ "}}" }}location={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+                {{ "{{" }} with .CommonLabels.namespace {{ "}}" }}namespace={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+                {{ "{{" }} with .CommonLabels.severity {{ "}}" }}severity={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+                {{ "{{" }} with .CommonLabels.team {{ "}}" }}team={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+                {{ "{{" }} with .CommonLabels.vendor {{ "}}" }}vendor={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+                {{ "{{" }} with .CommonLabels.app {{ "}}" }}app={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }}
         route:
           group_by:
           - namespace
@@ -216,12 +265,43 @@ manifests should match snapshot:
             matchers:
             - alertname =~ "CertificateIsAboutToExpire|CertificateApproachingExpiration"
             - name =~ "kubemacpool-service|result-server-cert-ocp4-cis-1-5"
+          - receiver: teams_aspecta
+            continue: true
+            matchers:
+            - severity =~ "warning|critical"
+            - alertname != Watchdog
           - receiver: atlassian_aspecta
             continue: true
             matchers:
             - severity =~ "warning|critical"
             - alertname != Watchdog
-            - vendor = "aspecta"
+            - team != security
+            - source != logs
+          - receiver: atlassian_aspecta_security
+            continue: true
+            matchers:
+            - severity =~ "warning|critical"
+            - alertname != Watchdog
+            - team = security
+            group_by:
+            - namespace
+            - alertname
+            - severity
+            - clusterName
+            - acs_alert_id
+          - receiver: atlassian_aspecta_logs
+            continue: true
+            matchers:
+            - severity =~ "warning|critical"
+            - alertname != Watchdog
+            - source = logs
+            group_by:
+            - namespace
+            - alertname
+            - severity
+            - clusterName
+            - hostname
+            - msgid
           - receiver: healthchecksio
             matchers:
             - alertname = Watchdog

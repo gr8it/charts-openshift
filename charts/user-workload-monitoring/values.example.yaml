@@ -21,7 +21,15 @@ userWorkloadMonitoring:
     storageSize: "24Gi"
     storageClassName: ocs-storagecluster-ceph-rbd
     remoteWrite:
-      enabled: false
+      enabled: true
+      secretName: telemetry-remote-write
+      url: https://infogw.api.openshift.com/metrics/v1/receive
+      proxyUrl: ~
+      writeRelabelConfigs:
+        - action: keep
+          regex: (count:up0|count:up1|cluster_version)
+          sourceLabels:
+            - __name__
   thanosRuler:
     storageSize: "1Gi"
     storageClassName: ocs-storagecluster-ceph-rbd
@@ -42,4 +50,13 @@ networkPolicy:
   enabled: true
 
 backups:
-  enabled: false
+  enabled: true
+  namespace: openshift-adp
+  schedules:
+    - name: uwm-daily
+      namespace: openshift-adp
+      spec:
+        schedule: "0 3 * * *"
+        template:
+          includedNamespaces:
+            - openshift-user-workload-monitoring

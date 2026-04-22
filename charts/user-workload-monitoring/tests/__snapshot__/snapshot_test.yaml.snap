@@ -23,6 +23,25 @@ manifests should match snapshot:
             environment: dev
             location: primary
             clusterName: dev01
+          remoteWrite:
+          - url: https://infogw.api.openshift.com/metrics/v1/receive
+            authorization:
+              type: Bearer
+              credentials:
+                key: token
+                name: telemetry-remote-write
+            proxyUrl: http://proxysp.socpoist.sk:8080
+            queueConfig:
+              batchSendDeadline: 1m
+              capacity: 30000
+              maxBackoff: 256s
+              maxSamplesPerSend: 10000
+              minBackoff: 1s
+            writeRelabelConfigs:
+            - action: keep
+              regex: (count:up0|count:up1|cluster_version)
+              sourceLabels:
+              - __name__
         prometheusOperator: {}
         thanosRuler:
           volumeClaimTemplate:
