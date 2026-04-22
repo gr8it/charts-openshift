@@ -144,6 +144,8 @@ spec:
           kind: Roles
           metadata:
             name: {{ tpl .Values.groupRoleMapping.groupTpl . | lower }}
+            annotations:
+              gotemplating.fn.crossplane.io/composition-resource-name: ms-group-roles-{{`{{ $value }}`}}
           spec:
             forProvider:
               exhaustive: false

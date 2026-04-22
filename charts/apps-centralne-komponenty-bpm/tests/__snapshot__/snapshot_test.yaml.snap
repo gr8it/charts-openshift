@@ -176,7 +176,7 @@ manifests should match snapshot:
           input:
             apiVersion: gotemplating.fn.crossplane.io/v1beta1
             inline:
-              template: "{{- range $value := .observed.composite.resource.spec.roles }}\napiVersion: group.keycloak.m.crossplane.io/v1alpha1\nkind: Roles\nmetadata:\n  name: apc-d-ck-{{ $.observed.composite.resource.metadata.name | upper }}-{{ $value | upper }}\nspec:\n  forProvider:\n    exhaustive: false\n    realmId: apps\n    groupIdRef: \n      name: apc-d-ck-{{ $.observed.composite.resource.metadata.name | upper }}-{{ $value | upper }}\n    roleIdsRefs:\n    - name: {{ $.observed.composite.resource.metadata.name }}-{{ $value }}\n  providerConfigRef:\n    name: keycloak-config\n    kind: ClusterProviderConfig\n---\n{{- end }}\n"
+              template: "{{- range $value := .observed.composite.resource.spec.roles }}\napiVersion: group.keycloak.m.crossplane.io/v1alpha1\nkind: Roles\nmetadata:\n  name: apc-d-ck-{{ $.observed.composite.resource.metadata.name | upper }}-{{ $value | upper }}\n  annotations:\n    gotemplating.fn.crossplane.io/composition-resource-name: ms-group-roles-{{ $value }}\nspec:\n  forProvider:\n    exhaustive: false\n    realmId: apps\n    groupIdRef: \n      name: apc-d-ck-{{ $.observed.composite.resource.metadata.name | upper }}-{{ $value | upper }}\n    roleIdsRefs:\n    - name: {{ $.observed.composite.resource.metadata.name }}-{{ $value }}\n  providerConfigRef:\n    name: keycloak-config\n    kind: ClusterProviderConfig\n---\n{{- end }}\n"
             kind: GoTemplate
             source: Inline
           step: microservice-group-roles
