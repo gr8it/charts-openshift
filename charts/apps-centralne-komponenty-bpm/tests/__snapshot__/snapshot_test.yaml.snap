@@ -189,7 +189,7 @@ manifests should match snapshot:
                     exhaustive: false
                     realmId: apps
                     groupIdRef:
-                      name: apc-d-ck-{{ $.observed.composite.resource.metadata.name | upper }}-{{ $value | upper }}
+                      name: {{ $.observed.composite.resource.metadata.name }}-{{ $value }}
                     roleIdsRefs:
                     - name: {{ $.observed.composite.resource.metadata.name }}-{{ $value }}
                   providerConfigRef:

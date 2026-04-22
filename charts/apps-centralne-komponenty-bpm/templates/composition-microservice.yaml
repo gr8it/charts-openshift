@@ -151,7 +151,7 @@ spec:
               exhaustive: false
               realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
               groupIdRef:
-                name: {{ tpl .Values.groupRoleMapping.groupTpl . | lower }}
+                name: {{`{{ $.observed.composite.resource.metadata.name }}`}}-{{`{{ $value }}`}}
               roleIdsRefs:
               - name: {{`{{ $.observed.composite.resource.metadata.name }}`}}-{{`{{ $value }}`}}
             providerConfigRef:
