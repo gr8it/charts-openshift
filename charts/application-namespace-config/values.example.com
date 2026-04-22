@@ -1,4 +1,4 @@
-ResourceQuota:
+resourceQuota:
   eds:
     default-resource-quota:
       "requests.cpu": "6"
@@ -19,7 +19,7 @@ ResourceQuota:
     cnpg-custom-resource-quota:
       "count/backups.postgresql.cnpg.io": "25"
 
-LimitRange:
+limitRange:
   sktst:
     default-limit-range:
       defaultLimits:
