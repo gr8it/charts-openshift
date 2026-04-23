@@ -9,7 +9,7 @@ spec:
   size: {{ .Values.lokistack.size }}
   storage:
     secret:
-      name: {{ printf "%s-rgw-allinfo" (include "netobserv-helm.fullname" .) }}
+      name: {{ .Values.lokistack.existingSecret | default (printf "%s-rgw-allinfo" (include "netobserv-helm.fullname" .)) }}
       type: s3
     schemas:
       {{- toYaml .Values.lokistack.storage.schemas | nindent 6 }}

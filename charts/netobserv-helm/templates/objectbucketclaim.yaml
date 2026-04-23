@@ -1,4 +1,5 @@
 {{- if .Values.objectBucketClaim.enabled }}
+{{- $bucketName := .Values.objectBucketClaim.bucketName | default (printf "apc-%s-rgw" (include "netobserv-helm.fullname" .) | trunc 63 | trimSuffix "-") }}
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
@@ -8,5 +9,5 @@ metadata:
     {{- include "netobserv-helm.labels" . | nindent 4 }}
 spec:
   storageClassName: {{ .Values.objectBucketClaim.storageClassName }}
-  bucketName: {{ .Values.objectBucketClaim.bucketName | default (printf "apc-%s-rgw" (include "netobserv-helm.fullname" .)) }}
+  bucketName: {{ $bucketName }}
 {{- end }}
