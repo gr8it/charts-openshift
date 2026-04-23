@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- updated prometheus rule so it doesnt create false alarms.
+- Updated prometheus rule so it doesn't create false alarms.
 
 ## [1.5.0] - 2026-02-12
 
