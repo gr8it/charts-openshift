@@ -5,4 +5,4 @@
 ### Added
 
 - Initial release
-- `Network Observability Operator` inštalácia cez ACM OperatorPolicy (`netobserv-operator` v1.7.0, channel `stable`)
+- `Network Observability Operator` installed via ACM OperatorPolicy (`netobserv-operator` v1.7.0, channel `stable`)
