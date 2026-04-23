@@ -5,8 +5,7 @@
 ### Added
 
 - Initial release
-- `FlowCollector` (cluster-scoped singleton) — eBPF agent + processor s konfigurovateľnými resources a samplingom
-- `LokiStack` pre ukladanie network flows (mode: `openshift-network`)
-- `ObjectBucketClaim` pre S3 bucket (OCS/RHODF RGW)
-- `ExternalSecret` pre S3 credentials z Vault (`<platform>/<env>/<namespace>/netobserv-s3`)
-- `UIPlugin` (type: `NetworkObservability`) pre OpenShift Console integráciu
+- `FlowCollector` (cluster-scoped singleton) — eBPF agent + processor with configurable resources a sampling
+- `LokiStack` for storing network flows (mode: `openshift-network`)
+- `ObjectBucketClaim` for S3 bucket (OCS/RHODF RGW)
+- `ExternalSecret` for S3 credentials from Vault (`<platform>/<env>/<namespace>/netobserv-s3`)
