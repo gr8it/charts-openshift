@@ -45,7 +45,7 @@ data:
             requests:
               storage: {{ .Values.clusterMonitoring.prometheus.storageSize }}
       externalLabels:
-        managed_cluster: {{ .Values.clusterMonitoring.managedClusterUUID | quote }}
+        managed_cluster: {{ required "clusterMonitoring.managedClusterUUID is required" .Values.clusterMonitoring.managedClusterUUID | quote }}
         customerName: {{ include "apc-global-overrides.require-customer" . }}
         environment: {{ include "apc-global-overrides.require-environment" . }}
         location: {{ .Values.clusterMonitoring.location }}
