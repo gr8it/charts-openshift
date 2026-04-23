@@ -1,14 +1,14 @@
 nameOverride: ""
 fullnameOverride: ""
 
-# --- ObjectBucketClaim (S3 pre LokiStack) ---
+# --- ObjectBucketClaim (S3 for LokiStack) ---
 objectBucketClaim:
   enabled: true
   storageClassName: ocs-storagecluster-ceph-rgw
   # bucketName: override for existing buckets (default: apc-<fullname>-rgw)
   bucketName: ~
 
-# --- LokiStack pre network flows ---
+# --- LokiStack for network flows ---
 lokistack:
   size: 1x.small
   storage:
@@ -21,7 +21,6 @@ lokistack:
     zones:
       - maxSkew: 1
         topologyKey: topology.kubernetes.io/zone
-  # Full limits dict — supports global + per-tenant (application/infrastructure/audit)
   limits:
     global:
       ingestion:
@@ -32,7 +31,7 @@ lokistack:
       retention:
         days: 3
 
-# --- ExternalSecret (S3 credentials pre LokiStack) ---
+# --- ExternalSecret (S3 credentials for LokiStack) ---
 externalSecret:
   enabled: false
   refreshInterval: "15m"
