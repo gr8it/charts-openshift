@@ -26,6 +26,7 @@ userWorkloadMonitoring:
       secretName: telemetry-remote-write
       url: https://infogw.api.openshift.com/metrics/v1/receive
       proxyUrl: ~
+      writeRelabelConfigs: []
   thanosRuler:
     storageSize: "1Gi"
     storageClassName: ocs-storagecluster-ceph-rbd
@@ -64,7 +65,8 @@ hub:
   alertmanager:
     eso:
       vault:
-        # Same opsgenieKey as alertmanager.eso.vault.opsgenieKey (shared key, different properties)
+        # If empty, falls back to alertmanager.eso.vault.opsgenieKey
+        opsgenieKey: ""
         opsgenieAcsProperty: ""
         opsgenieLogsProperty: ""
 
