@@ -1,0 +1,25 @@
+{{- if and (eq (include "apc-global-overrides.clusterIsHub" .) "true") .Values.hub.spokeLogforward.enabled }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: spoke-logforward
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "logging-instance.labels" . | nindent 4 }}  
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cluster-logging-write-audit-logs-spoke-logforward
+  labels:
+    {{- include "logging-instance.labels" . | nindent 4 }}  
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-logging-write-audit-logs
+subjects:
+  - kind: ServiceAccount
+    name: spoke-logforward
+    namespace: {{ .Release.Namespace }}
+{{- end }}

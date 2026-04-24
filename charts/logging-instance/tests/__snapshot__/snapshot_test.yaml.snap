@@ -1,0 +1,250 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: observability.openshift.io/v1
+    kind: ClusterLogForwarder
+    metadata:
+      labels:
+        app.kubernetes.io/instance: logging-instance
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: logging-instance
+        helm.sh/chart: logging-instance-1.0.0
+      name: instance
+      namespace: openshift-logging
+    spec:
+      collector:
+        resources:
+          limits:
+            cpu: 8
+            memory: 8Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+      managementState: Managed
+      outputs:
+        - lokiStack:
+            authentication:
+              token:
+                from: serviceAccount
+            target:
+              name: logging-instance
+              namespace: openshift-logging
+          name: default-lokistack
+          tls:
+            ca:
+              configMapName: openshift-service-ca.crt
+              key: service-ca.crt
+          type: lokiStack
+        - loki:
+            authentication:
+              token:
+                from: secret
+                secret:
+                  key: TOKEN
+                  name: logging-instance
+            url: https://loki-gateway-openshift-logging.apps.hub01.example.com/api/logs/v1/audit/loki/api/v1/push
+          name: hub-loki-audit
+          type: loki
+      pipelines:
+        - inputRefs:
+            - infrastructure
+            - application
+            - audit
+          name: all-to-loki
+          outputRefs:
+            - default-lokistack
+        - inputRefs:
+            - audit
+          name: audit-to-hub
+          outputRefs:
+            - hub-loki-audit
+      serviceAccount:
+        name: collector
+  2: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: logging-instance
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: logging-instance
+        helm.sh/chart: logging-instance-1.0.0
+      name: collect-application-logs-collector
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: collect-application-logs
+    subjects:
+      - kind: ServiceAccount
+        name: collector
+        namespace: openshift-logging
+  3: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      annotations: null
+      labels:
+        app.kubernetes.io/instance: logging-instance
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: logging-instance
+        helm.sh/chart: logging-instance-1.0.0
+      name: collect-audit-logs-collector
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: collect-audit-logs
+    subjects:
+      - kind: ServiceAccount
+        name: collector
+        namespace: openshift-logging
+  4: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      annotations: null
+      labels:
+        app.kubernetes.io/instance: logging-instance
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: logging-instance
+        helm.sh/chart: logging-instance-1.0.0
+      name: collect-infrastructure-logs-collector
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: collect-infrastructure-logs
+    subjects:
+      - kind: ServiceAccount
+        name: collector
+        namespace: openshift-logging
+  5: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: logging-instance
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: logging-instance
+        helm.sh/chart: logging-instance-1.0.0
+      name: logging-collector-logs-writer-collector
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: logging-collector-logs-writer
+    subjects:
+      - kind: ServiceAccount
+        name: collector
+        namespace: openshift-logging
+  6: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: logging-instance
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: logging-instance
+        helm.sh/chart: logging-instance-1.0.0
+      name: logging-instance
+      namespace: openshift-logging
+    spec:
+      data:
+        - remoteRef:
+            key: apc-platform/p/openshift-logging/hub-spoke-logforward
+            property: TOKEN
+          secretKey: TOKEN
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: apc
+      target:
+        creationPolicy: Owner
+        name: logging-instance
+  7: |
+    apiVersion: loki.grafana.com/v1
+    kind: LokiStack
+    metadata:
+      labels:
+        app.kubernetes.io/instance: logging-instance
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: logging-instance
+        helm.sh/chart: logging-instance-1.0.0
+      name: logging-instance
+      namespace: openshift-logging
+    spec:
+      hashRing:
+        memberlist:
+          instanceAddrType: podIP
+        type: memberlist
+      limits:
+        global:
+          ingestion:
+            ingestionBurstSize: 40
+            ingestionRate: 20
+            perStreamRateLimit: 4
+            perStreamRateLimitBurst: 17
+          queries:
+            queryTimeout: 60s
+        retention:
+          days: 20
+          streams: []
+      replication:
+        factor: 2
+        zones:
+          - maxSkew: 1
+            topologyKey: topology.kubernetes.io/zone
+      size: 1x.small
+      storage:
+        schemas:
+          - effectiveDate: "2024-10-01"
+            version: v13
+        secret:
+          name: logging-instance-allinfo
+          type: s3
+        tls:
+          caKey: service-ca.crt
+          caName: openshift-service-ca.crt
+      storageClassName: ocs-storagecluster-ceph-rbd
+      tenants:
+        mode: openshift-logging
+        openshift:
+          adminGroups:
+            - cluster-admin
+  8: |
+    apiVersion: objectbucket.io/v1alpha1
+    kind: ObjectBucketClaim
+    metadata:
+      labels:
+        app.kubernetes.io/instance: logging-instance
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: logging-instance
+        helm.sh/chart: logging-instance-1.0.0
+      name: logging-instance
+      namespace: openshift-logging
+    spec:
+      bucketName: logging-instance
+      storageClassName: ocs-storagecluster-ceph-rgw
+  9: |
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      labels:
+        app.kubernetes.io/instance: logging-instance
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: logging-instance
+        helm.sh/chart: logging-instance-1.0.0
+      name: collector
+      namespace: openshift-logging
+  10: |
+    apiVersion: observability.openshift.io/v1alpha1
+    kind: UIPlugin
+    metadata:
+      labels:
+        app.kubernetes.io/instance: logging-instance
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: logging-instance
+        helm.sh/chart: logging-instance-1.0.0
+      name: logging
+    spec:
+      logging:
+        lokiStack:
+          name: logging-instance
+        timeout: 120s
+      type: Logging

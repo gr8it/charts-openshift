@@ -1,0 +1,16 @@
+acm-operatorpolicy:
+  subscription:
+    channel: "stable-6.1"
+    name: cluster-logging
+    namespace: openshift-logging
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    startingCSV: cluster-logging.v6.1.0
+  operatorGroup:
+    name: openshift-logging
+    namespace: openshift-logging
+    targetNamespaces:
+      - openshift-logging
+  upgradeApproval: None
+  versions:
+    - cluster-logging.v6.1.0

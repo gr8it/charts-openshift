@@ -1,0 +1,14 @@
+{{- if .Values.uiplugin.enabled }}
+apiVersion: observability.openshift.io/v1alpha1
+kind: UIPlugin
+metadata:
+  name: logging
+  labels:
+    {{- include "logging-instance.labels" . | nindent 4 }}
+spec:
+  type: Logging
+  logging:
+    lokiStack:
+      name: {{ include "logging-instance.fullname" . }}
+    timeout: {{ .Values.uiplugin.timeout | default "120s" }}
+{{- end }}

@@ -1,0 +1,40 @@
+apiVersion: loki.grafana.com/v1
+kind: LokiStack
+metadata:
+  name: {{ include "logging-instance.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "logging-instance.labels" . | nindent 4 }}
+spec:
+  size: {{ .Values.lokistack.size }}
+  storage:
+    secret:
+      name: {{ printf "%s-allinfo" (include "logging-instance.fullname" .) }}
+      type: s3
+    schemas:
+      {{- toYaml .Values.lokistack.storage.schemas | nindent 6 }}
+    tls:
+      caKey: service-ca.crt
+      caName: openshift-service-ca.crt
+  storageClassName: {{ .Values.lokistack.storageClassName }}
+  {{- if .Values.lokistack.replication }}
+  replication:
+    {{- toYaml .Values.lokistack.replication | nindent 4 }}
+  {{- end }}
+  hashRing:
+    type: memberlist
+    memberlist:
+      instanceAddrType: podIP
+  {{- if .Values.lokistack.limits }}
+  limits:
+    {{- toYaml .Values.lokistack.limits | nindent 4 }}
+  {{- end }}
+  {{- if .Values.lokistack.rules }}
+  rules:
+    {{- toYaml .Values.lokistack.rules | nindent 4 }}
+  {{- end }}
+  tenants:
+    mode: openshift-logging
+    openshift:
+      adminGroups:
+        - cluster-admin

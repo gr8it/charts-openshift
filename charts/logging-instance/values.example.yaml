@@ -1,0 +1,40 @@
+# Example values for a spoke cluster with hub forwarding enabled
+global:
+  apc:
+    cluster:
+      isHub: false
+    environmentShort: p
+    services:
+      externalSecretsOperator:
+        defaultClusterSecretStore: apc
+      vault:
+        KVmountPlatform: apc-platform
+
+lokistack:
+  size: 1x.small
+  limits:
+    global:
+      ingestion:
+        ingestionRate: 20
+        ingestionBurstSize: 40
+    retention:
+      days: 20
+
+collector:
+  resources:
+    limits:
+      cpu: 8
+      memory: 8Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+hubForwarding:
+  enabled: true
+  url: "https://loki-gateway-openshift-logging.apps.hub01.example.com/api/logs/v1/audit/loki/api/v1/push"
+
+auditToHub:
+  enabled: true
+
+externalSecret:
+  refreshInterval: "15m"
