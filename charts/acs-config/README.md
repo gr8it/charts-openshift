@@ -24,26 +24,14 @@ The chart is configured through `values.yaml`. Key parameters include:
 
 ## Usage
 
-```yaml
+
+
 central:
   enabled: true
 
 prometheusRule:
   enabled: true
 ```
-
-## Security Policies
-
-This chart includes ACS security policies in `policies/` directory.
-
-**Included policy:** Detects non-privileged containers with fixable Important/Critical CVEs (inform-only mode).
-
-**How to use:**
-1. Import policy via Central UI: **Platform Configuration → Policy Management → Import policy**
-2. Upload `policies/containers-important-critical-fixable-cves.json`
-3. Configure Jira integration in **Platform Configuration → Integrations → Notifier Integrations** to receive alerts
-
-**📖 Full documentation:** See [policies/README.md](policies/README.md) for detailed setup instructions, namespace exclusions, notifier configuration, and troubleshooting.
 
 ## Additional OpenShift setup
 

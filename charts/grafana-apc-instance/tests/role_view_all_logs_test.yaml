@@ -1,0 +1,54 @@
+suite: Role view-all-logs RBAC
+values:
+  - ../values.lint.yaml
+release:
+  name: grafana-apc-instance
+
+tests:
+  - it: renders namespace-scoped Role without cluster-scoped namespaces access
+    template: templates/role-view-all-logs.yaml
+    set:
+      namespaceScoped: true
+      datasourceLokiUrl: https://loki.example.invalid
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Role
+      - equal:
+          path: metadata.name
+          value: apc-grafana-view-all-logs
+      - equal:
+          path: metadata.namespace
+          value: NAMESPACE
+      - equal:
+          path: rules[0].resources
+          value:
+            - pods
+            - pods/log
+
+  - it: does not render namespace-scoped Role when namespaceScoped is false
+    template: templates/role-view-all-logs.yaml
+    set:
+      namespaceScoped: false
+      datasourceLokiUrl: https://loki.example.invalid
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders cluster-scoped namespaces access only in ClusterRole mode
+    template: templates/clusterrole-view-all-logs.yaml
+    set:
+      namespaceScoped: false
+      datasourceLokiUrl: https://loki.example.invalid
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ClusterRole
+      - equal:
+          path: rules[0].resources
+          value:
+            - pods
+            - pods/log
+            - namespaces

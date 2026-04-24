@@ -1,4 +1,5 @@
 {{- if (.Values.datasourceLokiUrl | default false) }}
+{{- if not .Values.namespaceScoped }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -10,4 +11,5 @@ rules:
   - apiGroups: [""]
     resources: ["pods","pods/log","namespaces"]
     verbs: ["get"]
+{{- end }}
 {{- end }}

@@ -5,6 +5,12 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.3] - 2026-04-09
+
+### Changed
+
+- Increase dex memory limits from 256Mi to 512Mi and requests from 128Mi to 256Mi
+
 ## [2.9.2] - 2026-03-02
 
 ### Fixed

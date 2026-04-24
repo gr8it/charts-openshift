@@ -1,0 +1,22 @@
+global:
+  apc:
+    services:
+      certManager:
+        defaultClusterIssuer: default-issuer
+
+prometheus-elasticsearch-exporter:
+  extraEnvSecrets:
+    ES_USERNAME:
+      secret: eds-elastic-monitor-user
+      key: username
+    ES_PASSWORD:
+      secret: eds-elastic-monitor-user
+      key: password
+  secretMounts:
+    - name: es-tls
+      secretName: eds-elastic-es-tls
+      path: /ssl
+  es:
+    uri: https://eds-elastic-es-http.{{ .Release.Namespace }}.svc:9200
+  serviceMonitor:
+    namespace: eds

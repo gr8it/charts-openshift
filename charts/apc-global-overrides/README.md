@@ -108,6 +108,7 @@ global:
       name: ~
       acmName: ~
       type: ~
+      rootDomain: ~
       baseDomain: ~
       appsDomain: ~
       apiURL: ~
@@ -167,6 +168,8 @@ global:
 |apc-global-overrides.require-clusterAcmName|cluster.acmName|global.apc.cluster.acmName|string|-||
 |apc-global-overrides.clusterType|cluster.type|global.apc.cluster.type|string|-|one of standalone, hcp|
 |apc-global-overrides.require-clusterType|cluster.type|global.apc.cluster.type|string|-||
+|apc-global-overrides.clusterRootDomain|cluster.rootDomain|global.apc.cluster.rootDomain|string|-||
+|apc-global-overrides.require-clusterRootDomain|cluster.rootDomain|global.apc.cluster.rootDomain|string|-||
 |apc-global-overrides.clusterBaseDomain|cluster.baseDomain|global.apc.cluster.baseDomain|string|-||
 |apc-global-overrides.require-clusterBaseDomain|cluster.baseDomain|global.apc.cluster.baseDomain|string|-||
 |apc-global-overrides.clusterAppsDomain|cluster.appsDomain|global.apc.cluster.appsDomain|string|-|ingress URL suffix|
@@ -206,7 +209,7 @@ Helpers to query a specific service parameters available:
 |apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName|services.crossplane.kubeKeycloakProviderConfigName|global.apc.services.crossplane.kubeKeycloakProviderConfigName|string|-||
 |apc-global-overrides.ESODefaultClusterSecretStore|services.externalSecretsOperator.defaultClusterSecretStore|global.apc.services.externalSecretsOperator.defaultClusterSecretStore|string|-|External Secrets Operator default cluster secret store to use for cluster-config externalsecrets|
 |apc-global-overrides.require-ESODefaultClusterSecretStore|services.externalSecretsOperator.defaultClusterSecretStore|global.apc.services.externalSecretsOperator.defaultClusterSecretStore|string|-||
-|apc-global-overrides.keycloakUrl|services.keycloak.url|global.apc.services.keycloak.url|string|-|Keycloak ingress URL|
+|apc-global-overrides.keycloakUrl|services.keycloak.url|global.apc.services.keycloak.url|string|-|Keycloak Admin API URL|
 |apc-global-overrides.require-keycloakUrl|services.keycloak.url|global.apc.services.keycloak.url|string|-||
 |apc-global-overrides.keycloakRealm|services.keycloak.realm|global.apc.services.keycloak.realm|string|-|Keycloak application Realm|
 |apc-global-overrides.require-keycloakRealm|services.keycloak.realm|global.apc.services.keycloak.realm|string|-||

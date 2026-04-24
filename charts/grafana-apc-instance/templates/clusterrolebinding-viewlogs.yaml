@@ -1,4 +1,5 @@
 {{- if (.Values.datasourceLokiUrl | default false) }}
+{{- if not .Values.namespaceScoped }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -14,4 +15,5 @@ subjects:
   - kind: ServiceAccount
     name: {{ include "grafana-instance.name" . }}-sa
     namespace: {{ .Release.Namespace }}
+{{- end }}
 {{- end }}

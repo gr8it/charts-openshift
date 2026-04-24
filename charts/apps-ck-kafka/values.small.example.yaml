@@ -47,7 +47,8 @@ monitoring:
 kafkaTopics:
   topics:
     # High-throughput events topic
-    - name: "events"
+    - name: "events-v1"
+      topicName: "events.v1"
       partitions: 6
       replicas: 3
       config:
@@ -61,7 +62,7 @@ kafkaUsers:
     - name: app-producer
       acls:
         - resourceType: topic
-          resourceName: "events"
+          resourceName: "events.v1"
           patternType: literal
           operations: [Write, Create, Describe]
         - resourceType: topic
@@ -106,7 +107,6 @@ kafkaUsers:
     - name: admin
 
 networkpolicy:
-  enabled: true
   namespaces:
   - source-namespace-1
 

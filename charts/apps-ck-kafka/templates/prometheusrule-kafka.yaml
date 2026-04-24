@@ -92,6 +92,10 @@ spec:
             summary: "KRaft quorum is unhealthy"
             description: "KRaft quorum does not have exactly 1 active controller. Active controllers: {{ `{{ $value }}` }}"
 
+        ## Strimzi "example" prometheus rules
+        ## https://github.com/strimzi/strimzi-kafka-operator/blob/main/examples/metrics/prometheus-install/prometheus-rules/prometheus-kafka-rules.yaml
+        ## some of the alerts above are also part of strimzi (not sure why not included in the "strimzi list") = refactor?
+
         - alert: KafkaRunningOutOfSpace
           expr: |
             kubelet_volume_stats_available_bytes{persistentvolumeclaim=~"data(-[0-9]+)?-(.+)-(brokers|controllers)-[0-9]+"} * 100 / kubelet_volume_stats_capacity_bytes{persistentvolumeclaim=~"data(-[0-9]+)?-(.+)-(brokers|controllers)-[0-9]+"} < 15
@@ -151,5 +155,7 @@ spec:
           annotations:
             summary: "One or more Kafka containers restarted too often"
             description: "One or more Kafka containers were restarted too often within the last 5 minutes"
+
+        ## END Strimzi "example" prometheus rules
 
 {{- end }}

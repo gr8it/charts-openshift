@@ -1,0 +1,55 @@
+suite: Application logs RBAC
+values:
+  - ../values.lint.yaml
+release:
+  name: grafana-apc-instance
+
+tests:
+  - it: renders namespace-scoped application logs RoleBinding when namespaceScoped is true
+    template: templates/rolebinding-application-logs-reader.yaml
+    set:
+      namespaceScoped: true
+      datasourceLokiUrl: https://loki.example.invalid
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: RoleBinding
+      - equal:
+          path: metadata.name
+          value: apc-grafana-application-logs-reader
+      - equal:
+          path: metadata.namespace
+          value: NAMESPACE
+      - equal:
+          path: roleRef.kind
+          value: ClusterRole
+      - equal:
+          path: roleRef.name
+          value: cluster-logging-application-view
+
+  - it: does not render namespace-scoped application logs RoleBinding when namespaceScoped is false
+    template: templates/rolebinding-application-logs-reader.yaml
+    set:
+      namespaceScoped: false
+      datasourceLokiUrl: https://loki.example.invalid
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders cluster-scoped application logs ClusterRoleBinding when namespaceScoped is false
+    template: templates/clusterrolebinding-application-logs-reader.yaml
+    set:
+      namespaceScoped: false
+      datasourceLokiUrl: https://loki.example.invalid
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ClusterRoleBinding
+      - equal:
+          path: metadata.name
+          value: apc-grafana-application-logs-reader
+      - equal:
+          path: roleRef.name
+          value: cluster-logging-application-view
