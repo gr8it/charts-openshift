@@ -1,6 +1,19 @@
-{{- if .Values.dashboards.enabled }}
-{{- range $path, $_ := .Files.Glob "files/grafana-dashboards/*.yaml" }}
+{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
+{{- range $path, $_ := .Files.Glob "files/grafana-dashboards/*.json" }}
+{{- $name := $path | base | trimSuffix ".json" }}
 ---
-{{ $.Files.Get $path }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $name }}
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    observability.open-cluster-management.io/dashboard-folder: Custom
+  labels:
+    grafana-custom-dashboard: "true"
+    {{- include "multi-cluster-observability.labels" $ | nindent 4 }}
+data:
+  {{ $name }}.json: |
+    {{ $.Files.Get $path | trim }}
 {{- end }}
 {{- end }}

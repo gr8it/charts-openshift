@@ -1,4 +1,4 @@
-{{- if .Values.objectBucketClaim.enabled }}
+{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
