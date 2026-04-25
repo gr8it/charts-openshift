@@ -1,0 +1,11 @@
+{{- if .Values.objectBucketClaim.enabled }}
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: {{ .Values.objectBucketClaim.name }}
+  namespace: {{ .Values.objectBucketClaim.namespace }}
+  labels:
+    {{- include "multi-cluster-observability.labels" . | nindent 4 }}
+spec:
+  {{- toYaml .Values.objectBucketClaim.spec | nindent 2 }}
+{{- end }}

@@ -1,0 +1,6 @@
+{{- if .Values.dashboards.enabled }}
+{{- range $path, $_ := .Files.Glob "files/grafana-dashboards/*.yaml" }}
+---
+{{ $.Files.Get $path }}
+{{- end }}
+{{- end }}
