@@ -1,0 +1,24 @@
+apiVersion: flows.netobserv.io/v1beta2
+kind: FlowCollector
+metadata:
+  name: cluster
+  labels:
+    {{- include "netobserv-helm.labels" . | nindent 4 }}
+spec:
+  namespace: {{ .Release.Namespace }}
+  deploymentModel: Direct
+  agent:
+    type: eBPF
+    ebpf:
+      sampling: {{ .Values.flowCollector.agent.ebpf.sampling }}
+      resources:
+        {{- toYaml .Values.flowCollector.agent.ebpf.resources | nindent 8 }}
+  processor:
+    resources:
+      {{- toYaml .Values.flowCollector.processor.resources | nindent 6 }}
+  loki:
+    mode: LokiStack
+    lokiStack:
+      name: {{ include "netobserv-helm.fullname" . }}
+  consolePlugin:
+    enable: true
