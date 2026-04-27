@@ -15,6 +15,8 @@ spec:
         expr: kube_job_status_failed{namespace="{{ .Release.Namespace }}", job_name=~"{{ include "etcd-hcp-backup.fullname" . }}-.*"} > 0
         labels:
           severity: critical
+          vendor: aspecta
+          team: platform
         annotations:
           summary: "ETCD backup job for {{ $clusterName }} has failed"
           description: "ETCD backup job for {{ $clusterName }} {{`{{ $labels.namespace }}/{{ $labels.job_name}}`}} has failed."
