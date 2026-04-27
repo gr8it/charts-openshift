@@ -1,0 +1,23 @@
+apiVersion: hco.kubevirt.io/v1beta1
+kind: HyperConverged
+metadata:
+  name: kubevirt-hyperconverged
+  namespace: {{ .Values.hyperConverged.namespace }}
+spec:
+  virtualMachineOptions:
+    disableFreePageReporting: {{ .Values.hyperConverged.virtualMachineOptions.disableFreePageReporting }}
+    disableSerialConsoleLog: {{ .Values.hyperConverged.virtualMachineOptions.disableSerialConsoleLog }}
+  higherWorkloadDensity:
+    memoryOvercommitPercentage: {{ .Values.hyperConverged.higherWorkloadDensity.memoryOvercommitPercentage }}
+  liveMigrationConfig:
+    allowAutoConverge: {{ .Values.hyperConverged.liveMigrationConfig.allowAutoConverge }}
+    allowPostCopy: {{ .Values.hyperConverged.liveMigrationConfig.allowPostCopy }}
+    completionTimeoutPerGiB: {{ .Values.hyperConverged.liveMigrationConfig.completionTimeoutPerGiB }}
+    network: {{ .Values.hyperConverged.liveMigrationConfig.network }}
+    parallelMigrationsPerCluster: {{ .Values.hyperConverged.liveMigrationConfig.parallelMigrationsPerCluster }}
+    parallelOutboundMigrationsPerNode: {{ .Values.hyperConverged.liveMigrationConfig.parallelOutboundMigrationsPerNode }}
+    progressTimeout: {{ .Values.hyperConverged.liveMigrationConfig.progressTimeout }}
+  evictionStrategy: {{ .Values.hyperConverged.evictionStrategy }}
+  vmStateStorageClass: {{ .Values.hyperConverged.vmStateStorageClass }}
+  infra: {}
+  workloads: {}

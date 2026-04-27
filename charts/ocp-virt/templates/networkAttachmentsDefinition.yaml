@@ -1,0 +1,37 @@
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata:
+  name: {{ .Values.cni.vmlm.name }}
+  namespace: {{ .Values.cni.namespace }}
+spec:
+  config: |-
+    {
+      "cniVersion": "0.3.1",
+      "name": {{ .Values.cni.vmlm.name | quote }},
+      "type": "macvlan",
+      "master": {{ .Values.cni.vmlm.masterInterface | quote }},
+      "mode": "bridge",
+      "ipam": {
+        "type": "whereabouts",
+        "range": {{ .Values.cni.vmlm.ipamRange | quote }},
+        "range_start": {{ .Values.cni.vmlm.ipamRangeStart | quote }},
+        "range_end": {{ .Values.cni.vmlm.ipamRangeEnd | quote }}
+      }
+    }
+{{- range .Values.cni.bridges }}
+---
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Values.cni.namespace }}
+spec:
+  config: |-
+    {
+      "cniVersion": "0.3.1",
+      "name": {{ .name | quote }},
+      "type": "cnv-bridge",
+      "bridge": {{ .bridge | quote }},
+      "disableContainerInterface": true
+    }
+{{- end }}

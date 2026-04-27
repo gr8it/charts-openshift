@@ -1,0 +1,13 @@
+suite: Snapshot test
+templates:
+  - templates/*
+values:
+  - ../values.yaml
+release:
+  name: ocp-virt
+  namespace: openshift-cnv
+
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}

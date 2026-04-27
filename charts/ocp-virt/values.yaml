@@ -1,0 +1,70 @@
+# Bond interface configuration
+bond:
+  mode: 802.3ad
+  miimon: "140"
+  xmitHashPolicy: layer2
+  ports:
+    - ens13f1np1
+    - ens7f1np1
+
+# VLAN subinterfaces to create on bond1
+vlans:
+  - name: bond1.3076
+    id: 3076
+  - name: bond1.3078
+    id: 3078
+  - name: bond1.3079
+    id: 3079
+  - name: bond1.1026
+    id: 1026
+  - name: bond1.8
+    id: 8
+
+# Linux bridges to create (each backed by a VLAN)
+bridges:
+  - name: br-1026
+    vlan: bond1.1026
+  - name: br-3076
+    vlan: bond1.3076
+  - name: br-8
+    vlan: bond1.8
+
+# NetworkAttachmentDefinition settings
+cni:
+  namespace: openshift-cnv
+
+  # Macvlan network used for live migration traffic
+  vmlm:
+    name: vmlm
+    masterInterface: bond1.3079
+    ipamRange: "10.13.79.0/25"
+    ipamRangeStart: "10.13.79.10"
+    ipamRangeEnd: "10.13.79.126"
+
+  # CNV bridge networks for VM connectivity
+  bridges:
+    - name: vm-br-1026
+      bridge: br-1026
+    - name: vm-br-3076
+      bridge: br-3076
+    - name: vm-br-8
+      bridge: br-8
+
+# HyperConverged (KubeVirt) configuration
+hyperConverged:
+  namespace: openshift-cnv
+  virtualMachineOptions:
+    disableFreePageReporting: false
+    disableSerialConsoleLog: true
+  higherWorkloadDensity:
+    memoryOvercommitPercentage: 100
+  liveMigrationConfig:
+    allowAutoConverge: false
+    allowPostCopy: false
+    completionTimeoutPerGiB: 800
+    network: vmlm
+    parallelMigrationsPerCluster: 5
+    parallelOutboundMigrationsPerNode: 2
+    progressTimeout: 150
+  evictionStrategy: LiveMigrateIfPossible
+  vmStateStorageClass: ocs-storagecluster-cephfs

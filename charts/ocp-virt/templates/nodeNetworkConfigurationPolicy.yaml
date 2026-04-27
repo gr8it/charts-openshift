@@ -1,0 +1,61 @@
+apiVersion: nmstate.io/v1
+kind: NodeNetworkConfigurationPolicy
+metadata:
+  name: bond1
+spec:
+  nodeSelector:
+    node-role.kubernetes.io/worker: ''
+  desiredState:
+    interfaces:
+      # BOND
+      - name: bond1
+        state: up
+        type: bond
+        link-aggregation:
+          mode: {{ .Values.bond.mode }}
+          options:
+            miimon: {{ .Values.bond.miimon | quote }}
+            xmit_hash_policy: {{ .Values.bond.xmitHashPolicy }}
+          port:
+            {{- range .Values.bond.ports }}
+            - {{ . }}
+            {{- end }}
+        ipv4:
+          dhcp: false
+          enabled: false
+        ipv6:
+          dhcp: false
+          enabled: false
+      # VLANs
+      {{- range .Values.vlans }}
+      - name: {{ .name }}
+        state: up
+        type: vlan
+        vlan:
+          base-iface: bond1
+          id: {{ .id }}
+        ipv4:
+          dhcp: false
+          enabled: false
+        ipv6:
+          dhcp: false
+          enabled: false
+      {{- end }}
+      # Bridges
+      {{- range .Values.bridges }}
+      - name: {{ .name }}
+        state: up
+        type: linux-bridge
+        bridge:
+          options:
+            stp:
+              enabled: false
+          port:
+            - name: {{ .vlan }}
+        ipv4:
+          dhcp: false
+          enabled: false
+        ipv6:
+          dhcp: false
+          enabled: false
+      {{- end }}

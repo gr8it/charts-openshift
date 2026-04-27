@@ -1,0 +1,223 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: hco.kubevirt.io/v1beta1
+    kind: HyperConverged
+    metadata:
+      name: kubevirt-hyperconverged
+      namespace: openshift-cnv
+    spec:
+      evictionStrategy: LiveMigrateIfPossible
+      higherWorkloadDensity:
+        memoryOvercommitPercentage: 100
+      infra: {}
+      liveMigrationConfig:
+        allowAutoConverge: false
+        allowPostCopy: false
+        completionTimeoutPerGiB: 800
+        network: vmlm
+        parallelMigrationsPerCluster: 5
+        parallelOutboundMigrationsPerNode: 2
+        progressTimeout: 150
+      virtualMachineOptions:
+        disableFreePageReporting: false
+        disableSerialConsoleLog: true
+      vmStateStorageClass: ocs-storagecluster-cephfs
+      workloads: {}
+  2: |
+    apiVersion: k8s.cni.cncf.io/v1
+    kind: NetworkAttachmentDefinition
+    metadata:
+      name: vmlm
+      namespace: openshift-cnv
+    spec:
+      config: |-
+        {
+          "cniVersion": "0.3.1",
+          "name": "vmlm",
+          "type": "macvlan",
+          "master": "bond1.3079",
+          "mode": "bridge",
+          "ipam": {
+            "type": "whereabouts",
+            "range": "10.13.79.0/25",
+            "range_start": "10.13.79.10",
+            "range_end": "10.13.79.126"
+          }
+        }
+  3: |
+    apiVersion: k8s.cni.cncf.io/v1
+    kind: NetworkAttachmentDefinition
+    metadata:
+      name: vm-br-1026
+      namespace: openshift-cnv
+    spec:
+      config: |-
+        {
+          "cniVersion": "0.3.1",
+          "name": "vm-br-1026",
+          "type": "cnv-bridge",
+          "bridge": "br-1026",
+          "disableContainerInterface": true
+        }
+  4: |
+    apiVersion: k8s.cni.cncf.io/v1
+    kind: NetworkAttachmentDefinition
+    metadata:
+      name: vm-br-3076
+      namespace: openshift-cnv
+    spec:
+      config: |-
+        {
+          "cniVersion": "0.3.1",
+          "name": "vm-br-3076",
+          "type": "cnv-bridge",
+          "bridge": "br-3076",
+          "disableContainerInterface": true
+        }
+  5: |
+    apiVersion: k8s.cni.cncf.io/v1
+    kind: NetworkAttachmentDefinition
+    metadata:
+      name: vm-br-8
+      namespace: openshift-cnv
+    spec:
+      config: |-
+        {
+          "cniVersion": "0.3.1",
+          "name": "vm-br-8",
+          "type": "cnv-bridge",
+          "bridge": "br-8",
+          "disableContainerInterface": true
+        }
+  6: |
+    apiVersion: nmstate.io/v1
+    kind: NodeNetworkConfigurationPolicy
+    metadata:
+      name: bond1
+    spec:
+      desiredState:
+        interfaces:
+          - ipv4:
+              dhcp: false
+              enabled: false
+            ipv6:
+              dhcp: false
+              enabled: false
+            link-aggregation:
+              mode: 802.3ad
+              options:
+                miimon: "140"
+                xmit_hash_policy: layer2
+              port:
+                - ens13f1np1
+                - ens7f1np1
+            name: bond1
+            state: up
+            type: bond
+          - ipv4:
+              dhcp: false
+              enabled: false
+            ipv6:
+              dhcp: false
+              enabled: false
+            name: bond1.3076
+            state: up
+            type: vlan
+            vlan:
+              base-iface: bond1
+              id: 3076
+          - ipv4:
+              dhcp: false
+              enabled: false
+            ipv6:
+              dhcp: false
+              enabled: false
+            name: bond1.3078
+            state: up
+            type: vlan
+            vlan:
+              base-iface: bond1
+              id: 3078
+          - ipv4:
+              dhcp: false
+              enabled: false
+            ipv6:
+              dhcp: false
+              enabled: false
+            name: bond1.3079
+            state: up
+            type: vlan
+            vlan:
+              base-iface: bond1
+              id: 3079
+          - ipv4:
+              dhcp: false
+              enabled: false
+            ipv6:
+              dhcp: false
+              enabled: false
+            name: bond1.1026
+            state: up
+            type: vlan
+            vlan:
+              base-iface: bond1
+              id: 1026
+          - ipv4:
+              dhcp: false
+              enabled: false
+            ipv6:
+              dhcp: false
+              enabled: false
+            name: bond1.8
+            state: up
+            type: vlan
+            vlan:
+              base-iface: bond1
+              id: 8
+          - bridge:
+              options:
+                stp:
+                  enabled: false
+              port:
+                - name: bond1.1026
+            ipv4:
+              dhcp: false
+              enabled: false
+            ipv6:
+              dhcp: false
+              enabled: false
+            name: br-1026
+            state: up
+            type: linux-bridge
+          - bridge:
+              options:
+                stp:
+                  enabled: false
+              port:
+                - name: bond1.3076
+            ipv4:
+              dhcp: false
+              enabled: false
+            ipv6:
+              dhcp: false
+              enabled: false
+            name: br-3076
+            state: up
+            type: linux-bridge
+          - bridge:
+              options:
+                stp:
+                  enabled: false
+              port:
+                - name: bond1.8
+            ipv4:
+              dhcp: false
+              enabled: false
+            ipv6:
+              dhcp: false
+              enabled: false
+            name: br-8
+            state: up
+            type: linux-bridge
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
