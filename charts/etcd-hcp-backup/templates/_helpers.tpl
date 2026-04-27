@@ -14,31 +14,11 @@ Resolve cluster name with defaults*/}}
 
 
 {{/*
-Resolve cluster name with defaults
-
-{{- define "etcd-hcp-backup.clusterName" -}}
-{{- if .Values.clusterName -}}
-  {{- .Values.clusterName | trunc 20 | trimSuffix "-" -}}
-{{- else if and
-      (hasKey .Values "apc-global-overrides")
-      (hasKey (index .Values "apc-global-overrides") "cluster")
-      (hasKey (index (index .Values "apc-global-overrides") "cluster") "name")
-      (index (index (index .Values "apc-global-overrides") "cluster") "name")
--}}
-  {{- index (index (index .Values "apc-global-overrides") "cluster") "name" | trunc 20 | trimSuffix "-" -}}
-{{- else -}}
-  {{- .Release.Name | trunc 20 | trimSuffix "-" -}}
-{{- end -}}
-{{- end -}}
-*/}}
-
-
-{{/*
-Fullname = etcd-hcp-backup prefix + cluster name
+Fullname = chart name + cluster name
 */}}
 {{- define "etcd-hcp-backup.fullname" -}}
 {{- $clusterName := include "etcd-hcp-backup.clusterName" . -}}
-{{- printf "%s-%s" "etcd-hcp-backup" $clusterName | replace "+" "_" | trunc 50 | trimSuffix "-" -}}
+{{- printf "%s-%s" (include "etcd-hcp-backup.name" .) $clusterName | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*

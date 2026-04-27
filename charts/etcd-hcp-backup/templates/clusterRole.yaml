@@ -1,9 +1,8 @@
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
-  name: {{ include "etcd-hcp-backup.name" . }}
-  namespace: {{ .Release.Namespace }}
+  name: {{ include "etcd-hcp-backup.fullname" . }}
   labels:
     {{- include "common.labels" . | nindent 4 }}
 rules:

@@ -22,7 +22,7 @@ spec:
           labels:
             {{- include "common.labels" . | nindent 12 }}
         spec:
-          serviceAccountName: {{ include "etcd-hcp-backup.name" . }}
+          serviceAccountName: {{ include "etcd-hcp-backup.fullname" . }}
           restartPolicy: Never
           initContainers:
           - name: init
@@ -39,12 +39,12 @@ spec:
             - name: STATEFULSET
               valueFrom:
                 configMapKeyRef:
-                  name: {{ include "etcd-hcp-backup.name" . }}-scripts
+                  name: {{ include "etcd-hcp-backup.fullname" . }}-scripts
                   key: env.etcdsts
             - name: HCPNS
               valueFrom:
                 configMapKeyRef:
-                  name: {{ include "etcd-hcp-backup.name" . }}-scripts
+                  name: {{ include "etcd-hcp-backup.fullname" . }}-scripts
                   key: env.hcpns
           - name: snapshot
             image: {{ .Values.image.etcd }}
@@ -60,17 +60,17 @@ spec:
             - name: HCPNS
               valueFrom:
                 configMapKeyRef:
-                  name: {{ include "etcd-hcp-backup.name" . }}-scripts
+                  name: {{ include "etcd-hcp-backup.fullname" . }}-scripts
                   key: env.hcpns
             - name: FILEPREFIX
               valueFrom:
                 configMapKeyRef:
-                  name: {{ include "etcd-hcp-backup.name" . }}-scripts
+                  name: {{ include "etcd-hcp-backup.fullname" . }}-scripts
                   key: env.fileprefix
             - name: COMPRESS
               valueFrom:
                 configMapKeyRef:
-                  name: {{ include "etcd-hcp-backup.name" . }}-scripts
+                  name: {{ include "etcd-hcp-backup.fullname" . }}-scripts
                   key: env.compress
           containers:
           - name: s3backup
@@ -93,12 +93,12 @@ spec:
             - name: RETENTION
               valueFrom:
                 configMapKeyRef:
-                  name: {{ include "etcd-hcp-backup.name" . }}-scripts
+                  name: {{ include "etcd-hcp-backup.fullname" . }}-scripts
                   key: env.retention
             - name: FILEPREFIX
               valueFrom:
                 configMapKeyRef:
-                  name: {{ include "etcd-hcp-backup.name" . }}-scripts
+                  name: {{ include "etcd-hcp-backup.fullname" . }}-scripts
                   key: env.fileprefix
             {{- if and (hasKey .Values "selfSignedCertificate") (hasKey .Values.selfSignedCertificate "name") (hasKey .Values.selfSignedCertificate "key") }}
             - name: AWS_CA_BUNDLE
@@ -106,9 +106,9 @@ spec:
             {{- end }}
             envFrom:
             - secretRef:
-                name: {{ include "etcd-hcp-backup.name" . }}
+                name: {{ include "etcd-hcp-backup.obcName" . }}
             - configMapRef:
-                name: {{ include "etcd-hcp-backup.name" . }}
+                name: {{ include "etcd-hcp-backup.obcName" . }}
             resources:
               requests:
                 memory: "100Mi"
@@ -122,7 +122,7 @@ spec:
               sizeLimit: 10Gi
           - name: scripts
             configMap:
-              name: {{template "etcd-hcp-backup.name" . }}-scripts
+              name: {{template "etcd-hcp-backup.fullname" . }}-scripts
               defaultMode: 0555
           {{- if and (hasKey .Values "selfSignedCertificate") (hasKey .Values.selfSignedCertificate "name") }}
           - name: s3ca

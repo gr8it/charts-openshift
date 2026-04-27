@@ -1,0 +1,261 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: openshift-etcd-backup-hub01
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: openshift-etcd-backup
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: openshift-etcd-backup-1.0.0
+      name: openshift-etcd-backup-hub01
+      namespace: apc-backup
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: openshift-etcd-backup-hub01
+    subjects:
+      - kind: ServiceAccount
+        name: openshift-etcd-backup-hub01
+        namespace: apc-backup
+  2: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      labels:
+        app.kubernetes.io/instance: openshift-etcd-backup-hub01
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: openshift-etcd-backup
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: openshift-etcd-backup-1.0.0
+      name: openshift-etcd-backup-hub01
+      namespace: apc-backup
+    rules:
+      - apiGroups:
+          - security.openshift.io
+        resourceNames:
+          - privileged
+        resources:
+          - securitycontextconstraints
+        verbs:
+          - use
+  3: |
+    apiVersion: batch/v1
+    kind: CronJob
+    metadata:
+      labels:
+        app.kubernetes.io/instance: openshift-etcd-backup-hub01
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: openshift-etcd-backup
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: openshift-etcd-backup-1.0.0
+      name: openshift-etcd-backup-hub01
+      namespace: apc-backup
+    spec:
+      concurrencyPolicy: Forbid
+      failedJobsHistoryLimit: 7
+      jobTemplate:
+        metadata:
+          labels:
+            app.kubernetes.io/instance: openshift-etcd-backup-hub01
+            app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/name: openshift-etcd-backup
+            app.kubernetes.io/version: 1.0.0
+            helm.sh/chart: openshift-etcd-backup-1.0.0
+        spec:
+          backoffLimit: 0
+          template:
+            metadata:
+              labels:
+                app.kubernetes.io/instance: openshift-etcd-backup-hub01
+                app.kubernetes.io/managed-by: Helm
+                app.kubernetes.io/name: openshift-etcd-backup
+                app.kubernetes.io/version: 1.0.0
+                helm.sh/chart: openshift-etcd-backup-1.0.0
+            spec:
+              activeDeadlineSeconds: 900
+              containers:
+                - command:
+                    - /bin/bash
+                    - -c
+                    - |
+                      set -euo pipefail
+
+                      export AWS_ENDPOINT_URL="https://${BUCKET_HOST}:${BUCKET_PORT}"
+
+                      # check backup folder
+                      SNAPSHOT=$(find /host/home/core/backup -mindepth 1 -maxdepth 1 -type d -mmin -30 | sort | tail -1)
+                      if ! test -d "$SNAPSHOT"; then
+                        echo "No new valid snapshot folder found to upload. Exiting gracefully."
+                        exit 1
+                      fi
+                      # s3 upload
+                      echo "Uploading etcd snapshot to s3://${BUCKET_NAME} "
+                      if ! aws s3 cp "$SNAPSHOT" "s3://${BUCKET_NAME}/$(basename $SNAPSHOT)" --recursive --no-progress; then
+                        echo "Failed to upload snapshot folder to S3. Exiting gracefully."
+                        exit 2
+                      fi
+                      # cleanup
+                      if ! expr "$RETENTION" : '^[0-9]\+$' >/dev/null; then
+                        echo "Value for retention is not a valid integer. Skipping cleanup."
+                        exit 3
+                      fi
+                      if ! RETENTION_DATE=$( date -u --date="${RETENTION} days ago" +"%FT%H:%M:%SZ" ); then
+                        echo "Failed to set a retention date. Skipping cleanup."
+                        exit 3
+                      fi
+                      if ! aws s3api list-objects-v2 --bucket $BUCKET_NAME --query "Contents[?LastModified<='$RETENTION_DATE'].{Key: Key} | {Objects: [*]}" 2>/dev/null 1>/dev/shm/delete.json; then
+                        echo "Failed to generate a list of objects to delete. Skipping cleanup."
+                        exit 3
+                      fi
+                      if grep -qE '"Objects":\s*\[\s*\]' /dev/shm/delete.json; then
+                        echo "No objects older than $RETENTION days found. Skipping cleanup."
+                        exit 0
+                      fi
+
+                      echo "Removing objects older than $RETENTION days:"
+                      if ! aws s3api delete-objects --bucket $BUCKET_NAME --delete file:///dev/shm/delete.json --output text ; then
+                        echo "Failed to remove objects."
+                        exit 3
+                      fi
+
+                      exit 0
+                  env:
+                    - name: RETENTION
+                      value: "10"
+                    - name: AWS_CA_BUNDLE
+                      value: /etc/ssl/certs/service-ca.crt
+                    - name: AWS_REQUEST_CHECKSUM_CALCULATION
+                      value: when_required
+                    - name: AWS_RESPONSE_CHECKSUM_VALIDATION
+                      value: when_required
+                  envFrom:
+                    - secretRef:
+                        name: etcd-hub01-backup
+                    - configMapRef:
+                        name: etcd-hub01-backup
+                  image: amazon/aws-cli:2.24.27
+                  name: s3-upload
+                  resources:
+                    limits:
+                      cpu: 500m
+                      memory: 1Gi
+                    requests:
+                      cpu: 50m
+                      memory: 100Mi
+                  volumeMounts:
+                    - mountPath: /host
+                      name: host
+                    - mountPath: /etc/ssl/certs/service-ca.crt
+                      name: service-ca
+                      readOnly: true
+                      subPath: service-ca.crt
+              dnsPolicy: ClusterFirstWithHostNet
+              enableServiceLinks: true
+              hostNetwork: true
+              hostPID: true
+              initContainers:
+                - command:
+                    - /bin/sh
+                    - -c
+                    - |
+                      set -euo pipefail
+                      # cleanup
+                      echo -e "\n\n---\nCleanup old local etcd snapshots on $NODENAME\n"
+                      find /host/home/core/backup -mmin +60 -path '*/backup/*' -delete -print
+
+                      # snapshot
+                      echo -e "\n\n---\nCreate new local etcd snapshot on $NODENAME\n"
+                      TIMESTAMP=$(date -u +"%F_%H%M%SZ")
+                      chroot /host /usr/local/bin/cluster-backup.sh /home/core/backup/${TIMESTAMP}
+
+                      # archive
+
+                      # success
+                      echo -e "Etcd snapshot completed successfully on $NODENAME"
+
+                      exit 0
+                  env:
+                    - name: NODENAME
+                      valueFrom:
+                        fieldRef:
+                          fieldPath: spec.nodeName
+                  image: busybox:1.37-glibc
+                  imagePullPolicy: Always
+                  name: etcd-snapshot
+                  resources:
+                    limits:
+                      cpu: 500m
+                      memory: 1Gi
+                    requests:
+                      cpu: 200m
+                      memory: 512Mi
+                  securityContext:
+                    capabilities:
+                      add:
+                        - SYS_CHROOT
+                    privileged: true
+                    runAsUser: 0
+                  terminationMessagePath: /dev/termination-log
+                  terminationMessagePolicy: File
+                  volumeMounts:
+                    - mountPath: /host
+                      name: host
+              nodeSelector:
+                node-role.kubernetes.io/master: ""
+              restartPolicy: Never
+              schedulerName: default-scheduler
+              securityContext: {}
+              serviceAccountName: openshift-etcd-backup-hub01
+              terminationGracePeriodSeconds: 30
+              tolerations:
+                - effect: NoSchedule
+                  key: node-role.kubernetes.io/master
+                  operator: Exists
+              volumes:
+                - hostPath:
+                    path: /
+                    type: Directory
+                  name: host
+                - configMap:
+                    name: openshift-service-ca.crt
+                  name: service-ca
+      schedule: 0 * * * *
+      successfulJobsHistoryLimit: 7
+      suspend: false
+  4: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: openshift-etcd-backup-hub01
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: openshift-etcd-backup
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: openshift-etcd-backup-1.0.0
+      name: openshift-etcd-backup-hub01-alert
+      namespace: apc-backup
+    spec:
+      groups:
+        - name: cronjob.rules
+          rules:
+            - alert: EtcdBackupJobFailure
+              annotations:
+                description: ETCD backup job {{ $labels.namespace }}/{{ $labels.job_name}} has failed.
+                summary: ETCD backup job has failed
+              expr: kube_job_status_failed{namespace="apc-backup", job_name=~"openshift-etcd-backup-hub01-.*"} > 0
+              labels:
+                severity: critical
+  5: |
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      labels:
+        app.kubernetes.io/instance: openshift-etcd-backup-hub01
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: openshift-etcd-backup
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: openshift-etcd-backup-1.0.0
+      name: openshift-etcd-backup-hub01
+      namespace: apc-backup

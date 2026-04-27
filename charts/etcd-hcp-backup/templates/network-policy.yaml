@@ -1,8 +1,8 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "etcd-hcp-backup.name" . }}
-  namespace: {{ .Release.Namespace }}
+  name: {{ include "etcd-hcp-backup.fullname" . }}
+  namespace: {{ include "etcd-hcp-backup.namespace" . }}
   labels:
     {{- include "common.labels" . | nindent 4 }}
 spec:
@@ -11,10 +11,10 @@ spec:
     - namespaceSelector:
         matchLabels:
           kubernetes.io/metadata.name: {{ .Release.Namespace }}
-    - podSelector:
+      podSelector:
         matchLabels:
           app.kubernetes.io/name: {{ include "etcd-hcp-backup.name" . }}
-          app.kubernetes.io/instance: {{ include "etcd-hcp-backup.name" . }}
+          app.kubernetes.io/instance: {{ include "etcd-hcp-backup.fullname" . }}
   podSelector:
     matchExpressions:
     - key: "statefulset.kubernetes.io/pod-name"
