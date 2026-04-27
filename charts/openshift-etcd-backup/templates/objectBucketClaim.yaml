@@ -1,3 +1,4 @@
+{{- if .Values.objectBucketClaim.create }}
 ---
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
@@ -11,3 +12,4 @@ metadata:
 spec:
   generateBucketName: {{ include "etcd-backup.obcName" . }}
   storageClassName: {{ default "ocs-storagecluster-ceph-rgw" .Values.objectBucketClaim.storageClass }}
+{{- end }}

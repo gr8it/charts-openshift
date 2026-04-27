@@ -24,7 +24,7 @@ Resolve cluster name with defaults*/}}
 
 {{/* Generate ObjectBucketClaim name */}}
 {{- define "etcd-backup.obcName" -}}
-{{- $clusterName := include "etcd-backup.name" . -}}
+{{- $clusterName := include "etcd-backup.clusterName" . -}}
 {{- if and (hasKey .Values "objectBucketClaim") (hasKey .Values.objectBucketClaim "name") (.Values.objectBucketClaim.name) -}}
 {{- printf "%s" .Values.objectBucketClaim.name | required "objectBucketClaim.name is invalid" -}}
 {{- else -}}
