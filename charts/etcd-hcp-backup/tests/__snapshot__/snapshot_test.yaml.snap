@@ -4,12 +4,12 @@ manifests should match snapshot:
     kind: CronJob
     metadata:
       labels:
-        app.kubernetes.io/instance: etcd-hcp-backup-dev01
+        app.kubernetes.io/instance: etcd-hcp-backup-hub01
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: etcd-hcp-backup
         app.kubernetes.io/version: 1.0.0
         helm.sh/chart: etcd-hcp-backup-1.0.0
-      name: etcd-hcp-backup-dev01
+      name: etcd-hcp-backup-hub01
       namespace: apc-backup
     spec:
       concurrencyPolicy: Forbid
@@ -17,7 +17,7 @@ manifests should match snapshot:
       jobTemplate:
         metadata:
           labels:
-            app.kubernetes.io/instance: etcd-hcp-backup-dev01
+            app.kubernetes.io/instance: etcd-hcp-backup-hub01
             app.kubernetes.io/managed-by: Helm
             app.kubernetes.io/name: etcd-hcp-backup
             app.kubernetes.io/version: 1.0.0
@@ -26,7 +26,7 @@ manifests should match snapshot:
           template:
             metadata:
               labels:
-                app.kubernetes.io/instance: etcd-hcp-backup-dev01
+                app.kubernetes.io/instance: etcd-hcp-backup-hub01
                 app.kubernetes.io/managed-by: Helm
                 app.kubernetes.io/name: etcd-hcp-backup
                 app.kubernetes.io/version: 1.0.0
@@ -41,19 +41,19 @@ manifests should match snapshot:
                       valueFrom:
                         configMapKeyRef:
                           key: env.retention
-                          name: etcd-hcp-backup-dev01-scripts
+                          name: etcd-hcp-backup-hub01-scripts
                     - name: FILEPREFIX
                       valueFrom:
                         configMapKeyRef:
                           key: env.fileprefix
-                          name: etcd-hcp-backup-dev01-scripts
+                          name: etcd-hcp-backup-hub01-scripts
                     - name: AWS_CA_BUNDLE
                       value: /etc/ssl/certs/s3ca.crt
                   envFrom:
                     - secretRef:
-                        name: etcd-hcp-dev01-backup
+                        name: etcd-hcp-hub01-backup
                     - configMapRef:
-                        name: etcd-hcp-dev01-backup
+                        name: etcd-hcp-hub01-backup
                   image: amazon/aws-cli:2.24.27
                   name: s3backup
                   resources:
@@ -83,12 +83,12 @@ manifests should match snapshot:
                       valueFrom:
                         configMapKeyRef:
                           key: env.etcdsts
-                          name: etcd-hcp-backup-dev01-scripts
+                          name: etcd-hcp-backup-hub01-scripts
                     - name: HCPNS
                       valueFrom:
                         configMapKeyRef:
                           key: env.hcpns
-                          name: etcd-hcp-backup-dev01-scripts
+                          name: etcd-hcp-backup-hub01-scripts
                   image: registry.redhat.io/openshift4/ose-cli:v4.15
                   name: init
                   volumeMounts:
@@ -106,17 +106,17 @@ manifests should match snapshot:
                       valueFrom:
                         configMapKeyRef:
                           key: env.hcpns
-                          name: etcd-hcp-backup-dev01-scripts
+                          name: etcd-hcp-backup-hub01-scripts
                     - name: FILEPREFIX
                       valueFrom:
                         configMapKeyRef:
                           key: env.fileprefix
-                          name: etcd-hcp-backup-dev01-scripts
+                          name: etcd-hcp-backup-hub01-scripts
                     - name: COMPRESS
                       valueFrom:
                         configMapKeyRef:
                           key: env.compress
-                          name: etcd-hcp-backup-dev01-scripts
+                          name: etcd-hcp-backup-hub01-scripts
                   image: registry.redhat.io/openshift4/ose-etcd:v4.12
                   name: snapshot
                   volumeMounts:
@@ -127,14 +127,14 @@ manifests should match snapshot:
                       readOnly: true
                       subPath: etcdsnap.sh
               restartPolicy: Never
-              serviceAccountName: etcd-hcp-backup-dev01
+              serviceAccountName: etcd-hcp-backup-hub01
               volumes:
                 - emptyDir:
                     sizeLimit: 10Gi
                   name: workdir
                 - configMap:
                     defaultMode: 365
-                    name: etcd-hcp-backup-dev01-scripts
+                    name: etcd-hcp-backup-hub01-scripts
                   name: scripts
                 - configMap:
                     name: openshift-service-ca.crt
@@ -147,8 +147,8 @@ manifests should match snapshot:
     data:
       env.compress: "false"
       env.etcdsts: etcd
-      env.fileprefix: etcd-dev01
-      env.hcpns: dev01-dev01
+      env.fileprefix: etcd-hub01
+      env.hcpns: hub01-hub01
       env.retention: "30"
       etcdsnap.sh: |
         #!/bin/bash
@@ -376,24 +376,24 @@ manifests should match snapshot:
     kind: ConfigMap
     metadata:
       labels:
-        app.kubernetes.io/instance: etcd-hcp-backup-dev01
+        app.kubernetes.io/instance: etcd-hcp-backup-hub01
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: etcd-hcp-backup
         app.kubernetes.io/version: 1.0.0
         helm.sh/chart: etcd-hcp-backup-1.0.0
-      name: etcd-hcp-backup-dev01-scripts
+      name: etcd-hcp-backup-hub01-scripts
       namespace: apc-backup
   3: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
       labels:
-        app.kubernetes.io/instance: etcd-hcp-backup-dev01
+        app.kubernetes.io/instance: etcd-hcp-backup-hub01
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: etcd-hcp-backup
         app.kubernetes.io/version: 1.0.0
         helm.sh/chart: etcd-hcp-backup-1.0.0
-      name: etcd-hcp-backup-dev01
+      name: etcd-hcp-backup-hub01
     rules:
       - apiGroups:
           - ""
@@ -438,32 +438,32 @@ manifests should match snapshot:
     kind: ClusterRoleBinding
     metadata:
       labels:
-        app.kubernetes.io/instance: etcd-hcp-backup-dev01
+        app.kubernetes.io/instance: etcd-hcp-backup-hub01
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: etcd-hcp-backup
         app.kubernetes.io/version: 1.0.0
         helm.sh/chart: etcd-hcp-backup-1.0.0
-      name: etcd-hcp-backup-dev01
+      name: etcd-hcp-backup-hub01
     roleRef:
       apiGroup: rbac.authorization.k8s.io
       kind: ClusterRole
-      name: etcd-hcp-backup-dev01
+      name: etcd-hcp-backup-hub01
     subjects:
       - kind: ServiceAccount
-        name: etcd-hcp-backup-dev01
+        name: etcd-hcp-backup-hub01
         namespace: apc-backup
   5: |
     apiVersion: networking.k8s.io/v1
     kind: NetworkPolicy
     metadata:
       labels:
-        app.kubernetes.io/instance: etcd-hcp-backup-dev01
+        app.kubernetes.io/instance: etcd-hcp-backup-hub01
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: etcd-hcp-backup
         app.kubernetes.io/version: 1.0.0
         helm.sh/chart: etcd-hcp-backup-1.0.0
-      name: etcd-hcp-backup-dev01
-      namespace: dev01-dev01
+      name: etcd-hcp-backup-hub01
+      namespace: hub01-hub01
     spec:
       ingress:
         - from:
@@ -472,7 +472,7 @@ manifests should match snapshot:
                   kubernetes.io/metadata.name: apc-backup
               podSelector:
                 matchLabels:
-                  app.kubernetes.io/instance: etcd-hcp-backup-dev01
+                  app.kubernetes.io/instance: etcd-hcp-backup-hub01
                   app.kubernetes.io/name: etcd-hcp-backup
       podSelector:
         matchExpressions:
@@ -491,12 +491,12 @@ manifests should match snapshot:
     kind: PrometheusRule
     metadata:
       labels:
-        app.kubernetes.io/instance: etcd-hcp-backup-dev01
+        app.kubernetes.io/instance: etcd-hcp-backup-hub01
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: etcd-hcp-backup
         app.kubernetes.io/version: 1.0.0
         helm.sh/chart: etcd-hcp-backup-1.0.0
-      name: etcd-hcp-backup-dev01-rules
+      name: etcd-hcp-backup-hub01-rules
       namespace: apc-backup
     spec:
       groups:
@@ -504,9 +504,9 @@ manifests should match snapshot:
           rules:
             - alert: EtcdBackupJobFailure
               annotations:
-                description: ETCD backup job for dev01 {{ $labels.namespace }}/{{ $labels.job_name}} has failed.
-                summary: ETCD backup job for dev01 has failed
-              expr: kube_job_status_failed{namespace="apc-backup", job_name=~"etcd-hcp-backup-dev01-.*"} > 0
+                description: ETCD backup job for hub01 {{ $labels.namespace }}/{{ $labels.job_name}} has failed.
+                summary: ETCD backup job for hub01 has failed
+              expr: kube_job_status_failed{namespace="apc-backup", job_name=~"etcd-hcp-backup-hub01-.*"} > 0
               labels:
                 severity: critical
   7: |
@@ -514,10 +514,10 @@ manifests should match snapshot:
     kind: ServiceAccount
     metadata:
       labels:
-        app.kubernetes.io/instance: etcd-hcp-backup-dev01
+        app.kubernetes.io/instance: etcd-hcp-backup-hub01
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: etcd-hcp-backup
         app.kubernetes.io/version: 1.0.0
         helm.sh/chart: etcd-hcp-backup-1.0.0
-      name: etcd-hcp-backup-dev01
+      name: etcd-hcp-backup-hub01
       namespace: apc-backup
