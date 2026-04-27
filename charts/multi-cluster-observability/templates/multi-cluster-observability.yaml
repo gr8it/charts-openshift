@@ -1,0 +1,14 @@
+{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
+apiVersion: observability.open-cluster-management.io/v1beta2
+kind: MultiClusterObservability
+metadata:
+  name: {{ .Values.multiClusterObservability.name }}
+  labels:
+    {{- include "multi-cluster-observability.labels" . | nindent 4 }}
+  {{- with .Values.multiClusterObservability.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- toYaml .Values.multiClusterObservability.spec | nindent 2 }}
+{{- end }}

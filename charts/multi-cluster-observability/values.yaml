@@ -1,0 +1,75 @@
+nameOverride: ""
+fullnameOverride: ""
+
+multiClusterObservability:
+  name: observability
+  annotations:
+    mco-disable-alerting: "true"
+  spec:
+    observabilityAddonSpec:
+      interval: 30
+    storageConfig:
+      metricObjectStorage:
+        name: thanos-object-storage
+        key: thanos.yaml
+        tlsSecretMountPath: /etc/ssl/certs/thanos
+        tlsSecretName: thanos-tls-ca
+    advanced:
+      retentionConfig:
+        blockDuration: 2h
+        deleteDelay: 48h
+        retentionInLocal: 24h
+        retentionResolutionRaw: 35d
+        retentionResolution5m: 45d
+        retentionResolution1h: 90d
+
+objectBucketClaim:
+  name: acm-thanos-rgw
+  namespace: open-cluster-management-observability
+  spec:
+    storageClassName: ocs-storagecluster-ceph-rgw
+    generateBucketName: acm-thanos-rgw
+
+bucketSecretPolicy:
+  name: generate-thanos-bucket-secret-allinfo
+  namespace: open-cluster-management-observability
+  targetNamespace: open-cluster-management-observability
+  annotations:
+    policies.kyverno.io/title: Generate Secret for Thanos with all Bucket Info
+    policies.kyverno.io/category: ODF
+    policies.kyverno.io/subject: ODF Bucket
+    policies.kyverno.io/minversion: 1.13.0
+  thanosCaFile: /etc/ssl/certs/thanos/service-ca.crt
+
+networkPolicy:
+  name: allow-proxy
+  namespace: open-cluster-management-observability
+  egressCidrs:
+    - 10.1.1.7/32
+
+metricsAllowlists:
+  enabled: true
+  configMaps:
+    - name: observability-metrics-custom-allowlist
+      namespace: open-cluster-management-observability
+      dataKey: metrics_list.yaml
+      names:
+        - kube_namespace_labels
+        - ocs_rgw_health_status
+        - odf_system_health_status
+        - ceph_health_status
+        - kube_pod_labels
+        - kube_secret_owner
+        - kube_persistentvolumeclaim_info
+    - name: observability-metrics-custom-allowlist
+      namespace: apc-blackbox-exporter
+      dataKey: uwl_metrics_list.yaml
+      names:
+        - probe_success
+    - name: observability-metrics-custom-allowlist
+      namespace: apc-vault
+      dataKey: uwl_metrics_list.yaml
+      names:
+        - vault_core_active
+
+dashboards: {}
