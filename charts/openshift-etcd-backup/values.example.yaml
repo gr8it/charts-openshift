@@ -1,0 +1,13 @@
+clusterName: hub01
+retentionDays: 10
+etcdBackupSchedule: "0 * * * *"
+compressSnapshot: false
+
+objectBucketClaim:
+  create: false
+  name: etcd-hub01-backup
+  storageClass: "ocs-storagecluster-ceph-rgw"
+
+image:
+  awscli: amazon/aws-cli:2.24.27
+  busybox: busybox:1.37-glibc
