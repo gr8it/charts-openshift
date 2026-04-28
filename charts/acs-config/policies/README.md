@@ -71,17 +71,43 @@ The policy excludes these namespaces from scanning:
 The policy ships without notifiers configured (`"notifiers": []`) to ensure portability across environments.
 
 Current verified state:
-- Native RHACS Jira notifier works and successfully creates `Task` issues in project `SPEXAPC`.
-- RHACS Generic Webhook to Jira Operations API integration was tested and failed with `invalid arguments` because Jira Alert API expects a different payload shape than RHACS sends.
-- Jira-side webhook integration that might help with payload translation is not available in the current Jira package.
-- Final architecture decision is pending review with architects.
+- Native RHACS Jira notifier works and successfully creates `Task` issues in project `SPEXAPC`, but this path was rejected architecturally.
+- ACS -> Loki -> Alertmanager -> Jira was rejected for this use case because it overloads the logging path.
+- RHACS Generic Webhook -> Jira Operations API was tested directly and failed because RHACS sends an `alert` object payload while Jira Operations expects top-level alert fields.
+- Jira webhook-style translation on the Jira side is not available in the current Jira package.
+- The remaining approved direction is a small translation layer in Vector: `RHACS -> Vector -> Jira Operations`.
 
-As of now, the realistic options are:
-- Use the native RHACS Jira notifier described below.
-- Keep the existing ACS -> Loki -> Alertmanager -> Jira Team path.
-- Build a small adapter that translates RHACS webhook payloads into Jira Operations alert payloads.
+## Recommended Architecture
 
-### HUB Jira Values
+Use the existing Vector deployment on `hub01` as the adapter:
+
+1. RHACS Generic Webhook posts the native ACS JSON payload to the existing Vector `http_server` input on `https://vector.hub01.cloud.socpoist.sk:9444`.
+2. Vector `remap` transforms the ACS event into a Jira Operations alert payload.
+3. Vector HTTP sink posts the transformed JSON to `https://api.atlassian.com/jsm/ops/integration/v2/alerts`.
+
+This fits the current cluster topology already present in `conf-socpoist`:
+- `hub01` already runs a dedicated Vector deployment with a TLS-enabled webhook listener on port `9444`.
+- `dev01`, `test01`, and `prod01` already use hub Vector as an HTTP target in their `ClusterLogForwarder` configuration.
+- Hub Vector already handles ACS-shaped webhook events for Loki labeling, so this adds an outbound sink instead of introducing a new runtime.
+
+## ACS Generic Webhook Setup
+
+Create a RHACS **Generic Webhook** notifier, not the native Jira notifier.
+
+Use these values:
+
+| ACS Webhook field | Value |
+|---|---|
+| Endpoint | `https://vector.hub01.cloud.socpoist.sk:9444` |
+| Extra field `gr8it` | `acs-audit-log` |
+| Extra field `central_base_url` | `https://central-stackrox.apps.hub01.cloud.socpoist.sk` |
+
+Notes:
+- `gr8it=acs-audit-log` lets Vector distinguish these events from any other webhook traffic hitting the shared input.
+- `central_base_url` is used to build a clickable RHACS violation URL in the Jira alert description.
+- Attach this notifier only to the intended policy after the Vector sink is in place.
+
+### Native Jira Values (Rejected Path)
 
 Use these values in ACS for the native Jira notifier:
 
@@ -105,7 +131,7 @@ Observed behavior from the RHACS Jira test:
 - the test created a `Task`
 - the created item is a normal Jira issue, not a Jira Operations alert
 
-### ACS Setup Steps
+### Native Jira Setup Steps (Rejected Path)
 
 1. **Create notifier integration in ACS:**
    - Navigate to **Platform Configuration → Integrations → Notifier Integrations**
@@ -142,7 +168,7 @@ Observed behavior from the RHACS Jira test:
    - Enable the policy after the notifier is configured and tested
    - Save
 
-### Validation Checklist
+### Native Jira Validation Checklist (Rejected Path)
 
 1. In ACS, run **Test Integration** and confirm success.
 2. Verify that the test creates or validates creation of a Jira issue in project `SPEXAPC`.
@@ -153,12 +179,29 @@ Observed behavior from the RHACS Jira test:
 
 ### Jira Operations API Note
 
-The following path was tested and is not currently viable without a translator:
-- RHACS Generic Webhook -> Jira Operations API integration (`https://api.atlassian.com/jsm/ops/integration/v2/alerts`)
+The following path is the target endpoint for the Vector bridge:
+- Vector HTTP sink -> Jira Operations integration API (`https://api.atlassian.com/jsm/ops/integration/v2/alerts`)
 
-Reason:
-- RHACS Generic Webhook sends a fixed payload containing an `alert` object and optional extra fields.
-- Jira Operations Alert API expects Jira alert fields such as `message`, `alias`, `description`, `priority`, and `details` at the top level.
-- Direct posting from RHACS to Jira Operations API therefore fails on payload validation.
+Why the direct ACS -> Jira path fails:
+- RHACS Generic Webhook sends a fixed payload containing an `alert` object plus optional custom fields.
+- Jira Operations create-alert API expects top-level fields such as `message`, `alias`, `description`, `details`, `source`, and `priority`.
+- Direct posting from RHACS to Jira Operations therefore fails validation.
+
+What the Vector bridge does:
+- maps ACS severities to Jira Ops priorities (`CRITICAL -> P1`, `HIGH -> P2`, `MEDIUM -> P3`, `LOW -> P4`)
+- uses the ACS alert id as Jira `alias` for deduplication
+- keeps RHACS metadata under Jira `details`
+- builds a RHACS violation URL when `central_base_url` is supplied as an ACS extra field
+
+## Vector Bridge Notes
+
+The Vector implementation belongs in `conf-socpoist/ocp-hub01/observability/vector`, not in this chart.
+
+Secret handling model:
+- provide a Kubernetes secret named `jira-ops` in namespace `apc-logging`
+- store the full header value under key `authorization`, for example `GenieKey <api-key>`
+- let Vector read it from `/var/run/ocp-collector/secrets/jira-ops`
+
+Keep the API key out of Git, Helm values, and this chart. Store it in Vault and materialize it into the cluster as a Kubernetes secret.
 
 Do not store Jira credentials in Git, Helm values, or this chart. Keep them in Vault and inject them only at runtime.
