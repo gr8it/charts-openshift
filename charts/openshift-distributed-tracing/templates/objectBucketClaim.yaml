@@ -1,0 +1,11 @@
+---
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: apc-tempo-stack
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{- include "tempo-stack.labels" . | nindent 4 }}
+spec:
+  storageClassName: ocs-storagecluster-ceph-rgw
+  generateBucketName: apc-tempo-stack

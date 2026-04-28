@@ -1,0 +1,61 @@
+---
+{{- $tempo := .Values.tempoStack | default dict }}
+apiVersion: tempo.grafana.com/v1alpha1
+kind: TempoStack
+metadata:
+  name: {{ default "apc-tempo-stack" $tempo.name | quote }}
+  namespace: {{ default .Release.Namespace $tempo.namespace | quote }}
+  labels:
+{{- include "tempo-stack.labels" . | nindent 4 }}
+spec:
+  observability:
+    metrics:
+      createPrometheusRules: {{ default true $tempo.observability.metrics.createPrometheusRules }}
+      createServiceMonitors: {{ default true $tempo.observability.metrics.createServiceMonitors }}
+  storageSize: {{ default "200Mi" $tempo.storageSize | quote }}
+  storage:
+    secret:
+      name: {{ default "apc-tempo-stack-allinfo" $tempo.storage.secret.name | quote }}
+      type: {{ default "s3" $tempo.storage.secret.type | quote }}
+    tls:
+      enabled: {{ default true $tempo.storage.tls.enabled }}
+      caName: {{ default "openshift-service-ca.crt" $tempo.storage.tls.caName | quote }}
+  retention:
+    global:
+      traces: {{ default "48h" $tempo.retention.global.traces | quote }}
+  tenants:
+    mode: {{ default "openshift" $tempo.tenants.mode | quote }}
+    authentication:
+{{ toYaml (default (list (dict "tenantName" "application" "tenantId" "application")) $tempo.tenants.authentication) | indent 6 }}
+  template:
+    compactor:
+      resources:
+{{ toYaml (default (dict "limits" (dict "cpu" "500m" "memory" "1Gi") "requests" (dict "cpu" "100m" "memory" "150Mi")) $tempo.template.compactor.resources) | indent 8 }}
+    distributor:
+      component:
+        resources:
+{{ toYaml (default (dict "limits" (dict "cpu" "750m" "memory" "1Gi") "requests" (dict "cpu" "200m" "memory" "200Mi")) $tempo.template.distributor.component.resources) | indent 10 }}
+    gateway:
+      enabled: {{ default true $tempo.template.gateway.enabled }}
+      ingress:
+        type: {{ default "route" $tempo.template.gateway.ingress.type | quote }}
+      component:
+        resources:
+{{ toYaml (default (dict "limits" (dict "cpu" "250m" "memory" "500Mi") "requests" (dict "cpu" "50m" "memory" "100Mi")) $tempo.template.gateway.component.resources) | indent 10 }}
+    ingester:
+      resources:
+{{ toYaml (default (dict "limits" (dict "cpu" "1" "memory" "1536Mi") "requests" (dict "cpu" "250m" "memory" "400Mi")) $tempo.template.ingester.resources) | indent 8 }}
+    querier:
+      resources:
+{{ toYaml (default (dict "limits" (dict "cpu" "500m" "memory" "500Mi") "requests" (dict "cpu" "100m" "memory" "100Mi")) $tempo.template.querier.resources) | indent 8 }}
+    queryFrontend:
+      component:
+        resources:
+{{ toYaml (default (dict "limits" (dict "cpu" "250m" "memory" "500Mi") "requests" (dict "cpu" "50m" "memory" "100Mi")) $tempo.template.queryFrontend.component.resources) | indent 10 }}
+      jaegerQuery:
+        enabled: {{ default true $tempo.template.queryFrontend.jaegerQuery.enabled }}
+        tempoQuery:
+          resources:
+{{ toYaml (default (dict "limits" (dict "cpu" "250m" "memory" "500Mi") "requests" (dict "cpu" "50m" "memory" "100Mi")) $tempo.template.queryFrontend.jaegerQuery.tempoQuery.resources) | indent 12 }}
+        resources:
+{{ toYaml (default (dict "limits" (dict "cpu" "250m" "memory" "500Mi") "requests" (dict "cpu" "50m" "memory" "100Mi")) $tempo.template.queryFrontend.jaegerQuery.resources) | indent 10 }}

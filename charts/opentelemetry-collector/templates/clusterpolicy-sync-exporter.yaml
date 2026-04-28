@@ -1,0 +1,46 @@
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: sync-tempostack-tenants
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
+    policies.kyverno.io/title: Update TempoStack tenants on namespace create
+    policies.kyverno.io/category: gitops
+    policies.kyverno.io/subject: Sync TempoStack tenants with namespaces
+    policies.kyverno.io/minversion: 1.13.0
+spec:
+  mutateExistingOnPolicyUpdate: false
+  rules:
+    - name: add-tenant-to-tempostack
+      match:
+        any:
+          - resources:
+              kinds:
+                - Namespace
+      # Optional: Filter out system namespaces
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - "kube-*"
+                - "kyverno"
+                - "openshift-*"
+      preconditions:
+        all:
+          - key: "{{ request.object.metadata.labels.apc.namespace.type }}"
+            operator: Equals
+            value: application
+      mutate:
+        targets:
+          - apiVersion: tempo.grafana.com/v1alpha1 # Ensure this matches your CRD version
+            kind: TempoStack
+            name: {{ default "apc-tempo-stack" $tempo.name | quote }}
+            namespace: {{ default .Release.Namespace $tempo.namespace | quote }}
+        patchStrategicMerge:
+          spec:
+            tenants:
+              authentication:
+                # The +(...) anchor adds the item to the list if it doesn't already exist
+                - +(tenantName): "{{ request.object.metadata.name }}"
+                  tenantId: "{{ request.object.metadata.name }}"

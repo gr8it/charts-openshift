@@ -1,0 +1,19 @@
+---
+# ClusterRole needed to grant permissions to the service account to write traces
+# for the given tenant
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: tempostack-traces-write
+  labels:
+{{- include "tempo-stack.labels" . | nindent 4 }}
+rules:
+  - apiGroups:
+      - 'tempo.grafana.com'
+    # all tenants
+    resources: ["*"]
+    resourceNames:
+      - traces
+      - metrics
+    verbs:
+      - 'create'

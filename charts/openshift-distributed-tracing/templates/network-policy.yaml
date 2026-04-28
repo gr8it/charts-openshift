@@ -1,0 +1,15 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-from-cluster-observability-operator
+  namespace: apc-observability
+spec:
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: openshift-cluster-observability-operator
+  podSelector: {}
+  policyTypes:
+  - Ingress

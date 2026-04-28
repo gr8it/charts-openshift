@@ -1,0 +1,22 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: tempo-operator-custom-prometheus-rules
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "tempo-operator.labels" . | nindent 4 }}
+spec:
+  groups:
+    - name: tempo-operator-custom-monitoring.rules
+      rules:
+        - alert: TempoOperatorDown
+          annotations:
+            description: "Tempo operator pod has been down for more than 5 minutes"
+            summary: "Tempo operator is not running"
+          expr: |
+            absent(up{job="tempo-operator-controller-manager-metrics-service"}) == 1
+          for: 5m
+          labels:
+            severity: warning
+            {{- include "tempo-operator.monitoringLabels" . | nindent 12 }}
