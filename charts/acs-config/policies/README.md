@@ -1,207 +1,99 @@
-# ACS Security Policies
+# ACS Policies
 
-This directory contains Red Hat Advanced Cluster Security (RHACS) policy definitions in JSON format for import into ACS Central.
+This directory contains RHACS policy definitions and the minimum documentation needed for the ACS to Jira Operations implementation used in `conf-socpoist`.
 
-## Policies Included
+## Policy in this folder
 
-### containers-critical-fixable-cves.json
+`containers-critical-fixable-cves.json`
 
-**Purpose:** Detects containers with fixable Critical CVEs.
-
-**Important:** The exported policy is **disabled by default** and remains **inform-only** when enabled. It does **not** block deployments or `oc debug` flows.
-
-**Policy Behavior:**
-- **Mode:** Disabled by default; inform-only when enabled
-- **Scope:** Containers with fixable vulnerabilities at severity >= Critical
-- **Lifecycle Stage:** DEPLOY (checks deployments, not runtime)
-- **Enforcement Actions:** None (empty) - violations appear in ACS dashboard only
-- **Notifiers:** Not configured (must be set up per environment)
-
-**Why Inform-Only Mode?**
-- Compatible with GitOps/ArgoCD workflows (no deployment blocking or auto-scaling)
-- Allows vulnerability detection without operational disruption
-- Team can review violations and remediate through Git commits
-- Prevents conflicts between ACS enforcement and ArgoCD reconciliation
-
-## Namespace Exclusions
-
-The policy excludes these namespaces from scanning:
-
-- **Core Kubernetes/OpenShift:**
-  - `kube-system`
-  - `openshift` (exact match)
-  - `openshift-*` (all openshift- prefixed namespaces)
-
-- **Security & Management:**
-  - `stackrox` (ACS Central/Scanner)
-  - `open-cluster-management`
-  - `hive`
-  - `hypershift`
-
-- **Cluster Infrastructure:**
-  - `infrastructure-*` (regex pattern for all infrastructure namespaces)
-  - `klusterlet-*` (regex pattern for managed cluster agents)
-
-- **HCP Hosted Cluster Namespaces:**
-  - `dev01`, `dev01-dev01`
-  - `test01`, `test01-test01`
-  - `prod01`, `prod01-prod01`
-
-**Note:** Update the exclusions list via UI after import if your environment has additional core namespaces.
-
-## How to Import the Policy
-
-### Prerequisites
-- RHACS Central instance is deployed and accessible
-- You have admin access to ACS Central
-- For CLI import: `roxctl` CLI tool installed
-
-### Option 1: Import via ACS UI
-
-1. Log in to ACS Central web console
-2. Navigate to **Platform Configuration → Policy Management**
-3. Click **Import policy** button
-4. Upload `containers-critical-fixable-cves.json`
-5. Review the policy details, especially that it imports as disabled
-6. Click **Import**
-7. Edit the policy and enable it after notifier setup and validation
-
-## Jira Integration Status
-
-The policy ships without notifiers configured (`"notifiers": []`) to ensure portability across environments.
-
-Current verified state:
-- Native RHACS Jira notifier works and successfully creates `Task` issues in project `SPEXAPC`, but this path was rejected architecturally.
-- ACS -> Loki -> Alertmanager -> Jira was rejected for this use case because it overloads the logging path.
-- RHACS Generic Webhook -> Jira Operations API was tested directly and failed because RHACS sends an `alert` object payload while Jira Operations expects top-level alert fields.
-- Jira webhook-style translation on the Jira side is not available in the current Jira package.
-- The remaining approved direction is a small translation layer in Vector: `RHACS -> Vector -> Jira Operations`.
-
-## Recommended Architecture
-
-Use the existing Vector deployment on `hub01` as the adapter:
-
-1. RHACS Generic Webhook posts the native ACS JSON payload to the existing Vector `http_server` input on `https://vector.hub01.cloud.socpoist.sk:9444`.
-2. Vector `remap` transforms the ACS event into a Jira Operations alert payload.
-3. Vector HTTP sink posts the transformed JSON to `https://api.atlassian.com/jsm/ops/integration/v2/alerts`.
-
-This fits the current cluster topology already present in `conf-socpoist`:
-- `hub01` already runs a dedicated Vector deployment with a TLS-enabled webhook listener on port `9444`.
-- `dev01`, `test01`, and `prod01` already use hub Vector as an HTTP target in their `ClusterLogForwarder` configuration.
-- Hub Vector already handles ACS-shaped webhook events for Loki labeling, so this adds an outbound sink instead of introducing a new runtime.
-
-## ACS Generic Webhook Setup
-
-Create a RHACS **Generic Webhook** notifier, not the native Jira notifier.
-
-Use these values:
-
-| ACS Webhook field | Value |
-|---|---|
-| Endpoint | `https://vector.hub01.cloud.socpoist.sk:9444` |
-| Extra field `gr8it` | `acs-audit-log` |
-| Extra field `central_base_url` | `https://central-stackrox.apps.hub01.cloud.socpoist.sk` |
+Purpose:
+- Detect containers with fixable Critical CVEs
+- Intended test policy for the ACS to Jira Operations flow
+- Inform-only policy; it does not block deployments
 
 Notes:
-- `gr8it=acs-audit-log` lets Vector distinguish these events from any other webhook traffic hitting the shared input.
-- `central_base_url` is used to build a clickable RHACS violation URL in the Jira alert description.
-- Attach this notifier only to the intended policy after the Vector sink is in place.
+- The exported policy ships without notifiers so it can be imported into different environments
+- In ACS, attach the notifier after import
 
-### Native Jira Values (Rejected Path)
+## Integration used in `conf-socpoist`
 
-Use these values in ACS for the native Jira notifier:
+Environment:
+- `conf-socpoist`
+- cluster: `hub01`
 
-| ACS Jira field | Value |
-|---|---|
-| Integration name | `ACS-to-Jira-SPEXAPC-Security` |
-| Jira URL | `https://aspecta.atlassian.net` |
-| Username / Email | Jira user or service account with access to create issues in `SPEXAPC` |
-| Password or API token | Jira API token for that user |
-| Default project | `SPEXAPC` |
-| Issue type | `Task` |
-| Verify TLS | Enabled |
-| Disable setting priority | Unchecked |
-| CRITICAL_SEVERITY | `Highest` |
-| HIGH_SEVERITY | `High` |
-| MEDIUM_SEVERITY | `Medium` |
-| LOW_SEVERITY | `Low` |
+ACS integration used for this implementation:
+- RHACS notifier type: `Generic Webhook`
+- integration name: `acs-vector-jira`
 
-Observed behavior from the RHACS Jira test:
-- RHACS creates a Jira work item directly in project `SPEXAPC`
-- the test created a `Task`
-- the created item is a normal Jira issue, not a Jira Operations alert
+Flow:
+1. RHACS sends the native ACS alert payload to Vector
+2. Vector remaps the ACS payload into Jira Operations alert JSON
+3. Vector sends the transformed payload to Atlassian Jira Operations
 
-### Native Jira Setup Steps (Rejected Path)
+This is the supported path for this implementation. Native ACS Jira notifier is not used for this flow.
 
-1. **Create notifier integration in ACS:**
-   - Navigate to **Platform Configuration → Integrations → Notifier Integrations**
-   - Click **New Integration**
-   - Select **Jira**
-   - Fill the form with the exact values listed above
-   - Test the integration
-   - Save
+## `conf-socpoist` Vector references
 
-   **Example: Jira Integration Setup**
+Vector values file:
+- [vector-hub-values.yaml](/Users/filipcsupka/aspecta/conf-socpoist/ocp-hub01/observability/vector/vector-hub-values.yaml:1)
 
-   ![Jira Integration Form](jira-integration.png)
+Relevant sections in that file:
+- ACS webhook label parsing: [vector-hub-values.yaml](/Users/filipcsupka/aspecta/conf-socpoist/ocp-hub01/observability/vector/vector-hub-values.yaml:177)
+- Jira remap `acs_to_jira_ops`: [vector-hub-values.yaml](/Users/filipcsupka/aspecta/conf-socpoist/ocp-hub01/observability/vector/vector-hub-values.yaml:195)
+- Jira HTTP sink `jira_ops_alerts`: [vector-hub-values.yaml](/Users/filipcsupka/aspecta/conf-socpoist/ocp-hub01/observability/vector/vector-hub-values.yaml:455)
+- Jira secret backend `kubernetes_jiraops`: [vector-hub-values.yaml](/Users/filipcsupka/aspecta/conf-socpoist/ocp-hub01/observability/vector/vector-hub-values.yaml:32)
+- Jira secret volume and mount: [vector-hub-values.yaml](/Users/filipcsupka/aspecta/conf-socpoist/ocp-hub01/observability/vector/vector-hub-values.yaml:678)
 
-   Use the screenshot fields like this:
-   - **Integration name**: `ACS-to-Jira-SPEXAPC-Security`
-   - **Username**: Jira service account from Vault or Jira admin
-   - **Password or API token**: Jira API token from Vault or Jira admin
-   - **Issue type**: `Task`
-   - **Jira URL**: `https://aspecta.atlassian.net`
-   - **Default project**: `SPEXAPC`
-   - **Annotation key for project**: leave empty
-   - **Disable setting priority**: unchecked
-   - **Priority Mapping: CRITICAL_SEVERITY**: `Highest`
-   - **Priority Mapping: HIGH_SEVERITY**: `High`
-   - **Priority Mapping: MEDIUM_SEVERITY**: `Medium`
-   - **Priority Mapping: LOW_SEVERITY**: `Low`
+## What the remap does
 
-2. **Attach notifier to this policy:**
-   - Navigate to **Platform Configuration → Policy Management**
-   - Find policy: "Containers with Critical Fixable CVEs"
-   - Click **Actions → Edit policy**
-   - Scroll to **Policy Behavior** section
-   - Under **Configure notifications**, attach your notifier(s)
-   - Enable the policy after the notifier is configured and tested
-   - Save
+The `acs_to_jira_ops` VRL transform converts the ACS payload into the Jira Operations schema and keeps the ACS context that matters operationally.
 
-### Native Jira Validation Checklist (Rejected Path)
+Important mappings:
+- `policy name`
+- `cluster`
+- `namespace`
+- `deployment`
+- `deployment type`
+- `image`
+- `lifecycle stage`
+- `severity`
+- `summary`
+- `rationale`
+- `remediation`
+- `central` violation URL
 
-1. In ACS, run **Test Integration** and confirm success.
-2. Verify that the test creates or validates creation of a Jira issue in project `SPEXAPC`.
-3. Remember that the RHACS Jira notifier creates Jira issues, not Jira Operations alerts.
-4. Attach the notifier only to the intended policy.
-5. Trigger a controlled test violation in a non-production namespace.
-6. Confirm exactly one Jira issue is created in `SPEXAPC`.
+Current lifecycle stage behavior:
+- use `.alert.lifecycleStage` if present
+- fallback to `.alert.policy.SORTLifecycleStage`
+- fallback to `.alert.policy.lifecycleStages[0]`
+- fallback to `DEPLOY`
 
-### Jira Operations API Note
+Current image behavior:
+- use `.alert.deployment.containers[0].image.name.fullName` if present
+- otherwise rebuild from `registry`, `remote`, and `tag`
 
-The following path is the target endpoint for the Vector bridge:
-- Vector HTTP sink -> Jira Operations integration API (`https://api.atlassian.com/jsm/ops/integration/v2/alerts`)
+## ACS notifier values required
 
-Why the direct ACS -> Jira path fails:
-- RHACS Generic Webhook sends a fixed payload containing an `alert` object plus optional custom fields.
-- Jira Operations create-alert API expects top-level fields such as `message`, `alias`, `description`, `details`, `source`, and `priority`.
-- Direct posting from RHACS to Jira Operations therefore fails validation.
+Create a RHACS `Generic Webhook` integration with:
 
-What the Vector bridge does:
-- maps ACS severities to Jira Ops priorities (`CRITICAL -> P1`, `HIGH -> P2`, `MEDIUM -> P3`, `LOW -> P4`)
-- uses the ACS alert id as Jira `alias` for deduplication
-- keeps RHACS metadata under Jira `details`
-- builds a RHACS violation URL when `central_base_url` is supplied as an ACS extra field
+- endpoint: `https://vector.hub01.cloud.socpoist.sk:9444`
+- extra field `gr8it`: `acs-audit-log`
+- extra field `central_base_url`: `https://central-stackrox.apps.hub01.cloud.socpoist.sk`
 
-## Vector Bridge Notes
+Why these fields matter:
+- `gr8it=acs-audit-log` is used by Vector to accept only the intended ACS webhook traffic
+- `central_base_url` is used to construct the clickable RHACS violation URL in the Jira alert
 
-The Vector implementation belongs in `conf-socpoist/ocp-hub01/observability/vector`, not in this chart.
+## Jira auth handling
 
-Secret handling model:
-- provide a Kubernetes secret named `jira-ops` in namespace `apc-logging`
-- store the full header value under key `authorization`, for example `GenieKey <api-key>`
-- let Vector read it from `/var/run/ocp-collector/secrets/jira-ops`
+Vector reads Jira Operations auth from a Kubernetes secret:
 
-Keep the API key out of Git, Helm values, and this chart. Store it in Vault and materialize it into the cluster as a Kubernetes secret.
+- secret name: `jira-ops`
+- namespace: `apc-logging`
+- key: `authorization`
+- value format: `GenieKey <api-key>`
 
-Do not store Jira credentials in Git, Helm values, or this chart. Keep them in Vault and inject them only at runtime.
+This is consumed through:
+- `SECRET[kubernetes_jiraops.authorization]`
+
+Do not store the Jira API key in Git or Helm values.
