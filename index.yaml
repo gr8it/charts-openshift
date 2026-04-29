@@ -411,6 +411,19 @@ entries:
     version: 1.0.0
   apps-centralne-komponenty-bpm:
   - apiVersion: v2
+    created: "2026-04-22T15:10:06.725473921+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    description: A Helm chart to deploy "Centrálny Komponent Integračné Služby" integration
+    digest: 84a6182248aeec775861e1ac649cdc02c2073e02f66280647212bd178a6579d3
+    name: apps-centralne-komponenty-bpm
+    type: application
+    urls:
+    - packaged_charts/apps-centralne-komponenty-bpm-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
     created: "2026-02-13T14:31:44.631720664+01:00"
     dependencies:
     - name: apc-global-overrides
@@ -424,6 +437,34 @@ entries:
     - packaged_charts/apps-centralne-komponenty-bpm-1.0.0.tgz
     version: 1.0.0
   apps-ck-kafka:
+  - apiVersion: v2
+    created: "2026-04-22T09:56:27.754669622+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - condition: kafka-ui.enabled
+      name: kafka-ui
+      repository: https://kafbat.github.io/helm-charts
+      version: 1.5.3
+    description: Production-ready Kafka cluster using Strimzi operator with KRaft
+      mode
+    digest: 5cd3cc799b215b589624e69d2f5d2025d9a10ff7e99b04c712c2d47bb32ffd9b
+    home: https://github.com/gr8it/charts-openshift
+    icon: https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/main/documentation/logo/strimzi_logo.png
+    keywords:
+    - kafka
+    - strimzi
+    - kraft
+    kubeVersion: '>=1.25.0'
+    name: apps-ck-kafka
+    sources:
+    - https://github.com/gr8it/charts-openshift
+    - https://strimzi.io/
+    type: application
+    urls:
+    - packaged_charts/apps-ck-kafka-1.2.4.tgz
+    version: 1.2.4
   - apiVersion: v2
     created: "2026-03-31T15:03:25.464378062+02:00"
     dependencies:
@@ -2575,6 +2616,20 @@ entries:
   kyverno:
   - apiVersion: v2
     appVersion: 3.5.2
+    created: "2026-04-21T14:53:13.64372+02:00"
+    dependencies:
+    - name: kyverno
+      repository: https://kyverno.github.io/kyverno
+      version: 3.5.2
+    description: A Helm chart to install kyverno
+    digest: c5f8e2259e2b8754efca2841d99aa2203eba609292bc68325692aa0c60b71dda
+    name: kyverno
+    type: application
+    urls:
+    - packaged_charts/kyverno-1.5.1.tgz
+    version: 1.5.1
+  - apiVersion: v2
+    appVersion: 3.5.2
     created: "2026-04-16T21:05:35.031994+02:00"
     dependencies:
     - name: kyverno
@@ -3308,6 +3363,20 @@ entries:
     version: 1.0.0
   rbac-roles:
   - apiVersion: v2
+    appVersion: 1.2.0
+    created: "2026-04-17T10:12:59.240744552+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart for managing APC clusterroles.
+    digest: 46e2b915f93e96a5f53a5b3628b9db36bdc563e230eda87bf4d9eeb3dc93576b
+    name: rbac-roles
+    type: application
+    urls:
+    - packaged_charts/rbac-roles-1.2.0.tgz
+    version: 1.2.0
+  - apiVersion: v2
     appVersion: 1.1.0
     created: "2026-02-03T14:28:34.140901371+01:00"
     dependencies:
@@ -3639,4 +3708,4 @@ entries:
     urls:
     - packaged_charts/vault-helm-1.0.0.tgz
     version: 1.0.0
-generated: "2026-04-17T10:53:43.14207+02:00"
+generated: "2026-04-22T15:10:06.722642787+02:00"

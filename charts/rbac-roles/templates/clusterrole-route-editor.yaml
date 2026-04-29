@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: route-editor
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+  {{- include "rbac-roles.labels" $ | nindent 4 }}
+rules:
+- apiGroups:
+  - route.openshift.io
+  - ""
+  resources:
+  - routes/custom-host
+  verbs:
+  - update
