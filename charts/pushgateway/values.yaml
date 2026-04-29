@@ -1,49 +1,28 @@
-# Veeam service account — creates a dedicated SA + ClusterRoleBinding
-# so Veeam can push metrics to this Pushgateway via the OAuth proxy.
 veeam:
   enabled: true
   serviceAccountName: veeam-sa
 
-# -----------------------------------------------------------------------
-# prometheus-pushgateway upstream chart values
-# Ref: https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus-pushgateway
-# -----------------------------------------------------------------------
 prometheus-pushgateway:
-  replicaCount: 1
-
-  image:
-    repository: quay.io/prometheus/pushgateway
-    tag: v1.10.0
-    pullPolicy: Always
-
   persistentVolume:
     enabled: true
-    size: 2Gi
 
   extraArgs:
     - '--web.enable-admin-api'
 
-  # ServiceAccount is created by this wrapper chart so that the
-  # OAuth redirect annotation can reference the Route name at render time.
   serviceAccount:
     create: false
-    # IMPORTANT: must match the --openshift-service-account arg in extraContainers below.
     name: pushgw-sa
 
   serviceMonitor:
     enabled: true
-    honorLabels: true
     namespace: openshift-monitoring
 
-  # OAuth proxy sidecar — secures the Pushgateway behind OpenShift OAuth.
   extraContainers:
     - name: oauth-proxy
       image: registry.redhat.io/openshift4/ose-oauth-proxy:v4.16.0
-      imagePullPolicy: Always
       args:
         - '--https-address=:9092'
         - '--provider=openshift'
-        # Must match serviceAccount.name above
         - '--openshift-service-account=pushgw-sa'
         - >-
           --openshift-delegate-urls={"/":{"group":"monitoring.coreos.com","resource":"prometheuses","verb":"get"}}
@@ -72,22 +51,7 @@ prometheus-pushgateway:
   extraVolumes:
     - name: prometheus-pushgateway-tls
       secret:
-        # Provisioned automatically by the Service annotation
-        # service.alpha.openshift.io/serving-cert-secret-name
         secretName: prometheus-pushgateway-tls
     - name: pushgateway-cookie-secret
       secret:
-        # Pre-create with: create-pushgw-cookie-secret.sh
         secretName: pushgateway-oauth-cookie-secret
-
-  podSecurityContext:
-    runAsNonRoot: true
-
-  securityContext:
-    allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: true
-    runAsNonRoot: true
-    capabilities:
-      drop: ["ALL"]
-    seccompProfile:
-      type: RuntimeDefault
