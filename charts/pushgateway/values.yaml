@@ -2,9 +2,25 @@ veeam:
   enabled: true
   serviceAccountName: veeam-sa
 
+resourceNames:
+  route: prometheus-pushgateway
+  oauthProxyService: pushgateway-oauth-proxy
+  tokenReviewClusterRole: tokenreview-access
+  tokenReviewClusterRoleBinding: pushgw-sa-tokenreview-binding
+  prometheusAccessRole: pushgw-sa-prometheus-access
+  prometheusAccessRoleBinding: pushgw-sa-binding
+  pushMetricsClusterRole: service-sa-push-metrics
+  veeamPushMetricsClusterRoleBinding: veeam-sa-push-metrics-binding
+
 prometheus-pushgateway:
+  image:
+    repository: quay.io/prometheus/pushgateway
+    tag: v1.10.0
+    pullPolicy: Always
+
   persistentVolume:
     enabled: true
+    size: 2Gi
 
   extraArgs:
     - '--web.enable-admin-api'
@@ -15,11 +31,13 @@ prometheus-pushgateway:
 
   serviceMonitor:
     enabled: true
+    honorLabels: true
     namespace: openshift-monitoring
 
   extraContainers:
     - name: oauth-proxy
-      image: registry.redhat.io/openshift4/ose-oauth-proxy:v4.16.0
+      image: registry.redhat.io/openshift4/ose-oauth-proxy:v4.12.0
+      imagePullPolicy: Always
       args:
         - '--https-address=:9092'
         - '--provider=openshift'

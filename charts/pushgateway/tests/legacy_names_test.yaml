@@ -1,0 +1,107 @@
+suite: Legacy resource names
+values:
+  - ../values.lint.yaml
+release:
+  name: prometheus-pushgateway
+  namespace: prometheus-pushgateway
+
+tests:
+  - it: renders legacy tokenreview ClusterRole name
+    template: templates/clusterrole-tokenreview.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ClusterRole
+      - equal:
+          path: metadata.name
+          value: tokenreview-access
+
+  - it: renders legacy tokenreview ClusterRoleBinding name and roleRef
+    template: templates/clusterrolebinding-tokenreview.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ClusterRoleBinding
+      - equal:
+          path: metadata.name
+          value: pushgw-sa-tokenreview-binding
+      - equal:
+          path: roleRef.name
+          value: tokenreview-access
+
+  - it: renders legacy push-metrics ClusterRole name
+    template: templates/clusterrole-push-metrics.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ClusterRole
+      - equal:
+          path: metadata.name
+          value: service-sa-push-metrics
+
+  - it: renders legacy veeam ClusterRoleBinding name and roleRef
+    template: templates/clusterrolebinding-veeam.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ClusterRoleBinding
+      - equal:
+          path: metadata.name
+          value: veeam-sa-push-metrics-binding
+      - equal:
+          path: roleRef.name
+          value: service-sa-push-metrics
+
+  - it: renders legacy prometheus access Role name
+    template: templates/role-prometheus-access.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Role
+      - equal:
+          path: metadata.name
+          value: pushgw-sa-prometheus-access
+
+  - it: renders legacy prometheus access RoleBinding name and roleRef
+    template: templates/rolebinding-prometheus-access.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: RoleBinding
+      - equal:
+          path: metadata.name
+          value: pushgw-sa-binding
+      - equal:
+          path: roleRef.name
+          value: pushgw-sa-prometheus-access
+
+  - it: renders legacy oauth proxy Service name
+    template: templates/service-oauth-proxy.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - equal:
+          path: metadata.name
+          value: pushgateway-oauth-proxy
+
+  - it: renders legacy Route name and target service
+    template: templates/route.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Route
+      - equal:
+          path: metadata.name
+          value: prometheus-pushgateway
+      - equal:
+          path: spec.to.name
+          value: pushgateway-oauth-proxy

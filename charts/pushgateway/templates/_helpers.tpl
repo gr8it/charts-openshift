@@ -69,12 +69,39 @@ Veeam service account name.
 Route name — used in both the Route resource and SA OAuth redirect annotation.
 */}}
 {{- define "pushgateway-helm.routeName" -}}
-{{- include "pushgateway-helm.fullname" . }}
+{{- .Values.resourceNames.route | default .Release.Name }}
 {{- end }}
 
 {{/*
 OAuth proxy Service name.
 */}}
 {{- define "pushgateway-helm.oauthProxyServiceName" -}}
-{{- printf "%s-oauth-proxy" (include "pushgateway-helm.fullname" .) }}
+{{- .Values.resourceNames.oauthProxyService | default (printf "%s-oauth-proxy" .Release.Name) }}
+{{- end }}
+
+{{/*
+RBAC resource names kept stable to let ArgoCD/Helm adopt the existing hub01 objects.
+*/}}
+{{- define "pushgateway-helm.tokenReviewClusterRoleName" -}}
+{{- .Values.resourceNames.tokenReviewClusterRole | default (printf "%s-tokenreview" (include "pushgateway-helm.fullname" .)) }}
+{{- end }}
+
+{{- define "pushgateway-helm.tokenReviewClusterRoleBindingName" -}}
+{{- .Values.resourceNames.tokenReviewClusterRoleBinding | default (printf "%s-tokenreview-binding" (include "pushgateway-helm.fullname" .)) }}
+{{- end }}
+
+{{- define "pushgateway-helm.prometheusAccessRoleName" -}}
+{{- .Values.resourceNames.prometheusAccessRole | default (printf "%s-prometheus-access" (include "pushgateway-helm.fullname" .)) }}
+{{- end }}
+
+{{- define "pushgateway-helm.prometheusAccessRoleBindingName" -}}
+{{- .Values.resourceNames.prometheusAccessRoleBinding | default (printf "%s-prometheus-access-binding" (include "pushgateway-helm.fullname" .)) }}
+{{- end }}
+
+{{- define "pushgateway-helm.pushMetricsClusterRoleName" -}}
+{{- .Values.resourceNames.pushMetricsClusterRole | default (printf "%s-push-metrics" (include "pushgateway-helm.fullname" .)) }}
+{{- end }}
+
+{{- define "pushgateway-helm.veeamPushMetricsClusterRoleBindingName" -}}
+{{- .Values.resourceNames.veeamPushMetricsClusterRoleBinding | default (printf "%s-veeam-push-metrics-binding" (include "pushgateway-helm.fullname" .)) }}
 {{- end }}

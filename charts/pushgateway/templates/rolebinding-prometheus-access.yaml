@@ -3,14 +3,14 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ include "pushgateway-helm.fullname" . }}-prometheus-access-binding
+  name: {{ include "pushgateway-helm.prometheusAccessRoleBindingName" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "pushgateway-helm.labels" . | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: {{ include "pushgateway-helm.fullname" . }}-prometheus-access
+  name: {{ include "pushgateway-helm.prometheusAccessRoleName" . }}
 subjects:
   - kind: ServiceAccount
     name: {{ include "pushgateway-helm.serviceAccountName" . }}
