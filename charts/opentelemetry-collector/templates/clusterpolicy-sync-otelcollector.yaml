@@ -31,10 +31,6 @@ spec:
           - key: {{`"{{ request.object.metadata.labels.\"apc.namespace.test\" || ''}}"`}}
             operator: Equals
             value: application
-          # Guard: skip if this tenant exporter already exists
-          - key: "otlp/{{`{{ request.object.metadata.name }}`}}"
-            operator: AnyNotIn
-            value: {{`"{{ keys(target.spec.config.exporters || '{}') }}"`}}
       mutate:
         targets:
           - apiVersion: opentelemetry.io/v1beta1

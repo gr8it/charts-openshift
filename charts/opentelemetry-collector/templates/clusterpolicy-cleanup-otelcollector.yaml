@@ -28,19 +28,11 @@ spec:
                 - "kube-*"
                 - "kyverno"
                 - "openshift-*"
-      context:
-        - name: exporter_exists
-          apiCall:
-            urlPath: /apis/opentelemetry.io/v1beta1/namespaces/{{ .Release.Namespace }}/opentelemetrycollectors/{{ .Values.instanceNameOverride | default (include "opentelemetry-collector.fullname" .) }}
-            jmesPath: {{`"contains(keys(spec.config.exporters || '{}' ), 'otlp/{{ request.oldObject.metadata.name }}')"`}}
       preconditions:
         all:
           - key: {{`"{{ request.oldObject.metadata.labels.\"apc.namespace.test\" || '' }}"`}}
             operator: Equals
             value: application
-          - key: {{`"{{ exporter_exists }}"`}}
-            operator: Equals
-            value: true
       mutate:
         targets:
           - apiVersion: opentelemetry.io/v1beta1
@@ -78,14 +70,9 @@ spec:
           - key: {{`"{{ request.oldObject.metadata.labels.\"apc.namespace.test\" }}"`}}
             operator: Equals
             value: application
-          # new object no longer does (label removed or overwritten)
           - key: {{`"{{ request.object.metadata.labels.\"apc.namespace.test\" || '' }}"`}}
             operator: NotEquals
             value: application
-          #patch if the tenant exporter is actually present
-          - key: {{`"{{ exporter_exists }}"`}}
-            operator: Equals
-            value: true
       mutate:
         targets:
           - apiVersion: opentelemetry.io/v1beta1
