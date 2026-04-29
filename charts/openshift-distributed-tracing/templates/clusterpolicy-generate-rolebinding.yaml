@@ -1,0 +1,51 @@
+---
+# TESTING apc.namespace.test - change occurence to apc.namespace.type. This is only for testing of the kyverno clusterpolicy
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: generate-tempostack-tenant-rolebindings
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
+    policies.kyverno.io/title: Generate RoleBindings for TempoStack traces access on namespace create
+    policies.kyverno.io/category: gitops
+    policies.kyverno.io/subject: Generate RoleBindings for application namespaces
+    policies.kyverno.io/minversion: 1.13.0
+  labels:
+{{- include "tempo-stack.labels" . | nindent 4 }}
+spec:
+  generateExistingOnPolicyUpdate: true
+  rules:
+    - name: generate-rolebinding-for-application-namespace
+      match:
+        any:
+          - resources:
+              kinds:
+                - Namespace
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - "kube-*"
+                - "kyverno"
+                - "openshift-*"
+      preconditions:
+        all:
+          - key: {{`"{{ request.object.metadata.labels.\"apc.namespace.test\" }}"`}}
+            operator: Equals
+            value: application
+      generate:
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: RoleBinding
+        name: "tempostack-traces-read-{{`{{ request.object.metadata.name }}`}}"
+        namespace: {{`"{{ request.object.metadata.name }}"`}}
+        synchronize: true
+        data:
+          roleRef:
+            apiGroup: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: "tempo-reader-{{`{{ request.object.metadata.name }}`}}"
+          subjects:
+            - kind: Group
+              name: {{ printf "APC-%s-{{ request.object.metadata.name }}-PJA" ( include "apc-global-overrides.require-environmentShort" $ | upper ) | quote }}
+            - kind: Group
+              name: {{ printf "APC-%s-{{ request.object.metadata.name }}-DEV" ( include "apc-global-overrides.require-environmentShort" $ | upper ) | quote }}

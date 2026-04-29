@@ -1,0 +1,53 @@
+---
+# TESTING apc.namespace.test - change occurence to apc.namespace.type. This is only for testing of the kyverno clusterpolicy
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: generate-tempostack-tenant-clusterrole
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
+    policies.kyverno.io/title: Generate ClusterRoles for TempoStack tenants on namespace create
+    policies.kyverno.io/category: gitops
+    policies.kyverno.io/subject: Generate ClusterRoles for application namespaces
+    policies.kyverno.io/minversion: 1.13.0
+  labels:
+{{- include "tempo-stack.labels" . | nindent 4 }}
+spec:
+  generateExistingOnPolicyUpdate: true
+  rules:
+    - name: generate-clusterrole-for-application-namespace
+      match:
+        any:
+          - resources:
+              kinds:
+                - Namespace
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - "kube-*"
+                - "kyverno"
+                - "openshift-*"
+      preconditions:
+        all:
+          - key: {{`"{{ request.object.metadata.labels.\"apc.namespace.test\" }}"`}}
+            operator: Equals
+            value: application
+      generate:
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: ClusterRole
+        name: "tempo-reader-{{`{{request.object.metadata.name}}`}}"
+        synchronize: true
+        data:
+          metadata:
+            labels:
+              generated-by: generate-tempostack-tenant-clusterrole
+          rules:
+            - apiGroups:
+                - tempo.grafana.com
+              resources:
+                - {{`"{{request.object.metadata.name}}"`}}
+              resourceNames:
+                - traces
+              verbs:
+                - get

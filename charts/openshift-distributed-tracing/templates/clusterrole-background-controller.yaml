@@ -4,11 +4,18 @@ kind: ClusterRole
 metadata:
   labels:
     rbac.kyverno.io/aggregate-to-background-controller: "true"
+{{- include "tempo-stack.labels" . | nindent 4 }}
   name: kyverno:background-controller:{{ .Release.Name }}
 rules:
 - apiGroups: [""]
   resources: ["serviceaccounts"]
   verbs: ["create", "delete", "get", "update"]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["clusterroles"]
+  verbs: ["create", "delete", "get", "update"]
+- apiGroups: [""]
+  resources: ["cluster"]
+  verbs: ["create", "delete", "get", "update"]
 - apiGroups: ["tempo.grafana.com"]
-  resources: ["tempostack"]
+  resources: ["tempostacks"]
   verbs: ["get", "update"]

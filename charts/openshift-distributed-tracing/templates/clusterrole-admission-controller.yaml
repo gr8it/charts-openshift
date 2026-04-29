@@ -4,6 +4,7 @@ kind: ClusterRole
 metadata:
   labels:
     rbac.kyverno.io/aggregate-to-admission-controller: "true"
+{{- include "tempo-stack.labels" . | nindent 4 }}
   name: kyverno:admission-controller:{{ .Release.Name }}
 rules:
 - apiGroups: ["rbac.authorization.k8s.io"]

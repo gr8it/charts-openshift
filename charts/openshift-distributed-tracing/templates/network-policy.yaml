@@ -4,6 +4,8 @@ kind: NetworkPolicy
 metadata:
   name: allow-from-cluster-observability-operator
   namespace: apc-observability
+  labels:
+{{- include "tempo-stack.labels" . | nindent 4 }}
 spec:
   ingress:
   - from:

@@ -1,0 +1,96 @@
+---
+# TESTING apc.namespace.test - change occurence to apc.namespace.type. This is only for testing of the kyverno clusterpolicy
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: cleanup-otelcollector-tenants
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
+    policies.kyverno.io/title: Remove Open Telemetry tenants on namespace delete or label removal
+    policies.kyverno.io/category: gitops
+    policies.kyverno.io/subject: Sync Open Telemetry tenants with namespaces
+    policies.kyverno.io/minversion: 1.13.0
+spec:
+  rules:
+    #1 Read everything from oldObject(request.object is null on DELETE)
+    - name: remove-tenant-on-namespace-delete
+      match:
+        any:
+          - resources:
+              kinds:
+                - Namespace
+              operations:
+                - DELETE
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - "kube-*"
+                - "kyverno"
+                - "openshift-*"
+      context:
+        - name: exporter_exists
+          apiCall:
+            urlPath: /apis/opentelemetry.io/v1beta1/namespaces/{{ .Release.Namespace }}/opentelemetrycollectors/{{ .Values.instanceNameOverride | default (include "opentelemetry-collector.fullname" .) }}
+            jmesPath: {{`"contains(keys(spec.config.exporters || '{}' ), 'otlp/{{ request.oldObject.metadata.name }}')"`}}
+      preconditions:
+        all:
+          - key: {{`"{{ request.oldObject.metadata.labels.\"apc.namespace.test\" || '' }}"`}}
+            operator: Equals
+            value: application
+          - key: {{`"{{ exporter_exists }}"`}}
+            operator: Equals
+            value: true
+      mutate:
+        targets:
+          - apiVersion: opentelemetry.io/v1beta1
+            kind: OpenTelemetryCollector
+            name: {{ .Values.instanceNameOverride | default (include "opentelemetry-collector.fullname" .) }}
+            namespace: {{ .Release.Namespace }}
+        patchesJson6902: |-
+          - op: remove
+            path: /spec/config/exporters/otlp~1{{`{{ request.oldObject.metadata.name }}`}}
+          - op: remove
+            path: /spec/config/service/pipelines/traces~1{{`{{ request.oldObject.metadata.name }}`}}
+
+    #2 request.object and request.oldObject are available on UPDATE action. Label is removed or changed on a live namespace.
+    - name: remove-tenant-on-label-removed
+      match:
+        any:
+          - resources:
+              kinds:
+                - Namespace
+              operations:
+                - UPDATE
+      exclude:
+        any:
+          - resources:
+              names:
+                - "kube-*"
+                - "kyverno"
+                - "openshift-*"
+      preconditions:
+        all:
+          # Old object did have the label apc.namespace.type=application
+          - key: {{`"{{ request.oldObject.metadata.labels.\"apc.namespace.test\" }}"`}}
+            operator: Equals
+            value: application
+          # new object no longer does (label removed or overwritten)
+          - key: {{`"{{ request.object.metadata.labels.\"apc.namespace.test\" || '' }}"`}}
+            operator: NotEquals
+            value: application
+          #patch if the tenant exporter is actually present
+          - key: {{`"{{ exporter_exists }}"`}}
+            operator: Equals
+            value: true
+      mutate:
+        targets:
+          - apiVersion: opentelemetry.io/v1beta1
+            kind: OpenTelemetryCollector
+            name: {{ .Values.instanceNameOverride | default (include "opentelemetry-collector.fullname" .) }}
+            namespace: {{ .Release.Namespace }}
+        patchesJson6902: |-
+          - op: remove
+            path: /spec/config/exporters/otlp~1{{`{{ request.object.metadata.name }}`}}
+          - op: remove
+            path: /spec/config/service/pipelines/traces~1{{`{{ request.object.metadata.name }}`}}

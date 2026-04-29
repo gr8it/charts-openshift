@@ -3,24 +3,26 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: sync-tempostack-tenants
+  name: cleanup-tempostack-tenants
   annotations:
     argocd.argoproj.io/sync-options: Replace=true
-    policies.kyverno.io/title: Update TempoStack tenants on namespace create
+    policies.kyverno.io/title: Update TempoStack tenants on namespace delete
     policies.kyverno.io/category: gitops
-    policies.kyverno.io/subject: Sync TempoStack tenants with namespaces
+    policies.kyverno.io/subject: Cleanup TempoStack tenants
     policies.kyverno.io/minversion: 1.13.0
   labels:
 {{- include "tempo-stack.labels" . | nindent 4 }}
 spec:
-  mutateExistingOnPolicyUpdate: true
+  mutateExistingOnPolicyUpdate: false 
   rules:
-    - name: add-tenant-to-tempostack
+    - name: remove-tenant-from-tempostack-on-namespace-delete
       match:
         any:
           - resources:
               kinds:
                 - Namespace
+              operations:
+                - DELETE
       exclude:
         any:
           - resources:
@@ -33,24 +35,24 @@ spec:
           apiCall:
             urlPath: /apis/tempo.grafana.com/v1alpha1/namespaces/{{ .Release.Namespace }}/tempostacks/{{ default "apc-tempo-stack" .Values.tempoStack.name }}
             jmesPath: "contains((spec.tenants.authentication[].tenantName || `[]`), '{{ `{{` }} request.oldObject.metadata.name {{ `}}` }}')"
+
       preconditions:
         all:
-          - key: {{`"{{ request.object.metadata.labels.\"apc.namespace.test\" }}"`}}
+          - key: {{`"{{ request.oldObject.metadata.labels.\"apc.namespace.test\" || '' }}"`}}
             operator: Equals
             value: application
           - key: {{`"{{ tenant_exists }}"`}}
             operator: Equals
-            value: false
+            value: true
       mutate:
         targets:
           - apiVersion: tempo.grafana.com/v1alpha1
             kind: TempoStack
             name: {{ default "apc-tempo-stack" .Values.tempoStack.name | quote }}
-            namespace: {{ .Release.Namespace | quote }}
+            namespace: {{ default .Release.Namespace .Values.tempoStack.namespace | quote }}
         patchStrategicMerge:
           spec:
             tenants:
               authentication:
-                # The +(...) anchor adds the item to the list if it doesn't already exist
-                - +(tenantName): {{`"{{ request.object.metadata.name }}"`}}
-                  tenantId: {{`"{{ request.object.metadata.name }}"`}}
+                - tenantName: {{`"{{ request.oldObject.metadata.name }}"`}}
+                  $patch: delete

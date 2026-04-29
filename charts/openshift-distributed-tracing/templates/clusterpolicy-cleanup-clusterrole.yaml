@@ -1,0 +1,37 @@
+---
+# TESTING apc.namespace.test - change occurence to apc.namespace.type. This is only for testing of the kyverno clusterpolicy
+apiVersion: kyverno.io/v2
+kind: ClusterCleanupPolicy
+metadata:
+  name: cleanup-tempo-reader-clusterroles
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
+    policies.kyverno.io/title: Cleanup Tempo reader ClusterRoles for deleted or unwatched namespaces
+    policies.kyverno.io/category: gitops
+    policies.kyverno.io/subject: TempoStack ClusterRoles
+    policies.kyverno.io/minversion: 1.13.0
+  labels:
+{{- include "tempo-stack.labels" . | nindent 4 }}
+spec:
+  schedule: "0 0 */1 * *"
+  match:
+    all:
+      - resources:
+          kinds:
+            - ClusterRole
+          selector:
+            matchLabels:
+              generated-by: generate-tempostack-tenant-clusterrole
+  context:
+    - name: appNamespaces
+      apiCall:
+        urlPath: "/api/v1/namespaces"
+        jmesPath: "items[?metadata.labels.\"apc.namespace.test\" == 'application'].metadata.name"
+        default: []
+  conditions:
+    all:
+    # ClusterRole name is in the format tempo-reader-<namespace> - so first two segments are deleted to get the namespace name
+    # Comparing to existing application namespaces to determine if the ClusterRole should be deleted
+      - key: "{{ `{{ target.metadata.name | split(@, '-') | [2:] | join('-',@) }}` }}"
+        operator: AllNotIn
+        value: "{{ `{{ appNamespaces }}` }}"

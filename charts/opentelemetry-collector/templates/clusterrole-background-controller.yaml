@@ -12,19 +12,3 @@ rules:
 - apiGroups: ["opentelemetry.io"]
   resources: ["opentelemetrycollector"]
   verbs: ["get", "update"]
-
-
-
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: tempostack-traces-write
-rules:
-  - apiGroups:
-      - 'tempo.grafana.com'
-    resources:
-      - dev
-    resourceNames:
-      - traces
-    verbs:
-      - 'create' 
