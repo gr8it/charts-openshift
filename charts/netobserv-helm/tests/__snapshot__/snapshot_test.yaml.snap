@@ -1,0 +1,97 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: flows.netobserv.io/v1beta2
+    kind: FlowCollector
+    metadata:
+      labels:
+        app.kubernetes.io/instance: netobserv-helm
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: netobserv-helm
+        helm.sh/chart: netobserv-helm-1.0.0
+      name: cluster
+    spec:
+      agent:
+        ebpf:
+          resources:
+            limits:
+              cpu: "2"
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 50Mi
+          sampling: 100
+        type: eBPF
+      consolePlugin:
+        enable: true
+      deploymentModel: Direct
+      loki:
+        lokiStack:
+          name: netobserv-helm
+        mode: LokiStack
+      namespace: netobserv
+      processor:
+        resources:
+          limits:
+            cpu: "2"
+            memory: 1Gi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+  2: |
+    apiVersion: loki.grafana.com/v1
+    kind: LokiStack
+    metadata:
+      labels:
+        app.kubernetes.io/instance: netobserv-helm
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: netobserv-helm
+        helm.sh/chart: netobserv-helm-1.0.0
+      name: netobserv-helm
+      namespace: netobserv
+    spec:
+      hashRing:
+        memberlist:
+          instanceAddrType: podIP
+        type: memberlist
+      limits:
+        global:
+          ingestion:
+            ingestionBurstSize: 24
+            ingestionRate: 8
+            perStreamRateLimit: 4
+            perStreamRateLimitBurst: 17
+          retention:
+            days: 14
+      replication:
+        factor: 2
+        zones:
+          - maxSkew: 1
+            topologyKey: topology.kubernetes.io/zone
+      size: 1x.small
+      storage:
+        schemas:
+          - effectiveDate: "2025-03-30"
+            version: v13
+        secret:
+          name: netobserv-helm-rgw-allinfo
+          type: s3
+        tls:
+          caKey: service-ca.crt
+          caName: openshift-service-ca.crt
+      storageClassName: ocs-storagecluster-ceph-rbd
+      tenants:
+        mode: openshift-network
+  3: |
+    apiVersion: objectbucket.io/v1alpha1
+    kind: ObjectBucketClaim
+    metadata:
+      labels:
+        app.kubernetes.io/instance: netobserv-helm
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: netobserv-helm
+        helm.sh/chart: netobserv-helm-1.0.0
+      name: netobserv-helm-rgw
+      namespace: netobserv
+    spec:
+      bucketName: apc-netobserv-helm-rgw
+      storageClassName: ocs-storagecluster-ceph-rgw

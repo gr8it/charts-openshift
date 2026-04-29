@@ -1,0 +1,29 @@
+apiVersion: loki.grafana.com/v1
+kind: LokiStack
+metadata:
+  name: {{ include "netobserv-helm.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "netobserv-helm.labels" . | nindent 4 }}
+spec:
+  size: {{ .Values.lokistack.size }}
+  storage:
+    secret:
+      name: {{ .Values.lokistack.existingSecret | default (printf "%s-rgw-allinfo" (include "netobserv-helm.fullname" .)) }}
+      type: s3
+    schemas:
+      {{- toYaml .Values.lokistack.storage.schemas | nindent 6 }}
+    tls:
+      caKey: service-ca.crt
+      caName: openshift-service-ca.crt
+  storageClassName: {{ .Values.lokistack.storageClassName }}
+  replication:
+    {{- toYaml .Values.lokistack.replication | nindent 4 }}
+  hashRing:
+    type: memberlist
+    memberlist:
+      instanceAddrType: podIP
+  limits:
+    {{- toYaml .Values.lokistack.limits | nindent 4 }}
+  tenants:
+    mode: openshift-network

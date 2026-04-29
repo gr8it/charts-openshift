@@ -1,0 +1,11 @@
+suite: Snapshot test
+templates:
+  - charts/netobserv-operatorpolicy/templates/operatorpolicy.yaml
+release:
+  name: netobserv-operators
+  namespace: openshift-netobserv-operator
+
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}

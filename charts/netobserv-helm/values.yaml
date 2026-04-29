@@ -1,0 +1,53 @@
+nameOverride: ""
+fullnameOverride: ""
+
+# --- ObjectBucketClaim (S3 for LokiStack) ---
+objectBucketClaim:
+  enabled: true
+  storageClassName: ocs-storagecluster-ceph-rgw
+  # bucketName: override for existing buckets (default: apc-<fullname>-rgw)
+  bucketName: ~
+
+# --- LokiStack for network flows ---
+lokistack:
+  # existingSecret: override secret name for S3 credentials (default: <fullname>-rgw-allinfo)
+  existingSecret: ~
+  size: 1x.small
+  storage:
+    schemas:
+      - effectiveDate: "2025-03-30"
+        version: v13
+  storageClassName: ocs-storagecluster-ceph-rbd
+  replication:
+    factor: 2
+    zones:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+  limits:
+    global:
+      ingestion:
+        ingestionRate: 5
+        ingestionBurstSize: 20
+        perStreamRateLimit: 4
+        perStreamRateLimitBurst: 17
+      retention:
+        days: 3
+
+# --- ExternalSecret (S3 credentials for LokiStack) ---
+externalSecret:
+  enabled: false
+  refreshInterval: "15m"
+
+# --- FlowCollector ---
+flowCollector:
+  agent:
+    ebpf:
+      sampling: 50
+      resources:
+        requests:
+          memory: 50Mi
+          cpu: 100m
+        limits:
+          memory: 800Mi
+  processor:
+    resources: {}
