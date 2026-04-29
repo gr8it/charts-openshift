@@ -4,7 +4,7 @@ This Helm chart deploys Prometheus Pushgateway on OpenShift with integrated OAut
 
 ## Overview
 
-The `pushgateway-helm` chart wraps the upstream `prometheus-pushgateway` Helm chart and adds OpenShift-specific features:
+The `pushgateway` chart wraps the upstream `prometheus-pushgateway` Helm chart and adds OpenShift-specific features:
 
 - **OAuth Proxy Sidecar**: Secures Pushgateway behind OpenShift's built-in OAuth provider
 - **Route & TLS**: Exposes Pushgateway via OpenShift Route with reencrypt TLS termination
@@ -56,7 +56,7 @@ The `pushgateway-helm` chart wraps the upstream `prometheus-pushgateway` Helm ch
 ### 1. Update Chart Dependencies
 
 ```bash
-cd charts-openshift/charts/pushgateway-helm
+cd charts-openshift/charts/pushgateway
 helm dependency update
 ```
 
@@ -65,7 +65,7 @@ This generates `Chart.lock` and populates `charts/` directory.
 ### 2. Install the Chart
 
 ```bash
-helm install prometheus-pushgateway ./charts/pushgateway-helm \
+helm install prometheus-pushgateway ./charts/pushgateway \
   --namespace prometheus-pushgateway \
   --create-namespace \
   --set cluster.isHub=true
@@ -285,7 +285,7 @@ Common issues:
 ## Upgrading
 
 ```bash
-helm upgrade prometheus-pushgateway ./charts/pushgateway-helm \
+helm upgrade prometheus-pushgateway ./charts/pushgateway \
   --namespace prometheus-pushgateway
 ```
 
