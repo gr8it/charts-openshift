@@ -43,7 +43,8 @@ spec:
       otlp/application:
         endpoint: {{ .Values.tracesEndpoint | required "Traces endpoint is required!" }}
         auth: { authenticator: bearertokenauth }
-        headers: { X-Scope-OrgID: "application" }
+        headers: 
+          X-Scope-OrgID: ${k8s.namespace.name}
         tls:
           insecure: false
           ca_file: "/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt"
