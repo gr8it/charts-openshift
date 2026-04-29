@@ -70,9 +70,6 @@ spec:
           - key: {{`"{{ request.oldObject.metadata.labels.\"apc.namespace.test\" }}"`}}
             operator: Equals
             value: application
-          - key: {{`"{{ request.object.metadata.labels.\"apc.namespace.test\" || '' }}"`}}
-            operator: NotEquals
-            value: application
       mutate:
         targets:
           - apiVersion: opentelemetry.io/v1beta1
