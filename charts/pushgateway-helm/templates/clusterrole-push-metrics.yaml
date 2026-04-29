@@ -1,0 +1,15 @@
+{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
+---
+# Allows external service accounts (e.g. veeam-sa) to push metrics to
+# this Pushgateway by verifying they can read ServiceMonitor / Prometheus objects.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "pushgateway-helm.fullname" . }}-push-metrics
+  labels:
+    {{- include "pushgateway-helm.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [monitoring.coreos.com]
+    resources: [prometheuses, servicemonitors]
+    verbs: [get, list]
+{{- end }}

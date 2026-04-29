@@ -1,0 +1,19 @@
+{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
+{{- if .Values.veeam.enabled }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "pushgateway-helm.fullname" . }}-veeam-push-metrics-binding
+  labels:
+    {{- include "pushgateway-helm.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "pushgateway-helm.fullname" . }}-push-metrics
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "pushgateway-helm.veeamServiceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,23 @@
+{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
+---
+# Service exposing the OAuth proxy sidecar; the annotation triggers OpenShift
+# to provision a serving certificate and stores it in the named Secret.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "pushgateway-helm.oauthProxyServiceName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "pushgateway-helm.labels" . | nindent 4 }}
+  annotations:
+    service.alpha.openshift.io/serving-cert-secret-name: prometheus-pushgateway-tls
+spec:
+  ports:
+    - name: https
+      port: 9092
+      targetPort: 9092
+  selector:
+    # Matches labels set by the upstream prometheus-pushgateway subchart
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/name: prometheus-pushgateway
+{{- end }}

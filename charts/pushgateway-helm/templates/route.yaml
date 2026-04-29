@@ -1,0 +1,16 @@
+{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ include "pushgateway-helm.routeName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "pushgateway-helm.labels" . | nindent 4 }}
+spec:
+  tls:
+    termination: Reencrypt
+  to:
+    kind: Service
+    name: {{ include "pushgateway-helm.oauthProxyServiceName" . }}
+{{- end }}

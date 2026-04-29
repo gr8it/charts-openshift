@@ -1,0 +1,14 @@
+apiVersion: v2
+name: pushgateway-helm
+description: A Helm chart to install Prometheus Pushgateway with OpenShift OAuth proxy
+type: application
+version: 1.0.0
+appVersion: "v1.10.0"
+
+dependencies:
+  - name: prometheus-pushgateway
+    version: 2.16.0
+    repository: https://prometheus-community.github.io/helm-charts
+  - name: apc-global-overrides
+    version: 1.8.0
+    repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
