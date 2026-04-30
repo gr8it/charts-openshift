@@ -32,6 +32,11 @@ Flow:
 
 This is the supported path for this implementation. Native ACS Jira notifier is not used for this flow.
 
+Runtime note for `hub01`:
+- ACS policy alerts are intended to go through the explicit Vector webhook path to Jira Operations.
+- The older Loki alerting rule manifest at `conf-socpoist/ocp-hub01/observability/logging/10-acs-policy-alerts.yaml` is kept in the repo for reference/history and is not part of the active ACS alert delivery path on `hub01`.
+- On `hub01`, ACS should not rely on Loki `AlertingRule` resources for Jira or Alertmanager delivery when the RHACS policy already uses the Vector webhook notifier.
+
 ## `conf-socpoist` Vector references
 
 Vector values file:
