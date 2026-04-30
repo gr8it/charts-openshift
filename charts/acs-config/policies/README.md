@@ -23,7 +23,7 @@ Environment:
 
 ACS integration used for this implementation:
 - RHACS notifier type: `Generic Webhook`
-- integration name: `acs-vector-jira`
+- integration name: `acs-to-jira`
 
 Flow:
 1. RHACS sends the native ACS alert payload to Vector
@@ -40,14 +40,14 @@ Runtime note for `hub01`:
 ## `conf-socpoist` Vector references
 
 Vector values file:
-- [vector-hub-values.yaml](/Users/filipcsupka/aspecta/conf-socpoist/ocp-hub01/observability/vector/vector-hub-values.yaml:1)
+- `conf-socpoist/ocp-hub01/observability/vector/vector-hub-values.yaml`
 
 Relevant sections in that file:
-- ACS webhook label parsing: [vector-hub-values.yaml](/Users/filipcsupka/aspecta/conf-socpoist/ocp-hub01/observability/vector/vector-hub-values.yaml:177)
-- Jira remap `acs_to_jira_ops`: [vector-hub-values.yaml](/Users/filipcsupka/aspecta/conf-socpoist/ocp-hub01/observability/vector/vector-hub-values.yaml:195)
-- Jira HTTP sink `jira_ops_alerts`: [vector-hub-values.yaml](/Users/filipcsupka/aspecta/conf-socpoist/ocp-hub01/observability/vector/vector-hub-values.yaml:455)
-- Jira secret backend `kubernetes_jiraops`: [vector-hub-values.yaml](/Users/filipcsupka/aspecta/conf-socpoist/ocp-hub01/observability/vector/vector-hub-values.yaml:32)
-- Jira secret volume and mount: [vector-hub-values.yaml](/Users/filipcsupka/aspecta/conf-socpoist/ocp-hub01/observability/vector/vector-hub-values.yaml:678)
+- ACS webhook label parsing: `conf-socpoist/ocp-hub01/observability/vector/vector-hub-values.yaml` around `webhook_parse`
+- Jira remap `acs_to_jira_ops`: `conf-socpoist/ocp-hub01/observability/vector/vector-hub-values.yaml` around `acs_to_jira_ops`
+- Jira HTTP sink `jira_ops_alerts`: `conf-socpoist/ocp-hub01/observability/vector/vector-hub-values.yaml` around `jira_ops_alerts`
+- Jira secret backend `kubernetes_jiraops`: `conf-socpoist/ocp-hub01/observability/vector/vector-hub-values.yaml` under `secret`
+- Jira secret volume and mount: `conf-socpoist/ocp-hub01/observability/vector/vector-hub-values.yaml` under `extraVolumes` and `extraVolumeMounts`
 
 ## What the remap does
 
