@@ -9,7 +9,7 @@ This chart packages ACM multi-cluster observability resources that were previous
 - Kyverno `Policy` generating Thanos bucket secret info
 - Optional `NetworkPolicy` for egress control
 - Metrics allowlist `ConfigMap` resources
-- Grafana dashboard `ConfigMap` resources included from `files/grafana-dashboards/*.yaml`
+- Grafana dashboard `ConfigMap` resources included from `files/grafana-dashboards/*.json`
 
 ## Values philosophy
 
