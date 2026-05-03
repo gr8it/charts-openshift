@@ -1,6 +1,24 @@
 {{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
+{{- $excludedDashboards := list
+  "availability-report-for-block-storage-managed-service---odf-block"
+  "availability-report-for-environment---openshift-api"
+  "availability-report-for-idp-managed-service---red-hat-build-of-keycloak"
+  "availability-report-for-managed-service---gitlab--cicd"
+  "availability-report-for-messaging-managed-service---kafka"
+  "availability-report-for-nosql-db-managed-service---mongodb"
+  "availability-report-for-object-storage-managed-service---odf-ceph-rgw"
+  "availability-report-for-object-storage-managed-service---odf-noobaa"
+  "availability-report-for-plaform-backup-restore"
+  "availability-report-for-plaform-logging"
+  "availability-report-for-plaform-monitoring"
+  "availability-report-for-platform-security---acs"
+  "availability-report-for-relation-db-managed-service---postgresql"
+  "availability-report-for-secret-management-managed-service---vault"
+  "availability-status"
+}}
 {{- range $path, $_ := .Files.Glob "files/grafana-dashboards/*.json" }}
 {{- $name := $path | base | trimSuffix ".json" }}
+{{- if not (has $name $excludedDashboards) }}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -15,5 +33,6 @@ metadata:
 data:
   {{ $name }}.json: |
     {{ $.Files.Get $path | trim }}
+{{- end }}
 {{- end }}
 {{- end }}

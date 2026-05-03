@@ -1,0 +1,22 @@
+suite: Dashboard rendering
+values:
+  - ../values.lint.yaml
+release:
+  name: multi-cluster-observability
+  namespace: open-cluster-management-observability
+
+tests:
+  - it: renders only the currently approved 20 dashboard ConfigMaps for hub
+    template: templates/dashboards.yaml
+    asserts:
+      - hasDocuments:
+          count: 20
+      - matchSnapshot: {}
+
+  - it: does not render dashboards for non-hub clusters
+    template: templates/dashboards.yaml
+    set:
+      global.apc.cluster.isHub: false
+    asserts:
+      - hasDocuments:
+          count: 0

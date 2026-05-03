@@ -6,20 +6,21 @@ This chart packages ACM multi-cluster observability resources that were previous
 
 - `MultiClusterObservability` (`observability.open-cluster-management.io/v1beta2`)
 - `ObjectBucketClaim` for Thanos object storage
-- Kyverno `Policy` generating Thanos bucket secret info
-- Optional `NetworkPolicy` for egress control
+- Kyverno `Policy` generating the `thanos-object-storage` `Secret` from OBC-provided bucket data
 - Metrics allowlist `ConfigMap` resources
 - Grafana dashboard `ConfigMap` resources included from `files/grafana-dashboards/*.json`
 
 ## Values philosophy
 
-The chart is opinionated by default. Only values that are likely to vary between environments/customers are exposed:
+The chart is intentionally opinionated. Static resource names, mandatory annotations, dashboard loading, and the `MultiClusterObservability` spec are kept in templates instead of being exposed as values.
 
-- enable/disable toggles per resource group
-- object storage and policy target settings
+Only values that are expected to vary between installations are exposed:
+
 - metrics allowlist ConfigMap definitions
 
-Environment-specific enablement and overrides are expected to be handled in GitOps component values, not inside chart environment logic.
+Environment-specific behavior should be handled through GitOps component values and shared APC global overrides.
+
+Proxy-related network policies should be handled outside this chart by the cluster or component that owns those egress exceptions.
 
 ## Validation
 
