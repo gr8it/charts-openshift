@@ -6,7 +6,7 @@ clusterNamespace: ~
 backupSchedule: "0 * * * *"
 # retentionDays: <int> - specifies the number of days to retain old backups during the cleanup phase
 retentionDays: 30
-# etcdStatefulSetName: <string> - optional, overrides the default etcd statefulset neme in hcp namespace
+# etcdStatefulSetName: <string> - optional, overrides the default etcd statefulset name in hcp namespace
 etcdStatefulSetName: etcd
 # compressSnapshot: <bool> - optional, set true to compress etcd snapshots before upload
 compressSnapshot: false
@@ -16,7 +16,7 @@ objectBucketClaim:
   #                  if set to false; backup will use existing ObjectBucketClaim referenced with {objectBucketClaim.name}
   create: false
   # name: <string> - optional, overrides the default ObjectBucketClaim name etcd-hcp-{clusterName}-backup
-  #                  mandatory when useing an existing ObjectBucketClaim
+  #                  mandatory when using an existing ObjectBucketClaim
   name: ~
   # storageClass: <string> - optional, defines a storageClass for the ObjectBucketClaim
   storageClass: "ocs-storagecluster-ceph-rgw"

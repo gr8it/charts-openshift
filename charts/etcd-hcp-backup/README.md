@@ -1,18 +1,18 @@
 # Hosted Control Plane ETCD Backup
 
 This Helm Chart will deploy a Hosted Control Plane ETCD backup job.  
-The Job will create a compressed etcd snapshot, and uploads it to an S3 endpoint.
+The Job will create an etcd snapshot, optionally compress it (controlled by `compressSnapshot`), and upload it to an S3 endpoint.
 
 ## Chart Variables
 
 > [!NOTE]  
-> Each variable without a default value is mandatory  
+> Each variable without a default value is mandatory.  
+> All chart resources are deployed into the Helm release namespace (set via `helm install -n <namespace>`). The ObjectBucketClaim must exist in that namespace beforehand, or the chart can create one by setting `objectBucketClaim.create: true`.
 
 |Variable                         | Type | Default                         |  Notes |
 |:---                             |:---  |:---                             |:---    |
 | clusterName                     | str  |                                 | Name of the Hosted Cluster. Defaults to `global.apc.cluster.name` when not set. |
-| clusterNamespace                | str  | `{clusterName}-{clusterName}`   | Overrides the default Hosted Cluster namespace | 
-| backupNamespace                 | str  | `.Release.Namespace`                    | Namespace for deploying the backup job. ObjectBucketClaim must be configured in this namespace beforehand. Alternatively, this Helm Chart can create one by setting the `objectBucketClaim.create` variable. |
+| clusterNamespace                | str  | `{clusterName}-{clusterName}`   | Overrides the default Hosted Cluster namespace |
 | backupSchedule                  | str  | `"0 * * * *"`                   | Cron notation for ETCD backup schedule |
 | retentionDays                   | int  | `30`                            | Specifies the number of days to retain old backups during the cleanup phase  |
 | etcdStatefulSetName             | str  | `etcd`                          | An optional parameter that overrides the default etcd StatefulSet name in  the Hosted Cluster namespace |
@@ -30,7 +30,6 @@ The Job will create a compressed etcd snapshot, and uploads it to an S3 endpoint
 ```yaml
 # my-values.yaml
 clusterName: ocpdemo-spoke2
-backupNamespace: apc-backup
 backupSchedule: "20 */3 * * *"
 retentionDays: 10
 objectBucketClaim:

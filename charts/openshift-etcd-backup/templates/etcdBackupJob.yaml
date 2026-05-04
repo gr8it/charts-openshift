@@ -141,7 +141,7 @@ spec:
                 name: {{ include "etcd-backup.obcName" . }}
             env:
             - name: RETENTION
-              value: {{ default 30 .Values.retentionDays | quote }}
+              value: {{ .Values.retentionDays | quote }}
             - name: AWS_CA_BUNDLE
               value: "/etc/ssl/certs/service-ca.crt"
             - name: AWS_REQUEST_CHECKSUM_CALCULATION

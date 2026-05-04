@@ -18,7 +18,7 @@ The Job will create etcd snapshot, and uploads it to an S3 endpoint.
 | objectBucketClaim.name          | str  | `etcd-{clusterName}-backup`     | This parameter is mandatory when using a pre-existing ObjectBucketClaim. Overrides the default ObjectBucketClaim name if `{objectBucketClaim.create}` is `true` |
 | objectBucketClaim.storageClass  | str  | `ocs-storagecluster-ceph-rgw`   | An optional parameter that defines a storageClass for the ObjectBucketClaim. Only used when `{objectBucketClaim.create}` is `true` |
 | image.awscli                    | str  | `amazon/aws-cli:2.24.27`        | Container image with `aws` cli tool |
-| image.busybox                   | str  | `busybox:1.37-glibc`            | Simple container image with `bash` |
+| image.busybox                   | str  | `busybox:1.37-glibc`            | Simple container image with `sh`   |
 
 ## Example Deployment
 
