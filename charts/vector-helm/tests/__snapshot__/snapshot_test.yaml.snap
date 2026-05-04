@@ -1,0 +1,50 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata:
+      labels:
+        app.kubernetes.io/instance: vector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: vector-helm
+        app.kubernetes.io/version: 0.38.1
+        helm.sh/chart: vector-helm-1.0.0
+      name: vector-service
+      namespace: apc-logging
+    spec:
+      commonName: vector.hub01.cloud.socpoist.sk
+      dnsNames:
+        - vector.apc-logging.svc
+        - vector.apc-logging.svc.cluster.local
+        - vector.hub01.cloud.socpoist.sk
+      ipAddresses:
+        - 10.111.76.100
+      issuerRef:
+        kind: ClusterIssuer
+        name: vault-hub-issuer
+      secretName: vector-service
+  2: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: vector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: vector-helm
+        app.kubernetes.io/version: 0.38.1
+        helm.sh/chart: vector-helm-1.0.0
+      name: jira-ops
+      namespace: apc-logging
+    spec:
+      data:
+        - remoteRef:
+            key: apc-platform/h/vector/jira-ops
+            property: authorization
+          secretKey: authorization
+      refreshInterval: 1h
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: vault-hub-secret-store
+      target:
+        creationPolicy: Owner
+        name: jira-ops

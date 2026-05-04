@@ -1,0 +1,26 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: vector-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "vector-helm.labels" . | nindent 4 }}
+spec:
+  secretName: vector-service
+  issuerRef:
+    name: {{ include "apc-global-overrides.require-certManagerDefaultClusterIssuer" . }}
+    kind: ClusterIssuer
+  commonName: "vector.{{ include "apc-global-overrides.clusterBaseDomain" . }}"
+  dnsNames:
+    - "vector.{{ .Release.Namespace }}.svc"
+    - "vector.{{ .Release.Namespace }}.svc.cluster.local"
+    - "vector.{{ include "apc-global-overrides.clusterBaseDomain" . }}"
+    {{- range .Values.vectorServiceCertificate.additionalDnsNames }}
+    - {{ . | quote }}
+    {{- end }}
+  {{- if .Values.vectorServiceCertificate.ipAddresses }}
+  ipAddresses:
+    {{- range .Values.vectorServiceCertificate.ipAddresses }}
+    - {{ . | quote }}
+    {{- end }}
+  {{- end }}
