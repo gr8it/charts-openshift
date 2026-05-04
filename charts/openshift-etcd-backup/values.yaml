@@ -4,7 +4,7 @@ retentionDays: 10
 etcdBackupSchedule: "0 * * * *"
 compressSnapshot: false
 objectBucketClaim:
-  # create: <bool> - optional, creates an ObjectBucketClaim for storing etcd backups in {defaultNamespace}
+  # create: <bool> - optional, creates an ObjectBucketClaim for storing etcd backups in .Release.Namespace
   #                  if set to false; backup will use existing ObjectBucketClaim referenced with {objectBucketClaim.name}
   create: false
   # name: <string> - optional, overrides the default ObjectBucketClaim name etcd-{clusterName}-backup

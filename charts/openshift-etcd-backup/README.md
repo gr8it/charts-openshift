@@ -6,12 +6,12 @@ The Job will create etcd snapshot, and uploads it to an S3 endpoint.
 ## Chart Variables
 
 > [!NOTE]  
-> Each variable without a default value is mandatory  
+> Each variable without a default value is mandatory.  
+> All chart resources are deployed into the Helm release namespace (set via `helm install -n <namespace>`). The ObjectBucketClaim must exist in that namespace beforehand, or the chart can create one by setting `objectBucketClaim.create: true`.
 
 |Variable                         | Type | Default                         |  Notes |
 |:---                             |:---  |:---                             |:---    |
 | clusterName                     | str  |                                 | Name of the OpenShift Cluster. Defaults to `global.apc.cluster.name` when not set. |
-| defaultNamespace                | str  | `.Release.Namespace`                    | Namespace for deploying the backup job. ObjectBucketClaim must be configured in this namespace beforehand. Alternatively, this Helm Chart can create one by setting the `objectBucketClaim.create` variable. |
 | etcdBackupSchedule              | str  | `"0 * * * *"`                   | Cron notation for ETCD backup schedule |
 | retentionDays                   | int  | `10`                            | Specifies the number of days to retain old backups during the cleanup phase |
 | compressSnapshot                | bool | `false`                         | Controls whether to use gzip to compress the snapshot before uploading to S3 |
@@ -25,7 +25,6 @@ The Job will create etcd snapshot, and uploads it to an S3 endpoint.
 ```yaml
 # my-values.yaml
 clusterName: ocpdemo
-defaultNamespace: apc-backup
 retentionDays: 7
 etcdBackupSchedule: "0 */2 * * *"
 compressSnapshot: false
@@ -40,9 +39,9 @@ image:
 
 ```sh
 # add repo
-$ helm repo add gr8it https://raw.githubusercontent.com/gr8it/charts/main/
+$ helm repo add gr8it https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
 # install
-$ helm -n apc-backup install -f my-values.yaml etcd-ocpdemo-backup gr8it/etcd-backup
+$ helm -n apc-backup install -f my-values.yaml etcd-ocpdemo-backup gr8it/openshift-etcd-backup
 NAME: etcd-ocpdemo-backup
 LAST DEPLOYED: Fri Mar 30 12:07:19 2025
 NAMESPACE: apc-backup

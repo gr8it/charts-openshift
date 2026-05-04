@@ -7,6 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - 2026-04-27
 
-([JIRA-7936](https://aspecta.atlassian.net/browse/SPEXAPC-7936))_
+_([JIRA-7936](https://aspecta.atlassian.net/browse/SPEXAPC-7936))_
 
 - Initial release

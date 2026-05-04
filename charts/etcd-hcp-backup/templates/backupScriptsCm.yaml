@@ -214,7 +214,7 @@ data:
 
     if ! RETENTION_DATE=$( date -u --date="${RETENTION} days ago" +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/shm/out.err ); then
       log_messagef /dev/shm/out.err
-      log_message "ERROR: Faield to set a retention date"
+      log_message "ERROR: Failed to set a retention date"
       exit 1
     fi
 
@@ -229,7 +229,7 @@ data:
       exit 0
     fi
 
-    log_message "Removing obejcts older than $RETENTION days:"
+    log_message "Removing objects older than $RETENTION days:"
     if ! aws s3api delete-objects --bucket $BUCKET_NAME --delete file:///backup/delete.json --output text >/dev/shm/out 2>&1; then
       log_messagef /dev/shm/out
       log_message "ERROR: Failed to remove objects."
