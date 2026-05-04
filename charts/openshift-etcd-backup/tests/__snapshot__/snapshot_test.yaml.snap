@@ -30,7 +30,6 @@ manifests should match snapshot:
         app.kubernetes.io/version: 1.1.0
         helm.sh/chart: openshift-etcd-backup-1.1.0
       name: openshift-etcd-backup-hub01
-      namespace: apc-backup
     rules:
       - apiGroups:
           - security.openshift.io
@@ -87,13 +86,13 @@ manifests should match snapshot:
                       # check backup folder
                       SNAPSHOT=$(find /host/home/core/backup -mindepth 1 -maxdepth 1 -type d -mmin -30 | sort | tail -1)
                       if ! test -d "$SNAPSHOT"; then
-                        echo "No new valid snapshot folder found to upload. Exiting gracefully."
+                        echo "ERROR: No new valid snapshot folder found to upload."
                         exit 1
                       fi
                       # s3 upload
                       echo "Uploading etcd snapshot to s3://${BUCKET_NAME} "
                       if ! aws s3 cp "$SNAPSHOT" "s3://${BUCKET_NAME}/$(basename $SNAPSHOT)" --recursive --no-progress; then
-                        echo "Failed to upload snapshot folder to S3. Exiting gracefully."
+                        echo "ERROR: Failed to upload snapshot folder to S3."
                         exit 2
                       fi
                       # cleanup
@@ -144,6 +143,12 @@ manifests should match snapshot:
                     requests:
                       cpu: 50m
                       memory: 100Mi
+                  securityContext:
+                    allowPrivilegeEscalation: false
+                    capabilities:
+                      drop:
+                        - ALL
+                    readOnlyRootFilesystem: true
                   volumeMounts:
                     - mountPath: /host
                       name: host
@@ -151,6 +156,8 @@ manifests should match snapshot:
                       name: service-ca
                       readOnly: true
                       subPath: service-ca.crt
+                    - mountPath: /tmp
+                      name: tmp
               dnsPolicy: ClusterFirstWithHostNet
               enableServiceLinks: true
               hostNetwork: true
@@ -221,6 +228,8 @@ manifests should match snapshot:
                 - configMap:
                     name: openshift-service-ca.crt
                   name: service-ca
+                - emptyDir: {}
+                  name: tmp
       schedule: 0 * * * *
       successfulJobsHistoryLimit: 7
       suspend: false

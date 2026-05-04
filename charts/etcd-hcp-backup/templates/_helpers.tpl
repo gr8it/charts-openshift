@@ -52,10 +52,10 @@ Generate ObjectBucketClaim name
 {{/*
 Common labels
 */}}
-{{- define "common.labels" -}}
+{{- define "etcd-hcp-backup.labels" -}}
 app.kubernetes.io/name: {{ include "etcd-hcp-backup.name" . }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 app.kubernetes.io/instance: {{ include "etcd-hcp-backup.fullname" . }}
-app.kubernetes.io/version: {{ .Chart.Version | quote }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | default .Chart.Version | quote }}
 helm.sh/chart: {{ include "etcd-hcp-backup.chart" . }}
 {{- end -}}

@@ -6,7 +6,7 @@ metadata:
   name: {{ include "etcd-hcp-backup.fullname" . }}-rules
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "common.labels" . | nindent 4 }}
+    {{- include "etcd-hcp-backup.labels" . | nindent 4 }}
 spec:
   groups:
   - name: cronjob.rules

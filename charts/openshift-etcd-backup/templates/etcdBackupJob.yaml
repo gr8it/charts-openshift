@@ -2,10 +2,10 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ include "etcd-backup.fullname" . }}
+  name: {{ include "openshift-etcd-backup.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "common.labels" . | nindent 4 }}
+    {{- include "openshift-etcd-backup.labels" . | nindent 4 }}
 spec:
   schedule: {{ .Values.etcdBackupSchedule | quote }}
   concurrencyPolicy: Forbid
@@ -15,19 +15,19 @@ spec:
   jobTemplate:
     metadata:
       labels:
-        {{- include "common.labels" . | nindent 8 }}
+        {{- include "openshift-etcd-backup.labels" . | nindent 8 }}
     spec:
       backoffLimit: 0
       template:
         metadata:
           labels:
-            {{- include "common.labels" . | nindent 12 }}
+            {{- include "openshift-etcd-backup.labels" . | nindent 12 }}
         spec:
           nodeSelector:
             node-role.kubernetes.io/master: ''
           restartPolicy: Never
           activeDeadlineSeconds: 900
-          serviceAccountName: {{ include "etcd-backup.fullname" . }}
+          serviceAccountName: {{ include "openshift-etcd-backup.fullname" . }}
           hostPID: true
           hostNetwork: true
           dnsPolicy: ClusterFirstWithHostNet
@@ -89,6 +89,12 @@ spec:
           containers:
           - name: s3-upload
             image: {{ .Values.image.awscli }}
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                - ALL
             command:
             - /bin/bash
             - '-c'
@@ -100,13 +106,13 @@ spec:
               # check backup folder
               SNAPSHOT=$(find /host/home/core/backup -mindepth 1 -maxdepth 1 -type d -mmin -30 | sort | tail -1)
               if ! test -d "$SNAPSHOT"; then
-                echo "No new valid snapshot folder found to upload. Exiting gracefully."
+                echo "ERROR: No new valid snapshot folder found to upload."
                 exit 1
               fi
               # s3 upload
               echo "Uploading etcd snapshot to s3://${BUCKET_NAME} "
               if ! aws s3 cp "$SNAPSHOT" "s3://${BUCKET_NAME}/$(basename $SNAPSHOT)" --recursive --no-progress; then
-                echo "Failed to upload snapshot folder to S3. Exiting gracefully."
+                echo "ERROR: Failed to upload snapshot folder to S3."
                 exit 2
               fi
               # cleanup
@@ -136,9 +142,9 @@ spec:
               exit 0
             envFrom:
             - secretRef:
-                name: {{ include "etcd-backup.obcName" . }}
+                name: {{ include "openshift-etcd-backup.obcName" . }}
             - configMapRef:
-                name: {{ include "etcd-backup.obcName" . }}
+                name: {{ include "openshift-etcd-backup.obcName" . }}
             env:
             - name: RETENTION
               value: {{ .Values.retentionDays | quote }}
@@ -155,6 +161,8 @@ spec:
               mountPath: /etc/ssl/certs/service-ca.crt
               subPath: service-ca.crt
               readOnly: true
+            - name: tmp
+              mountPath: /tmp
             resources:
               requests: { cpu: "50m", memory: "100Mi" }
               limits: { cpu: "500m", memory: "1Gi" }
@@ -166,6 +174,8 @@ spec:
           - name: service-ca
             configMap:
               name: openshift-service-ca.crt
+          - name: tmp
+            emptyDir: {}
           tolerations:
           - key: node-role.kubernetes.io/master
             operator: "Exists"

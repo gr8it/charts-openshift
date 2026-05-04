@@ -4,7 +4,7 @@ kind: ClusterRole
 metadata:
   name: {{ include "etcd-hcp-backup.fullname" . }}
   labels:
-    {{- include "common.labels" . | nindent 4 }}
+    {{- include "etcd-hcp-backup.labels" . | nindent 4 }}
 rules:
 - apiGroups: [""]
   resources: ["pods"]

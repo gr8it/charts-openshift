@@ -3,13 +3,13 @@
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
-  name: {{ include "etcd-backup.obcName" . }}
+  name: {{ include "openshift-etcd-backup.obcName" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "common.labels" . | nindent 4 }}
+    {{- include "openshift-etcd-backup.labels" . | nindent 4 }}
   annotations:
     helm.sh/resource-policy: keep
 spec:
-  generateBucketName: {{ include "etcd-backup.obcName" . }}
+  generateBucketName: {{ include "openshift-etcd-backup.obcName" . }}
   storageClassName: {{ default "ocs-storagecluster-ceph-rgw" .Values.objectBucketClaim.storageClass }}
 {{- end }}

@@ -7,7 +7,7 @@ metadata:
   name: {{ include "etcd-hcp-backup.fullname" . }}-scripts
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "common.labels" . | nindent 4 }}
+    {{- include "etcd-hcp-backup.labels" . | nindent 4 }}
 data:
   env.etcdsts: {{ default "etcd" .Values.etcdStatefulSetName  | quote }}
   env.fileprefix: {{ $filePrefix | quote }}
