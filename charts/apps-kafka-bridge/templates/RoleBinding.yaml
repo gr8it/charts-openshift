@@ -1,0 +1,24 @@
+{{- if .Values.kafkaBridge.oauthProxy.enabled }}
+{{- range $ns, $nsData := .Values.bridgeApps }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $.Release.Name }}-account-access
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "apps-kafka-bridge.labels" $ | nindent 4 }}
+subjects:
+- kind: ServiceAccount
+{{- if $nsData.appSa }}
+  name: {{ $nsData.appSa }}
+{{- else }}
+  name: {{ $.Release.Name }}-account-access
+{{- end }}
+  namespace: {{ $ns }}
+roleRef:
+  kind: Role
+  name: {{ $.Release.Name }}-account-access
+  apiGroup: rbac.authorization.k8s.io
+---
+{{- end }}
+{{- end }}

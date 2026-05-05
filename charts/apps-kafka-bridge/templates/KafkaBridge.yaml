@@ -1,0 +1,40 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaBridge
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "apps-kafka-bridge.labels" . | nindent 4 }}
+spec:
+  bootstrapServers: {{ .Values.kafkaBridge.bootstrapServers | join "," | quote }}
+  replicas: {{ .Values.kafkaBridge.replicas }}
+  tls: 
+    trustedCertificates:
+      - secretName: ck-kafka-brokers-tls
+        certificate: ca.crt
+  authentication:
+    type: scram-sha-512
+    username: {{ .Values.kafkaBridge.user }}
+    passwordSecret:
+      secretName: {{ .Values.kafkaBridge.user }}
+      password: password
+  http:
+    port: {{ .Values.kafkaBridge.httpPort }}
+  consumer:
+    enabled: false
+  producer:
+    config:
+      acks: 1
+      delivery.timeout.ms: {{ .Values.kafkaBridge.producer.deliveriTimeout }}
+  jvmOptions: 
+    "-Xmx": {{ .Values.kafkaBridge.jvmOpts.Xmx | quote }}
+    "-Xms": {{ .Values.kafkaBridge.jvmOpts.Xms | quote }}
+  readinessProbe: 
+    initialDelaySeconds: 15
+    timeoutSeconds: 5
+  livenessProbe:
+    initialDelaySeconds: 15
+    timeoutSeconds: 5
+  enableMetrics: true
+  logging: 
+    type: inline

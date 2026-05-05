@@ -1,0 +1,20 @@
+{{- if .Values.kafkaBridge.oauthProxy.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-oauth-proxy
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    service.alpha.openshift.io/serving-cert-secret-name: {{ .Release.Name }}-oauth-proxy-tls
+  labels:
+    {{- include "apps-kafka-bridge.labels" . | nindent 4 }}
+spec:
+  ports:
+  - name: https
+    port: 443
+    protocol: TCP
+    targetPort: {{ .Values.kafkaBridge.oauthProxy.httpPort }}
+  selector:
+    app: {{ .Release.Name }}-oauth-proxy
+  type: ClusterIP
+{{- end }}

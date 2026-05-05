@@ -1,0 +1,39 @@
+## uses following global values => do not set here
+# global:
+#   apc:
+#     cluster:
+#       appsDomain:
+## and their local overrides
+# cluster.appsDomain:
+
+releaseServiceOverride: ArgoCD
+
+bridgeApps: []
+
+kafkaBridge:
+  bootstrapServers: 
+    - "ck-kafka-kafka-bootstrap.ck-kafka.svc:9093"
+  replicas: 1
+  user: ~
+  httpPort: 8080
+  producer:
+    deliveriTimeout: 300000
+  jvmOpts:
+    "Xmx": "1g"
+    "Xms": "1g"
+
+  oauthProxy:
+    httpPort: 8443
+    enabled: true
+    image:
+      repository: registry.redhat.io/openshift4/ose-oauth-proxy
+      tag: v4.13
+      pullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 20m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+    appSa: ~

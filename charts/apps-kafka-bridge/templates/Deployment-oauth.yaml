@@ -1,0 +1,57 @@
+{{- if .Values.kafkaBridge.oauthProxy.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-oauth-proxy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "apps-kafka-bridge.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-oauth-proxy
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-oauth-proxy
+    spec:
+      serviceAccountName: {{ .Release.Name }}-oauth-proxy
+      containers:
+      - name: oauth-proxy
+        image: {{ .Values.kafkaBridge.oauthProxy.image.repository }}:{{ .Values.kafkaBridge.oauthProxy.image.tag }}
+        imagePullPolicy: {{ .Values.kafkaBridge.oauthProxy.image.pullPolicy }}
+        env:
+        - name: COOKIE_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-oauth-proxy-cookie-secret
+              key: secret
+        args:
+        - --https-address=:{{ .Values.kafkaBridge.oauthProxy.httpPort }}
+        - --tls-cert=/etc/tls/private/tls.crt
+        - --tls-key=/etc/tls/private/tls.key
+        - --provider=openshift
+        - --openshift-service-account={{ .Release.Name }}-oauth-proxy
+        - --upstream=http://{{ .Release.Name }}-bridge-service.{{ .Release.Namespace }}.svc.cluster.local:8080
+        - --cookie-secret=${COOKIE_SECRET}
+        - --openshift-sar={"namespace":"{{ .Release.Namespace }}","resource":"secrets","resourceName":"{{ .Release.Name }}-account-access","verb":"edit"}
+        - --openshift-delegate-urls={"/":{"group":"","resource":"secrets","verb":"edit","namespace":"{{ .Release.Namespace }}","name":"{{ .Release.Name }}-account-access"}}
+        volumeMounts:
+          - mountPath: /etc/tls/private
+            name: kbridge-tls
+        ports:
+        - containerPort: {{ .Values.kafkaBridge.oauthProxy.httpPort }}
+          name: https
+        resources:
+          requests:
+            memory: "{{ .Values.kafkaBridge.oauthProxy.resources.requests.memory }}"
+            cpu: "{{ .Values.kafkaBridge.oauthProxy.resources.requests.cpu }}"
+          limits:
+            memory: "{{ .Values.kafkaBridge.oauthProxy.resources.limits.memory }}"
+            cpu: "{{ .Values.kafkaBridge.oauthProxy.resources.limits.cpu }}"
+      volumes:
+        - name: kbridge-tls
+          secret:
+            secretName: {{ .Release.Name }}-oauth-proxy-tls
+{{- end }}
