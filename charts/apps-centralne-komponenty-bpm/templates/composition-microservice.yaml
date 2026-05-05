@@ -66,6 +66,7 @@ spec:
           ---
           {{`{{- end }}`}}
 
+  {{- if .Values.idpRoleMapper.enabled }}
   - step: microservice-identityprovider-mapper-roles
     functionRef:
       name: crossplane-xr-functions-go-templating
@@ -79,26 +80,86 @@ spec:
           apiVersion: identityprovider.keycloak.m.crossplane.io/v1alpha1
           kind: IdentityProviderMapper
           metadata:
-            name: {{ .Values.identityProviderAlias }}-{{`{{ $.observed.composite.resource.metadata.name }}`}}-{{`{{ $value }}`}}
+            name: {{ .Values.idpRoleMapper.identityProviderAlias }}-{{`{{ $.observed.composite.resource.metadata.name }}`}}-{{`{{ $value }}`}}
             annotations:
               gotemplating.fn.crossplane.io/composition-resource-name: ms-idp-mapper-roles-{{`{{ $value }}`}}
           spec:
             forProvider:
               realm: {{ include "apc-global-overrides.require-keycloakRealm" . }}
-              identityProviderAlias: {{ .Values.identityProviderAlias }}
+              identityProviderAlias: {{ .Values.idpRoleMapper.identityProviderAlias }}
               name: {{`{{ $.observed.composite.resource.metadata.name }}`}} {{`{{ $value }}`}} role mapper
               identityProviderMapper: "oidc-advanced-role-idp-mapper"
               extraConfig:
                 syncMode: "FORCE"
                 are.claim.values.regex: "true"
                 role: "{{`{{ $.observed.composite.resource.metadata.name }}`}}.{{`{{ $value }}`}}"
-                claims: '[{"key": "groups", "value": "{{ tpl .Values.groupMatchingRegex . }} "}]'
+                claims: '[{"key": "groups", "value": "{{ tpl .Values.idpRoleMapper.groupMatchingRegex . }} "}]'
 
             providerConfigRef:
               name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
               kind: ClusterProviderConfig
           ---
           {{`{{- end }}`}}
+  {{- end }}
+
+  {{- if .Values.groupRoleMapping.enabled }}
+  - step: microservice-groups
+    functionRef:
+      name: crossplane-xr-functions-go-templating
+    input:
+      apiVersion: gotemplating.fn.crossplane.io/v1beta1
+      kind: GoTemplate
+      source: Inline
+      inline:
+        template: |
+          {{`{{- range $value := .observed.composite.resource.spec.roles }}`}}
+          apiVersion: group.keycloak.m.crossplane.io/v1alpha1
+          kind: Group
+          metadata:
+            name: {{`{{ $.observed.composite.resource.metadata.name }}`}}-{{`{{ $value }}`}}
+            annotations:
+              gotemplating.fn.crossplane.io/composition-resource-name: ms-groups-{{`{{ $value }}`}}
+          spec:
+            managementPolicies: ["Observe"]
+            forProvider:
+              realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
+              name: {{ tpl .Values.groupRoleMapping.groupTpl . }}
+            providerConfigRef:
+              name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
+              kind: ClusterProviderConfig
+          ---
+          {{`{{- end }}`}}
+
+  - step: microservice-group-roles
+    functionRef:
+      name: crossplane-xr-functions-go-templating
+    input:
+      apiVersion: gotemplating.fn.crossplane.io/v1beta1
+      kind: GoTemplate
+      source: Inline
+      inline:
+        template: |
+          {{`{{- range $value := .observed.composite.resource.spec.roles }}`}}
+          apiVersion: group.keycloak.m.crossplane.io/v1alpha1
+          kind: Roles
+          metadata:
+            name: {{`{{ $.observed.composite.resource.metadata.name }}`}}-{{`{{ $value }}`}}
+            annotations:
+              gotemplating.fn.crossplane.io/composition-resource-name: ms-group-roles-{{`{{ $value }}`}}
+          spec:
+            forProvider:
+              exhaustive: false
+              realmId: {{ include "apc-global-overrides.require-keycloakRealm" . }}
+              groupIdRef:
+                name: {{`{{ $.observed.composite.resource.metadata.name }}`}}-{{`{{ $value }}`}}
+              roleIdsRefs:
+              - name: {{`{{ $.observed.composite.resource.metadata.name }}`}}-{{`{{ $value }}`}}
+            providerConfigRef:
+              name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" . }}
+              kind: ClusterProviderConfig
+          ---
+          {{`{{- end }}`}}
+  {{- end }}
 
   - step: microservice-admin-client
     functionRef:
