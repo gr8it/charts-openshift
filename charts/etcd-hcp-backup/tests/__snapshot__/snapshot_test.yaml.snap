@@ -63,6 +63,12 @@ manifests should match snapshot:
                     requests:
                       cpu: 50m
                       memory: 100Mi
+                  securityContext:
+                    allowPrivilegeEscalation: false
+                    capabilities:
+                      drop:
+                        - ALL
+                    readOnlyRootFilesystem: true
                   volumeMounts:
                     - mountPath: /backup
                       name: workdir
@@ -74,6 +80,8 @@ manifests should match snapshot:
                       name: s3ca
                       readOnly: true
                       subPath: service-ca.crt
+                    - mountPath: /tmp
+                      name: tmp
               initContainers:
                 - command:
                     - /bin/bash
@@ -91,6 +99,11 @@ manifests should match snapshot:
                           name: etcd-hcp-backup-hub01-scripts
                   image: registry.redhat.io/openshift4/ose-cli:v4.15
                   name: init
+                  securityContext:
+                    allowPrivilegeEscalation: false
+                    capabilities:
+                      drop:
+                        - ALL
                   volumeMounts:
                     - mountPath: /backup
                       name: workdir
@@ -119,6 +132,11 @@ manifests should match snapshot:
                           name: etcd-hcp-backup-hub01-scripts
                   image: registry.redhat.io/openshift4/ose-etcd:v4.12
                   name: snapshot
+                  securityContext:
+                    allowPrivilegeEscalation: false
+                    capabilities:
+                      drop:
+                        - ALL
                   volumeMounts:
                     - mountPath: /backup
                       name: workdir
@@ -139,6 +157,8 @@ manifests should match snapshot:
                 - configMap:
                     name: openshift-service-ca.crt
                   name: s3ca
+                - emptyDir: {}
+                  name: tmp
       schedule: 0 * * * *
       successfulJobsHistoryLimit: 7
       suspend: false
@@ -348,7 +368,7 @@ manifests should match snapshot:
 
         if ! RETENTION_DATE=$( date -u --date="${RETENTION} days ago" +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/shm/out.err ); then
           log_messagef /dev/shm/out.err
-          log_message "ERROR: Faield to set a retention date"
+          log_message "ERROR: Failed to set a retention date"
           exit 1
         fi
 
@@ -363,7 +383,7 @@ manifests should match snapshot:
           exit 0
         fi
 
-        log_message "Removing obejcts older than $RETENTION days:"
+        log_message "Removing objects older than $RETENTION days:"
         if ! aws s3api delete-objects --bucket $BUCKET_NAME --delete file:///backup/delete.json --output text >/dev/shm/out 2>&1; then
           log_messagef /dev/shm/out
           log_message "ERROR: Failed to remove objects."

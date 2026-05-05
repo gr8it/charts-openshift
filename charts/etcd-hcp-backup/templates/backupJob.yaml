@@ -28,6 +28,11 @@ spec:
           - name: init
             image: {{ .Values.image.ocpcli }}
             command: ["/bin/bash", "/usr/local/bin/init.sh"]
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
             volumeMounts:
             - name: workdir
               mountPath: /backup
@@ -49,6 +54,11 @@ spec:
           - name: snapshot
             image: {{ .Values.image.etcd }}
             command: ["/bin/bash", "/usr/local/bin/etcdsnap.sh"]
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
             volumeMounts:
             - name: workdir
               mountPath: /backup
@@ -76,6 +86,12 @@ spec:
           - name: s3backup
             image: {{ .Values.image.awscli }}
             command: ["/bin/bash", "/usr/local/bin/s3upload.sh"]
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                - ALL
             volumeMounts:
             - name: workdir
               mountPath: /backup
@@ -83,12 +99,12 @@ spec:
               mountPath: /usr/local/bin/s3upload.sh
               subPath: s3upload.sh
               readOnly: true
-            {{- if and (hasKey .Values "selfSignedCertificate") (hasKey .Values.selfSignedCertificate "name") (hasKey .Values.selfSignedCertificate "key") }}
             - name: s3ca
               mountPath: /etc/ssl/certs/s3ca.crt
-              subPath: {{ .Values.selfSignedCertificate.key }}
+              subPath: service-ca.crt
               readOnly: true
-            {{- end }}
+            - name: tmp
+              mountPath: /tmp
             env:
             - name: RETENTION
               valueFrom:
@@ -100,10 +116,8 @@ spec:
                 configMapKeyRef:
                   name: {{ include "etcd-hcp-backup.fullname" . }}-scripts
                   key: env.fileprefix
-            {{- if and (hasKey .Values "selfSignedCertificate") (hasKey .Values.selfSignedCertificate "name") (hasKey .Values.selfSignedCertificate "key") }}
             - name: AWS_CA_BUNDLE
               value: "/etc/ssl/certs/s3ca.crt"
-            {{- end }}
             envFrom:
             - secretRef:
                 name: {{ include "etcd-hcp-backup.obcName" . }}
@@ -124,8 +138,8 @@ spec:
             configMap:
               name: {{template "etcd-hcp-backup.fullname" . }}-scripts
               defaultMode: 0555
-          {{- if and (hasKey .Values "selfSignedCertificate") (hasKey .Values.selfSignedCertificate "name") }}
           - name: s3ca
             configMap:
-              name: {{ .Values.selfSignedCertificate.name }}
-          {{- end }}
+              name: openshift-service-ca.crt
+          - name: tmp
+            emptyDir: {}
