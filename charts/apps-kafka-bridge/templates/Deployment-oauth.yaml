@@ -7,7 +7,7 @@ metadata:
   labels:
     {{- include "apps-kafka-bridge.labels" . | nindent 4 }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.kafkaBridge.oauthProxy.replicas }}
   selector:
     matchLabels:
       app: {{ .Release.Name }}-oauth-proxy
@@ -28,21 +28,17 @@ spec:
               name: {{ .Release.Name }}-oauth-proxy-cookie-secret
               key: secret
         args:
-        - --https-address=:{{ .Values.kafkaBridge.oauthProxy.httpPort }}
-        - --tls-cert=/etc/tls/private/tls.crt
-        - --tls-key=/etc/tls/private/tls.key
+        - --http-address=:{{ .Values.kafkaBridge.oauthProxy.httpPort }}
+        - --https-address=
         - --provider=openshift
         - --openshift-service-account={{ .Release.Name }}-oauth-proxy
         - --upstream=http://{{ .Release.Name }}-bridge-service.{{ .Release.Namespace }}.svc.cluster.local:8080
         - --cookie-secret=${COOKIE_SECRET}
         - --openshift-sar={"namespace":"{{ .Release.Namespace }}","resource":"secrets","resourceName":"{{ .Release.Name }}-account-access","verb":"edit"}
         - --openshift-delegate-urls={"/":{"group":"","resource":"secrets","verb":"edit","namespace":"{{ .Release.Namespace }}","name":"{{ .Release.Name }}-account-access"}}
-        volumeMounts:
-          - mountPath: /etc/tls/private
-            name: kbridge-tls
         ports:
         - containerPort: {{ .Values.kafkaBridge.oauthProxy.httpPort }}
-          name: https
+          name: http
         resources:
           requests:
             memory: "{{ .Values.kafkaBridge.oauthProxy.resources.requests.memory }}"
@@ -50,8 +46,4 @@ spec:
           limits:
             memory: "{{ .Values.kafkaBridge.oauthProxy.resources.limits.memory }}"
             cpu: "{{ .Values.kafkaBridge.oauthProxy.resources.limits.cpu }}"
-      volumes:
-        - name: kbridge-tls
-          secret:
-            secretName: {{ .Release.Name }}-oauth-proxy-tls
 {{- end }}

@@ -9,7 +9,7 @@ Actual implementation is serving one customer/project support ( 1:1 - project:br
 APC implementation details:
 
 - deploys in ck-kafka namespace
-- communication to k8s service of oauth-proxy pod on HTTPS
+- communication to openshift route via HTTPS
 - if application SA is not specified the ```apps-kafka-bridge-<app-ns>-account-access``` SA is used for autentification  
 - CA for HTTPS is in ca-cert-bundle secret under key ca-bundle.crt
 
@@ -29,7 +29,7 @@ Example component configuration:
 bridgeApps:
   ekp:
     networkPolicy:
-      enabled: true
+      enabled: false
     appSa: ~
 kafkaBridge:
   user: ekp
