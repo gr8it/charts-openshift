@@ -14,9 +14,9 @@ spec:
         certificate: ca.crt
   authentication:
     type: scram-sha-512
-    username: {{ .Values.kafkaBridge.user }}
+    username: {{ .Values.kafkaBridge.user | required "kafkaBridge.user is required" }}
     passwordSecret:
-      secretName: {{ .Values.kafkaBridge.user }}
+      secretName: {{ .Values.kafkaBridge.user | required "kafkaBridge.user is required" }}
       password: password
   http:
     port: {{ .Values.kafkaBridge.httpPort }}
