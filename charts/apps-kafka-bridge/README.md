@@ -1,6 +1,6 @@
 # Kafka Bridge
 
-This helm chart deploys [Kafka Bridges](https://strimzi.io/docs/bridge/latest/) which serves as a HTTP Bridge to make HTTP requests to a Kafka cluster. The kafka bridge itself is accessible via the HTTPS endpoint with authentication support via the oauth-proxy supporting Openshift authentification.  
+This helm chart deploys [Kafka Bridges](https://strimzi.io/docs/bridge/latest/) which serves as a HTTP Bridge to make HTTP requests to a Kafka cluster. The kafka bridge itself is accessible via the HTTPS endpoint with authentication support via the oauth-proxy supporting Openshift authentication.  
 
 ## APC Implementation
 
@@ -10,7 +10,7 @@ APC implementation details:
 
 - deploys in ck-kafka namespace
 - communication to openshift route via HTTPS
-- if application SA is not specified the ```apps-kafka-bridge-<app-ns>-account-access``` SA is used for autentification  
+- if application SA is not specified the ```apps-kafka-bridge-<app-ns>-account-access``` SA is used for authentication  
 - CA for HTTPS is in ca-cert-bundle secret under key ca-bundle.crt
 
 ## Configuration
@@ -20,7 +20,7 @@ For actual implementation minimal configuration is required in component values.
 Component values:
 
 - ```bridgeApps```: list of namespaces from which the kafka bridge is accessed, in actual implementation only one
-- ```bridgeApps.<app-ns>.appSa```: application serviceaccount, if specified the SA is used to generate the SA token used for openshift autentification
+- ```bridgeApps.<app-ns>.appSa```: application serviceaccount, if specified the SA is used to generate the SA token used for openshift authentication
 - ```kafkaBridge.user```: user used for cummunication from kafka bridge to kafta cluster
 
 Example component configuration:
@@ -42,13 +42,13 @@ Default values:
 
 ## Usage
 
-- create SA token for autentification  
+- create SA token for authentication  
 ```oc create token apps-kafka-bridge-ekp-account-access -n ekp```
 - [long-lived token](https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/#create-token) can be used, but if application SA is used [provisioned volume](https://kubernetes.io/docs/concepts/storage/projected-volumes/#serviceaccounttoken) with token can be used
 - send message to topic
 ```bash
 curl -vv --cacert /tmp/ca.crt -H "Authorization: Bearer <TOKEN" \
--X POST  https://apps-kafka-bridge-ekp-oauth-proxy.ck-kafka.svc.cluster.local/topics/socpoist.sp.bpm.evt.case-state.v1 \
+-X POST  https://apps-kafka-bridge-ekp.apps.test01.cloud.socpoist.sk/topics/socpoist.sp.bpm.evt.case-state.v1 \
   -H "Content-Type: application/vnd.kafka.json.v2+json" \
   -d '{
     "records":[
