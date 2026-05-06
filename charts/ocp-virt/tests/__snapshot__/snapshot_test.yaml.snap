@@ -35,13 +35,13 @@ manifests should match snapshot:
           "cniVersion": "0.3.1",
           "name": "vmlm",
           "type": "macvlan",
-          "master": "bond1.3079",
+          "master": "bond1.4079",
           "mode": "bridge",
           "ipam": {
             "type": "whereabouts",
-            "range": "10.13.79.0/25",
-            "range_start": "10.13.79.10",
-            "range_end": "10.13.79.126"
+            "range": "10.14.79.0/25",
+            "range_start": "10.14.79.10",
+            "range_end": "10.14.79.126"
           }
         }
   3: |
@@ -63,15 +63,15 @@ manifests should match snapshot:
     apiVersion: k8s.cni.cncf.io/v1
     kind: NetworkAttachmentDefinition
     metadata:
-      name: vm-br-3076
+      name: vm-br-4076
       namespace: openshift-cnv
     spec:
       config: |-
         {
           "cniVersion": "0.3.1",
-          "name": "vm-br-3076",
+          "name": "vm-br-4076",
           "type": "cnv-bridge",
-          "bridge": "br-3076",
+          "bridge": "br-4076",
           "disableContainerInterface": true
         }
   5: |
@@ -120,36 +120,36 @@ manifests should match snapshot:
             ipv6:
               dhcp: false
               enabled: false
-            name: bond1.3076
+            name: bond1.4076
             state: up
             type: vlan
             vlan:
               base-iface: bond1
-              id: 3076
+              id: 4076
           - ipv4:
               dhcp: false
               enabled: false
             ipv6:
               dhcp: false
               enabled: false
-            name: bond1.3078
+            name: bond1.4078
             state: up
             type: vlan
             vlan:
               base-iface: bond1
-              id: 3078
+              id: 4078
           - ipv4:
               dhcp: false
               enabled: false
             ipv6:
               dhcp: false
               enabled: false
-            name: bond1.3079
+            name: bond1.4079
             state: up
             type: vlan
             vlan:
               base-iface: bond1
-              id: 3079
+              id: 4079
           - ipv4:
               dhcp: false
               enabled: false
@@ -194,14 +194,14 @@ manifests should match snapshot:
                 stp:
                   enabled: false
               port:
-                - name: bond1.3076
+                - name: bond1.4076
             ipv4:
               dhcp: false
               enabled: false
             ipv6:
               dhcp: false
               enabled: false
-            name: br-3076
+            name: br-4076
             state: up
             type: linux-bridge
           - bridge:

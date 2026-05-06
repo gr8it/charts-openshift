@@ -1,3 +1,4 @@
+{{- if .Values.nncp.enabled }}
 apiVersion: nmstate.io/v1
 kind: NodeNetworkConfigurationPolicy
 metadata:
@@ -12,12 +13,12 @@ spec:
         state: up
         type: bond
         link-aggregation:
-          mode: {{ .Values.bond.mode }}
+          mode: {{ .Values.nncp.bond.mode }}
           options:
-            miimon: {{ .Values.bond.miimon | quote }}
-            xmit_hash_policy: {{ .Values.bond.xmitHashPolicy }}
+            miimon: {{ .Values.nncp.bond.miimon | quote }}
+            xmit_hash_policy: {{ .Values.nncp.bond.xmitHashPolicy }}
           port:
-            {{- range .Values.bond.ports }}
+            {{- range .Values.nncp.bond.ports }}
             - {{ . }}
             {{- end }}
         ipv4:
@@ -27,7 +28,7 @@ spec:
           dhcp: false
           enabled: false
       # VLANs
-      {{- range .Values.vlans }}
+      {{- range .Values.nncp.vlans }}
       - name: {{ .name }}
         state: up
         type: vlan
@@ -42,7 +43,7 @@ spec:
           enabled: false
       {{- end }}
       # Bridges
-      {{- range .Values.bridges }}
+      {{- range .Values.nncp.bridges }}
       - name: {{ .name }}
         state: up
         type: linux-bridge
@@ -59,3 +60,4 @@ spec:
           dhcp: false
           enabled: false
       {{- end }}
+{{- end }}

@@ -1,7 +1,3 @@
-nameOverride: ""
-fullnameOverride: ""
-
-# NodeNetworkConfigurationPolicy - bond/VLAN/bridge host network setup via NMState
 nncp:
   enabled: true
   bond:
@@ -30,19 +26,14 @@ nncp:
     - name: br-8
       vlan: bond1.8
 
-# NetworkAttachmentDefinition settings
 cni:
   namespace: openshift-cnv
-
-  # Macvlan network used for live migration traffic
   vmlm:
     name: vmlm
     masterInterface: bond1.4079
     ipamRange: "10.14.79.0/25"
     ipamRangeStart: "10.14.79.10"
     ipamRangeEnd: "10.14.79.126"
-
-  # CNV bridge networks for VM connectivity
   bridges:
     - name: vm-br-1026
       bridge: br-1026
@@ -51,7 +42,6 @@ cni:
     - name: vm-br-8
       bridge: br-8
 
-# HyperConverged (KubeVirt) configuration
 hyperConverged:
   namespace: openshift-cnv
   virtualMachineOptions:
