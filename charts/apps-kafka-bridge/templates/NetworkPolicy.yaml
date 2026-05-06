@@ -1,9 +1,9 @@
 {{- range $ns, $nsData := .Values.bridgeApps }}
-{{- if $nsData.networkPolicy.enabled }}
+{{- if and $nsData.networkPolicy $nsData.networkPolicy.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ $.Release.Name }}
+  name: {{ $.Release.Name }}-{{ $ns }}
   namespace: {{ $.Release.Namespace }}
   labels:
     {{- include "apps-kafka-bridge.labels" $ | nindent 4 }}

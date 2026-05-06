@@ -32,7 +32,7 @@ spec:
         - --https-address=
         - --provider=openshift
         - --openshift-service-account={{ .Release.Name }}-oauth-proxy
-        - --upstream=http://{{ .Release.Name }}-bridge-service.{{ .Release.Namespace }}.svc.cluster.local:8080
+        - --upstream=http://{{ .Release.Name }}-bridge-service.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.kafkaBridge.httpPort }}
         - --cookie-secret=${COOKIE_SECRET}
         - --openshift-sar={"namespace":"{{ .Release.Namespace }}","resource":"secrets","resourceName":"{{ .Release.Name }}-account-access","verb":"edit"}
         - --openshift-delegate-urls={"/":{"group":"","resource":"secrets","verb":"edit","namespace":"{{ .Release.Namespace }}","name":"{{ .Release.Name }}-account-access"}}

@@ -4,7 +4,7 @@ This helm chart deploys [Kafka Bridges](https://strimzi.io/docs/bridge/latest/) 
 
 ## APC Implementation
 
-Actual implementation is serving one customer/project support ( 1:1 - project:bridge), hovewer the chart is prepared for scenario where one Kafka Bridge can serve for multiple projects.  
+Actual implementation is serving one customer/project support ( 1:1 - project:bridge), however the chart is prepared for scenario where one Kafka Bridge can serve for multiple projects.  
 
 APC implementation details:
 
