@@ -2,8 +2,6 @@
 
 This helm chart can adjust specific configuration in application namespace. At the moment the resource quotas and default limits are managed. The quotas are craeted by Kyverno policies defined in [kyverno-app-project](../kyverno-app-project/). The quotas are set but synchronization is disabled, if the quotas have to be adjusted for specific application needs, it can be done via this helm chart.  
 
-To patch the resources via the ArgoCD the [Server-Side Apply operation](https://argo-cd.readthedocs.io/en/latest/user-guide/sync-options/#server-side-apply) is used, which brings the possibility to patch an existing resources on the cluster that are not fully managed by Argo CD. This approach as well reflects the changes done manually and ArgoCD is correctly showing the drifts.  
-
 ## Configuration  
 
 Via this helm chart it is possible to update following k8s objects:
@@ -27,6 +25,12 @@ limitRange:
       defaultLimits:
         <resource>: <limit>
       defaultRequests:
+        <resource>: <request>
+      min:
+        <resource>: <request>
+      max:
+        <resource>: <request>
+      maxLimitRequestRatio:
         <resource>: <request>
 ```
 

@@ -29,3 +29,9 @@ limitRange:
       defaultRequests:
         "cpu": "50m"
         "memory": "50Mi"
+  anotherns:
+    default-limit-range:
+      min:
+        "cpu": "20m"
+        "ephemeral-storage": "1Mi"
+        "memory": "20Mi"
