@@ -8,7 +8,17 @@
 
 releaseServiceOverride: ArgoCD
 
-bridgeApps: {}
+bridgeNS: {}
+
+# list of namespaces which want to use the kafka bridge
+# bridgeNS:
+#   <namespace>:
+##    create networkpolicy to allow connection from the namespace if application is communicating to the bridge service
+#     networkPolicy:
+#       enabled: false
+##    serivce account of application, will be used authentication to the bridge service if oauth proxy is enabled
+#     appSa: ~
+
 
 kafkaBridge:
   bootstrapServers: 
@@ -23,7 +33,7 @@ kafkaBridge:
     "Xms": "1g"
 
   oauthProxy:
-    replicas: 1
+    replicas: 2
     httpPort: 8080
     enabled: true
     image:
@@ -37,4 +47,13 @@ kafkaBridge:
       limits:
         cpu: 100m
         memory: 256Mi
-    appSa: ~
+    livenessProbe:
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 1
+      failureThreshold: 3
+    readinessProbe:
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 3 
+      failureThreshold: 3

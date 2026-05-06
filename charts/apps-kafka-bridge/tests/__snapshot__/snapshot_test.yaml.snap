@@ -31,7 +31,7 @@ manifests should match snapshot:
       name: apps-kafka-bridge-oauth-proxy
       namespace: NAMESPACE
     spec:
-      replicas: 1
+      replicas: 2
       selector:
         matchLabels:
           app: apps-kafka-bridge-oauth-proxy
@@ -42,6 +42,8 @@ manifests should match snapshot:
         spec:
           containers:
             - args:
+                - --skip-auth-regex=^/ready$
+                - --skip-auth-regex=^/oauth/healthz$
                 - --http-address=:8080
                 - --https-address=
                 - --provider=openshift
@@ -58,10 +60,26 @@ manifests should match snapshot:
                       name: apps-kafka-bridge-oauth-proxy-cookie-secret
               image: registry.redhat.io/openshift4/ose-oauth-proxy:v4.13
               imagePullPolicy: IfNotPresent
+              livenessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /oauth/healthz
+                  port: 8080
+                initialDelaySeconds: 5
+                periodSeconds: 10
+                timeoutSeconds: 1
               name: oauth-proxy
               ports:
                 - containerPort: 8080
                   name: http
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /ready
+                  port: 8080
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                timeoutSeconds: 3
               resources:
                 limits:
                   cpu: 100m

@@ -28,6 +28,8 @@ spec:
               name: {{ .Release.Name }}-oauth-proxy-cookie-secret
               key: secret
         args:
+        - --skip-auth-regex=^/ready$
+        - --skip-auth-regex=^/oauth/healthz$
         - --http-address=:{{ .Values.kafkaBridge.oauthProxy.httpPort }}
         - --https-address=
         - --provider=openshift
@@ -46,4 +48,20 @@ spec:
           limits:
             memory: "{{ .Values.kafkaBridge.oauthProxy.resources.limits.memory }}"
             cpu: "{{ .Values.kafkaBridge.oauthProxy.resources.limits.cpu }}"
+        livenessProbe:
+          httpGet:
+            path: /oauth/healthz
+            port: {{ .Values.kafkaBridge.oauthProxy.httpPort }}
+          initialDelaySeconds: {{ .Values.kafkaBridge.oauthProxy.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.kafkaBridge.oauthProxy.livenessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.kafkaBridge.oauthProxy.livenessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.kafkaBridge.oauthProxy.livenessProbe.failureThreshold }}
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: {{ .Values.kafkaBridge.oauthProxy.httpPort }}
+          initialDelaySeconds: {{ .Values.kafkaBridge.oauthProxy.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.kafkaBridge.oauthProxy.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.kafkaBridge.oauthProxy.readinessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.kafkaBridge.oauthProxy.readinessProbe.failureThreshold }}
 {{- end }}
