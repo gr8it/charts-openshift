@@ -43,9 +43,12 @@ Default values:
 ## Usage
 
 - create SA token for authentication  
+
 ```oc create token apps-kafka-bridge-ekp-account-access -n ekp```
+ 
 - [long-lived token](https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/#create-token) can be used, but if application SA is used [provisioned volume](https://kubernetes.io/docs/concepts/storage/projected-volumes/#serviceaccounttoken) with token can be used
 - send message to topic
+
 ```bash
 curl -vv --cacert /tmp/ca.crt -H "Authorization: Bearer <TOKEN" \
 -X POST  https://apps-kafka-bridge-ekp.apps.test01.cloud.socpoist.sk/topics/socpoist.sp.bpm.evt.case-state.v1 \
@@ -55,7 +58,6 @@ curl -vv --cacert /tmp/ca.crt -H "Authorization: Bearer <TOKEN" \
       {"value":{"test":"testing tls with auth"}}
     ]
   }'
-```
 
 ## Note on future updates
 
