@@ -12,11 +12,32 @@ metadata:
   namespace: {{ $namespace }}
 spec:
   limits:
-  - default:
-{{ $limitRangeData.defaultLimits | toYaml | indent 6 }}
-    defaultRequest:  
-{{ $limitRangeData.defaultRequests | toYaml | indent 6 }}
-    type: Container
+  - type: {{ $limitRangeData.type | default "Container" }}
+    {{- if $limitRangeData.defaultLimits }}
+    default:
+      {{- $limitRangeData.defaultLimits | toYaml | nindent 6 }}
+    {{- end }}
+
+    {{- if $limitRangeData.defaultRequests }}
+    defaultRequest:
+      {{- $limitRangeData.defaultRequests | toYaml | nindent 6 }}
+    {{- end }}
+
+    {{- if $limitRangeData.min }}
+    min:
+      {{- $limitRangeData.min | toYaml | nindent 6 }}
+    {{- end }}
+
+    {{- if $limitRangeData.max }}
+    max:
+      {{- $limitRangeData.max | toYaml | nindent 6 }}
+    {{- end }}
+
+    {{- if $limitRangeData.maxLimitRequestRatio }}
+    maxLimitRequestRatio:
+      {{- $limitRangeData.maxLimitRequestRatio | toYaml | nindent 6 }}
+    {{- end }}
+---
 {{- end }}
 {{- end }}
 {{- end }}
