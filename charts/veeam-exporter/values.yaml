@@ -1,0 +1,16 @@
+# Grafana dashboard for Veeam Backup & Replication v12
+dashboard:
+  instanceSelector:
+    matchLabels:
+      dashboards: apc-grafana
+  datasource:
+    name: prometheus
+    inputName: DS_OPENSHIFT_PROMETHEUS
+
+# CONFIG.ps1 for the Windows Veeam Prometheus exporter
+# https://github.com/gr8it/veeam-prometheus-exporter
+# Stored as a ConfigMap for GitOps reference; copy to C:\Scripts\CONFIG.ps1 on Veeam server
+exporterConfig:
+  group: bkp01
+  pushgatewayUrl: ""
+  jobRunVisualizationWindowSeconds: 1800
