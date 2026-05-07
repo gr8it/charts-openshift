@@ -3,7 +3,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-from-cluster-observability-operator
-  namespace: apc-observability
+  namespace: {{ .Release.Namespace }}
   labels:
 {{- include "tempo-stack.labels" . | nindent 4 }}
 spec:

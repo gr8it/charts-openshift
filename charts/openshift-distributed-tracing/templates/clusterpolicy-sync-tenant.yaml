@@ -3,7 +3,7 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: sync-tempostack-tenants
+  name: {{ default "apc-tempo-stack" .Values.tempoStack.name }}-sync-tenants
   annotations:
     argocd.argoproj.io/sync-options: Replace=true
     policies.kyverno.io/title: Update TempoStack tenants on namespace create
@@ -18,21 +18,12 @@ spec:
     - name: add-tenant-to-tempostack
       match:
         any:
-          - resources:
-              kinds:
-                - Namespace
-      exclude:
-        any:
-          - resources:
-              namespaces:
-                - "kube-*"
-                - "kyverno"
-                - "openshift-*"
-      preconditions:
-        all:
-          - key: {{`"{{ request.object.metadata.labels.\"apc.namespace.test\" }}"`}}
-            operator: Equals
-            value: application
+        - resources:
+            kinds:
+            - argoproj.io/*/Application
+            namespaceSelector:
+              matchLabels:
+                apc.namespace.type: application
       mutate:
         targets:
           - apiVersion: tempo.grafana.com/v1alpha1

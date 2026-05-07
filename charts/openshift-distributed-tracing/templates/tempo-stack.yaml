@@ -4,7 +4,7 @@ apiVersion: tempo.grafana.com/v1alpha1
 kind: TempoStack
 metadata:
   name: {{ default "apc-tempo-stack" $tempo.name | quote }}
-  namespace: {{ default .Release.Namespace $tempo.namespace | quote }}
+  namespace: {{ .Release.Namespace }}
   labels:
 {{- include "tempo-stack.labels" . | nindent 4 }}
 spec:
@@ -15,8 +15,8 @@ spec:
   storageSize: {{ default "200Mi" $tempo.storageSize | quote }}
   storage:
     secret:
-      name: {{ default "apc-tempo-stack-allinfo" $tempo.storage.secret.name | quote }}
-      type: {{ default "s3" $tempo.storage.secret.type | quote }}
+      name: {{ printf "%s-allinfo" (default "apc-tempo-stack" $tempo.name) | quote }}
+      type: {{ default "s3" $tempo.objectBucket.type | quote }}
     tls:
       enabled: {{ default true $tempo.storage.tls.enabled }}
       caName: {{ default "openshift-service-ca.crt" $tempo.storage.tls.caName | quote }}
