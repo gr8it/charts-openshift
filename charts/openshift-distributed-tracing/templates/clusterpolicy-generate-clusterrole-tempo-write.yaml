@@ -3,10 +3,10 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: generate-tempostack-tenant-clusterrole
+  name: {{ default "apc-tempo-stack" .Values.tempoStack.name }}-generate-tenant-clusterrole-read
   annotations:
     argocd.argoproj.io/sync-options: Replace=true
-    policies.kyverno.io/title: Generate ClusterRoles for TempoStack tenants on namespace create
+    policies.kyverno.io/title: Generate ClusterRoles to read  TempoStack tenants for  namespace
     policies.kyverno.io/category: gitops
     policies.kyverno.io/subject: Generate ClusterRoles for application namespaces
     policies.kyverno.io/minversion: 1.13.0
@@ -15,33 +15,27 @@ metadata:
 spec:
   generateExistingOnPolicyUpdate: true
   rules:
-    - name: generate-clusterrole-for-application-namespace
+    - name: generate-writer-clusterrole-for-application-namespace
       match:
         any:
-          - resources:
-              kinds:
-                - Namespace
-      exclude:
-        any:
-          - resources:
-              namespaces:
-                - "kube-*"
-                - "kyverno"
-                - "openshift-*"
-      preconditions:
-        all:
-          - key: {{`"{{ request.object.metadata.labels.\"apc.namespace.test\" }}"`}}
-            operator: Equals
-            value: application
+        - resources:
+            kinds:
+            - argoproj.io/*/Application
+            namespaceSelector:
+              matchLabels:
+                apc.namespace.type: application
       generate:
         apiVersion: rbac.authorization.k8s.io/v1
         kind: ClusterRole
-        name: "tempo-reader-{{`{{request.object.metadata.name}}`}}"
+        name: {{ default "apc-tempo-stack" .Values.tempoStack.name }}-writer-{{`{{request.object.metadata.name}}`}}"
         synchronize: true
         data:
           metadata:
             labels:
-              generated-by: generate-tempostack-tenant-clusterrole
+              generated-by: generate-writer-clusterrole-for-application-namespace
+              {{- if .Values.otelCollector.role.aggregation.enabled }}
+              {{ .Values.otelCollector.role.aggregation.clusterRoleName }}: "true"
+              {{- end }}
           rules:
             - apiGroups:
                 - tempo.grafana.com
@@ -50,4 +44,4 @@ spec:
               resourceNames:
                 - traces
               verbs:
-                - get
+                - 'create'

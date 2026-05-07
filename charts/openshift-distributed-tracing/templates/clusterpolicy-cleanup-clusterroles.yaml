@@ -15,13 +15,19 @@ metadata:
 spec:
   schedule: "0 0 */1 * *"
   match:
-    all:
+    any:
       - resources:
           kinds:
             - ClusterRole
           selector:
             matchLabels:
-              generated-by: generate-tempostack-tenant-clusterrole
+              generated-by: generate-reader-tempo-stack-tenant-clusterrole
+      - resources:
+          kinds:
+            - ClusterRole
+          selector:
+            matchLabels:
+              generated-by: generate-writer-tempo-stack-tenant-clusterrole
   context:
     - name: appNamespaces
       apiCall:

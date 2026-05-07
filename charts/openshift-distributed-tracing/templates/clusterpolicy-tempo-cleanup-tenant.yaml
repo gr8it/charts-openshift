@@ -3,7 +3,7 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: {{ default "apc-tempo-stack" .Values.tempoStack.name }}-cleanup-tenants
+  name: {{ default "apc-tempo-stack" .Values.tempoStack.name }}-tempo-cleanup-tenants
   annotations:
     argocd.argoproj.io/sync-options: Replace=true
     policies.kyverno.io/title: Update TempoStack tenants on namespace delete

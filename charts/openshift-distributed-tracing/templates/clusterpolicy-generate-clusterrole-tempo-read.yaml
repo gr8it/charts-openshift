@@ -1,0 +1,48 @@
+---
+# TESTING apc.namespace.test - change occurence to apc.namespace.type. This is only for testing of the kyverno clusterpolicy
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: {{ default "apc-tempo-stack" .Values.tempoStack.name }}-generate-tenant-clusterrole-read
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
+    policies.kyverno.io/title: Generate ClusterRoles to read  TempoStack tenants for  namespace
+    policies.kyverno.io/category: gitops
+    policies.kyverno.io/subject: Generate ClusterRoles for application namespaces
+    policies.kyverno.io/minversion: 1.13.0
+  labels:
+{{- include "tempo-stack.labels" . | nindent 4 }}
+spec:
+  generateExistingOnPolicyUpdate: true
+  rules:
+    - name: generate-reader-clusterrole-for-application-namespace
+      match:
+        any:
+        - resources:
+            kinds:
+            - argoproj.io/*/Application
+            namespaceSelector:
+              matchLabels:
+                apc.namespace.type: application
+      generate:
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: ClusterRole
+        name: {{ default "apc-tempo-stack" .Values.tempoStack.name }}-reader-{{`{{request.object.metadata.name}}`}}
+        synchronize: true
+        data:
+          metadata:
+            labels:
+              rbac.authorization.k8s.io/aggregate-to-apc-project-admin: "true"
+              rbac.authorization.k8s.io/aggregate-to-apc-project-developer: "true"
+              rbac.authorization.k8s.io/aggregate-to-apc-project-tester: "true"
+              rbac.authorization.k8s.io/aggregate-to-apc-project-operator: "true"
+              generated-by: generate-reader-clusterrole-for-application-namespace
+            rules:
+            - apiGroups:
+                - tempo.grafana.com
+              resources:
+                - {{`"{{request.object.metadata.name}}"`}}
+              resourceNames:
+                - traces
+              verbs:
+                - get
