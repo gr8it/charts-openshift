@@ -81,7 +81,7 @@ spec:
         # Alert on KRaft controller quorum issues
         - alert: KafkaKRaftQuorumUnhealthy
           expr: |
-            kafka_controller_kafkacontroller_activecontrollercount != 1
+            sum(kafka_controller_kafkacontroller_activecontrollercount) by (strimzi_io_name, namespace) != 1
           for: 2m
           labels:
             # severity: critical
@@ -91,6 +91,10 @@ spec:
           annotations:
             summary: "KRaft quorum is unhealthy"
             description: "KRaft quorum does not have exactly 1 active controller. Active controllers: {{ `{{ $value }}` }}"
+
+        ## Strimzi "example" prometheus rules
+        ## https://github.com/strimzi/strimzi-kafka-operator/blob/main/examples/metrics/prometheus-install/prometheus-rules/prometheus-kafka-rules.yaml
+        ## some of the alerts above are also part of strimzi (not sure why not included in the "strimzi list") = refactor?
 
         - alert: KafkaRunningOutOfSpace
           expr: |
@@ -151,5 +155,7 @@ spec:
           annotations:
             summary: "One or more Kafka containers restarted too often"
             description: "One or more Kafka containers were restarted too often within the last 5 minutes"
+
+        ## END Strimzi "example" prometheus rules
 
 {{- end }}
