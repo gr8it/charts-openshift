@@ -7,5 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - 2026-05-04
 
+- increasing version of vector from 0.38 to 0.50.0
+
 _([SPEXAPC-7749]https://aspecta.atlassian.net/browse/SPEXAPC-7749)_
 _Initial release. Migrated from conf-socpoist ocp-hub01/observability/vector._
