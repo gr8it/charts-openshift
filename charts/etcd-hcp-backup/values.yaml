@@ -1,0 +1,28 @@
+# clusterName: <string> - mandatory, name of the hcp cluster (defaults to .Values.global.apc.cluster.name when unset)
+clusterName: ~
+# clusterNamespace: <string> - optional, overrides the default hcp namespace {clusterName-clusterName}
+clusterNamespace: ~
+# backupSchedule: <string> - crontab notation for etcd backup schedule
+backupSchedule: "0 * * * *"
+# retentionDays: <int> - specifies the number of days to retain old backups during the cleanup phase
+retentionDays: 30
+# etcdStatefulSetName: <string> - optional, overrides the default etcd statefulset name in hcp namespace
+etcdStatefulSetName: etcd
+# compressSnapshot: <bool> - optional, set true to compress etcd snapshots before upload
+compressSnapshot: false
+
+objectBucketClaim:
+  # create: <bool> - optional, creates an ObjectBucketClaim for storing etcd backups in {{ .Release.Namespace }}
+  #                  if set to false; backup will use existing ObjectBucketClaim referenced with {objectBucketClaim.name}
+  create: false
+  # name: <string> - optional, overrides the default ObjectBucketClaim name etcd-hcp-{clusterName}-backup
+  #                  mandatory when using an existing ObjectBucketClaim
+  name: ~
+  # storageClass: <string> - optional, defines a storageClass for the ObjectBucketClaim
+  storageClass: "ocs-storagecluster-ceph-rgw"
+
+# Container image references
+image:
+  awscli: amazon/aws-cli:2.24.27
+  ocpcli: registry.redhat.io/openshift4/ose-cli:v4.15
+  etcd: registry.redhat.io/openshift4/ose-etcd:v4.12

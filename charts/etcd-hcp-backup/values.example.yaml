@@ -1,0 +1,19 @@
+clusterName: hub01
+backupSchedule: "0 * * * *"
+retentionDays: 30
+etcdStatefulSetName: etcd
+compressSnapshot: false
+
+objectBucketClaim:
+  create: false
+  name: etcd-hcp-hub01-backup
+  storageClass: "ocs-storagecluster-ceph-rgw"
+
+selfSignedCertificate:
+  name: openshift-service-ca.crt
+  key: service-ca.crt
+
+image:
+  awscli: amazon/aws-cli:2.24.27
+  ocpcli: registry.redhat.io/openshift4/ose-cli:v4.15
+  etcd: registry.redhat.io/openshift4/ose-etcd:v4.12

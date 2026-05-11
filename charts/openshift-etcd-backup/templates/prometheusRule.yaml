@@ -1,0 +1,21 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "openshift-etcd-backup.fullname" . }}-alert
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "openshift-etcd-backup.labels" . | nindent 4 }}
+spec:
+  groups:
+  - name: cronjob.rules
+    rules:
+    - alert: EtcdBackupJobFailure
+      expr: kube_job_status_failed{namespace="{{ .Release.Namespace }}", job_name=~"{{ include "openshift-etcd-backup.fullname" . }}-.*"} > 0
+      labels:
+        severity: critical
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "ETCD backup job has failed"
+        description: "ETCD backup job {{`{{ $labels.namespace }}/{{ $labels.job_name}}`}} has failed."
