@@ -31,9 +31,9 @@ imagePullSecrets:
 hostAliases:
 {{ toYaml . | indent 2 }}
 {{- end }}
-{{- if .Values.initContainers }}
+{{- with .Values.initContainers }}
 initContainers:
-{{- tpl (toYaml .Values.initContainers) . | nindent 2 }}
+{{ toYaml . | indent 2 }}
 {{- end }}
 containers:
   - name: vector
@@ -41,7 +41,11 @@ containers:
     securityContext:
 {{ toYaml . | indent 6 }}
 {{- end }}
-    image: "{{ include "vector.image" . }}"
+{{- if .Values.image.sha }}
+    image: "{{ .Values.image.repository }}:{{ include "vector.image.tag" . }}@sha256:{{ .Values.image.sha }}"
+{{- else }}
+    image: "{{ .Values.image.repository }}:{{ include "vector.image.tag" . }}"
+{{- end }}
     imagePullPolicy: {{ .Values.image.pullPolicy }}
 {{- with .Values.command }}
     command:
@@ -154,8 +158,8 @@ containers:
 {{- with .Values.extraVolumeMounts }}
 {{- toYaml . | nindent 6 }}
 {{- end }}
-{{- if .Values.extraContainers }}
-{{- tpl (toYaml .Values.extraContainers) . | nindent 2 }}
+{{- with .Values.extraContainers }}
+{{ toYaml . | indent 2 }}
 {{- end }}
 terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
 {{- with .Values.nodeSelector }}

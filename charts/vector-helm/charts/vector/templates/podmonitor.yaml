@@ -3,7 +3,6 @@ apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
   name: {{ include "vector.fullname" . }}
-  namespace: {{ .Release.Namespace | quote }}
   labels:
     {{- with .Values.podMonitor.additionalLabels }}
     {{- toYaml . | nindent 4 }}
@@ -16,7 +15,7 @@ spec:
       {{- include "vector.selectorLabels" . | nindent 6 }}
   namespaceSelector:
     matchNames:
-      - {{ .Release.Namespace | quote }}
+      - {{ .Release.Namespace }}
   {{- with .Values.podMonitor.podTargetLabels }}
   podTargetLabels:
     {{- toYaml . | nindent 4 }}

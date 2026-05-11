@@ -103,47 +103,7 @@ transforms:
     type: remap
     inputs:
       - filter_ldap_reduce
-    source: |
-      del(.has_relevant_data)
-      del(.connid)
-      del(.start_ldap_auth)
-
-      str = to_string(.message) ?? "default"
-      user = r'(?P<user>uid=([^\)\n]+))'
-      source = r'(?P<source>\b(\d{1,3}\.){3}\d{1,3}:\d{1,5}\b)'
-      cluster = r'(?P<env>cn=[^,]+)'
-
-      if !(contains(str, "uid=")) {
-        del(.)
-      } else {
-
-        if !(contains(str, "op=2 RESULT tag=97")) || !(contains(str, "op=2 RESULT tag=97 err=49")) {
-          .message = parse_regex!(str, user)
-          .message |= parse_regex!(str, cluster)
-          .message |= parse_regex!(str, source)
-          .message |= {"auth": "unsuccessful"}
-          .message |= {"reason": "user does not exist"}
-        }
-
-        if contains(str, "ACCEPT") && contains(str, "uid=") && contains(str, "op=2 RESULT tag=97") {
-          .message = parse_regex!(str, user)
-          .message |= parse_regex!(str, cluster)
-          .message |= parse_regex!(str, source)
-          .message |= {"auth": "successful"}
-        }
-
-        if contains(str, "ACCEPT") && contains(str, "uid=") && contains(str, "op=2 RESULT tag=97 err=49") {
-          .message = parse_regex!(str, user)
-          .message |= parse_regex!(str, cluster)
-          .message |= parse_regex!(str, source)
-          .message |= {"auth": "unsuccessful"}
-          .message |= {"reason": "wrong password"}
-        }
-
-      }
-      if is_empty(.) {
-        abort
-      }
+    source: "del(.has_relevant_data)\ndel(.connid)\ndel(.start_ldap_auth)\n\nstr = to_string(.message) ?? \"default\"\nuser = r'(?P<user>uid=([^\\)\\n]+))'\nsource = r'(?P<source>\\b(\\d{1,3}\\.){3}\\d{1,3}:\\d{1,5}\\b)'\ncluster = r'(?P<env>cn=[^,]+)'\n\nif !(contains(str, \"uid=\")) {\n  del(.)\n} else {\n\n  if !(contains(str, \"op=2 RESULT tag=97\")) || !(contains(str, \"op=2 RESULT tag=97 err=49\")) {\n    .message = parse_regex!(str, user)\n    .message |= parse_regex!(str, cluster)\n    .message |= parse_regex!(str, source)\n    .message |= {\"auth\": \"unsuccessful\"}\n    .message |= {\"reason\": \"user does not exist\"}\n  }\n  \n  if contains(str, \"ACCEPT\") && contains(str, \"uid=\") && contains(str, \"op=2 RESULT tag=97\") {\n    .message = parse_regex!(str, user)\n    .message |= parse_regex!(str, cluster)\n    .message |= parse_regex!(str, source)\n    .message |= {\"auth\": \"successful\"}\n  } \n  \n  if contains(str, \"ACCEPT\") && contains(str, \"uid=\") && contains(str, \"op=2 RESULT tag=97 err=49\") {\n    .message = parse_regex!(str, user)\n    .message |= parse_regex!(str, cluster)\n    .message |= parse_regex!(str, source)\n    .message |= {\"auth\": \"unsuccessful\"}\n    .message |= {\"reason\": \"wrong password\"}\n  }\n\n}\nif is_empty(.) {\n  abort\n}        \n"
   webhook_parse:
     type: remap
     inputs:
@@ -292,39 +252,7 @@ transforms:
     type: remap
     inputs:
       - tcp_syslog_labels
-    source: |
-      if exists(.hostname) {
-        .additionalLabel.hostname = to_string(.hostname) ?? "undefined"
-      }
-      if exists(.appname) {
-        .additionalLabel.appname = to_string(.appname) ?? "undefined"
-      }
-      if exists(.message) {
-        .additionalLabel.message = to_string(.message) ?? "undefined"
-      }
-      if exists(.msgid) {
-        .additionalLabel.msgid = to_string(.msgid) ?? "undefined"
-      } else {
-        .additionalLabel.msgid = "undefined"
-      }
-      if exists(.severity) {
-        .additionalLabel.severity = to_string(.severity) ?? "undefined"
-      }
-      if exists(.source_ip) {
-        .additionalLabel.source_ip = to_string(.source_ip) ?? "undefined"
-      }
-
-      .additionalLabel.hostname = string!(.additionalLabel.hostname)
-      .additionalLabel.appname = string!(.additionalLabel.appname)
-      if match(.additionalLabel.hostname, r'(?i)pdu.*') {
-        .additionalLabel.hw_type = "pdu"
-      } else if match(.additionalLabel.hostname, r'(?i)ups.*') {
-        .additionalLabel.hw_type = "ups"
-      } else if match(.additionalLabel.appname, r'(?i)xca') {
-        .additionalLabel.hw_type = "xca"
-      } else {
-        .additionalLabel.hw_type = "other"
-      }
+    source: "if exists(.hostname) {\n  .additionalLabel.hostname = to_string(.hostname) ?? \"undefined\"\n}\nif exists(.appname) {\n  .additionalLabel.appname = to_string(.appname) ?? \"undefined\"\n}\nif exists(.message) {\n  .additionalLabel.message = to_string(.message) ?? \"undefined\"\n}\nif exists(.msgid) {\n  .additionalLabel.msgid = to_string(.msgid) ?? \"undefined\"\n}else{\n  .additionalLabel.msgid = \"undefined\"\n}        \nif exists(.severity) {\n  .additionalLabel.severity = to_string(.severity) ?? \"undefined\"\n}\nif exists(.source_ip) {\n  .additionalLabel.source_ip = to_string(.source_ip) ?? \"undefined\"\n}\n\n\n.additionalLabel.hostname = string!(.additionalLabel.hostname)\n.additionalLabel.appname = string!(.additionalLabel.appname)\nif match(.additionalLabel.hostname, r'(?i)pdu.*') {\n  .additionalLabel.hw_type = \"pdu\"\n} else if match(.additionalLabel.hostname, r'(?i)ups.*') {\n  .additionalLabel.hw_type = \"ups\"\n} else if match(.additionalLabel.appname, r'(?i)xca') {\n  .additionalLabel.hw_type = \"xca\"\n}else{\n  .additionalLabel.hw_type = \"other\"\n}\n"
 sinks:
   prom_exporter:
     type: prometheus_exporter

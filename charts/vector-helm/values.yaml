@@ -9,12 +9,14 @@ jiraOpsExternalSecret:
 ## Expected key "token" = "<splunk-hec-token>"
 siemTokenExternalSecret:
   refreshInterval: 1h
+  creationPolicy: Merge
   key: ""
   property: token
 
 ## cert-manager Certificate for vector webhook TLS (secretName: vector-service)
 ## commonName and first dnsName derived from global.apc.cluster.baseDomain
 vectorServiceCertificate:
+  enabled: false
   # Optional IP SANs for deployments that expose the webhook through a fixed VIP.
   ipAddresses: []
   additionalDnsNames: []
@@ -80,18 +82,12 @@ vector:
     - vector
   dataDir: /vector-data-dir
 
-  # Rely on Stakater Reloader for ConfigMap/Secret driven restarts because the
-  # packaged subchart cannot deterministically checksum parent-owned ConfigMaps
-  # during offline GitOps rendering.
-  podAnnotations:
-    reloader.stakater.com/auto: "true"
-
   service:
-    enabled: false
+    enabled: true
   serviceHeadless:
     enabled: false
   podMonitor:
-    enabled: false
+    enabled: true
 
   extraVolumes:
     - name: vector-token

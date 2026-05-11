@@ -7,4 +7,4 @@ metadata:
     {{- include "vector-helm.vectorResourceLabels" . | nindent 4 }}
 data:
   vector.yaml: |
-{{ include "vector-helm.vectorConfig" . | indent 4 }}
+{{ include "vector-helm.vectorConfig" . | fromYaml | toYaml | indent 4 }}

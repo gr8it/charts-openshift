@@ -3,15 +3,11 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ include "vector.fullname" . }}
-  namespace: {{ .Release.Namespace | quote }}
   labels:
     {{- include "vector.labels" . | nindent 4 }}
   annotations:
     {{- toYaml .Values.workloadResourceAnnotations | nindent 4 }}
 spec:
-  {{- with .Values.revisionHistoryLimit }}
-  revisionHistoryLimit: {{ . }}
-  {{- end }}
   {{- if not (or .Values.autoscaling.enabled .Values.autoscaling.external) }}
   replicas: {{ .Values.replicas }}
   {{- end }}
@@ -23,7 +19,7 @@ spec:
   selector:
     matchLabels:
       {{- include "vector.selectorLabels" . | nindent 6 }}
-  {{- if semverCompare ">=1.22-0" .Capabilities.KubeVersion.Version }}
+  {{- if semverCompare ">=1.22-0" .Capabilities.KubeVersion.GitVersion }}
   minReadySeconds: {{ .Values.minReadySeconds }}
   {{- end }}
   {{- with .Values.updateStrategy }}
@@ -44,12 +40,6 @@ spec:
         {{- else }}
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
         {{- end }}
-      {{- end }}
-      {{- if .Values.rollWorkloadSecrets }}
-        checksum/secrets: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
-      {{- end }}
-      {{- if .Values.rollWorkloadExtraObjects }}
-        checksum/extraObjects: {{ include (print $.Template.BasePath "/extra-manifests.yaml") . | sha256sum }}
       {{- end }}
       {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}

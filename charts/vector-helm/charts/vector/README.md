@@ -1,6 +1,6 @@
 # Vector
 
-![Version: 0.50.0](https://img.shields.io/badge/Version-0.50.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.53.0-distroless-libc](https://img.shields.io/badge/AppVersion-0.53.0--distroless--libc-informational?style=flat-square)
+![Version: 0.38.1](https://img.shields.io/badge/Version-0.38.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.43.1-distroless-libc](https://img.shields.io/badge/AppVersion-0.43.1--distroless--libc-informational?style=flat-square)
 
 [Vector](https://vector.dev/) is a high-performance, end-to-end observability data pipeline that puts you in control of your observability data. Collect, transform, and route all your logs, metrics, and traces to any vendors you want today and any other vendors you may want tomorrow. Vector enables dramatic cost reduction, novel data enrichment, and data security where you need it, not where is most convenient for your vendors.
 
@@ -145,7 +145,7 @@ helm install <RELEASE_NAME> \
 | env | list | `[]` | Set environment variables for Vector containers. |
 | envFrom | list | `[]` | Define environment variables from Secrets or ConfigMaps. |
 | existingConfigMaps | list | `[]` | List of existing ConfigMaps for Vector's configuration instead of creating a new one. Requires dataDir to be set. Additionally, containerPorts, service.ports, and serviceHeadless.ports should be specified based on your supplied configuration. If set, this parameter takes precedence over customConfig and the chart's default configs. |
-| extraContainers | list | `[]` | Extra Containers to be added to the Vector Pods. This also supports template content, which will eventually be converted to yaml. |
+| extraContainers | list | `[]` | Extra Containers to be added to the Vector Pods. |
 | extraObjects | list | `[]` | Create extra manifests via values. Would be passed through `tpl` for templating. |
 | extraVolumeMounts | list | `[]` | Additional Volume to mount into Vector Containers. |
 | extraVolumes | list | `[]` | Additional Volumes to use with Vector Pods. |
@@ -162,7 +162,7 @@ helm install <RELEASE_NAME> \
 | ingress.enabled | bool | `false` | If true, create and use an Ingress resource. |
 | ingress.hosts | list | `[]` | Configure the hosts and paths for the Ingress. |
 | ingress.tls | list | `[]` | Configure TLS for the Ingress. |
-| initContainers | list | `[]` | Init Containers to be added to the Vector Pods. This also supports template content, which will eventually be converted to yaml. |
+| initContainers | list | `[]` | Init Containers to be added to the Vector Pods. |
 | lifecycle | object | `{}` | Set lifecycle hooks for Vector containers. |
 | livenessProbe | object | `{}` | Override default liveness probe settings. If customConfig is used, requires customConfig.api.enabled to be set to true. |
 | logLevel | string | `"info"` |  |
@@ -201,14 +201,11 @@ helm install <RELEASE_NAME> \
 | podSecurityContext | object | `{}` | Allows you to overwrite the default [PodSecurityContext](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/) for Vector Pods. |
 | psp.create | bool | `false` | If true, create a [PodSecurityPolicy](https://kubernetes.io/docs/concepts/security/pod-security-policy/) resource. PodSecurityPolicy is deprecated as of Kubernetes v1.21, and will be removed in v1.25. Intended for use with the "Agent" role. |
 | rbac.create | bool | `true` | If true, create and use RBAC resources. Only valid for the "Agent" role. |
-| rbac.extraRules | list | `[]` | List of additional Kubernetes RBAC rules to append to the ClusterRole. Rules defined here are appended after the chart's standard rules. Each item must follow the Kubernetes ClusterRole rule syntax.  Example: extraRules:   - apiGroups: [""]     resources: ["nodes/metrics", "nodes/stats"]     verbs: ["get"] |
 | readinessProbe | object | `{}` | Override default readiness probe settings. If customConfig is used, requires customConfig.api.enabled to be set to true. |
 | replicas | int | `1` | Specify the number of Pods to create. Valid for the "Aggregator" and "Stateless-Aggregator" roles. |
 | resources | object | `{}` | Set Vector resource requests and limits. |
 | role | string | `"Aggregator"` | [Role](https://vector.dev/docs/setup/deployment/roles/) for this Vector instance, valid options are: "Agent", "Aggregator", and "Stateless-Aggregator". |
 | rollWorkload | bool | `true` | Add a checksum of the generated ConfigMap to workload annotations. |
-| rollWorkloadExtraObjects | bool | `false` | Add a checksum of the generated ExtraObjects to workload annotations. |
-| rollWorkloadSecrets | bool | `false` | Add a checksum of the generated Secret to workload annotations. |
 | secrets.generic | object | `{}` | Each Key/Value will be added to the Secret's data key, each value should be raw and NOT base64 encoded. Any secrets can be provided here. It's commonly used for credentials and other access related values. **NOTE: Don't commit unencrypted secrets to git!** |
 | securityContext | object | `{}` | Specify securityContext on Vector containers. |
 | service.annotations | object | `{}` | Set annotations on Vector's Service. |
@@ -220,7 +217,6 @@ helm install <RELEASE_NAME> \
 | service.loadBalancerIP | string | `""` | Specify the [loadBalancerIP](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer). |
 | service.ports | list | `[]` | Manually set the Service ports, overriding automated generation of Service ports. |
 | service.topologyKeys | list | `[]` | Specify the [topologyKeys](https://kubernetes.io/docs/concepts/services-networking/service-topology/#using-service-topology) field on Vector's Service. |
-| service.trafficDistribution | string | `""` | Specify the [Traffic distribution](https://kubernetes.io/docs/concepts/services-networking/service/#traffic-distribution) additional Topology Aware Routing may be informative. Specify the [Topology Aware Routing](https://kubernetes.io/docs/concepts/services-networking/topology-aware-routing/) |
 | service.type | string | `"ClusterIP"` | Set the type for Vector's Service. |
 | serviceAccount.annotations | object | `{}` | Annotations to add to Vector's ServiceAccount. |
 | serviceAccount.automountToken | bool | `true` | Automount API credentials for Vector's ServiceAccount. |
@@ -250,14 +246,14 @@ helm install <RELEASE_NAME> \
 | haproxy.customConfig | string | `""` | Override HAProxy's default configs, if used **all** options need to be specified. This parameter supports using Helm templates to insert values dynamically. By default, this chart will parse Vector's configuration from customConfig to generate HAProxy's config, which can be overwritten with haproxy.customConfig. |
 | haproxy.enabled | bool | `false` | If true, create a HAProxy load balancer. |
 | haproxy.existingConfigMap | string | `""` | Use this existing ConfigMap for HAProxy's configuration instead of creating a new one. Additionally, haproxy.containerPorts and haproxy.service.ports should be specified based on your supplied configuration. If set, this parameter takes precedence over customConfig and the chart's default configs. |
-| haproxy.extraContainers | list | `[]` | Extra Containers to be added to the HAProxy Pods. This also supports template content, which will eventually be converted to yaml. |
+| haproxy.extraContainers | list | `[]` | Extra Containers to be added to the HAProxy Pods. |
 | haproxy.extraVolumeMounts | list | `[]` | Additional Volume to mount into HAProxy Containers. |
 | haproxy.extraVolumes | list | `[]` | Additional Volumes to use with HAProxy Pods. |
 | haproxy.image.pullPolicy | string | `"IfNotPresent"` | HAProxy image pullPolicy. |
 | haproxy.image.pullSecrets | list | `[]` | The [imagePullSecrets](https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod) to reference for the HAProxy Pods. |
 | haproxy.image.repository | string | `"haproxytech/haproxy-alpine"` | Override default registry and name for HAProxy. |
 | haproxy.image.tag | string | `"2.6.12"` | The tag to use for HAProxy's image. |
-| haproxy.initContainers | list | `[]` | Init Containers to be added to the HAProxy Pods. This also supports template content, which will eventually be converted to yaml. |
+| haproxy.initContainers | list | `[]` | Init Containers to be added to the HAProxy Pods. |
 | haproxy.livenessProbe | object | `{"tcpSocket":{"port":1024}}` | Override default HAProxy liveness probe settings. |
 | haproxy.nodeSelector | object | `{}` | Configure a [nodeSelector](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector) for HAProxy Pods |
 | haproxy.podAnnotations | object | `{}` | Set annotations on HAProxy Pods. |

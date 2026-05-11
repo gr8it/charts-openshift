@@ -78,9 +78,11 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Labels for wrapper-owned Vector resources without colliding with chart labels.
 */}}
 {{- define "vector-helm.vectorResourceLabels" -}}
-helm.sh/chart: {{ include "vector-helm.chart" . }}
-{{ include "vector-helm.vectorSelectorLabels" . }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+helm.sh/chart: vector-0.38.1
+app.kubernetes.io/name: vector
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/component: Agent
+app.kubernetes.io/version: "0.43.1-distroless-libc"
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
@@ -98,15 +100,24 @@ Static Vector container ports for the APC wrapper config.
 - name: prom-exporter
   containerPort: 9090
   protocol: TCP
+{{- end }}
+
+{{/*
+Static Vector service ports for the APC wrapper config.
+*/}}
+{{- define "vector-helm.vectorServicePorts" -}}
 - name: udp-syslog
-  containerPort: 9441
   protocol: UDP
+  port: 9441
+  targetPort: 9441
 - name: tcp-syslog
-  containerPort: 9442
   protocol: TCP
+  port: 9442
+  targetPort: 9442
 - name: webhook
-  containerPort: 9444
   protocol: TCP
+  port: 9444
+  targetPort: 9444
 {{- end }}
 
 {{/*

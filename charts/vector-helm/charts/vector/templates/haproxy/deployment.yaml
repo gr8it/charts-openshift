@@ -41,9 +41,9 @@ spec:
       {{- with .Values.priorityClassName }}
       priorityClassName: {{ . }}
       {{- end }}
-      {{- if .Values.haproxy.initContainers }}
+      {{- with .Values.haproxy.initContainers }}
       initContainers:
-        {{- tpl (toYaml .Values.haproxy.initContainers) . | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
         - name: haproxy
@@ -112,8 +112,8 @@ spec:
           {{- with .Values.haproxy.extraVolumeMounts }}
           {{- toYaml . | nindent 12 }}
           {{- end }}
-        {{- if .Values.haproxy.extraContainers }}
-          {{- tpl (toYaml .Values.haproxy.extraContainers) . | nindent 8 }}
+        {{- with .Values.haproxy.extraContainers }}
+        {{ toYaml . | indent 8 }}
         {{- end }}
       volumes:
         - name: haproxy-config

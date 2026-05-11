@@ -20,12 +20,6 @@ role: "Aggregator"
 # rollWorkload -- Add a checksum of the generated ConfigMap to workload annotations.
 rollWorkload: true
 
-# rollWorkloadSecrets -- Add a checksum of the generated Secret to workload annotations.
-rollWorkloadSecrets: false
-
-# rollWorkloadExtraObjects -- Add a checksum of the generated ExtraObjects to workload annotations.
-rollWorkloadExtraObjects: false
-
 # commonLabels -- Add additional labels to all created resources.
 commonLabels: {}
 
@@ -117,16 +111,6 @@ podDisruptionBudget:
 rbac:
   # rbac.create -- If true, create and use RBAC resources. Only valid for the "Agent" role.
   create: true
-  # rbac.extraRules -- List of additional Kubernetes RBAC rules to append to the ClusterRole.
-  # Rules defined here are appended after the chart's standard rules.
-  # Each item must follow the Kubernetes ClusterRole rule syntax.
-  #
-  # Example:
-  # extraRules:
-  #   - apiGroups: [""]
-  #     resources: ["nodes/metrics", "nodes/stats"]
-  #     verbs: ["get"]
-  extraRules: []
 
 psp:
   # psp.create -- If true, create a [PodSecurityPolicy](https://kubernetes.io/docs/concepts/security/pod-security-policy/)
@@ -220,10 +204,6 @@ lifecycle: {}
 # pass healthchecks before it is considered available.
 minReadySeconds: 0
 
-# revisionHistoryLimit -- The number of historical changes to retain to allow rollback. Valid for all roles (Agent, Aggregator, Stateless-Aggregator).
-# defaults to 10 if not set
-# revisionHistoryLimit: 10
-
 # updateStrategy -- Customize the updateStrategy used to replace Vector Pods, this is also used for the
 # DeploymentStrategy for the "Stateless-Aggregators". Valid options depend on the chosen role.
 
@@ -281,9 +261,6 @@ service:
   ipFamilyPolicy: ""
   # service.ipFamilies -- Configure [IPv4/IPv6 dual-stack](https://kubernetes.io/docs/concepts/services-networking/dual-stack/).
   ipFamilies: []
-  # service.trafficDistribution -- Specify the [Traffic distribution](https://kubernetes.io/docs/concepts/services-networking/service/#traffic-distribution)
-  # additional Topology Aware Routing may be informative. Specify the [Topology Aware Routing](https://kubernetes.io/docs/concepts/services-networking/topology-aware-routing/)
-  trafficDistribution: ""
 
 # Configuration for Vector's Headless Service.
 serviceHeadless:
@@ -387,34 +364,10 @@ extraVolumes: []
 extraVolumeMounts: []
 
 # initContainers -- Init Containers to be added to the Vector Pods.
-# This also supports template content, which will eventually be converted to yaml.
 initContainers: []
-# initContainers:
-#   - name: test
-#     image: busybox:latest
-#     command:
-#       - cp
-#     args:
-#       - /bin/sleep
-#       - /test/sleep
-#     volumeMounts:
-#       - name: test
-#         mountPath: /test
 
 # extraContainers -- Extra Containers to be added to the Vector Pods.
-# This also supports template content, which will eventually be converted to yaml.
 extraContainers: []
-# extraContainers:
-#   - name: test
-#     command:
-#       - cp
-#     args:
-#       - /bin/sleep
-#       - /test/sleep
-#     image: busybox:latest
-#     volumeMounts:
-#       - name: test
-#         mountPath: /test
 
 # Configuration for Vector's data persistence.
 persistence:
@@ -631,11 +584,9 @@ haproxy:
   extraVolumeMounts: []
 
   # haproxy.initContainers -- Init Containers to be added to the HAProxy Pods.
-  # This also supports template content, which will eventually be converted to yaml.
   initContainers: []
 
   # haproxy.extraContainers -- Extra Containers to be added to the HAProxy Pods.
-  # This also supports template content, which will eventually be converted to yaml.
   extraContainers: []
 
   autoscaling:

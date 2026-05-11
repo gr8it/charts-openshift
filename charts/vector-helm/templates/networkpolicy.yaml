@@ -5,11 +5,11 @@ metadata:
   name: allow-logging-to-vector
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "vector-helm.labels" . | nindent 4 }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
   podSelector:
     matchLabels:
-      {{- include "vector-helm.vectorSelectorLabels" . | nindent 6 }}
+      app.kubernetes.io/name: vector
   policyTypes:
     - Ingress
   ingress:
