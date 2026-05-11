@@ -13,6 +13,8 @@ metadata:
   labels:
 {{- include "tempo-stack.labels" . | nindent 4 }}
 spec:
+  background: true
+  validationFailureAction: Audit
   mutateExistingOnPolicyUpdate: true
   rules:
     - name: add-tenant-to-tempostack
@@ -25,11 +27,12 @@ spec:
               matchLabels:
                 {{ .Values.namespaceSelector.key }}: {{ .Values.namespaceSelector.value }}
       mutate:
+        mutateExistingOnPolicyUpdate: true
         targets:
           - apiVersion: tempo.grafana.com/v1alpha1
             kind: TempoStack
-            name: {{ default "apc-tempo-stack" .Values.tempoStack.name | quote }}
-            namespace: {{ .Release.Namespace | quote }}
+            name: {{ default "apc-tempo-stack" .Values.tempoStack.name }}
+            namespace: {{ .Release.Namespace  }}
         patchStrategicMerge:
           spec:
             tenants:

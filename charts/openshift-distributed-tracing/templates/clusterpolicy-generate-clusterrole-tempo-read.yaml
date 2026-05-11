@@ -13,12 +13,8 @@ metadata:
   labels:
 {{- include "tempo-stack.labels" . | nindent 4 }}
 spec:
-  admission: true
   background: true
   validationFailureAction: Audit
-  emitWarning: false
-  generateExisting: true
-  skipBackgroundRequests: false
   rules:
     - name: generate-clusterrole-reader-for-application-namespace
       match:

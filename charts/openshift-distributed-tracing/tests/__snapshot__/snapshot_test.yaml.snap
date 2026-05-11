@@ -15,7 +15,7 @@ manifests should match snapshot:
         app.kubernetes.io/name: openshift-distributed-tracing
         app.kubernetes.io/version: v0.15
         helm.sh/chart: openshift-distributed-tracing-1.0.0
-      name: cleanup-tempo-reader-clusterroles
+      name: apc-tempo-stack-cleanup-tempo-reader-clusterroles
     spec:
       conditions:
         all:
@@ -61,10 +61,7 @@ manifests should match snapshot:
         helm.sh/chart: openshift-distributed-tracing-1.0.0
       name: apc-tempo-stack-generate-tenant-clusterrole-read
     spec:
-      admission: true
       background: true
-      emitWarning: false
-      generateExisting: true
       rules:
         - generate:
             apiVersion: rbac.authorization.k8s.io/v1
@@ -94,7 +91,6 @@ manifests should match snapshot:
                     matchLabels:
                       apc.namespace.type: application
           name: generate-clusterrole-reader-for-application-namespace
-      skipBackgroundRequests: false
       validationFailureAction: Audit
   3: |
     apiVersion: kyverno.io/v1
@@ -134,7 +130,7 @@ manifests should match snapshot:
                     - create
             generateExisting: true
             kind: ClusterRole
-            name: apc-tempo-stack-writer-{{request.object.metadata.name}}"
+            name: apc-tempo-stack-writer-{{request.object.metadata.name}}
             synchronize: true
           match:
             any:
@@ -254,6 +250,7 @@ manifests should match snapshot:
         helm.sh/chart: openshift-distributed-tracing-1.0.0
       name: apc-tempo-stack-tempo-sync-tenants
     spec:
+      background: true
       mutateExistingOnPolicyUpdate: true
       rules:
         - match:
@@ -265,6 +262,7 @@ manifests should match snapshot:
                     matchLabels:
                       apc.namespace.type: application
           mutate:
+            mutateExistingOnPolicyUpdate: true
             patchStrategicMerge:
               spec:
                 tenants:
@@ -277,6 +275,7 @@ manifests should match snapshot:
                 name: apc-tempo-stack
                 namespace: NAMESPACE
           name: add-tenant-to-tempostack
+      validationFailureAction: Audit
   7: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
@@ -359,6 +358,8 @@ manifests should match snapshot:
           - update
           - patch
           - bind
+          - escalate
+          - delete
   9: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole

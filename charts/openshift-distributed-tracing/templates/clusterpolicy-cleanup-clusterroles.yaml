@@ -3,7 +3,7 @@
 apiVersion: kyverno.io/v2
 kind: ClusterCleanupPolicy
 metadata:
-  name: cleanup-tempo-reader-clusterroles
+  name: {{ default "apc-tempo-stack" .Values.tempoStack.name }}-cleanup-tempo-reader-clusterroles
   annotations:
     argocd.argoproj.io/sync-options: Replace=true
     policies.kyverno.io/title: Cleanup Tempo reader ClusterRoles for deleted or unwatched namespaces
