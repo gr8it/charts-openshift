@@ -18,15 +18,15 @@ sources:
     type: internal_metrics
   udp_syslog:
     type: syslog
-    address: 0.0.0.0:9441
+    address: 0.0.0.0:{{ include "vector-helm.port.udpSyslog" . }}
     mode: udp
   tcp_syslog:
     type: syslog
-    address: 0.0.0.0:9442
+    address: 0.0.0.0:{{ include "vector-helm.port.tcpSyslog" . }}
     mode: tcp
   webhook:
     type: http_server
-    address: 0.0.0.0:9444
+    address: 0.0.0.0:{{ include "vector-helm.port.webhook" . }}
     encoding: json
     tls:
       enabled: true
@@ -257,7 +257,7 @@ sinks:
   prom_exporter:
     type: prometheus_exporter
     inputs: [internal_metrics]
-    address: 0.0.0.0:9090
+    address: 0.0.0.0:{{ include "vector-helm.port.promExporter" . }}
   default_loki_audit:
     type: loki
     inputs: ["udp_syslog_labels", "tcp_syslog_parse", "remap_ldap_auth"]

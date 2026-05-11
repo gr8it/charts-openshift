@@ -18,7 +18,7 @@ spec:
         - ipBlock:
             cidr: {{ . }}
       ports:
-        - port: 9441
+        - port: {{ include "vector-helm.port.udpSyslog" . }}
           protocol: UDP
     {{- end }}
     {{- range .Values.vectorNetworkPolicy.syslogTcpCidrs }}
@@ -26,7 +26,7 @@ spec:
         - ipBlock:
             cidr: {{ . }}
       ports:
-        - port: 9442
+        - port: {{ include "vector-helm.port.tcpSyslog" . }}
           protocol: TCP
     {{- end }}
     {{- range .Values.vectorNetworkPolicy.webhookCidrs }}
@@ -34,7 +34,7 @@ spec:
         - ipBlock:
             cidr: {{ . }}
       ports:
-        - port: 9444
+        - port: {{ include "vector-helm.port.webhook" . }}
           protocol: TCP
     {{- end }}
     - from:
@@ -42,20 +42,20 @@ spec:
             matchLabels:
               kubernetes.io/metadata.name: stackrox
       ports:
-        - port: 9444
+        - port: {{ include "vector-helm.port.webhook" . }}
           protocol: TCP
     - from:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: openshift-logging
       ports:
-        - port: 9444
+        - port: {{ include "vector-helm.port.webhook" . }}
           protocol: TCP
     - from:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: openshift-user-workload-monitoring
       ports:
-        - port: 9090
+        - port: {{ include "vector-helm.port.promExporter" . }}
           protocol: TCP
 {{- end }}

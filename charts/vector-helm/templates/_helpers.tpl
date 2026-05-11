@@ -94,30 +94,47 @@ The wrapper-owned Vector ConfigMap deliberately keeps the legacy `vector` name.
 {{- end }}
 
 {{/*
-Static Vector container ports for the APC wrapper config.
+Static port constants — single source of truth, safe from any template context.
+*/}}
+{{- define "vector-helm.port.promExporter" -}}9090{{- end }}
+{{- define "vector-helm.port.udpSyslog" -}}9441{{- end }}
+{{- define "vector-helm.port.tcpSyslog" -}}9442{{- end }}
+{{- define "vector-helm.port.webhook" -}}9444{{- end }}
+
+{{/*
+Vector container ports for the APC wrapper config.
 */}}
 {{- define "vector-helm.vectorContainerPorts" -}}
 - name: prom-exporter
-  containerPort: 9090
+  containerPort: {{ include "vector-helm.port.promExporter" . }}
+  protocol: TCP
+- name: udp-syslog
+  containerPort: {{ include "vector-helm.port.udpSyslog" . }}
+  protocol: UDP
+- name: tcp-syslog
+  containerPort: {{ include "vector-helm.port.tcpSyslog" . }}
+  protocol: TCP
+- name: webhook
+  containerPort: {{ include "vector-helm.port.webhook" . }}
   protocol: TCP
 {{- end }}
 
 {{/*
-Static Vector service ports for the APC wrapper config.
+Vector service ports for the APC wrapper config.
 */}}
 {{- define "vector-helm.vectorServicePorts" -}}
 - name: udp-syslog
   protocol: UDP
-  port: 9441
-  targetPort: 9441
+  port: {{ include "vector-helm.port.udpSyslog" . }}
+  targetPort: {{ include "vector-helm.port.udpSyslog" . }}
 - name: tcp-syslog
   protocol: TCP
-  port: 9442
-  targetPort: 9442
+  port: {{ include "vector-helm.port.tcpSyslog" . }}
+  targetPort: {{ include "vector-helm.port.tcpSyslog" . }}
 - name: webhook
   protocol: TCP
-  port: 9444
-  targetPort: 9444
+  port: {{ include "vector-helm.port.webhook" . }}
+  targetPort: {{ include "vector-helm.port.webhook" . }}
 {{- end }}
 
 {{/*
