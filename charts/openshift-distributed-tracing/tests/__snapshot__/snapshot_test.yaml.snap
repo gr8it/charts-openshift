@@ -25,7 +25,7 @@ manifests should match snapshot:
       context:
         - apiCall:
             default: []
-            jmesPath: items[?metadata.labels."apc.namespace.test" == 'application'].metadata.name
+            jmesPath: items[?metadata.labels."apc.namespace.type" == 'application'].metadata.name
             urlPath: /api/v1/namespaces
           name: appNamespaces
       match:
@@ -61,7 +61,10 @@ manifests should match snapshot:
         helm.sh/chart: openshift-distributed-tracing-1.0.0
       name: apc-tempo-stack-generate-tenant-clusterrole-read
     spec:
-      generateExistingOnPolicyUpdate: true
+      admission: true
+      background: true
+      emitWarning: false
+      generateExisting: true
       rules:
         - generate:
             apiVersion: rbac.authorization.k8s.io/v1
@@ -69,19 +72,16 @@ manifests should match snapshot:
               metadata:
                 labels:
                   generated-by: generate-reader-clusterrole-for-application-namespace
-                  rbac.authorization.k8s.io/aggregate-to-apc-project-admin: "true"
-                  rbac.authorization.k8s.io/aggregate-to-apc-project-developer: "true"
-                  rbac.authorization.k8s.io/aggregate-to-apc-project-operator: "true"
-                  rbac.authorization.k8s.io/aggregate-to-apc-project-tester: "true"
-                rules:
-                  - apiGroups:
-                      - tempo.grafana.com
-                    resourceNames:
-                      - traces
-                    resources:
-                      - '{{request.object.metadata.name}}'
-                    verbs:
-                      - get
+              rules:
+                - apiGroups:
+                    - tempo.grafana.com
+                  resourceNames:
+                    - traces
+                  resources:
+                    - '{{request.object.metadata.name}}'
+                  verbs:
+                    - get
+            generateExisting: true
             kind: ClusterRole
             name: apc-tempo-stack-reader-{{request.object.metadata.name}}
             synchronize: true
@@ -89,11 +89,13 @@ manifests should match snapshot:
             any:
               - resources:
                   kinds:
-                    - argoproj.io/*/Application
-                  namespaceSelector:
+                    - Namespace
+                  selector:
                     matchLabels:
                       apc.namespace.type: application
-          name: generate-reader-clusterrole-for-application-namespace
+          name: generate-clusterrole-reader-for-application-namespace
+      skipBackgroundRequests: false
+      validationFailureAction: Audit
   3: |
     apiVersion: kyverno.io/v1
     kind: ClusterPolicy
@@ -103,24 +105,24 @@ manifests should match snapshot:
         policies.kyverno.io/category: gitops
         policies.kyverno.io/minversion: 1.13.0
         policies.kyverno.io/subject: Generate ClusterRoles for application namespaces
-        policies.kyverno.io/title: Generate ClusterRoles to read  TempoStack tenants for  namespace
+        policies.kyverno.io/title: Generate ClusterRoles to write into TempoStack tenants for  namespace
       labels:
         app.kubernetes.io/instance: kyverno-app-grafana
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
         app.kubernetes.io/version: v0.15
         helm.sh/chart: openshift-distributed-tracing-1.0.0
-      name: apc-tempo-stack-generate-tenant-clusterrole-read
+      name: apc-tempo-stack-generate-tenant-clusterrole-write
     spec:
-      generateExistingOnPolicyUpdate: true
+      background: true
       rules:
         - generate:
             apiVersion: rbac.authorization.k8s.io/v1
             data:
               metadata:
                 labels:
-                  apc-opentelemetry-collector-apc-observability-cluster-role: "true"
                   generated-by: generate-writer-clusterrole-for-application-namespace
+                  rbac.authorization.k8s.io/apc-opentelemetry-collector-apc-observability-cluster-role: "true"
               rules:
                 - apiGroups:
                     - tempo.grafana.com
@@ -130,6 +132,7 @@ manifests should match snapshot:
                     - '{{request.object.metadata.name}}'
                   verbs:
                     - create
+            generateExisting: true
             kind: ClusterRole
             name: apc-tempo-stack-writer-{{request.object.metadata.name}}"
             synchronize: true
@@ -137,12 +140,60 @@ manifests should match snapshot:
             any:
               - resources:
                   kinds:
-                    - argoproj.io/*/Application
-                  namespaceSelector:
+                    - Namespace
+                  selector:
                     matchLabels:
                       apc.namespace.type: application
-          name: generate-writer-clusterrole-for-application-namespace
+          name: generate-clusterrole-writer-for-application-namespace
+      validationFailureAction: Audit
   4: |
+    apiVersion: kyverno.io/v1
+    kind: ClusterPolicy
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-options: Replace=true
+        policies.kyverno.io/category: gitops
+        policies.kyverno.io/minversion: 1.13.0
+        policies.kyverno.io/subject: Generate RoleBindings for application namespaces
+        policies.kyverno.io/title: Generate RoleBindings for TempoStack traces access on namespace
+      labels:
+        app.kubernetes.io/instance: kyverno-app-grafana
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: openshift-distributed-tracing
+        app.kubernetes.io/version: v0.15
+        helm.sh/chart: openshift-distributed-tracing-1.0.0
+      name: apc-tempo-stack-generate-tenant-rolebindings-read
+    spec:
+      background: true
+      rules:
+        - generate:
+            apiVersion: rbac.authorization.k8s.io/v1
+            data:
+              roleRef:
+                apiGroup: rbac.authorization.k8s.io
+                kind: ClusterRole
+                name: apc-tempo-stack-reader-{{ request.object.metadata.name }}
+              subjects:
+                - kind: Group
+                  name: APC-D-{{ request.object.metadata.name }}-PJA
+                - kind: Group
+                  name: APC-D-{{ request.object.metadata.name }}-DEV
+            generateExisting: true
+            kind: RoleBinding
+            name: apc-tempo-stack-traces-read
+            namespace: '{{ request.object.metadata.name }}'
+            synchronize: true
+          match:
+            any:
+              - resources:
+                  kinds:
+                    - Namespace
+                  selector:
+                    matchLabels:
+                      apc.namespace.type: application
+          name: generate-rolebinding-reader-for-application-namespace
+      validationFailureAction: Audit
+  5: |
     apiVersion: kyverno.io/v1
     kind: ClusterPolicy
     metadata:
@@ -166,12 +217,12 @@ manifests should match snapshot:
             any:
               - resources:
                   kinds:
-                    - argoproj.io/*/Application
-                  namespaceSelector:
-                    matchLabels:
-                      apc.namespace.type: application
+                    - Namespace
                   operations:
                     - DELETE
+                  selector:
+                    matchLabels:
+                      apc.namespace.type: application
           mutate:
             patchStrategicMerge:
               spec:
@@ -185,7 +236,7 @@ manifests should match snapshot:
                 name: apc-tempo-stack
                 namespace: NAMESPACE
           name: remove-tenant-from-tempostack-on-namespace-delete
-  5: |
+  6: |
     apiVersion: kyverno.io/v1
     kind: ClusterPolicy
     metadata:
@@ -209,8 +260,8 @@ manifests should match snapshot:
             any:
               - resources:
                   kinds:
-                    - argoproj.io/*/Application
-                  namespaceSelector:
+                    - Namespace
+                  selector:
                     matchLabels:
                       apc.namespace.type: application
           mutate:
@@ -226,7 +277,7 @@ manifests should match snapshot:
                 name: apc-tempo-stack
                 namespace: NAMESPACE
           name: add-tenant-to-tempostack
-  6: |
+  7: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -245,7 +296,7 @@ manifests should match snapshot:
           - rolebindings
         verbs:
           - get
-  7: |
+  8: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -295,7 +346,21 @@ manifests should match snapshot:
           - watch
           - update
           - patch
-  8: |
+      - apiGroups:
+          - rbac.authorization.k8s.io
+        resources:
+          - clusterroles
+          - roles
+        verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - patch
+          - bind
+  9: |
+    apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
       labels:
@@ -315,7 +380,7 @@ manifests should match snapshot:
           - '*'
         verbs:
           - get
-  9: |
+  10: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -336,7 +401,7 @@ manifests should match snapshot:
           - '*'
         verbs:
           - create
-  10: |
+  11: |
     apiVersion: networking.k8s.io/v1
     kind: NetworkPolicy
     metadata:
@@ -357,7 +422,7 @@ manifests should match snapshot:
       podSelector: {}
       policyTypes:
         - Ingress
-  11: |
+  12: |
     apiVersion: objectbucket.io/v1alpha1
     kind: ObjectBucketClaim
     metadata:
@@ -372,7 +437,7 @@ manifests should match snapshot:
     spec:
       bucketName: apc-tempo-stack
       storageClassName: ocs-storagecluster-ceph-rgw
-  12: |
+  13: |
     apiVersion: tempo.grafana.com/v1alpha1
     kind: TempoStack
     metadata:
@@ -391,7 +456,7 @@ manifests should match snapshot:
           createServiceMonitors: true
       retention:
         global:
-          traces: 48h
+          traces: 48h0m0s
       storage:
         secret:
           name: apc-tempo-stack-allinfo

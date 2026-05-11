@@ -20,10 +20,10 @@ spec:
         any:
         - resources:
             kinds:
-            - argoproj.io/*/Application
-            namespaceSelector:
+            - Namespace
+            selector:
               matchLabels:
-                apc.namespace.type: application
+                {{ .Values.namespaceSelector.key }}: {{ .Values.namespaceSelector.value }}
       mutate:
         targets:
           - apiVersion: tempo.grafana.com/v1alpha1

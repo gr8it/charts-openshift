@@ -32,7 +32,7 @@ spec:
     - name: appNamespaces
       apiCall:
         urlPath: "/api/v1/namespaces"
-        jmesPath: "items[?metadata.labels.\"apc.namespace.test\" == 'application'].metadata.name"
+        jmesPath: "items[?metadata.labels.\"{{ .Values.namespaceSelector.key }}\" == '{{ .Values.namespaceSelector.value }}'].metadata.name"
         default: []
   conditions:
     all:

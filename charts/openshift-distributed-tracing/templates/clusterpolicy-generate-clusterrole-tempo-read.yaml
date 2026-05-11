@@ -13,18 +13,24 @@ metadata:
   labels:
 {{- include "tempo-stack.labels" . | nindent 4 }}
 spec:
-  generateExistingOnPolicyUpdate: true
+  admission: true
+  background: true
+  validationFailureAction: Audit
+  emitWarning: false
+  generateExisting: true
+  skipBackgroundRequests: false
   rules:
-    - name: generate-reader-clusterrole-for-application-namespace
+    - name: generate-clusterrole-reader-for-application-namespace
       match:
         any:
         - resources:
             kinds:
-            - argoproj.io/*/Application
-            namespaceSelector:
+            - Namespace
+            selector:
               matchLabels:
-                apc.namespace.type: application
+                {{ .Values.namespaceSelector.key }}: {{ .Values.namespaceSelector.value }}
       generate:
+        generateExisting: true
         apiVersion: rbac.authorization.k8s.io/v1
         kind: ClusterRole
         name: {{ default "apc-tempo-stack" .Values.tempoStack.name }}-reader-{{`{{request.object.metadata.name}}`}}
@@ -32,17 +38,13 @@ spec:
         data:
           metadata:
             labels:
-              rbac.authorization.k8s.io/aggregate-to-apc-project-admin: "true"
-              rbac.authorization.k8s.io/aggregate-to-apc-project-developer: "true"
-              rbac.authorization.k8s.io/aggregate-to-apc-project-tester: "true"
-              rbac.authorization.k8s.io/aggregate-to-apc-project-operator: "true"
               generated-by: generate-reader-clusterrole-for-application-namespace
-            rules:
-            - apiGroups:
-                - tempo.grafana.com
-              resources:
-                - {{`"{{request.object.metadata.name}}"`}}
-              resourceNames:
-                - traces
-              verbs:
-                - get
+          rules:
+          - apiGroups:
+              - tempo.grafana.com
+            resources:
+              - {{`"{{request.object.metadata.name}}"`}}
+            resourceNames:
+              - traces
+            verbs:
+              - get
