@@ -49,6 +49,11 @@ vectorSiem:
 ## Vector subchart values
 ## See: https://github.com/vectordotdev/helm-charts/tree/develop/charts/vector
 vector:
+  # Null these out so the subchart's if-checks fall through to the existingConfigMaps
+  # branch, which calls our vector-helm.vectorContainerPorts / vectorServicePorts helpers.
+  # Subchart defaults these to [] (non-nil empty slice = truthy in Go templates).
+  containerPorts: ~
+
   logLevel: info
 
   # Keep legacy resource names stable so Argo can adopt the existing cluster objects.
@@ -84,6 +89,7 @@ vector:
 
   service:
     enabled: true
+    ports: ~
   serviceHeadless:
     enabled: false
   podMonitor:
