@@ -49,10 +49,19 @@ vectorSiem:
 ## Vector subchart values
 ## See: https://github.com/vectordotdev/helm-charts/tree/develop/charts/vector
 vector:
-  # Null these out so the subchart's if-checks fall through to the existingConfigMaps
-  # branch, which calls our vector-helm.vectorContainerPorts / vectorServicePorts helpers.
-  # Subchart defaults these to [] (non-nil empty slice = truthy in Go templates).
-  containerPorts: ~
+  containerPorts:
+    - name: prom-exporter
+      containerPort: 9090
+      protocol: TCP
+    - name: udp-syslog
+      containerPort: 9441
+      protocol: UDP
+    - name: tcp-syslog
+      containerPort: 9442
+      protocol: TCP
+    - name: webhook
+      containerPort: 9444
+      protocol: TCP
 
   logLevel: info
 
@@ -89,7 +98,19 @@ vector:
 
   service:
     enabled: true
-    ports: ~
+    ports:
+      - name: udp-syslog
+        protocol: UDP
+        port: 9441
+        targetPort: 9441
+      - name: tcp-syslog
+        protocol: TCP
+        port: 9442
+        targetPort: 9442
+      - name: webhook
+        protocol: TCP
+        port: 9444
+        targetPort: 9444
   serviceHeadless:
     enabled: false
   podMonitor:
