@@ -14,49 +14,8 @@ global:
       externalSecretsOperator:
         defaultClusterSecretStore: apc
 
-userWorkloadMonitoring:
-  location: primary
-  prometheus:
-    retention: "7d"
-    storageSize: "24Gi"
-    storageClassName: ocs-storagecluster-ceph-rbd
-    remoteWrite:
-      enabled: true
-      secretName: telemetry-remote-write
-      url: https://infogw.api.openshift.com/metrics/v1/receive
-      proxyUrl: ~
-      writeRelabelConfigs:
-        - action: keep
-          regex: (count:up0|count:up1|cluster_version)
-          sourceLabels:
-            - __name__
-  thanosRuler:
-    storageSize: "1Gi"
-    storageClassName: ocs-storagecluster-ceph-rbd
-
 alertmanager:
   eso:
-    enabled: true
-    refreshInterval: "15m"
     vault:
-      msteamsKey: socpoist/msteams
-      msteamsProperty: dev_uwm_url
-      healthchecksKey: socpoist/healthchecks.io
-      healthchecksProperty: dev_uwm_url
-      opsgenieKey: socpoist/jira
-      opsgenieProperty: dev01_api_key
+      secretPath: customers/socpoist/monitoring/alertmanager-uwm
 
-networkPolicy:
-  enabled: true
-
-backups:
-  enabled: true
-  namespace: openshift-adp
-  schedules:
-    - name: uwm-daily
-      namespace: openshift-adp
-      spec:
-        schedule: "0 3 * * *"
-        template:
-          includedNamespaces:
-            - openshift-user-workload-monitoring

@@ -3,8 +3,6 @@ fullnameOverride: ""
 
 # --- ClusterMonitoringConfig (openshift-monitoring) ---
 clusterMonitoring:
-  # UUID of the managed cluster — required, unique per cluster
-  managedClusterUUID: ""
   location: primary
   prometheus:
     retention: "7d"
@@ -15,30 +13,16 @@ clusterMonitoring:
     storageClassName: ocs-storagecluster-ceph-rbd
 
 # --- AlertManager receivers secret (openshift-monitoring/alertmanager-receivers) via ESO ---
-# Credentials are mounted as files into alertmanager pod — alertmanager config uses *_file refs.
+# All alertmanager credentials are stored in a single Vault secret path (dataFrom.extract).
+# Hub-specific keys (opsgenie_key_acs, opsgenie_key_logs) must be present in the Vault secret on hub clusters.
+# Hub detection uses global.apc.cluster.isHub via apc-global-overrides.
 alertmanager:
   eso:
     enabled: true
     refreshInterval: "15m"
     vault:
-      # Full Vault key path for each credential, e.g. customers/socpoist/msteams
-      msteamsKey: ""
-      msteamsProperty: ""
-      healthchecksKey: ""
-      healthchecksProperty: ""
-      opsgenieKey: ""
-      opsgenieProperty: ""
-
-# --- Hub-specific extras (additional alertmanager receivers for security + logs) ---
-hub:
-  enabled: false
-  alertmanager:
-    eso:
-      vault:
-        # Shared opsgenieKey from alertmanager.eso.vault.opsgenieKey if not set
-        opsgenieKey: ""
-        opsgenieAcsProperty: ""
-        opsgenieLogsProperty: ""
+      # Full Vault secret path, e.g. customers/socpoist/monitoring/alertmanager
+      secretPath: ""
 
 # --- NetworkPolicy (proxy egress for openshift-monitoring) ---
 # proxyCIDRs are read from global.apc.proxyCIDRs via apc-global-overrides
@@ -47,6 +31,13 @@ networkPolicy:
 
 # --- Velero backup Schedules via openshift-adp-backups subchart ---
 backups:
-  enabled: false
+  enabled: true
   namespace: openshift-adp
-  schedules: []
+  schedules:
+    - name: monitoring-daily
+      namespace: openshift-adp
+      spec:
+        schedule: "0 2 * * *"
+        template:
+          includedNamespaces:
+            - openshift-monitoring

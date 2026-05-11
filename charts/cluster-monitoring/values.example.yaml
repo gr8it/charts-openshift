@@ -15,48 +15,8 @@ global:
       externalSecretsOperator:
         defaultClusterSecretStore: apc
 
-clusterMonitoring:
-  managedClusterUUID: "8cc9d698-a038-40c7-83db-a25552868189"
-  location: primary
-  prometheus:
-    retention: "7d"
-    storageSize: "60Gi"
-    storageClassName: ocs-storagecluster-ceph-rbd
-  alertmanager:
-    storageSize: "1Gi"
-    storageClassName: ocs-storagecluster-ceph-rbd
-
 alertmanager:
   eso:
-    enabled: true
-    refreshInterval: "15m"
     vault:
-      msteamsKey: socpoist/msteams
-      msteamsProperty: dev_url
-      healthchecksKey: socpoist/healthchecks.io
-      healthchecksProperty: dev_url
-      opsgenieKey: socpoist/jira
-      opsgenieProperty: dev01_api_key
+      secretPath: customers/socpoist/monitoring/alertmanager
 
-hub:
-  enabled: true
-  alertmanager:
-    eso:
-      vault:
-        opsgenieAcsProperty: dev01_acs_api_key
-        opsgenieLogsProperty: dev01_logs_api_key
-
-networkPolicy:
-  enabled: true
-
-backups:
-  enabled: true
-  namespace: openshift-adp
-  schedules:
-    - name: monitoring-daily
-      namespace: openshift-adp
-      spec:
-        schedule: "0 2 * * *"
-        template:
-          includedNamespaces:
-            - openshift-monitoring

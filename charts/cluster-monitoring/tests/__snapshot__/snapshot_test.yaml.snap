@@ -71,7 +71,7 @@ manifests should match snapshot:
                 requests:
                   storage: 60Gi
           externalLabels:
-            managed_cluster: "8cc9d698-a038-40c7-83db-a25552868189"
+            managed_cluster: dev01
             customerName: socpoistsk
             environment: dev
             location: primary
@@ -80,8 +80,6 @@ manifests should match snapshot:
             team: platform
     kind: ConfigMap
     metadata:
-      annotations:
-        argocd.argoproj.io/sync-options: ServerSideApply=true
       labels:
         app.kubernetes.io/instance: cluster-monitoring
         app.kubernetes.io/managed-by: Helm
@@ -101,27 +99,9 @@ manifests should match snapshot:
       name: alertmanager-receivers
       namespace: openshift-monitoring
     spec:
-      data:
-        - remoteRef:
-            key: socpoist/msteams
-            property: dev_url
-          secretKey: msteams_url
-        - remoteRef:
-            key: socpoist/healthchecks.io
-            property: dev_url
-          secretKey: healthchecks_url
-        - remoteRef:
-            key: socpoist/jira
-            property: dev01_api_key
-          secretKey: opsgenie_key
-        - remoteRef:
-            key: socpoist/jira
-            property: dev01_acs_api_key
-          secretKey: opsgenie_key_acs
-        - remoteRef:
-            key: socpoist/jira
-            property: dev01_logs_api_key
-          secretKey: opsgenie_key_logs
+      dataFrom:
+        - extract:
+            key: customers/socpoist/monitoring/alertmanager
       refreshInterval: 15m
       secretStoreRef:
         kind: ClusterSecretStore
@@ -152,8 +132,6 @@ manifests should match snapshot:
     apiVersion: v1
     kind: Secret
     metadata:
-      annotations:
-        argocd.argoproj.io/sync-options: ServerSideApply=true
       labels:
         app.kubernetes.io/instance: cluster-monitoring
         app.kubernetes.io/managed-by: Helm

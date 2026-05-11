@@ -5,33 +5,32 @@ fullnameOverride: ""
 userWorkloadMonitoring:
   location: primary
   prometheus:
-    retention: "7d"
+    retention: "14d"
     storageSize: "24Gi"
     storageClassName: ocs-storagecluster-ceph-rbd
     remoteWrite:
-      enabled: false
+      enabled: true
       secretName: telemetry-remote-write
       url: https://infogw.api.openshift.com/metrics/v1/receive
       proxyUrl: ~
-      writeRelabelConfigs: ~
+      writeRelabelConfigs:
+        - action: keep
+          regex: (count:up0|count:up1|cluster_version)
+          sourceLabels:
+            - __name__
   thanosRuler:
     storageSize: "1Gi"
     storageClassName: ocs-storagecluster-ceph-rbd
 
 # --- UWM AlertManager receivers secret (openshift-user-workload-monitoring/alertmanager-uwm-receivers) via ESO ---
-# Credentials are mounted as files into alertmanager pod — alertmanager config uses *_file refs.
+# All alertmanager credentials are stored in a single Vault secret path (dataFrom.extract).
 alertmanager:
   eso:
     enabled: true
     refreshInterval: "15m"
     vault:
-      # Full Vault key path for each credential, e.g. customers/socpoist/msteams
-      msteamsKey: ""
-      msteamsProperty: ""
-      healthchecksKey: ""
-      healthchecksProperty: ""
-      opsgenieKey: ""
-      opsgenieProperty: ""
+      # Full Vault secret path, e.g. customers/socpoist/monitoring/alertmanager-uwm
+      secretPath: ""
 
 # --- NetworkPolicy (proxy egress for openshift-user-workload-monitoring) ---
 # proxyCIDRs are read from global.apc.proxyCIDRs via apc-global-overrides
@@ -40,6 +39,13 @@ networkPolicy:
 
 # --- Velero backup Schedules via openshift-adp-backups subchart ---
 backups:
-  enabled: false
+  enabled: true
   namespace: openshift-adp
-  schedules: []
+  schedules:
+    - name: uwm-daily
+      namespace: openshift-adp
+      spec:
+        schedule: "0 3 * * *"
+        template:
+          includedNamespaces:
+            - openshift-user-workload-monitoring

@@ -5,8 +5,6 @@ metadata:
   namespace: openshift-monitoring
   labels:
     {{- include "cluster-monitoring.labels" . | nindent 4 }}
-  annotations:
-    argocd.argoproj.io/sync-options: ServerSideApply=true
 data:
   config.yaml: |
     enableUserWorkload: true
@@ -45,7 +43,7 @@ data:
             requests:
               storage: {{ .Values.clusterMonitoring.prometheus.storageSize }}
       externalLabels:
-        managed_cluster: {{ required "clusterMonitoring.managedClusterUUID is required" .Values.clusterMonitoring.managedClusterUUID | quote }}
+        managed_cluster: {{ include "apc-global-overrides.require-clusterName" . }}
         customerName: {{ include "apc-global-overrides.require-customer" . }}
         environment: {{ include "apc-global-overrides.require-environment" . }}
         location: {{ .Values.clusterMonitoring.location }}

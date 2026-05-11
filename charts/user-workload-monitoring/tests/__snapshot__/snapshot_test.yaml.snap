@@ -9,7 +9,7 @@ manifests should match snapshot:
           secrets:
             - alertmanager-uwm-receivers
         prometheus:
-          retention: 7d
+          retention: 14d
           volumeClaimTemplate:
             metadata:
               name: prometheus-user-workload-pvc
@@ -54,13 +54,10 @@ manifests should match snapshot:
                   storage: 1Gi
     kind: ConfigMap
     metadata:
-      annotations:
-        argocd.argoproj.io/sync-options: ServerSideApply=true
       labels:
         app.kubernetes.io/instance: user-workload-monitoring
-        app.kubernetes.io/managed-by: cluster-monitoring-operator
+        app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: user-workload-monitoring
-        app.kubernetes.io/part-of: openshift-monitoring
         helm.sh/chart: user-workload-monitoring-1.0.0
       name: user-workload-monitoring-config
       namespace: openshift-user-workload-monitoring
@@ -76,19 +73,9 @@ manifests should match snapshot:
       name: alertmanager-uwm-receivers
       namespace: openshift-user-workload-monitoring
     spec:
-      data:
-        - remoteRef:
-            key: socpoist/msteams
-            property: dev_uwm_url
-          secretKey: msteams_url
-        - remoteRef:
-            key: socpoist/healthchecks.io
-            property: dev_uwm_url
-          secretKey: healthchecks_url
-        - remoteRef:
-            key: socpoist/jira
-            property: dev01_api_key
-          secretKey: opsgenie_key
+      dataFrom:
+        - extract:
+            key: customers/socpoist/monitoring/alertmanager-uwm
       refreshInterval: 15m
       secretStoreRef:
         kind: ClusterSecretStore
@@ -145,14 +132,10 @@ manifests should match snapshot:
     apiVersion: v1
     kind: Secret
     metadata:
-      annotations:
-        argocd.argoproj.io/sync-options: ServerSideApply=true
       labels:
-        app.kubernetes.io/component: alert-router
-        app.kubernetes.io/instance: user-workload
-        app.kubernetes.io/managed-by: cluster-monitoring-operator
-        app.kubernetes.io/name: alertmanager
-        app.kubernetes.io/part-of: openshift-monitoring
+        app.kubernetes.io/instance: user-workload-monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: user-workload-monitoring
         helm.sh/chart: user-workload-monitoring-1.0.0
       name: alertmanager-user-workload
       namespace: openshift-user-workload-monitoring
