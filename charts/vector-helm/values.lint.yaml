@@ -11,27 +11,25 @@ global:
       vault:
         KVmountPlatform: apc-platform
 
-vector:
-  role: Agent
-  customConfig:
-    api:
-      enabled: true
-      address: 0.0.0.0:8686
-      playground: false
-    sources:
-      internal_metrics:
-        type: internal_metrics
-    sinks:
-      prom_exporter:
-        type: prometheus_exporter
-        inputs: [internal_metrics]
-        address: 0.0.0.0:9090
-  extraObjects: []
-  extraVolumes: []
-  extraVolumeMounts: []
-  service:
-    ports:
-      - name: prom-exporter
-        protocol: TCP
-        port: 9090
-        targetPort: 9090
+vectorServiceCertificate:
+  ipAddresses:
+    - 10.111.76.100
+
+vectorMetalLB:
+  addresses:
+    - 10.111.76.100/32
+
+vectorNetworkPolicy:
+  syslogUdpCidrs:
+    - 10.111.126.0/26
+    - 10.111.26.0/25
+  syslogTcpCidrs:
+    - 10.111.126.0/26
+    - 10.111.26.0/25
+  webhookCidrs:
+    - 10.11.76.0/23
+    - 10.13.76.0/23
+    - 10.14.76.0/23
+
+vectorSiem:
+  endpoint: https://sr-ba-xsplhf-p1.socpoist.sk:8088/

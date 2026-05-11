@@ -49,3 +49,78 @@ Selector labels
 app.kubernetes.io/name: {{ include "vector-helm.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{/*
+Mirror the Vector subchart fullname logic so wrapper resources can follow it.
+*/}}
+{{- define "vector-helm.vectorFullname" -}}
+{{- if .Values.vector.fullnameOverride }}
+{{- .Values.vector.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default "vector" .Values.vector.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Minimal selector labels that match the Vector workload pods.
+*/}}
+{{- define "vector-helm.vectorSelectorLabels" -}}
+app.kubernetes.io/name: {{ default "vector" .Values.vector.nameOverride }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+Labels for wrapper-owned Vector resources without colliding with chart labels.
+*/}}
+{{- define "vector-helm.vectorResourceLabels" -}}
+helm.sh/chart: {{ include "vector-helm.chart" . }}
+{{ include "vector-helm.vectorSelectorLabels" . }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
+The wrapper-owned Vector ConfigMap deliberately keeps the legacy `vector` name.
+*/}}
+{{- define "vector-helm.vectorConfigMapName" -}}
+{{ include "vector-helm.vectorFullname" . }}
+{{- end }}
+
+{{/*
+Static Vector container ports for the APC wrapper config.
+*/}}
+{{- define "vector-helm.vectorContainerPorts" -}}
+- name: prom-exporter
+  containerPort: 9090
+  protocol: TCP
+- name: udp-syslog
+  containerPort: 9441
+  protocol: UDP
+- name: tcp-syslog
+  containerPort: 9442
+  protocol: TCP
+- name: webhook
+  containerPort: 9444
+  protocol: TCP
+{{- end }}
+
+{{/*
+Mirror the Vector subchart service account name logic for APC-owned resources.
+*/}}
+{{- define "vector-helm.vectorServiceAccountName" -}}
+{{- $serviceAccount := .Values.vector.serviceAccount | default dict -}}
+{{- if hasKey $serviceAccount "create" -}}
+  {{- if $serviceAccount.create -}}
+    {{- default (include "vector-helm.vectorFullname" .) $serviceAccount.name -}}
+  {{- else -}}
+    {{- default "default" $serviceAccount.name -}}
+  {{- end -}}
+{{- else -}}
+  {{- default (include "vector-helm.vectorFullname" .) $serviceAccount.name -}}
+{{- end -}}
+{{- end }}

@@ -10,11 +10,11 @@ spec:
   issuerRef:
     name: {{ include "apc-global-overrides.require-certManagerDefaultClusterIssuer" . }}
     kind: ClusterIssuer
-  commonName: "vector.{{ include "apc-global-overrides.clusterBaseDomain" . }}"
+  commonName: "{{ include "vector-helm.vectorFullname" . }}.{{ include "apc-global-overrides.clusterBaseDomain" . }}"
   dnsNames:
-    - "vector.{{ .Release.Namespace }}.svc"
-    - "vector.{{ .Release.Namespace }}.svc.cluster.local"
-    - "vector.{{ include "apc-global-overrides.clusterBaseDomain" . }}"
+    - "{{ include "vector-helm.vectorFullname" . }}.{{ .Release.Namespace }}.svc"
+    - "{{ include "vector-helm.vectorFullname" . }}.{{ .Release.Namespace }}.svc.cluster.local"
+    - "{{ include "vector-helm.vectorFullname" . }}.{{ include "apc-global-overrides.clusterBaseDomain" . }}"
     {{- range .Values.vectorServiceCertificate.additionalDnsNames }}
     - {{ . | quote }}
     {{- end }}

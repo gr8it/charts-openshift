@@ -1,0 +1,14 @@
+{{- if and .Values.vectorMetalLB.enabled (gt (len .Values.vectorMetalLB.addresses) 0) }}
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: vector
+  namespace: {{ include "apc-global-overrides.metallbNamespace" . }}
+  labels:
+    {{- include "vector-helm.labels" . | nindent 4 }}
+spec:
+  ipAddressPools:
+    - vector-reserved
+  nodeSelectors:
+    {{- toYaml .Values.vectorMetalLB.nodeSelectors | nindent 4 }}
+{{- end }}
