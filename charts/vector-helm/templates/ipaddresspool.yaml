@@ -1,0 +1,21 @@
+{{- if and .Values.vectorMetalLB.enabled (gt (len .Values.vectorMetalLB.addresses) 0) }}
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: vector-reserved
+  namespace: {{ include "apc-global-overrides.metallbNamespace" . }}
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  addresses:
+    {{- range .Values.vectorMetalLB.addresses }}
+    - {{ . }}
+    {{- end }}
+  autoAssign: {{ .Values.vectorMetalLB.autoAssign }}
+  serviceAllocation:
+    namespaces:
+      - {{ .Release.Namespace }}
+    serviceSelectors:
+      - matchLabels:
+          app.kubernetes.io/name: vector
+{{- end }}

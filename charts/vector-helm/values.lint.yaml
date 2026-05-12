@@ -1,0 +1,35 @@
+global:
+  apc:
+    environmentShort: h
+    cluster:
+      baseDomain: hub01.cloud.socpoist.sk
+    services:
+      certManager:
+        defaultClusterIssuer: vault-hub-issuer
+      externalSecretsOperator:
+        defaultClusterSecretStore: vault-hub-secret-store
+      vault:
+        KVmountPlatform: apc-platform
+
+vectorServiceCertificate:
+  ipAddresses:
+    - 10.111.76.100
+
+vectorMetalLB:
+  addresses:
+    - 10.111.76.100/32
+
+vectorNetworkPolicy:
+  syslogUdpCidrs:
+    - 10.111.126.0/26
+    - 10.111.26.0/25
+  syslogTcpCidrs:
+    - 10.111.126.0/26
+    - 10.111.26.0/25
+  webhookCidrs:
+    - 10.11.76.0/23
+    - 10.13.76.0/23
+    - 10.14.76.0/23
+
+vectorSiem:
+  endpoint: https://sr-ba-xsplhf-p1.socpoist.sk:8088/
