@@ -17,8 +17,10 @@ spec:
     resources:
       {{- toYaml .Values.flowCollector.processor.resources | nindent 6 }}
   loki:
+    enable: true
     mode: LokiStack
     lokiStack:
       name: {{ include "netobserv-config.fullname" . }}
+      namespace: {{ .Release.Namespace }}
   consolePlugin:
     enable: true
