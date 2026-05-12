@@ -32,9 +32,13 @@ spec:
             kind: TempoStack
             name: {{ default "apc-tempo-stack" .Values.tempoStack.name }}
             namespace: {{ .Release.Namespace }}
-        patchesJson6902: |-
-          - op: remove
-            path: "/spec/tenants/authentication/-"
-            value:
-              tenantName: {{`"{{ request.oldObject.metadata.name }}"`}}
-              tenantId: {{`"{{ request.oldObject.metadata.name }}"`}}
+        foreach:
+          - list: "target.spec.tenants.authentication"
+            preconditions:
+              all:
+                - key: {{`"{{ element.tenantName }}"`}}
+                  operator: Equals
+                  value: {{`"{{ request.oldObject.metadata.name }}"`}}
+            patchesJson6902: |-
+              - op: remove
+                path: /spec/tenants/authentication/{{`{{ elementIndex }}`}}

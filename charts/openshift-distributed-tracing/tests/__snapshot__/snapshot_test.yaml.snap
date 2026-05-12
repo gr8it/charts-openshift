@@ -220,12 +220,16 @@ manifests should match snapshot:
                     matchLabels:
                       apc.namespace.type: application
           mutate:
-            patchesJson6902: |-
-              - op: remove
-                path: "/spec/tenants/authentication/-"
-                value:
-                  tenantName: "{{ request.oldObject.metadata.name }}"
-                  tenantId: "{{ request.oldObject.metadata.name }}"
+            foreach:
+              - list: target.spec.tenants.authentication
+                patchesJson6902: |-
+                  - op: remove
+                    path: /spec/tenants/authentication/{{ elementIndex }}
+                preconditions:
+                  all:
+                    - key: '{{ element.tenantName }}'
+                      operator: Equals
+                      value: '{{ request.oldObject.metadata.name }}'
             targets:
               - apiVersion: tempo.grafana.com/v1alpha1
                 kind: TempoStack
