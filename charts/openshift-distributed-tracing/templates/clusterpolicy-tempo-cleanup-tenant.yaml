@@ -30,11 +30,11 @@ spec:
         targets:
           - apiVersion: tempo.grafana.com/v1alpha1
             kind: TempoStack
-            name: {{ default "apc-tempo-stack" .Values.tempoStack.name | quote }}
-            namespace: {{ default .Release.Namespace .Values.tempoStack.namespace | quote }}
-        patchStrategicMerge:
-          spec:
-            tenants:
-              authentication:
-                - tenantName: {{`"{{ request.oldObject.metadata.name }}"`}}
-                  $patch: delete
+            name: {{ default "apc-tempo-stack" .Values.tempoStack.name }}
+            namespace: {{ .Release.Namespace }}
+        patchesJson6902: |-
+          - op: remove
+            path: "/spec/tenants/authentication/-"
+            value:
+              tenantName: {{`"{{ request.oldObject.metadata.name }}"`}}
+              tenantId: {{`"{{ request.oldObject.metadata.name }}"`}}

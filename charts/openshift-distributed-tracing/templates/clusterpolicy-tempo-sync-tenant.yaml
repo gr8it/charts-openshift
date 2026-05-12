@@ -1,5 +1,4 @@
 ---
-# TESTING apc.namespace.test - change occurence to apc.namespace.type. This is only for testing of the kyverno clusterpolicy
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
@@ -19,24 +18,36 @@ spec:
   rules:
     - name: add-tenant-to-tempostack
       match:
-        any:
+        all:
         - resources:
             kinds:
             - Namespace
             selector:
               matchLabels:
                 {{ .Values.namespaceSelector.key }}: {{ .Values.namespaceSelector.value }}
+      context:
+        - name: tenantNames
+          apiCall:
+            method: GET
+            urlPath: {{ printf "%s%s%s%s" "/apis/tempo.grafana.com/v1alpha1/namespaces/" .Release.Namespace "/tempostacks/" (default "apc-tempo-stack" .Values.tempoStack.name) }}
+            jmesPath: spec.tenants.authentication[*].tenantName
+            default: []
+      preconditions:
+        all:
+          - key: {{`"{{ request.object.metadata.name }}"`}}
+            operator: AnyNotIn
+            value: {{`"{{ tenantNames }}"`}}
+            message: A tenant is added into tempo.
       mutate:
         mutateExistingOnPolicyUpdate: true
         targets:
           - apiVersion: tempo.grafana.com/v1alpha1
             kind: TempoStack
             name: {{ default "apc-tempo-stack" .Values.tempoStack.name }}
-            namespace: {{ .Release.Namespace  }}
-        patchStrategicMerge:
-          spec:
-            tenants:
-              authentication:
-                # The +(...) anchor adds the item to the list if it doesn't already exist
-                - +(tenantName): {{`"{{ request.object.metadata.name }}"`}}
-                  tenantId: {{`"{{ request.object.metadata.name }}"`}}
+            namespace: {{ .Release.Namespace }}
+        patchesJson6902: |-
+          - op: add
+            path: "/spec/tenants/authentication/-"
+            value:
+              tenantName: {{`"{{ request.object.metadata.name }}"`}}
+              tenantId: {{`"{{ request.object.metadata.name }}"`}}

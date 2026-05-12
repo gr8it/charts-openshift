@@ -42,7 +42,7 @@ manifests should match snapshot:
               selector:
                 matchLabels:
                   generated-by: generate-writer-tempo-stack-tenant-clusterrole
-      schedule: 0 0 */1 * *
+      schedule: 0 12 * * *
   2: |
     apiVersion: kyverno.io/v1
     kind: ClusterPolicy
@@ -220,12 +220,12 @@ manifests should match snapshot:
                     matchLabels:
                       apc.namespace.type: application
           mutate:
-            patchStrategicMerge:
-              spec:
-                tenants:
-                  authentication:
-                    - $patch: delete
-                      tenantName: '{{ request.oldObject.metadata.name }}'
+            patchesJson6902: |-
+              - op: remove
+                path: "/spec/tenants/authentication/-"
+                value:
+                  tenantName: "{{ request.oldObject.metadata.name }}"
+                  tenantId: "{{ request.oldObject.metadata.name }}"
             targets:
               - apiVersion: tempo.grafana.com/v1alpha1
                 kind: TempoStack
@@ -253,8 +253,15 @@ manifests should match snapshot:
       background: true
       mutateExistingOnPolicyUpdate: true
       rules:
-        - match:
-            any:
+        - context:
+            - apiCall:
+                default: []
+                jmesPath: spec.tenants.authentication[*].tenantName
+                method: GET
+                urlPath: /apis/tempo.grafana.com/v1alpha1/namespaces/NAMESPACE/tempostacks/apc-tempo-stack
+              name: tenantNames
+          match:
+            all:
               - resources:
                   kinds:
                     - Namespace
@@ -263,18 +270,24 @@ manifests should match snapshot:
                       apc.namespace.type: application
           mutate:
             mutateExistingOnPolicyUpdate: true
-            patchStrategicMerge:
-              spec:
-                tenants:
-                  authentication:
-                    - +(tenantName): '{{ request.object.metadata.name }}'
-                      tenantId: '{{ request.object.metadata.name }}'
+            patchesJson6902: |-
+              - op: add
+                path: "/spec/tenants/authentication/-"
+                value:
+                  tenantName: "{{ request.object.metadata.name }}"
+                  tenantId: "{{ request.object.metadata.name }}"
             targets:
               - apiVersion: tempo.grafana.com/v1alpha1
                 kind: TempoStack
                 name: apc-tempo-stack
                 namespace: NAMESPACE
           name: add-tenant-to-tempostack
+          preconditions:
+            all:
+              - key: '{{ request.object.metadata.name }}'
+                message: A tenant is added into tempo.
+                operator: AnyNotIn
+                value: '{{ tenantNames }}'
       validationFailureAction: Audit
   7: |
     apiVersion: rbac.authorization.k8s.io/v1
