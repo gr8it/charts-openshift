@@ -1,18 +1,17 @@
 # --- Network Observability Operator ---
-netobserv-operatorpolicy:
-  enabled: true
+acm-operatorpolicy:
   subscription:
     channel: "stable"
     name: netobserv-operator
     namespace: openshift-netobserv-operator
     source: redhat-operators
     sourceNamespace: openshift-marketplace
-    startingCSV: netobserv-operator.v1.7.0
+    startingCSV: netobserv-operator.v1.8.0
   operatorGroup:
     name: openshift-netobserv-operator
     namespace: openshift-netobserv-operator
     targetNamespaces:
       - openshift-netobserv-operator
-  upgradeApproval: None
+  upgradeApproval: Automatic
   versions:
-    - netobserv-operator.v1.7.0
+    - netobserv-operator.v1.8.0

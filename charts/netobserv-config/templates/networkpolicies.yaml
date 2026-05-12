@@ -1,0 +1,51 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: apc-flowlogs-pipeline-network-policy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "netobserv-config.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: flowlogs-pipeline
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Release.Namespace }}-privileged
+          podSelector:
+            matchLabels:
+              app: netobserv-ebpf-agent
+      ports:
+        - port: 2055
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: apc-netobserv-plugin-network-policy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "netobserv-config.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: netobserv-plugin
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-console
+          podSelector:
+            matchLabels:
+              app: console
+              component: ui
+      ports:
+        - port: 9001
+          protocol: TCP

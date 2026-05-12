@@ -3,7 +3,7 @@ kind: FlowCollector
 metadata:
   name: cluster
   labels:
-    {{- include "netobserv-helm.labels" . | nindent 4 }}
+    {{- include "netobserv-config.labels" . | nindent 4 }}
 spec:
   namespace: {{ .Release.Namespace }}
   deploymentModel: Direct
@@ -19,6 +19,6 @@ spec:
   loki:
     mode: LokiStack
     lokiStack:
-      name: {{ include "netobserv-helm.fullname" . }}
+      name: {{ include "netobserv-config.fullname" . }}
   consolePlugin:
     enable: true
