@@ -1,49 +1,5 @@
 manifests should match snapshot:
   1: |
-    apiVersion: kyverno.io/v2
-    kind: ClusterCleanupPolicy
-    metadata:
-      annotations:
-        argocd.argoproj.io/sync-options: Replace=true
-        policies.kyverno.io/category: gitops
-        policies.kyverno.io/minversion: 1.13.0
-        policies.kyverno.io/subject: TempoStack ClusterRoles
-        policies.kyverno.io/title: Cleanup Tempo reader ClusterRoles for deleted or unwatched namespaces
-      labels:
-        app.kubernetes.io/instance: kyverno-app-grafana
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: openshift-distributed-tracing
-        app.kubernetes.io/version: v0.15
-        helm.sh/chart: openshift-distributed-tracing-1.0.0
-      name: apc-tempo-stack-cleanup-tempo-reader-clusterroles
-    spec:
-      conditions:
-        all:
-          - key: '{{ target.metadata.name | split(@, ''-'') | [2:] | join(''-'',@) }}'
-            operator: AllNotIn
-            value: '{{ appNamespaces }}'
-      context:
-        - apiCall:
-            default: []
-            jmesPath: items[?metadata.labels."apc.namespace.type" == 'application'].metadata.name
-            urlPath: /api/v1/namespaces
-          name: appNamespaces
-      match:
-        any:
-          - resources:
-              kinds:
-                - ClusterRole
-              selector:
-                matchLabels:
-                  generated-by: generate-reader-tempo-stack-tenant-clusterrole
-          - resources:
-              kinds:
-                - ClusterRole
-              selector:
-                matchLabels:
-                  generated-by: generate-writer-tempo-stack-tenant-clusterrole
-      schedule: 0 12 * * *
-  2: |
     apiVersion: kyverno.io/v1
     kind: ClusterPolicy
     metadata:
@@ -92,7 +48,7 @@ manifests should match snapshot:
                       apc.namespace.type: application
           name: generate-clusterrole-reader-for-application-namespace
       validationFailureAction: Audit
-  3: |
+  2: |
     apiVersion: kyverno.io/v1
     kind: ClusterPolicy
     metadata:
@@ -142,7 +98,7 @@ manifests should match snapshot:
                       apc.namespace.type: application
           name: generate-clusterrole-writer-for-application-namespace
       validationFailureAction: Audit
-  4: |
+  3: |
     apiVersion: kyverno.io/v1
     kind: ClusterPolicy
     metadata:
@@ -189,7 +145,7 @@ manifests should match snapshot:
                       apc.namespace.type: application
           name: generate-rolebinding-reader-for-application-namespace
       validationFailureAction: Audit
-  5: |
+  4: |
     apiVersion: kyverno.io/v1
     kind: ClusterPolicy
     metadata:
@@ -236,7 +192,7 @@ manifests should match snapshot:
                 name: apc-tempo-stack
                 namespace: NAMESPACE
           name: remove-tenant-from-tempostack-on-namespace-delete
-  6: |
+  5: |
     apiVersion: kyverno.io/v1
     kind: ClusterPolicy
     metadata:
@@ -293,7 +249,7 @@ manifests should match snapshot:
                 operator: AnyNotIn
                 value: '{{ tenantNames }}'
       validationFailureAction: Audit
-  7: |
+  6: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -312,7 +268,7 @@ manifests should match snapshot:
           - rolebindings
         verbs:
           - get
-  8: |
+  7: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -377,7 +333,7 @@ manifests should match snapshot:
           - bind
           - escalate
           - delete
-  9: |
+  8: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -398,7 +354,7 @@ manifests should match snapshot:
           - '*'
         verbs:
           - get
-  10: |
+  9: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -419,7 +375,7 @@ manifests should match snapshot:
           - '*'
         verbs:
           - create
-  11: |
+  10: |
     apiVersion: networking.k8s.io/v1
     kind: NetworkPolicy
     metadata:
@@ -440,7 +396,7 @@ manifests should match snapshot:
       podSelector: {}
       policyTypes:
         - Ingress
-  12: |
+  11: |
     apiVersion: objectbucket.io/v1alpha1
     kind: ObjectBucketClaim
     metadata:
@@ -455,7 +411,7 @@ manifests should match snapshot:
     spec:
       bucketName: apc-tempo-stack
       storageClassName: ocs-storagecluster-ceph-rgw
-  13: |
+  12: |
     apiVersion: tempo.grafana.com/v1alpha1
     kind: TempoStack
     metadata:
