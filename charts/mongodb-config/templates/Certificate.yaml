@@ -1,0 +1,19 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mongodb-config.labels" . | nindent 4 }}
+spec:
+  secretName: {{ printf "%s-tls" .Release.Name }}
+  dnsNames:
+    - {{ printf "*.%s-svc.%s.svc.cluster.local" .Release.Name .Release.Namespace | quote }}
+  {{- range $fqdn := .Values.mongodbInstance.fqdns }}
+    - {{ $fqdn }}
+  {{- end }}
+  commonName: {{ printf "*.%s-svc.%s.svc.cluster.local" .Release.Name .Release.Namespace | quote}}
+  issuerRef:
+    name: {{ include "apc-global-overrides.require-certManagerDefaultClusterIssuer" . }}
+    kind: ClusterIssuer
+    group: cert-manager.io

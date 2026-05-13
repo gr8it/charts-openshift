@@ -1,0 +1,17 @@
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ include "apc-global-overrides.metallbNamespace" . }}
+  labels:
+    {{- include "mongodb-config.labels" . | nindent 4 }}
+spec:
+  addresses:
+{{- range $ip := .Values.mongodbInstance.ips }}
+  - {{ $ip }}
+{{- end }}
+  autoAssign: false
+  avoidBuggyIPs: false
+  serviceAllocation:
+    namespaces:
+    - {{ .Release.Namespace }}
