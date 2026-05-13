@@ -1,4 +1,4 @@
-{{- if and .Values.vectorMetalLB.enabled (gt (len .Values.vectorMetalLB.addresses) 0) }}
+{{- if gt (len (.Values.vectorMetalLB.addresses | default list)) 0 }}
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:
