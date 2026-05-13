@@ -355,27 +355,6 @@ manifests should match snapshot:
         verbs:
           - get
   9: |
-    apiVersion: rbac.authorization.k8s.io/v1
-    kind: ClusterRole
-    metadata:
-      labels:
-        app.kubernetes.io/instance: kyverno-app-grafana
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: openshift-distributed-tracing
-        app.kubernetes.io/version: v0.15
-        helm.sh/chart: openshift-distributed-tracing-1.0.0
-      name: tempostack-traces-write
-    rules:
-      - apiGroups:
-          - tempo.grafana.com
-        resourceNames:
-          - traces
-          - metrics
-        resources:
-          - '*'
-        verbs:
-          - create
-  10: |
     apiVersion: networking.k8s.io/v1
     kind: NetworkPolicy
     metadata:
@@ -396,7 +375,7 @@ manifests should match snapshot:
       podSelector: {}
       policyTypes:
         - Ingress
-  11: |
+  10: |
     apiVersion: objectbucket.io/v1alpha1
     kind: ObjectBucketClaim
     metadata:
@@ -411,7 +390,7 @@ manifests should match snapshot:
     spec:
       bucketName: apc-tempo-stack
       storageClassName: ocs-storagecluster-ceph-rgw
-  12: |
+  11: |
     apiVersion: tempo.grafana.com/v1alpha1
     kind: TempoStack
     metadata:

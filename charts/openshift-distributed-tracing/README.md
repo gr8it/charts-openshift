@@ -30,7 +30,8 @@ apc.namespace.type: application
 ### Static RBAC (for Kyverno controllers)
 - `clusterrole-admission-controller.yaml` — grants Kyverno's admission controller access to `TempoStack`.
 - `clusterrole-background-controller.yaml` — grants Kyverno's background controller access to `TempoStack`.
-- `clusterrole-read.yaml` / `clusterrole-write.yaml` — base reader/writer ClusterRoles used as aggregation roots and backward compatibility .
+- `clusterrole-read.yaml` - ClusterRole - read metrics, traces for all tenants - used by apc-grafana
+
 
 ### Kyverno policies (the reconciliation engine)
 
