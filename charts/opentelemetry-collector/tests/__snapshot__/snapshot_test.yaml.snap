@@ -1,0 +1,265 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      labels:
+        rbac.kyverno.io/aggregate-to-background-controller: "true"
+      name: kyverno:background-controller:opentelemetry-collector
+    rules:
+      - apiGroups:
+          - ""
+        resources:
+          - serviceaccounts
+        verbs:
+          - create
+          - delete
+          - get
+          - update
+      - apiGroups:
+          - opentelemetry.io
+        resources:
+          - opentelemetrycollectors
+        verbs:
+          - get
+          - list
+          - watch
+          - update
+          - patch
+  2: |
+    aggregationRule:
+      clusterRoleSelectors:
+        - matchLabels:
+            rbac.authorization.k8s.io/apc-opentelemetry-collector-apc-observability-cluster-role: "true"
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      labels:
+        app.kubernetes.io/instance: opentelemetry-collector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: opentelemetry-collector
+        app.kubernetes.io/version: v0.144.0-3
+        helm.sh/chart: opentelemetry-collector-1.2.0
+      name: opentelemetry-collector-tempostack-traces-write
+  3: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      labels:
+        app.kubernetes.io/instance: opentelemetry-collector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: opentelemetry-collector
+        app.kubernetes.io/version: v0.144.0-3
+        helm.sh/chart: opentelemetry-collector-1.2.0
+      name: opentelemetry-collector
+    rules:
+      - apiGroups:
+          - ""
+          - config.openshift.io
+        resources:
+          - pods
+          - namespaces
+          - infrastructures
+          - infrastructures/status
+        verbs:
+          - get
+          - list
+          - watch
+      - apiGroups:
+          - apps
+        resources:
+          - replicasets
+        verbs:
+          - get
+          - list
+          - watch
+      - apiGroups:
+          - extensions
+        resources:
+          - replicasets
+        verbs:
+          - get
+          - list
+          - watch
+  4: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: opentelemetry-collector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: opentelemetry-collector
+        app.kubernetes.io/version: v0.144.0-3
+        helm.sh/chart: opentelemetry-collector-1.2.0
+      name: opentelemetry-collector-cluster-monitoring-view
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-monitoring-view
+    subjects:
+      - kind: ServiceAccount
+        name: opentelemetry-collector-deployment
+        namespace: NAMESPACE
+  5: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: opentelemetry-collector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: opentelemetry-collector
+        app.kubernetes.io/version: v0.144.0-3
+        helm.sh/chart: opentelemetry-collector-1.2.0
+      name: opentelemetry-collector
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: opentelemetry-collector
+    subjects:
+      - kind: ServiceAccount
+        name: opentelemetry-collector-deployment
+        namespace: NAMESPACE
+  6: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: opentelemetry-collector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: opentelemetry-collector
+        app.kubernetes.io/version: v0.144.0-3
+        helm.sh/chart: opentelemetry-collector-1.2.0
+      name: opentelemetry-collector-tempostack-traces-write
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: opentelemetry-collector-tempostack-traces-write
+    subjects:
+      - kind: ServiceAccount
+        name: opentelemetry-collector-deployment
+        namespace: NAMESPACE
+  7: |
+    apiVersion: opentelemetry.io/v1beta1
+    kind: OpenTelemetryCollector
+    metadata:
+      labels:
+        app.kubernetes.io/instance: opentelemetry-collector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: opentelemetry-collector
+        app.kubernetes.io/version: v0.144.0-3
+        helm.sh/chart: opentelemetry-collector-1.2.0
+      name: opentelemetry-collector
+      namespace: NAMESPACE
+    spec:
+      config:
+        exporters:
+          otlp/application:
+            auth:
+              authenticator: headers_setter
+            endpoint: traces.svc
+            tls:
+              ca_file: /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
+              insecure: false
+          otlphttp/loki:
+            auth:
+              authenticator: bearertokenauth
+            endpoint: logs.svc
+            tls:
+              ca_file: /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
+              insecure: false
+          prometheus:
+            endpoint: metrics.svc
+            resource_to_telemetry_conversion:
+              enabled: true
+        extensions:
+          bearertokenauth:
+            filename: /var/run/secrets/kubernetes.io/serviceaccount/token
+          headers_setter:
+            additional_auth: bearertokenauth
+            headers:
+              - action: insert
+                default_value: application
+                from_context: k8s.namespace.name
+                key: X-Scope-OrgID
+        processors:
+          batch: {}
+          k8sattributes:
+            extract:
+              metadata:
+                - k8s.namespace.name
+          memory_limiter:
+            check_interval: 1s
+            limit_percentage: 50
+            spike_limit_percentage: 30
+          resourcedetection:
+            detectors:
+              - openshift
+        receivers:
+          jaeger:
+            protocols:
+              grpc: {}
+              thrift_binary: {}
+              thrift_compact: {}
+              thrift_http: {}
+          otlp:
+            protocols:
+              grpc: {}
+              http: {}
+          zipkin: {}
+        service:
+          extensions:
+            - bearertokenauth
+            - headers_setter
+          pipelines:
+            logs:
+              exporters:
+                - otlphttp/loki
+              processors:
+                - memory_limiter
+                - k8sattributes
+                - resourcedetection
+                - batch
+              receivers:
+                - otlp
+            metrics:
+              exporters:
+                - prometheus
+              processors:
+                - memory_limiter
+                - k8sattributes
+                - resourcedetection
+                - batch
+              receivers:
+                - otlp
+            traces:
+              exporters:
+                - otlp/application
+              processors:
+                - memory_limiter
+                - k8sattributes
+                - resourcedetection
+                - batch
+              receivers:
+                - jaeger
+                - otlp
+                - zipkin
+          telemetry:
+            metrics:
+              address: :8888
+      mode: deployment
+      observability:
+        metrics:
+          enableMetrics: true
+      serviceAccount: opentelemetry-collector-deployment
+  8: |
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      labels:
+        app.kubernetes.io/instance: opentelemetry-collector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: opentelemetry-collector
+        app.kubernetes.io/version: v0.144.0-3
+        helm.sh/chart: opentelemetry-collector-1.2.0
+      name: opentelemetry-collector-deployment
+      namespace: NAMESPACE

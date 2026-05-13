@@ -4,10 +4,10 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: tempostack-traces-write
+  name: {{ include "opentelemetry-collector.fullname" . }}-tempostack-traces-write
   labels:
-{{- include "tempo-stack.labels" . | nindent 4 }}
+    {{- include "opentelemetry-collector.labels" . | nindent 4 }}
 aggregationRule:
   clusterRoleSelectors:
   - matchLabels:
-      {{ .Values.otelCollector.role.aggregation.clusterRoleName }}: "true"
+      rbac.authorization.k8s.io/apc-opentelemetry-collector-apc-observability-cluster-role: "true"

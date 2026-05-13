@@ -5,6 +5,16 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-05-13
+
+### Removed
+
+- remove Kyverno clusterpolicies 
+
+### Added
+
+-  multitenancy support defined using extension headers_setter
+
 ## [1.1.0] - 2026-04-29
 
 ### Added

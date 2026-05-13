@@ -16,6 +16,13 @@ spec:
     extensions:
       bearertokenauth:
         filename: "/var/run/secrets/kubernetes.io/serviceaccount/token"
+      headers_setter:
+        additional_auth: bearertokenauth
+        headers:
+          - action: insert
+            key: X-Scope-OrgID
+            from_context: k8s.namespace.name
+            default_value: application
     receivers:
       jaeger:
         protocols:
@@ -42,9 +49,7 @@ spec:
     exporters:
       otlp/application:
         endpoint: {{ .Values.tracesEndpoint | required "Traces endpoint is required!" }}
-        auth: { authenticator: bearertokenauth }
-        headers: 
-          X-Scope-OrgID: {{ "$${k8s.namespace.name}" }}
+        auth: { authenticator: headers_setter }
         tls:
           insecure: false
           ca_file: "/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt"
@@ -62,7 +67,7 @@ spec:
       telemetry:
         metrics:
           address: ":8888"
-      extensions: [bearertokenauth]
+      extensions: [bearertokenauth, headers_setter]
       pipelines:
         traces:
           receivers: [jaeger,otlp,zipkin]
