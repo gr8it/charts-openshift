@@ -1,9 +1,81 @@
-# User Workload Monitoring Policy Configuration
-# This chart uses Kyverno to automatically generate PrometheusRule resources
-# for namespaces based on their labels.
+nameOverride: ""
+fullnameOverride: ""
 
-# Subchart: prometheusrules
-# The Prometheus alert rules are inherited from the prometheusrules subchart.
-# The prometheusrules subchart is included as a dependency and its values
-# are automatically loaded. To override rules, add a prometheusrules section here.
+# --- ClusterMonitoringConfig (openshift-monitoring) ---
+clusterMonitoring:
+  location: primary
+  prometheus:
+    retention: "7d"
+    storageSize: "60Gi"
+    storageClassName: ocs-storagecluster-ceph-rbd
+  alertmanager:
+    storageSize: "1Gi"
+    storageClassName: ocs-storagecluster-ceph-rbd
 
+# --- AlertManager receivers secret (openshift-monitoring/alertmanager-receivers) via ESO ---
+# All alertmanager credentials are stored in a single Vault secret path (dataFrom.extract).
+# Hub-specific keys (opsgenie_key_acs, opsgenie_key_logs) must be present in the Vault secret on hub clusters.
+# Hub detection uses global.apc.cluster.isHub via apc-global-overrides.
+alertmanager:
+  eso:
+    enabled: true
+    refreshInterval: "15m"
+    vault:
+      # Full Vault secret path, e.g. customers/socpoist/monitoring/alertmanager
+      secretPath: ""
+
+# --- UserWorkloadMonitoringConfig (openshift-user-workload-monitoring) ---
+userWorkloadMonitoring:
+  location: primary
+  prometheus:
+    retention: "14d"
+    storageSize: "24Gi"
+    storageClassName: ocs-storagecluster-ceph-rbd
+    remoteWrite:
+      enabled: true
+      secretName: telemetry-remote-write
+      url: https://infogw.api.openshift.com/metrics/v1/receive
+      proxyUrl: ~
+      writeRelabelConfigs:
+        - action: keep
+          regex: (count:up0|count:up1|cluster_version)
+          sourceLabels:
+            - __name__
+  thanosRuler:
+    storageSize: "1Gi"
+    storageClassName: ocs-storagecluster-ceph-rbd
+
+# --- UWM AlertManager receivers secret (openshift-user-workload-monitoring/alertmanager-uwm-receivers) via ESO ---
+# All alertmanager credentials are stored in a single Vault secret path (dataFrom.extract).
+uwmAlertmanager:
+  eso:
+    enabled: true
+    refreshInterval: "15m"
+    vault:
+      # Full Vault secret path, e.g. customers/socpoist/monitoring/alertmanager-uwm
+      secretPath: ""
+
+# --- NetworkPolicy (proxy egress for openshift-monitoring and openshift-user-workload-monitoring) ---
+# proxyCIDRs are read from global.apc.proxyCIDRs via apc-global-overrides
+networkPolicy:
+  enabled: true
+
+# --- Velero backup Schedules via openshift-adp-backups subchart ---
+backups:
+  enabled: true
+  namespace: openshift-adp
+  schedules:
+    - name: monitoring-daily
+      namespace: openshift-adp
+      spec:
+        schedule: "0 2 * * *"
+        template:
+          includedNamespaces:
+            - openshift-monitoring
+    - name: uwm-daily
+      namespace: openshift-adp
+      spec:
+        schedule: "0 3 * * *"
+        template:
+          includedNamespaces:
+            - openshift-user-workload-monitoring

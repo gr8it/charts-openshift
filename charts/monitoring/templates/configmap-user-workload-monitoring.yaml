@@ -4,10 +4,10 @@ metadata:
   name: user-workload-monitoring-config
   namespace: openshift-user-workload-monitoring
   labels:
-    {{- include "user-workload-monitoring.labels" . | nindent 4 }}
+    {{- include "monitoring.labels" . | nindent 4 }}
 data:
   config.yaml: |
-    {{- if .Values.alertmanager.eso.enabled }}
+    {{- if .Values.uwmAlertmanager.eso.enabled }}
     alertmanager:
       enabled: true
       enableAlertmanagerConfig: true
