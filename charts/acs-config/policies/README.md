@@ -1,6 +1,6 @@
 # ACS Policies
 
-This directory contains RHACS policy definitions and the minimum documentation needed for the ACS to Jira Operations implementation used in `conf-socpoist`.
+This directory contains RHACS policy definitions and the minimum documentation needed for the ACS to Jira Operations implementation.
 
 ## Policy in this folder
 
@@ -15,11 +15,7 @@ Notes:
 - The exported policy ships without notifiers so it can be imported into different environments
 - In ACS, attach the notifier after import
 
-## Integration used in `conf-socpoist`
-
-Environment:
-- `conf-socpoist`
-- cluster: `hub01`
+## Integration
 
 ACS integration used for this implementation:
 - RHACS notifier type: `Generic Webhook`
@@ -32,22 +28,20 @@ Flow:
 
 This is the supported path for this implementation. Native ACS Jira notifier is not used for this flow.
 
-Runtime note for `hub01`:
+Runtime note:
 - ACS policy alerts are intended to go through the explicit Vector webhook path to Jira Operations.
-- The older Loki alerting rule manifest at `conf-socpoist/ocp-hub01/observability/logging/10-acs-policy-alerts.yaml` is kept in the repo for reference/history and is not part of the active ACS alert delivery path on `hub01`.
-- On `hub01`, ACS should not rely on Loki `AlertingRule` resources for Jira or Alertmanager delivery when the RHACS policy already uses the Vector webhook notifier.
+- Any Loki `AlertingRule` resources for ACS alerts kept in environment repos are for reference/history and are not part of the active ACS alert delivery path.
+- ACS should not rely on Loki `AlertingRule` resources for Jira or Alertmanager delivery when the RHACS policy already uses the Vector webhook notifier.
 
-## `conf-socpoist` Vector references
+## Vector configuration
 
-Vector values file:
-- `conf-socpoist/ocp-hub01/observability/vector/vector-hub-values.yaml`
+Vector values file location depends on the target environment. Relevant sections:
 
-Relevant sections in that file:
-- ACS webhook label parsing: `conf-socpoist/ocp-hub01/observability/vector/vector-hub-values.yaml` around `webhook_parse`
-- Jira remap `acs_to_jira_ops`: `conf-socpoist/ocp-hub01/observability/vector/vector-hub-values.yaml` around `acs_to_jira_ops`
-- Jira HTTP sink `jira_ops_alerts`: `conf-socpoist/ocp-hub01/observability/vector/vector-hub-values.yaml` around `jira_ops_alerts`
-- Jira secret backend `kubernetes_jiraops`: `conf-socpoist/ocp-hub01/observability/vector/vector-hub-values.yaml` under `secret`
-- Jira secret volume and mount: `conf-socpoist/ocp-hub01/observability/vector/vector-hub-values.yaml` under `extraVolumes` and `extraVolumeMounts`
+- ACS webhook label parsing: around `webhook_parse`
+- Jira remap `acs_to_jira_ops`: around `acs_to_jira_ops`
+- Jira HTTP sink `jira_ops_alerts`: around `jira_ops_alerts`
+- Jira secret backend `kubernetes_jiraops`: under `secret`
+- Jira secret volume and mount: under `extraVolumes` and `extraVolumeMounts`
 
 ## What the remap does
 
@@ -81,9 +75,9 @@ Current image behavior:
 
 Create a RHACS `Generic Webhook` integration with:
 
-- endpoint: `https://vector.hub01.cloud.socpoist.sk:9444`
+- endpoint: `https://<vector-host>:<port>`
 - extra field `gr8it`: `acs-audit-log`
-- extra field `central_base_url`: `https://central-stackrox.apps.hub01.cloud.socpoist.sk`
+- extra field `central_base_url`: `https://<central-stackrox-route>`
 
 Why these fields matter:
 - `gr8it=acs-audit-log` is used by Vector to accept only the intended ACS webhook traffic
