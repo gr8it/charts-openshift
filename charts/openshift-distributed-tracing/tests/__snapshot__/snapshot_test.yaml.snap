@@ -10,7 +10,7 @@ manifests should match snapshot:
         policies.kyverno.io/subject: Generate ClusterRoles for application namespaces
         policies.kyverno.io/title: Generate ClusterRoles to read  TempoStack tenants for  namespace
       labels:
-        app.kubernetes.io/instance: kyverno-app-grafana
+        app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
         app.kubernetes.io/version: v0.15
@@ -59,7 +59,7 @@ manifests should match snapshot:
         policies.kyverno.io/subject: Generate ClusterRoles for application namespaces
         policies.kyverno.io/title: Generate ClusterRoles to write into TempoStack tenants for  namespace
       labels:
-        app.kubernetes.io/instance: kyverno-app-grafana
+        app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
         app.kubernetes.io/version: v0.15
@@ -109,7 +109,7 @@ manifests should match snapshot:
         policies.kyverno.io/subject: Generate RoleBindings for application namespaces
         policies.kyverno.io/title: Generate RoleBindings for TempoStack traces access on namespace
       labels:
-        app.kubernetes.io/instance: kyverno-app-grafana
+        app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
         app.kubernetes.io/version: v0.15
@@ -156,7 +156,7 @@ manifests should match snapshot:
         policies.kyverno.io/subject: Cleanup TempoStack tenants
         policies.kyverno.io/title: Update TempoStack tenants on namespace delete
       labels:
-        app.kubernetes.io/instance: kyverno-app-grafana
+        app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
         app.kubernetes.io/version: v0.15
@@ -203,7 +203,7 @@ manifests should match snapshot:
         policies.kyverno.io/subject: Sync TempoStack tenants with namespaces
         policies.kyverno.io/title: Update TempoStack tenants on namespace create
       labels:
-        app.kubernetes.io/instance: kyverno-app-grafana
+        app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
         app.kubernetes.io/version: v0.15
@@ -254,13 +254,13 @@ manifests should match snapshot:
     kind: ClusterRole
     metadata:
       labels:
-        app.kubernetes.io/instance: kyverno-app-grafana
+        app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
         app.kubernetes.io/version: v0.15
         helm.sh/chart: openshift-distributed-tracing-1.0.0
         rbac.kyverno.io/aggregate-to-admission-controller: "true"
-      name: kyverno:admission-controller:kyverno-app-grafana
+      name: kyverno:admission-controller:openshift-distributed-tracing
     rules:
       - apiGroups:
           - rbac.authorization.k8s.io
@@ -273,13 +273,13 @@ manifests should match snapshot:
     kind: ClusterRole
     metadata:
       labels:
-        app.kubernetes.io/instance: kyverno-app-grafana
+        app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
         app.kubernetes.io/version: v0.15
         helm.sh/chart: openshift-distributed-tracing-1.0.0
         rbac.kyverno.io/aggregate-to-background-controller: "true"
-      name: kyverno:background-controller:kyverno-app-grafana
+      name: kyverno:background-controller:openshift-distributed-tracing
     rules:
       - apiGroups:
           - ""
@@ -294,15 +294,6 @@ manifests should match snapshot:
           - rbac.authorization.k8s.io
         resources:
           - clusterroles
-        verbs:
-          - create
-          - delete
-          - get
-          - update
-      - apiGroups:
-          - ""
-        resources:
-          - cluster
         verbs:
           - create
           - delete
@@ -338,7 +329,7 @@ manifests should match snapshot:
     kind: ClusterRole
     metadata:
       labels:
-        app.kubernetes.io/instance: kyverno-app-grafana
+        app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
         app.kubernetes.io/version: v0.15
@@ -359,7 +350,7 @@ manifests should match snapshot:
     kind: NetworkPolicy
     metadata:
       labels:
-        app.kubernetes.io/instance: kyverno-app-grafana
+        app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
         app.kubernetes.io/version: v0.15
@@ -380,7 +371,7 @@ manifests should match snapshot:
     kind: ObjectBucketClaim
     metadata:
       labels:
-        app.kubernetes.io/instance: kyverno-app-grafana
+        app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
         app.kubernetes.io/version: v0.15
@@ -395,7 +386,7 @@ manifests should match snapshot:
     kind: TempoStack
     metadata:
       labels:
-        app.kubernetes.io/instance: kyverno-app-grafana
+        app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
         app.kubernetes.io/version: v0.15
