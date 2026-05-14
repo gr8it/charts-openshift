@@ -9,6 +9,9 @@ metadata:
 spec:
   mode: deployment
   serviceAccount: {{ include "opentelemetry-collector.fullname" . }}-deployment
+  {{- if .Values.OpenTelemetryCollector.image }}
+  image: {{ .Values.OpenTelemetryCollector.image }}
+  {{- end }}
   observability:
     metrics:
       enableMetrics: true
