@@ -7,7 +7,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: crossplane-xr-functions
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: apps-centralne-komponenty-bpm
-        helm.sh/chart: apps-centralne-komponenty-bpm-1.0.0
+        helm.sh/chart: apps-centralne-komponenty-bpm-1.1.0
       name: bamoe-management-console
       namespace: bamoe
     spec:
@@ -36,7 +36,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: crossplane-xr-functions
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: apps-centralne-komponenty-bpm
-        helm.sh/chart: apps-centralne-komponenty-bpm-1.0.0
+        helm.sh/chart: apps-centralne-komponenty-bpm-1.1.0
         rbac.authorization.k8s.io/aggregate-to-apc-project-operator: "true"
       name: crossplane-xr-functions-apps-centralne-komponenty-bpm-project-operator
     rules:
@@ -60,7 +60,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: crossplane-xr-functions
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: apps-centralne-komponenty-bpm
-        helm.sh/chart: apps-centralne-komponenty-bpm-1.0.0
+        helm.sh/chart: apps-centralne-komponenty-bpm-1.1.0
         rbac.authorization.k8s.io/aggregate-to-apc-project-admin: "true"
       name: crossplane-xr-functions-apps-centralne-komponenty-bpm-project-admin
     rules:
@@ -84,7 +84,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: crossplane-xr-functions
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: apps-centralne-komponenty-bpm
-        helm.sh/chart: apps-centralne-komponenty-bpm-1.0.0
+        helm.sh/chart: apps-centralne-komponenty-bpm-1.1.0
       name: microservices.bpm.ck.socpoist.sk
     spec:
       compositeTypeRef:
@@ -152,24 +152,17 @@ manifests should match snapshot:
             inline:
               template: |
                 {{- range $value := .observed.composite.resource.spec.roles }}
-                apiVersion: identityprovider.keycloak.m.crossplane.io/v1alpha1
-                kind: IdentityProviderMapper
+                apiVersion: group.keycloak.m.crossplane.io/v1alpha1
+                kind: Group
                 metadata:
-                  name: keycloak-oidc-{{ $.observed.composite.resource.metadata.name }}-{{ $value }}
+                  name: {{ $.observed.composite.resource.metadata.name }}-{{ $value }}
                   annotations:
-                    gotemplating.fn.crossplane.io/composition-resource-name: ms-idp-mapper-roles-{{ $value }}
+                    gotemplating.fn.crossplane.io/composition-resource-name: ms-groups-{{ $value }}
                 spec:
+                  managementPolicies: ["Observe"]
                   forProvider:
-                    realm: apps
-                    identityProviderAlias: keycloak-oidc
-                    name: {{ $.observed.composite.resource.metadata.name }} {{ $value }} role mapper
-                    identityProviderMapper: "oidc-advanced-role-idp-mapper"
-                    extraConfig:
-                      syncMode: "FORCE"
-                      are.claim.values.regex: "true"
-                      role: "{{ $.observed.composite.resource.metadata.name }}.{{ $value }}"
-                      claims: '[{"key": "groups", "value": "(?<!\\w)/APC--CK-{{ $.observed.composite.resource.metadata.name | upper }}-{{ $value | upper }}(?!\\w) "}]'
-
+                    realmId: apps
+                    name: APC-D-CK-{{ $.observed.composite.resource.metadata.name | upper }}-{{ $value | upper }}
                   providerConfigRef:
                     name: keycloak-config
                     kind: ClusterProviderConfig
@@ -177,7 +170,36 @@ manifests should match snapshot:
                 {{- end }}
             kind: GoTemplate
             source: Inline
-          step: microservice-identityprovider-mapper-roles
+          step: microservice-groups
+        - functionRef:
+            name: crossplane-xr-functions-go-templating
+          input:
+            apiVersion: gotemplating.fn.crossplane.io/v1beta1
+            inline:
+              template: |
+                {{- range $value := .observed.composite.resource.spec.roles }}
+                apiVersion: group.keycloak.m.crossplane.io/v1alpha1
+                kind: Roles
+                metadata:
+                  name: {{ $.observed.composite.resource.metadata.name }}-{{ $value }}
+                  annotations:
+                    gotemplating.fn.crossplane.io/composition-resource-name: ms-group-roles-{{ $value }}
+                spec:
+                  forProvider:
+                    exhaustive: false
+                    realmId: apps
+                    groupIdRef:
+                      name: {{ $.observed.composite.resource.metadata.name }}-{{ $value }}
+                    roleIdsRefs:
+                    - name: {{ $.observed.composite.resource.metadata.name }}-{{ $value }}
+                  providerConfigRef:
+                    name: keycloak-config
+                    kind: ClusterProviderConfig
+                ---
+                {{- end }}
+            kind: GoTemplate
+            source: Inline
+          step: microservice-group-roles
         - functionRef:
             name: crossplane-xr-functions-go-templating
           input:
@@ -375,7 +397,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: crossplane-xr-functions
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: apps-centralne-komponenty-bpm
-        helm.sh/chart: apps-centralne-komponenty-bpm-1.0.0
+        helm.sh/chart: apps-centralne-komponenty-bpm-1.1.0
       name: microserviceaccesses.bpm.ck.socpoist.sk
     spec:
       compositeTypeRef:
@@ -559,7 +581,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: crossplane-xr-functions
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: apps-centralne-komponenty-bpm
-        helm.sh/chart: apps-centralne-komponenty-bpm-1.0.0
+        helm.sh/chart: apps-centralne-komponenty-bpm-1.1.0
       name: microserviceaccesses.bpm.ck.socpoist.sk
     spec:
       group: bpm.ck.socpoist.sk
