@@ -1,0 +1,45 @@
+---
+# TESTING apc.namespace.test - change occurence to apc.namespace.type. This is only for testing of the kyverno clusterpolicy
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: cleanup-otelcollector-tenants
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
+    policies.kyverno.io/title: Remove Open Telemetry tenants on namespace delete or label removal
+    policies.kyverno.io/category: gitops
+    policies.kyverno.io/subject: Sync Open Telemetry tenants with namespaces
+    policies.kyverno.io/minversion: 1.13.0
+spec:
+  rules:
+    #1 Read everything from oldObject(request.object is null on DELETE)
+    - name: remove-tenant-on-namespace-delete
+      match:
+        any:
+          - resources:
+              kinds:
+              - Namespace
+              selector:
+                matchLabels:
+                  {{ .Values.namespaceSelector.key }}: {{ .Values.namespaceSelector.value }}
+              operations:
+              - DELETE
+      mutate:
+        targets:
+          - apiVersion: opentelemetry.io/v1beta1
+            kind: OpenTelemetryCollector
+            name: {{ .Values.instanceNameOverride | default (include "opentelemetry-collector.fullname" .) }}
+            namespace: {{ .Release.Namespace }}
+        patchStrategicMerge:
+          spec:
+            config:
+              exporters:
+                "otlp/{{`{{ request.oldObject.metadata.name }}`}}": ~
+              service:
+                pipelines:
+                  "traces/{{`{{ request.oldObject.metadata.name }}`}}": ~
+              connectors:
+                routing:
+                  table:
+                    - (statement): route() where resource.attributes["k8s.namespace.name"] == "{{`{{ request.oldObject.metadata.name }}`}}"
+                      $patch: delete

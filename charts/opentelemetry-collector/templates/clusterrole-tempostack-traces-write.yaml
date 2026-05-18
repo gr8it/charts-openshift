@@ -6,6 +6,15 @@ metadata:
   name: {{ include "opentelemetry-collector.fullname" . }}-tempostack-traces-write
   labels:
     {{- include "opentelemetry-collector.labels" . | nindent 4 }}
+rules:
+  - apiGroups:
+      - tempo.grafana.com
+    resources:
+      - application
+    resourceNames:
+      - traces
+    verbs:
+      - 'create'
 aggregationRule:
   clusterRoleSelectors:
   - matchLabels:

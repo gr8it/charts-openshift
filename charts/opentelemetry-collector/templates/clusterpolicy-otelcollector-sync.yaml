@@ -1,37 +1,30 @@
 ---
-# TESTING apc.namespace.test - change occurence to apc.namespace.type. This is only for testing of the kyverno clusterpolicy
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
   name: sync-otelcollector-tenants
   annotations:
     argocd.argoproj.io/sync-options: Replace=true
-    policies.kyverno.io/title: Update Open Telemetry tenants on namespace create
+    policies.kyverno.io/title: Cleanup Open Telemetry tenants on namespace removal or label change
     policies.kyverno.io/category: gitops
     policies.kyverno.io/subject: Sync Open Telemetry tenants with namespaces
     policies.kyverno.io/minversion: 1.13.0
 spec:
-  mutateExistingOnPolicyUpdate: false
+  background: true
+  validationFailureAction: Audit
+  mutateExistingOnPolicyUpdate: true
   rules:
     - name: add-tenant-to-otelcollector
       match:
-        any:
-          - resources:
-              kinds:
-                - Namespace
-      exclude:
-        any:
-          - resources:
-              namespaces:
-                - "kube-*"
-                - "kyverno"
-                - "openshift-*"
-      preconditions:
         all:
-          - key: {{`"{{ request.object.metadata.labels.\"apc.namespace.test\" || ''}}"`}}
-            operator: Equals
-            value: application
+        - resources:
+            kinds:
+            - Namespace
+            selector:
+              matchLabels:
+                {{ .Values.namespaceSelector.key }}: {{ .Values.namespaceSelector.value }}
       mutate:
+        mutateExistingOnPolicyUpdate: true
         targets:
           - apiVersion: opentelemetry.io/v1beta1
             kind: OpenTelemetryCollector
@@ -53,14 +46,10 @@ spec:
               service:
                 pipelines:
                   "traces/{{`{{ request.object.metadata.name }}`}}":
-                    receivers:
-                      - jaeger
-                      - otlp
-                      - zipkin
-                    processors:
-                      - memory_limiter
-                      - k8sattributes
-                      - resourcedetection
-                      - batch
-                    exporters:
-                      - "otlp/{{`{{ request.object.metadata.name }}`}}"
+                    receivers: [routing]
+                    exporters: ["otlp/{{`{{ request.object.metadata.name }}`}}"]
+              connectors:
+                routing:
+                  table:
+                    - statement: route() where resource.attributes["k8s.namespace.name"] == "{{`{{ request.object.metadata.name }}`}}"
+                      pipelines: ["traces/{{`{{ request.object.metadata.name }}`}}"]

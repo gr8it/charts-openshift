@@ -8,6 +8,7 @@ metadata:
     {{- include "opentelemetry-collector.labels" . | nindent 4 }}
 spec:
   mode: deployment
+  replicas : {{ .Values.OpenTelemetryCollector.replicas | default 1 }}
   serviceAccount: {{ include "opentelemetry-collector.fullname" . }}-deployment
   {{- if .Values.OpenTelemetryCollector.image }}
   image: {{ .Values.OpenTelemetryCollector.image }}
@@ -19,13 +20,6 @@ spec:
     extensions:
       bearertokenauth:
         filename: "/var/run/secrets/kubernetes.io/serviceaccount/token"
-      headers_setter:
-        additional_auth: bearertokenauth
-        headers:
-          - action: insert
-            key: X-Scope-OrgID
-            from_context: k8s.namespace.name
-            default_value: application
     receivers:
       jaeger:
         protocols:
@@ -49,6 +43,12 @@ spec:
         spike_limit_percentage: 30
       resourcedetection:
         detectors: [openshift]
+    connectors:
+      routing:
+        default_pipelines: [traces/application]
+        table:
+          - statement: route() where resource.attributes["k8s.namespace.name"] == "application"
+            pipelines: [traces/application]
     exporters:
       otlp/application:
         endpoint: {{ .Values.tracesEndpoint | required "Traces endpoint is required!" }}
@@ -75,12 +75,13 @@ spec:
                   prometheus:
                     host: 0.0.0.0
                     port: 8888
-      extensions: [bearertokenauth, headers_setter]
+      extensions: [bearertokenauth]
       pipelines:
         traces:
           receivers: [jaeger,otlp,zipkin]
           processors: [memory_limiter, k8sattributes, resourcedetection, batch]
-          exporters: [otlp/application]
+          exporters: [routing]
+        traces/application: { receivers: [routing], exporters: [otlp/application] }
         metrics:
           receivers: [otlp]
           processors: [memory_limiter, k8sattributes, resourcedetection, batch]
