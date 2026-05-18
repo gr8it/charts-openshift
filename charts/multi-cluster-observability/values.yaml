@@ -3,6 +3,7 @@ metricsAllowlists:
   configMaps:
     - name: observability-metrics-custom-allowlist
       namespace: open-cluster-management-observability
+      hubOnly: true
       dataKey: metrics_list.yaml
       names:
         - kube_namespace_labels
@@ -19,6 +20,13 @@ metricsAllowlists:
         - probe_success
     - name: observability-metrics-custom-allowlist
       namespace: apc-vault
+      hubOnly: true
       dataKey: uwl_metrics_list.yaml
       names:
         - vault_core_active
+    - name: observability-metrics-custom-allowlist
+      namespace: openshift-operators
+      spokeOnly: true
+      dataKey: uwl_metrics_list.yaml
+      names:
+        - strimzi_resources

@@ -1,5 +1,9 @@
 {{- if and .Values.metricsAllowlists.enabled .Values.metricsAllowlists.configMaps }}
+{{- $isHub := .Values.global.apc.cluster.isHub | default false }}
 {{- range $cm := .Values.metricsAllowlists.configMaps }}
+{{- $hubOnly := $cm.hubOnly | default false }}
+{{- $spokeOnly := $cm.spokeOnly | default false }}
+{{- if or (and $hubOnly $isHub) (and $spokeOnly (not $isHub)) (and (not $hubOnly) (not $spokeOnly)) }}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -13,6 +17,7 @@ data:
     names:
 {{- range $name := $cm.names }}
       - {{ $name }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
