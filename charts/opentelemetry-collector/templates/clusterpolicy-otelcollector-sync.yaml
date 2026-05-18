@@ -5,7 +5,7 @@ metadata:
   name: sync-otelcollector-tenants
   annotations:
     argocd.argoproj.io/sync-options: Replace=true
-    policies.kyverno.io/title: Cleanup Open Telemetry tenants on namespace removal or label change
+    policies.kyverno.io/title: Sync Open Telemetry tenants on namespace create or label change
     policies.kyverno.io/category: gitops
     policies.kyverno.io/subject: Sync Open Telemetry tenants with namespaces
     policies.kyverno.io/minversion: 1.13.0
@@ -23,6 +23,21 @@ spec:
             selector:
               matchLabels:
                 {{ .Values.namespaceSelector.key }}: {{ .Values.namespaceSelector.value }}
+      # Read the collector's current routing table so we can skip namespaces that
+      # are already wired up. Required because this rule re-runs on policy update
+      # and background scans, and a JSON6902 append would otherwise duplicate entries.
+      context:
+        - name: existingRoutes
+          apiCall:
+            method: GET
+            urlPath: "/apis/opentelemetry.io/v1beta1/namespaces/{{ .Release.Namespace }}/opentelemetrycollectors/{{ .Values.instanceNameOverride | default (include "opentelemetry-collector.fullname" .) }}"
+            jmesPath: "spec.config.connectors.routing.table[*].pipelines[0]"
+            default: []
+      preconditions:
+        all:
+          - key: {{`"traces/{{ request.object.metadata.name }}"`}}
+            operator: AnyNotIn
+            value: {{`"{{ existingRoutes }}"`}}
       mutate:
         mutateExistingOnPolicyUpdate: true
         targets:
@@ -30,26 +45,28 @@ spec:
             kind: OpenTelemetryCollector
             name: {{ .Values.instanceNameOverride | default (include "opentelemetry-collector.fullname" .) }}
             namespace: {{ .Release.Namespace }}
-        patchStrategicMerge:
-          spec:
-            config:
-              exporters:
-                "otlp/{{`{{ request.object.metadata.name }}`}}":
-                  endpoint: {{ .Values.tracesEndpoint | required "Traces endpoint is required!" }}
-                  auth:
-                    authenticator: bearertokenauth
-                  headers:
-                    X-Scope-OrgID: {{`"{{ request.object.metadata.name }}"`}}
-                  tls:
-                    insecure: false
-                    ca_file: "/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt"
-              service:
-                pipelines:
-                  "traces/{{`{{ request.object.metadata.name }}`}}":
-                    receivers: [routing]
-                    exporters: ["otlp/{{`{{ request.object.metadata.name }}`}}"]
-              connectors:
-                routing:
-                  table:
-                    - statement: route() where resource.attributes["k8s.namespace.name"] == "{{`{{ request.object.metadata.name }}`}}"
-                      pipelines: ["traces/{{`{{ request.object.metadata.name }}`}}"]
+        # JSON6902 is used instead of patchStrategicMerge so the routing table
+        # (a YAML list) can be appended to with `/-` rather than replaced wholesale.
+        # `~1` is the JSON Pointer escape for the `/` in the exporter/pipeline keys.
+        patchesJson6902: |-
+          - op: add
+            path: "/spec/config/exporters/otlp~1{{`{{ request.object.metadata.name }}`}}"
+            value:
+              endpoint: {{ .Values.tracesEndpoint | required "Traces endpoint is required!" }}
+              auth:
+                authenticator: bearertokenauth
+              headers:
+                X-Scope-OrgID: {{`"{{ request.object.metadata.name }}"`}}
+              tls:
+                insecure: false
+                ca_file: "/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt"
+          - op: add
+            path: "/spec/config/service/pipelines/traces~1{{`{{ request.object.metadata.name }}`}}"
+            value:
+              receivers: [routing]
+              exporters: ["otlp/{{`{{ request.object.metadata.name }}`}}"]
+          - op: add
+            path: "/spec/config/connectors/routing/table/-"
+            value:
+              statement: route() where resource.attributes["k8s.namespace.name"] == "{{`{{ request.object.metadata.name }}`}}"
+              pipelines: ["traces/{{`{{ request.object.metadata.name }}`}}"]

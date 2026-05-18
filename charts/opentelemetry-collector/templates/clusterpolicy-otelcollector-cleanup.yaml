@@ -12,7 +12,8 @@ metadata:
     policies.kyverno.io/minversion: 1.13.0
 spec:
   rules:
-    #1 Read everything from oldObject(request.object is null on DELETE)
+    # Tenant removed because the namespace itself is deleted.
+    # On DELETE request.object is null, so everything is read from request.oldObject.
     - name: remove-tenant-on-namespace-delete
       match:
         any:
@@ -30,6 +31,9 @@ spec:
             kind: OpenTelemetryCollector
             name: {{ .Values.instanceNameOverride | default (include "opentelemetry-collector.fullname" .) }}
             namespace: {{ .Release.Namespace }}
+        # patchStrategicMerge is correct here: it removes map keys via `~` and the
+        # routing table list element via the (statement) anchor + `$patch: delete`.
+        # Unlike the sync policy it does not append to a list, so JSON6902 is not needed.
         patchStrategicMerge:
           spec:
             config:
