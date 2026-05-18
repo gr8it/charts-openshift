@@ -19,12 +19,12 @@ spec:
         any:
           - resources:
               kinds:
-              - Namespace
+                - Namespace
               selector:
                 matchLabels:
                   {{ .Values.namespaceSelector.key }}: {{ .Values.namespaceSelector.value }}
               operations:
-              - DELETE
+                - DELETE
       mutate:
         targets:
           - apiVersion: tempo.grafana.com/v1alpha1
