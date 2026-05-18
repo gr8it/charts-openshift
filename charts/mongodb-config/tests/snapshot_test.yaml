@@ -1,9 +1,11 @@
 suite: Snapshot test
 templates:
-  - charts/*/templates/*
+  - templates/*
+values:
+  - ../values.example.yaml
 release:
-  name: opentelemetry-operator
-  namespace: apc-observability
+  name: eds-mongodb
+  namespace: eds
 
 tests:
   - it: manifests should match snapshot

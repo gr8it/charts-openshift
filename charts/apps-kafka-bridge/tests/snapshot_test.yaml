@@ -1,9 +1,10 @@
 suite: Snapshot test
 templates:
-  - charts/*/templates/*
+  - templates/*
+values:
+  - ../values.example.yaml
 release:
-  name: opentelemetry-operator
-  namespace: apc-observability
+  name: apps-kafka-bridge
 
 tests:
   - it: manifests should match snapshot

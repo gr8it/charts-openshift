@@ -1,9 +1,10 @@
 suite: Snapshot test
 templates:
-  - charts/*/templates/*
+  - templates/*
+values:
+  - ../values.example.com
 release:
-  name: opentelemetry-operator
-  namespace: apc-observability
+  name: application-namespace-config
 
 tests:
   - it: manifests should match snapshot
