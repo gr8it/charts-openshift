@@ -142,6 +142,18 @@ manifests should match snapshot:
         app.kubernetes.io/version: v0.144.0-3
         helm.sh/chart: opentelemetry-collector-1.2.0
       name: opentelemetry-collector-tempostack-traces-write
+  5: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      labels:
+        app.kubernetes.io/instance: opentelemetry-collector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: opentelemetry-collector
+        app.kubernetes.io/version: v0.144.0-3
+        helm.sh/chart: opentelemetry-collector-1.2.0
+        rbac.authorization.k8s.io/apc-opentelemetry-collector-apc-observability-cluster-role: "true"
+      name: opentelemetry-collector-tempostack-writer-application
     rules:
       - apiGroups:
           - tempo.grafana.com
@@ -151,7 +163,7 @@ manifests should match snapshot:
           - application
         verbs:
           - create
-  5: |
+  6: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -191,7 +203,7 @@ manifests should match snapshot:
           - get
           - list
           - watch
-  6: |
+  7: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
@@ -210,25 +222,6 @@ manifests should match snapshot:
       - kind: ServiceAccount
         name: opentelemetry-collector-deployment
         namespace: NAMESPACE
-  7: |
-    apiVersion: rbac.authorization.k8s.io/v1
-    kind: ClusterRoleBinding
-    metadata:
-      labels:
-        app.kubernetes.io/instance: opentelemetry-collector
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: opentelemetry-collector
-        app.kubernetes.io/version: v0.144.0-3
-        helm.sh/chart: opentelemetry-collector-1.2.0
-      name: opentelemetry-collector
-    roleRef:
-      apiGroup: rbac.authorization.k8s.io
-      kind: ClusterRole
-      name: opentelemetry-collector
-    subjects:
-      - kind: ServiceAccount
-        name: opentelemetry-collector-deployment
-        namespace: NAMESPACE
   8: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
@@ -239,6 +232,25 @@ manifests should match snapshot:
         app.kubernetes.io/name: opentelemetry-collector
         app.kubernetes.io/version: v0.144.0-3
         helm.sh/chart: opentelemetry-collector-1.2.0
+      name: opentelemetry-collector
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: opentelemetry-collector
+    subjects:
+      - kind: ServiceAccount
+        name: opentelemetry-collector-deployment
+        namespace: NAMESPACE
+  9: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: opentelemetry-collector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: opentelemetry-collector
+        app.kubernetes.io/version: v0.144.0-3
+        helm.sh/chart: opentelemetry-collector-1.2.0
       name: opentelemetry-collector-tempostack-traces-write
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -248,7 +260,7 @@ manifests should match snapshot:
       - kind: ServiceAccount
         name: opentelemetry-collector-deployment
         namespace: NAMESPACE
-  9: |
+  10: |
     apiVersion: opentelemetry.io/v1beta1
     kind: OpenTelemetryCollector
     metadata:
@@ -275,6 +287,8 @@ manifests should match snapshot:
             auth:
               authenticator: bearertokenauth
             endpoint: traces.svc
+            headers:
+              X-Scope-OrgID: application
             tls:
               ca_file: /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
               insecure: false
@@ -372,7 +386,7 @@ manifests should match snapshot:
           enableMetrics: true
       replicas: 2
       serviceAccount: opentelemetry-collector-deployment
-  10: |
+  11: |
     apiVersion: v1
     kind: ServiceAccount
     metadata:
