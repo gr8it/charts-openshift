@@ -1,0 +1,103 @@
+{{- if and (eq (include "apc-global-overrides.clusterIsHub" .) "true") (.Values.alertmanagerServiceMonitorPatch.enabled) }}
+{{- $hookName := printf "%s-alertmanager-servicemonitor-patch" (include "multi-cluster-observability.fullname" .) }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $hookName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "multi-cluster-observability.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "10"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $hookName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "multi-cluster-observability.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "10"
+rules:
+  - apiGroups: ["monitoring.coreos.com"]
+    resources: ["servicemonitors"]
+    resourceNames: ["alertmanager"]
+    verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $hookName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "multi-cluster-observability.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "10"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $hookName }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $hookName }}
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $hookName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "multi-cluster-observability.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "20"
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        {{- include "multi-cluster-observability.selectorLabels" . | nindent 8 }}
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ $hookName }}
+      containers:
+        - name: patch-alertmanager-servicemonitor
+          image: {{ .Values.alertmanagerServiceMonitorPatch.image.repository }}:{{ .Values.alertmanagerServiceMonitorPatch.image.tag }}
+          imagePullPolicy: {{ .Values.alertmanagerServiceMonitorPatch.image.pullPolicy }}
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              target="/var/run/secrets/kubernetes.io/serviceaccount/token"
+              for i in $(seq 1 60); do
+                if oc get servicemonitor alertmanager -n {{ .Release.Namespace }} >/dev/null 2>&1; then
+                  break
+                fi
+                sleep 5
+              done
+
+              current="$(oc get servicemonitor alertmanager -n {{ .Release.Namespace }} -o jsonpath='{.spec.endpoints[0].bearerTokenFile}')"
+              if [ "$current" = "$target" ]; then
+                exit 0
+              fi
+
+              op="add"
+              if [ -n "$current" ]; then
+                op="replace"
+              fi
+
+              oc patch servicemonitor alertmanager \
+                -n {{ .Release.Namespace }} \
+                --type='json' \
+                -p="[{\"op\":\"${op}\",\"path\":\"/spec/endpoints/0/bearerTokenFile\",\"value\":\"${target}\"}]"
+{{- end }}

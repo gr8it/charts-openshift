@@ -1,6 +1,170 @@
 manifests should match snapshot:
   1: |
     apiVersion: v1
+    kind: Secret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: multi-cluster-observability
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: multi-cluster-observability
+        app.kubernetes.io/part-of: multi-cluster-observability
+        helm.sh/chart: multi-cluster-observability-1.0.0
+      name: alertmanager-config
+      namespace: open-cluster-management-observability
+    stringData:
+      alertmanager.yaml: |
+        "global":
+          "resolve_timeout": "5m"
+        "receivers":
+        - name: "null"
+        - name: "teams_aspecta"
+          msteams_configs:
+            - send_resolved: true
+              webhook_url: https://example.invalid/webhook
+        "route":
+          "group_by": ['alertname', 'cluster', 'service']
+          "group_wait": "30s"
+          "group_interval": "5m"
+          "receiver": "teams_aspecta"
+          "repeat_interval": "12h"
+          "routes":
+          - "matchers":
+            - "severity = warning"
+            "receiver": "teams_aspecta"
+          - "matchers":
+            - "severity = critical"
+            "receiver": "teams_aspecta"
+          - "receiver": "null"
+            "matchers":
+            - alertname = Watchdog
+          - "receiver": "null"
+            "matchers":
+            - severity =~ "info|none"
+    type: Opaque
+  2: |
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      annotations:
+        helm.sh/hook: post-install,post-upgrade
+        helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+        helm.sh/hook-weight: "10"
+      labels:
+        app.kubernetes.io/instance: multi-cluster-observability
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: multi-cluster-observability
+        app.kubernetes.io/part-of: multi-cluster-observability
+        helm.sh/chart: multi-cluster-observability-1.0.0
+      name: multi-cluster-observability-multi-cluster-observability-alertmanager-servicemonitor-patch
+      namespace: open-cluster-management-observability
+  3: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      annotations:
+        helm.sh/hook: post-install,post-upgrade
+        helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+        helm.sh/hook-weight: "10"
+      labels:
+        app.kubernetes.io/instance: multi-cluster-observability
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: multi-cluster-observability
+        app.kubernetes.io/part-of: multi-cluster-observability
+        helm.sh/chart: multi-cluster-observability-1.0.0
+      name: multi-cluster-observability-multi-cluster-observability-alertmanager-servicemonitor-patch
+      namespace: open-cluster-management-observability
+    rules:
+      - apiGroups:
+          - monitoring.coreos.com
+        resourceNames:
+          - alertmanager
+        resources:
+          - servicemonitors
+        verbs:
+          - get
+          - patch
+  4: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      annotations:
+        helm.sh/hook: post-install,post-upgrade
+        helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+        helm.sh/hook-weight: "10"
+      labels:
+        app.kubernetes.io/instance: multi-cluster-observability
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: multi-cluster-observability
+        app.kubernetes.io/part-of: multi-cluster-observability
+        helm.sh/chart: multi-cluster-observability-1.0.0
+      name: multi-cluster-observability-multi-cluster-observability-alertmanager-servicemonitor-patch
+      namespace: open-cluster-management-observability
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: multi-cluster-observability-multi-cluster-observability-alertmanager-servicemonitor-patch
+    subjects:
+      - kind: ServiceAccount
+        name: multi-cluster-observability-multi-cluster-observability-alertmanager-servicemonitor-patch
+        namespace: open-cluster-management-observability
+  5: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      annotations:
+        helm.sh/hook: post-install,post-upgrade
+        helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+        helm.sh/hook-weight: "20"
+      labels:
+        app.kubernetes.io/instance: multi-cluster-observability
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: multi-cluster-observability
+        app.kubernetes.io/part-of: multi-cluster-observability
+        helm.sh/chart: multi-cluster-observability-1.0.0
+      name: multi-cluster-observability-multi-cluster-observability-alertmanager-servicemonitor-patch
+      namespace: open-cluster-management-observability
+    spec:
+      backoffLimit: 3
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/instance: multi-cluster-observability
+            app.kubernetes.io/name: multi-cluster-observability
+        spec:
+          containers:
+            - command:
+                - /bin/bash
+                - -ec
+                - |
+                  target="/var/run/secrets/kubernetes.io/serviceaccount/token"
+                  for i in $(seq 1 60); do
+                    if oc get servicemonitor alertmanager -n open-cluster-management-observability >/dev/null 2>&1; then
+                      break
+                    fi
+                    sleep 5
+                  done
+
+                  current="$(oc get servicemonitor alertmanager -n open-cluster-management-observability -o jsonpath='{.spec.endpoints[0].bearerTokenFile}')"
+                  if [ "$current" = "$target" ]; then
+                    exit 0
+                  fi
+
+                  op="add"
+                  if [ -n "$current" ]; then
+                    op="replace"
+                  fi
+
+                  oc patch servicemonitor alertmanager \
+                    -n open-cluster-management-observability \
+                    --type='json' \
+                    -p="[{\"op\":\"${op}\",\"path\":\"/spec/endpoints/0/bearerTokenFile\",\"value\":\"${target}\"}]"
+              image: registry.redhat.io/openshift4/ose-cli:v4.15
+              imagePullPolicy: IfNotPresent
+              name: patch-alertmanager-servicemonitor
+          restartPolicy: OnFailure
+          serviceAccountName: multi-cluster-observability-multi-cluster-observability-alertmanager-servicemonitor-patch
+  6: |
+    apiVersion: v1
     data:
       metrics_list.yaml: |
         names:
@@ -21,7 +185,7 @@ manifests should match snapshot:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: observability-metrics-custom-allowlist
       namespace: open-cluster-management-observability
-  2: |
+  7: |
     apiVersion: v1
     data:
       uwl_metrics_list.yaml: |
@@ -37,7 +201,7 @@ manifests should match snapshot:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: observability-metrics-custom-allowlist
       namespace: apc-blackbox-exporter
-  3: |
+  8: |
     apiVersion: v1
     data:
       uwl_metrics_list.yaml: |
@@ -53,7 +217,7 @@ manifests should match snapshot:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: observability-metrics-custom-allowlist
       namespace: apc-vault
-  4: |
+  9: |
     apiVersion: v1
     data:
       00---application-projects-and-managed-services-usage.json: |
@@ -71,7 +235,7 @@ manifests should match snapshot:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: 00---application-projects-and-managed-services-usage
       namespace: open-cluster-management-observability
-  5: |
+  10: |
     apiVersion: v1
     data:
       00---application-projects-running-in-apc.json: |
@@ -89,7 +253,7 @@ manifests should match snapshot:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: 00---application-projects-running-in-apc
       namespace: open-cluster-management-observability
-  6: |
+  11: |
     apiVersion: v1
     data:
       00---availability-report-for-environment.json: |
@@ -107,7 +271,7 @@ manifests should match snapshot:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: 00---availability-report-for-environment
       namespace: open-cluster-management-observability
-  7: |
+  12: |
     apiVersion: v1
     data:
       01---openshift-cluster-availability---openshift-api.json: |
@@ -125,7 +289,7 @@ manifests should match snapshot:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: 01---openshift-cluster-availability---openshift-api
       namespace: open-cluster-management-observability
-  8: |
+  13: |
     apiVersion: v1
     data:
       02---idp-service-availability---red-hat-build-of-keycloak.json: |
@@ -143,7 +307,7 @@ manifests should match snapshot:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: 02---idp-service-availability---red-hat-build-of-keycloak
       namespace: open-cluster-management-observability
-  9: |
+  14: |
     apiVersion: v1
     data:
       03---postgresql-service-availability---relational-db.json: |
@@ -161,7 +325,7 @@ manifests should match snapshot:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: 03---postgresql-service-availability---relational-db
       namespace: open-cluster-management-observability
-  10: |
+  15: |
     apiVersion: v1
     data:
       04---mongodb-service-availability---nosql-db.json: |
@@ -179,7 +343,7 @@ manifests should match snapshot:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: 04---mongodb-service-availability---nosql-db
       namespace: open-cluster-management-observability
-  11: |
+  16: |
     apiVersion: v1
     data:
       05---kafka-service-availability---messaging-service.json: |
@@ -197,7 +361,7 @@ manifests should match snapshot:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: 05---kafka-service-availability---messaging-service
       namespace: open-cluster-management-observability
-  12: |
+  17: |
     apiVersion: v1
     data:
       06---vault-service-availability---secret-management-service.json: |
@@ -215,7 +379,7 @@ manifests should match snapshot:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: 06---vault-service-availability---secret-management-service
       namespace: open-cluster-management-observability
-  13: |
+  18: |
     apiVersion: v1
     data:
       07---gitlab--cicd-service-availability.json: |
@@ -233,7 +397,7 @@ manifests should match snapshot:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: 07---gitlab--cicd-service-availability
       namespace: open-cluster-management-observability
-  14: |
+  19: |
     apiVersion: v1
     data:
       08---object-storage-service-availability---odf-ceph-rgw.json: |
@@ -251,7 +415,7 @@ manifests should match snapshot:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: 08---object-storage-service-availability---odf-ceph-rgw
       namespace: open-cluster-management-observability
-  15: |
+  20: |
     apiVersion: v1
     data:
       09---object-storage-service-availability---odf-noobaa.json: |
@@ -269,7 +433,7 @@ manifests should match snapshot:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: 09---object-storage-service-availability---odf-noobaa
       namespace: open-cluster-management-observability
-  16: |
+  21: |
     apiVersion: v1
     data:
       11---file-storage-service-availability---odf-file.json: |
@@ -287,7 +451,7 @@ manifests should match snapshot:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: 11---file-storage-service-availability---odf-file
       namespace: open-cluster-management-observability
-  17: |
+  22: |
     apiVersion: v1
     data:
       12---platform-monitoring-availability.json: |
@@ -305,7 +469,7 @@ manifests should match snapshot:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: 12---platform-monitoring-availability
       namespace: open-cluster-management-observability
-  18: |
+  23: |
     apiVersion: v1
     data:
       13---platform-logging-availability.json: |
@@ -323,7 +487,7 @@ manifests should match snapshot:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: 13---platform-logging-availability
       namespace: open-cluster-management-observability
-  19: |
+  24: |
     apiVersion: v1
     data:
       14---platform-security-availability---acs.json: |
@@ -341,7 +505,7 @@ manifests should match snapshot:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: 14---platform-security-availability---acs
       namespace: open-cluster-management-observability
-  20: |
+  25: |
     apiVersion: v1
     data:
       15---platform-backup-restore-availability.json: |
@@ -359,7 +523,7 @@ manifests should match snapshot:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: 15---platform-backup-restore-availability
       namespace: open-cluster-management-observability
-  21: |
+  26: |
     apiVersion: v1
     data:
       99---availability-status.json: |
@@ -377,7 +541,7 @@ manifests should match snapshot:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: 99---availability-status
       namespace: open-cluster-management-observability
-  22: |
+  27: |
     apiVersion: v1
     data:
       application-projects-managed-service-usage.json: |
@@ -395,7 +559,7 @@ manifests should match snapshot:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: application-projects-managed-service-usage
       namespace: open-cluster-management-observability
-  23: |
+  28: |
     apiVersion: v1
     data:
       application-projects-running-in-apc.json: |
@@ -413,7 +577,7 @@ manifests should match snapshot:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: application-projects-running-in-apc
       namespace: open-cluster-management-observability
-  24: |
+  29: |
     apiVersion: observability.open-cluster-management.io/v1beta2
     kind: MultiClusterObservability
     metadata:
@@ -443,7 +607,7 @@ manifests should match snapshot:
           name: thanos-object-storage
           tlsSecretMountPath: /etc/ssl/certs/thanos
           tlsSecretName: thanos-tls-ca
-  25: |
+  30: |
     apiVersion: objectbucket.io/v1alpha1
     kind: ObjectBucketClaim
     metadata:
@@ -458,7 +622,7 @@ manifests should match snapshot:
     spec:
       generateBucketName: acm-thanos-rgw
       storageClassName: ocs-storagecluster-ceph-rgw
-  26: |
+  31: |
     apiVersion: kyverno.io/v1
     kind: Policy
     metadata:
