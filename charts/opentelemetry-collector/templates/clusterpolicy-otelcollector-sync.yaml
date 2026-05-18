@@ -2,7 +2,7 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: sync-otelcollector-tenants
+  name: {{ include "opentelemetry-collector.fullname" . }}-sync-tenants
   annotations:
     argocd.argoproj.io/sync-options: Replace=true
     policies.kyverno.io/title: Sync Open Telemetry tenants on namespace create or label change
@@ -14,7 +14,10 @@ spec:
   validationFailureAction: Audit
   mutateExistingOnPolicyUpdate: true
   rules:
-    - name: add-tenant-to-otelcollector
+    # Exporter and pipeline are map keys -> patchStrategicMerge merges them in.
+    # Idempotent: re-adding an existing key just re-applies the same value, so no
+    # precondition is needed here.
+    - name: add-tenant-exporter-pipeline
       match:
         all:
         - resources:
@@ -23,9 +26,45 @@ spec:
             selector:
               matchLabels:
                 {{ .Values.namespaceSelector.key }}: {{ .Values.namespaceSelector.value }}
-      # Read the collector's current routing table so we can skip namespaces that
-      # are already wired up. Required because this rule re-runs on policy update
-      # and background scans, and a JSON6902 append would otherwise duplicate entries.
+      mutate:
+        mutateExistingOnPolicyUpdate: true
+        targets:
+          - apiVersion: opentelemetry.io/v1beta1
+            kind: OpenTelemetryCollector
+            name: {{ .Values.instanceNameOverride | default (include "opentelemetry-collector.fullname" .) }}
+            namespace: {{ .Release.Namespace }}
+        patchStrategicMerge:
+          spec:
+            config:
+              exporters:
+                "otlp/{{`{{ request.object.metadata.name }}`}}":
+                  endpoint: {{ .Values.tracesEndpoint | required "Traces endpoint is required!" }}
+                  auth:
+                    authenticator: bearertokenauth
+                  headers:
+                    X-Scope-OrgID: {{`"{{ request.object.metadata.name }}"`}}
+                  tls:
+                    insecure: false
+                    ca_file: "/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt"
+              service:
+                pipelines:
+                  "traces/{{`{{ request.object.metadata.name }}`}}":
+                    receivers: [routing]
+                    exporters: ["otlp/{{`{{ request.object.metadata.name }}`}}"]
+    # The routing table is a YAML list. patchStrategicMerge would replace it, so
+    # JSON6902 is used to append with `/-`. Kyverno forbids variables in a JSON6902
+    # `path`, hence the path is static and the namespace name only appears in `value`.
+    # The precondition skips namespaces already present so re-runs (background scans,
+    # policy updates) do not create duplicate entries.
+    - name: add-tenant-route
+      match:
+        all:
+        - resources:
+            kinds:
+            - Namespace
+            selector:
+              matchLabels:
+                {{ .Values.namespaceSelector.key }}: {{ .Values.namespaceSelector.value }}
       context:
         - name: existingRoutes
           apiCall:
@@ -45,26 +84,7 @@ spec:
             kind: OpenTelemetryCollector
             name: {{ .Values.instanceNameOverride | default (include "opentelemetry-collector.fullname" .) }}
             namespace: {{ .Release.Namespace }}
-        # JSON6902 is used instead of patchStrategicMerge so the routing table
-        # (a YAML list) can be appended to with `/-` rather than replaced wholesale.
-        # `~1` is the JSON Pointer escape for the `/` in the exporter/pipeline keys.
         patchesJson6902: |-
-          - op: add
-            path: "/spec/config/exporters/otlp~1{{`{{ request.object.metadata.name }}`}}"
-            value:
-              endpoint: {{ .Values.tracesEndpoint | required "Traces endpoint is required!" }}
-              auth:
-                authenticator: bearertokenauth
-              headers:
-                X-Scope-OrgID: {{`"{{ request.object.metadata.name }}"`}}
-              tls:
-                insecure: false
-                ca_file: "/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt"
-          - op: add
-            path: "/spec/config/service/pipelines/traces~1{{`{{ request.object.metadata.name }}`}}"
-            value:
-              receivers: [routing]
-              exporters: ["otlp/{{`{{ request.object.metadata.name }}`}}"]
           - op: add
             path: "/spec/config/connectors/routing/table/-"
             value:

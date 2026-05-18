@@ -3,7 +3,7 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: cleanup-otelcollector-tenants
+  name: {{ include "opentelemetry-collector.fullname" . }}-cleanup-tenants
   annotations:
     argocd.argoproj.io/sync-options: Replace=true
     policies.kyverno.io/title: Remove Open Telemetry tenants on namespace delete or label removal

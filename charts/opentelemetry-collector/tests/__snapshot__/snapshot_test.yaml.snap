@@ -9,7 +9,7 @@ manifests should match snapshot:
         policies.kyverno.io/minversion: 1.13.0
         policies.kyverno.io/subject: Sync Open Telemetry tenants with namespaces
         policies.kyverno.io/title: Remove Open Telemetry tenants on namespace delete or label removal
-      name: cleanup-otelcollector-tenants
+      name: opentelemetry-collector-cleanup-tenants
     spec:
       rules:
         - match:
@@ -52,11 +52,47 @@ manifests should match snapshot:
         policies.kyverno.io/minversion: 1.13.0
         policies.kyverno.io/subject: Sync Open Telemetry tenants with namespaces
         policies.kyverno.io/title: Sync Open Telemetry tenants on namespace create or label change
-      name: sync-otelcollector-tenants
+      name: opentelemetry-collector-sync-tenants
     spec:
       background: true
       mutateExistingOnPolicyUpdate: true
       rules:
+        - match:
+            all:
+              - resources:
+                  kinds:
+                    - Namespace
+                  selector:
+                    matchLabels:
+                      apc.namespace.type: application
+          mutate:
+            mutateExistingOnPolicyUpdate: true
+            patchStrategicMerge:
+              spec:
+                config:
+                  exporters:
+                    otlp/{{ request.object.metadata.name }}:
+                      auth:
+                        authenticator: bearertokenauth
+                      endpoint: traces.svc
+                      headers:
+                        X-Scope-OrgID: '{{ request.object.metadata.name }}'
+                      tls:
+                        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
+                        insecure: false
+                  service:
+                    pipelines:
+                      traces/{{ request.object.metadata.name }}:
+                        exporters:
+                          - otlp/{{ request.object.metadata.name }}
+                        receivers:
+                          - routing
+            targets:
+              - apiVersion: opentelemetry.io/v1beta1
+                kind: OpenTelemetryCollector
+                name: opentelemetry-collector
+                namespace: NAMESPACE
+          name: add-tenant-exporter-pipeline
         - context:
             - apiCall:
                 default: []
@@ -76,22 +112,6 @@ manifests should match snapshot:
             mutateExistingOnPolicyUpdate: true
             patchesJson6902: |-
               - op: add
-                path: "/spec/config/exporters/otlp~1{{ request.object.metadata.name }}"
-                value:
-                  endpoint: traces.svc
-                  auth:
-                    authenticator: bearertokenauth
-                  headers:
-                    X-Scope-OrgID: "{{ request.object.metadata.name }}"
-                  tls:
-                    insecure: false
-                    ca_file: "/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt"
-              - op: add
-                path: "/spec/config/service/pipelines/traces~1{{ request.object.metadata.name }}"
-                value:
-                  receivers: [routing]
-                  exporters: ["otlp/{{ request.object.metadata.name }}"]
-              - op: add
                 path: "/spec/config/connectors/routing/table/-"
                 value:
                   statement: route() where resource.attributes["k8s.namespace.name"] == "{{ request.object.metadata.name }}"
@@ -101,7 +121,7 @@ manifests should match snapshot:
                 kind: OpenTelemetryCollector
                 name: opentelemetry-collector
                 namespace: NAMESPACE
-          name: add-tenant-to-otelcollector
+          name: add-tenant-route
           preconditions:
             all:
               - key: traces/{{ request.object.metadata.name }}
