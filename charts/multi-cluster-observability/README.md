@@ -7,7 +7,7 @@ This chart packages ACM multi-cluster observability resources that were previous
 - `MultiClusterObservability` (`observability.open-cluster-management.io/v1beta2`)
 - `ObjectBucketClaim` for Thanos object storage
 - Kyverno `Policy` generating the `thanos-object-storage` `Secret` from OBC-provided bucket data
-- `Secret` `alertmanager-config` for hub Alertmanager routing
+- `ExternalSecret` `alertmanager-config` for hub Alertmanager routing, producing the consumed `Secret`
 - Helm hook resources patching the hub Alertmanager `ServiceMonitor` bearer token path
 - Metrics allowlist `ConfigMap` resources
 - Grafana dashboard `ConfigMap` resources included from `files/grafana-dashboards/*.json`
@@ -18,7 +18,7 @@ The chart is intentionally opinionated. Static resource names, mandatory annotat
 
 Only values that are expected to vary between installations are exposed:
 
-- Alertmanager Teams webhook URL
+- Alertmanager Vault key/property for the Teams webhook URL
 - metrics allowlist ConfigMap definitions
 
 Environment-specific behavior should be handled through GitOps component values and shared APC global overrides.
