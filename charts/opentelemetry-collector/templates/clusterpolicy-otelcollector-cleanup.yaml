@@ -1,0 +1,49 @@
+---
+# TESTING apc.namespace.test - change occurence to apc.namespace.type. This is only for testing of the kyverno clusterpolicy
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: {{ include "opentelemetry-collector.fullname" . }}-cleanup-tenants
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
+    policies.kyverno.io/title: Remove Open Telemetry tenants on namespace delete or label removal
+    policies.kyverno.io/category: gitops
+    policies.kyverno.io/subject: Sync Open Telemetry tenants with namespaces
+    policies.kyverno.io/minversion: 1.13.0
+spec:
+  rules:
+    # Tenant removed because the namespace itself is deleted.
+    # On DELETE request.object is null, so everything is read from request.oldObject.
+    - name: remove-tenant-on-namespace-delete
+      match:
+        any:
+          - resources:
+              kinds:
+              - Namespace
+              selector:
+                matchLabels:
+                  {{ .Values.namespaceSelector.key }}: {{ .Values.namespaceSelector.value }}
+              operations:
+              - DELETE
+      mutate:
+        targets:
+          - apiVersion: opentelemetry.io/v1beta1
+            kind: OpenTelemetryCollector
+            name: {{ .Values.instanceNameOverride | default (include "opentelemetry-collector.fullname" .) }}
+            namespace: {{ .Release.Namespace }}
+        # patchStrategicMerge is correct here: it removes map keys via `~` and the
+        # routing table list element via the (statement) anchor + `$patch: delete`.
+        # Unlike the sync policy it does not append to a list, so JSON6902 is not needed.
+        patchStrategicMerge:
+          spec:
+            config:
+              exporters:
+                "otlp/{{`{{ request.oldObject.metadata.name }}`}}": ~
+              service:
+                pipelines:
+                  "traces/{{`{{ request.oldObject.metadata.name }}`}}": ~
+              connectors:
+                routing:
+                  table:
+                    - (statement): route() where resource.attributes["k8s.namespace.name"] == "{{`{{ request.oldObject.metadata.name }}`}}"
+                      $patch: delete

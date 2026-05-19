@@ -1,0 +1,92 @@
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: {{ include "opentelemetry-collector.fullname" . }}-sync-tenants
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
+    policies.kyverno.io/title: Sync Open Telemetry tenants on namespace create or label change
+    policies.kyverno.io/category: gitops
+    policies.kyverno.io/subject: Sync Open Telemetry tenants with namespaces
+    policies.kyverno.io/minversion: 1.13.0
+spec:
+  background: true
+  validationFailureAction: Audit
+  mutateExistingOnPolicyUpdate: true
+  rules:
+    # Exporter and pipeline are map keys -> patchStrategicMerge merges them in.
+    # Idempotent: re-adding an existing key just re-applies the same value, so no
+    # precondition is needed here.
+    - name: add-tenant-exporter-pipeline
+      match:
+        all:
+        - resources:
+            kinds:
+            - Namespace
+            selector:
+              matchLabels:
+                {{ .Values.namespaceSelector.key }}: {{ .Values.namespaceSelector.value }}
+      mutate:
+        mutateExistingOnPolicyUpdate: true
+        targets:
+          - apiVersion: opentelemetry.io/v1beta1
+            kind: OpenTelemetryCollector
+            name: {{ .Values.instanceNameOverride | default (include "opentelemetry-collector.fullname" .) }}
+            namespace: {{ .Release.Namespace }}
+        patchStrategicMerge:
+          spec:
+            config:
+              exporters:
+                "otlp/{{`{{ request.object.metadata.name }}`}}":
+                  endpoint: {{ .Values.tracesEndpoint | required "Traces endpoint is required!" }}
+                  auth:
+                    authenticator: bearertokenauth
+                  headers:
+                    X-Scope-OrgID: {{`"{{ request.object.metadata.name }}"`}}
+                  tls:
+                    insecure: false
+                    ca_file: "/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt"
+              service:
+                pipelines:
+                  "traces/{{`{{ request.object.metadata.name }}`}}":
+                    receivers: [routing]
+                    exporters: ["otlp/{{`{{ request.object.metadata.name }}`}}"]
+    # The routing table is a YAML list. patchStrategicMerge would replace it, so
+    # JSON6902 is used to append with `/-`. Kyverno forbids variables in a JSON6902
+    # `path`, hence the path is static and the namespace name only appears in `value`.
+    # The precondition skips namespaces already present so re-runs (background scans,
+    # policy updates) do not create duplicate entries.
+    - name: add-tenant-route
+      match:
+        all:
+        - resources:
+            kinds:
+            - Namespace
+            selector:
+              matchLabels:
+                {{ .Values.namespaceSelector.key }}: {{ .Values.namespaceSelector.value }}
+      context:
+        - name: existingRoutes
+          apiCall:
+            method: GET
+            urlPath: "/apis/opentelemetry.io/v1beta1/namespaces/{{ .Release.Namespace }}/opentelemetrycollectors/{{ .Values.instanceNameOverride | default (include "opentelemetry-collector.fullname" .) }}"
+            jmesPath: "spec.config.connectors.routing.table[*].pipelines[0]"
+            default: []
+      preconditions:
+        all:
+          - key: {{`"traces/{{ request.object.metadata.name }}"`}}
+            operator: AnyNotIn
+            value: {{`"{{ existingRoutes }}"`}}
+      mutate:
+        mutateExistingOnPolicyUpdate: true
+        targets:
+          - apiVersion: opentelemetry.io/v1beta1
+            kind: OpenTelemetryCollector
+            name: {{ .Values.instanceNameOverride | default (include "opentelemetry-collector.fullname" .) }}
+            namespace: {{ .Release.Namespace }}
+        patchesJson6902: |-
+          - op: add
+            path: "/spec/config/connectors/routing/table/-"
+            value:
+              statement: route() where resource.attributes["k8s.namespace.name"] == "{{`{{ request.object.metadata.name }}`}}"
+              pipelines: ["traces/{{`{{ request.object.metadata.name }}`}}"]

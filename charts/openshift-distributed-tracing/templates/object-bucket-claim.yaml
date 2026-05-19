@@ -1,0 +1,12 @@
+---
+{{- $tempo := .Values.tempoStack | default dict }}
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: {{ default "apc-tempo-stack" $tempo.name | quote }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{- include "tempo-stack.labels" . | nindent 4 }}
+spec:
+  storageClassName: {{ default "ocs-storagecluster-ceph-rgw" $tempo.objectBucket.storageClassName | quote }}
+  bucketName: {{ default "apc-tempo-stack" $tempo.name | quote }}
