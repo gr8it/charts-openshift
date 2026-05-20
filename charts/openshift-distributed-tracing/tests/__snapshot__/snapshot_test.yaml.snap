@@ -85,13 +85,12 @@ manifests should match snapshot:
                 name: apc-tempo-stack-reader-{{ request.object.metadata.name }}
               subjects:
                 - kind: Group
-                  name: APC-D-{{ request.object.metadata.name }}-PJA
+                  name: APC-D-{{ to_upper('{{request.object.metadata.name}}') }}-PJA
                 - kind: Group
-                  name: APC-D-{{ request.object.metadata.name }}-DEV
+                  name: APC-D-{{ to_upper('{{request.object.metadata.name}}') }}-DEV
             generateExisting: true
-            kind: RoleBinding
-            name: apc-tempo-stack-traces-read
-            namespace: '{{ request.object.metadata.name }}'
+            kind: ClusterRoleBinding
+            name: apc-tempo-stack-reader-{{request.object.metadata.name}}
             synchronize: true
           match:
             any:
