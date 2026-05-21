@@ -8,4 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.0] - 2026-05-20
 
-- increase version of acm operator to 3.15.6 to solve https://access.redhat.com/solutions/7105331 nad multicluster-observability chart patch
+### Changed
+
+- Updated ACM operator CSV to `advanced-cluster-management.v2.13.7` and set the subscription channel to `release-2.13`.
