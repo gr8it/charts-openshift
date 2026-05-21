@@ -1,9 +1,10 @@
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
-  name: veeam-backup-v12-dashboard
+  name: {{ .Values.dashboard.name }}
   namespace: {{ .Release.Namespace }}
   labels:
+    dashboards: {{ .Values.dashboard.instanceSelector.matchLabels.dashboards }}
     app: grafana
     dashboard: veeam-backup-v12
     {{- include "veeam-exporter.labels" . | nindent 4 }}
@@ -14,6 +15,8 @@ spec:
   instanceSelector:
     matchLabels:
       {{- .Values.dashboard.instanceSelector.matchLabels | toYaml | nindent 6 }}
+  allowCrossNamespaceImport: false
+  resyncPeriod: {{ .Values.dashboard.resyncPeriod }}
   json: |
     {
       "__inputs": [
@@ -387,28 +390,6 @@ spec:
                       "mode": "gradient",
                       "type": "color-background"
                     }
-                  },
-                  {
-                    "id": "mappings",
-                    "value": [
-                      {
-                        "options": {
-                          "CocaCola": {
-                            "color": "#ff98304d",
-                            "index": 1
-                          },
-                          "pivo": {
-                            "color": "#b877d94d",
-                            "index": 0
-                          },
-                          "water": {
-                            "color": "#73bf694d",
-                            "index": 2
-                          }
-                        },
-                        "type": "value"
-                      }
-                    ]
                   }
                 ]
               }

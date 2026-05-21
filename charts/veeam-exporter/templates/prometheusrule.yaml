@@ -1,0 +1,51 @@
+{{- if .Values.prometheusRule.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ .Values.prometheusRule.name }}
+  namespace: {{ .Values.prometheusRule.namespace | default .Release.Namespace }}
+spec:
+  groups:
+    - interval: {{ .Values.prometheusRule.interval }}
+      name: {{ .Values.prometheusRule.groupName }}
+      rules:
+        - alert: veaam_backup_failed_or_warning
+          annotations:
+            description: Last Veeam Backup {{`{{ $labels.name }}`}} with Failed or Warning state in the past 2 days.
+            summary: Last Veeam Backup {{`{{ $labels.name }}`}} with Failed or Warning state.
+          expr: |
+            max_over_time(veeam_job_result_info{job="veeam_job_report",namespace="prometheus-pushgateway"}[2d]) == 1
+            or
+            max_over_time(veeam_job_result_info{job="veeam_job_report",namespace="prometheus-pushgateway"}[2d]) == 2
+          labels:
+            {{- .Values.prometheusRule.labels | toYaml | nindent 12 }}
+        - alert: veaam_repo_full
+          annotations:
+            description: The repository is 80% or more full.
+            summary: Repo is over 80% full
+          expr: |
+            (
+              (veeam_repo_total_size_bytes{job="veeam_repo_report"} - veeam_repo_free_space_bytes{job="veeam_repo_report"})
+              / veeam_repo_total_size_bytes{job="veeam_repo_report"}
+            ) * 100 > 79
+          labels:
+            {{- .Values.prometheusRule.labels | toYaml | nindent 12 }}
+        - alert: veaam_noreport_2_hours
+          annotations:
+            description: No Veeam Metrics have been received for the past 2 hours.
+            summary: No Veeam Metrics for 2 hours
+          expr: |
+            (max_over_time(push_time_seconds{job="veeam_job_report"}[2h]) < time() - 7200)
+          labels:
+            {{- .Values.prometheusRule.labels | toYaml | nindent 12 }}
+        - alert: veaam_nobackup_two_days
+          annotations:
+            description: No backup for {{`{{ $labels.name }}`}} has been performed in the past 2 days.
+            summary: No backup for {{`{{ $labels.name }}`}} done for 2 days
+          expr: |
+            time() - max_over_time(veeam_job_end_time_timestamp_seconds{job="veeam_job_report"}[30d]) > 172800
+            and
+            max_over_time(veeam_job_result_info{job="veeam_job_report"}[2d]) < 99
+          labels:
+            {{- .Values.prometheusRule.labels | toYaml | nindent 12 }}
+{{- end }}
