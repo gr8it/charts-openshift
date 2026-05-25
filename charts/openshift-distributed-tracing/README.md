@@ -123,3 +123,9 @@ Unit-test snapshots live under [tests/](tests/) and run with [helm-unittest](htt
 ```bash
 helm unittest charts/openshift-distributed-tracing
 ```
+## TODO list
+
+List of future improvements
+
+- Update policy clusterpolicy-tempo-cleanup-tenant.yaml
+  - another way to implement this would be to store the tenant list in step 1 as a dictionary (e.g. configmap keys), and than in step 2 have a separate policy looping through the dictionary to get the full list of tenants and write it as a list to the CR, i.e. instead of having partial changes to the CR always create the full list and update it as whole.

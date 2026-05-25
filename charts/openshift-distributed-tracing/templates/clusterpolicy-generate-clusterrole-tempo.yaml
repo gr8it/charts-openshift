@@ -97,5 +97,11 @@ spec:
           subjects:
             - kind: Group
               name: {{ printf "APC-%s-{{ to_upper('{{request.object.metadata.name}}') }}-PJA" ( include "apc-global-overrides.require-environmentShort" $ | upper ) | quote }}
+          {{- if ne ( include "apc-global-overrides.require-environmentShort" $ ) "p" }}
             - kind: Group
-              name: {{ printf "APC-%s-{{ to_upper('{{request.object.metadata.name}}') }}-DEV" ( include "apc-global-overrides.require-environmentShort" $ | upper ) | quote }}              
+              name: {{ printf "APC-%s-{{ to_upper('{{request.object.metadata.name}}') }}-DEV" ( include "apc-global-overrides.require-environmentShort" $ | upper ) | quote }}
+            - kind: Group
+              name: {{ printf "APC-%s-{{ to_upper('{{request.object.metadata.name}}') }}-TES" ( include "apc-global-overrides.require-environmentShort" $ | upper ) | quote }}
+          {{- end }}
+            - kind: Group
+              name: {{ printf "APC-%s-{{ to_upper('{{request.object.metadata.name}}') }}-OPR" ( include "apc-global-overrides.require-environmentShort" $ | upper ) | quote }}

@@ -13,7 +13,6 @@ manifests should match snapshot:
         app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
-        app.kubernetes.io/version: v0.15
         helm.sh/chart: openshift-distributed-tracing-1.0.0
       name: apc-tempo-stack-generate-tenant-clusterrole
     spec:
@@ -88,6 +87,10 @@ manifests should match snapshot:
                   name: APC-D-{{ to_upper('{{request.object.metadata.name}}') }}-PJA
                 - kind: Group
                   name: APC-D-{{ to_upper('{{request.object.metadata.name}}') }}-DEV
+                - kind: Group
+                  name: APC-D-{{ to_upper('{{request.object.metadata.name}}') }}-TES
+                - kind: Group
+                  name: APC-D-{{ to_upper('{{request.object.metadata.name}}') }}-OPR
             generateExisting: true
             kind: ClusterRoleBinding
             name: apc-tempo-stack-reader-{{request.object.metadata.name}}
@@ -116,7 +119,6 @@ manifests should match snapshot:
         app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
-        app.kubernetes.io/version: v0.15
         helm.sh/chart: openshift-distributed-tracing-1.0.0
       name: apc-tempo-stack-tempo-cleanup-tenants
     spec:
@@ -163,7 +165,6 @@ manifests should match snapshot:
         app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
-        app.kubernetes.io/version: v0.15
         helm.sh/chart: openshift-distributed-tracing-1.0.0
       name: apc-tempo-stack-tempo-sync-tenants
     spec:
@@ -214,7 +215,6 @@ manifests should match snapshot:
         app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
-        app.kubernetes.io/version: v0.15
         helm.sh/chart: openshift-distributed-tracing-1.0.0
         rbac.kyverno.io/aggregate-to-admission-controller: "true"
       name: kyverno:admission-controller:openshift-distributed-tracing
@@ -233,7 +233,6 @@ manifests should match snapshot:
         app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
-        app.kubernetes.io/version: v0.15
         helm.sh/chart: openshift-distributed-tracing-1.0.0
         rbac.kyverno.io/aggregate-to-background-controller: "true"
       name: kyverno:background-controller:openshift-distributed-tracing
@@ -289,7 +288,6 @@ manifests should match snapshot:
         app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
-        app.kubernetes.io/version: v0.15
         helm.sh/chart: openshift-distributed-tracing-1.0.0
       name: tempostack-traces-read
     rules:
@@ -310,7 +308,6 @@ manifests should match snapshot:
         app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
-        app.kubernetes.io/version: v0.15
         helm.sh/chart: openshift-distributed-tracing-1.0.0
       name: allow-from-cluster-observability-operator
       namespace: NAMESPACE
@@ -331,7 +328,6 @@ manifests should match snapshot:
         app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
-        app.kubernetes.io/version: v0.15
         helm.sh/chart: openshift-distributed-tracing-1.0.0
       name: apc-tempo-stack
       namespace: NAMESPACE
@@ -346,7 +342,6 @@ manifests should match snapshot:
         app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
-        app.kubernetes.io/version: v0.15
         helm.sh/chart: openshift-distributed-tracing-1.0.0
       name: apc-tempo-stack
       namespace: NAMESPACE
