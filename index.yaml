@@ -67,6 +67,21 @@ entries:
     version: 1.0.0
   acm-operator:
   - apiVersion: v2
+    appVersion: v2.13.7
+    created: "2026-05-21T16:45:49.808249+02:00"
+    dependencies:
+    - name: operators-installer
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/main/
+      version: 3.2.4
+    description: A Helm chart to install ACM operator using operators-installer helm
+      chart
+    digest: bc4df84cf0db1ffedfa833c7afe4fbae01806be47dc4380ed9b88cb6fbd3800b
+    name: acm-operator
+    type: application
+    urls:
+    - packaged_charts/acm-operator-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
     appVersion: v2.12.1
     created: "2025-10-22T12:51:32.214399+02:00"
     dependencies:
@@ -143,6 +158,20 @@ entries:
     - packaged_charts/acm-policy-1.0.0.tgz
     version: 1.0.0
   acs-config:
+  - apiVersion: v2
+    created: "2026-04-30T10:09:08.019738+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.7.0
+    description: A Helm chart for Red Hat Advanced Cluster Security SecuredCluster
+      instance and Central ACS components
+    digest: 68949189032f723b0ed521b9afb34afa0870bce2e69cd9e904641e90d8b59c3e
+    name: acs-config
+    type: application
+    urls:
+    - packaged_charts/acs-config-1.1.0.tgz
+    version: 1.1.0
   - apiVersion: v2
     created: "2026-02-26T22:35:34.135913+01:00"
     dependencies:
@@ -409,6 +438,16 @@ entries:
     urls:
     - packaged_charts/application-gitops-1.0.0.tgz
     version: 1.0.0
+  application-namespace-config:
+  - apiVersion: v2
+    created: "2026-05-06T12:57:35.234603+02:00"
+    description: A Helm chart to manage specific configurations in application namespaces
+    digest: c612de0cec575d11088c1a01800946a6ca85ab6f9e9727046983cfbd5f7a3f6e
+    name: application-namespace-config
+    type: application
+    urls:
+    - packaged_charts/application-namespace-config-1.0.0.tgz
+    version: 1.0.0
   apps-centralne-komponenty-bpm:
   - apiVersion: v2
     created: "2026-04-22T15:10:06.725473921+02:00"
@@ -604,6 +643,21 @@ entries:
     type: application
     urls:
     - packaged_charts/apps-ck-kafka-1.0.0.tgz
+    version: 1.0.0
+  apps-kafka-bridge:
+  - apiVersion: v2
+    appVersion: 0.46.1
+    created: "2026-05-12T13:14:38.683134+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    description: A Helm chart for deploying and configuring the Kafka Bridge
+    digest: 003441ef2e000192248d9300b07449f0f6755d2cacbec448f2c2a695d15b3d9b
+    name: apps-kafka-bridge
+    type: application
+    urls:
+    - packaged_charts/apps-kafka-bridge-1.0.0.tgz
     version: 1.0.0
   argo-events-helm:
   - apiVersion: v2
@@ -2903,6 +2957,21 @@ entries:
     urls:
     - packaged_charts/metallb-operator-1.0.0.tgz
     version: 1.0.0
+  mongodb-config:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2026-04-09T14:29:34.760907+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.6.0
+    description: A Helm chart to deploy customized MongoDb instance
+    digest: 64b4f544522e8e4bcd4ab22dbd5bc4403096606405dc924ea25a10189a9899bb
+    name: mongodb-config
+    type: application
+    urls:
+    - packaged_charts/mongodb-config-1.0.0.tgz
+    version: 1.0.0
   mongodb-operator-helm:
   - apiVersion: v2
     appVersion: 1.4.0
@@ -3274,6 +3343,21 @@ entries:
     - packaged_charts/opentelemetry-collector-1.0.0.tgz
     version: 1.0.0
   opentelemetry-operator:
+  - apiVersion: v2
+    appVersion: v0.144.0-3
+    created: "2026-05-13T12:53:55.808004762+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart for installing OpenTelemetry Operator
+    digest: 04a82ea0b0e90cf1833c83615749b55ec7fa32d7e9c4ef29cd1d3f2c01574aa9
+    kubeVersion: '>=1.16-0'
+    name: opentelemetry-operator
+    type: application
+    urls:
+    - packaged_charts/opentelemetry-operator-1.1.0.tgz
+    version: 1.1.0
   - apiVersion: v2
     appVersion: v0.119
     created: "2025-10-22T12:51:32.342868+02:00"
@@ -3721,8 +3805,8 @@ entries:
       version: 1.8.0
     description: A Helm chart to install Vector log aggregator
     digest: 17e4bf651193958745d5ab2705770669354ae0f797edd0cbfda0629bc42fd7cb
-    name: vector-helm
-    urls:
-    - packaged_charts/vector-helm-1.0.0.tgz
-    version: 1.0.0
-generated: "2026-05-13T21:14:23.356118+02:00"
+   name: vector-helm
+   urls:
+   - packaged_charts/vector-helm-1.0.0.tgz
+   version: 1.0.0
+generated: "2026-05-21T16:45:49.80749+02:00"
