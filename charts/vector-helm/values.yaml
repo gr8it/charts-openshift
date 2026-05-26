@@ -1,0 +1,125 @@
+
+## MetalLB configuration for exposing the Vector service through a reserved VIP.
+## Set vectorMetalLB.addresses per env to activate.
+vectorMetalLB:
+  autoAssign: true
+  nodeSelectors:
+    - matchLabels:
+        node-role.kubernetes.io/worker: ""
+
+## Additional ingress CIDRs for the Vector NetworkPolicy.
+## Namespace-based ingress for stackrox/logging/monitoring is chart-owned.
+## Set vectorNetworkPolicy.syslogUdpCidrs/syslogTcpCidrs/webhookCidrs per env.
+
+## Customer-specific SIEM sink settings.
+vectorSiem:
+  endpoint: ""
+  tls:
+    verifyCertificate: false
+    verifyHostname: false
+
+## Vector subchart values
+## See: https://github.com/vectordotdev/helm-charts/tree/develop/charts/vector
+vector:
+  containerPorts:
+    - name: prom-exporter
+      containerPort: 9090
+      protocol: TCP
+    - name: udp-syslog
+      containerPort: 9441
+      protocol: UDP
+    - name: tcp-syslog
+      containerPort: 9442
+      protocol: TCP
+    - name: webhook
+      containerPort: 9444
+      protocol: TCP
+
+  logLevel: info
+
+  # Keep legacy resource names stable so Argo can adopt the existing cluster objects.
+  fullnameOverride: vector
+  role: Agent
+  rollWorkload: false
+
+  nodeSelector:
+    node-role.kubernetes.io/worker: ""
+
+  persistence:
+    hostPath:
+      enabled: false
+
+  securityContext:
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    seccompProfile:
+      type: RuntimeDefault
+
+  # Disable the upstream Agent host mounts. This chart mounts only the APC-owned
+  # secrets that the Vector config references.
+  defaultVolumes: []
+  defaultVolumeMounts: []
+
+  existingConfigMaps:
+    - vector
+  dataDir: /vector-data-dir
+
+  service:
+    enabled: true
+    type: LoadBalancer
+    externalTrafficPolicy: Local
+    annotations:
+      metallb.universe.tf/address-pool: vector-reserved
+    ports:
+      - name: udp-syslog
+        protocol: UDP
+        port: 9441
+        targetPort: 9441
+      - name: tcp-syslog
+        protocol: TCP
+        port: 9442
+        targetPort: 9442
+      - name: webhook
+        protocol: TCP
+        port: 9444
+        targetPort: 9444
+  serviceHeadless:
+    enabled: false
+  podMonitor:
+    enabled: true
+
+  extraVolumes:
+    - name: vector-token
+      secret:
+        secretName: vector-token
+        defaultMode: 420
+    - name: jira-ops
+      secret:
+        secretName: jira-ops
+        defaultMode: 420
+    - name: vector-service
+      secret:
+        secretName: vector-service
+        defaultMode: 420
+    - name: siem-token
+      secret:
+        secretName: siem-token
+        defaultMode: 420
+
+  extraVolumeMounts:
+    - name: vector-token
+      readOnly: true
+      mountPath: /var/run/ocp-collector/secrets/vector-token
+    - name: jira-ops
+      readOnly: true
+      mountPath: /var/run/ocp-collector/secrets/jira-ops
+    - name: vector-service
+      readOnly: true
+      mountPath: /var/run/ocp-collector/secrets/vector-service
+    - name: siem-token
+      readOnly: true
+      mountPath: /var/run/ocp-collector/secrets/siem-token

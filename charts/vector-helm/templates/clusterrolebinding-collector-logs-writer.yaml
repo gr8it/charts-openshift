@@ -1,0 +1,14 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: apc-logging-collector-logs-writers
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: logging-collector-logs-writer
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "vector-helm.vectorServiceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
