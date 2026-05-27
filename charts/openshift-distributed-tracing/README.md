@@ -85,7 +85,7 @@ Key values (see [values.yaml](values.yaml) for full reference):
 
 ### ArgoCD / Red Hat OpenShift GitOps Sync Status and Health Checks
 
-If using this helm chart with ArgoCD / Red Hat OpenShift GitOps then make sure that manifests Application.argoproj.io includes:
+If you use this Helm chart with ArgoCD / Red Hat OpenShift GitOps, make sure your ArgoCD Application (`Application.argoproj.io`) manifest includes the following `spec.ignoreDifferences` configuration:
 
 ``` yaml
 spec:
