@@ -3304,12 +3304,13 @@ entries:
     urls:
     - packaged_charts/operators-installer-3.2.4.tgz
     version: 3.2.4
-  pushgateway-helm:
+  pushgateway:
   - apiVersion: v2
     appVersion: v1.11.0
-    created: "2026-04-29T21:54:54.424267+02:00"
+    created: "2026-05-22T09:10:13.182901+02:00"
     dependencies:
-    - name: prometheus-pushgateway
+    - condition: cluster.isHub,global.apc.cluster.isHub
+      name: prometheus-pushgateway
       repository: https://prometheus-community.github.io/helm-charts
       version: 3.0.0
     - name: apc-global-overrides
@@ -3317,11 +3318,11 @@ entries:
       version: 1.8.0
     description: A Helm chart to install Prometheus Pushgateway with OpenShift OAuth
       proxy
-    digest: 92f6f2a8e76b39ca6e7723095587c1d284f1a6580ac5ac9249d92c5c3def1dda
-    name: pushgateway-helm
+    digest: f8d752594acc8fd031eae828f848e3bc0402c38d4da66cc6befa14cddafac4f9
+    name: pushgateway
     type: application
     urls:
-    - packaged_charts/pushgateway-helm-1.0.0.tgz
+    - packaged_charts/pushgateway-1.0.0.tgz
     version: 1.0.0
   quay-operator:
   - apiVersion: v2

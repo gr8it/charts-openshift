@@ -112,8 +112,20 @@ veeam:
 prometheus-pushgateway:
   image:
     repository: quay.io/prometheus/pushgateway
-    tag: v1.10.0      # Change to desired version
-    pullPolicy: Always
+    tag: v1.11.0      # Change to desired version
+    pullPolicy: IfNotPresent
+```
+
+#### Pushgateway Admin API
+
+```yaml
+prometheus-pushgateway:
+  extraArgs: []
+
+  # Only enable the admin API if you explicitly need destructive operations
+  # such as deleting metrics.
+  # extraArgs:
+  #   - --web.enable-admin-api
 ```
 
 #### OAuth Proxy Image
@@ -219,7 +231,9 @@ All OpenShift-specific resources are wrapped with:
 {{- end }}
 ```
 
-This allows the same chart to be deployed to spoke clusters (where these resources are skipped) with no errors.
+This wrapper is intended for hub deployments. When `cluster.isHub` is false, the
+OpenShift-specific resources are skipped and the upstream `prometheus-pushgateway`
+subchart is disabled as well, so the chart renders no workload on spoke clusters.
 
 ## Troubleshooting
 
@@ -275,7 +289,7 @@ Common issues:
 | veeam.enabled | bool | `true` | Enable Veeam ServiceAccount and RBAC |
 | veeam.serviceAccountName | string | `veeam-sa` | Name of Veeam service account |
 | prometheus-pushgateway.replicaCount | int | `1` | Number of Pushgateway replicas |
-| prometheus-pushgateway.image.tag | string | `v1.10.0` | Pushgateway container image tag |
+| prometheus-pushgateway.image.tag | string | `v1.11.0` | Pushgateway container image tag |
 | prometheus-pushgateway.persistentVolume.enabled | bool | `true` | Enable persistent storage |
 | prometheus-pushgateway.persistentVolume.size | string | `2Gi` | PVC size |
 | prometheus-pushgateway.serviceAccount.name | string | `pushgw-sa` | ServiceAccount name (must match oauth-proxy args) |

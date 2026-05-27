@@ -1,3 +1,6 @@
+cluster:
+  isHub: false
+
 veeam:
   enabled: true
   serviceAccountName: veeam-sa
@@ -16,16 +19,19 @@ prometheus-pushgateway:
   image:
     repository: quay.io/prometheus/pushgateway
     tag: v1.11.0
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
 
   persistentVolume:
     enabled: true
     size: 2Gi
 
-  extraArgs:
-    - '--web.enable-admin-api'
+  # The admin API exposes destructive endpoints such as deleting metrics.
+  # Keep it opt-in and enable it only when explicitly required.
+  extraArgs: []
 
   serviceAccount:
+    # The wrapper chart renders the OAuth-enabled ServiceAccount on hub clusters.
+    # The upstream subchart is disabled entirely when cluster.isHub is false.
     create: false
     name: pushgw-sa
 
@@ -37,7 +43,7 @@ prometheus-pushgateway:
   extraContainers:
     - name: oauth-proxy
       image: registry.redhat.io/openshift4/ose-oauth-proxy:v4.12.0
-      imagePullPolicy: Always
+      imagePullPolicy: IfNotPresent
       args:
         - '--https-address=:9092'
         - '--provider=openshift'
