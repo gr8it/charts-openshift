@@ -83,6 +83,21 @@ Key values (see [values.yaml](values.yaml) for full reference):
 
 ## Operations
 
+### ArgoCD / Red Hat OpenShift GitOps Sync Status and Health Checks
+
+If using this helm chart with ArgoCD / Red Hat OpenShift GitOps then make sure that manifests Application.argoproj.io includes:
+
+``` yaml
+spec:
+  ignoreDifferences:
+    - group: tempo.grafana.com
+      kind: TempoStack
+      jqPathExpressions:
+      - '.spec.tenants.authentication'
+```
+
+The `ignoreDifferences` block is required because the Kyverno Policy mutates the `TempoStack` custom resource after it is applied, injecting runtime fields into `.spec.tenants.authentication`. Without this configuration, ArgoCD continuously detects these fields as drift and marks the Application as `OutOfSync`, even though the desired state in Git is unchanged. This in turn can trigger unwanted auto-sync loops that revert the kyverno's mutations, leading to a fight between ArgoCD and the Kyverno that destabilizes the TempoStack. By instructing ArgoCD to ignore differences on these specific jq paths, the Application remains `Synced` and `Healthy` while still allowing the Kyverno to manage dynamic configuration. This pattern is the recommended way to integrate operator-owned or Kyverno-owned CRDs with GitOps tooling, where ownership of certain fields is intentionally split between Git and the controller.
+
 ### Onboard a namespace for tracing
 
 ```bash
