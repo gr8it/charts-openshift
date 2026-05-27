@@ -1,7 +1,7 @@
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
-  name: {{ .Values.dashboard.name }}
+  name: {{ include "veeam-exporter.fullname" . }}-dashboard
   namespace: {{ .Release.Namespace }}
   labels:
     dashboards: {{ .Values.dashboard.instanceSelector.matchLabels.dashboards }}

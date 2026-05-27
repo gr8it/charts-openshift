@@ -12,7 +12,7 @@ manifests should match snapshot:
         dashboard: veeam-backup-v12
         dashboards: apc-grafana
         helm.sh/chart: veeam-exporter-1.0.0
-      name: veeam-backup-v12-dashboard
+      name: veeam-exporter-dashboard
       namespace: apc-observability
     spec:
       allowCrossNamespaceImport: false
@@ -581,7 +581,7 @@ manifests should match snapshot:
                 max_over_time(veeam_job_result_info{job="veeam_job_report",namespace="prometheus-pushgateway"}[2d]) == 2
               labels:
                 app: veeam
-                customerName: changeme
+                customerName: null
                 severity: warning
                 team: platform
                 vendor: aspecta
@@ -596,7 +596,7 @@ manifests should match snapshot:
                 ) * 100 > 79
               labels:
                 app: veeam
-                customerName: changeme
+                customerName: null
                 severity: warning
                 team: platform
                 vendor: aspecta
@@ -608,7 +608,7 @@ manifests should match snapshot:
                 (max_over_time(push_time_seconds{job="veeam_job_report"}[2h]) < time() - 7200)
               labels:
                 app: veeam
-                customerName: changeme
+                customerName: null
                 severity: warning
                 team: platform
                 vendor: aspecta
@@ -622,7 +622,7 @@ manifests should match snapshot:
                 max_over_time(veeam_job_result_info{job="veeam_job_report"}[2d]) < 99
               labels:
                 app: veeam
-                customerName: changeme
+                customerName: null
                 severity: warning
                 team: platform
                 vendor: aspecta

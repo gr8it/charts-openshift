@@ -15,4 +15,4 @@ Exporter flow:
 4. OpenShift Prometheus scrapes Pushgateway.
 5. Grafana dashboard and Prometheus alerts are managed by this Helm chart.
 
-The upstream exporter reference is `https://github.com/DoTheEvo/veeam-prometheus-grafana`. Customer-specific values must be set in the customer GitOps repository or Windows deployment copy, not in the shared chart.
+The upstream exporter reference is `https://github.com/gr8it/veeam-prometheus-exporter`. Customer-specific values must be set in the customer GitOps repository or Windows deployment copy, not in the shared chart.

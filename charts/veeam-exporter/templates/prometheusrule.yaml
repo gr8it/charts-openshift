@@ -19,6 +19,7 @@ spec:
             max_over_time(veeam_job_result_info{job="veeam_job_report",namespace="prometheus-pushgateway"}[2d]) == 2
           labels:
             {{- .Values.prometheusRule.labels | toYaml | nindent 12 }}
+            customerName: {{ include "apc-global-overrides.customer" . }}
         - alert: veaam_repo_full
           annotations:
             description: The repository is 80% or more full.
@@ -30,6 +31,7 @@ spec:
             ) * 100 > 79
           labels:
             {{- .Values.prometheusRule.labels | toYaml | nindent 12 }}
+            customerName: {{ include "apc-global-overrides.customer" . }}
         - alert: veaam_noreport_2_hours
           annotations:
             description: No Veeam Metrics have been received for the past 2 hours.
@@ -38,6 +40,7 @@ spec:
             (max_over_time(push_time_seconds{job="veeam_job_report"}[2h]) < time() - 7200)
           labels:
             {{- .Values.prometheusRule.labels | toYaml | nindent 12 }}
+            customerName: {{ include "apc-global-overrides.customer" . }}
         - alert: veaam_nobackup_two_days
           annotations:
             description: No backup for {{`{{ $labels.name }}`}} has been performed in the past 2 days.
@@ -48,4 +51,5 @@ spec:
             max_over_time(veeam_job_result_info{job="veeam_job_report"}[2d]) < 99
           labels:
             {{- .Values.prometheusRule.labels | toYaml | nindent 12 }}
+            customerName: {{ include "apc-global-overrides.customer" . }}
 {{- end }}
