@@ -46,20 +46,11 @@ manifests should match snapshot:
                 - --tls-key=/etc/tls/private/tls.key
                 - --cookie-secret-file=/etc/proxy/secrets/cookie-secret
               image: registry.redhat.io/openshift4/ose-oauth-proxy:v4.12.0
-              imagePullPolicy: IfNotPresent
+              imagePullPolicy: Always
               name: oauth-proxy
               ports:
                 - containerPort: 9092
                   name: public
-              securityContext:
-                allowPrivilegeEscalation: false
-                capabilities:
-                  drop:
-                    - ALL
-                readOnlyRootFilesystem: false
-                runAsNonRoot: true
-                seccompProfile:
-                  type: RuntimeDefault
               volumeMounts:
                 - mountPath: /etc/tls/private
                   name: prometheus-pushgateway-tls
@@ -169,6 +160,12 @@ manifests should match snapshot:
           app.kubernetes.io/instance: prometheus-pushgateway
           app.kubernetes.io/name: prometheus-pushgateway
   6: |
+    raw: |
+      Pushgateway deployed in prometheus-pushgateway.
+
+      Route:  oc get route prometheus-pushgateway -n prometheus-pushgateway
+      Secret: oc get externalsecret prometheus-pushgateway-oauth-cookie -n prometheus-pushgateway
+  7: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -186,7 +183,7 @@ manifests should match snapshot:
           - prometheuses
         verbs:
           - get
-  7: |
+  8: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -210,7 +207,7 @@ manifests should match snapshot:
           - subjectaccessreviews
         verbs:
           - create
-  8: |
+  9: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
@@ -228,25 +225,6 @@ manifests should match snapshot:
     subjects:
       - kind: ServiceAccount
         name: pushgw-sa
-        namespace: prometheus-pushgateway
-  9: |
-    apiVersion: rbac.authorization.k8s.io/v1
-    kind: ClusterRoleBinding
-    metadata:
-      labels:
-        app.kubernetes.io/instance: prometheus-pushgateway
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: pushgateway
-        app.kubernetes.io/version: v1.11.0
-        helm.sh/chart: pushgateway-1.0.0
-      name: veeam-sa-push-metrics-binding
-    roleRef:
-      apiGroup: rbac.authorization.k8s.io
-      kind: ClusterRole
-      name: service-sa-push-metrics
-    subjects:
-      - kind: ServiceAccount
-        name: veeam-sa
         namespace: prometheus-pushgateway
   10: |
     apiVersion: rbac.authorization.k8s.io/v1
@@ -306,6 +284,57 @@ manifests should match snapshot:
         kind: Service
         name: pushgateway-oauth-proxy
   13: |
+    apiVersion: generators.external-secrets.io/v1alpha1
+    kind: Password
+    metadata:
+      labels:
+        app.kubernetes.io/instance: prometheus-pushgateway
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: pushgateway
+        app.kubernetes.io/version: v1.11.0
+        helm.sh/chart: pushgateway-1.0.0
+      name: prometheus-pushgateway-oauth-cookie
+      namespace: prometheus-pushgateway
+    spec:
+      allowRepeat: true
+      digits: 6
+      length: 32
+      noUpper: false
+      symbols: 0
+  14: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: prometheus-pushgateway
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: pushgateway
+        app.kubernetes.io/version: v1.11.0
+        helm.sh/chart: pushgateway-1.0.0
+      name: prometheus-pushgateway-oauth-cookie
+      namespace: prometheus-pushgateway
+    spec:
+      dataFrom:
+        - sourceRef:
+            generatorRef:
+              apiVersion: generators.external-secrets.io/v1alpha1
+              kind: Password
+              name: prometheus-pushgateway-oauth-cookie
+      refreshInterval: "0"
+      target:
+        creationPolicy: Owner
+        name: pushgateway-oauth-cookie-secret
+        template:
+          data:
+            cookie-secret: '{{ . }}'
+          metadata:
+            labels:
+              app.kubernetes.io/instance: prometheus-pushgateway
+              app.kubernetes.io/managed-by: Helm
+              app.kubernetes.io/name: pushgateway
+              app.kubernetes.io/version: v1.11.0
+              helm.sh/chart: pushgateway-1.0.0
+  15: |
     apiVersion: v1
     kind: Service
     metadata:
@@ -327,21 +356,7 @@ manifests should match snapshot:
       selector:
         app.kubernetes.io/instance: prometheus-pushgateway
         app.kubernetes.io/name: prometheus-pushgateway
-  14: |
-    apiVersion: v1
-    kind: ServiceAccount
-    metadata:
-      annotations:
-        serviceaccounts.openshift.io/oauth-redirectreference.primary: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"prometheus-pushgateway"}}'
-      labels:
-        app.kubernetes.io/instance: prometheus-pushgateway
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: pushgateway
-        app.kubernetes.io/version: v1.11.0
-        helm.sh/chart: pushgateway-1.0.0
-      name: veeam-sa
-      namespace: prometheus-pushgateway
-  15: |
+  16: |
     apiVersion: v1
     kind: ServiceAccount
     metadata:

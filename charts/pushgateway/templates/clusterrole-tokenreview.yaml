@@ -1,4 +1,3 @@
-{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
 ---
 # Allows the OAuth proxy to perform token reviews against the API server.
 apiVersion: rbac.authorization.k8s.io/v1
@@ -14,4 +13,3 @@ rules:
   - apiGroups: [authorization.k8s.io]
     resources: [subjectaccessreviews]
     verbs: [create]
-{{- end }}

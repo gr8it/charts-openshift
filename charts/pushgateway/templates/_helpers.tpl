@@ -59,13 +59,6 @@ Must match prometheus-pushgateway.serviceAccount.name.
 {{- end }}
 
 {{/*
-Veeam service account name.
-*/}}
-{{- define "pushgateway-helm.veeamServiceAccountName" -}}
-{{- .Values.veeam.serviceAccountName | default "veeam-sa" }}
-{{- end }}
-
-{{/*
 Route name — used in both the Route resource and SA OAuth redirect annotation.
 */}}
 {{- define "pushgateway-helm.routeName" -}}
@@ -100,8 +93,4 @@ RBAC resource names kept stable to let ArgoCD/Helm adopt the existing hub01 obje
 
 {{- define "pushgateway-helm.pushMetricsClusterRoleName" -}}
 {{- .Values.resourceNames.pushMetricsClusterRole | default (printf "%s-push-metrics" (include "pushgateway-helm.fullname" .)) }}
-{{- end }}
-
-{{- define "pushgateway-helm.veeamPushMetricsClusterRoleBindingName" -}}
-{{- .Values.resourceNames.veeamPushMetricsClusterRoleBinding | default (printf "%s-veeam-push-metrics-binding" (include "pushgateway-helm.fullname" .)) }}
 {{- end }}

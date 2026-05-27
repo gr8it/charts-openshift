@@ -1,4 +1,3 @@
-{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
 ---
 # Allows external service accounts (e.g. veeam-sa) to push metrics to
 # this Pushgateway by satisfying the OAuth proxy delegate authorization check.
@@ -12,4 +11,3 @@ rules:
   - apiGroups: [monitoring.coreos.com]
     resources: [prometheuses]
     verbs: [get]
-{{- end }}

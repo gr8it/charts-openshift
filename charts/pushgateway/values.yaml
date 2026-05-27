@@ -1,10 +1,3 @@
-cluster:
-  isHub: false
-
-veeam:
-  enabled: true
-  serviceAccountName: veeam-sa
-
 resourceNames:
   route: prometheus-pushgateway
   oauthProxyService: pushgateway-oauth-proxy
@@ -13,7 +6,6 @@ resourceNames:
   prometheusAccessRole: pushgw-sa-prometheus-access
   prometheusAccessRoleBinding: pushgw-sa-binding
   pushMetricsClusterRole: service-sa-push-metrics
-  veeamPushMetricsClusterRoleBinding: veeam-sa-push-metrics-binding
 
 prometheus-pushgateway:
   image:
@@ -30,8 +22,9 @@ prometheus-pushgateway:
   extraArgs: []
 
   serviceAccount:
-    # The wrapper chart renders the OAuth-enabled ServiceAccount on hub clusters.
-    # The upstream subchart is disabled entirely when cluster.isHub is false.
+    # create: false — the wrapper chart owns the SA with the OpenShift OAuth redirect annotation.
+    # SA name is hardcoded to pushgw-sa in templates/serviceaccount.yaml and in the
+    # --openshift-service-account arg above so they always stay in sync.
     create: false
     name: pushgw-sa
 
@@ -43,7 +36,7 @@ prometheus-pushgateway:
   extraContainers:
     - name: oauth-proxy
       image: registry.redhat.io/openshift4/ose-oauth-proxy:v4.12.0
-      imagePullPolicy: IfNotPresent
+      imagePullPolicy: Always
       args:
         - '--https-address=:9092'
         - '--provider=openshift'
@@ -63,14 +56,6 @@ prometheus-pushgateway:
         - name: pushgateway-cookie-secret
           mountPath: /etc/proxy/secrets
           readOnly: true
-      securityContext:
-        allowPrivilegeEscalation: false
-        readOnlyRootFilesystem: false
-        runAsNonRoot: true
-        capabilities:
-          drop: ["ALL"]
-        seccompProfile:
-          type: RuntimeDefault
 
   extraVolumes:
     - name: prometheus-pushgateway-tls

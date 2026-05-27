@@ -8,16 +8,13 @@ The `pushgateway` chart wraps the upstream `prometheus-pushgateway` Helm chart a
 
 - **OAuth Proxy Sidecar**: Secures Pushgateway behind OpenShift's built-in OAuth provider
 - **Route & TLS**: Exposes Pushgateway via OpenShift Route with reencrypt TLS termination
-- **Veeam Integration**: Pre-configured ServiceAccount for external metric submission (e.g., Veeam backups)
-- **Hub-only Deployment**: All OpenShift-specific resources conditionally render only on hub clusters using the `apc-global-overrides.clusterIsHub` helper
 - **Full RBAC**: ClusterRoles, ClusterRoleBindings, Roles, and RoleBindings for proper authorization
+- **Automatic OAuth cookie secret**: Generated via ESO `Password` generator on first install; no manual secret creation required.
 
 ## Prerequisites
 
-1. OpenShift cluster with `isHub: true` in cluster configuration
-2. `apc-global-overrides` Helm chart available (included as a dependency)
-3. Pre-created Secret containing OAuth proxy cookie: `pushgateway-oauth-cookie-secret`
-   - Create with: `scripts/create-pushgw-cookie-secret.sh` (included in conf-socpoist)
+1. OpenShift cluster
+2. External Secrets Operator (ESO) installed in the cluster
 
 ## Architecture
 
@@ -46,10 +43,10 @@ The `pushgateway` chart wraps the upstream `prometheus-pushgateway` Helm chart a
    - **pushgw-sa** (main ServiceAccount)
      - Used by OAuth proxy
      - Bound to tokenreview and prometheus-access roles
-   
-   - **veeam-sa** (external metrics pusher)
-     - For Veeam or other backup systems
-     - Can push metrics via the OAuth-protected Route
+
+6. **OAuth Cookie Secret** (auto-generated)
+   - ESO `Password` generator creates a random secret on install
+   - Stored as `pushgateway-oauth-cookie-secret`
 
 ## Installation
 
@@ -60,35 +57,15 @@ cd charts-openshift/charts/pushgateway
 helm dependency update
 ```
 
-This generates `Chart.lock` and populates `charts/` directory.
-
 ### 2. Install the Chart
 
 ```bash
 helm install prometheus-pushgateway ./charts/pushgateway \
   --namespace prometheus-pushgateway \
-  --create-namespace \
-  --set cluster.isHub=true
+  --create-namespace
 ```
 
-### 3. Create OAuth Cookie Secret
-
-Before or after installation, create the cookie secret (if not already present):
-
-```bash
-# From conf-socpoist:
-./ocp-hub01/observability/pushgateway/create-pushgw-cookie-secret.sh
-```
-
-Or manually:
-
-```bash
-head -c 32 /dev/urandom | base64 > /tmp/cookie-secret
-
-kubectl create secret generic pushgateway-oauth-cookie-secret \
-  --from-file=cookie-secret=/tmp/cookie-secret \
-  -n prometheus-pushgateway
-```
+The OAuth cookie secret is created automatically by ESO on first install.
 
 ## Configuration
 
@@ -98,34 +75,24 @@ See `values.yaml` for all available options.
 
 ### Key Customization Points
 
-#### Enable/Disable Veeam Integration
-
-```yaml
-veeam:
-  enabled: true  # Set to false to skip Veeam SA creation
-  serviceAccountName: veeam-sa
-```
-
 #### Pushgateway Image & Version
 
 ```yaml
 prometheus-pushgateway:
   image:
     repository: quay.io/prometheus/pushgateway
-    tag: v1.11.0      # Change to desired version
+    tag: v1.11.0
     pullPolicy: IfNotPresent
 ```
 
 #### Pushgateway Admin API
 
+The admin API is disabled by default because it exposes destructive endpoints (e.g. deleting metrics). Enable only when explicitly required:
+
 ```yaml
 prometheus-pushgateway:
-  extraArgs: []
-
-  # Only enable the admin API if you explicitly need destructive operations
-  # such as deleting metrics.
-  # extraArgs:
-  #   - --web.enable-admin-api
+  extraArgs:
+    - --web.enable-admin-api
 ```
 
 #### OAuth Proxy Image
@@ -137,13 +104,17 @@ prometheus-pushgateway:
       image: registry.redhat.io/openshift4/ose-oauth-proxy:v4.16.0
 ```
 
+#### Service Account Name
+
+The SA name is shared between the wrapper chart and the oauth-proxy `--openshift-service-account` argument. If you override `prometheus-pushgateway.serviceAccount.name`, you must also update the `--openshift-service-account` arg in `prometheus-pushgateway.extraContainers[oauth-proxy].args` to match.
+
 #### Persistence
 
 ```yaml
 prometheus-pushgateway:
   persistentVolume:
     enabled: true
-    size: 2Gi          # Increase for large deployments
+    size: 2Gi
 ```
 
 #### Resource Limits
@@ -159,16 +130,10 @@ prometheus-pushgateway:
       memory: 512Mi
 ```
 
-(Note: Resource limits are controlled via the upstream chart's values.)
-
 ## Security
 
-All resources follow Kubernetes security best practices:
-
-- **Non-root containers**: `runAsNonRoot: true`
-- **Read-only root filesystem**: `readOnlyRootFilesystem: true` for Pushgateway, mutable for oauth-proxy (required for cookie handling)
-- **Capability dropping**: `drop: ["ALL"]` for minimal attack surface
-- **Pod Security Context**: Configured with appropriate `fsGroup` and `runAsUser`
+- **Least-privilege RBAC**: ClusterRole grants only `get` on `prometheuses` — the minimum required by the OAuth delegate check
+- **OAuth proxy**: all Pushgateway endpoints protected; external access requires a valid OpenShift token bound to the push-metrics ClusterRole
 
 ## Metrics & Monitoring
 
@@ -182,64 +147,26 @@ prometheus-pushgateway:
     honorLabels: true
 ```
 
-Prometheus will scrape metrics from the main Pushgateway pod (port 9091 via local endpoint).
-
 ## Accessing Pushgateway
 
 ### Public Route (HTTPS)
 
 ```bash
-# Get the route URL
 oc get route prometheus-pushgateway -n prometheus-pushgateway -o jsonpath='{.spec.host}'
-
-# Example URL:
-# https://prometheus-pushgateway-prometheus-pushgateway.apps.hub01.example.com
-
-# Push metrics:
-echo "metric_name 123" | curl -X POST \
-  --cacert /path/to/ca.crt \
-  --cert /path/to/client.crt \
-  --key /path/to/client.key \
-  https://prometheus-pushgateway-prometheus-pushgateway.apps.hub01.example.com/metrics/job/myjob
-```
-
-### From Veeam (Internal)
-
-The `veeam-sa` ServiceAccount is pre-configured with permissions to push metrics:
-
-```bash
-# Veeam pod would use this SA and access via the Route with OAuth proxy
 ```
 
 ### Internal Endpoint (For Testing)
 
 ```bash
-# Port-forward to test (bypasses OAuth proxy):
 oc port-forward -n prometheus-pushgateway \
   svc/prometheus-pushgateway 9091:9091
 
 curl http://localhost:9091/metrics
 ```
 
-## Conditional Rendering (Hub-only)
-
-All OpenShift-specific resources are wrapped with:
-
-```gotemplate
-{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
-  # Resources here only render on hub clusters
-{{- end }}
-```
-
-This wrapper is intended for hub deployments. When `cluster.isHub` is false, the
-OpenShift-specific resources are skipped and the upstream `prometheus-pushgateway`
-subchart is disabled as well, so the chart renders no workload on spoke clusters.
-
 ## Troubleshooting
 
 ### OAuth Proxy Not Starting
-
-Check logs:
 
 ```bash
 oc logs -n prometheus-pushgateway \
@@ -248,53 +175,31 @@ oc logs -n prometheus-pushgateway \
 ```
 
 Common issues:
-- Cookie secret not found: Verify `pushgateway-oauth-cookie-secret` exists
+
+- Cookie secret not found: Check ESO `ExternalSecret` status (`oc get externalsecret -n prometheus-pushgateway`)
 - TLS cert not provisioned: Check Service annotation and OpenShift cert controller
 
 ### Cannot Access Pushgateway
 
-1. Verify Route exists and is ready:
-   ```bash
-   oc get route -n prometheus-pushgateway
-   ```
-
-2. Check OAuth proxy Service selector matches pods:
-   ```bash
-   oc get svc prometheus-pushgateway-oauth-proxy -n prometheus-pushgateway -o yaml
-   oc get pods -n prometheus-pushgateway -L app.kubernetes.io/name
-   ```
-
-3. Test OAuth proxy directly:
-   ```bash
-   oc port-forward -n prometheus-pushgateway \
-     svc/prometheus-pushgateway-oauth-proxy 9092:9092
-   ```
+```bash
+oc get route -n prometheus-pushgateway
+oc get svc -n prometheus-pushgateway
+```
 
 ### Metrics Not Scraped
 
-1. Verify ServiceMonitor:
-   ```bash
-   oc get servicemonitor -n prometheus-pushgateway
-   ```
-
-2. Check Prometheus config reload in openshift-monitoring:
-   ```bash
-   oc logs -n openshift-monitoring deployment/prometheus-operator
-   ```
+```bash
+oc get servicemonitor -n prometheus-pushgateway
+oc logs -n openshift-monitoring deployment/prometheus-operator
+```
 
 ## Chart Values Reference
 
 | Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| veeam.enabled | bool | `true` | Enable Veeam ServiceAccount and RBAC |
-| veeam.serviceAccountName | string | `veeam-sa` | Name of Veeam service account |
-| prometheus-pushgateway.replicaCount | int | `1` | Number of Pushgateway replicas |
-| prometheus-pushgateway.image.tag | string | `v1.11.0` | Pushgateway container image tag |
-| prometheus-pushgateway.persistentVolume.enabled | bool | `true` | Enable persistent storage |
-| prometheus-pushgateway.persistentVolume.size | string | `2Gi` | PVC size |
-| prometheus-pushgateway.serviceAccount.name | string | `pushgw-sa` | ServiceAccount name (must match oauth-proxy args) |
-| prometheus-pushgateway.serviceMonitor.enabled | bool | `true` | Enable ServiceMonitor |
-| prometheus-pushgateway.serviceMonitor.namespace | string | `openshift-monitoring` | Namespace for ServiceMonitor |
+| --- | --- | --- | --- |
+| resourceNames.route | string | `prometheus-pushgateway` | Name of the OpenShift Route |
+| resourceNames.oauthProxyService | string | `pushgateway-oauth-proxy` | Name of the OAuth proxy Service |
+| resourceNames.pushMetricsClusterRole | string | `service-sa-push-metrics` | ClusterRole for pushing metrics |
 
 ## Upgrading
 

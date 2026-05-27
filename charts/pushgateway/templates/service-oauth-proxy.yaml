@@ -1,4 +1,3 @@
-{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
 ---
 # Service exposing the OAuth proxy sidecar; the annotation triggers OpenShift
 # to provision a serving certificate and stores it in the named Secret.
@@ -20,4 +19,3 @@ spec:
     # Matches labels set by the upstream prometheus-pushgateway subchart
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/name: prometheus-pushgateway
-{{- end }}

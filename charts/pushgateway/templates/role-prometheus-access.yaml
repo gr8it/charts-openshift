@@ -1,4 +1,3 @@
-{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
 ---
 # Grants the pushgateway SA the ability to GET Prometheus instances,
 # satisfying the OAuth proxy delegate authorization check.
@@ -13,4 +12,3 @@ rules:
   - apiGroups: [monitoring.coreos.com]
     resources: [prometheuses]
     verbs: [get]
-{{- end }}
