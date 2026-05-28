@@ -2,7 +2,7 @@ global:
   apc:
     environmentShort: h
     cluster:
-      baseDomain: hub01.cloud.socpoist.sk
+      baseDomain: hub01.cloud.example.com
     services:
       certManager:
         defaultClusterIssuer: vault-hub-issuer
@@ -10,10 +10,6 @@ global:
         defaultClusterSecretStore: vault-hub-secret-store
       vault:
         KVmountPlatform: apc-platform
-
-vectorServiceCertificate:
-  ipAddresses:
-    - 10.111.76.100
 
 vectorMetalLB:
   addresses:
@@ -32,4 +28,4 @@ vectorNetworkPolicy:
     - 10.14.76.0/23
 
 vectorSiem:
-  endpoint: https://sr-ba-xsplhf-p1.socpoist.sk:8088/
+  endpoint: https://siem.example.com:8088/

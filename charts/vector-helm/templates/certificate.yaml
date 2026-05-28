@@ -18,9 +18,3 @@ spec:
     {{- range .Values.vectorServiceCertificate.additionalDnsNames }}
     - {{ . | quote }}
     {{- end }}
-  {{- if .Values.vectorServiceCertificate.ipAddresses }}
-  ipAddresses:
-    {{- range .Values.vectorServiceCertificate.ipAddresses }}
-    - {{ . | quote }}
-    {{- end }}
-  {{- end }}
