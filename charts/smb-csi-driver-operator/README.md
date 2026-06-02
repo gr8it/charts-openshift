@@ -4,7 +4,7 @@
 
 ### Blocked Operator upgrade
 
-When operator upgrade is blocked on error due to not approved older Installplan :
+When operator upgrade is blocked on error due to not approved older InstallPlan:
 
 ``` bash
 InstallPlan to update to [smb-csi-driver-operator.v4.17.0-202503121206] is available for approval but approval for [smb-csi-driver-operator.v4.17.0-202503121206] is required
