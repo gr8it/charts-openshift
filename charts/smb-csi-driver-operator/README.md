@@ -1,4 +1,4 @@
-# smb-csi-driver operator
+# smb-csi-driver-operator
 
 ## Troubleshooting
 
