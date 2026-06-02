@@ -1,8 +1,9 @@
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
+kind: RoleBinding
 metadata:
   name: {{ include "etcd-hcp-backup.fullname" . }}
+  namespace: {{ include "etcd-hcp-backup.namespace" . }}
   labels:
     {{- include "etcd-hcp-backup.labels" . | nindent 4 }}
 subjects:
@@ -10,6 +11,6 @@ subjects:
     name: {{ include "etcd-hcp-backup.fullname" . }}
     namespace: {{ .Release.Namespace }}
 roleRef:
-  kind: ClusterRole
+  kind: Role
   name: {{ include "etcd-hcp-backup.fullname" . }}
   apiGroup: rbac.authorization.k8s.io
