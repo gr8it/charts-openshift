@@ -14,7 +14,7 @@ The Job will create an etcd snapshot, optionally compress it (controlled by `com
 | clusterName                     | str  |                                 | Name of the Hosted Cluster. Defaults to `global.apc.cluster.name` when not set. |
 | clusterNamespace                | str  | `{clusterName}-{clusterName}`   | Overrides the default Hosted Cluster namespace |
 | backupSchedule                  | str  | `"0 * * * *"`                   | Cron notation for ETCD backup schedule |
-| retentionDays                   | int  | `30`                            | Specifies the number of days to retain old backups during the cleanup phase  |
+| retentionDays                   | int  | `3`                             | Specifies the number of days to retain old backups during the cleanup phase  |
 | etcdStatefulSetName             | str  | `etcd`                          | An optional parameter that overrides the default etcd StatefulSet name in  the Hosted Cluster namespace |
 | compressSnapshot                | bool | `false`                         | Controls whether to use gzip to compress the snapshot before uploading to S3 |
 | objectBucketClaim.name          | str  | `etcd-hcp-{clusterName}-backup` | This parameter is mandatory when using a pre-existing ObjectBucketClaim. Overrides the default ObjectBucketClaim name if `{objectBucketClaim.create}` is `true` |
