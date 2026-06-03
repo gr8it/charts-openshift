@@ -10,16 +10,15 @@ resourceNames:
 prometheus-pushgateway:
   image:
     repository: quay.io/prometheus/pushgateway
-    tag: v1.11.0
-    pullPolicy: IfNotPresent
+    tag: v1.10.0
+    pullPolicy: Always
 
   persistentVolume:
     enabled: true
     size: 2Gi
 
-  # The admin API exposes destructive endpoints such as deleting metrics.
-  # Keep it opt-in and enable it only when explicitly required.
-  extraArgs: []
+  extraArgs:
+    - --web.enable-admin-api
 
   serviceAccount:
     # create: false — the wrapper chart owns the SA with the OpenShift OAuth redirect annotation.

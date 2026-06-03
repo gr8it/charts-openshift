@@ -9,5 +9,5 @@ metadata:
     {{- include "pushgateway-helm.labels" . | nindent 4 }}
 rules:
   - apiGroups: [monitoring.coreos.com]
-    resources: [prometheuses]
-    verbs: [get]
+    resources: [prometheuses, servicemonitors]
+    verbs: [get, list]

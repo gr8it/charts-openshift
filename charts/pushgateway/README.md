@@ -81,13 +81,13 @@ See `values.yaml` for all available options.
 prometheus-pushgateway:
   image:
     repository: quay.io/prometheus/pushgateway
-    tag: v1.11.0
-    pullPolicy: IfNotPresent
+    tag: v1.10.0
+    pullPolicy: Always
 ```
 
 #### Pushgateway Admin API
 
-The admin API is disabled by default because it exposes destructive endpoints (e.g. deleting metrics). Enable only when explicitly required:
+The admin API is enabled by default to preserve behavior from the migrated static manifests:
 
 ```yaml
 prometheus-pushgateway:

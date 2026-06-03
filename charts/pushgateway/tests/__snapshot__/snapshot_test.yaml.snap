@@ -57,8 +57,10 @@ manifests should match snapshot:
                 - mountPath: /etc/proxy/secrets
                   name: pushgateway-cookie-secret
                   readOnly: true
-            - image: quay.io/prometheus/pushgateway:v1.11.0
-              imagePullPolicy: IfNotPresent
+            - args:
+                - --web.enable-admin-api
+              image: quay.io/prometheus/pushgateway:v1.10.0
+              imagePullPolicy: Always
               livenessProbe:
                 httpGet:
                   path: /-/healthy
@@ -173,7 +175,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: prometheus-pushgateway
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: pushgateway
-        app.kubernetes.io/version: v1.11.0
+        app.kubernetes.io/version: v1.10.0
         helm.sh/chart: pushgateway-1.0.0
       name: service-sa-push-metrics
     rules:
@@ -181,8 +183,10 @@ manifests should match snapshot:
           - monitoring.coreos.com
         resources:
           - prometheuses
+          - servicemonitors
         verbs:
           - get
+          - list
   8: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
@@ -191,7 +195,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: prometheus-pushgateway
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: pushgateway
-        app.kubernetes.io/version: v1.11.0
+        app.kubernetes.io/version: v1.10.0
         helm.sh/chart: pushgateway-1.0.0
       name: tokenreview-access
     rules:
@@ -215,7 +219,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: prometheus-pushgateway
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: pushgateway
-        app.kubernetes.io/version: v1.11.0
+        app.kubernetes.io/version: v1.10.0
         helm.sh/chart: pushgateway-1.0.0
       name: pushgw-sa-tokenreview-binding
     roleRef:
@@ -234,7 +238,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: prometheus-pushgateway
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: pushgateway
-        app.kubernetes.io/version: v1.11.0
+        app.kubernetes.io/version: v1.10.0
         helm.sh/chart: pushgateway-1.0.0
       name: pushgw-sa-prometheus-access
       namespace: prometheus-pushgateway
@@ -253,7 +257,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: prometheus-pushgateway
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: pushgateway
-        app.kubernetes.io/version: v1.11.0
+        app.kubernetes.io/version: v1.10.0
         helm.sh/chart: pushgateway-1.0.0
       name: pushgw-sa-binding
       namespace: prometheus-pushgateway
@@ -273,7 +277,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: prometheus-pushgateway
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: pushgateway
-        app.kubernetes.io/version: v1.11.0
+        app.kubernetes.io/version: v1.10.0
         helm.sh/chart: pushgateway-1.0.0
       name: prometheus-pushgateway
       namespace: prometheus-pushgateway
@@ -291,7 +295,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: prometheus-pushgateway
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: pushgateway
-        app.kubernetes.io/version: v1.11.0
+        app.kubernetes.io/version: v1.10.0
         helm.sh/chart: pushgateway-1.0.0
       name: prometheus-pushgateway-oauth-cookie
       namespace: prometheus-pushgateway
@@ -309,7 +313,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: prometheus-pushgateway
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: pushgateway
-        app.kubernetes.io/version: v1.11.0
+        app.kubernetes.io/version: v1.10.0
         helm.sh/chart: pushgateway-1.0.0
       name: prometheus-pushgateway-oauth-cookie
       namespace: prometheus-pushgateway
@@ -332,7 +336,7 @@ manifests should match snapshot:
               app.kubernetes.io/instance: prometheus-pushgateway
               app.kubernetes.io/managed-by: Helm
               app.kubernetes.io/name: pushgateway
-              app.kubernetes.io/version: v1.11.0
+              app.kubernetes.io/version: v1.10.0
               helm.sh/chart: pushgateway-1.0.0
   15: |
     apiVersion: v1
@@ -344,7 +348,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: prometheus-pushgateway
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: pushgateway
-        app.kubernetes.io/version: v1.11.0
+        app.kubernetes.io/version: v1.10.0
         helm.sh/chart: pushgateway-1.0.0
       name: pushgateway-oauth-proxy
       namespace: prometheus-pushgateway
@@ -366,7 +370,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: prometheus-pushgateway
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: pushgateway
-        app.kubernetes.io/version: v1.11.0
+        app.kubernetes.io/version: v1.10.0
         helm.sh/chart: pushgateway-1.0.0
       name: pushgw-sa
       namespace: prometheus-pushgateway

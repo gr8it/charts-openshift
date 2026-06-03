@@ -31,7 +31,7 @@ tests:
           path: roleRef.name
           value: tokenreview-access
 
-  - it: renders legacy push-metrics ClusterRole name and least-privilege rules
+  - it: renders legacy push-metrics ClusterRole name and rules
     template: templates/clusterrole-push-metrics.yaml
     asserts:
       - hasDocuments:
@@ -43,10 +43,10 @@ tests:
           value: service-sa-push-metrics
       - equal:
           path: rules[0].resources
-          value: [prometheuses]
+          value: [prometheuses, servicemonitors]
       - equal:
           path: rules[0].verbs
-          value: [get]
+          value: [get, list]
 
   - it: renders legacy prometheus access Role name
     template: templates/role-prometheus-access.yaml
