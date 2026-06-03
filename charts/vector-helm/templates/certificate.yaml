@@ -15,6 +15,6 @@ spec:
     - "{{ include "vector-helm.vectorFullname" . }}.{{ .Release.Namespace }}.svc"
     - "{{ include "vector-helm.vectorFullname" . }}.{{ .Release.Namespace }}.svc.cluster.local"
     - "{{ include "vector-helm.vectorFullname" . }}.{{ include "apc-global-overrides.clusterBaseDomain" . }}"
-    {{- range .Values.vectorServiceCertificate.additionalDnsNames }}
+    {{- range (.Values.vectorServiceCertificate).additionalDnsNames }}
     - {{ . | quote }}
     {{- end }}
