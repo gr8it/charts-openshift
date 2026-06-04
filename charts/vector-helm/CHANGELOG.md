@@ -5,6 +5,11 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-06-04
+
+- Add Vector service VIP IP SANs to the generated cert-manager Certificate.
+- Restore hub01 baseline values for the lint and snapshot fixture.
+
 ## [1.0.0] - 2026-05-04
 
 - increasing version of vector from 0.38 to 0.50.0
