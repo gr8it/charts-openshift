@@ -215,7 +215,7 @@ transforms:
       }
 
       payload = {
-        "message": "[RHACS]: [socpoistsk/" + cluster + "/" + severity_label + "] - " + policy_name,
+        "message": "[RHACS]: [{{ required "vectorRhacs.customerTag must be set in the environment/customer values" .Values.vectorRhacs.customerTag }}/" + cluster + "/" + severity_label + "] - " + policy_name,
         "alias": "rhacs-" + alert_id,
         "description": description,
         "entity": cluster + "/" + namespace + "/" + deployment,
@@ -224,7 +224,7 @@ transforms:
         "tags": [
           "rhacs",
           "security",
-          "socpoistsk",
+          "{{ required "vectorRhacs.customerTag must be set in the environment/customer values" .Values.vectorRhacs.customerTag }}",
           cluster,
           namespace,
           deployment,
@@ -313,7 +313,7 @@ sinks:
   jira_ops_alerts:
     type: http
     inputs: ["acs_to_jira_ops"]
-    uri: https://api.atlassian.com/jsm/ops/integration/v2/alerts
+    uri: {{ required "vectorJira.endpoint must be set in the environment/customer values" .Values.vectorJira.endpoint | quote }}
     method: post
     request:
       concurrency: none
@@ -335,7 +335,7 @@ sinks:
       when_full: block
     healthcheck:
       enabled: false
-  socpoist_siem_splunk:
+  {{ .Values.vectorSiem.sinkName }}:
     type: splunk_hec_logs
     inputs: ["remap_ldap_auth"]
     endpoint: {{ required "vectorSiem.endpoint must be set in the environment/customer values" .Values.vectorSiem.endpoint | quote }}
