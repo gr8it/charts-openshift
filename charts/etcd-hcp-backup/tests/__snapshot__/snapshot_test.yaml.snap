@@ -99,6 +99,13 @@ manifests should match snapshot:
                           name: etcd-hcp-backup-hub01-scripts
                   image: registry.redhat.io/openshift4/ose-cli:v4.15
                   name: init
+                  resources:
+                    limits:
+                      cpu: 200m
+                      memory: 512Mi
+                    requests:
+                      cpu: 50m
+                      memory: 100Mi
                   securityContext:
                     allowPrivilegeEscalation: false
                     capabilities:
@@ -132,6 +139,13 @@ manifests should match snapshot:
                           name: etcd-hcp-backup-hub01-scripts
                   image: registry.redhat.io/openshift4/ose-etcd:v4.12
                   name: snapshot
+                  resources:
+                    limits:
+                      cpu: 200m
+                      memory: 512Mi
+                    requests:
+                      cpu: 50m
+                      memory: 100Mi
                   securityContext:
                     allowPrivilegeEscalation: false
                     capabilities:
