@@ -7,19 +7,19 @@ Original generic contributing rules located at <https://github.com/gr8it/private
 - Follow [twelve factor apps](https://12factor.net)
 - Follow DRY (Don't Repeat Yourself) principle
 - If several ways of doing the same thing are shown (GUI, YAML, CLI), all options should do the same thing
-- Keep NOTES (usually using quotation \>)relevant to code (YAML / CLI) above
+- Keep NOTES (usually using quotation `>`) relevant to code (YAML / CLI) above
   <details>
   <summary>Click for explanation</summary>
 
   - if a NOTE is positioned below YAML / CLI, it might be missed when executing
-  - positioning the NOTE above the code allows the reader to make a concious decision whether to execute the code
+  - positioning the NOTE above the code allows the reader to make a conscious decision whether to execute the code
   </details>
 - always try to pin version, e.g. image, software, package, helm chart
   - prefer image digest to image tag
     <details>
     <summary>Click for explanation</summary>
 
-    - if using image tag, the underlaying image can change, which is not the case when using image digest
+    - if using image tag, the underlying image can change, which is not the case when using image digest
     </details>
 
 ## Pull Requests
@@ -57,7 +57,7 @@ Original generic contributing rules located at <https://github.com/gr8it/private
   <summary>Click for explanation</summary>
 
   - For maximum quality
-  - So everytone can edit
+  - So everyone can edit
   - draw.io usage is recommended (thick client makes usage a breeze)
   </details>
 
@@ -75,7 +75,7 @@ Original generic contributing rules located at <https://github.com/gr8it/private
   </details>
 
 - All endpoints should be authenticated
- <details>
+  <details>
   <summary>Click for explanation</summary>
 
   - Monitoring endpoints usually don't include authentication and use plain HTTP
@@ -116,12 +116,12 @@ Follow <https://learnk8s.io/production-best-practices>
   </details>
 
 - Mount secrets as volumes, not environment variables
-- pullPolicy should be set to Always
+- pullPolicy should be set to Always for private registries
   <details>
   <summary>Click for explanation</summary>
 
   - setting pullPolicy to Always is a security best practice, which ensures, that the pod using an image is entitled to do so. If using an authenticated registry, a pod in another namespace could have downloaded an image using its pullsecret. Another pod without a pullsecret could reuse the image, when scheduled on the same node.
-  - in lower environments, when mutable tags such as latest are used, the image should be always redownloaded to pull the latest and greates version of the image
+  - in lower environments, when mutable tags such as latest are used, the image should be always re-downloaded to pull the latest and greatest version of the image
 
   > this policy should be enforced using a policy engine such as Kyverno, OPA, ..
   </details>
@@ -139,7 +139,7 @@ Follow <https://learnk8s.io/production-best-practices>
   <details>
   <summary>Click for explanation</summary>
 
-  - All critical operations should be logged (e.g all CRUD operations on sensitive application data / resources - more info - link to wiki (does not exist yet)
+  - All critical operations should be logged (e.g. all CRUD operations on sensitive application data / resources - more info - link to wiki (does not exist yet))
   - All audit logs should use global fluentd audit output (cluster wide resource - clusterOutput)
 
   </details>
@@ -182,7 +182,7 @@ Follow <https://learnk8s.io/production-best-practices>
   - two
   ```
 
-  Decistion made by [team poll](https://teams.microsoft.com/l/message/19:meeting_MmFjNjA4OTQtZGU1ZS00YmFlLWIxNmEtODJhYjczMGY1Nzcz@thread.v2/1721213549897?context=%7B%22contextType%22%3A%22chat%22%7D) 8:4
+  Decision made by [team poll](https://teams.microsoft.com/l/message/19:meeting_MmFjNjA4OTQtZGU1ZS00YmFlLWIxNmEtODJhYjczMGY1Nzcz@thread.v2/1721213549897?context=%7B%22contextType%22%3A%22chat%22%7D) 8:4
 
   </details>
 
@@ -199,7 +199,7 @@ Use simple component names with no prefix, e.g. remove-kubeadmin, crossplane, ky
 
 - \<component\>, e.g. remove-kubeadmin
 - \<component>-operator / helm for installation of operators / helm charts, e.g. acm-operator, crossplane-helm
-  - do not incluce followup configuration
+  - do not include followup configuration
 - \<component\>-config / instance / policies / etc, e.g. cert-manager-config
   - if configuration contains CRs created during operator / helm chart installation use -config suffix
   - if more specific configuration is used like instance setup, policies creation, use that instead, e.g. acm-instance, kyverno-policies
@@ -476,7 +476,7 @@ appVersion: "v0.11.0"
 dependencies:
   - name: acm-operatorpolicy
     version: "1.0.0"
-    repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/SPEXAPC-3919/
+    repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
 ```
 
 - values.yaml
@@ -495,7 +495,7 @@ acm-operatorpolicy:
     - quay-operator.v3.13.2
 ```
 
-Athough not natural, this installs Quay operator with manual approval, but approves specified versions only!
+Although not natural, this installs Quay operator with manual approval, but approves specified versions only!
 
 ### Extending Helmfile releases
 
@@ -623,7 +623,7 @@ or alternatively add sync option serversideapply in the versions.yaml:
 
 ### Deploying big resources
 
-Using standard ArgoCD method of deployement (similar to kubectl apply -f ...), only resources up to 256kB can be deployed due to limitation of Kubernetes annotation size. This is caused by the fact that client side apply creates annotation with the resource content.
+Using standard ArgoCD method of deployment (similar to kubectl apply -f ...), only resources up to 256kB can be deployed due to limitation of Kubernetes annotation size. This is caused by the fact that client side apply creates annotation with the resource content.
 
 This is usually a problem with Custom Resource Definitions (CRDs), which can be megabytes in size.
 
@@ -643,7 +643,7 @@ While it is best practice to specify configuration using values.yaml in the envi
 
 As these components are APC specific, some "environment" configuration can be bundled within the component itself, e.g. RBAC. This is acceptable, because the components are strongly APC opinionated.
 
-The agreed method is to have a generic configuration, which can be overriden by environment / cluster specific configuration, which allows us to:
+The agreed method is to have a generic configuration, which can be overridden by environment / cluster specific configuration, which allows us to:
 
 - bundle most of the configuration in the component
 - define default configuration
@@ -670,7 +670,7 @@ environment: ~ # environment name, e.g. dev, test, prod. If not set, .global.apc
 clusterName: ~ # cluster name, e.g. dev01, test01, ... If not set, .global.apc.cluster.name is used
 
 # roles applied to all environments
-# can be overidden by roleEnvOverrides and roleClusterOverrides
+# can be overridden by roleEnvOverrides and roleClusterOverrides
 # to override default roles in values.yaml, we need to workaround helm's merge issues, e.g.:
 # defaultRoles:
 #  viewer:
@@ -688,8 +688,8 @@ defaultRoles:
       - applications, get, {{`{{ request.object.metadata.namespace }}`}}/*, allow
 
 # environment specific roles
-# overridess defaultRoles
-# can be overidden by roleClusterOverrides
+# overrides defaultRoles
+# can be overridden by roleClusterOverrides
 # deep merging is NOT applied => all parameters (groupSuffix and policies) must be specified here as well!
 # roleEnvOverrides:
 #  prod:
@@ -703,7 +703,7 @@ roleEnvOverrides:
     tester: {}
 
 # cluster specific roles
-# overridess defaultRoles and roleEnvOverrides
+# overrides defaultRoles and roleEnvOverrides
 # deep merging is NOT applied => all parameters (groupSuffix and policies) must be specified here as well!
 # roleClusterOverrides:
 #  prod01:
@@ -925,8 +925,9 @@ Use External Secrets Operator to manage secrets instead:
 
 Instructions for  secret generator to create [passwords](https://external-secrets.io/latest/api/generator/password/), [quay tokens](https://external-secrets.io/latest/api/generator/quay/), [UUID](https://external-secrets.io/latest/api/generator/uuid/) and others.
 
-- >[!NOTE] 
-  - > use correct API version when manifesting
+> [!NOTE]  
+> use correct API version when manifesting
+
 - use [ESO password generator](https://external-secrets.io/latest/api/generator/password/) together with [ESO externalsecret](https://external-secrets.io/latest/api/externalsecret/), [ESO pushsecret](https://external-secrets.io/latest/api/pushsecret/) or alternative cluster ESO resources
 - to generate password in namespace, use [ESO externalsecret](https://external-secrets.io/latest/api/externalsecret/) without ```spec.secretStoreRef```
 - in case manifest should generate a new secret during a fresh installation, but preserve any existing secret already present in the cluster or managed by a secret provider please, follow
@@ -934,6 +935,7 @@ Instructions for  secret generator to create [passwords](https://external-secret
   - [ESO externalsecret](https://external-secrets.io/latest/api/externalsecret/) use ```spec.refreshInterval="0"``` and  in newer ESO version ```spec.refreshPolicy=CreatedOnce``` [createdonce](https://external-secrets.io/latest/api/externalsecret/#createdonce)
 
 - example for generating secret with user/password in namespace which preserves existing one
+
 ```yaml
 ---
 # Source: keycloak/templates/secret-password-generator.yaml
@@ -999,7 +1001,7 @@ spec:
 ### Extra objects
 
 > [!CAUTION]  
-> While it is a common practice to include ExtraObjects / ExtraManifests option in a helm chart, it is preferred to not implement this feature for APC helm charts. When implemented, the complexity would shift to the configuration repository, while we want to keep the config repo as simle as possible = hide the complexity in the component itself = helm chart.
+> While it is a common practice to include ExtraObjects / ExtraManifests option in a helm chart, it is preferred to not implement this feature for APC helm charts. When implemented, the complexity would shift to the configuration repository, while we want to keep the config repo as simple as possible = hide the complexity in the component itself = helm chart.
 
 > [!NOTE]  
 > Extra objects might be relevant, if the chart is to be used as a library helm chart
