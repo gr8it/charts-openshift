@@ -1,0 +1,41 @@
+{{- if .Values.limitRange }}
+{{- range $namespace, $limits := .Values.limitRange }}
+{{- range $limitRangeName, $limitRangeData := $limits }}
+apiVersion: v1
+kind: LimitRange
+metadata:
+  labels:
+    {{- include "application-namespace-config.labels" $ | nindent 4 }}
+  name: {{ $limitRangeName }}
+  namespace: {{ $namespace }}
+spec:
+  limits:
+  - type: {{ $limitRangeData.type | default "Container" }}
+    {{- if $limitRangeData.defaultLimits }}
+    default:
+      {{- $limitRangeData.defaultLimits | toYaml | nindent 6 }}
+    {{- end }}
+
+    {{- if $limitRangeData.defaultRequests }}
+    defaultRequest:
+      {{- $limitRangeData.defaultRequests | toYaml | nindent 6 }}
+    {{- end }}
+
+    {{- if $limitRangeData.min }}
+    min:
+      {{- $limitRangeData.min | toYaml | nindent 6 }}
+    {{- end }}
+
+    {{- if $limitRangeData.max }}
+    max:
+      {{- $limitRangeData.max | toYaml | nindent 6 }}
+    {{- end }}
+
+    {{- if $limitRangeData.maxLimitRequestRatio }}
+    maxLimitRequestRatio:
+      {{- $limitRangeData.maxLimitRequestRatio | toYaml | nindent 6 }}
+    {{- end }}
+---
+{{- end }}
+{{- end }}
+{{- end }}

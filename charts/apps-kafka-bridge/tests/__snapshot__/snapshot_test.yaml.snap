@@ -1,0 +1,312 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.0.0
+      name: apps-kafka-bridge-token-reviews
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: system:auth-delegator
+    subjects:
+      - kind: ServiceAccount
+        name: apps-kafka-bridge-oauth-proxy
+        namespace: NAMESPACE
+  2: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.0.0
+      name: apps-kafka-bridge-oauth-proxy
+      namespace: NAMESPACE
+    spec:
+      replicas: 2
+      selector:
+        matchLabels:
+          app: apps-kafka-bridge-oauth-proxy
+      template:
+        metadata:
+          labels:
+            app: apps-kafka-bridge-oauth-proxy
+        spec:
+          containers:
+            - args:
+                - --skip-auth-regex=^/ready$
+                - --skip-auth-regex=^/oauth/healthz$
+                - --http-address=:8080
+                - --https-address=
+                - --provider=openshift
+                - --openshift-service-account=apps-kafka-bridge-oauth-proxy
+                - --upstream=http://apps-kafka-bridge-bridge-service.NAMESPACE.svc.cluster.local:8080
+                - --cookie-secret=${COOKIE_SECRET}
+                - --openshift-sar={"namespace":"NAMESPACE","resource":"secrets","resourceName":"apps-kafka-bridge-account-access","verb":"edit"}
+                - --openshift-delegate-urls={"/":{"group":"","resource":"secrets","verb":"edit","namespace":"NAMESPACE","name":"apps-kafka-bridge-account-access"}}
+              env:
+                - name: COOKIE_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      key: secret
+                      name: apps-kafka-bridge-oauth-proxy-cookie-secret
+              image: registry.redhat.io/openshift4/ose-oauth-proxy:v4.13
+              imagePullPolicy: IfNotPresent
+              livenessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /oauth/healthz
+                  port: 8080
+                initialDelaySeconds: 5
+                periodSeconds: 10
+                timeoutSeconds: 1
+              name: oauth-proxy
+              ports:
+                - containerPort: 8080
+                  name: http
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /ready
+                  port: 8080
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                timeoutSeconds: 3
+              resources:
+                limits:
+                  cpu: 100m
+                  memory: 256Mi
+                requests:
+                  cpu: 20m
+                  memory: 128Mi
+          serviceAccountName: apps-kafka-bridge-oauth-proxy
+  3: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.0.0
+      name: apps-kafka-bridge-oauth-proxy-cookie-secret
+      namespace: NAMESPACE
+    spec:
+      dataFrom:
+        - sourceRef:
+            generatorRef:
+              apiVersion: generators.external-secrets.io/v1alpha1
+              kind: Password
+              name: apps-kafka-bridge-oauth-proxy-cookie-secret
+      refreshInterval: "0"
+      target:
+        creationPolicy: Owner
+        name: apps-kafka-bridge-oauth-proxy-cookie-secret
+        template:
+          data:
+            secret: '{{ .password }}'
+          metadata:
+            labels:
+              app.kubernetes.io/instance: apps-kafka-bridge
+              app.kubernetes.io/managed-by: ArgoCD
+              app.kubernetes.io/name: apps-kafka-bridge
+              app.kubernetes.io/version: 0.46.1
+              helm.sh/chart: apps-kafka-bridge-1.0.0
+          type: Opaque
+  4: |
+    apiVersion: kafka.strimzi.io/v1beta2
+    kind: KafkaBridge
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.0.0
+      name: apps-kafka-bridge
+      namespace: NAMESPACE
+    spec:
+      authentication:
+        passwordSecret:
+          password: password
+          secretName: ekp
+        type: scram-sha-512
+        username: ekp
+      bootstrapServers: ck-kafka-kafka-bootstrap.ck-kafka.svc:9093
+      consumer:
+        enabled: false
+      enableMetrics: true
+      http:
+        port: 8080
+      jvmOptions:
+        -Xms: 1g
+        -Xmx: 1g
+      livenessProbe:
+        initialDelaySeconds: 15
+        timeoutSeconds: 5
+      logging:
+        type: inline
+      producer:
+        config:
+          acks: 1
+          delivery.timeout.ms: 300000
+      readinessProbe:
+        initialDelaySeconds: 15
+        timeoutSeconds: 5
+      replicas: 2
+      tls:
+        trustedCertificates:
+          - certificate: ca.crt
+            secretName: ck-kafka-brokers-tls
+  5: |
+    apiVersion: generators.external-secrets.io/v1alpha1
+    kind: Password
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.0.0
+      name: apps-kafka-bridge-oauth-proxy-cookie-secret
+      namespace: NAMESPACE
+    spec:
+      allowRepeat: false
+      digits: 5
+      length: 20
+      noUpper: false
+      symbols: 0
+  6: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.0.0
+      name: apps-kafka-bridge-account-access
+      namespace: NAMESPACE
+    rules:
+      - apiGroups:
+          - ""
+        resourceNames:
+          - apps-kafka-bridge-account-access
+        resources:
+          - secrets
+        verbs:
+          - edit
+  7: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.0.0
+      name: apps-kafka-bridge-account-access
+      namespace: NAMESPACE
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: apps-kafka-bridge-account-access
+    subjects:
+      - kind: ServiceAccount
+        name: apps-kafka-bridge-account-access
+        namespace: ekp
+  8: |
+    apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.0.0
+      name: apps-kafka-bridge
+      namespace: NAMESPACE
+    spec:
+      host: apps-kafka-bridge.apps.test.example.com
+      port:
+        targetPort: http
+      tls:
+        termination: edge
+      to:
+        kind: Service
+        name: apps-kafka-bridge-oauth-proxy
+        weight: 100
+      wildcardPolicy: None
+  9: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.0.0
+      name: apps-kafka-bridge-account-access
+      namespace: NAMESPACE
+    stringData:
+      description: Fake Secret to give service account access to a given service behind openshift-oauth-proxy.
+  10: |
+    apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.0.0
+      name: apps-kafka-bridge-oauth-proxy
+      namespace: NAMESPACE
+    spec:
+      ports:
+        - name: http
+          port: 8080
+          protocol: TCP
+          targetPort: 8080
+      selector:
+        app: apps-kafka-bridge-oauth-proxy
+      type: ClusterIP
+  11: |
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.0.0
+      name: apps-kafka-bridge-account-access
+      namespace: ekp
+  12: |
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      annotations:
+        serviceaccounts.openshift.io/oauth-redirectreference.primary: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"apps-kafka-bridge"}}'
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.0.0
+      name: apps-kafka-bridge-oauth-proxy
+      namespace: NAMESPACE

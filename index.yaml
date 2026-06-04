@@ -67,6 +67,21 @@ entries:
     version: 1.0.0
   acm-operator:
   - apiVersion: v2
+    appVersion: v2.13.7
+    created: "2026-05-21T16:45:49.808249+02:00"
+    dependencies:
+    - name: operators-installer
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/main/
+      version: 3.2.4
+    description: A Helm chart to install ACM operator using operators-installer helm
+      chart
+    digest: bc4df84cf0db1ffedfa833c7afe4fbae01806be47dc4380ed9b88cb6fbd3800b
+    name: acm-operator
+    type: application
+    urls:
+    - packaged_charts/acm-operator-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
     appVersion: v2.12.1
     created: "2025-10-22T12:51:32.214399+02:00"
     dependencies:
@@ -143,6 +158,20 @@ entries:
     - packaged_charts/acm-policy-1.0.0.tgz
     version: 1.0.0
   acs-config:
+  - apiVersion: v2
+    created: "2026-04-30T10:09:08.019738+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.7.0
+    description: A Helm chart for Red Hat Advanced Cluster Security SecuredCluster
+      instance and Central ACS components
+    digest: 68949189032f723b0ed521b9afb34afa0870bce2e69cd9e904641e90d8b59c3e
+    name: acs-config
+    type: application
+    urls:
+    - packaged_charts/acs-config-1.1.0.tgz
+    version: 1.1.0
   - apiVersion: v2
     created: "2026-02-26T22:35:34.135913+01:00"
     dependencies:
@@ -409,6 +438,16 @@ entries:
     urls:
     - packaged_charts/application-gitops-1.0.0.tgz
     version: 1.0.0
+  application-namespace-config:
+  - apiVersion: v2
+    created: "2026-05-06T12:57:35.234603+02:00"
+    description: A Helm chart to manage specific configurations in application namespaces
+    digest: c612de0cec575d11088c1a01800946a6ca85ab6f9e9727046983cfbd5f7a3f6e
+    name: application-namespace-config
+    type: application
+    urls:
+    - packaged_charts/application-namespace-config-1.0.0.tgz
+    version: 1.0.0
   apps-centralne-komponenty-bpm:
   - apiVersion: v2
     created: "2026-04-22T15:10:06.725473921+02:00"
@@ -604,6 +643,21 @@ entries:
     type: application
     urls:
     - packaged_charts/apps-ck-kafka-1.0.0.tgz
+    version: 1.0.0
+  apps-kafka-bridge:
+  - apiVersion: v2
+    appVersion: 0.46.1
+    created: "2026-05-12T13:14:38.683134+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    description: A Helm chart for deploying and configuring the Kafka Bridge
+    digest: 003441ef2e000192248d9300b07449f0f6755d2cacbec448f2c2a695d15b3d9b
+    name: apps-kafka-bridge
+    type: application
+    urls:
+    - packaged_charts/apps-kafka-bridge-1.0.0.tgz
     version: 1.0.0
   argo-events-helm:
   - apiVersion: v2
@@ -2903,6 +2957,21 @@ entries:
     urls:
     - packaged_charts/metallb-operator-1.0.0.tgz
     version: 1.0.0
+  mongodb-config:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2026-04-09T14:29:34.760907+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.6.0
+    description: A Helm chart to deploy customized MongoDb instance
+    digest: 64b4f544522e8e4bcd4ab22dbd5bc4403096606405dc924ea25a10189a9899bb
+    name: mongodb-config
+    type: application
+    urls:
+    - packaged_charts/mongodb-config-1.0.0.tgz
+    version: 1.0.0
   mongodb-operator-helm:
   - apiVersion: v2
     appVersion: 1.4.0
@@ -3261,7 +3330,61 @@ entries:
     urls:
     - packaged_charts/openshift-console-links-1.0.0.tgz
     version: 1.0.0
+  openshift-distributed-tracing:
+  - apiVersion: v2
+    created: "2026-05-25T22:50:51.6742102+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    description: A Helm chart for installing Red Hat OpenShift distributed tracing
+      platform (Tempo)
+    digest: d0505f5b949b3562d14587123c5dfdfc0c17450eea7e2e1b21f6abc822e2162e
+    kubeVersion: '>=1.16-0'
+    name: openshift-distributed-tracing
+    type: application
+    urls:
+    - packaged_charts/openshift-distributed-tracing-1.0.0.tgz
+    version: 1.0.0
+  openshift-tempo-operator:
+  - apiVersion: v2
+    appVersion: v0.15
+    created: "2026-05-18T20:16:41.940284862+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart for installing Tempo Operator
+    digest: 3fd7e1d8dd4cae04d9d207203f7d0f1d5a2fbb04bd79b9345a9fece7df896c66
+    kubeVersion: '>=1.16-0'
+    name: openshift-tempo-operator
+    type: application
+    urls:
+    - packaged_charts/openshift-tempo-operator-1.0.0.tgz
+    version: 1.0.0
   opentelemetry-collector:
+  - apiVersion: v2
+    appVersion: v0.144.0-3
+    created: "2026-05-25T22:54:37.730620076+02:00"
+    description: A Helm chart for installing OpenTelemetryCollector
+    digest: 96ec72ff22c4bd4e7e1d3eac47d3127d92ee64d197bf28bfcecfcb2e7a75a83f
+    kubeVersion: '>=1.16-0'
+    name: opentelemetry-collector
+    type: application
+    urls:
+    - packaged_charts/opentelemetry-collector-1.2.0.tgz
+    version: 1.2.0
+  - apiVersion: v2
+    appVersion: v0.119
+    created: "2026-04-30T09:14:39.947505+02:00"
+    description: A Helm chart for installing OpenTelemetryCollector
+    digest: 3d1b985eb1a89cbfc390fa910c5f0f43425a534a41afe5ab8522ad71e0ac1532
+    kubeVersion: '>=1.16-0'
+    name: opentelemetry-collector
+    type: application
+    urls:
+    - packaged_charts/opentelemetry-collector-1.1.0.tgz
+    version: 1.1.0
   - apiVersion: v2
     appVersion: v0.119
     created: "2025-10-22T12:51:32.342465+02:00"
@@ -3274,6 +3397,21 @@ entries:
     - packaged_charts/opentelemetry-collector-1.0.0.tgz
     version: 1.0.0
   opentelemetry-operator:
+  - apiVersion: v2
+    appVersion: v0.144.0-3
+    created: "2026-05-15T10:54:24.294772175+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart for installing OpenTelemetry Operator
+    digest: 95c03384b16f653031e4888432efe54226a3d3e79f11e7540e0689f21a2c3590
+    kubeVersion: '>=1.16-0'
+    name: opentelemetry-operator
+    type: application
+    urls:
+    - packaged_charts/opentelemetry-operator-1.1.0.tgz
+    version: 1.1.0
   - apiVersion: v2
     appVersion: v0.119
     created: "2025-10-22T12:51:32.342868+02:00"
@@ -3418,6 +3556,22 @@ entries:
     type: application
     urls:
     - packaged_charts/remove-kubeadmin-1.0.0.tgz
+    version: 1.0.0
+  smb-csi-driver-operator:
+  - apiVersion: v2
+    appVersion: v4.18.0
+    created: "2026-06-03T12:43:09.171480717+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install SMB CSI driver using ACM operator policy
+    digest: aae01175dde264722b3b6730ab842d730fe2c87c132b8acbf3c4acf60188e65b
+    kubeVersion: '>=1.25.0'
+    name: smb-csi-driver-operator
+    type: application
+    urls:
+    - packaged_charts/smb-csi-driver-operator-1.0.0.tgz
     version: 1.0.0
   stakater-reloader:
   - apiVersion: v2
@@ -3710,14 +3864,14 @@ entries:
     version: 1.0.0
   veeam-exporter:
   - apiVersion: v2
-    created: "2026-06-04T16:26:38.288884+02:00"
+    created: "2026-06-04T16:39:34.417266+02:00"
     dependencies:
     - name: apc-global-overrides
       repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
       version: 1.8.0
     description: A Helm chart for Veeam Backup monitoring Grafana dashboard and alert
       rules
-    digest: 4322c6a0e8c6e5b1c15d176d3b207b6cf95e8bfef5aac072cdf2c37cd40f804d
+    digest: 20503773d15909e5db1caa24d9117b292b461bb34bd97ff0de5e2bea7f986f72
     name: veeam-exporter
     sources:
     - https://github.com/gr8it/veeam-prometheus-exporter
@@ -3725,4 +3879,4 @@ entries:
     urls:
     - packaged_charts/veeam-exporter-1.0.0.tgz
     version: 1.0.0
-generated: "2026-06-04T16:26:38.288052+02:00"
+generated: "2026-06-04T16:39:34.416149+02:00"
