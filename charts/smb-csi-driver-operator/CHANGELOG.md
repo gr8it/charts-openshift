@@ -12,3 +12,8 @@ _Initial release._
 ### Added
 
 - Operator for SMB CSI Driver ([SPISREG-3486](https://aspecta.atlassian.net/browse/SPISREG-3486))
+
+## [1.010] - 2026-06-05
+
+### Added
+- Bump to version smb-csi-driver-operator.v4.18.0-202605260501
