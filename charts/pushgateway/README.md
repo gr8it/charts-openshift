@@ -4,7 +4,7 @@ This Helm chart deploys Prometheus Pushgateway on OpenShift with integrated OAut
 
 ## Overview
 
-The `pushgateway` chart wraps the upstream `prometheus-pushgateway` Helm chart and adds OpenShift-specific features:
+The `pushgateway-helm` chart wraps the upstream `prometheus-pushgateway` Helm chart and adds OpenShift-specific features:
 
 - **OAuth Proxy Sidecar**: Secures Pushgateway behind OpenShift's built-in OAuth provider
 - **Route & TLS**: Exposes Pushgateway via OpenShift Route with reencrypt TLS termination
@@ -79,11 +79,14 @@ See `values.yaml` for all available options.
 
 ```yaml
 prometheus-pushgateway:
+  replicaCount: 2
   image:
     repository: quay.io/prometheus/pushgateway
     tag: v1.10.0
     pullPolicy: Always
 ```
+
+The chart default is `2` replicas. Existing hub environments can override that in conf when they need to preserve the current single-replica rollout.
 
 #### Pushgateway Admin API
 
