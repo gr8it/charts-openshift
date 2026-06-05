@@ -2,7 +2,7 @@
 Expand the name of the chart.
 */}}
 {{- define "pushgateway-helm.name" -}}
-{{- default "pushgateway" .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- default "prometheus-pushgateway" .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
