@@ -6,8 +6,8 @@ manifests should match snapshot:
       labels:
         app.kubernetes.io/instance: crossplane-xr-functions
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: apps-centralne-komponenty-bpm
-        helm.sh/chart: apps-centralne-komponenty-bpm-1.1.0
+        app.kubernetes.io/name: apps-ck-bpm-microservice
+        helm.sh/chart: apps-ck-bpm-microservice-1.1.1
       name: bamoe-management-console
       namespace: bamoe
     spec:
@@ -35,10 +35,10 @@ manifests should match snapshot:
       labels:
         app.kubernetes.io/instance: crossplane-xr-functions
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: apps-centralne-komponenty-bpm
-        helm.sh/chart: apps-centralne-komponenty-bpm-1.1.0
+        app.kubernetes.io/name: apps-ck-bpm-microservice
+        helm.sh/chart: apps-ck-bpm-microservice-1.1.1
         rbac.authorization.k8s.io/aggregate-to-apc-project-operator: "true"
-      name: crossplane-xr-functions-apps-centralne-komponenty-bpm-project-operator
+      name: crossplane-xr-functions-apps-ck-bpm-microservice-project-operator
     rules:
       - apiGroups:
           - bpm.ck.socpoist.sk
@@ -59,10 +59,10 @@ manifests should match snapshot:
       labels:
         app.kubernetes.io/instance: crossplane-xr-functions
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: apps-centralne-komponenty-bpm
-        helm.sh/chart: apps-centralne-komponenty-bpm-1.1.0
+        app.kubernetes.io/name: apps-ck-bpm-microservice
+        helm.sh/chart: apps-ck-bpm-microservice-1.1.1
         rbac.authorization.k8s.io/aggregate-to-apc-project-admin: "true"
-      name: crossplane-xr-functions-apps-centralne-komponenty-bpm-project-admin
+      name: crossplane-xr-functions-apps-ck-bpm-microservice-project-admin
     rules:
       - apiGroups:
           - bpm.ck.socpoist.sk
@@ -83,8 +83,8 @@ manifests should match snapshot:
       labels:
         app.kubernetes.io/instance: crossplane-xr-functions
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: apps-centralne-komponenty-bpm
-        helm.sh/chart: apps-centralne-komponenty-bpm-1.1.0
+        app.kubernetes.io/name: apps-ck-bpm-microservice
+        helm.sh/chart: apps-ck-bpm-microservice-1.1.1
       name: microservices.bpm.ck.socpoist.sk
     spec:
       compositeTypeRef:
@@ -162,7 +162,7 @@ manifests should match snapshot:
                   managementPolicies: ["Observe"]
                   forProvider:
                     realmId: apps
-                    name: APC-D-CK-{{ $.observed.composite.resource.metadata.name | upper }}-{{ $value | upper }}
+                    name: D-CK-{{ $.observed.composite.resource.metadata.name | upper }}-{{ $value | upper }}'
                   providerConfigRef:
                     name: keycloak-config
                     kind: ClusterProviderConfig
@@ -396,8 +396,8 @@ manifests should match snapshot:
       labels:
         app.kubernetes.io/instance: crossplane-xr-functions
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: apps-centralne-komponenty-bpm
-        helm.sh/chart: apps-centralne-komponenty-bpm-1.1.0
+        app.kubernetes.io/name: apps-ck-bpm-microservice
+        helm.sh/chart: apps-ck-bpm-microservice-1.1.1
       name: microserviceaccesses.bpm.ck.socpoist.sk
     spec:
       compositeTypeRef:
@@ -580,8 +580,8 @@ manifests should match snapshot:
       labels:
         app.kubernetes.io/instance: crossplane-xr-functions
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: apps-centralne-komponenty-bpm
-        helm.sh/chart: apps-centralne-komponenty-bpm-1.1.0
+        app.kubernetes.io/name: apps-ck-bpm-microservice
+        helm.sh/chart: apps-ck-bpm-microservice-1.1.1
       name: microserviceaccesses.bpm.ck.socpoist.sk
     spec:
       group: bpm.ck.socpoist.sk
