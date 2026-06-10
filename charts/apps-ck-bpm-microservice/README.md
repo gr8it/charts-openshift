@@ -125,8 +125,8 @@ Due to inefficiencies of RHBK / Kubernetes RBAC (for example allow creation and 
 
 There are two XRDs:
 
-- [`microservice.bpm.ck.socpoist.sk`](#microservice)
-- [`microserviceaccess.bpm.ck.socpoist.sk`](#microservice-access)
+- [`microservices.bpm.ck.socpoist.sk`](#microservice)
+- [`microserviceaccesses.bpm.ck.socpoist.sk`](#microservice-access)
 
 Usage of APC Keycloak is preferred due to operational complexity of running a Keycloak instance 24/7
 
@@ -142,7 +142,7 @@ Usage of APC Keycloak is preferred due to operational complexity of running a Ke
 ## Microservice
 
 > [!IMPORTANT]  
-> Make sure to provision all mapped AD groups before creating the microservice instance. The "READY" state of the resource will show as `False` unless all AD groups are avaialble.
+> Make sure to provision all mapped AD groups before creating the microservice instance. The "READY" state of the resource will show as `False` unless all AD groups are available.
 
 Using the microservice.bpm.ck.socpoist.sk XR allows projet admins / operators to create a BPM microservice consisting of:
 
