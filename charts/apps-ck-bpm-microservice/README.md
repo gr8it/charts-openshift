@@ -118,9 +118,6 @@ linkStyle 0,1 color:black;
 
 ```
 
-DOPLNIT GROUPS a GROUP ROLE MAPPING do obrazku ..  
-\+ prerobit do mermaid?
-
 Due to inefficiencies of RHBK / Kubernetes RBAC (for example allow creation and modification of a Keycloak client, but don't allow modification of any existing client) it is not possible to allow user selfservice their Keycloak configuration directly using Crossplane Managed Resources (MR). As such Crossplane Composite resources (XR) were used to work around this RBAC limitation, i.e. project admins / operators are able to manage XR composites, which will manage required Keycloak MRs in an controlled way.
 
 There are two XRDs:
