@@ -39,7 +39,6 @@ idpRoleMapper:
   enabled: false
   identityProviderAlias: keycloak-oidc # creates identity provider mapping between groups from access token to client roles of microservice for users
   # value gets templated (tpl) = can contain references to other values
-  # <MICROSERVICE-NAME>_<D/T/P>_<ROLE>
   groupMatchingRegex: >-
     (?<!\\w)/{{`{{ $.observed.composite.resource.metadata.name | upper }}`}}_{{ include "apc-global-overrides.environmentShort" $ | upper }}_{{`{{ $value | upper }}`}}(?!\\w)
 
@@ -48,5 +47,6 @@ idpRoleMapper:
 groupRoleMapping:
   enabled: true
   # value gets templated (tpl) = can contain references to other values
+  # <MICROSERVICE-NAME>_<D/T/P>_<ROLE>
   groupTpl: >-
-    {{ include "apc-global-overrides.environmentShort" $ | upper }}-CK-{{`{{ $.observed.composite.resource.metadata.name | upper }}`}}-{{`{{ $value | upper }}`}}'
+    {{`{{ $.observed.composite.resource.metadata.name | upper }}`}}_{{ include "apc-global-overrides.environmentShort" $ | upper }}_{{`{{ $value | upper }}`}}

@@ -162,7 +162,7 @@ manifests should match snapshot:
                   managementPolicies: ["Observe"]
                   forProvider:
                     realmId: apps
-                    name: D-CK-{{ $.observed.composite.resource.metadata.name | upper }}-{{ $value | upper }}'
+                    name: {{ $.observed.composite.resource.metadata.name | upper }}_D_{{ $value | upper }}
                   providerConfigRef:
                     name: keycloak-config
                     kind: ClusterProviderConfig
@@ -517,6 +517,11 @@ manifests should match snapshot:
     apiVersion: apiextensions.crossplane.io/v2
     kind: CompositeResourceDefinition
     metadata:
+      labels:
+        app.kubernetes.io/instance: crossplane-xr-functions
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: apps-ck-bpm-microservice
+        helm.sh/chart: apps-ck-bpm-microservice-1.1.1
       name: microservices.bpm.ck.socpoist.sk
     spec:
       group: bpm.ck.socpoist.sk
