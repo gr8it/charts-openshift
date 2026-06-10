@@ -118,15 +118,12 @@ linkStyle 0,1 color:black;
 
 ```
 
-DOPLNIT GROUPS a GROUP ROLE MAPPING do obrazku .. 
-+ prerobit do mermaid?
-
 Due to inefficiencies of RHBK / Kubernetes RBAC (for example allow creation and modification of a Keycloak client, but don't allow modification of any existing client) it is not possible to allow user selfservice their Keycloak configuration directly using Crossplane Managed Resources (MR). As such Crossplane Composite resources (XR) were used to work around this RBAC limitation, i.e. project admins / operators are able to manage XR composites, which will manage required Keycloak MRs in an controlled way.
 
 There are two XRDs:
 
-- [microservice.bpm.ck.socpoist.sk](#microservice)
-- [microserviceaccess.bpm.ck.socpoist.sk](#microservice-access)
+- [`microservices.bpm.ck.socpoist.sk`](#microservice)
+- [`microserviceaccesses.bpm.ck.socpoist.sk`](#microservice-access)
 
 Usage of APC Keycloak is preferred due to operational complexity of running a Keycloak instance 24/7
 
@@ -141,12 +138,15 @@ Usage of APC Keycloak is preferred due to operational complexity of running a Ke
 
 ## Microservice
 
+> [!IMPORTANT]  
+> Make sure to provision all mapped AD groups before creating the microservice instance. The "READY" state of the resource will show as `False` unless all AD groups are available.
+
 Using the microservice.bpm.ck.socpoist.sk XR allows projet admins / operators to create a BPM microservice consisting of:
 
 - create a Keycloak client representing the particular microservice = `client microservice`
 - add list of roles (scopes) to the microservice client = `clientrole microservice`
 
-- add a IDP mapping between AD groups (taken from upstream SP Keycloak access token) and created roles. AD groups must follow naming convention, `APC-<environmentShortName>-CK-<microserviceName>-<roleName>` all in uppercase, e.g. APC-D-CK-BPM-READER = `identityprovider.mapper microservice clientrole`
+- add a IDP mapping between AD groups (taken from upstream SP Keycloak access token) and created roles. AD groups must follow naming convention, `<microserviceName>_<environmentShortName>_<roleName>` all in uppercase, e.g. `BPM-TEST-PRIME_D_READER` = `identityprovider.mapper microservice clientrole`
 
 - create a Keycloak client for the admin interface = `client microservice admin`
 - add microservice roles to tokens created by microservice admin client, required because full scope is disabled for the client to increase security = `rolemapper microservice admin`
