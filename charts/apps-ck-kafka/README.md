@@ -42,7 +42,7 @@ Example configuration for target kafka instance:
   apps-ck-kafka-mirror:
     render:
       chart: gr8it-openshift/apps-ck-kafka
-      chartVersion: "1.2.4"
+      chartVersion: "1.3.0"
     destination:
       namespace: ck-kafka-mirror
     managedNamespaceMetadata:
@@ -60,7 +60,7 @@ Configuraiton is specified in component values under ```.Values.mirror```
 | option | value | source instance | target instance | description |
 |--------|-------|-----------------|-----------------|-------------|
 | enabled | true/false | true      | true            | Instances deployed for mirror setup. |
-| primary | true/galse | true      | false           | Specify if the instance is source (primary) kafka instance |
+| primary | true/false | true      | false           | Specify if the instance is source (primary) kafka instance |
 | primaryKafka | string | not specified | name of the primary kafka instance | Defines the name of primary kafka instance |
 
 ### Failover management

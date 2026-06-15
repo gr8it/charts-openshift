@@ -1,6 +1,6 @@
 # APC Kafka MirrorMaker2
 
-This charts creates Kafka MirrorMaker2 instance and mirroring configuration for source and target Kafka instancies. Kafka MirrorMaker2 is part of Strimzi Kafka operator.  
+This chart creates a Kafka MirrorMaker2 instance and mirroring configuration for source and target Kafka instances. Kafka MirrorMaker2 is part of the Strimzi Kafka operator.
 
 > [!NOTE]
 > In actual implementation the mirroring is supported only in the same Openshift cluster.
@@ -72,7 +72,7 @@ Example environment configuration for target kafka cluster:
   apps-ck-kafka-mirror:
     render:
       chart: gr8it-openshift/apps-ck-kafka
-      chartVersion: "1.2.4"
+      chartVersion: "1.3.0"
     destination:
       namespace: ck-kafka-mirror
     managedNamespaceMetadata:

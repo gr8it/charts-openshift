@@ -41,8 +41,8 @@ spec:
   - {{ include "apps-ck-kafka.fullname" . }}-bootstrap.{{ .Release.Namespace }}.svc
   - {{ include "apps-ck-kafka.fullname" . }}-bootstrap.{{ .Release.Namespace }}.svc.cluster.local
   {{- else if and .Values.mirror.enabled (not .Values.mirror.primary) }}
-  - {{ .Values.mirror.primaryKafka }}-bootstrap.{{ .Values.mirror.primaryKafka }}.svc
-  - {{ .Values.mirror.primaryKafka }}-bootstrap.{{ .Values.mirror.primaryKafka }}.svc.cluster.local
+  - {{ required "mirror.primaryKafka must be set when mirror.enabled=true and mirror.primary=false" .Values.mirror.primaryKafka }}-bootstrap.{{ required "mirror.primaryKafka must be set when mirror.enabled=true and mirror.primary=false" .Values.mirror.primaryKafka }}.svc
+  - {{ required "mirror.primaryKafka must be set when mirror.enabled=true and mirror.primary=false" .Values.mirror.primaryKafka }}-bootstrap.{{ required "mirror.primaryKafka must be set when mirror.enabled=true and mirror.primary=false" .Values.mirror.primaryKafka }}.svc.cluster.local
   {{- end }}
   issuerRef:
     kind: ClusterIssuer

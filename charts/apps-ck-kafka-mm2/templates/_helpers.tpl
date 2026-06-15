@@ -77,11 +77,16 @@ Usage:
 */}}
 {{- define "apps-ck-kafka-mm2.clusterByType" }}
 {{- $result := dict }}
+{{- $found := false }}
 
 {{- range $name, $cluster := .clusters }}
   {{- if eq $cluster.type $.type }}
+    {{- if $found }}
+      {{- fail (printf "Multiple clusters found with type '%s'; expected exactly one" $.type) }}
+    {{- end }}
     {{- $_ := set $result "name" $name }}
     {{- $_ := set $result "config" $cluster }}
+    {{- $found = true }}
   {{- end }}
 {{- end }}
 
