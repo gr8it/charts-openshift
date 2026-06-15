@@ -37,6 +37,13 @@ spec:
   {{- end }}
   {{- end }}
   {{- end }}
+  {{- if and .Values.mirror.enabled .Values.mirror.primary }}
+  - {{ include "apps-ck-kafka.fullname" . }}-bootstrap.{{ .Release.Namespace }}.svc
+  - {{ include "apps-ck-kafka.fullname" . }}-bootstrap.{{ .Release.Namespace }}.svc.cluster.local
+  {{- else if and .Values.mirror.enabled (not .Values.mirror.primary) }}
+  - {{ .Values.mirror.primaryKafka }}-bootstrap.{{ .Values.mirror.primaryKafka }}.svc
+  - {{ .Values.mirror.primaryKafka }}-bootstrap.{{ .Values.mirror.primaryKafka }}.svc.cluster.local
+  {{- end }}
   issuerRef:
     kind: ClusterIssuer
     name: {{ include "apc-global-overrides.require-certManagerDefaultClusterIssuer" . }}

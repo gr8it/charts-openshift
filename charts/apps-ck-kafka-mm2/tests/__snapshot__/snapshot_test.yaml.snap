@@ -1,0 +1,495 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: v1
+    data:
+      metrics-config.yml: |
+        # See https://github.com/prometheus/jmx_exporter for more info about JMX Prometheus Exporter metrics
+        lowercaseOutputName: true
+        lowercaseOutputLabelNames: true
+        rules:
+        #kafka.connect:type=app-info,client-id="{clientid}"
+        #kafka.consumer:type=app-info,client-id="{clientid}"
+        #kafka.producer:type=app-info,client-id="{clientid}"
+        - pattern: 'kafka.(.+)<type=app-info, client-id=(.+)><>start-time-ms'
+          name: kafka_$1_start_time_seconds
+          labels:
+            clientId: "$2"
+          help: "Kafka $1 JMX metric start time seconds"
+          type: GAUGE
+          valueFactor: 0.001
+        - pattern: 'kafka.(.+)<type=app-info, client-id=(.+)><>(commit-id|version): (.+)'
+          name: kafka_$1_$3_info
+          value: 1
+          labels:
+            clientId: "$2"
+            $3: "$4"
+          help: "Kafka $1 JMX metric info version and commit-id"
+          type: GAUGE
+
+        #kafka.producer:type=producer-topic-metrics,client-id="{clientid}",topic="{topic}"", partition="{partition}"
+        #kafka.consumer:type=consumer-fetch-manager-metrics,client-id="{clientid}",topic="{topic}"", partition="{partition}"
+        - pattern: kafka.(.+)<type=(.+)-metrics, client-id=(.+), topic=(.+), partition=(.+)><>(.+-total|compression-rate|.+-avg|.+-replica|.+-lag|.+-lead)
+          name: kafka_$2_$6
+          labels:
+            clientId: "$3"
+            topic: "$4"
+            partition: "$5"
+          help: "Kafka $1 JMX metric type $2"
+          type: GAUGE
+
+        #kafka.producer:type=producer-topic-metrics,client-id="{clientid}",topic="{topic}"
+        #kafka.consumer:type=consumer-fetch-manager-metrics,client-id="{clientid}",topic="{topic}"", partition="{partition}"
+        - pattern: kafka.(.+)<type=(.+)-metrics, client-id=(.+), topic=(.+)><>(.+-total|compression-rate|.+-avg)
+          name: kafka_$2_$5
+          labels:
+            clientId: "$3"
+            topic: "$4"
+          help: "Kafka $1 JMX metric type $2"
+          type: GAUGE
+
+        #kafka.connect:type=connect-node-metrics,client-id="{clientid}",node-id="{nodeid}"
+        #kafka.consumer:type=consumer-node-metrics,client-id=consumer-1,node-id="{nodeid}"
+        - pattern: kafka.(.+)<type=(.+)-metrics, client-id=(.+), node-id=(.+)><>(.+-total|.+-avg)
+          name: kafka_$2_$5
+          labels:
+            clientId: "$3"
+            nodeId: "$4"
+          help: "Kafka $1 JMX metric type $2"
+          type: UNTYPED
+
+        #kafka.connect:type=kafka-metrics-count,client-id="{clientid}"
+        #kafka.consumer:type=consumer-fetch-manager-metrics,client-id="{clientid}"
+        #kafka.consumer:type=consumer-coordinator-metrics,client-id="{clientid}"
+        #kafka.consumer:type=consumer-metrics,client-id="{clientid}"
+        - pattern: kafka.(.+)<type=(.+)-metrics, client-id=(.*)><>(.+-total|.+-avg|.+-bytes|.+-count|.+-ratio|.+-age|.+-flight|.+-threads|.+-connectors|.+-tasks|.+-ago)
+          name: kafka_$2_$4
+          labels:
+            clientId: "$3"
+          help: "Kafka $1 JMX metric type $2"
+          type: GAUGE
+
+        #kafka.connect:type=connector-task-metrics,connector="{connector}",task="{task}<> status"
+        - pattern: 'kafka.connect<type=connector-task-metrics, connector=(.+), task=(.+)><>status: ([a-z-]+)'
+          name: kafka_connect_connector_status
+          value: 1
+          labels:
+            connector: "$1"
+            task: "$2"
+            status: "$3"
+          help: "Kafka Connect JMX Connector status"
+          type: GAUGE
+
+        #kafka.connect:type=task-error-metrics,connector="{connector}",task="{task}"
+        #kafka.connect:type=source-task-metrics,connector="{connector}",task="{task}"
+        #kafka.connect:type=sink-task-metrics,connector="{connector}",task="{task}"
+        #kafka.connect:type=connector-task-metrics,connector="{connector}",task="{task}"
+        - pattern: kafka.connect<type=(.+)-metrics, connector=(.+), task=(.+)><>(.+-total|.+-count|.+-ms|.+-ratio|.+-avg|.+-failures|.+-requests|.+-timestamp|.+-logged|.+-errors|.+-retries|.+-skipped)
+          name: kafka_connect_$1_$4
+          labels:
+            connector: "$2"
+            task: "$3"
+          help: "Kafka Connect JMX metric type $1"
+          type: GAUGE
+
+        #kafka.connect:type=connector-metrics,connector="{connector}"
+        #kafka.connect:type=connect-worker-metrics,connector="{connector}"
+        - pattern: kafka.connect<type=connect-worker-metrics, connector=(.+)><>([a-z-]+)
+          name: kafka_connect_worker_$2
+          labels:
+            connector: "$1"
+          help: "Kafka Connect JMX metric $1"
+          type: GAUGE
+
+        #kafka.connect:type=connect-worker-metrics
+        - pattern: kafka.connect<type=connect-worker-metrics><>([a-z-]+)
+          name: kafka_connect_worker_$1
+          help: "Kafka Connect JMX metric worker"
+          type: GAUGE
+
+        #kafka.connect:type=connect-worker-rebalance-metrics
+        - pattern: kafka.connect<type=connect-worker-rebalance-metrics><>([a-z-]+)
+          name: kafka_connect_worker_rebalance_$1
+          help: "Kafka Connect JMX metric rebalance information"
+          type: GAUGE
+
+        #kafka.connect:type=MirrorSourceConnector
+        - pattern: kafka.connect.mirror<type=MirrorSourceConnector, target=(.+), topic=(.+), partition=(.+)><>([a-z-_]+)
+          name: kafka_connect_mirror_mirrorsourceconnector_$4
+          labels:
+            target: "$1"
+            topic: "$2"
+            partition: "$3"
+          help: "Kafka Mirror Maker 2 Source Connector metrics"
+          type: GAUGE
+
+        #kafka.connect:type=MirrorCheckpointConnector
+        - pattern: kafka.connect.mirror<type=MirrorCheckpointConnector, source=(.+), target=(.+)><>([a-z-_]+)
+          name: kafka_connect_mirror_mirrorcheckpointconnector_$3
+          labels:
+            source: "$1"
+            target: "$2"
+          help: "Kafka Mirror Maker 2 Checkpoint Connector metrics"
+          type: GAUGE
+    kind: ConfigMap
+    metadata:
+      labels:
+        app: strimzi
+      name: apps-ck-kafka-mm2-metrics
+      namespace: ck-kafka-mirror
+  2: |
+    apiVersion: kafka.strimzi.io/v1beta2
+    kind: KafkaMirrorMaker2
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-ck-kafka-mm2
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-ck-kafka-mm2
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-ck-kafka-mm2-1.0.0
+      name: apps-ck-kafka-mm2
+      namespace: ck-kafka-mirror
+    spec:
+      clusters:
+        - alias: ck-kafka
+          authentication:
+            passwordSecret:
+              password: password
+              secretName: mm2-source-user
+            type: scram-sha-512
+            username: mm2-source-user
+          bootstrapServers: ck-kafka-kafka-bootstrap.ck-kafka.svc:9093
+          tls:
+            trustedCertificates:
+              - certificate: ca.crt
+                secretName: ck-kafka-brokers-tls
+        - alias: ck-kafka-mirror
+          authentication:
+            passwordSecret:
+              password: password
+              secretName: mm2-target-user
+            type: scram-sha-512
+            username: mm2-target-user
+          bootstrapServers: ck-kafka-mirror-kafka-bootstrap.ck-kafka-mirror.svc:9093
+          config:
+            config.storage.replication.factor: -1
+            offset.storage.replication.factor: -1
+            status.storage.replication.factor: -1
+          tls:
+            trustedCertificates:
+              - certificate: ca.crt
+                secretName: ck-kafka-mirror-brokers-tls
+      connectCluster: ck-kafka-mirror
+      jvmOptions:
+        -Xms: 1g
+        -Xmx: 1g
+      metricsConfig:
+        type: jmxPrometheusExporter
+        valueFrom:
+          configMapKeyRef:
+            key: metrics-config.yml
+            name: apps-ck-kafka-mm2-metrics
+      mirrors:
+        - checkpointConnector:
+            config:
+              emit.checkpoints.enabled: "true"
+              replication.policy.class: org.apache.kafka.connect.mirror.IdentityReplicationPolicy
+              sync.group.offsets.enabled: "true"
+            tasksMax: 1
+          groupsPattern: .*
+          heartbeatConnector:
+            config:
+              heartbeats.topic.replication.factor: -1
+          sourceCluster: ck-kafka
+          sourceConnector:
+            config:
+              replication.policy.class: org.apache.kafka.connect.mirror.IdentityReplicationPolicy
+              sync.topic.acls.enabled: "false"
+              sync.topic.configs.enabled: "false"
+            tasksMax: 1
+          targetCluster: ck-kafka-mirror
+          topicsPattern: .*
+      replicas: 1
+      resources:
+        limits:
+          cpu: 2000m
+          memory: 4Gi
+        requests:
+          cpu: 1000m
+          memory: 2Gi
+      version: 4.0.0
+  3: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PodMonitor
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-ck-kafka-mm2
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-ck-kafka-mm2
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-ck-kafka-mm2-1.0.0
+      name: apps-ck-kafka-mm2
+      namespace: NAMESPACE
+    spec:
+      namespaceSelector:
+        matchNames:
+          - NAMESPACE
+      podMetricsEndpoints:
+        - interval: 30s
+          path: /metrics
+          port: tcp-prometheus
+          relabelings:
+            - action: labelmap
+              regex: __meta_kubernetes_pod_label_(strimzi_io_.+)
+              replacement: $1
+              separator: ;
+            - action: replace
+              regex: (.*)
+              replacement: $1
+              separator: ;
+              sourceLabels:
+                - __meta_kubernetes_namespace
+              targetLabel: namespace
+            - action: replace
+              regex: (.*)
+              replacement: $1
+              separator: ;
+              sourceLabels:
+                - __meta_kubernetes_pod_name
+              targetLabel: kubernetes_pod_name
+            - action: replace
+              regex: (.*)
+              replacement: $1
+              separator: ;
+              sourceLabels:
+                - __meta_kubernetes_pod_node_name
+              targetLabel: node_name
+            - action: replace
+              regex: (.*)
+              replacement: $1
+              separator: ;
+              sourceLabels:
+                - __meta_kubernetes_pod_host_ip
+              targetLabel: node_ip
+          scrapeTimeout: 10s
+      selector:
+        matchLabels:
+          strimzi.io/cluster: apps-ck-kafka-mm2
+          strimzi.io/kind: KafkaMirrorMaker2
+  4: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-ck-kafka-mm2
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-ck-kafka-mm2
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-ck-kafka-mm2-1.0.0
+        role: alert-rules
+      name: apps-ck-kafka-mm2-alerts
+      namespace: NAMESPACE
+    spec:
+      groups:
+        - name: mirrormaker2
+          rules:
+            - alert: MirrorMaker2ContainerDown
+              annotations:
+                description: All Kafka Mirror Maker 2 containers have been down or in CrashLookBackOff status for 3 minutes
+                summary: All Kafka Mirror Maker 2 containers down or in CrashLookBackOff status
+              expr: absent(container_last_seen{container=~".+-mirrormaker2",pod=~".+-mirrormaker2-.+"})
+              for: 3m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaMirrorMakerConnectorFailed
+              annotations:
+                description: Kafka Mirror Maker 2 connector has been in failed, destroyed or unassigned status for 5 minutes
+                summary: MM2 connector failed
+              expr: |
+                kafka_connect_connector_status{
+                  status=~"failed|destroyed|unassigned"
+                } == 1
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaMirrorMakerTaskErrors
+              annotations:
+                description: Kafka Mirror Maker 2 task has reported errors in the last 1 minute
+                summary: MM2 task errors
+              expr: |
+                increase(
+                  kafka_connect_task_error_total_errors_logged[5m]
+                ) > 0
+              for: 1m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaMirrorMakerReplicationLagHigh
+              annotations:
+                description: Kafka Mirror Maker 2 replication lag is high for topic {{ $labels.topic }} for 10 minutes
+                summary: MM2 replication lag high
+              expr: |
+                max(kafka_consumer_fetch_manager_records_lag)
+                  by (topic)
+                  > 10000
+              for: 10m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaMirrorMaker2HighHeapUsage
+              annotations:
+                description: 'Heap utilization is above 80% for 10 minutes. Current value: {{ $value }}%'
+                summary: Kafka MirrorMaker2 heap usage is high
+              expr: |
+                (
+                  jvm_memory_used_bytes{area="heap"}
+                  /
+                  jvm_memory_max_bytes{area="heap"}
+                ) * 100 > 80
+              for: 10m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaMirrorMaker2CriticalHeapUsage
+              annotations:
+                description: 'Heap utilization is above 90% for 5 minutes. Current value: {{ $value }}%'
+                summary: Kafka MirrorMaker2 heap usage is critical
+              expr: |
+                (
+                  jvm_memory_used_bytes{area="heap"}
+                  /
+                  jvm_memory_max_bytes{area="heap"}
+                ) * 100 > 90
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaMirrorMaker2FrequentGC
+              annotations:
+                description: JVM garbage collection frequency is unusually high.
+                summary: Kafka MirrorMaker2 frequent garbage collections
+              expr: |
+                rate(jvm_gc_collection_seconds_count[5m]) > 5
+              for: 10m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaMirrorMaker2OOMKilled
+              annotations:
+                description: |
+                  MirrorMaker2 container was terminated due to out-of-memory.
+                summary: Kafka MirrorMaker2 container OOMKilled
+              expr: |
+                kube_pod_container_status_last_terminated_reason{
+                  pod=~".*mirrormaker2.*",
+                  reason="OOMKilled"
+                } == 1
+              for: 0m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaMirrorMakerTaskFailed
+              annotations:
+                description: At least one MirrorMaker2 task has failed. Check the task status for details.
+                summary: MirrorMaker2 task failed
+              expr: kafka_connect_worker_connector_failed_task_count > 0
+              for: 1m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaMirrorMakerRecordErrors
+              annotations:
+                description: Kafka MirrorMaker2 has reported record errors in the last 1 minute.
+                summary: MirrorMaker2 record errors
+              expr: increase(kafka_connect_task_error_total_record_errors[5m]) > 0
+              for: 1m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaMirrorMakerRetries
+              annotations:
+                description: Kafka MirrorMaker2 has reported excessive retries in the last 5 minutes.
+                summary: MirrorMaker2 retries
+              expr: increase(kafka_connect_task_error_total_retries[5m]) > 100
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaMirrorMakerProducerErrors
+              annotations:
+                description: Kafka MirrorMaker2 has reported producer errors in the last 1 minute.
+                summary: MirrorMaker2 producer errors
+              expr: increase(kafka_producer_record_error[5m]) > 0
+              for: 1m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: MM2HeartbeatErrors
+              annotations:
+                description: Kafka MirrorMaker2 has reported producer errors for heartbeats topic in the last 1 minute.
+                summary: MM2 heartbeat production errors
+              expr: |
+                increase(
+                  kafka_producer_topic_record_error{
+                    topic="heartbeats"
+                  }[5m]
+                ) > 0
+              for: 1m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: MM2ConnectCoordinatorHeartbeatLost
+              annotations:
+                description: Kafka Connect worker has not sent a heartbeat in the last 2 minutes.
+                summary: Kafka Connect worker is not heartbeating
+              expr: |
+                kafka_connect_coordinator_last_heartbeat_seconds_ago > 30
+              for: 2m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: MM2HeartbeatStopped
+              annotations:
+                description: Kafka MirrorMaker2 has stopped producing heartbeats for 5 minutes. Check the connection between source kafka cluster and MirrorMaker2.
+                summary: MM2 heartbeat production stopped
+              expr: |
+                rate(
+                  kafka_producer_topic_record_send{
+                    topic="heartbeats"
+                  }[5m]
+                ) == 0
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: MM2ProducerIoRatioMissing
+              annotations:
+                description: The kafka_producer_io_ratio metric for MirrorSourceConnector has not been present for 5 minutes. Check if the MM2 pod is running and if there is connection to source cluster.
+                summary: MM2 producer I/O metric missing
+              expr: |
+                absent(
+                  kafka_producer_io_ratio{
+                    clientid="\"connector-producer-ck-kafka->ck-kafka-mirror.MirrorSourceConnector-0\""
+                  }
+                )
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta

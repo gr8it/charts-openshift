@@ -1,0 +1,12 @@
+{{- if and .Values.mirror.enabled .Values.mirror.primary }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "apps-ck-kafka.fullname" . }}-bootstrap
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "apps-ck-kafka.labels" . | nindent 4 }}
+spec:
+  type: ExternalName
+  externalName: {{ include "apps-ck-kafka.fullname" . }}-kafka-bootstrap.{{ .Release.Namespace }}.svc.cluster.local
+{{- end }}
