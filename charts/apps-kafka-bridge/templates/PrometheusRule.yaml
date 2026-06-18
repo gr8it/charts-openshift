@@ -14,7 +14,7 @@ spec:
         expr: absent(
                 container_last_seen{
                   namespace="{{ .Release.Namespace }}",
-                  container=~".+-bridge",pod=~".+-bridge-.+"
+                  container=~".+-bridge",pod=~"{{ .Release.Name }}-bridge-.*"
                 }
               )
         for: 3m
@@ -23,9 +23,9 @@ spec:
           vendor: aspecta
           team: platform
         annotations:
-          summary: 'All Kafka Bridge containers down or in CrashLookBackOff status'
-          description: 'All Kafka Bridge containers have been down or in CrashLookBackOff status for 3 minutes'
-      - alert: MonitoringAvailability
+          summary: 'All Kafka Bridge containers down or in CrashLoopBackOff status'
+          description: 'All Kafka Bridge containers have been down or in CrashLoopBackOff status for 3 minutes'
+      - alert: KafkaBridgeMonitoringAvailability
         expr: up{
                 job="{{ .Release.Name }}-bridge-service",
                 namespace="{{ .Release.Namespace }}"
