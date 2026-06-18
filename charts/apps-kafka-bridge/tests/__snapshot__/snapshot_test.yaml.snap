@@ -8,7 +8,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: apps-kafka-bridge
         app.kubernetes.io/version: 0.46.1
-        helm.sh/chart: apps-kafka-bridge-1.0.0
+        helm.sh/chart: apps-kafka-bridge-1.1.0
       name: apps-kafka-bridge-token-reviews
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -27,7 +27,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: apps-kafka-bridge
         app.kubernetes.io/version: 0.46.1
-        helm.sh/chart: apps-kafka-bridge-1.0.0
+        helm.sh/chart: apps-kafka-bridge-1.1.0
       name: apps-kafka-bridge-oauth-proxy
       namespace: NAMESPACE
     spec:
@@ -97,7 +97,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: apps-kafka-bridge
         app.kubernetes.io/version: 0.46.1
-        helm.sh/chart: apps-kafka-bridge-1.0.0
+        helm.sh/chart: apps-kafka-bridge-1.1.0
       name: apps-kafka-bridge-oauth-proxy-cookie-secret
       namespace: NAMESPACE
     spec:
@@ -120,7 +120,7 @@ manifests should match snapshot:
               app.kubernetes.io/managed-by: ArgoCD
               app.kubernetes.io/name: apps-kafka-bridge
               app.kubernetes.io/version: 0.46.1
-              helm.sh/chart: apps-kafka-bridge-1.0.0
+              helm.sh/chart: apps-kafka-bridge-1.1.0
           type: Opaque
   4: |
     apiVersion: kafka.strimzi.io/v1beta2
@@ -131,7 +131,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: apps-kafka-bridge
         app.kubernetes.io/version: 0.46.1
-        helm.sh/chart: apps-kafka-bridge-1.0.0
+        helm.sh/chart: apps-kafka-bridge-1.1.0
       name: apps-kafka-bridge
       namespace: NAMESPACE
     spec:
@@ -176,7 +176,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: apps-kafka-bridge
         app.kubernetes.io/version: 0.46.1
-        helm.sh/chart: apps-kafka-bridge-1.0.0
+        helm.sh/chart: apps-kafka-bridge-1.1.0
       name: apps-kafka-bridge-oauth-proxy-cookie-secret
       namespace: NAMESPACE
     spec:
@@ -186,6 +186,188 @@ manifests should match snapshot:
       noUpper: false
       symbols: 0
   6: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.1.0
+      name: apps-kafka-bridge-alerts
+      namespace: NAMESPACE
+    spec:
+      groups:
+        - name: kafka-bridge.rules
+          rules:
+            - alert: KafkaBridgeContainerDown
+              annotations:
+                description: All Kafka Bridge containers have been down or in CrashLookBackOff status for 3 minutes
+                summary: All Kafka Bridge containers down or in CrashLookBackOff status
+              expr: absent( container_last_seen{ namespace="NAMESPACE", container=~".+-bridge",pod=~".+-bridge-.+" } )
+              for: 3m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: MonitoringAvailability
+              annotations:
+                description: Kafka Bridge monitoring has been unavailable for 5 minutes
+                summary: Kafka Bridge monitoring is unavailable
+              expr: up{ job="apps-kafka-bridge-bridge-service", namespace="NAMESPACE" } == 0
+              for: 5m
+              labels:
+                severity: critical
+                team: platform
+                vendor: aspecta
+            - alert: KafkaBridgeQueuePending
+              annotations:
+                description: Kafka Bridge queue pending is {{ $value }}
+                summary: Kafka Bridge queue pending is high
+              expr: strimzi_bridge_pool_queue_pending{namespace="NAMESPACE"} > 50
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaBridgeQueuePendingCritical
+              annotations:
+                description: Kafka Bridge queue pending is {{ $value }}
+                summary: Kafka Bridge queue pending is critical
+              expr: strimzi_bridge_pool_queue_pending{namespace="NAMESPACE"} > 200
+              for: 2m
+              labels:
+                severity: critical
+                team: platform
+                vendor: aspecta
+            - alert: KafkaBridgePoolUsageHigh
+              annotations:
+                description: Kafka Bridge pool usage is {{ $value }}
+                summary: Kafka Bridge pool usage is high
+              expr: strimzi_bridge_pool_ratio{namespace="NAMESPACE"} > 0.8
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaBridgePoolUsageCritical
+              annotations:
+                description: Kafka Bridge pool usage is {{ $value }}
+                summary: Kafka Bridge pool usage is critical
+              expr: strimzi_bridge_pool_ratio{namespace="NAMESPACE"} > 0.95
+              for: 2m
+              labels:
+                severity: critical
+                team: platform
+                vendor: aspecta
+            - alert: KafkaBridgePodCrashLooping
+              annotations:
+                description: |
+                  Pod {{ $labels.pod }} restarted more than 10 times in the last 15 minutes.
+                summary: Kafka Bridge pod is crash looping
+              expr: |
+                increase(
+                  kube_pod_container_status_restarts_total{
+                    namespace="NAMESPACE",
+                    pod=~"apps-kafka-bridge-bridge-.*"
+                  }[15m]
+                ) > 10
+              for: 2m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaBridgePodNotReady
+              annotations:
+                description: |
+                  Pod {{ $labels.pod }} has been in NotReady state for more than 5 minutes.
+                summary: Kafka Bridge pod is not ready
+              expr: |
+                kube_pod_status_ready{
+                  namespace="NAMESPACE",
+                  pod=~"apps-kafka-bridge-bridge-.*",
+                  condition="true"
+                } == 0
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaBridgeDeploymentReplicasMismatch
+              annotations:
+                description: |
+                  Deployment has unavailable replicas for more than 10 minutes.
+                summary: Kafka Bridge deployment replica mismatch
+              expr: |
+                kube_deployment_spec_replicas{
+                  namespace="NAMESPACE",
+                  deployment="apps-kafka-bridge-bridge"
+                }
+                !=
+                kube_deployment_status_replicas_available{
+                  namespace="NAMESPACE",
+                  deployment="apps-kafka-bridge-bridge"
+                }
+              for: 10m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaBridgeOauthProxyPodCrashLooping
+              annotations:
+                description: |
+                  Pod {{ $labels.pod }} restarted more than 10 times in the last 15 minutes.
+                summary: Kafka Bridge Oauth Proxy pod is crash looping
+              expr: |
+                increase(
+                  kube_pod_container_status_restarts_total{
+                    namespace="NAMESPACE",
+                    pod=~"apps-kafka-bridge-oauth-proxy-.*"
+                  }[15m]
+                ) > 10
+              for: 2m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaBridgeOauthProxyPodNotReady
+              annotations:
+                description: |
+                  Pod {{ $labels.pod }} has been in NotReady state for more than 5 minutes.
+                summary: Kafka Bridge Oauth Proxy pod is not ready
+              expr: |
+                kube_pod_status_ready{
+                  namespace="NAMESPACE",
+                  pod=~"apps-kafka-bridge-oauth-proxy-.*",
+                  condition="true"
+                } == 0
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaBridgeOauthProxyDeploymentReplicasMismatch
+              annotations:
+                description: |
+                  Deployment has unavailable replicas for more than 10 minutes.
+                summary: Kafka Bridge Oauth Proxy deployment replica mismatch
+              expr: |
+                kube_deployment_spec_replicas{
+                  namespace="NAMESPACE",
+                  deployment="apps-kafka-bridge-oauth-proxy"
+                }
+                !=
+                kube_deployment_status_replicas_available{
+                  namespace="NAMESPACE",
+                  deployment="apps-kafka-bridge-oauth-proxy"
+                }
+              for: 10m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+  7: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: Role
     metadata:
@@ -194,7 +376,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: apps-kafka-bridge
         app.kubernetes.io/version: 0.46.1
-        helm.sh/chart: apps-kafka-bridge-1.0.0
+        helm.sh/chart: apps-kafka-bridge-1.1.0
       name: apps-kafka-bridge-account-access
       namespace: NAMESPACE
     rules:
@@ -206,7 +388,7 @@ manifests should match snapshot:
           - secrets
         verbs:
           - edit
-  7: |
+  8: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
@@ -215,7 +397,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: apps-kafka-bridge
         app.kubernetes.io/version: 0.46.1
-        helm.sh/chart: apps-kafka-bridge-1.0.0
+        helm.sh/chart: apps-kafka-bridge-1.1.0
       name: apps-kafka-bridge-account-access
       namespace: NAMESPACE
     roleRef:
@@ -226,7 +408,7 @@ manifests should match snapshot:
       - kind: ServiceAccount
         name: apps-kafka-bridge-account-access
         namespace: ekp
-  8: |
+  9: |
     apiVersion: route.openshift.io/v1
     kind: Route
     metadata:
@@ -235,7 +417,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: apps-kafka-bridge
         app.kubernetes.io/version: 0.46.1
-        helm.sh/chart: apps-kafka-bridge-1.0.0
+        helm.sh/chart: apps-kafka-bridge-1.1.0
       name: apps-kafka-bridge
       namespace: NAMESPACE
     spec:
@@ -249,7 +431,7 @@ manifests should match snapshot:
         name: apps-kafka-bridge-oauth-proxy
         weight: 100
       wildcardPolicy: None
-  9: |
+  10: |
     apiVersion: v1
     kind: Secret
     metadata:
@@ -258,12 +440,12 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: apps-kafka-bridge
         app.kubernetes.io/version: 0.46.1
-        helm.sh/chart: apps-kafka-bridge-1.0.0
+        helm.sh/chart: apps-kafka-bridge-1.1.0
       name: apps-kafka-bridge-account-access
       namespace: NAMESPACE
     stringData:
       description: Fake Secret to give service account access to a given service behind openshift-oauth-proxy.
-  10: |
+  11: |
     apiVersion: v1
     kind: Service
     metadata:
@@ -272,7 +454,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: apps-kafka-bridge
         app.kubernetes.io/version: 0.46.1
-        helm.sh/chart: apps-kafka-bridge-1.0.0
+        helm.sh/chart: apps-kafka-bridge-1.1.0
       name: apps-kafka-bridge-oauth-proxy
       namespace: NAMESPACE
     spec:
@@ -284,7 +466,7 @@ manifests should match snapshot:
       selector:
         app: apps-kafka-bridge-oauth-proxy
       type: ClusterIP
-  11: |
+  12: |
     apiVersion: v1
     kind: ServiceAccount
     metadata:
@@ -293,10 +475,10 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: apps-kafka-bridge
         app.kubernetes.io/version: 0.46.1
-        helm.sh/chart: apps-kafka-bridge-1.0.0
+        helm.sh/chart: apps-kafka-bridge-1.1.0
       name: apps-kafka-bridge-account-access
       namespace: ekp
-  12: |
+  13: |
     apiVersion: v1
     kind: ServiceAccount
     metadata:
@@ -307,6 +489,27 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: apps-kafka-bridge
         app.kubernetes.io/version: 0.46.1
-        helm.sh/chart: apps-kafka-bridge-1.0.0
+        helm.sh/chart: apps-kafka-bridge-1.1.0
       name: apps-kafka-bridge-oauth-proxy
       namespace: NAMESPACE
+  14: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.1.0
+      name: apps-kafka-bridge
+      namespace: NAMESPACE
+    spec:
+      endpoints:
+        - interval: 30s
+          path: /metrics
+          port: rest-api
+      selector:
+        matchLabels:
+          strimzi.io/cluster: apps-kafka-bridge
+          strimzi.io/name: apps-kafka-bridge-bridge
