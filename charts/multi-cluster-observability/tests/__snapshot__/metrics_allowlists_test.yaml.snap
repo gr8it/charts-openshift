@@ -53,7 +53,7 @@ renders hub allowlists without spoke-only Kafka configmap:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: observability-metrics-custom-allowlist
       namespace: apc-vault
-renders spoke allowlists with Kafka configmap and without hub-only ones:
+renders spoke allowlists with Kafka and External Secrets configmaps and without hub-only ones:
   1: |
     apiVersion: v1
     data:
@@ -86,3 +86,19 @@ renders spoke allowlists with Kafka configmap and without hub-only ones:
         helm.sh/chart: multi-cluster-observability-1.0.0
       name: observability-metrics-custom-allowlist
       namespace: openshift-operators
+  3: |
+    apiVersion: v1
+    data:
+      uwl_metrics_list.yaml: |
+        names:
+          - secretstore_status_condition
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/instance: multi-cluster-observability
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: multi-cluster-observability
+        app.kubernetes.io/part-of: multi-cluster-observability
+        helm.sh/chart: multi-cluster-observability-1.0.0
+      name: observability-metrics-custom-allowlist
+      namespace: apc-external-secrets-operator
