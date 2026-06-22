@@ -1,0 +1,35 @@
+renders the Alertmanager ServiceMonitor mutation policy for hub clusters:
+  1: |
+    apiVersion: kyverno.io/v1
+    kind: Policy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: Observability
+        policies.kyverno.io/minversion: 1.13.0
+        policies.kyverno.io/subject: ServiceMonitor
+        policies.kyverno.io/title: Patch Alertmanager ServiceMonitor
+      labels:
+        app.kubernetes.io/instance: multi-cluster-observability
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: multi-cluster-observability
+        app.kubernetes.io/part-of: multi-cluster-observability
+        helm.sh/chart: multi-cluster-observability-1.0.0
+      name: patch-alertmanager-servicemonitor
+      namespace: open-cluster-management-observability
+    spec:
+      background: false
+      rules:
+        - match:
+            any:
+              - resources:
+                  kinds:
+                    - monitoring.coreos.com/v1/ServiceMonitor
+                  names:
+                    - alertmanager
+          mutate:
+            patchStrategicMerge:
+              spec:
+                endpoints:
+                  - (port): metrics
+                    bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+          name: add-bearer-token-file

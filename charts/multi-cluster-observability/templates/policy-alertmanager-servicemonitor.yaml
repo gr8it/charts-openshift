@@ -1,0 +1,31 @@
+{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
+apiVersion: kyverno.io/v1
+kind: Policy
+metadata:
+  name: patch-alertmanager-servicemonitor
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "multi-cluster-observability.labels" . | nindent 4 }}
+  annotations:
+    policies.kyverno.io/title: Patch Alertmanager ServiceMonitor
+    policies.kyverno.io/category: Observability
+    policies.kyverno.io/subject: ServiceMonitor
+    policies.kyverno.io/minversion: 1.13.0
+spec:
+  background: false
+  rules:
+    - name: add-bearer-token-file
+      match:
+        any:
+          - resources:
+              kinds:
+                - monitoring.coreos.com/v1/ServiceMonitor
+              names:
+                - alertmanager
+      mutate:
+        patchStrategicMerge:
+          spec:
+            endpoints:
+              - (port): metrics
+                bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+{{- end }}
