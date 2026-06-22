@@ -203,15 +203,15 @@ manifests should match snapshot:
           rules:
             - alert: KafkaBridgeContainerDown
               annotations:
-                description: All Kafka Bridge containers have been down or in CrashLookBackOff status for 3 minutes
-                summary: All Kafka Bridge containers down or in CrashLookBackOff status
-              expr: absent( container_last_seen{ namespace="NAMESPACE", container=~".+-bridge",pod=~".+-bridge-.+" } )
+                description: All Kafka Bridge containers have been down or in CrashLoopBackOff status for 3 minutes
+                summary: All Kafka Bridge containers down or in CrashLoopBackOff status
+              expr: absent( container_last_seen{ namespace="NAMESPACE", container=~".+-bridge",pod=~"apps-kafka-bridge-bridge-.*" } )
               for: 3m
               labels:
                 severity: warning
                 team: platform
                 vendor: aspecta
-            - alert: MonitoringAvailability
+            - alert: KafkaBridgeMonitoringAvailability
               annotations:
                 description: Kafka Bridge monitoring has been unavailable for 5 minutes
                 summary: Kafka Bridge monitoring is unavailable
