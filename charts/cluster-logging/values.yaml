@@ -1,0 +1,41 @@
+# Red Hat OpenShift Logging (Cluster Logging) Operator installed via ACM OperatorPolicy.
+#
+# Adoption note:
+# `openshift-logging` is a DEDICATED namespace that already exists and already owns a
+# single OperatorGroup (originally created with `generateName: cluster-logging-`, so its
+# name differs per cluster — cluster-logging-bz7gt / -jm7ct / -22k4p / -5kmws on
+# conf-socpoist, plain `cluster-logging` on conf-sp-qa). `operatorGroup` is left UNSET so
+# the OperatorPolicy adopts whichever single OperatorGroup already exists instead of
+# creating a second one (OLM forbids >1 OG/namespace). The namespace itself is not
+# managed by this chart (it pre-exists, cluster-monitoring/cluster-logging labels and all).
+#
+# Zero-diff adoption (no version change):
+#   - channel: stable-6.1    -> conf-socpoist baseline; conf-sp-qa overrides to stable-6.2
+#   - startingCSV OMITTED    -> the live Subscriptions set no startingCSV, and the
+#                               installed CSV differs per cluster (v6.1.3 / v6.1.4 /
+#                               v6.2.9). startingCSV is install-time only, so omitting it
+#                               makes the managed Subscription render IDENTICAL to live on
+#                               every cluster. Version is controlled by channel +
+#                               upgradeApproval, not by pinning a CSV.
+#   - upgradeApproval: None  -> install plans stay manually approved (matches the live
+#                               Subscription's installPlanApproval: Manual)
+#   - versions: []           -> no managed/automatic version is enforced
+#
+# Per-cluster live state at migration time (only the channel differs -> single override):
+#   hub01    conf-socpoist  stable-6.1  cluster-logging.v6.1.3
+#   prod01   conf-socpoist  stable-6.1  cluster-logging.v6.1.4
+#   test01   conf-socpoist  stable-6.1  cluster-logging.v6.1.4
+#   dev01    conf-socpoist  stable-6.1  cluster-logging.v6.1.4
+#   huba     conf-sp-qa     stable-6.2  cluster-logging.v6.2.9   (channel override)
+#   spokea1  conf-sp-qa     stable-6.2  cluster-logging.v6.2.9   (channel override)
+acm-operatorpolicy:
+  subscription:
+    channel: stable-6.1
+    name: cluster-logging
+    namespace: openshift-logging
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+
+  # Manual install-plan approval, matching the pre-migration Subscription.
+  upgradeApproval: None
+  versions: []
