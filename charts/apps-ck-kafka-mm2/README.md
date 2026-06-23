@@ -9,11 +9,11 @@ This chart creates a Kafka MirrorMaker2 instance and mirroring configuration for
 
 ![APC Kafka MirrorMaker2 setup](./images/kafkaMirrorMaker2.png)
 
-- Kafka instancies (sourde and target instance) are deployed separately from chart [apps-ck-kafka](../apps-ck-kafka/README.md).
+- Kafka instancies (source and target instance) are deployed separately from chart [apps-ck-kafka](../apps-ck-kafka/README.md).
 - Kafka users and kafka topics are managed via the apps-ck-kafka (source kafka) component configuration in APC Gitops configuration and are idenctical across the source and target kafka instance.
 - Kafka users secret are generated in source kafka instance, then are pushed to Vault and from Vault the secrets are synchronized in target kafka instance.
 - Kafka MirrorMaker2 is deployed in the same namespace as the target kafka.
-- Kafka MirrorMaker2 is connecting to bootstrap services of the kafka clusters, thus the TLS CA for the source kafka instance brokers have to be created in the target kafka instance namespace.
+- Kafka MirrorMaker2 is connecting to bootstrap services of the kafka clusters, thus the TLS CA for the source kafka instance brokers have to be available in the target kafka instance namespace. This is handled by the kyverno policy which will create the TLS secret in the kafka target namespace.
 
 ## Deployment and configuration  
 
@@ -22,15 +22,6 @@ This chart creates a Kafka MirrorMaker2 instance and mirroring configuration for
 - cert-manager deployed and configured
 - source kafka instance deployed
 - target kafka instance deployed
-- source kafka brokers TLS CA created in target kafka namespace
-
-<details>
-
-<summary>Example of TLS CA copy</summary>
-
-```bash
-oc get secret -n ck-kafka ck-kafka-brokers-tls -o yaml | yq 'del(.metadata.resourceVersion, .metadata.uid, .metadata.creationTimestamp, .metadata.annotations, .metadata.labels, .metadata.namespace)' | oc apply -n ck-kafka-mirror -f -
-```
 
 </details>
 

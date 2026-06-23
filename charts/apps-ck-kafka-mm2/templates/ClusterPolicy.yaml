@@ -1,0 +1,36 @@
+{{- $source := include "apps-ck-kafka-mm2.clusterByType" (dict
+      "clusters" .Values.clusters
+      "type" "source"
+    ) | fromYaml }}
+
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: {{ .Release.Name }}-sync-tls
+  labels:
+  {{- include "apps-ck-kafka-mm2.labels" . | nindent 4 }}
+spec:
+  background: true
+  rules:
+    - name: {{ .Release.Name }}-sync-tls
+      match:
+        any:
+          - resources:
+              kinds:
+                - Secret
+              names:
+                - {{ $source.name }}-brokers-tls
+              namespaces:
+                - {{ $source.name }}
+      generate:
+        generateExisting: true
+        synchronize: true
+
+        apiVersion: v1
+        kind: Secret
+        name: {{ $source.name }}-brokers-tls
+        namespace: {{ .Release.Namespace }}
+
+        clone:
+          namespace: {{ $source.name }}
+          name: {{ $source.name }}-brokers-tls

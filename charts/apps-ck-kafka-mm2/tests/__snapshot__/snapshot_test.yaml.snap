@@ -1,5 +1,39 @@
 manifests should match snapshot:
   1: |
+    apiVersion: kyverno.io/v1
+    kind: ClusterPolicy
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-ck-kafka-mm2
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-ck-kafka-mm2
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-ck-kafka-mm2-1.0.0
+      name: apps-ck-kafka-mm2-sync-tls
+    spec:
+      background: true
+      rules:
+        - generate:
+            apiVersion: v1
+            clone:
+              name: ck-kafka-brokers-tls
+              namespace: ck-kafka
+            generateExisting: true
+            kind: Secret
+            name: ck-kafka-brokers-tls
+            namespace: NAMESPACE
+            synchronize: true
+          match:
+            any:
+              - resources:
+                  kinds:
+                    - Secret
+                  names:
+                    - ck-kafka-brokers-tls
+                  namespaces:
+                    - ck-kafka
+          name: apps-ck-kafka-mm2-sync-tls
+  2: |
     apiVersion: v1
     data:
       metrics-config.yml: |
@@ -136,7 +170,7 @@ manifests should match snapshot:
         app: strimzi
       name: apps-ck-kafka-mm2-metrics
       namespace: ck-kafka-mirror
-  2: |
+  3: |
     apiVersion: kafka.strimzi.io/v1beta2
     kind: KafkaMirrorMaker2
     metadata:
@@ -217,7 +251,7 @@ manifests should match snapshot:
           cpu: 1000m
           memory: 2Gi
       version: 4.0.0
-  3: |
+  4: |
     apiVersion: monitoring.coreos.com/v1
     kind: PodMonitor
     metadata:
@@ -275,7 +309,7 @@ manifests should match snapshot:
         matchLabels:
           strimzi.io/cluster: apps-ck-kafka-mm2
           strimzi.io/kind: KafkaMirrorMaker2
-  4: |
+  5: |
     apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule
     metadata:
