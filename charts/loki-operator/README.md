@@ -3,8 +3,8 @@
 This Helm chart installs the Red Hat **Loki Operator** using an ACM `OperatorPolicy`.
 
 It replaces the previously hand-applied static manifests
-(`ocp-<cluster>/observability/logging/02-loki-operator.yaml`) with a GitOps-managed
-helm release, consistent with the other operator charts in this repository.
+(`observability/logging/02-loki-operator.yaml`) with a GitOps-managed
+Helm release, consistent with the other operator charts in this repository.
 
 ## Components
 
