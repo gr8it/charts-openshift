@@ -1,16 +1,18 @@
 # Changelog
 
+All notable changes to this component will be documented in this file.
+
+The format is based on [Common Changelog](https://common-changelog.org/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 ## [1.1.0] - 2026-04-23
 
 ### Changed
 
 - Remove alias and condition from `acm-operatorpolicy` dependency
 - Change `upgradeApproval` to `Automatic`
-- Update `netobserv-operator` to v1.8.0
+- Update `startingCSV` and `versions` to `network-observability-operator.v1.8.0`
 
 ## [1.0.0] - 2026-04-20
 
-### Added
-
-- Initial release
-- `Network Observability Operator` installed via ACM OperatorPolicy (`netobserv-operator` v1.7.0, channel `stable`)
+_Initial release._
