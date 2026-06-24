@@ -84,18 +84,6 @@ manifests should match snapshot:
       tenants:
         mode: openshift-network
   3: |
-    apiVersion: v1
-    kind: Namespace
-    metadata:
-      labels:
-        apc.namespace.type: platform
-        app.kubernetes.io/instance: netobserv-config
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: netobserv-config
-        helm.sh/chart: netobserv-config-1.0.0
-        openshift.io/cluster-monitoring: "true"
-      name: netobserv
-  4: |
     apiVersion: networking.k8s.io/v1
     kind: NetworkPolicy
     metadata:
@@ -123,7 +111,7 @@ manifests should match snapshot:
           app: flowlogs-pipeline
       policyTypes:
         - Ingress
-  5: |
+  4: |
     apiVersion: networking.k8s.io/v1
     kind: NetworkPolicy
     metadata:
@@ -152,7 +140,7 @@ manifests should match snapshot:
           app: netobserv-plugin
       policyTypes:
         - Ingress
-  6: |
+  5: |
     apiVersion: objectbucket.io/v1alpha1
     kind: ObjectBucketClaim
     metadata:

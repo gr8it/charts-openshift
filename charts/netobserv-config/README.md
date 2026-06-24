@@ -1,8 +1,6 @@
 # netobserv-config
 
-Configures OpenShift Network Observability stack: Namespace, NetworkPolicies, LokiStack, and FlowCollector.
-
-The chart creates a `Namespace` with `openshift.io/cluster-monitoring: "true"` label, which enables cluster monitoring for the namespace.
+Configures OpenShift Network Observability stack: NetworkPolicies, LokiStack, and FlowCollector.
 
 ## Prerequisites
 
@@ -10,6 +8,25 @@ The chart creates a `Namespace` with `openshift.io/cluster-monitoring: "true"` l
 - Loki Operator deployed (via `logging-operators` or equivalent)
 - OCS/RHODF with RGW (for ObjectBucketClaim) and RBD (for LokiStack storage)
 - The S3 credentials Secret (`<fullname>-rgw-allinfo`) must exist in the namespace before LokiStack reconciles. It is created automatically by OBC provisioning — combine the OBC-generated ConfigMap and Secret into the required format.
+
+## Namespace provisioning
+
+The namespace is managed by ArgoCD, not by this chart. Configure `managedNamespaceMetadata` and `CreateNamespace=true` in the ArgoCD application definition in the conf repository:
+
+```yaml
+netobserv-config:
+  render:
+    chart: gr8it-openshift/netobserv-config
+    chartVersion: "1.0.0"
+  destination:
+    namespace: apc-netobserv
+  managedNamespaceMetadata:
+    labels:
+      apc.namespace.type: platform
+      openshift.io/cluster-monitoring: 'true'
+  syncOptions:
+    - CreateNamespace=true
+```
 
 ## Values
 
