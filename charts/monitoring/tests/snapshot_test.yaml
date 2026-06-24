@@ -8,6 +8,12 @@ release:
   namespace: openshift-monitoring
 
 tests:
-  - it: manifests should match snapshot
+  - it: manifests should match snapshot (hub cluster)
+    asserts:
+      - matchSnapshot: {}
+
+  - it: manifests should match snapshot (non-hub cluster)
+    set:
+      global.apc.cluster.isHub: false
     asserts:
       - matchSnapshot: {}
