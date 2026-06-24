@@ -1,26 +1,15 @@
-# Loki Operator (Red Hat) installed via ACM OperatorPolicy.
-#
-# Adoption note:
-# The Loki Operator lives in the shared `openshift-operators-redhat` namespace,
-# which already exists and already owns a single OperatorGroup. `operatorGroup`
-# is therefore left unset so the OperatorPolicy adopts the existing
-# OperatorGroup instead of creating a second one (OLM forbids >1 OG/namespace).
-#
-# This 1.0.0 release adopts the current `stable-6.1` install as-is:
-#   - channel: stable-6.1    -> unchanged from the pre-migration Subscription
-#   - startingCSV pinned to the currently-installed CSV (loki-operator.v6.1.4)
-#   - upgradeApproval: None  -> install plans stay manually approved (current behaviour)
-#   - versions: []           -> no managed/automatic version is enforced
-# The OCP 4.19 unblock (move to channel `stable-6.2`) is a separate, explicit bump.
+# OperatorPolicy Values
 acm-operatorpolicy:
+  operatorGroup:
+    name: openshift-loki-operator
+    namespace: openshift-loki-operator
   subscription:
     channel: stable-6.1
     name: loki-operator
-    namespace: openshift-operators-redhat
+    namespace: openshift-loki-operator
     source: redhat-operators
     sourceNamespace: openshift-marketplace
     startingCSV: loki-operator.v6.1.4
-
-  # Manual install-plan approval, matching the pre-migration Subscription.
-  upgradeApproval: None
-  versions: []
+  upgradeApproval: Automatic
+  versions:
+    - loki-operator.v6.1.4
