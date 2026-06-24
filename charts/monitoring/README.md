@@ -82,8 +82,9 @@ Both alertmanager secrets use `dataFrom.extract` — the entire Vault secret is 
 | `clusterMonitoring.prometheus.storageSize` | `60Gi` | Cluster Prometheus PVC size |
 | `userWorkloadMonitoring.prometheus.retention` | `14d` | UWM Prometheus retention |
 | `userWorkloadMonitoring.prometheus.remoteWrite.enabled` | `true` | Enable remote write to Red Hat telemetry |
-| `alertmanager.eso.vault.secretPath` | `""` | Vault path for cluster alertmanager credentials |
-| `uwmAlertmanager.eso.vault.secretPath` | `""` | Vault path for UWM alertmanager credentials |
+| `eso.enabled` | `true` | Enable ESO for all alertmanager secrets |
+| `alertmanager.vault.secretPath` | `""` | Vault path for cluster alertmanager credentials |
+| `uwmAlertmanager.vault.secretPath` | `""` | Vault path for UWM alertmanager credentials |
 | `vaultBastionMonitoring.bastionIP` | `""` | Vault bastion IP — enables scraping when set |
 | `networkPolicy.enabled` | `true` | Proxy egress NetworkPolicy |
 
@@ -102,14 +103,12 @@ global:
       - 10.1.1.7/32
 
 alertmanager:
-  eso:
-    vault:
-      secretPath: customers/socpoist/monitoring/alertmanager
+  vault:
+    secretPath: customers/socpoist/monitoring/alertmanager
 
 uwmAlertmanager:
-  eso:
-    vault:
-      secretPath: customers/socpoist/monitoring/alertmanager-uwm
+  vault:
+    secretPath: customers/socpoist/monitoring/alertmanager-uwm
 
 vaultBastionMonitoring:
   bastionIP: 10.111.126.31

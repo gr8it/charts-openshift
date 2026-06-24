@@ -569,7 +569,7 @@ manifests should match snapshot (hub cluster):
                   storage: 60Gi
           externalLabels:
             managed_cluster: dev01
-            customerName: socpoistsk
+            customerName: examplecustomer
             environment: dev
             location: primary
             clusterName: dev01
@@ -604,7 +604,7 @@ manifests should match snapshot (hub cluster):
                 requests:
                   storage: 24Gi
           externalLabels:
-            customerName: socpoistsk
+            customerName: examplecustomer
             environment: dev
             location: primary
             clusterName: dev01
@@ -615,7 +615,7 @@ manifests should match snapshot (hub cluster):
               credentials:
                 key: token
                 name: telemetry-remote-write
-            proxyUrl: http://proxysp.socpoist.sk:8080
+            proxyUrl: http://proxy.example.com:8080
             queueConfig:
               batchSendDeadline: 1m
               capacity: 30000
@@ -659,7 +659,7 @@ manifests should match snapshot (hub cluster):
       namespace: apc-monitoring-bastion
     subsets:
       - addresses:
-          - ip: 10.111.126.31
+          - ip: 10.0.0.1
         ports:
           - name: metrics
             port: 8200
@@ -678,7 +678,7 @@ manifests should match snapshot (hub cluster):
     spec:
       dataFrom:
         - extract:
-            key: customers/socpoist/monitoring/alertmanager
+            key: customers/example/monitoring/alertmanager
       refreshInterval: 15m
       secretStoreRef:
         kind: ClusterSecretStore
@@ -700,7 +700,7 @@ manifests should match snapshot (hub cluster):
     spec:
       dataFrom:
         - extract:
-            key: customers/socpoist/monitoring/alertmanager-uwm
+            key: customers/example/monitoring/alertmanager-uwm
       refreshInterval: 15m
       secretStoreRef:
         kind: ClusterSecretStore
@@ -869,8 +869,8 @@ manifests should match snapshot (hub cluster):
       alertmanager.yaml: |
         global:
           http_config:
-            proxy_url: http://proxysp.socpoist.sk:8080
-            no_proxy: .socpoist.sk,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1
+            proxy_url: http://proxy.example.com:8080
+            no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1
         inhibit_rules:
         - equal:
           - namespace
@@ -961,8 +961,8 @@ manifests should match snapshot (hub cluster):
       alertmanager.yaml: |
         global:
           http_config:
-            proxy_url: http://proxysp.socpoist.sk:8080
-            no_proxy: .socpoist.sk,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1
+            proxy_url: http://proxy.example.com:8080
+            no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1
         inhibit_rules:
         - equal:
           - namespace
@@ -1731,7 +1731,7 @@ manifests should match snapshot (non-hub cluster):
                   storage: 60Gi
           externalLabels:
             managed_cluster: dev01
-            customerName: socpoistsk
+            customerName: examplecustomer
             environment: dev
             location: primary
             clusterName: dev01
@@ -1766,7 +1766,7 @@ manifests should match snapshot (non-hub cluster):
                 requests:
                   storage: 24Gi
           externalLabels:
-            customerName: socpoistsk
+            customerName: examplecustomer
             environment: dev
             location: primary
             clusterName: dev01
@@ -1777,7 +1777,7 @@ manifests should match snapshot (non-hub cluster):
               credentials:
                 key: token
                 name: telemetry-remote-write
-            proxyUrl: http://proxysp.socpoist.sk:8080
+            proxyUrl: http://proxy.example.com:8080
             queueConfig:
               batchSendDeadline: 1m
               capacity: 30000
@@ -1821,7 +1821,7 @@ manifests should match snapshot (non-hub cluster):
       namespace: apc-monitoring-bastion
     subsets:
       - addresses:
-          - ip: 10.111.126.31
+          - ip: 10.0.0.1
         ports:
           - name: metrics
             port: 8200
@@ -1840,7 +1840,7 @@ manifests should match snapshot (non-hub cluster):
     spec:
       dataFrom:
         - extract:
-            key: customers/socpoist/monitoring/alertmanager
+            key: customers/example/monitoring/alertmanager
       refreshInterval: 15m
       secretStoreRef:
         kind: ClusterSecretStore
@@ -1862,7 +1862,7 @@ manifests should match snapshot (non-hub cluster):
     spec:
       dataFrom:
         - extract:
-            key: customers/socpoist/monitoring/alertmanager-uwm
+            key: customers/example/monitoring/alertmanager-uwm
       refreshInterval: 15m
       secretStoreRef:
         kind: ClusterSecretStore
@@ -2031,8 +2031,8 @@ manifests should match snapshot (non-hub cluster):
       alertmanager.yaml: |
         global:
           http_config:
-            proxy_url: http://proxysp.socpoist.sk:8080
-            no_proxy: .socpoist.sk,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1
+            proxy_url: http://proxy.example.com:8080
+            no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1
         inhibit_rules:
         - equal:
           - namespace
@@ -2123,8 +2123,8 @@ manifests should match snapshot (non-hub cluster):
       alertmanager.yaml: |
         global:
           http_config:
-            proxy_url: http://proxysp.socpoist.sk:8080
-            no_proxy: .socpoist.sk,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1
+            proxy_url: http://proxy.example.com:8080
+            no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1
         inhibit_rules:
         - equal:
           - namespace

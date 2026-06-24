@@ -12,17 +12,18 @@ clusterMonitoring:
     storageSize: "1Gi"
     storageClassName: ocs-storagecluster-ceph-rbd
 
-# --- AlertManager receivers secret (openshift-monitoring/alertmanager-receivers) via ESO ---
-# All alertmanager credentials are stored in a single Vault secret path (dataFrom.extract).
+# --- AlertManager receivers secrets (cluster + UWM) via ESO ---
+# All alertmanager credentials are stored in a single Vault secret path per alertmanager (dataFrom.extract).
 # Hub-specific keys (opsgenie_key_acs, opsgenie_key_logs) must be present in the Vault secret on hub clusters.
 # Hub detection uses global.apc.cluster.isHub via apc-global-overrides.
+eso:
+  enabled: true
+  refreshInterval: "15m"
+
 alertmanager:
-  eso:
-    enabled: true
-    refreshInterval: "15m"
-    vault:
-      # Full Vault secret path, e.g. customers/socpoist/monitoring/alertmanager
-      secretPath: ""
+  vault:
+    # Full Vault secret path, e.g. customers/socpoist/monitoring/alertmanager
+    secretPath: ""
 
 # --- UserWorkloadMonitoringConfig (openshift-user-workload-monitoring) ---
 userWorkloadMonitoring:
@@ -45,15 +46,10 @@ userWorkloadMonitoring:
     storageSize: "1Gi"
     storageClassName: ocs-storagecluster-ceph-rbd
 
-# --- UWM AlertManager receivers secret (openshift-user-workload-monitoring/alertmanager-uwm-receivers) via ESO ---
-# All alertmanager credentials are stored in a single Vault secret path (dataFrom.extract).
 uwmAlertmanager:
-  eso:
-    enabled: true
-    refreshInterval: "15m"
-    vault:
-      # Full Vault secret path, e.g. customers/socpoist/monitoring/alertmanager-uwm
-      secretPath: ""
+  vault:
+    # Full Vault secret path, e.g. customers/socpoist/monitoring/alertmanager-uwm
+    secretPath: ""
 
 # --- NetworkPolicy (proxy egress for openshift-monitoring and openshift-user-workload-monitoring) ---
 # proxyCIDRs are read from global.apc.proxyCIDRs via apc-global-overrides
