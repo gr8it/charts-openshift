@@ -37,12 +37,9 @@ spec:
   {{- end }}
   {{- end }}
   {{- end }}
-  {{- if and .Values.mirror.enabled .Values.mirror.primary }}
-  - {{ include "apps-ck-kafka.fullname" . }}-bootstrap.{{ .Release.Namespace }}.svc
-  - {{ include "apps-ck-kafka.fullname" . }}-bootstrap.{{ .Release.Namespace }}.svc.cluster.local
-  {{- else if and .Values.mirror.enabled (not .Values.mirror.primary) }}
-  - {{ required "mirror.primaryKafka must be set when mirror.enabled=true and mirror.primary=false" .Values.mirror.primaryKafka }}-bootstrap.{{ required "mirror.primaryKafka must be set when mirror.enabled=true and mirror.primary=false" .Values.mirror.primaryKafka }}.svc
-  - {{ required "mirror.primaryKafka must be set when mirror.enabled=true and mirror.primary=false" .Values.mirror.primaryKafka }}-bootstrap.{{ required "mirror.primaryKafka must be set when mirror.enabled=true and mirror.primary=false" .Values.mirror.primaryKafka }}.svc.cluster.local
+  {{- if and .Values.mirror.enabled }}
+  - {{ $.Values.mirror.upstreamComponent }}-bootstrap.{{ $.Values.mirror.upstreamComponent }}.svc
+  - {{ $.Values.mirror.upstreamComponent }}-bootstrap.{{ $.Values.mirror.upstreamComponent }}.svc.cluster.local
   {{- end }}
   issuerRef:
     kind: ClusterIssuer

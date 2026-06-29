@@ -10,10 +10,10 @@ This chart creates a Kafka MirrorMaker2 instance and mirroring configuration for
 ![APC Kafka MirrorMaker2 setup](./images/kafkaMirrorMaker2.png)
 
 - Kafka instancies (source and target instance) are deployed separately from chart [apps-ck-kafka](../apps-ck-kafka/README.md).
-- Kafka users and kafka topics are managed via the apps-ck-kafka (source kafka) component configuration in APC Gitops configuration and are idenctical across the source and target kafka instance.
-- Kafka users secret are generated in source kafka instance, then are pushed to Vault and from Vault the secrets are synchronized in target kafka instance.
+- Kafka users and kafka topics are managed via the apps-ck-kafka (source kafka also called upstreamComponent) component configuration in APC Gitops configuration and are idenctical across the source and target kafka instance.
+- Kafka user password is generated in source kafka instance during the push to Vault and from Vault the secrets are synchronized in target kafka instance.
 - Kafka MirrorMaker2 is deployed in the same namespace as the target kafka.
-- Kafka MirrorMaker2 is connecting to bootstrap services of the kafka clusters, thus the TLS CA for the source kafka instance brokers have to be available in the target kafka instance namespace. This is handled by the kyverno policy which will create the TLS secret in the kafka target namespace.
+- Kafka MirrorMaker2 is connecting to bootstrap services of the kafka clusters and needs TLS CA for the communication to kafka instances.
 
 ## Deployment and configuration  
 

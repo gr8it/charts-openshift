@@ -35,8 +35,8 @@ spec:
           password: {{ $clusterSpec.auth.passwordSecret.password | quote }}
       tls:
         trustedCertificates: 
-          - secretName: "{{ $cluster  }}-brokers-tls"
-            certificate: ca.crt
+          - secretName: brokers-ca-certificate
+            certificate: sp2-root-ca.crt
       {{- if $clusterSpec.config }}
       config:
         {{- $clusterSpec.config | toYaml | nindent 8 }}

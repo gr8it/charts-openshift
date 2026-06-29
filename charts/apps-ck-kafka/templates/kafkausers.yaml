@@ -15,16 +15,16 @@ metadata:
     {{- include "apps-ck-kafka.labels" $ | nindent 4 }}
 spec:
   authentication:
-    {{- if and $.Values.mirror.enabled (not $.Values.mirror.primary) (ne $user.name "apc-kafka-admin") }}
+    {{- if eq $user.name "apc-kafka-admin" }}
+    type: scram-sha-512
+    # do not specify password here to let Strimzi generate one automatically including sasl.jaas.config!
+    {{- else }}
     type: scram-sha-512
     password:
       valueFrom:
         secretKeyRef:
-          name: {{ $user.name | quote }}
+          name: "{{ $user.name }}-eso"
           key: password
-    {{- else }}
-    type: scram-sha-512
-    # do not specify password here to let Strimzi generate one automatically including sasl.jaas.config!
     {{- end }}
   authorization:
     type: simple
