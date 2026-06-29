@@ -18,9 +18,3 @@ spec:
     {{- range (.Values.vectorServiceCertificate).additionalDnsNames }}
     - {{ . | quote }}
     {{- end }}
-  {{- if gt (len (.Values.vectorMetalLB.addresses | default list)) 0 }}
-  ipAddresses:
-    {{- range .Values.vectorMetalLB.addresses }}
-    - {{ regexReplaceAll "/.*$" . "" }}
-    {{- end }}
-  {{- end }}

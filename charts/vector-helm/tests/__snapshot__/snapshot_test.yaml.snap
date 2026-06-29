@@ -12,13 +12,11 @@ manifests should match snapshot:
       name: vector-service
       namespace: apc-logging
     spec:
-      commonName: vector.hub01.cloud.socpoist.sk
+      commonName: vector.cluster.example.com
       dnsNames:
         - vector.apc-logging.svc
         - vector.apc-logging.svc.cluster.local
-        - vector.hub01.cloud.socpoist.sk
-      ipAddresses:
-        - 10.111.76.100
+        - vector.cluster.example.com
       issuerRef:
         kind: ClusterIssuer
         name: vault-hub-issuer
@@ -113,6 +111,26 @@ manifests should match snapshot:
               ca_file: /var/run/ocp-collector/secrets/vector-token/service-ca.crt
               verify_certificate: true
             type: loki
+          example_siem_splunk:
+            acknowledgements:
+              enabled: true
+              indexer_acknowledgements_enabled: true
+            default_token: SECRET[kubernetes_siemtoken.token]
+            encoding:
+              codec: json
+              except_fields:
+              - _internal
+            endpoint: https://siem.example.com:8088/
+            endpoint_target: event
+            healthcheck:
+              enabled: false
+            inputs:
+            - remap_ldap_auth
+            timestamp_key: timestamp
+            tls:
+              verify_certificate: false
+              verify_hostname: false
+            type: splunk_hec_logs
           jira_ops_alerts:
             batch:
               max_events: 1
@@ -144,26 +162,6 @@ manifests should match snapshot:
             inputs:
             - internal_metrics
             type: prometheus_exporter
-          socpoist_siem_splunk:
-            acknowledgements:
-              enabled: true
-              indexer_acknowledgements_enabled: true
-            default_token: SECRET[kubernetes_siemtoken.token]
-            encoding:
-              codec: json
-              except_fields:
-              - _internal
-            endpoint: https://sr-ba-xsplhf-p1.socpoist.sk:8088/
-            endpoint_target: event
-            healthcheck:
-              enabled: false
-            inputs:
-            - remap_ldap_auth
-            timestamp_key: timestamp
-            tls:
-              verify_certificate: false
-              verify_hostname: false
-            type: splunk_hec_logs
         sources:
           internal_metrics:
             type: internal_metrics
@@ -277,7 +275,7 @@ manifests should match snapshot:
               }
 
               payload = {
-                "message": "[RHACS]: [socpoistsk/" + cluster + "/" + severity_label + "] - " + policy_name,
+                "message": "[RHACS]: [example-customer/" + cluster + "/" + severity_label + "] - " + policy_name,
                 "alias": "rhacs-" + alert_id,
                 "description": description,
                 "entity": cluster + "/" + namespace + "/" + deployment,
@@ -286,7 +284,7 @@ manifests should match snapshot:
                 "tags": [
                   "rhacs",
                   "security",
-                  "socpoistsk",
+                  "example-customer",
                   cluster,
                   namespace,
                   deployment,
