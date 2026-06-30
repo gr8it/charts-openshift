@@ -72,7 +72,7 @@ Source (primary) kafka instance is exposed via the k8s service of type ExternalN
 
 In case of data disruption on source kafka instance perform following steps:
 
-- stop the mirroring by setting the [```replica: 0```](../apps-ck-kafka-mm2/values.yaml#11) in kafka mirrormaker2 component
+- stop the mirroring by setting the [```replica: 0```](../apps-ck-kafka-mm2/values.yaml#L11) in kafka mirrormaker2 component
 - reconfigure the ```activeService``` to point to target kafka instance
 - in case that producers/consumers uses for connection the standard broker service of source kafka instance then they have do the reconfiguration to point connection to ```activeService``` or to service of the target kafka instance (not preffered)
 
@@ -83,7 +83,7 @@ If the failback is desired then the [Failover scenario](#failover-scenario) can 
 
 ### Mirroring reconfiguration after failover
 
-After the failover mirroring have to be reestabilished. This can be achieved with just to changing the type of source/target in [apps-ck-kafka-mm2 configuration](../apps-ck-kafka-mm2/values.yaml#25).  
+After the failover mirroring have to be reestabilished. This can be achieved with just to changing the type of source/target in [apps-ck-kafka-mm2 configuration](../apps-ck-kafka-mm2/values.yaml#L25).  
 If the mirroring is estabilished between two geographically divided clusters, its recommended to redeploy the mirrormaker2 instance next to the new target cluster.
   
 > [!IMPORTANT]  
@@ -101,7 +101,7 @@ Backup of kafka instance is enabled by default for the instance, however is conf
 
 With Kafka mirror support the user management is as follows:
 
-- users defined in component configuration have in [KafkaUser](./templates/kafkausers.yaml#25) manifest defined secret with password, secret have the same name as user and have suffix ```-eso```
+- users defined in component configuration have in [KafkaUser](./templates/kafkausers.yaml#L25) manifest defined secret with password, secret have the same name as user and have suffix ```-eso```
 - secret is [synchronized](./templates/externalsecret-kusers.yaml) from vault isntance, the path is ```apc-platform/<env_short>/<upstreamComponent>/<username>```
 - secret is generated and pushed to vault with use of [PushSecret](./templates/pushsecret.yaml) with setting of ```updatePolicy: IfNotExists``` which will prevent the secret override in the vault if that already exists there
 
