@@ -75,3 +75,7 @@ Example environment configuration for target kafka cluster:
 ```
 
 ```upstreamConfig``` options specifies the upstream (parrent) component from which the configuration will be merged to this particular component
+
+### Failover and failback
+
+Failover and failback scenario are documented in [apps-ck-kafka](../apps-ck-kafka/README.md#failover-scenario) chart.
