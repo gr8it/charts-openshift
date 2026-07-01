@@ -29,7 +29,7 @@ data:
         environment: {{ include "apc-global-overrides.require-environment" . }}
         location: {{ .Values.userWorkloadMonitoring.location }}
         clusterName: {{ include "apc-global-overrides.require-clusterName" . }}
-      {{- if .Values.userWorkloadMonitoring.prometheus.remoteWrite.enabled }}
+      {{- if and .Values.userWorkloadMonitoring.prometheus.remoteWrite.enabled (include "apc-global-overrides.clusterIsHub" .) }}
       remoteWrite:
       - url: {{ .Values.userWorkloadMonitoring.prometheus.remoteWrite.url }}
         authorization:

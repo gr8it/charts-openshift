@@ -91,15 +91,14 @@ Both alertmanager secrets use `dataFrom.extract` — the entire Vault secret is 
 ```yaml
 global:
   apc:
-    customer: socpoistsk
+    customer: example.com
     environment: dev
     cluster:
       name: dev01
       isHub: true
-    proxy: http://proxysp.socpoist.sk:8080
+    proxy: http://proxy.example.com:8123
     proxyCIDRs:
-      - 10.1.1.7/32
-
+      - 10.0.0.2/32
 vaultBastionMonitoring:
   bastionIP: 10.0.0.1
 ```
