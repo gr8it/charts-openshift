@@ -38,7 +38,7 @@ spec:
             summary: Kyverno background controller is down.
             description: Kyverno background controller is not running. This controller is responsible for generating resources (e.g. PrometheusRules) for existing namespaces. New and existing namespaces may be missing monitoring alerts.
         - alert: KyvernoAdmissionControllerDown
-          expr: absent(up{job=~".*kyverno-admission-controller.*"}) == 1
+          expr: absent(up{service="kyverno-svc-metrics",namespace="apc-kyverno"}) == 1
           for: 10m
           labels:
             severity: warning

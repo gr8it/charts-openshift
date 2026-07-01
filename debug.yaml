@@ -1,0 +1,35 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: header-dump
+  namespace: apc-observability
+  labels: { app: header-dump }
+spec:
+  containers:
+    - name: dump
+      image: python:3.12-alpine
+      command: ["python3", "-c"]
+      args:
+        - |
+          from http.server import BaseHTTPRequestHandler, HTTPServer
+          class H(BaseHTTPRequestHandler):
+              def handle_any(self):
+                  n = int(self.headers.get("Content-Length", 0))
+                  self.rfile.read(n)
+                  print(f"=== {self.command} {self.path} ===", flush=True)
+                  for k, v in self.headers.items():
+                      print(f"  {k}: {v}", flush=True)
+                  self.send_response(200); self.end_headers()
+              do_GET = do_POST = do_PUT = do_DELETE = do_PATCH = do_HEAD = do_OPTIONS = handle_any
+          HTTPServer(("0.0.0.0", 4318), H).serve_forever()
+      ports: [{ containerPort: 4318 }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: header-dump
+  namespace: apc-observability
+spec:
+  selector: { app: header-dump }
+  ports: [{ port: 4318, targetPort: 4318 }]

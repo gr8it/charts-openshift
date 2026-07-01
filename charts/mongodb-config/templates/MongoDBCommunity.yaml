@@ -1,0 +1,110 @@
+{{- $users := concat .Values.users .Values.defaultUsers }}
+apiVersion: mongodbcommunity.mongodb.com/v1
+kind: MongoDBCommunity
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mongodb-config.labels" . | nindent 4 }}
+spec:
+  members: {{ .Values.mongodbInstance.replicas }}
+  type: ReplicaSet
+  version: {{ .Values.mongodbInstance.mongoVersion }}
+  security:
+    authentication:
+      modes:
+        - "SCRAM"
+  {{- if .Values.mongodbInstance.tls.enabled }}
+    tls:
+      enabled: true
+      caCertificateSecretRef:
+        name: {{ printf "%s-mongodb-tls" .Release.Namespace }}
+      certificateKeySecretRef:
+        name: {{ printf "%s-mongodb-tls" .Release.Namespace }}
+  {{- end }}
+  replicaSetHorizons:
+{{- range $fqdn := .Values.mongodbInstance.fqdns}}
+  - horizon: {{ printf "%s:%s" $fqdn $.Values.mongodbInstance.port }}
+{{- end }}
+  users:
+  {{- range $user, $userdata := $users }}
+    {{- if $userdata.roles }}
+    - name: {{ $userdata.name | quote }}
+      connectionStringSecretName: {{ printf "mongodb-%s-connection-string" $userdata.function }}
+      db: admin
+      passwordSecretRef:
+        name: {{ printf "mongodb-%s-pwd" $userdata.function }}
+      roles:
+      {{- range $role, $roledata := $userdata.roles }}
+        - name: {{ $roledata.role }}
+          db: {{ $roledata.database }}
+      {{- end }}
+      scramCredentialsSecretName: {{ $userdata.function }}
+    {{- end }}
+  {{- end }}
+
+  {{- if .Values.monitoring.enabled }}
+  prometheus:
+    # Metrics endpoint HTTP Basic Auth username
+    username: {{ .Values.monitoring.promuser | quote }}
+    # Metrics endpoint HTTP Basic Auth password
+    passwordSecretRef:
+      name: mongodb-monitoring-pwd
+  {{- end }}
+  statefulSet:
+    spec:
+      selector:
+        matchLabels:
+          app.kubernetes.io/name: {{ .Release.Name }}
+      template:
+        metadata:
+          # Label the pod which is used by the "labelSelector" in podAntiAffinity
+          labels:
+            app.kubernetes.io/name: {{ .Release.Name }}
+        spec:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser:
+          containers:
+          - name: mongod
+            securityContext:
+              runAsUser:
+              runAsNonRoot: true
+              privileged: false
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+            resources:
+              limits:
+                cpu: {{ .Values.mongodbInstance.mongod.cpuLimits }}
+                memory: {{ .Values.mongodbInstance.mongod.memoryLimits }}
+              requests:
+                cpu: {{ .Values.mongodbInstance.mongod.cpuRequests }}
+                memory: {{ .Values.mongodbInstance.mongod.memoryRequests }}
+          - name: mongodb-agent
+            securityContext:
+              runAsUser:
+              runAsNonRoot: true
+              privileged: false
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+            resources:
+              limits:
+                memory: {{ .Values.mongodbInstance.mongodbAgent.memoryLimits }}
+              requests:
+                memory: {{ .Values.mongodbInstance.mongodbAgent.memoryRequests }}
+      serviceName: {{ printf "%s-svc" .Release.Name }}
+      volumeClaimTemplates:
+        - metadata:
+            name: data-volume
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: {{ .Values.mongodbInstance.storage.dataVolumeSize }}
+        - metadata:
+            name: logs-volume
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: {{ .Values.mongodbInstance.storage.logsVolumeSize }}
