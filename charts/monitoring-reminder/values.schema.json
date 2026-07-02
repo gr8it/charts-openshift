@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "monitoring-reminder values",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "releaseServiceOverride": {
+      "type": "string",
+      "description": "Overrides app.kubernetes.io/managed-by label (e.g. ArgoCD)."
+    },
+    "defaultLabels": {
+      "type": "object",
+      "description": "Labels applied to every alert rule. Per-reminder labels take precedence.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "reminders": {
+      "type": "array",
+      "description": "List of static date-based alert rules. No PrometheusRule is created when empty.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["alert", "summary", "description", "datetime"],
+        "properties": {
+          "alert": {
+            "type": "string",
+            "description": "Prometheus alert name used for routing and deduplication.",
+            "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+            "minLength": 1
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable summary shown in alert notifications.",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed description explaining context and impact.",
+            "minLength": 1
+          },
+          "datetime": {
+            "type": "string",
+            "description": "Expiry date in dd.mm.yyyy or dd.mm.yyyy HH:MM format. Time defaults to 00:00 when omitted.",
+            "pattern": "^\\d{2}\\.\\d{2}\\.\\d{4}( \\d{2}:\\d{2})?$"
+          },
+          "daysBeforeExpiry": {
+            "type": "integer",
+            "description": "Days before the expiry date to fire the warning alert. Default: 30.",
+            "minimum": 1
+          },
+          "runbookUrl": {
+            "type": "string",
+            "description": "URL to the remediation runbook.",
+            "format": "uri"
+          },
+          "critical": {
+            "type": "boolean",
+            "description": "If true, adds a second alert (<alert>Critical) with severity: critical firing when fewer than 1 day remains."
+          },
+          "labels": {
+            "type": "object",
+            "description": "Per-alert label overrides merged over defaultLabels.",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}
