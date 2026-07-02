@@ -42,11 +42,19 @@ If you are co-locating the reminder with the component it monitors (e.g. an in-c
 ### Minimal — single warning alert
 
 ```yaml
+# values.yaml
 reminders:
   - alert: OIDCVaultSecretExpirySoon
-    summary: Azure Entra ID secret for vault.lab.gr8it.cloud OIDC expires soon
+    summary: Azure Entra ID secret for vault.example.com OIDC expires soon
     description: >
-      Azure Entra ID client secret used for OIDC authentication in vault.lab.gr8it.cloud
+      Azure Entra ID client secret used for OIDC authentication in vault.example.com
       expires soon. After expiry, login to Vault via OIDC will stop working.
     datetime: "01.04.2027" # UTC!
 ```
+
+```bash
+helm install oidc-vault-secret-reminder . -f values.yaml
+```
+
+> [!NOTE]  
+> It is recommended to use -reminder suffix for the release name, as it is used as the prometheusrule name
