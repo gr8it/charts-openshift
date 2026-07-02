@@ -209,6 +209,10 @@ helm repo add gr8it-openshift https://raw.githubusercontent.com/gr8it/charts-ope
 helm search repo gr8it-openshift -l
 ```
 
+## no real URLs
+
+Always use example.com domain for URLs in examples, e.g. `https://example.com/` or `https://vault.example.com/`. Do not use real URLs, even if they are public.
+
 ## Contributing rules
 
 General Contributing rules are covered in [/.github/CONTRIBUTING.md](CONTRIBUTING.md)
