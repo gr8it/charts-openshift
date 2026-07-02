@@ -62,7 +62,7 @@ description: A Helm chart for ...
 type: application           # or "library" for library charts
 version: 1.x.x
 appVersion: "<version>"     # optional
-dependencies:               # most charts depend on the library chart
+dependencies:               # charts requiring cluster / environment specific values depend on the library chart
   - name: apc-global-overrides
     version: 1.8.0
     repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
@@ -130,6 +130,10 @@ tests:
 ## values.lint.yaml
 
 - Contains only parameters required to pass the `helm lint`, which are not set in values.yaml, i.e. these are usually cluster / environment specific variables supplied in the conf repo
+
+## values.schema.json
+
+Always include a `values.schema.json` file for each chart. This ensures that values are validated during `helm install/upgrade` and prevents misconfigurations.
 
 ## Build & Release Workflow
 
