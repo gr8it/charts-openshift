@@ -1,4 +1,4 @@
-# Mmonitoring-reminder
+# Monitoring-reminder
 
 Helm chart creates a `PrometheusRule` containing static date-based reminder alerts. Use it to fire a warning (and optionally a critical) alert before a known expiry date — for example a client secret, a certificate, or an API key stored outside the cluster.
 
@@ -20,6 +20,7 @@ If you are co-locating the reminder with the component it monitors (e.g. an in-c
 
 | Value | Default | Description |
 |---|---|---|
+| `releaseServiceOverride` | _unset_ | Overrides `app.kubernetes.io/managed-by` label (e.g. `ArgoCD`). |
 | `defaultLabels` | `vendor: aspecta`<br>`team: platform` | Labels applied to every alert rule. Per-reminder `labels` take precedence. |
 | `reminders` | `[]` | List of reminder rules (see below). |
 
@@ -30,7 +31,7 @@ If you are co-locating the reminder with the component it monitors (e.g. an in-c
 | `alert` | yes | Prometheus alert name (used for routing/deduplication), e.g. `OIDCVaultSecretExpirySoon`. |
 | `summary` | yes | Short annotation shown in alert notifications. |
 | `description` | yes | Detailed annotation explaining context and impact. |
-| `datetime` | yes | Expiry date in `dd.mm.yyyy` or `dd.mm.yyyy HH:MM` format. Time defaults to `00:00` when omitted. |
+| `datetime` | yes | Expiry date in `dd.mm.yyyy` or `dd.mm.yyyy HH:MM` format. Time defaults to `00:00` when omitted. **Always interpreted as UTC.** |
 | `daysBeforeExpiry` | no | How many days before the expiry date to fire the warning alert. Default: `30`. |
 | `runbookUrl` | no | URL to the remediation runbook. |
 | `critical` | no | If `true`, adds a second alert (`<alert>Critical`) with `severity: critical` that fires when fewer than 1 day remains. Default: `false`. |
@@ -47,5 +48,5 @@ reminders:
     description: >
       Azure Entra ID client secret used for OIDC authentication in vault.lab.gr8it.cloud
       expires soon. After expiry, login to Vault via OIDC will stop working.
-    datetime: "01.04.2027"
+    datetime: "01.04.2027" # UTC!
 ```

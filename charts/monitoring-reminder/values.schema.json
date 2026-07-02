@@ -4,6 +4,14 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
+    "nameOverride": {
+      "type": "string",
+      "description": "Overrides chart name used for app.kubernetes.io/name."
+    },
+    "fullnameOverride": {
+      "type": "string",
+      "description": "Overrides the full resource name."
+    },
     "releaseServiceOverride": {
       "type": "string",
       "description": "Overrides app.kubernetes.io/managed-by label (e.g. ArgoCD)."
@@ -41,7 +49,7 @@
           },
           "datetime": {
             "type": "string",
-            "description": "Expiry date in dd.mm.yyyy or dd.mm.yyyy HH:MM format. Time defaults to 00:00 when omitted.",
+            "description": "Expiry date in dd.mm.yyyy or dd.mm.yyyy HH:MM format, always interpreted as UTC. Time defaults to 00:00 UTC when omitted.",
             "pattern": "^\\d{2}\\.\\d{2}\\.\\d{4}( \\d{2}:\\d{2})?$"
           },
           "daysBeforeExpiry": {

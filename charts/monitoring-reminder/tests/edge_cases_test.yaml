@@ -30,7 +30,7 @@ tests:
       - equal:
           path: spec.groups[0].rules[0].expr
           value: |
-            (1806530400 - time()) / 86400 < 30
+            (1806537600 - time()) / 86400 < 30
 
   - it: datetime with explicit 00:00 produces the same result as date-only
     set:
@@ -43,7 +43,7 @@ tests:
       - equal:
           path: spec.groups[0].rules[0].expr
           value: |
-            (1806530400 - time()) / 86400 < 30
+            (1806537600 - time()) / 86400 < 30
 
   - it: datetime with a non-midnight time uses the correct timestamp
     set:
@@ -56,7 +56,7 @@ tests:
       - equal:
           path: spec.groups[0].rules[0].expr
           value: |
-            (1806573600 - time()) / 86400 < 30
+            (1806580800 - time()) / 86400 < 30
 
   # ── daysBeforeExpiry ─────────────────────────────────────────────────────────
 
@@ -71,7 +71,7 @@ tests:
       - equal:
           path: spec.groups[0].rules[0].expr
           value: |
-            (1806530400 - time()) / 86400 < 30
+            (1806537600 - time()) / 86400 < 30
 
   - it: custom daysBeforeExpiry is reflected in the warning expression
     set:
@@ -85,7 +85,7 @@ tests:
       - equal:
           path: spec.groups[0].rules[0].expr
           value: |
-            (1806530400 - time()) / 86400 < 60
+            (1806537600 - time()) / 86400 < 60
 
   # ── critical flag ────────────────────────────────────────────────────────────
 
@@ -165,7 +165,7 @@ tests:
       - equal:
           path: spec.groups[0].rules[1].expr
           value: |
-            (1806530400 - time()) / 86400 < 1
+            (1806537600 - time()) / 86400 < 1
 
   - it: warning alert has severity warning
     set:

@@ -14,7 +14,7 @@ spec:
     {{- range .Values.reminders }}
     {{- $dt := .datetime }}
     {{- if not (contains " " $dt) }}{{- $dt = printf "%s 00:00" $dt }}{{- end }}
-    {{- $unixTs := toDate "02.01.2006 15:04" $dt | unixEpoch }}
+    {{- $unixTs := toDate "02.01.2006 15:04 -07:00" (printf "%s +00:00" $dt) | unixEpoch }}
     {{- $days := default 30 .daysBeforeExpiry }}
     {{- $mergedLabels := merge (deepCopy (default dict .labels)) $defaultLabels }}
     - alert: {{ .alert }}
