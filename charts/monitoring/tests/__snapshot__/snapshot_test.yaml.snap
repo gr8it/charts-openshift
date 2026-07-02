@@ -1,5 +1,39 @@
-rendered cluster-policy-cluster-monitoring manifest:
+manifests should match snapshot (hub cluster):
   1: |
+    apiVersion: monitoring.openshift.io/v1
+    kind: AlertingRule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: cluster-alerting-rules
+      namespace: openshift-monitoring
+    spec:
+      groups:
+        - name: cluster.rules
+          rules:
+            - alert: PodRepeatedOOMKilled
+              annotations:
+                description: |
+                  The kernel Out-Of-Memory killer has restarted this container at least
+                  twice within the last 30 minutes. Check memory limits, look for leaks or
+                  sudden load spikes before the pod enters CrashLoopBackOff.
+                summary: |
+                  Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} was OOM-killed {{ printf "%.0f" $value }} times in the last 30 minutes
+              expr: |
+                (
+                  increase(kube_pod_container_status_restarts_total[30m])
+                  * on(namespace,pod,container) group_left()
+                    kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}
+                ) > 1
+              for: 0m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+  2: |
     apiVersion: kyverno.io/v1
     kind: ClusterPolicy
     metadata:
@@ -7,7 +41,7 @@ rendered cluster-policy-cluster-monitoring manifest:
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.0.9
+        helm.sh/chart: monitoring-1.1.0
       name: cluster-policy-cluster-monitoring
     spec:
       generateExisting: true
@@ -468,7 +502,7 @@ rendered cluster-policy-cluster-monitoring manifest:
                 value:
                   - "true"
           skipBackgroundRequests: true
-  2: |
+  3: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -476,7 +510,7 @@ rendered cluster-policy-cluster-monitoring manifest:
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.0.9
+        helm.sh/chart: monitoring-1.1.0
         rbac.kyverno.io/aggregate-to-admission-controller: "true"
       name: kyverno:admission-controller:monitoring
     rules:
@@ -496,3 +530,1723 @@ rendered cluster-policy-cluster-monitoring manifest:
           - create
           - update
           - delete
+  4: |
+    apiVersion: v1
+    data:
+      config.yaml: |
+        enableUserWorkload: true
+        nodeExporter:
+          collectors:
+            buddyinfo: {}
+            cpufreq: {}
+            ksmd: {}
+            mountstats: {}
+            netclass: {}
+            netdev: {}
+            processes: {}
+            systemd: {}
+            tcpstat: {}
+        alertmanagerMain:
+          secrets:
+            - alertmanager-receivers
+          volumeClaimTemplate:
+            metadata:
+              name: alertmanager-pvc
+            spec:
+              storageClassName: ocs-storagecluster-ceph-rbd
+              resources:
+                requests:
+                  storage: 1Gi
+        prometheusK8s:
+          retention: 7d
+          volumeClaimTemplate:
+            metadata:
+              name: prometheus-pvc
+            spec:
+              storageClassName: ocs-storagecluster-ceph-rbd
+              resources:
+                requests:
+                  storage: 60Gi
+          externalLabels:
+            managed_cluster: dev01
+            customerName: examplecustomer
+            environment: dev
+            location: primary
+            clusterName: dev01
+            vendor: aspecta
+            team: platform
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: cluster-monitoring-config
+      namespace: openshift-monitoring
+  5: |
+    apiVersion: v1
+    data:
+      config.yaml: |
+        alertmanager:
+          enabled: true
+          enableAlertmanagerConfig: true
+          secrets:
+            - alertmanager-uwm-receivers
+        prometheus:
+          retention: 14d
+          volumeClaimTemplate:
+            metadata:
+              name: prometheus-user-workload-pvc
+            spec:
+              storageClassName: ocs-storagecluster-ceph-rbd
+              resources:
+                requests:
+                  storage: 24Gi
+          externalLabels:
+            customerName: examplecustomer
+            environment: dev
+            location: primary
+            clusterName: dev01
+          remoteWrite:
+          - url: https://infogw.api.openshift.com/metrics/v1/receive
+            authorization:
+              type: Bearer
+              credentials:
+                key: token
+                name: telemetry-remote-write
+            proxyUrl: http://proxy.example.com:8080
+            queueConfig:
+              batchSendDeadline: 1m
+              capacity: 30000
+              maxBackoff: 256s
+              maxSamplesPerSend: 10000
+              minBackoff: 1s
+            writeRelabelConfigs:
+            - action: keep
+              regex: (count:up0|count:up1|cluster_version|cluster_version_available_updates|cluster_version_capability|cluster_operator_up|cluster_operator_conditions|cluster_version_payload|cluster_installer|cluster_infrastructure_provider|cluster_feature_set|instance:etcd_object_counts:sum|ALERTS|code:apiserver_request_total:rate:sum|cluster:capacity_cpu_cores:sum|cluster:capacity_memory_bytes:sum|cluster:cpu_usage_cores:sum|cluster:memory_usage_bytes:sum|openshift:cpu_usage_cores:sum|openshift:memory_usage_bytes:sum|workload:cpu_usage_cores:sum|workload:memory_usage_bytes:sum|cluster:virt_platform_nodes:sum|cluster:node_instance_type_count:sum|cnv:vmi_status_running:count|cnv_abnormal|cluster:vmi_request_cpu_cores:sum|node_role_os_version_machine:cpu_capacity_cores:sum|node_role_os_version_machine:cpu_capacity_sockets:sum|subscription_sync_total|olm_resolution_duration_seconds|csv_succeeded|csv_abnormal|cluster:kube_persistentvolumeclaim_resource_requests_storage_bytes:provisioner:sum|cluster:kubelet_volume_stats_used_bytes:provisioner:sum|ceph_cluster_total_bytes|ceph_cluster_total_used_raw_bytes|ceph_health_status|odf_system_raw_capacity_total_bytes|odf_system_raw_capacity_used_bytes|odf_system_health_status|job:ceph_osd_metadata:count|job:kube_pv:count|job:odf_system_pvs:count|job:ceph_pools_iops:total|job:ceph_pools_iops_bytes:total|job:ceph_versions_running:count|job:noobaa_total_unhealthy_buckets:sum|job:noobaa_bucket_count:sum|job:noobaa_total_object_count:sum|odf_system_bucket_count|odf_system_objects_total|noobaa_accounts_num|noobaa_total_usage|console_url|cluster:console_auth_login_requests_total:sum|cluster:console_auth_login_successes_total:sum|cluster:console_auth_login_failures_total:sum|cluster:console_auth_logout_requests_total:sum|cluster:console_usage_users:max|cluster:console_plugins_info:max|cluster:console_customization_perspectives_info:max|cluster:ovnkube_controller_egress_routing_via_host:max|cluster:ovnkube_controller_admin_network_policies_db_objects:max|cluster:ovnkube_controller_baseline_admin_network_policies_db_objects:max|cluster:ovnkube_controller_admin_network_policies_rules:max|cluster:ovnkube_controller_baseline_admin_network_policies_rules:max|cluster:network_attachment_definition_instances:max|cluster:network_attachment_definition_enabled_instance_up:max|cluster:ingress_controller_aws_nlb_active:sum|cluster:route_metrics_controller_routes_per_shard:min|cluster:route_metrics_controller_routes_per_shard:max|cluster:route_metrics_controller_routes_per_shard:avg|cluster:route_metrics_controller_routes_per_shard:median|cluster:openshift_route_info:tls_termination:sum|insightsclient_request_send_total|cam_app_workload_migrations|cluster:apiserver_current_inflight_requests:sum:max_over_time:2m|cluster:alertmanager_integrations:max|cluster:telemetry_selected_series:count|openshift:prometheus_tsdb_head_series:sum|openshift:prometheus_tsdb_head_samples_appended_total:sum|monitoring:container_memory_working_set_bytes:sum|namespace_job:scrape_series_added:topk3_sum1h|namespace_job:scrape_samples_post_metric_relabeling:topk3|monitoring:haproxy_server_http_responses_total:sum|profile:cluster_monitoring_operator_collection_profile:max|rhmi_status|status:upgrading:version:rhoam_state:max|state:rhoam_critical_alerts:max|state:rhoam_warning_alerts:max|rhoam_7d_slo_percentile:max|rhoam_7d_slo_remaining_error_budget:max|cluster_legacy_scheduler_policy|cluster_master_schedulable|che_workspace_status|che_workspace_started_total|che_workspace_failure_total|che_workspace_start_time_seconds_sum|che_workspace_start_time_seconds_count|cco_credentials_mode|cluster:kube_persistentvolume_plugin_type_counts:sum|acm_managed_cluster_info|acm_managed_cluster_worker_cores:max|acm_console_page_count:sum|cluster:vsphere_vcenter_info:sum|cluster:vsphere_esxi_version_total:sum|cluster:vsphere_node_hw_version_total:sum|openshift:build_by_strategy:sum|rhods_aggregate_availability|rhods_total_users|instance:etcd_disk_wal_fsync_duration_seconds:histogram_quantile|instance:etcd_mvcc_db_total_size_in_bytes:sum|instance:etcd_network_peer_round_trip_time_seconds:histogram_quantile|instance:etcd_mvcc_db_total_size_in_use_in_bytes:sum|instance:etcd_disk_backend_commit_duration_seconds:histogram_quantile|jaeger_operator_instances_storage_types|jaeger_operator_instances_strategies|jaeger_operator_instances_agent_strategies|appsvcs:cores_by_product:sum|nto_custom_profiles:count|openshift_csi_share_configmap|openshift_csi_share_secret|openshift_csi_share_mount_failures_total|openshift_csi_share_mount_requests_total|eo_es_storage_info|eo_es_redundancy_policy_info|eo_es_defined_delete_namespaces_total|eo_es_misconfigured_memory_resources_info|cluster:eo_es_data_nodes_total:max|cluster:eo_es_documents_created_total:sum|cluster:eo_es_documents_deleted_total:sum|pod:eo_es_shards_total:max|eo_es_cluster_management_state_info|imageregistry:imagestreamtags_count:sum|imageregistry:operations_count:sum|log_logging_info|log_collector_error_count_total|log_forwarder_pipeline_info|log_forwarder_input_info|log_forwarder_output_info|cluster:log_collected_bytes_total:sum|cluster:log_logged_bytes_total:sum|openshift_logging:log_forwarder_pipelines:sum|openshift_logging:log_forwarders:sum|openshift_logging:log_forwarder_input_type:sum|openshift_logging:log_forwarder_output_type:sum|openshift_logging:vector_component_received_bytes_total:rate5m|cluster:kata_monitor_running_shim_count:sum|platform:hypershift_hostedclusters:max|platform:hypershift_nodepools:max|namespace:noobaa_unhealthy_bucket_claims:max|namespace:noobaa_buckets_claims:max|namespace:noobaa_unhealthy_namespace_resources:max|namespace:noobaa_namespace_resources:max|namespace:noobaa_unhealthy_namespace_buckets:max|namespace:noobaa_namespace_buckets:max|namespace:noobaa_accounts:max|namespace:noobaa_usage:max|namespace:noobaa_system_health_status:max|ocs_advanced_feature_usage|os_image_url_override:sum|cluster:vsphere_topology_tags:max|cluster:vsphere_infrastructure_failure_domains:max|apiserver_list_watch_request_success_total:rate:sum|rhacs:telemetry:rox_central_info|rhacs:telemetry:rox_central_secured_clusters|rhacs:telemetry:rox_central_secured_nodes|rhacs:telemetry:rox_central_secured_vcpus|rhacs:telemetry:rox_sensor_info|cluster:volume_manager_selinux_pod_context_mismatch_total|cluster:volume_manager_selinux_volume_context_mismatch_warnings_total|cluster:volume_manager_selinux_volume_context_mismatch_errors_total|cluster:volume_manager_selinux_volumes_admitted_total|ols:provider_model_configuration|ols:rest_api_query_calls_total:2xx|ols:rest_api_query_calls_total:4xx|ols:rest_api_query_calls_total:5xx|openshift:openshift_network_operator_ipsec_state:info)
+              sourceLabels:
+              - __name__
+        prometheusOperator: {}
+        thanosRuler:
+          volumeClaimTemplate:
+            metadata:
+              name: thanos-ruler-user-workload-pvc
+            spec:
+              storageClassName: ocs-storagecluster-ceph-rbd
+              resources:
+                requests:
+                  storage: 1Gi
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: user-workload-monitoring-config
+      namespace: openshift-user-workload-monitoring
+  6: |
+    apiVersion: v1
+    kind: Endpoints
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: vault-bastion
+      namespace: apc-monitoring-bastion
+    subsets:
+      - addresses:
+          - ip: 10.0.0.1
+        ports:
+          - name: metrics
+            port: 8200
+            protocol: TCP
+  7: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: alertmanager-receivers
+      namespace: openshift-monitoring
+    spec:
+      dataFrom:
+        - extract:
+            key: apc-platform/d/monitoring/alertmanager
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: apc
+      target:
+        creationPolicy: Owner
+        name: alertmanager-receivers
+  8: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: alertmanager-uwm-receivers
+      namespace: openshift-user-workload-monitoring
+    spec:
+      dataFrom:
+        - extract:
+            key: apc-platform/d/monitoring/alertmanager-uwm
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: apc
+      target:
+        creationPolicy: Owner
+        name: alertmanager-uwm-receivers
+  9: |
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: allow-proxy
+      namespace: openshift-user-workload-monitoring
+    spec:
+      egress:
+        - to:
+            - ipBlock:
+                cidr: 10.1.1.7/32
+      podSelector: {}
+      policyTypes:
+        - Egress
+  10: |
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: allow-proxy
+      namespace: openshift-monitoring
+    spec:
+      egress:
+        - to:
+            - ipBlock:
+                cidr: 10.1.1.7/32
+      podSelector: {}
+      policyTypes:
+        - Egress
+  11: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: disk-raid-array-monitoring
+      namespace: openshift-monitoring
+    spec:
+      groups:
+        - name: node-exporter
+          rules:
+            - alert: APC-NodeRAIDDegraded
+              annotations:
+                description: RAID array '{{ $labels.device }}' at {{ $labels.instance }} is in degraded state due to one or more disks failures. Number of spare drives is insufficient to fix issue automatically.
+                runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/NodeRAIDDegraded.md
+                summary: RAID Array is degraded.
+              expr: |
+                node_md_disks_required{job="node-exporter",namespace="openshift-monitoring",device=~"md.+"} - ignoring (state) (node_md_disks{state="active",namespace="openshift-monitoring",job="node-exporter",device=~"md.+"}) > 0
+              for: 15m
+              labels:
+                severity: critical
+                team: platform
+                vendor: aspecta
+            - alert: APC-NodeRAIDDiskFailure
+              annotations:
+                description: At least one device in RAID array at {{ $labels.instance }} failed. Array '{{ $labels.device }}' needs attention and possibly a disk swap.
+                summary: Failed device in RAID array.
+              expr: |
+                node_md_disks{state="failed",namespace="openshift-monitoring",job="node-exporter",device=~"md.+"} > 0
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+  12: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: ldap-monitoring
+      namespace: apc-monitoring-bastion
+    spec:
+      groups:
+        - name: ldap-monitor
+          rules:
+            - alert: LdapServiceUp
+              annotations:
+                description: LDAP service {{ $labels.host }} is down.
+                summary: LDAP service {{ $labels.host }} is down.
+              expr: openldap_service_up != 1
+              for: 1m
+              labels:
+                severity: critical
+                team: platform
+                vendor: aspecta
+            - alert: LdapReplicationTimestamp
+              annotations:
+                description: Replica ID {{ $labels.replica_id }} has inconsistent sync timestamp across servers. LDAP instances are not synchonized.
+                summary: Inconsistent sync timestamp for {{ $labels.replica_id }}
+              expr: max by (replica_id) (openldap_replication_sync_timestamp) != min by (replica_id) (openldap_replication_sync_timestamp)
+              for: 1m
+              labels:
+                severity: critical
+                team: platform
+                vendor: aspecta
+            - alert: LdapSingleReplica
+              annotations:
+                description: Replica ID {{ $labels.replica_id }} has only single instance. LDAP replication is not working properly.
+                summary: Only single instance found for repica id {{ $labels.replica_id }}
+              expr: count by (replica_id) (openldap_replication_sync_timestamp) == 1
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+  13: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: user-workload-monitoring-thanos-rules
+      namespace: apc-observability
+    spec:
+      groups:
+        - name: apc-observability
+          rules:
+            - alert: WatchdogUWMthanos
+              annotations:
+                description: |
+                  This is an alert meant to ensure that the entire alerting pipeline is functional.
+                  This alert is always firing, therefore it should always be firing in UWM Alertmanager
+                  and always fire against a receiver.
+                summary: An alert that should always be firing to certify that UWM Alertmanager + UWM Thanos ruler + UWM Prometheus are working properly.
+              expr: vector(1)
+              labels:
+                namespace: apc-observability
+                severity: none
+  14: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: alertmanager-user-workload
+      namespace: openshift-user-workload-monitoring
+    stringData:
+      alertmanager.yaml: |
+        global:
+          http_config:
+            proxy_url: http://proxy.example.com:8080
+            no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1
+        inhibit_rules:
+        - equal:
+          - namespace
+          - alertname
+          source_matchers:
+          - "severity = critical"
+          target_matchers:
+          - "severity =~ warning|info"
+        - equal:
+          - namespace
+          - alertname
+          source_matchers:
+          - "severity = warning"
+          target_matchers:
+          - "severity = info"
+        receivers:
+        - name: "null"
+        - name: teams_aspecta
+          msteams_configs:
+            - send_resolved: true
+              webhook_url_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/msteams_url
+        - name: healthchecksioUWMthanos
+          webhook_configs:
+            - url_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/healthchecks_url
+              send_resolved: false
+        - name: atlassian_aspecta
+          opsgenie_configs:
+            - send_resolved: true
+              api_key_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/opsgenie_key
+              message: |
+                [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -
+                {{ range .Alerts }}
+                {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}
+                {{ end }}
+              priority: '{{ if eq .CommonLabels.severity "critical" }}P1{{ else if eq .CommonLabels.severity "warning" }}P2{{ else if eq .CommonLabels.severity "info" }}P3{{ else }}P4{{ end }}'
+              tags: |
+                {{ with .CommonLabels.clusterName }}clusterName={{ . }}{{ end }},
+                {{ with .CommonLabels.customerName }}customerName={{ . }}{{ end }},
+                {{ with .CommonLabels.environment }}environment={{ . }}{{ end }},
+                {{ with .CommonLabels.location }}location={{ . }}{{ end }},
+                {{ with .CommonLabels.namespace }}namespace={{ . }}{{ end }},
+                {{ with .CommonLabels.severity }}severity={{ . }}{{ end }},
+                {{ with .CommonLabels.team }}team={{ . }}{{ end }},
+                {{ with .CommonLabels.vendor }}vendor={{ . }}{{ end }},
+                {{ with .CommonLabels.app }}app={{ . }}{{ end }}
+        route:
+          group_by:
+          - namespace
+          - alertname
+          - severity
+          group_interval: 5m
+          group_wait: 30s
+          receiver: teams_aspecta
+          repeat_interval: 12h
+          routes:
+          - receiver: atlassian_aspecta
+            continue: true
+            matchers:
+            - severity =~ "warning|critical"
+            - alertname != Watchdog
+            - vendor = "aspecta"
+            - team = "platform"
+          - receiver: healthchecksioUWMthanos
+            matchers:
+            - alertname = WatchdogUWMthanos
+            group_wait: 0s
+            group_interval: 60s
+            repeat_interval: 60s
+          - receiver: "null"
+            matchers:
+            - severity =~ "info|none"
+          - receiver: "null"
+            matchers:
+            - vendor != "aspecta"
+    type: Opaque
+  15: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: alertmanager-main
+      namespace: openshift-monitoring
+    stringData:
+      alertmanager.yaml: |
+        global:
+          http_config:
+            proxy_url: http://proxy.example.com:8080
+            no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1
+        inhibit_rules:
+        - equal:
+          - namespace
+          - alertname
+          source_matchers:
+          - "severity = critical"
+          target_matchers:
+          - "severity =~ warning|info"
+        - equal:
+          - namespace
+          - alertname
+          source_matchers:
+          - "severity = warning"
+          target_matchers:
+          - "severity = info"
+        receivers:
+        - name: "null"
+        - name: teams_aspecta
+          msteams_configs:
+            - send_resolved: true
+              webhook_url_file: /etc/alertmanager/secrets/alertmanager-receivers/msteams_url
+        - name: healthchecksio
+          webhook_configs:
+            - url_file: /etc/alertmanager/secrets/alertmanager-receivers/healthchecks_url
+              send_resolved: false
+        - name: atlassian_aspecta
+          opsgenie_configs:
+            - send_resolved: true
+              api_key_file: /etc/alertmanager/secrets/alertmanager-receivers/opsgenie_key
+              message: |
+                [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -
+                {{ range .Alerts }}
+                {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}
+                {{ end }}
+              priority: '{{ if eq .CommonLabels.severity "critical" }}P1{{ else if eq .CommonLabels.severity "warning" }}P2{{ else if eq .CommonLabels.severity "info" }}P3{{ else }}P4{{ end }}'
+              tags: |
+                {{ with .CommonLabels.clusterName }}clusterName={{ . }}{{ end }},
+                {{ with .CommonLabels.customerName }}customerName={{ . }}{{ end }},
+                {{ with .CommonLabels.environment }}environment={{ . }}{{ end }},
+                {{ with .CommonLabels.location }}location={{ . }}{{ end }},
+                {{ with .CommonLabels.namespace }}namespace={{ . }}{{ end }},
+                {{ with .CommonLabels.severity }}severity={{ . }}{{ end }},
+                {{ with .CommonLabels.team }}team={{ . }}{{ end }},
+                {{ with .CommonLabels.vendor }}vendor={{ . }}{{ end }},
+                {{ with .CommonLabels.app }}app={{ . }}{{ end }}
+        - name: atlassian_aspecta_security
+          opsgenie_configs:
+            - send_resolved: false
+              api_key_file: /etc/alertmanager/secrets/alertmanager-receivers/opsgenie_key_acs
+              message: |
+                [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -
+                {{ range .Alerts }}
+                {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}
+                {{ end }}
+              priority: '{{ if eq .CommonLabels.severity "critical" }}P1{{ else if eq .CommonLabels.severity "warning" }}P2{{ else if eq .CommonLabels.severity "info" }}P3{{ else }}P4{{ end }}'
+              tags: |
+                {{ with .CommonLabels.clusterName }}clusterName={{ . }}{{ end }},
+                {{ with .CommonLabels.customerName }}customerName={{ . }}{{ end }},
+                {{ with .CommonLabels.environment }}environment={{ . }}{{ end }},
+                {{ with .CommonLabels.location }}location={{ . }}{{ end }},
+                {{ with .CommonLabels.namespace }}namespace={{ . }}{{ end }},
+                {{ with .CommonLabels.severity }}severity={{ . }}{{ end }},
+                {{ with .CommonLabels.team }}team={{ . }}{{ end }},
+                {{ with .CommonLabels.vendor }}vendor={{ . }}{{ end }},
+                {{ with .CommonLabels.app }}app={{ . }}{{ end }}
+        - name: atlassian_aspecta_logs
+          opsgenie_configs:
+            - send_resolved: false
+              api_key_file: /etc/alertmanager/secrets/alertmanager-receivers/opsgenie_key_logs
+              message: |
+                [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -
+                {{ range .Alerts }}
+                {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}
+                {{ end }}
+              priority: '{{ if eq .CommonLabels.severity "critical" }}P1{{ else if eq .CommonLabels.severity "warning" }}P2{{ else if eq .CommonLabels.severity "info" }}P3{{ else }}P4{{ end }}'
+              tags: |
+                {{ with .CommonLabels.clusterName }}clusterName={{ . }}{{ end }},
+                {{ with .CommonLabels.customerName }}customerName={{ . }}{{ end }},
+                {{ with .CommonLabels.hostname }}hostname={{ . }}{{ end }},
+                {{ with .CommonLabels.environment }}environment={{ . }}{{ end }},
+                {{ with .CommonLabels.location }}location={{ . }}{{ end }},
+                {{ with .CommonLabels.namespace }}namespace={{ . }}{{ end }},
+                {{ with .CommonLabels.severity }}severity={{ . }}{{ end }},
+                {{ with .CommonLabels.team }}team={{ . }}{{ end }},
+                {{ with .CommonLabels.vendor }}vendor={{ . }}{{ end }},
+                {{ with .CommonLabels.app }}app={{ . }}{{ end }}
+        route:
+          group_by:
+          - namespace
+          - alertname
+          - severity
+          group_interval: 5m
+          group_wait: 30s
+          receiver: teams_aspecta
+          repeat_interval: 12h
+          routes:
+          - receiver: "null"
+            matchers:
+            - alertname =~ "CertificateIsAboutToExpire|CertificateApproachingExpiration"
+            - name =~ "kubemacpool-service|result-server-cert-ocp4-cis-1-5"
+          - receiver: teams_aspecta
+            continue: true
+            matchers:
+            - severity =~ "warning|critical"
+            - alertname != Watchdog
+          - receiver: atlassian_aspecta
+            continue: true
+            matchers:
+            - severity =~ "warning|critical"
+            - alertname != Watchdog
+            - team != security
+            - source != logs
+          - receiver: atlassian_aspecta_security
+            continue: true
+            matchers:
+            - severity =~ "warning|critical"
+            - alertname != Watchdog
+            - team = security
+            group_by:
+            - namespace
+            - alertname
+            - severity
+            - clusterName
+            - acs_alert_id
+          - receiver: atlassian_aspecta_logs
+            continue: true
+            matchers:
+            - severity =~ "warning|critical"
+            - alertname != Watchdog
+            - source = logs
+            group_by:
+            - namespace
+            - alertname
+            - severity
+            - clusterName
+            - hostname
+            - msgid
+          - receiver: healthchecksio
+            matchers:
+            - alertname = Watchdog
+            group_wait: 0s
+            group_interval: 60s
+            repeat_interval: 60s
+          - receiver: "null"
+            matchers:
+            - severity =~ "info|none"
+          - receiver: "null"
+            matchers:
+            - vendor != "aspecta"
+    type: Opaque
+  16: |
+    apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: vault-bastion
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: vault-bastion
+      namespace: apc-monitoring-bastion
+    spec:
+      clusterIP: None
+      ports:
+        - name: metrics
+          port: 8200
+          targetPort: 8200
+      type: ClusterIP
+  17: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: vault-bastion
+      namespace: apc-monitoring-bastion
+    spec:
+      endpoints:
+        - interval: 30s
+          params:
+            format:
+              - prometheus
+          path: /v1/sys/metrics
+          port: metrics
+          scheme: https
+          tlsConfig:
+            insecureSkipVerify: true
+      namespaceSelector:
+        matchNames:
+          - apc-monitoring-bastion
+      selector:
+        matchLabels:
+          app: vault-bastion
+manifests should match snapshot (non-hub cluster):
+  1: |
+    apiVersion: monitoring.openshift.io/v1
+    kind: AlertingRule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: cluster-alerting-rules
+      namespace: openshift-monitoring
+    spec:
+      groups:
+        - name: cluster.rules
+          rules:
+            - alert: PodRepeatedOOMKilled
+              annotations:
+                description: |
+                  The kernel Out-Of-Memory killer has restarted this container at least
+                  twice within the last 30 minutes. Check memory limits, look for leaks or
+                  sudden load spikes before the pod enters CrashLoopBackOff.
+                summary: |
+                  Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} was OOM-killed {{ printf "%.0f" $value }} times in the last 30 minutes
+              expr: |
+                (
+                  increase(kube_pod_container_status_restarts_total[30m])
+                  * on(namespace,pod,container) group_left()
+                    kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}
+                ) > 1
+              for: 0m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+  2: |
+    apiVersion: kyverno.io/v1
+    kind: ClusterPolicy
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: cluster-policy-cluster-monitoring
+    spec:
+      generateExisting: true
+      rules:
+        - exclude:
+            any:
+              - resources:
+                  kinds:
+                    - Namespace
+                  names:
+                    - openshift*
+                    - kube*
+                    - default
+          generate:
+            apiVersion: monitoring.coreos.com/v1
+            data:
+              spec:
+                groups:
+                  - name: cluster-monitoring-{{request.object.metadata.name}}
+                    rules:
+                      - alert: KubePodCrashLooping
+                        annotations:
+                          description: Pod \{{ $labels.pod }}, container \{{ $labels.container }} in namespace \{{ $labels.namespace }} is in a CrashLoopBackOff state.
+                          summary: Pod is crash looping
+                        expr: max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m]) >= 1
+                        for: 15m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubePodNotReady
+                        annotations:
+                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been in a non-ready state for longer than 15 minutes.
+                          summary: Pod has been in a non-ready state for more than 15 minutes
+                        expr: |-
+                          sum by (namespace, pod, cluster) (
+                            max by (namespace, pod, cluster) (
+                              kube_pod_status_phase{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", phase=~"Pending|Unknown|Failed"}
+                            ) * on (namespace, pod, cluster) group_left(owner_kind) topk by (namespace, pod, cluster) (
+                              1, max by (namespace, pod, owner_kind, cluster) (kube_pod_owner{owner_kind!="Job"})
+                            )
+                          ) > 0
+                        for: 15m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubeDeploymentGenerationMismatch
+                        annotations:
+                          description: Deployment generation for \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} does not match, this indicates that the Deployment has failed but has not been rolled back."
+                          summary: Deployment generation mismatch due to possible roll-back
+                        expr: |-
+                          kube_deployment_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            !=
+                          kube_deployment_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                        for: 15m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubeDeploymentReplicasMismatch
+                        annotations:
+                          description: Deployment \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} has not matched the expected number of replicas for longer than 15 minutes.
+                          summary: Deployment has not matched the expected number of replicas
+                        expr: |-
+                          (
+                            kube_deployment_spec_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              >
+                            kube_deployment_status_replicas_available{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          ) and (
+                            changes(kube_deployment_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[10m])
+                              ==
+                            0
+                          )
+                        for: 15m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubeDeploymentRolloutStuck
+                        annotations:
+                          description: Rollout of deployment \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} is not progressing for longer than 15 minutes.
+                          summary: Deployment rollout is not progressing
+                        expr: |-
+                          kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          != 0
+                        for: 15m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubeStatefulSetReplicasMismatch
+                        annotations:
+                          description: StatefulSet \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} has not matched the expected number of replicas for longer than 15 minutes.
+                          summary: StatefulSet has not matched the expected number of replicas
+                        expr: |-
+                          (
+                            kube_statefulset_status_replicas_ready{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              !=
+                            kube_statefulset_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          ) and (
+                            changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[10m])
+                              ==
+                            0
+                          )
+                        for: 15m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubeStatefulSetGenerationMismatch
+                        annotations:
+                          description: StatefulSet generation for \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} does not match, this indicates that the StatefulSet has failed but has not been rolled back.
+                          summary: StatefulSet generation mismatch due to possible roll-back
+                        expr: |-
+                          kube_statefulset_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            !=
+                          kube_statefulset_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                        for: 15m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubeStatefulSetUpdateNotRolledOut
+                        annotations:
+                          description: StatefulSet \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} update has not been rolled out.
+                          summary: StatefulSet update has not been rolled out
+                        expr: |-
+                          (
+                            max by (namespace, statefulset, job, cluster) (
+                              kube_statefulset_status_current_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                unless
+                              kube_statefulset_status_update_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            )
+                              * on (namespace, statefulset, job, cluster)
+                            (
+                              kube_statefulset_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                !=
+                              kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            )
+                          )  and on (namespace, statefulset, job, cluster) (
+                            changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m])
+                              ==
+                            0
+                          )
+                        for: 15m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubeDaemonSetRolloutStuck
+                        annotations:
+                          description: DaemonSet \{{ $labels.daemonset }} in namespace \{{ $labels.namespace }} has not finished or progressed for at least 15m.
+                          summary: DaemonSet rollout is stuck
+                        expr: |-
+                          (
+                            (
+                              kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                !=
+                              kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            ) or (
+                              kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                !=
+                              0
+                            ) or (
+                              kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                !=
+                              kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            ) or (
+                              kube_daemonset_status_number_available{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                !=
+                              kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            )
+                          ) and (
+                            changes(kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m])
+                              ==
+                            0
+                          )
+                        for: 15m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubeContainerWaiting
+                        annotations:
+                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} on container \{{ $labels.container}} has been in waiting state for longer than 1 hour.
+                          summary: Pod container waiting longer than 1 hour
+                        expr: kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                        for: 1h
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubeDaemonSetNotScheduled
+                        annotations:
+                          description: There are \{{ $value }} pods of DaemonSet \{{ $labels.daemonset }} that are not scheduled.
+                          summary: DaemonSet pods are not scheduled
+                        expr: |-
+                          kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            -
+                          kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                        for: 10m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubeDaemonSetMisScheduled
+                        annotations:
+                          description: Found \{{ $value }} mis-scheduled pods for DaemonSet \{{ $labels.daemonset }} in namespace \{{ $labels.namespace }}.
+                          summary: DaemonSet pods are misscheduled
+                        expr: kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                        for: 15m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubeJobNotCompleted
+                        annotations:
+                          description: Job \{{ $labels.job_name }} in namespace \{{ $labels.namespace }} has been running for \{{ humanizeDuration $value }} and has not completed.
+                          summary: Job did not complete in time
+                        expr: |-
+                          time() - max by (namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            and
+                          kube_job_status_active{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0) > 43200
+                        for: null
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubeJobFailed
+                        annotations:
+                          description: Job \{{ $labels.job_name }} in namespace \{{ $labels.namespace }} failed to complete. Removing failed job after investigation should clear this alert.
+                          summary: Job failed to complete
+                        expr: kube_job_failed{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}  > 0
+                        for: 15m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubeHpaReplicasMismatch
+                        annotations:
+                          description: HPA \{{ $labels.horizontalpodautoscaler  }} has not matched the desired number of replicas for longer than 15 minutes.
+                          summary: HPA has not matched desired number of replicas
+                        expr: |-
+                          (kube_horizontalpodautoscaler_status_desired_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            !=
+                          kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
+                            and
+                          (kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            >
+                          kube_horizontalpodautoscaler_spec_min_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
+                            and
+                          (kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            <
+                          kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
+                            and
+                          changes(kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[15m]) == 0
+                        for: 15m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubeHpaMaxedOut
+                        annotations:
+                          description: HPA \{{ $labels.horizontalpodautoscaler  }} in namespace \{{ $labels.namespace }} has been running at max replicas for longer than 15 minutes.
+                          summary: HPA is running at max replicas
+                        expr: |-
+                          kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            ==
+                          kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                        for: 15m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubePdbNotEnoughHealthyPods
+                        annotations:
+                          description: PDB \{{ $labels.poddisruptionbudget }} expects \{{ $value }} more healthy pods. The desired number of healthy pods has not been met for at least 15m.
+                          summary: PDB does not have enough healthy pods
+                        expr: |-
+                          (
+                            kube_poddisruptionbudget_status_desired_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            -
+                            kube_poddisruptionbudget_status_current_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          )
+                          > 0
+                        for: 15m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubePersistentVolumeFillingUp
+                        annotations:
+                          description: The PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is only \{{ $value | humanizePercentage }} free.
+                          summary: PersistentVolume is filling up
+                        expr: |-
+                          (
+                            kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                              /
+                            kubelet_volume_stats_capacity_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                          ) < 0.03
+                          and
+                          kubelet_volume_stats_used_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
+                          unless on (cluster, namespace, persistentvolumeclaim)
+                          kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
+                          unless on (cluster, namespace, persistentvolumeclaim)
+                          kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                        for: 1m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: critical
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubePersistentVolumeFillingUp
+                        annotations:
+                          description: Based on recent sampling, the PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is expected to fill up within four days. Currently \{{ $value | humanizePercentage }} is available.
+                          summary: PersistentVolume is filling up
+                        expr: |-
+                          (
+                            kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                              /
+                            kubelet_volume_stats_capacity_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                          ) < 0.15
+                          and
+                          kubelet_volume_stats_used_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
+                          and
+                          predict_linear(kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
+                          unless on (cluster, namespace, persistentvolumeclaim)
+                          kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
+                          unless on (cluster, namespace, persistentvolumeclaim)
+                          kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                        for: 1h
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubePersistentVolumeInodesFillingUp
+                        annotations:
+                          description: The PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} has only \{{ $value | humanizePercentage }} free inodes.
+                          summary: PersistentVolumeInodes are filling up
+                        expr: |-
+                          (
+                            kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                              /
+                            kubelet_volume_stats_inodes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                          ) < 0.03
+                          and
+                          kubelet_volume_stats_inodes_used{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
+                          unless on (cluster, namespace, persistentvolumeclaim)
+                          kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
+                          unless on (cluster, namespace, persistentvolumeclaim)
+                          kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                        for: 1m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: critical
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubePersistentVolumeInodesFillingUp
+                        annotations:
+                          description: Based on recent sampling, the PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is expected to run out of inodes within four days. Currently \{{ $value | humanizePercentage }} of its inodes are free.
+                          summary: PersistentVolumeInodes are filling up
+                        expr: |-
+                          (
+                            kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                              /
+                            kubelet_volume_stats_inodes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                          ) < 0.15
+                          and
+                          kubelet_volume_stats_inodes_used{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
+                          and
+                          predict_linear(kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
+                          unless on (cluster, namespace, persistentvolumeclaim)
+                          kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
+                          unless on (cluster, namespace, persistentvolumeclaim)
+                          kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                        for: 1h
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubePersistentVolumeErrors
+                        annotations:
+                          description: The persistent volume \{{ $labels.persistentvolume }} has status \{{ $labels.phase }}.
+                          summary: PersistentVolume is having issues with provisioning
+                        expr: kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"} > 0
+                        for: 5m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: critical
+                          team: platform
+                          vendor: aspecta
+                      - alert: HighCPUUtilization
+                        annotations:
+                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 95% of its CPU limit for over 15 minutes. Current value is \{{ $value | humanizePercentage }}.
+                          summary: CPU utilization is above 95%
+                        expr: |-
+                          (
+                            sum by (namespace, pod) (pod:container_cpu_usage:sum{namespace="{{ request.object.metadata.name }}"})
+                            /
+                            sum by (namespace, pod) (kube_pod_container_resource_limits{resource="cpu", namespace="{{ request.object.metadata.name }}"})
+                          ) > 0.95
+                        for: 15m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+                      - alert: HighMemoryUtilization
+                        annotations:
+                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 90% of its memory limit for over 15 minutes. Current utilization is \{{ $value | humanizePercentage }}
+                          summary: Memory utilization (90%+) on pod \{{ $labels.pod }}
+                        expr: |-
+                          (
+                            sum by (namespace, pod, container) (container_memory_working_set_bytes{container!="", namespace="{{ request.object.metadata.name }}"})
+                            /
+                            sum by (namespace, pod, container) (kube_pod_container_resource_limits{resource="memory", namespace="{{ request.object.metadata.name }}"})
+                          ) > 0.90
+                        for: 15m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+            kind: PrometheusRule
+            name: cluster-monitoring-{{request.object.metadata.name}}
+            namespace: '{{request.object.metadata.name}}'
+            synchronize: true
+          match:
+            any:
+              - resources:
+                  kinds:
+                    - Namespace
+          name: generate-prometheus-rules-labels
+          preconditions:
+            all:
+              - key: '{{request.object.metadata.labels."openshift.io/cluster-monitoring" || ''''}}'
+                operator: In
+                value:
+                  - "true"
+          skipBackgroundRequests: true
+  3: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+        rbac.kyverno.io/aggregate-to-admission-controller: "true"
+      name: kyverno:admission-controller:monitoring
+    rules:
+      - apiGroups:
+          - rbac.authorization.k8s.io
+        resources:
+          - rolebindings
+        verbs:
+          - get
+      - apiGroups:
+          - monitoring.coreos.com
+        resources:
+          - prometheusrules
+        verbs:
+          - get
+          - list
+          - create
+          - update
+          - delete
+  4: |
+    apiVersion: v1
+    data:
+      config.yaml: |
+        enableUserWorkload: true
+        nodeExporter:
+          collectors:
+            buddyinfo: {}
+            cpufreq: {}
+            ksmd: {}
+            mountstats: {}
+            netclass: {}
+            netdev: {}
+            processes: {}
+            systemd: {}
+            tcpstat: {}
+        alertmanagerMain:
+          secrets:
+            - alertmanager-receivers
+          volumeClaimTemplate:
+            metadata:
+              name: alertmanager-pvc
+            spec:
+              storageClassName: ocs-storagecluster-ceph-rbd
+              resources:
+                requests:
+                  storage: 1Gi
+        prometheusK8s:
+          retention: 7d
+          volumeClaimTemplate:
+            metadata:
+              name: prometheus-pvc
+            spec:
+              storageClassName: ocs-storagecluster-ceph-rbd
+              resources:
+                requests:
+                  storage: 60Gi
+          externalLabels:
+            managed_cluster: dev01
+            customerName: examplecustomer
+            environment: dev
+            location: primary
+            clusterName: dev01
+            vendor: aspecta
+            team: platform
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: cluster-monitoring-config
+      namespace: openshift-monitoring
+  5: |
+    apiVersion: v1
+    data:
+      config.yaml: |
+        alertmanager:
+          enabled: true
+          enableAlertmanagerConfig: true
+          secrets:
+            - alertmanager-uwm-receivers
+        prometheus:
+          retention: 14d
+          volumeClaimTemplate:
+            metadata:
+              name: prometheus-user-workload-pvc
+            spec:
+              storageClassName: ocs-storagecluster-ceph-rbd
+              resources:
+                requests:
+                  storage: 24Gi
+          externalLabels:
+            customerName: examplecustomer
+            environment: dev
+            location: primary
+            clusterName: dev01
+          remoteWrite:
+          - url: https://infogw.api.openshift.com/metrics/v1/receive
+            authorization:
+              type: Bearer
+              credentials:
+                key: token
+                name: telemetry-remote-write
+            proxyUrl: http://proxy.example.com:8080
+            queueConfig:
+              batchSendDeadline: 1m
+              capacity: 30000
+              maxBackoff: 256s
+              maxSamplesPerSend: 10000
+              minBackoff: 1s
+            writeRelabelConfigs:
+            - action: keep
+              regex: (count:up0|count:up1|cluster_version|cluster_version_available_updates|cluster_version_capability|cluster_operator_up|cluster_operator_conditions|cluster_version_payload|cluster_installer|cluster_infrastructure_provider|cluster_feature_set|instance:etcd_object_counts:sum|ALERTS|code:apiserver_request_total:rate:sum|cluster:capacity_cpu_cores:sum|cluster:capacity_memory_bytes:sum|cluster:cpu_usage_cores:sum|cluster:memory_usage_bytes:sum|openshift:cpu_usage_cores:sum|openshift:memory_usage_bytes:sum|workload:cpu_usage_cores:sum|workload:memory_usage_bytes:sum|cluster:virt_platform_nodes:sum|cluster:node_instance_type_count:sum|cnv:vmi_status_running:count|cnv_abnormal|cluster:vmi_request_cpu_cores:sum|node_role_os_version_machine:cpu_capacity_cores:sum|node_role_os_version_machine:cpu_capacity_sockets:sum|subscription_sync_total|olm_resolution_duration_seconds|csv_succeeded|csv_abnormal|cluster:kube_persistentvolumeclaim_resource_requests_storage_bytes:provisioner:sum|cluster:kubelet_volume_stats_used_bytes:provisioner:sum|ceph_cluster_total_bytes|ceph_cluster_total_used_raw_bytes|ceph_health_status|odf_system_raw_capacity_total_bytes|odf_system_raw_capacity_used_bytes|odf_system_health_status|job:ceph_osd_metadata:count|job:kube_pv:count|job:odf_system_pvs:count|job:ceph_pools_iops:total|job:ceph_pools_iops_bytes:total|job:ceph_versions_running:count|job:noobaa_total_unhealthy_buckets:sum|job:noobaa_bucket_count:sum|job:noobaa_total_object_count:sum|odf_system_bucket_count|odf_system_objects_total|noobaa_accounts_num|noobaa_total_usage|console_url|cluster:console_auth_login_requests_total:sum|cluster:console_auth_login_successes_total:sum|cluster:console_auth_login_failures_total:sum|cluster:console_auth_logout_requests_total:sum|cluster:console_usage_users:max|cluster:console_plugins_info:max|cluster:console_customization_perspectives_info:max|cluster:ovnkube_controller_egress_routing_via_host:max|cluster:ovnkube_controller_admin_network_policies_db_objects:max|cluster:ovnkube_controller_baseline_admin_network_policies_db_objects:max|cluster:ovnkube_controller_admin_network_policies_rules:max|cluster:ovnkube_controller_baseline_admin_network_policies_rules:max|cluster:network_attachment_definition_instances:max|cluster:network_attachment_definition_enabled_instance_up:max|cluster:ingress_controller_aws_nlb_active:sum|cluster:route_metrics_controller_routes_per_shard:min|cluster:route_metrics_controller_routes_per_shard:max|cluster:route_metrics_controller_routes_per_shard:avg|cluster:route_metrics_controller_routes_per_shard:median|cluster:openshift_route_info:tls_termination:sum|insightsclient_request_send_total|cam_app_workload_migrations|cluster:apiserver_current_inflight_requests:sum:max_over_time:2m|cluster:alertmanager_integrations:max|cluster:telemetry_selected_series:count|openshift:prometheus_tsdb_head_series:sum|openshift:prometheus_tsdb_head_samples_appended_total:sum|monitoring:container_memory_working_set_bytes:sum|namespace_job:scrape_series_added:topk3_sum1h|namespace_job:scrape_samples_post_metric_relabeling:topk3|monitoring:haproxy_server_http_responses_total:sum|profile:cluster_monitoring_operator_collection_profile:max|rhmi_status|status:upgrading:version:rhoam_state:max|state:rhoam_critical_alerts:max|state:rhoam_warning_alerts:max|rhoam_7d_slo_percentile:max|rhoam_7d_slo_remaining_error_budget:max|cluster_legacy_scheduler_policy|cluster_master_schedulable|che_workspace_status|che_workspace_started_total|che_workspace_failure_total|che_workspace_start_time_seconds_sum|che_workspace_start_time_seconds_count|cco_credentials_mode|cluster:kube_persistentvolume_plugin_type_counts:sum|acm_managed_cluster_info|acm_managed_cluster_worker_cores:max|acm_console_page_count:sum|cluster:vsphere_vcenter_info:sum|cluster:vsphere_esxi_version_total:sum|cluster:vsphere_node_hw_version_total:sum|openshift:build_by_strategy:sum|rhods_aggregate_availability|rhods_total_users|instance:etcd_disk_wal_fsync_duration_seconds:histogram_quantile|instance:etcd_mvcc_db_total_size_in_bytes:sum|instance:etcd_network_peer_round_trip_time_seconds:histogram_quantile|instance:etcd_mvcc_db_total_size_in_use_in_bytes:sum|instance:etcd_disk_backend_commit_duration_seconds:histogram_quantile|jaeger_operator_instances_storage_types|jaeger_operator_instances_strategies|jaeger_operator_instances_agent_strategies|appsvcs:cores_by_product:sum|nto_custom_profiles:count|openshift_csi_share_configmap|openshift_csi_share_secret|openshift_csi_share_mount_failures_total|openshift_csi_share_mount_requests_total|eo_es_storage_info|eo_es_redundancy_policy_info|eo_es_defined_delete_namespaces_total|eo_es_misconfigured_memory_resources_info|cluster:eo_es_data_nodes_total:max|cluster:eo_es_documents_created_total:sum|cluster:eo_es_documents_deleted_total:sum|pod:eo_es_shards_total:max|eo_es_cluster_management_state_info|imageregistry:imagestreamtags_count:sum|imageregistry:operations_count:sum|log_logging_info|log_collector_error_count_total|log_forwarder_pipeline_info|log_forwarder_input_info|log_forwarder_output_info|cluster:log_collected_bytes_total:sum|cluster:log_logged_bytes_total:sum|openshift_logging:log_forwarder_pipelines:sum|openshift_logging:log_forwarders:sum|openshift_logging:log_forwarder_input_type:sum|openshift_logging:log_forwarder_output_type:sum|openshift_logging:vector_component_received_bytes_total:rate5m|cluster:kata_monitor_running_shim_count:sum|platform:hypershift_hostedclusters:max|platform:hypershift_nodepools:max|namespace:noobaa_unhealthy_bucket_claims:max|namespace:noobaa_buckets_claims:max|namespace:noobaa_unhealthy_namespace_resources:max|namespace:noobaa_namespace_resources:max|namespace:noobaa_unhealthy_namespace_buckets:max|namespace:noobaa_namespace_buckets:max|namespace:noobaa_accounts:max|namespace:noobaa_usage:max|namespace:noobaa_system_health_status:max|ocs_advanced_feature_usage|os_image_url_override:sum|cluster:vsphere_topology_tags:max|cluster:vsphere_infrastructure_failure_domains:max|apiserver_list_watch_request_success_total:rate:sum|rhacs:telemetry:rox_central_info|rhacs:telemetry:rox_central_secured_clusters|rhacs:telemetry:rox_central_secured_nodes|rhacs:telemetry:rox_central_secured_vcpus|rhacs:telemetry:rox_sensor_info|cluster:volume_manager_selinux_pod_context_mismatch_total|cluster:volume_manager_selinux_volume_context_mismatch_warnings_total|cluster:volume_manager_selinux_volume_context_mismatch_errors_total|cluster:volume_manager_selinux_volumes_admitted_total|ols:provider_model_configuration|ols:rest_api_query_calls_total:2xx|ols:rest_api_query_calls_total:4xx|ols:rest_api_query_calls_total:5xx|openshift:openshift_network_operator_ipsec_state:info)
+              sourceLabels:
+              - __name__
+        prometheusOperator: {}
+        thanosRuler:
+          volumeClaimTemplate:
+            metadata:
+              name: thanos-ruler-user-workload-pvc
+            spec:
+              storageClassName: ocs-storagecluster-ceph-rbd
+              resources:
+                requests:
+                  storage: 1Gi
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: user-workload-monitoring-config
+      namespace: openshift-user-workload-monitoring
+  6: |
+    apiVersion: v1
+    kind: Endpoints
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: vault-bastion
+      namespace: apc-monitoring-bastion
+    subsets:
+      - addresses:
+          - ip: 10.0.0.1
+        ports:
+          - name: metrics
+            port: 8200
+            protocol: TCP
+  7: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: alertmanager-receivers
+      namespace: openshift-monitoring
+    spec:
+      dataFrom:
+        - extract:
+            key: apc-platform/d/monitoring/alertmanager
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: apc
+      target:
+        creationPolicy: Owner
+        name: alertmanager-receivers
+  8: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: alertmanager-uwm-receivers
+      namespace: openshift-user-workload-monitoring
+    spec:
+      dataFrom:
+        - extract:
+            key: apc-platform/d/monitoring/alertmanager-uwm
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: apc
+      target:
+        creationPolicy: Owner
+        name: alertmanager-uwm-receivers
+  9: |
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: allow-proxy
+      namespace: openshift-user-workload-monitoring
+    spec:
+      egress:
+        - to:
+            - ipBlock:
+                cidr: 10.1.1.7/32
+      podSelector: {}
+      policyTypes:
+        - Egress
+  10: |
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: allow-proxy
+      namespace: openshift-monitoring
+    spec:
+      egress:
+        - to:
+            - ipBlock:
+                cidr: 10.1.1.7/32
+      podSelector: {}
+      policyTypes:
+        - Egress
+  11: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: disk-raid-array-monitoring
+      namespace: openshift-monitoring
+    spec:
+      groups:
+        - name: node-exporter
+          rules:
+            - alert: APC-NodeRAIDDegraded
+              annotations:
+                description: RAID array '{{ $labels.device }}' at {{ $labels.instance }} is in degraded state due to one or more disks failures. Number of spare drives is insufficient to fix issue automatically.
+                runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/NodeRAIDDegraded.md
+                summary: RAID Array is degraded.
+              expr: |
+                node_md_disks_required{job="node-exporter",namespace="openshift-monitoring",device=~"md.+"} - ignoring (state) (node_md_disks{state="active",namespace="openshift-monitoring",job="node-exporter",device=~"md.+"}) > 0
+              for: 15m
+              labels:
+                severity: critical
+                team: platform
+                vendor: aspecta
+            - alert: APC-NodeRAIDDiskFailure
+              annotations:
+                description: At least one device in RAID array at {{ $labels.instance }} failed. Array '{{ $labels.device }}' needs attention and possibly a disk swap.
+                summary: Failed device in RAID array.
+              expr: |
+                node_md_disks{state="failed",namespace="openshift-monitoring",job="node-exporter",device=~"md.+"} > 0
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+  12: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: ldap-monitoring
+      namespace: apc-monitoring-bastion
+    spec:
+      groups:
+        - name: ldap-monitor
+          rules:
+            - alert: LdapServiceUp
+              annotations:
+                description: LDAP service {{ $labels.host }} is down.
+                summary: LDAP service {{ $labels.host }} is down.
+              expr: openldap_service_up != 1
+              for: 1m
+              labels:
+                severity: critical
+                team: platform
+                vendor: aspecta
+            - alert: LdapReplicationTimestamp
+              annotations:
+                description: Replica ID {{ $labels.replica_id }} has inconsistent sync timestamp across servers. LDAP instances are not synchonized.
+                summary: Inconsistent sync timestamp for {{ $labels.replica_id }}
+              expr: max by (replica_id) (openldap_replication_sync_timestamp) != min by (replica_id) (openldap_replication_sync_timestamp)
+              for: 1m
+              labels:
+                severity: critical
+                team: platform
+                vendor: aspecta
+            - alert: LdapSingleReplica
+              annotations:
+                description: Replica ID {{ $labels.replica_id }} has only single instance. LDAP replication is not working properly.
+                summary: Only single instance found for repica id {{ $labels.replica_id }}
+              expr: count by (replica_id) (openldap_replication_sync_timestamp) == 1
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+  13: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: user-workload-monitoring-thanos-rules
+      namespace: apc-observability
+    spec:
+      groups:
+        - name: apc-observability
+          rules:
+            - alert: WatchdogUWMthanos
+              annotations:
+                description: |
+                  This is an alert meant to ensure that the entire alerting pipeline is functional.
+                  This alert is always firing, therefore it should always be firing in UWM Alertmanager
+                  and always fire against a receiver.
+                summary: An alert that should always be firing to certify that UWM Alertmanager + UWM Thanos ruler + UWM Prometheus are working properly.
+              expr: vector(1)
+              labels:
+                namespace: apc-observability
+                severity: none
+  14: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: alertmanager-user-workload
+      namespace: openshift-user-workload-monitoring
+    stringData:
+      alertmanager.yaml: |
+        global:
+          http_config:
+            proxy_url: http://proxy.example.com:8080
+            no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1
+        inhibit_rules:
+        - equal:
+          - namespace
+          - alertname
+          source_matchers:
+          - "severity = critical"
+          target_matchers:
+          - "severity =~ warning|info"
+        - equal:
+          - namespace
+          - alertname
+          source_matchers:
+          - "severity = warning"
+          target_matchers:
+          - "severity = info"
+        receivers:
+        - name: "null"
+        - name: teams_aspecta
+          msteams_configs:
+            - send_resolved: true
+              webhook_url_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/msteams_url
+        - name: healthchecksioUWMthanos
+          webhook_configs:
+            - url_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/healthchecks_url
+              send_resolved: false
+        - name: atlassian_aspecta
+          opsgenie_configs:
+            - send_resolved: true
+              api_key_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/opsgenie_key
+              message: |
+                [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -
+                {{ range .Alerts }}
+                {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}
+                {{ end }}
+              priority: '{{ if eq .CommonLabels.severity "critical" }}P1{{ else if eq .CommonLabels.severity "warning" }}P2{{ else if eq .CommonLabels.severity "info" }}P3{{ else }}P4{{ end }}'
+              tags: |
+                {{ with .CommonLabels.clusterName }}clusterName={{ . }}{{ end }},
+                {{ with .CommonLabels.customerName }}customerName={{ . }}{{ end }},
+                {{ with .CommonLabels.environment }}environment={{ . }}{{ end }},
+                {{ with .CommonLabels.location }}location={{ . }}{{ end }},
+                {{ with .CommonLabels.namespace }}namespace={{ . }}{{ end }},
+                {{ with .CommonLabels.severity }}severity={{ . }}{{ end }},
+                {{ with .CommonLabels.team }}team={{ . }}{{ end }},
+                {{ with .CommonLabels.vendor }}vendor={{ . }}{{ end }},
+                {{ with .CommonLabels.app }}app={{ . }}{{ end }}
+        route:
+          group_by:
+          - namespace
+          - alertname
+          - severity
+          group_interval: 5m
+          group_wait: 30s
+          receiver: teams_aspecta
+          repeat_interval: 12h
+          routes:
+          - receiver: atlassian_aspecta
+            continue: true
+            matchers:
+            - severity =~ "warning|critical"
+            - alertname != Watchdog
+            - vendor = "aspecta"
+            - team = "platform"
+          - receiver: healthchecksioUWMthanos
+            matchers:
+            - alertname = WatchdogUWMthanos
+            group_wait: 0s
+            group_interval: 60s
+            repeat_interval: 60s
+          - receiver: "null"
+            matchers:
+            - severity =~ "info|none"
+          - receiver: "null"
+            matchers:
+            - vendor != "aspecta"
+    type: Opaque
+  15: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: alertmanager-main
+      namespace: openshift-monitoring
+    stringData:
+      alertmanager.yaml: |
+        global:
+          http_config:
+            proxy_url: http://proxy.example.com:8080
+            no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1
+        inhibit_rules:
+        - equal:
+          - namespace
+          - alertname
+          source_matchers:
+          - "severity = critical"
+          target_matchers:
+          - "severity =~ warning|info"
+        - equal:
+          - namespace
+          - alertname
+          source_matchers:
+          - "severity = warning"
+          target_matchers:
+          - "severity = info"
+        receivers:
+        - name: "null"
+        - name: teams_aspecta
+          msteams_configs:
+            - send_resolved: true
+              webhook_url_file: /etc/alertmanager/secrets/alertmanager-receivers/msteams_url
+        - name: healthchecksio
+          webhook_configs:
+            - url_file: /etc/alertmanager/secrets/alertmanager-receivers/healthchecks_url
+              send_resolved: false
+        - name: atlassian_aspecta
+          opsgenie_configs:
+            - send_resolved: true
+              api_key_file: /etc/alertmanager/secrets/alertmanager-receivers/opsgenie_key
+              message: |
+                [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -
+                {{ range .Alerts }}
+                {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}
+                {{ end }}
+              priority: '{{ if eq .CommonLabels.severity "critical" }}P1{{ else if eq .CommonLabels.severity "warning" }}P2{{ else if eq .CommonLabels.severity "info" }}P3{{ else }}P4{{ end }}'
+              tags: |
+                {{ with .CommonLabels.clusterName }}clusterName={{ . }}{{ end }},
+                {{ with .CommonLabels.customerName }}customerName={{ . }}{{ end }},
+                {{ with .CommonLabels.environment }}environment={{ . }}{{ end }},
+                {{ with .CommonLabels.location }}location={{ . }}{{ end }},
+                {{ with .CommonLabels.namespace }}namespace={{ . }}{{ end }},
+                {{ with .CommonLabels.severity }}severity={{ . }}{{ end }},
+                {{ with .CommonLabels.team }}team={{ . }}{{ end }},
+                {{ with .CommonLabels.vendor }}vendor={{ . }}{{ end }},
+                {{ with .CommonLabels.app }}app={{ . }}{{ end }}
+        route:
+          group_by:
+          - namespace
+          - alertname
+          - severity
+          group_interval: 5m
+          group_wait: 30s
+          receiver: teams_aspecta
+          repeat_interval: 12h
+          routes:
+          - receiver: "null"
+            matchers:
+            - alertname =~ "CertificateIsAboutToExpire|CertificateApproachingExpiration"
+            - name =~ "kubemacpool-service|result-server-cert-ocp4-cis-1-5"
+          - receiver: atlassian_aspecta
+            continue: true
+            matchers:
+            - severity =~ "warning|critical"
+            - alertname != Watchdog
+            - vendor = "aspecta"
+          - receiver: healthchecksio
+            matchers:
+            - alertname = Watchdog
+            group_wait: 0s
+            group_interval: 60s
+            repeat_interval: 60s
+          - receiver: "null"
+            matchers:
+            - severity =~ "info|none"
+          - receiver: "null"
+            matchers:
+            - vendor != "aspecta"
+    type: Opaque
+  16: |
+    apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: vault-bastion
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: vault-bastion
+      namespace: apc-monitoring-bastion
+    spec:
+      clusterIP: None
+      ports:
+        - name: metrics
+          port: 8200
+          targetPort: 8200
+      type: ClusterIP
+  17: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring
+        helm.sh/chart: monitoring-1.1.0
+      name: vault-bastion
+      namespace: apc-monitoring-bastion
+    spec:
+      endpoints:
+        - interval: 30s
+          params:
+            format:
+              - prometheus
+          path: /v1/sys/metrics
+          port: metrics
+          scheme: https
+          tlsConfig:
+            insecureSkipVerify: true
+      namespaceSelector:
+        matchNames:
+          - apc-monitoring-bastion
+      selector:
+        matchLabels:
+          app: vault-bastion

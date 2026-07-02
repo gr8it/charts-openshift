@@ -1,0 +1,16 @@
+{{- if .Values.vaultBastionMonitoring.bastionIP }}
+kind: Endpoints
+apiVersion: v1
+metadata:
+  name: vault-bastion
+  namespace: apc-monitoring-bastion
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+subsets:
+- addresses:
+  - ip: {{ .Values.vaultBastionMonitoring.bastionIP }}
+  ports:
+  - name: metrics
+    port: 8200
+    protocol: TCP
+{{- end }}

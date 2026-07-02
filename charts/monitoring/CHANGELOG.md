@@ -5,6 +5,18 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-05-05
+
+_([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
+
+### Changed
+
+- Merged `cluster-monitoring` and `user-workload-monitoring` charts into this chart
+- Added `ClusterMonitoringConfig`, `UserWorkloadMonitoringConfig`, AlertManager secrets and ExternalSecrets, AlertingRule, PrometheusRule, and NetworkPolicy templates
+- Added `openshift-adp-backups` subchart dependency for Velero backup schedules
+- Updated `apc-global-overrides` dependency to 1.8.0
+- Hub detection via `global.apc.cluster.isHub` (replaces manual `hub.enabled` flag)
+
 ## [1.0.9] - 2026-02-27
 
 _([ASPELAB-87](https://aspecta.atlassian.net/browse/ASPELAB-87))_

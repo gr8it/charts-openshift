@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-monitoring-config
+  namespace: openshift-monitoring
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+    enableUserWorkload: true
+    nodeExporter:
+      collectors:
+        buddyinfo: {}
+        cpufreq: {}
+        ksmd: {}
+        mountstats: {}
+        netclass: {}
+        netdev: {}
+        processes: {}
+        systemd: {}
+        tcpstat: {}
+    alertmanagerMain:
+      {{- if .Values.eso.enabled }}
+      secrets:
+        - alertmanager-receivers
+      {{- end }}
+      volumeClaimTemplate:
+        metadata:
+          name: alertmanager-pvc
+        spec:
+          storageClassName: {{ .Values.clusterMonitoring.alertmanager.storageClassName }}
+          resources:
+            requests:
+              storage: {{ .Values.clusterMonitoring.alertmanager.storageSize }}
+    prometheusK8s:
+      retention: {{ .Values.clusterMonitoring.prometheus.retention }}
+      volumeClaimTemplate:
+        metadata:
+          name: prometheus-pvc
+        spec:
+          storageClassName: {{ .Values.clusterMonitoring.prometheus.storageClassName }}
+          resources:
+            requests:
+              storage: {{ .Values.clusterMonitoring.prometheus.storageSize }}
+      externalLabels:
+        managed_cluster: {{ include "apc-global-overrides.require-clusterName" . }}
+        customerName: {{ include "apc-global-overrides.require-customer" . }}
+        environment: {{ include "apc-global-overrides.require-environment" . }}
+        location: {{ .Values.clusterMonitoring.location }}
+        clusterName: {{ include "apc-global-overrides.require-clusterName" . }}
+        vendor: aspecta
+        team: platform

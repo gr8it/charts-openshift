@@ -1,0 +1,25 @@
+{{- if .Values.vaultBastionMonitoring.bastionIP }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: vault-bastion
+  namespace: apc-monitoring-bastion
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+spec:
+  endpoints:
+  - interval: 30s
+    port: metrics
+    path: /v1/sys/metrics
+    scheme: https
+    params:
+      format: ['prometheus']
+    tlsConfig:
+      insecureSkipVerify: true
+  namespaceSelector:
+    matchNames:
+    - apc-monitoring-bastion
+  selector:
+    matchLabels:
+      app: vault-bastion
+{{- end }}
