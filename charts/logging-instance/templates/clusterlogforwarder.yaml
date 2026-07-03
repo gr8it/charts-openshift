@@ -47,11 +47,11 @@ spec:
         ca:
           configMapName: openshift-service-ca.crt
           key: service-ca.crt
-    {{- if .Values.hubForwarding.enabled }}
+    {{- if .Values.hubAuditForwarding.enabled }}
     - name: hub-loki-audit
       type: loki
       loki:
-        url: {{ .Values.hubForwarding.url | quote }}
+        url: {{ .Values.hubAuditForwarding.url | quote }}
         authentication:
           token:
             from: secret
@@ -78,7 +78,7 @@ spec:
         - audit
       outputRefs:
         - default-lokistack
-    {{- if and .Values.hubForwarding.enabled .Values.auditToHub.enabled }}
+    {{- if and .Values.hubAuditForwarding.enabled .Values.auditToHub.enabled }}
     - name: audit-to-hub
       inputRefs:
         - audit
