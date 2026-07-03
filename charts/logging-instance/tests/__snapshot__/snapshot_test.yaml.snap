@@ -19,6 +19,25 @@ manifests should match snapshot:
           requests:
             cpu: 500m
             memory: 1Gi
+      filters:
+        - drop:
+            - test:
+                - field: .message
+                  notMatches: '"logger":"pgaudit"'
+                - field: .message
+                  notMatches: '"command_tag":"authentication"'
+                - field: .message
+                  notMatches: '"command_tag":"startup"'
+          name: pgaudit-filter
+          type: drop
+      inputs:
+        - application:
+            selector:
+              matchExpressions:
+                - key: cnpg.io/cluster
+                  operator: Exists
+          name: pgaudit
+          type: application
       managementState: Managed
       outputs:
         - lokiStack:
@@ -44,6 +63,15 @@ manifests should match snapshot:
             url: https://loki-gateway-openshift-logging.apps.hub01.example.com/api/logs/v1/audit/loki/api/v1/push
           name: hub-loki-audit
           type: loki
+        - http:
+            url: https://vector-webhook.example.com/
+          name: vector-webhook
+          tls:
+            ca:
+              configMapName: kube-root-ca.crt
+              key: ca.crt
+            insecureSkipVerify: false
+          type: http
       pipelines:
         - inputRefs:
             - infrastructure
@@ -57,6 +85,13 @@ manifests should match snapshot:
           name: audit-to-hub
           outputRefs:
             - hub-loki-audit
+        - filterRefs:
+            - pgaudit-filter
+          inputRefs:
+            - pgaudit
+          name: postgres-audit-to-hub
+          outputRefs:
+            - vector-webhook
       serviceAccount:
         name: collector
   2: |
@@ -204,9 +239,6 @@ manifests should match snapshot:
       storageClassName: ocs-storagecluster-ceph-rbd
       tenants:
         mode: openshift-logging
-        openshift:
-          adminGroups:
-            - cluster-admin
   8: |
     apiVersion: objectbucket.io/v1alpha1
     kind: ObjectBucketClaim

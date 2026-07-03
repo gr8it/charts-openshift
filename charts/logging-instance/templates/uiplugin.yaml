@@ -10,5 +10,6 @@ spec:
   logging:
     lokiStack:
       name: {{ include "logging-instance.fullname" . }}
+    # Workaround for issue https://access.redhat.com/solutions/6998442
     timeout: {{ .Values.uiplugin.timeout | default "120s" }}
 {{- end }}
