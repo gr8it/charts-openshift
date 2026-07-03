@@ -13,4 +13,4 @@ _Initial release._
 
 ### Added
 
-- OpenShift Logging Operator installation via ACM OperatorPolicy
+- OpenShift Logging Operator (v6.1.3) installation via ACM OperatorPolicy

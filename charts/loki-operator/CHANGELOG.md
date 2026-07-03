@@ -13,4 +13,4 @@ _Initial release._
 
 ### Added
 
-- Loki Operator installation via ACM OperatorPolicy
+- Loki Operator (v6.1.3) installation via ACM OperatorPolicy
