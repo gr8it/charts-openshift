@@ -40,7 +40,7 @@ manifests should match snapshot:
                 from: secret
                 secret:
                   key: TOKEN
-                  name: logging-instance
+                  name: hub-spoke-logforward
             url: https://loki-gateway-openshift-logging.apps.hub01.example.com/api/logs/v1/audit/loki/api/v1/push
           name: hub-loki-audit
           type: loki
@@ -142,7 +142,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: logging-instance
         helm.sh/chart: logging-instance-1.0.0
-      name: logging-instance
+      name: hub-spoke-logforward
       namespace: openshift-logging
     spec:
       data:
@@ -156,7 +156,7 @@ manifests should match snapshot:
         name: apc
       target:
         creationPolicy: Owner
-        name: logging-instance
+        name: hub-spoke-logforward
   7: |
     apiVersion: loki.grafana.com/v1
     kind: LokiStack
