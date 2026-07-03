@@ -47,11 +47,11 @@ spec:
         ca:
           configMapName: openshift-service-ca.crt
           key: service-ca.crt
-    {{- if .Values.hubAuditForwarding.enabled }}
+    {{- if .Values.auditToHub.enabled }}
     - name: hub-loki-audit
       type: loki
       loki:
-        url: {{ .Values.hubAuditForwarding.url | quote }}
+        url: {{ .Values.auditToHub.url | quote }}
         authentication:
           token:
             from: secret
@@ -59,11 +59,11 @@ spec:
               key: TOKEN
               name: hub-spoke-logforward
     {{- end }}
-    {{- if .Values.vectorWebhook.enabled }}
+    {{- if .Values.pgaudit.enabled }}
     - name: vector-webhook
       type: http
       http:
-        url: {{ .Values.vectorWebhook.url | quote }}
+        url: {{ .Values.pgaudit.url | quote }}
       tls:
         ca:
           configMapName: kube-root-ca.crt
@@ -78,14 +78,14 @@ spec:
         - audit
       outputRefs:
         - default-lokistack
-    {{- if and .Values.hubAuditForwarding.enabled .Values.auditToHub.enabled }}
+    {{- if .Values.auditToHub.enabled }}
     - name: audit-to-hub
       inputRefs:
         - audit
       outputRefs:
         - hub-loki-audit
     {{- end }}
-    {{- if and .Values.pgaudit.enabled .Values.vectorWebhook.enabled }}
+    {{- if .Values.pgaudit.enabled }}
     - name: postgres-audit-to-hub
       filterRefs:
         - pgaudit-filter

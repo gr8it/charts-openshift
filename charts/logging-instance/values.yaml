@@ -51,23 +51,15 @@ collector:
       cpu: 500m
       memory: 512Mi
 
-# --- Hub audit forwarding output ---
-hubAuditForwarding:
-  enabled: false
-  url: ""
-
-# --- Audit to hub pipeline ---
+# --- Audit to hub forwarding ---
 auditToHub:
   enabled: false
-
-# --- Vector webhook output ---
-vectorWebhook:
-  enabled: false
   url: ""
 
-# --- Postgres audit ---
+# --- Postgres audit forwarding (vector webhook) ---
 pgaudit:
   enabled: false
+  url: ""
 
 # --- ExternalSecret (hub-spoke token) ---
 # enabled: defaults to true on spoke clusters (not hub), set explicitly to override
