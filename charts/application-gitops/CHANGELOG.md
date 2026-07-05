@@ -5,6 +5,13 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1] - 2026-03-17
+
+### Changed
+
+- Updated Argo AppProject destinations - allowing applications to deploy to different namespaces than sourceNamespace
+- Updated snapshot tests to match current template rendering
+
 ## [1.5.0] - 2025-11-19
 
 _([JIRA-8489](https://aspecta.atlassian.net/browse/SPEXAPC-8489))_

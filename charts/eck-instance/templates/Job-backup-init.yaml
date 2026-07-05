@@ -1,0 +1,65 @@
+{{- if .Values.backup.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-backup-init
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "eck-instance.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: backup-init
+          image: {{ .Values.backup.backupInitContainer.image }}:{{ .Values.backup.backupInitContainer.tag }}
+          command: ["/mnt/scripts/backup-prepare.sh"]
+          securityContext:
+            {{- toYaml .Values.defaultSecurityContext | nindent 12 }}
+          env:
+            - name: ES_HOST
+              value: "https://{{ .Release.Name }}-es-http.{{ .Release.Namespace }}.svc:9200"
+            - name: BUCKET_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-backup-allinfo
+                  key: bucket
+            - name: BUCKET_EP
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-backup-allinfo
+                  key: endpoint
+          volumeMounts:
+          - name: snap-init-user
+            mountPath: /mnt/snap-init-user
+            readOnly: true
+          - name: slm-admin-user
+            mountPath: /mnt/slm-admin-user
+            readOnly: true
+          - name: monitor-user
+            mountPath: /mnt/monitor-user
+            readOnly: true
+          - name: es-ca
+            mountPath: /mnt/es-ca
+            readOnly: true
+          - name: backup-init
+            mountPath: "/mnt/scripts"
+      volumes:
+        - name: snap-init-user
+          secret:
+            secretName: {{ .Release.Name }}-snapinit-user
+        - name: slm-admin-user
+          secret:
+            secretName: {{ .Release.Name }}-slmadmin-user
+        - name: monitor-user
+          secret:
+            secretName: {{ .Release.Name }}-monitor-user
+        - name: es-ca
+          secret:
+            secretName: {{ .Release.Name }}-es-tls
+        - name: backup-init
+          configMap:
+            name: {{ .Release.Name }}-init-scripts
+            defaultMode: 0755
+{{- end }}

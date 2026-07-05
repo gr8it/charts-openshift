@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: {{ include "crossplane-helm.fullname" . }}-rbac-manager
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "crossplane-helm.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: crossplane-rbac-manager
+  podMetricsEndpoints:
+    - port: metrics
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}

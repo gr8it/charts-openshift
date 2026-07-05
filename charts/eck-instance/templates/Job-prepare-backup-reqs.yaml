@@ -1,0 +1,31 @@
+{{- if .Values.backup.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-prepare-reqs
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "eck-instance.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      serviceAccountName: {{ .Release.Name }}-bkp
+      restartPolicy: Never
+      containers:
+        - name: create-obc-secret
+          image: {{ .Values.backup.prereqs.container.image }}:{{ .Values.backup.prereqs.container.tag }}
+          command: ["/mnt/scripts/create-s3-creds-secret.sh"]
+          volumeMounts:
+          - name: s3-creds
+            mountPath: "/mnt/scripts"
+          securityContext:
+            {{- toYaml .Values.defaultSecurityContext | nindent 12 }}
+      volumes:  
+        - name: s3-creds
+          configMap:
+            name: {{ .Release.Name }}-init-scripts
+            defaultMode: 0755
+{{- end }}

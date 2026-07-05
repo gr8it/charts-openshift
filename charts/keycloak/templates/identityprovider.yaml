@@ -35,9 +35,9 @@ spec:
     extraConfig:
       {{- if .pkceMethod }}
       pkceEnabled: "true"
-      pkceMethod: {{ .pkceMethod }}
+      pkceMethod: {{ .pkceMethod | quote }}
       {{- end }}
-      isAccessTokenJWT: {{ .isAccessTokenJWT | default true }}
+      isAccessTokenJWT: {{ .isAccessTokenJWT | default true | quote }}
   providerConfigRef:
     name: {{ include "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" $ }}
     kind: ClusterProviderConfig

@@ -8,7 +8,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: keycloak-ca-certs
       namespace: apc-keycloak
     stringData:
@@ -43,7 +43,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: isas
       namespace: apc-keycloak
     spec:
@@ -73,7 +73,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: sf
       namespace: apc-keycloak
     spec:
@@ -107,7 +107,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: sf2
       namespace: apc-keycloak
     spec:
@@ -141,7 +141,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: keycloak-backup-db
       namespace: apc-keycloak
     spec:
@@ -162,7 +162,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: keycloak-db
       namespace: apc-keycloak
     spec:
@@ -236,7 +236,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: keycloak-egressip
       namespace: apc-keycloak
   8: |
@@ -248,7 +248,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: idp-internal-keycloak-oidc-credentials
       namespace: apc-keycloak
     spec:
@@ -256,11 +256,11 @@ manifests should match snapshot:
         - remoteRef:
             key: apc-platform/l/keycloak/Internal/identity-providers/keycloak-oidc/credentials
             property: client-id
-          secretKey: client-id
+          secretKey: clientid
         - remoteRef:
             key: apc-platform/l/keycloak/Internal/identity-providers/keycloak-oidc/credentials
             property: client-secret
-          secretKey: client-secret
+          secretKey: clientsecret
       secretStoreRef:
         kind: ClusterSecretStore
         name: vault-hub-secret-store
@@ -269,8 +269,8 @@ manifests should match snapshot:
         name: idp-internal-keycloak-oidc-credentials
         template:
           data:
-            client-id: '{{ .client-id }}'
-            client-secret: '{{ .client-secret }}'
+            client-id: '{{ .clientid }}'
+            client-secret: '{{ .clientsecret }}'
   9: |
     apiVersion: authenticationflow.keycloak.m.crossplane.io/v1alpha1
     kind: Flow
@@ -280,7 +280,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: first-broker-login-without-profile-review
       namespace: apc-keycloak
     spec:
@@ -300,7 +300,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: first-broker-login-without-profile-review-review-profile
       namespace: apc-keycloak
     spec:
@@ -322,7 +322,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: first-broker-login-without-profile-review-review-profile
       namespace: apc-keycloak
     spec:
@@ -345,7 +345,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: first-broker-login-without-profile-review-user-creation-or-linking
       namespace: apc-keycloak
     spec:
@@ -368,7 +368,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: first-broker-login-without-profile-review-create-user-if-unique
       namespace: apc-keycloak
     spec:
@@ -390,7 +390,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: first-broker-login-without-profile-review-create-user-if-unique
       namespace: apc-keycloak
     spec:
@@ -413,7 +413,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: first-broker-login-without-profile-review-handle-existing
       namespace: apc-keycloak
     spec:
@@ -436,7 +436,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: first-broker-login-without-profile-review-confirm-link
       namespace: apc-keycloak
     spec:
@@ -458,7 +458,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: first-broker-login-without-profile-review-account-verification
       namespace: apc-keycloak
     spec:
@@ -481,7 +481,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: first-broker-login-without-profile-review-email-verification
       namespace: apc-keycloak
     spec:
@@ -503,7 +503,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: first-broker-login-without-profile-review-reauthenticate
       namespace: apc-keycloak
     spec:
@@ -526,7 +526,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: first-broker-login-without-profile-review-credentials-form
       namespace: apc-keycloak
     spec:
@@ -548,7 +548,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: first-broker-login-without-profile-review-conditional-otp
       namespace: apc-keycloak
     spec:
@@ -571,7 +571,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: first-broker-login-without-profile-review-conditional-user
       namespace: apc-keycloak
     spec:
@@ -593,7 +593,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: first-broker-login-without-profile-review-otp-form
       namespace: apc-keycloak
     spec:
@@ -615,7 +615,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: first-broker-login-without-profile-review-organization
       namespace: apc-keycloak
     spec:
@@ -638,7 +638,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: first-broker-login-without-profile-review-conditional-user-org
       namespace: apc-keycloak
     spec:
@@ -660,7 +660,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: first-broker-login-without-profile-review-org-member-onboard
       namespace: apc-keycloak
     spec:
@@ -682,7 +682,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: keycloak-oidc
       namespace: apc-keycloak
     spec:
@@ -698,7 +698,7 @@ manifests should match snapshot:
         displayName: Keycloak OIDC IDP
         enabled: true
         extraConfig:
-          isAccessTokenJWT: true
+          isAccessTokenJWT: "true"
           pkceEnabled: "true"
           pkceMethod: S256
         firstBrokerLoginFlowAlias: first broker login without profile review
@@ -725,7 +725,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: keycloak
       namespace: apc-keycloak
     spec:
@@ -783,7 +783,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: keycloak-tls-secret
       namespace: apc-keycloak
     spec:
@@ -802,7 +802,7 @@ manifests should match snapshot:
           app.kubernetes.io/managed-by: Helm
           app.kubernetes.io/name: keycloak
           app.kubernetes.io/version: v26.0
-          helm.sh/chart: keycloak-1.6.0
+          helm.sh/chart: keycloak-1.6.1
   30: |
     apiVersion: k8s.keycloak.org/v2alpha1
     kind: Keycloak
@@ -813,7 +813,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: keycloak
       namespace: apc-keycloak
     spec:
@@ -888,7 +888,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: keycloak-backup
       namespace: apc-keycloak
     spec:
@@ -904,7 +904,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: keycloak-admin-ingress
       namespace: apc-keycloak
     spec:
@@ -928,7 +928,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: keycloak-ingress
       namespace: apc-keycloak
     spec:
@@ -951,7 +951,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: keycloak-db-auth
       namespace: apc-keycloak
     spec:
@@ -975,7 +975,7 @@ manifests should match snapshot:
               app.kubernetes.io/managed-by: Helm
               app.kubernetes.io/name: keycloak
               app.kubernetes.io/version: v26.0
-              helm.sh/chart: keycloak-1.6.0
+              helm.sh/chart: keycloak-1.6.1
           type: kubernetes.io/basic-auth
   35: |
     apiVersion: generators.external-secrets.io/v1alpha1
@@ -986,7 +986,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: keycloak-db-auth
       namespace: apc-keycloak
     spec:
@@ -1005,7 +1005,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keycloak
         app.kubernetes.io/version: v26.0
-        helm.sh/chart: keycloak-1.6.0
+        helm.sh/chart: keycloak-1.6.1
       name: keycloak
       namespace: apc-keycloak
     spec:

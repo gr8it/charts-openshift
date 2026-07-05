@@ -1,0 +1,44 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "crossplane-helm.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "crossplane-helm.labels" . | nindent 4 }}
+spec:
+  groups:
+  - name: crossplane.rules
+    rules:
+    - alert: CrossplaneControllerDown
+      annotations:
+        description: "Crossplane controller pod has been down for more than 10 minutes"
+        summary: "Crossplane controller is not running"
+      expr: |
+        absent(up{job="{{ .Release.Namespace }}/{{ include "crossplane-helm.fullname" . }}"}) == 1
+      for: 10m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+    - alert: CrossplaneReconciliationErrors
+      annotations:
+        description: "Crossplane controller has reconciliation errors for controller {{ `{{ $labels.controller }}` }}"
+        summary: "Crossplane reconciliation errors detected"
+      expr: |
+        increase(controller_runtime_reconcile_errors_total{job="{{ .Release.Namespace }}/{{ include "crossplane-helm.fullname" . }}"}[15m]) > 0
+      for: 10m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+    - alert: CrossplaneRBACManagerDown
+      annotations:
+        description: "Crossplane RBAC manager pod has been down for more than 10 minutes"
+        summary: "Crossplane RBAC manager is not running"
+      expr: |
+        absent(up{job="{{ .Release.Namespace }}/{{ include "crossplane-helm.fullname" . }}-rbac-manager"}) == 1
+      for: 10m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform

@@ -17,12 +17,13 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && rm -rf /var/lib/apt/lists/*
 
 # Detect architecture and set variables
-RUN if [ "$(uname -m)" = "x86_64" ]; then \
-        echo "amd64" > /tmp/arch; \
-    elif [[ "$(uname -m)" = "aarch64" || "$(uname -m)" = "arm64" ]]; then \
-        echo "arm64" > /tmp/arch; \
+RUN arch=$(uname -m) && \
+    if [ "$arch" = "x86_64" ]; then \
+        echo amd64 > /tmp/arch; \
+    elif [ "$arch" = "aarch64" ] || [ "$arch" = "arm64" ]; then \
+        echo arm64 > /tmp/arch; \
     else \
-        echo "Unsupported architecture: $(uname -m)"; exit 1; \
+        echo "Unsupported architecture: $arch" >&2; exit 1; \
     fi
 
 # Install kubectl
