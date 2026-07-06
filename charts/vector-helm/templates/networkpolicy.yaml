@@ -4,7 +4,7 @@ metadata:
   name: allow-logging-to-vector
   namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- include "vector-helm.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:

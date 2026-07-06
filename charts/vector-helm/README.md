@@ -41,6 +41,7 @@ Key values to set per environment (in the conf repo, not in this chart):
 | `vectorNetworkPolicy.syslogUdpCidrs` | CIDRs allowed to send UDP syslog |
 | `vectorNetworkPolicy.syslogTcpCidrs` | CIDRs allowed to send TCP syslog |
 | `vectorNetworkPolicy.webhookCidrs` | CIDRs allowed to reach the webhook port |
+| `vectorServiceCertificate.additionalDnsNames` | Extra SANs for the service certificate. The chart already includes the in-cluster svc names and `vector.<clusterBaseDomain>`; set this only when clients reach Vector via other DNS names |
 | `vector.fullnameOverride` | Set in conf repo when legacy resource names must be preserved for ArgoCD adoption |
 
 ## Vault path convention

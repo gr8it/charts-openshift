@@ -5,7 +5,7 @@ metadata:
   name: vector
   namespace: {{ include "apc-global-overrides.metallbNamespace" . }}
   labels:
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- include "vector-helm.labels" . | nindent 4 }}
 spec:
   ipAddressPools:
     - vector-reserved

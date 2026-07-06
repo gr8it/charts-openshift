@@ -87,7 +87,8 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{/*
-The wrapper-owned Vector ConfigMap deliberately keeps the legacy `vector` name.
+Name of the wrapper-owned Vector ConfigMap. Mirrors the Vector subchart fullname
+so it matches `vector.existingConfigMaps` (set in the conf repo); not a fixed name.
 */}}
 {{- define "vector-helm.vectorConfigMapName" -}}
 {{ include "vector-helm.vectorFullname" . }}

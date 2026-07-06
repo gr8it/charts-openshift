@@ -26,7 +26,11 @@ manifests should match snapshot:
     kind: ClusterRoleBinding
     metadata:
       labels:
+        app.kubernetes.io/instance: vector
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: vector-helm
+        app.kubernetes.io/version: 0.43.1-distroless-libc
+        helm.sh/chart: vector-helm-1.0.0
       name: apc-logging-collector-logs-writers
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -483,7 +487,11 @@ manifests should match snapshot:
     kind: IPAddressPool
     metadata:
       labels:
+        app.kubernetes.io/instance: vector
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: vector-helm
+        app.kubernetes.io/version: 0.43.1-distroless-libc
+        helm.sh/chart: vector-helm-1.0.0
       name: vector-reserved
       namespace: metallb-system
     spec:
@@ -501,7 +509,11 @@ manifests should match snapshot:
     kind: L2Advertisement
     metadata:
       labels:
+        app.kubernetes.io/instance: vector
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: vector-helm
+        app.kubernetes.io/version: 0.43.1-distroless-libc
+        helm.sh/chart: vector-helm-1.0.0
       name: vector
       namespace: metallb-system
     spec:
@@ -515,7 +527,11 @@ manifests should match snapshot:
     kind: NetworkPolicy
     metadata:
       labels:
+        app.kubernetes.io/instance: vector
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: vector-helm
+        app.kubernetes.io/version: 0.43.1-distroless-libc
+        helm.sh/chart: vector-helm-1.0.0
       name: allow-logging-to-vector
       namespace: apc-logging
     spec:
@@ -595,7 +611,11 @@ manifests should match snapshot:
       annotations:
         kubernetes.io/service-account.name: vector
       labels:
+        app.kubernetes.io/instance: vector
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: vector-helm
+        app.kubernetes.io/version: 0.43.1-distroless-libc
+        helm.sh/chart: vector-helm-1.0.0
       name: vector-token
       namespace: apc-logging
     type: kubernetes.io/service-account-token

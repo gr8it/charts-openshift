@@ -3,7 +3,7 @@ kind: ClusterRoleBinding
 metadata:
   name: apc-logging-collector-logs-writers
   labels:
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- include "vector-helm.labels" . | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
