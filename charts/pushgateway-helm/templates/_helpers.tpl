@@ -73,6 +73,14 @@ OAuth proxy Service name.
 {{- end }}
 
 {{/*
+OpenShift serving-cert secret for the OAuth proxy.
+Must match prometheus-pushgateway.extraVolumes secretName.
+*/}}
+{{- define "pushgateway-helm.tlsSecretName" -}}
+{{- .Values.resourceNames.tlsSecret | default (printf "%s-tls" (include "pushgateway-helm.fullname" .)) }}
+{{- end }}
+
+{{/*
 RBAC resource names kept stable to let ArgoCD/Helm adopt the existing hub01 objects.
 */}}
 {{- define "pushgateway-helm.tokenReviewClusterRoleName" -}}

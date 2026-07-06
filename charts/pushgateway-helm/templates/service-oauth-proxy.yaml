@@ -9,7 +9,7 @@ metadata:
   labels:
     {{- include "pushgateway-helm.labels" . | nindent 4 }}
   annotations:
-    service.alpha.openshift.io/serving-cert-secret-name: prometheus-pushgateway-tls
+    service.alpha.openshift.io/serving-cert-secret-name: {{ include "pushgateway-helm.tlsSecretName" . }}
 spec:
   ports:
     - name: https

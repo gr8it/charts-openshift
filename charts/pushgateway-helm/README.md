@@ -53,14 +53,14 @@ The `pushgateway-helm` chart wraps the upstream `prometheus-pushgateway` Helm ch
 ### 1. Update Chart Dependencies
 
 ```bash
-cd charts-openshift/charts/pushgateway
+cd charts-openshift/charts/pushgateway-helm
 helm dependency update
 ```
 
 ### 2. Install the Chart
 
 ```bash
-helm install prometheus-pushgateway ./charts/pushgateway \
+helm install prometheus-pushgateway ./charts/pushgateway-helm \
   --namespace prometheus-pushgateway \
   --create-namespace
 ```
@@ -83,14 +83,14 @@ prometheus-pushgateway:
   image:
     repository: quay.io/prometheus/pushgateway
     tag: v1.10.0
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
 ```
 
 The chart default is `2` replicas. Existing hub environments can override that in conf when they need to preserve the current single-replica rollout.
 
 #### Pushgateway Admin API
 
-The admin API is enabled by default to preserve behavior from the migrated static manifests:
+The admin API is enabled by default because it is **required by the Veeam exporter** (metrics deletion/reset). It also preserves behavior from the migrated static manifests:
 
 ```yaml
 prometheus-pushgateway:
@@ -104,7 +104,7 @@ prometheus-pushgateway:
 prometheus-pushgateway:
   extraContainers:
     - name: oauth-proxy
-      image: registry.redhat.io/openshift4/ose-oauth-proxy:v4.16.0
+      image: registry.redhat.io/openshift4/ose-oauth-proxy:v4.12.0
 ```
 
 #### Service Account Name
@@ -207,7 +207,7 @@ oc logs -n openshift-monitoring deployment/prometheus-operator
 ## Upgrading
 
 ```bash
-helm upgrade prometheus-pushgateway ./charts/pushgateway \
+helm upgrade prometheus-pushgateway ./charts/pushgateway-helm \
   --namespace prometheus-pushgateway
 ```
 

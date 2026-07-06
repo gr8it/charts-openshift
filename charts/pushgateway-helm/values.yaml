@@ -1,6 +1,11 @@
 resourceNames:
   route: prometheus-pushgateway
   oauthProxyService: pushgateway-oauth-proxy
+  # OpenShift serving-cert secret for the OAuth proxy. Referenced by the Service
+  # annotation (templated) and by prometheus-pushgateway.extraVolumes below — the
+  # extraVolumes secretName is consumed by the subchart and cannot be templated, so
+  # it must be kept equal to this value.
+  tlsSecret: prometheus-pushgateway-tls
   tokenReviewClusterRole: tokenreview-access
   tokenReviewClusterRoleBinding: pushgw-sa-tokenreview-binding
   prometheusAccessRole: pushgw-sa-prometheus-access
@@ -13,7 +18,7 @@ prometheus-pushgateway:
   image:
     repository: quay.io/prometheus/pushgateway
     tag: v1.10.0
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
 
   persistentVolume:
     enabled: true
@@ -23,9 +28,10 @@ prometheus-pushgateway:
     - --web.enable-admin-api
 
   serviceAccount:
-    # create: false — the wrapper chart owns the SA with the OpenShift OAuth redirect annotation.
-    # SA name is hardcoded to pushgw-sa in templates/serviceaccount.yaml and in the
-    # --openshift-service-account arg above so they always stay in sync.
+    # create: false — the wrapper chart owns the SA (templates/serviceaccount.yaml) so it can
+    # add the OpenShift OAuth redirect annotation the upstream chart cannot set.
+    # The SA name is taken from this value (default pushgw-sa); the oauth-proxy
+    # --openshift-service-account arg below must be kept in sync if you change it.
     create: false
     name: pushgw-sa
 
