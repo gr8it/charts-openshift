@@ -32,7 +32,7 @@ spec:
           labels:
             {{- .Values.prometheusRule.labels | toYaml | nindent 12 }}
             customerName: {{ include "apc-global-overrides.customer" . }}
-        - alert: veaam_noreport_2_hours
+        - alert: veeam_noreport_2_hours
           annotations:
             description: No Veeam Metrics have been received for the past 2 hours.
             summary: No Veeam Metrics for 2 hours
