@@ -14,9 +14,9 @@ spec:
             description: Last Veeam Backup {{`{{ $labels.name }}`}} with Failed or Warning state in the past 2 days.
             summary: Last Veeam Backup {{`{{ $labels.name }}`}} with Failed or Warning state.
           expr: |
-            max_over_time(veeam_job_result_info{job="veeam_job_report",namespace="prometheus-pushgateway"}[2d]) == 1
+            max_over_time(veeam_job_result_info{job="veeam_job_report",namespace="{{ .Values.prometheusRule.namespace | default .Release.Namespace }}"}[2d]) == 1
             or
-            max_over_time(veeam_job_result_info{job="veeam_job_report",namespace="prometheus-pushgateway"}[2d]) == 2
+            max_over_time(veeam_job_result_info{job="veeam_job_report",namespace="{{ .Values.prometheusRule.namespace | default .Release.Namespace }}"}[2d]) == 2
           labels:
             {{- .Values.prometheusRule.labels | toYaml | nindent 12 }}
             customerName: {{ include "apc-global-overrides.customer" . }}
