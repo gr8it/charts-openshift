@@ -4,6 +4,8 @@ kind: PrometheusRule
 metadata:
   name: {{ .Values.prometheusRule.name }}
   namespace: {{ .Values.prometheusRule.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "veeam-exporter.labels" . | nindent 4 }}
 spec:
   groups:
     - interval: {{ .Values.prometheusRule.interval }}
