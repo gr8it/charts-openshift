@@ -22,7 +22,7 @@ spec:
           labels:
             {{- .Values.prometheusRule.labels | toYaml | nindent 12 }}
             customerName: {{ include "apc-global-overrides.customer" . }}
-        - alert: veaam_repo_full
+        - alert: veeam_repo_full
           annotations:
             description: The repository is 80% or more full.
             summary: Repo is over 80% full
