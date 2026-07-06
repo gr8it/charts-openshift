@@ -394,28 +394,6 @@ manifests should match snapshot:
                           "mode": "gradient",
                           "type": "color-background"
                         }
-                      },
-                      {
-                        "id": "mappings",
-                        "value": [
-                          {
-                            "options": {
-                              "CocaCola": {
-                                "color": "#ff98304d",
-                                "index": 1
-                              },
-                              "pivo": {
-                                "color": "#b877d94d",
-                                "index": 0
-                              },
-                              "water": {
-                                "color": "#73bf694d",
-                                "index": 2
-                              }
-                            },
-                            "type": "value"
-                          }
-                        ]
                       }
                     ]
                   }
@@ -585,6 +563,11 @@ manifests should match snapshot:
     apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule
     metadata:
+      labels:
+        app.kubernetes.io/instance: veeam-exporter
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: veeam-exporter
+        helm.sh/chart: veeam-exporter-1.0.0
       name: veeam-alerts
       namespace: prometheus-pushgateway
     spec:
@@ -592,7 +575,7 @@ manifests should match snapshot:
         - interval: 1h
           name: veeam_alerts
           rules:
-            - alert: veaam_backup_failed_or_warning
+            - alert: veeam_backup_failed_or_warning
               annotations:
                 description: Last Veeam Backup {{ $labels.name }} with Failed or Warning state in the past 2 days.
                 summary: Last Veeam Backup {{ $labels.name }} with Failed or Warning state.
@@ -603,7 +586,7 @@ manifests should match snapshot:
               labels:
                 customerName: test-customer
                 severity: warning
-            - alert: veaam_repo_full
+            - alert: veeam_repo_full
               annotations:
                 description: The repository is 80% or more full.
                 summary: Repo is over 80% full
@@ -615,7 +598,7 @@ manifests should match snapshot:
               labels:
                 customerName: test-customer
                 severity: warning
-            - alert: veaam_noreport_2_hours
+            - alert: veeam_noreport_2_hours
               annotations:
                 description: No Veeam Metrics have been received for the past 2 hours.
                 summary: No Veeam Metrics for 2 hours
@@ -624,7 +607,7 @@ manifests should match snapshot:
               labels:
                 customerName: test-customer
                 severity: warning
-            - alert: veaam_nobackup_two_days
+            - alert: veeam_nobackup_two_days
               annotations:
                 description: No backup for {{ $labels.name }} has been performed in the past 2 days.
                 summary: No backup for {{ $labels.name }} done for 2 days
