@@ -41,7 +41,7 @@ spec:
           labels:
             {{- .Values.prometheusRule.labels | toYaml | nindent 12 }}
             customerName: {{ include "apc-global-overrides.customer" . }}
-        - alert: veaam_nobackup_two_days
+        - alert: veeam_nobackup_two_days
           annotations:
             description: No backup for {{`{{ $labels.name }}`}} has been performed in the past 2 days.
             summary: No backup for {{`{{ $labels.name }}`}} done for 2 days
