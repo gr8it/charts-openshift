@@ -173,6 +173,62 @@ spec:
             team: platform
 ```
 
+## GitOps Conventions
+
+### YAML formatting
+
+Prefer indented sequences:
+
+```yaml
+sequence:
+  - one
+  - two
+```
+
+### Component naming
+
+Use simple component names with no prefix. Suffix when necessary:
+
+- `<component>` — single resource, e.g. `remove-kubeadmin`
+- `<component>-operator` / `<component>-helm` — operator/chart installation only; no followup configuration
+- `<component>-config` / `<component>-instance` / `<component>-policies` — configuration using CRs created during installation
+
+### Templates
+
+- Always set `namespace: {{ .Release.Namespace }}` in every manifest (rendered manifest pattern requirement).
+- Prefer flat over nested values, e.g. `clusterName` over `cluster.name`.
+- Each resource definition should be in its own template file.
+
+### Escaping double curly brackets
+
+For templates-within-templates (PrometheusRules, Kyverno policies, ACM ConfigurationPolicies), use raw string literals:
+
+```go
+{{ `{{ $labels.name }}` }}
+```
+
+Kyverno uses backslash escaping instead of Go escaping:
+
+```yaml
+foo: {{ `\{{ $labels.namespace }}` }}
+```
+
+### Patching 3rd-party charts
+
+Prefer `strategicMergePatches` over `jsonPatches` in helmfile — strategic patches fail visibly if the target is not found; JSON patches fail silently.
+
+> [!NOTE]
+> `apiVersion`, `kind`, `metadata.name`, and `metadata.namespace` must all be specified for `strategicMergePatches` to work.
+
+### Patching existing cluster resources
+
+Add `argocd.argoproj.io/sync-options: ServerSideApply=true` to resources that already exist on the cluster (e.g. `APIServer/cluster`).
+
+### Things to avoid
+
+- **Extra objects / extraManifests** — do not implement for APC charts; keep complexity in the chart, not in the config repo.
+- **Helm lookup** — makes deployment non-deterministic; incompatible with rendered-manifest GitOps. Use Kyverno or Crossplane instead.
+
 ## URLs
 
 ### No private URLs in docs
