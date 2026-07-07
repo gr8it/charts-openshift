@@ -1,4 +1,4 @@
-# Copilot — Repository-wide Custom Instructions
+# Repository-wide Custom Instructions
 
 ## Project overview
 
@@ -90,23 +90,6 @@ charts-openshift/
 └── scripts/
 ```
 
-## Chart Anatomy
-
-Each chart lives under `charts/<chart-name>/` and typically contains:
-
-```
-charts/<name>/
-├── Chart.yaml
-├── values.yaml
-├── values.example.yaml      # Example values used by unit tests
-├── values.lint.yaml         # (optional) overrides used during `make lint`
-├── templates/
-│   ├── _helpers.tpl
-│   └── *.yaml
-└── tests/
-    └── snapshot_test.yaml
-```
-
 ## Values files
 
 ### apc-global-overrides
@@ -131,7 +114,6 @@ charts/<name>/
   #     cluster:
   #       appsDomain:
   ```
-- `releaseServiceOverride: ArgoCD` is the standard top-level value (overrides `Release.Service` in labels).
 
 ### values.example.yaml
 
@@ -208,11 +190,11 @@ helm search repo gr8it-openshift -l
 
 ## URLs
 
-## No private URLs in docs
+### No private URLs in docs
 
 Always use example.com domain for private URLs in examples, e.g. `https://example.com/` or `https://vault.example.com/`. Do not use real URLs, even if they are public.
 
-## Image FQDNs
+### Image FQDNs
 
 Always use FQDNs when referencing an image! Do not assume search registries are correctly set up and no aliasing is going on. For example, use `docker.io/library/nginx:1.25.2` instead of `nginx:1.25.2`.
 
