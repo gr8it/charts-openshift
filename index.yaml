@@ -67,6 +67,21 @@ entries:
     version: 1.0.0
   acm-operator:
   - apiVersion: v2
+    appVersion: v2.14.2
+    created: "2026-07-02T09:47:14.318553+02:00"
+    dependencies:
+    - name: operators-installer
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/main/
+      version: 3.2.4
+    description: A Helm chart to install ACM operator using operators-installer helm
+      chart
+    digest: 02fefe73866023147169cac8b1710504e0b8c44bc4b1f0e39dbf1acee3010876
+    name: acm-operator
+    type: application
+    urls:
+    - packaged_charts/acm-operator-1.2.0.tgz
+    version: 1.2.0
+  - apiVersion: v2
     appVersion: v2.13.7
     created: "2026-05-21T16:45:49.808249+02:00"
     dependencies:
@@ -158,6 +173,20 @@ entries:
     - packaged_charts/acm-policy-1.0.0.tgz
     version: 1.0.0
   acs-config:
+  - apiVersion: v2
+    created: "2026-06-23T08:27:15.282283+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.7.0
+    description: A Helm chart for Red Hat Advanced Cluster Security SecuredCluster
+      instance and Central ACS components
+    digest: 0a16d6ef43f71df7eb8acdf4e5725d6b1c44c7caab41fc7a0b0e9056408f39bf
+    name: acs-config
+    type: application
+    urls:
+    - packaged_charts/acs-config-1.2.0.tgz
+    version: 1.2.0
   - apiVersion: v2
     created: "2026-04-30T10:09:08.019738+02:00"
     dependencies:
@@ -475,6 +504,20 @@ entries:
     urls:
     - packaged_charts/apps-centralne-komponenty-bpm-1.0.0.tgz
     version: 1.0.0
+  apps-ck-bpm-microservice:
+  - apiVersion: v2
+    created: "2026-06-10T10:16:45.567578+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    description: A Helm chart to deploy "Centrálny Komponent Integračné Služby" integration
+    digest: 0e3d08bf2843f3225599c16037517568513d9e43f0bc00ef97841b68ebdbff68
+    name: apps-ck-bpm-microservice
+    type: application
+    urls:
+    - packaged_charts/apps-ck-bpm-microservice-1.1.1.tgz
+    version: 1.1.1
   apps-ck-kafka:
   - apiVersion: v2
     created: "2026-04-22T09:56:27.754669622+02:00"
@@ -645,6 +688,20 @@ entries:
     - packaged_charts/apps-ck-kafka-1.0.0.tgz
     version: 1.0.0
   apps-kafka-bridge:
+  - apiVersion: v2
+    appVersion: 0.46.1
+    created: "2026-06-22T09:48:12.582336+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    description: A Helm chart for deploying and configuring the Kafka Bridge
+    digest: b131e4c2c6ebc194029e819371a424fccdae1de581c2d3812a31cbb2191fd6be
+    name: apps-kafka-bridge
+    type: application
+    urls:
+    - packaged_charts/apps-kafka-bridge-1.1.0.tgz
+    version: 1.1.0
   - apiVersion: v2
     appVersion: 0.46.1
     created: "2026-05-12T13:14:38.683134+02:00"
@@ -1130,6 +1187,21 @@ entries:
     type: application
     urls:
     - packaged_charts/cluster-config-standalone-1.0.0.tgz
+    version: 1.0.0
+  cluster-logging-operator:
+  - apiVersion: v2
+    created: "2026-06-29T11:49:47.76261+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install the Red Hat OpenShift Logging (Cluster Logging)
+      Operator using ACM OperatorPolicy
+    digest: 4c42ebe2ed599ccab804f96baf4c1b52f35561c75e3d138fe2b7d2f3a88b5c80
+    name: cluster-logging-operator
+    type: application
+    urls:
+    - packaged_charts/cluster-logging-operator-1.0.0.tgz
     version: 1.0.0
   cnpg-operator:
   - apiVersion: v2
@@ -2913,6 +2985,37 @@ entries:
     urls:
     - packaged_charts/kyverno-app-project-1.0.0.tgz
     version: 1.0.0
+  loki-operator:
+  - apiVersion: v2
+    created: "2026-07-07T14:47:12+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install the Red Hat Loki Operator using ACM OperatorPolicy
+    digest: 263a558776163f1371d013ca1aae2e2c966f164c9c4c7d5c40a3521d17975124
+    icon: https://raw.githubusercontent.com/operator-framework/olm-docs/ea9cd734aa7a6bf2d24f273322ed9aec3ffcb02a/content/en/images/logo-sm.svg
+    name: loki-operator
+    type: application
+    urls:
+    - packaged_charts/loki-operator-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
+    appVersion: v6.1.4
+    created: "2026-06-23T10:21:27.392702+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install the Red Hat Loki Operator using ACM OperatorPolicy
+    digest: c0f60dcb7a8895fd1ae4660f5c495e59099199dd323ccd007a0e249973f25f9f
+    icon: https://raw.githubusercontent.com/operator-framework/olm-docs/ea9cd734aa7a6bf2d24f273322ed9aec3ffcb02a/content/en/images/logo-sm.svg
+    kubeVersion: '>=1.25.0'
+    name: loki-operator
+    type: application
+    urls:
+    - packaged_charts/loki-operator-1.0.0.tgz
+    version: 1.0.0
   metallb-config:
   - apiVersion: v2
     appVersion: 1.0.0
@@ -3242,6 +3345,32 @@ entries:
     urls:
     - packaged_charts/monitoring-prometheusrules-1.0.0.tgz
     version: 1.0.0
+  monitoring-reminder:
+  - apiVersion: v2
+    created: "2026-07-02T13:37:25.941477594+02:00"
+    description: A Helm chart for setting up PrometheusRule alerts for static date-based
+      reminders (e.g. secret/certificate expiry)
+    digest: 9e3a3b105a54d3ba40fe0e8cfa7dd097eea6f1ac9e610f435cc6ed5493fed10d
+    name: monitoring-reminder
+    type: application
+    urls:
+    - packaged_charts/monitoring-reminder-1.0.0.tgz
+  odf-operator:
+  - apiVersion: v2
+    appVersion: "4.17"
+    created: "2026-06-24T18:05:46.850754+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install the Red Hat OpenShift Data Foundation Operator
+      using ACM OperatorPolicy
+    digest: 6ac1384ec23320f699963a382e6f3f336c39dd070a46c4bee8f2f6219ed622e7
+    name: odf-operator
+    type: application
+    urls:
+    - packaged_charts/odf-operator-1.0.0.tgz
+    version: 1.0.0
   openshift-adp-backups:
   - apiVersion: v2
     appVersion: 1.0.0
@@ -3442,6 +3571,22 @@ entries:
     urls:
     - packaged_charts/operators-installer-3.2.4.tgz
     version: 3.2.4
+  pushgateway-helm:
+  - apiVersion: v2
+    appVersion: v1.10.0
+    created: "2026-07-06T21:56:26.527191+02:00"
+    dependencies:
+    - name: prometheus-pushgateway
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 3.0.0
+    description: A Helm chart to install Prometheus Pushgateway with OpenShift OAuth
+      proxy
+    digest: 24daa394d37126231a18c839523d7f0fbe0bc4ddcf761a3dad41fd583029e02b
+    name: pushgateway-helm
+    type: application
+    urls:
+    - packaged_charts/pushgateway-helm-1.0.0.tgz
+    version: 1.0.0
   quay-operator:
   - apiVersion: v2
     appVersion: v3.13.5
@@ -3558,6 +3703,21 @@ entries:
     - packaged_charts/remove-kubeadmin-1.0.0.tgz
     version: 1.0.0
   smb-csi-driver-operator:
+  - apiVersion: v2
+    appVersion: v4.18.0
+    created: "2026-06-08T09:21:10.281729124+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install SMB CSI driver using ACM operator policy
+    digest: 59af7ec9875680e2e19460d453476669cf27852b4a7255477c800b9b08d69411
+    kubeVersion: '>=1.25.0'
+    name: smb-csi-driver-operator
+    type: application
+    urls:
+    - packaged_charts/smb-csi-driver-operator-1.0.1.tgz
+    version: 1.0.1
   - apiVersion: v2
     appVersion: v4.18.0
     created: "2026-06-03T12:43:09.171480717+02:00"
@@ -3836,6 +3996,20 @@ entries:
   vault-helm:
   - apiVersion: v2
     appVersion: 1.14.8
+    created: "2026-07-02T11:47:33.9386+02:00"
+    dependencies:
+    - name: vault
+      repository: https://helm.releases.hashicorp.com
+      version: 0.30.0
+    description: A Helm chart for bootstrapping the Vault in APC
+    digest: 30d0560bb09a08b9bf14ec1fce1065b27f1936aee568bf43af14d7b0a9bd405a
+    name: vault-helm
+    type: application
+    urls:
+    - packaged_charts/vault-helm-1.0.2.tgz
+    version: 1.0.2
+  - apiVersion: v2
+    appVersion: 1.14.8
     created: "2026-02-18T13:59:10.741267+01:00"
     dependencies:
     - name: vault
@@ -3877,4 +4051,4 @@ entries:
     urls:
     - packaged_charts/veeam-exporter-1.0.0.tgz
     version: 1.0.0
-generated: "2026-07-06T21:21:32.888793+02:00"
+generated: "2026-07-06T21:56:26.525533+02:00"
