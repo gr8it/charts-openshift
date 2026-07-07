@@ -90,7 +90,9 @@ The chart default is `2` replicas. Existing hub environments can override that i
 
 #### Pushgateway Admin API
 
-The admin API is enabled by default because it is **required by the Veeam exporter** (metrics deletion/reset). It also preserves behavior from the migrated static manifests:
+The admin API is enabled by default and must stay enabled because it is
+**required by the Veeam exporter** for metrics deletion/reset operations. It
+also preserves behavior from the migrated static manifests:
 
 ```yaml
 prometheus-pushgateway:
