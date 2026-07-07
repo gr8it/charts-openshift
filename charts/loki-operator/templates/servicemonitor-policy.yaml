@@ -1,6 +1,7 @@
 {{- if .Values.metricsServiceMonitorPatch.enabled }}
 {{- $operatorPolicyValues := index .Values "acm-operatorpolicy" }}
 {{- $namespace := .Values.metricsServiceMonitorPatch.namespace | default $operatorPolicyValues.subscription.namespace }}
+{{- $serviceMonitorName := .Values.metricsServiceMonitorPatch.serviceMonitorName | default "loki-operator-metrics-monitor" }}
 {{- $serviceName := .Values.metricsServiceMonitorPatch.serviceName | default "loki-operator-controller-manager-metrics-service" }}
 {{- $clusterRoleBindingName := .Values.metricsServiceMonitorPatch.clusterRoleBindingName | default "loki-operator-controller-manager-read-metrics" }}
 {{- $metricsReaderServiceAccountName := .Values.metricsServiceMonitorPatch.metricsReaderServiceAccountName | default "loki-operator-controller-manager-metrics-reader" }}
@@ -18,14 +19,11 @@ spec:
   pruneObjectBehavior: None
   object-templates:
     - complianceType: musthave
-      objectSelector:
-        matchLabels:
-          app.kubernetes.io/component: metrics
-          app.kubernetes.io/name: loki-operator
       objectDefinition:
         apiVersion: monitoring.coreos.com/v1
         kind: ServiceMonitor
         metadata:
+          name: {{ $serviceMonitorName }}
           namespace: {{ $namespace }}
         spec:
           endpoints:
