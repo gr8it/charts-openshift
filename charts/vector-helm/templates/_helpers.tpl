@@ -87,11 +87,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{/*
-Name of the wrapper-owned Vector ConfigMap. Mirrors the Vector subchart fullname
-so it matches `vector.existingConfigMaps` (set in the conf repo); not a fixed name.
+Name of the wrapper-owned Vector ConfigMap. Uses the first configured
+`vector.existingConfigMaps` entry so the created ConfigMap matches what the
+Vector subchart mounts.
 */}}
 {{- define "vector-helm.vectorConfigMapName" -}}
-{{ include "vector-helm.vectorFullname" . }}
+{{- $existingConfigMaps := .Values.vector.existingConfigMaps | default list -}}
+{{- if $existingConfigMaps -}}
+{{- first $existingConfigMaps -}}
+{{- else -}}
+{{- include "vector-helm.vectorFullname" . -}}
+{{- end -}}
 {{- end }}
 
 {{/*
