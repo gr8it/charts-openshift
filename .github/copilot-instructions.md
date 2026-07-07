@@ -2,7 +2,7 @@
 
 ## Project overview
 
-The project contains **Helm charts** for deploying applications on OpenShift clusters. These charts are part of a product and are intentionally opinionated to minimize deployment complexity and favor a convention-over-configuration design paradigm. They are orchestrated from per-customer repositories (called "config repositories" or shorter "conf repos") using `helmfile` and deployed using gitops. The goal of Helmfile is to install only relevant components (charts), prepare environment values (combining global, per-environment, and per-cluster settings), and make them available to the charts. Charts should not access these values directly; instead, they should use helper functions from `apc-global-overrides`, such as `{{ include "apc-global-overrides.environmentShort" . }}`, to enable override capabilities. Repo uses Makefile for common tasks, such as linting, packaging, and publishing charts, which are stored in `packaged_charts/` and optionally published to an OCI registry. Charts are tested using [helm-unittest](https://github.com/helm-unittest/helm-unittest).
+The project contains **Helm charts** for deploying applications on OpenShift clusters. These charts are part of a product and are intentionally opinionated to minimize deployment complexity and favor a convention-over-configuration design paradigm. They are orchestrated from per-customer repositories (called "config repositories" or shorter "conf repos") using `helmfile` and deployed using gitops. The goal of Helmfile is to install only relevant components (charts), prepare environment values (combining global, per-environment, and per-cluster settings), and make them available to the charts in the form of global values. Charts should not access the global values directly; instead, they should use helper functions from `apc-global-overrides`, such as `{{ include "apc-global-overrides.environmentShort" . }}`, to enable override capabilities. 
 
 ## Think Before Coding
 
@@ -113,16 +113,16 @@ charts/<name>/
 
 [apc-global-overrides-helpers]: /charts/apc-global-overrides/README.md#helper-function-list
 
-- Cluster / environment specific values are provided in the `conf repo` such as customer name, cluster name, kube api version, base url, apps ingress domain, proxy settings, or values shared across multiple charts such as external secret store, cert manager issuer, crossplane keycloak provider, and vault values
+- Cluster / environment specific values are provided in the `conf repo` such as customer name, cluster name, kube api version, base URL, apps ingress domain, proxy settings, or values shared across multiple charts such as external secret store, cert manager issuer, crossplane keycloak provider, and vault values
 - The apc-global-overrides chart provides possibility to get and override these values
 - Charts should not hardcode these values; instead, they should use the helper functions provided by the library chart. See chart [README.md][apc-global-overrides-helpers] for list of helper functions.
 - apc-global-overrides usually contains 2 versions of a helper function - one requiring the value to be set (prefix require-), and the other returning an empty string, or default if defined. Prefer the require- version to ensure the value is set in the conf repo, and to fail fast if not set.
 
 ### values.yaml Conventions
 
-- Keep defaults minimal to minimize deployment complexity ; leave optional sections empty (`{}` or `[]`).
-  - Defaults need to cover only the parameters changing between environments, e.g. image tags, resource sizes, etc.
-- Favor convention-over-configuration: don't add a value unless it is required to render the chart templates, e.g. do not configure ingress url - construct it from a convention-based pattern using the cluster's base url (from apc-global-overrides) and the standard chart helpers, e.g. `application.{{ include "apc-global-overrides.require-clusterAppsDomain" . }}`
+- Keep values minimal to minimize deployment complexity ; leave optional sections empty (`{}` or `[]`).
+  - Possible configuration options need to cover only the parameters changing between environments, e.g. image tags, resource sizes, etc.
+- Favor convention-over-configuration = don't add a value unless it absolutely needs to be configurable, e.g. do not configure ingress URL - construct it from a convention-based pattern using the cluster's base URL (from apc-global-overrides) and the standard chart helpers, e.g. `application.{{ include "apc-global-overrides.require-clusterAppsDomain" . }}`
 - Global cluster values come from the `apc-global-overrides` library; document them as comments but don't set them:
   ```yaml
   ## uses following global values => do not set here
@@ -190,9 +190,12 @@ tests:
 | `make lint` | Lints all charts (uses `values.lint.yaml` if present) |
 | `make build` | Lint + package all charts → `packaged_charts/` + update `index.yaml` |
 | `make unittest` | Run helm-unittest on all charts with a `tests/` dir |
-| `CHARTFOLDER=<name> make publish` | Push packaged chart to OCI registry |
+| `make publish` | Push packaged chart to OCI registry (optional) |
 | `make clean` | Remove decommissioned chart artifacts |
 | `make reindex` | Rebuild `index.yaml` from scratch |
+
+> [!NOTE]  
+> Prepend every make `CHARTFOLDER=<name>` to scope to one particular chart, e.g. `CHARTFOLDER=apc-keycloak make build`.
 
 > **Tip:** Always bump `version` in `Chart.yaml` before running `make build` — unchanged versions are skipped.
 
@@ -203,10 +206,18 @@ helm repo add gr8it-openshift https://raw.githubusercontent.com/gr8it/charts-ope
 helm search repo gr8it-openshift -l
 ```
 
-## no real URLs
+## URLs
 
-Always use example.com domain for URLs in examples, e.g. `https://example.com/` or `https://vault.example.com/`. Do not use real URLs, even if they are public.
+## No private URLs in docs
+
+Always use example.com domain for private URLs in examples, e.g. `https://example.com/` or `https://vault.example.com/`. Do not use real URLs, even if they are public.
+
+## Image FQDNs
+
+Always use FQDNs when referencing an image! Do not assume search registries are correctly set up and no aliasing is going on. For example, use `docker.io/library/nginx:1.25.2` instead of `nginx:1.25.2`.
 
 ## Contributing rules
 
-General Contributing rules are covered in [/.github/CONTRIBUTING.md](CONTRIBUTING.md)
+[contributing rules]: /.github/CONTRIBUTING.md
+
+General Contributing rules are covered in [CONTRIBUTING.md][contributing rules].

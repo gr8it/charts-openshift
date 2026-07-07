@@ -19,7 +19,7 @@ When you find an issue, cite the relevant Helm or Kubernetes best practice and p
   - Optional but recommended: `README.md`.
   - Optional: `values.schema.json`, `templates/NOTES.txt`.
   - Enforce naming conventions: lowercase, hyphenated chart names; SemVer for `version`.
-  - If the chart uses a dependency to install an application, the set `appVersion` should match the version of the application being installed. apc-global-overrides is an exception to this rule, as it is a library chart that does not install an application.
+  - If the chart uses a dependency, set `appVersion` to match the version of the application being installed. `apc-global-overrides` is an exception to this rule, as it is a library chart that does not install an application.
   - Check Chart.yaml metadata: description, keywords, maintainers (optional), `kubeVersion` if applicable.
   - Validate chart structure per Helm best practices.
   - Suggest fixes if missing.
