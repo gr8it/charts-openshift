@@ -172,7 +172,13 @@ spec:
             team: platform
 ```
 
-## GitOps Conventions
+## Conventions
+
+- Follow <https://learnk8s.io/production-best-practices> for k8s manifests
+
+### Helm best practices
+
+- Follow helm best practices - <https://helm.sh/docs/chart_best_practices/>, e.g.
 
 ### YAML formatting
 
@@ -198,30 +204,9 @@ Use simple component names with no prefix. Suffix when necessary:
 - Prefer flat over nested values, e.g. `clusterName` over `cluster.name`.
 - Each resource definition should be in its own template file.
 
-### Escaping double curly brackets
+### Operator installation
 
-For templates-within-templates (PrometheusRules, Kyverno policies, ACM ConfigurationPolicies), use raw string literals:
-
-```go
-{{ `{{ $labels.name }}` }}
-```
-
-Kyverno uses backslash escaping instead of Go escaping:
-
-```yaml
-foo: {{ `\{{ $labels.namespace }}` }}
-```
-
-### Patching 3rd-party charts
-
-Prefer `strategicMergePatches` over `jsonPatches` in helmfile — strategic patches fail visibly if the target is not found; JSON patches fail silently.
-
-> [!NOTE]
-> `apiVersion`, `kind`, `metadata.name`, and `metadata.namespace` must all be specified for `strategicMergePatches` to work.
-
-### Patching existing cluster resources
-
-Add `argocd.argoproj.io/sync-options: ServerSideApply=true` to resources that already exist on the cluster (e.g. `APIServer/cluster`).
+- ACM operatorpolicy should be used to install operators, and approve only allowed versions
 
 ### Things to avoid
 
