@@ -2,7 +2,7 @@
 
 ## Project overview
 
-This repo contains Helm charts for OpenShift. These are used in a gitops manner in a repo called "config repository" or shorter "conf repo".
+The project contains **Helm charts** for deploying applications on OpenShift clusters. These charts are part of a product and are intentionally opinionated to minimize deployment complexity and favor a convention-over-configuration design paradigm. They are orchestrated from per-customer repositories (called "config repositories" or shorter "conf repos") using `helmfile` and deployed using gitops. The goal of Helmfile is to install only relevant components (charts), prepare environment values (combining global, per-environment, and per-cluster settings), and make them available to the charts. Charts should not access these values directly; instead, they should use helper functions from `apc-global-overrides`, such as `{{ include "apc-global-overrides.environmentShort" . }}`, to enable override capabilities. Repo uses Makefile for common tasks, such as linting, packaging, and publishing charts, which are stored in `packaged_charts/` and optionally published to an OCI registry. Charts are tested using [helm-unittest](https://github.com/helm-unittest/helm-unittest).
 
 ## Think Before Coding
 
@@ -107,27 +107,22 @@ charts/<name>/
     └── snapshot_test.yaml
 ```
 
-## Chart.yaml Conventions
+## Values files
 
-```yaml
-apiVersion: v2
-name: <chart-name>
-description: A Helm chart for ...
-type: application           # or "library" for library charts
-version: 1.x.x
-appVersion: "<version>"     # optional
-dependencies:               # charts requiring cluster / environment specific values depend on the library chart
-  - name: apc-global-overrides
-    version: 1.8.0
-    repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
-```
+### apc-global-overrides
 
-## apc-global-overrides
+[apc-global-overrides-helpers]: /charts/apc-global-overrides/README.md#helper-function-list
 
-The apc-global-overrides library chart provides overridable cluster / environment specific values, such as ingress domain, image registry, and monitoring settings, or values shared across multiple charts. Charts should not hardcode these values; instead, they should use the helper functions provided by the library chart. See chart README.md for usage examples.
+- Cluster / environment specific values are provided in the `conf repo` such as customer name, cluster name, kube api version, base url, apps ingress domain, proxy settings, or values shared across multiple charts such as external secret store, cert manager issuer, crossplane keycloak provider, and vault values
+- The apc-global-overrides chart provides possibility to get and override these values
+- Charts should not hardcode these values; instead, they should use the helper functions provided by the library chart. See chart [README.md][apc-global-overrides-helpers] for list of helper functions.
+- apc-global-overrides usually contains 2 versions of a helper function - one requiring the value to be set (prefix require-), and the other returning an empty string, or default if defined. Prefer the require- version to ensure the value is set in the conf repo, and to fail fast if not set.
 
-## values.yaml Conventions
+### values.yaml Conventions
 
+- Keep defaults minimal to minimize deployment complexity ; leave optional sections empty (`{}` or `[]`).
+  - Defaults need to cover only the parameters changing between environments, e.g. image tags, resource sizes, etc.
+- Favor convention-over-configuration: don't add a value unless it is required to render the chart templates, e.g. do not configure ingress url - construct it from a convention-based pattern using the cluster's base url (from apc-global-overrides) and the standard chart helpers, e.g. `application.{{ include "apc-global-overrides.require-clusterAppsDomain" . }}`
 - Global cluster values come from the `apc-global-overrides` library; document them as comments but don't set them:
   ```yaml
   ## uses following global values => do not set here
@@ -137,11 +132,25 @@ The apc-global-overrides library chart provides overridable cluster / environmen
   #       appsDomain:
   ```
 - `releaseServiceOverride: ArgoCD` is the standard top-level value (overrides `Release.Service` in labels).
-- Keep defaults minimal; leave optional sections empty (`{}` or `[]`).
+
+### values.example.yaml
+
+- Contains only overrides of the default values and global values that are required to render the chart templates.
+- Contains realistic, non-secret example values.
+- Used as an example and by snapshot unit tests — never deployed directly.
+
+### values.lint.yaml
+
+- Contains only parameters required to pass the `helm lint`, which are not set in values.yaml, i.e. these are usually cluster / environment specific variables supplied in the conf repo, e.g. global values handled by the apc-global-overrides library chart.
+
+### values.schema.json
+
+- Always include a `values.schema.json` file for each chart. This ensures that values are validated during `helm install/upgrade` and prevents misconfigurations.
 
 ## PrometheusRule Conventions
 
 Per-rule labels always include:
+
 ```yaml
 labels:
   severity: warning | critical
@@ -170,24 +179,9 @@ tests:
       - matchSnapshot: {}
 ```
 
-- All charts include a snapshot test
-  - Snapshots are auto-generated in `tests/__snapshot__/` on first run.
+- All charts include a snapshot test usually consuming the `values.example.yaml` file.
 - Charts should include proper unittests, covering all edge cases
 - Run all tests: `make unittest` (runs `helm unittest --strict <folder>` for every chart with a `tests/` dir).
-
-## values.example.yaml
-
-- Contains realistic, non-secret example values.
-- Used exclusively by unit tests — never deployed directly.
-- Mirrors `values.yaml` structure but with concrete values filled in.
-
-## values.lint.yaml
-
-- Contains only parameters required to pass the `helm lint`, which are not set in values.yaml, i.e. these are usually cluster / environment specific variables supplied in the conf repo
-
-## values.schema.json
-
-Always include a `values.schema.json` file for each chart. This ensures that values are validated during `helm install/upgrade` and prevents misconfigurations.
 
 ## Build & Release Workflow
 
