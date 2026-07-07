@@ -1,0 +1,20 @@
+{{- if .Values.kafkaBridge.oauthProxy.enabled }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ .Release.Name}}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "apps-kafka-bridge.labels" . | nindent 4 }}
+spec:
+  host: {{ .Release.Name}}.{{ include "apc-global-overrides.require-clusterAppsDomain" . }}
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+  to:
+    kind: Service
+    name: {{ .Release.Name}}-oauth-proxy
+    weight: 100
+  wildcardPolicy: None
+{{- end }}

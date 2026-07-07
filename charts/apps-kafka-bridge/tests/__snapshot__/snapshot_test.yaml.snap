@@ -1,0 +1,515 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.1.0
+      name: apps-kafka-bridge-token-reviews
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: system:auth-delegator
+    subjects:
+      - kind: ServiceAccount
+        name: apps-kafka-bridge-oauth-proxy
+        namespace: NAMESPACE
+  2: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.1.0
+      name: apps-kafka-bridge-oauth-proxy
+      namespace: NAMESPACE
+    spec:
+      replicas: 2
+      selector:
+        matchLabels:
+          app: apps-kafka-bridge-oauth-proxy
+      template:
+        metadata:
+          labels:
+            app: apps-kafka-bridge-oauth-proxy
+        spec:
+          containers:
+            - args:
+                - --skip-auth-regex=^/ready$
+                - --skip-auth-regex=^/oauth/healthz$
+                - --http-address=:8080
+                - --https-address=
+                - --provider=openshift
+                - --openshift-service-account=apps-kafka-bridge-oauth-proxy
+                - --upstream=http://apps-kafka-bridge-bridge-service.NAMESPACE.svc.cluster.local:8080
+                - --cookie-secret=${COOKIE_SECRET}
+                - --openshift-sar={"namespace":"NAMESPACE","resource":"secrets","resourceName":"apps-kafka-bridge-account-access","verb":"edit"}
+                - --openshift-delegate-urls={"/":{"group":"","resource":"secrets","verb":"edit","namespace":"NAMESPACE","name":"apps-kafka-bridge-account-access"}}
+              env:
+                - name: COOKIE_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      key: secret
+                      name: apps-kafka-bridge-oauth-proxy-cookie-secret
+              image: registry.redhat.io/openshift4/ose-oauth-proxy:v4.13
+              imagePullPolicy: IfNotPresent
+              livenessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /oauth/healthz
+                  port: 8080
+                initialDelaySeconds: 5
+                periodSeconds: 10
+                timeoutSeconds: 1
+              name: oauth-proxy
+              ports:
+                - containerPort: 8080
+                  name: http
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /ready
+                  port: 8080
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                timeoutSeconds: 3
+              resources:
+                limits:
+                  cpu: 100m
+                  memory: 256Mi
+                requests:
+                  cpu: 20m
+                  memory: 128Mi
+          serviceAccountName: apps-kafka-bridge-oauth-proxy
+  3: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.1.0
+      name: apps-kafka-bridge-oauth-proxy-cookie-secret
+      namespace: NAMESPACE
+    spec:
+      dataFrom:
+        - sourceRef:
+            generatorRef:
+              apiVersion: generators.external-secrets.io/v1alpha1
+              kind: Password
+              name: apps-kafka-bridge-oauth-proxy-cookie-secret
+      refreshInterval: "0"
+      target:
+        creationPolicy: Owner
+        name: apps-kafka-bridge-oauth-proxy-cookie-secret
+        template:
+          data:
+            secret: '{{ .password }}'
+          metadata:
+            labels:
+              app.kubernetes.io/instance: apps-kafka-bridge
+              app.kubernetes.io/managed-by: ArgoCD
+              app.kubernetes.io/name: apps-kafka-bridge
+              app.kubernetes.io/version: 0.46.1
+              helm.sh/chart: apps-kafka-bridge-1.1.0
+          type: Opaque
+  4: |
+    apiVersion: kafka.strimzi.io/v1beta2
+    kind: KafkaBridge
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.1.0
+      name: apps-kafka-bridge
+      namespace: NAMESPACE
+    spec:
+      authentication:
+        passwordSecret:
+          password: password
+          secretName: ekp
+        type: scram-sha-512
+        username: ekp
+      bootstrapServers: ck-kafka-kafka-bootstrap.ck-kafka.svc:9093
+      consumer:
+        enabled: false
+      enableMetrics: true
+      http:
+        port: 8080
+      jvmOptions:
+        -Xms: 1g
+        -Xmx: 1g
+      livenessProbe:
+        initialDelaySeconds: 15
+        timeoutSeconds: 5
+      logging:
+        type: inline
+      producer:
+        config:
+          acks: 1
+          delivery.timeout.ms: 300000
+      readinessProbe:
+        initialDelaySeconds: 15
+        timeoutSeconds: 5
+      replicas: 2
+      tls:
+        trustedCertificates:
+          - certificate: ca.crt
+            secretName: ck-kafka-brokers-tls
+  5: |
+    apiVersion: generators.external-secrets.io/v1alpha1
+    kind: Password
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.1.0
+      name: apps-kafka-bridge-oauth-proxy-cookie-secret
+      namespace: NAMESPACE
+    spec:
+      allowRepeat: false
+      digits: 5
+      length: 20
+      noUpper: false
+      symbols: 0
+  6: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.1.0
+      name: apps-kafka-bridge-alerts
+      namespace: NAMESPACE
+    spec:
+      groups:
+        - name: kafka-bridge.rules
+          rules:
+            - alert: KafkaBridgeContainerDown
+              annotations:
+                description: All Kafka Bridge containers have been down or in CrashLoopBackOff status for 3 minutes
+                summary: All Kafka Bridge containers down or in CrashLoopBackOff status
+              expr: absent( container_last_seen{ namespace="NAMESPACE", container=~".+-bridge",pod=~"apps-kafka-bridge-bridge-.*" } )
+              for: 3m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaBridgeMonitoringAvailability
+              annotations:
+                description: Kafka Bridge monitoring has been unavailable for 5 minutes
+                summary: Kafka Bridge monitoring is unavailable
+              expr: up{ job="apps-kafka-bridge-bridge-service", namespace="NAMESPACE" } == 0
+              for: 5m
+              labels:
+                severity: critical
+                team: platform
+                vendor: aspecta
+            - alert: KafkaBridgeQueuePending
+              annotations:
+                description: Kafka Bridge queue pending is {{ $value }}
+                summary: Kafka Bridge queue pending is high
+              expr: strimzi_bridge_pool_queue_pending{namespace="NAMESPACE"} > 50
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaBridgeQueuePendingCritical
+              annotations:
+                description: Kafka Bridge queue pending is {{ $value }}
+                summary: Kafka Bridge queue pending is critical
+              expr: strimzi_bridge_pool_queue_pending{namespace="NAMESPACE"} > 200
+              for: 2m
+              labels:
+                severity: critical
+                team: platform
+                vendor: aspecta
+            - alert: KafkaBridgePoolUsageHigh
+              annotations:
+                description: Kafka Bridge pool usage is {{ $value }}
+                summary: Kafka Bridge pool usage is high
+              expr: strimzi_bridge_pool_ratio{namespace="NAMESPACE"} > 0.8
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaBridgePoolUsageCritical
+              annotations:
+                description: Kafka Bridge pool usage is {{ $value }}
+                summary: Kafka Bridge pool usage is critical
+              expr: strimzi_bridge_pool_ratio{namespace="NAMESPACE"} > 0.95
+              for: 2m
+              labels:
+                severity: critical
+                team: platform
+                vendor: aspecta
+            - alert: KafkaBridgePodCrashLooping
+              annotations:
+                description: |
+                  Pod {{ $labels.pod }} restarted more than 10 times in the last 15 minutes.
+                summary: Kafka Bridge pod is crash looping
+              expr: |
+                increase(
+                  kube_pod_container_status_restarts_total{
+                    namespace="NAMESPACE",
+                    pod=~"apps-kafka-bridge-bridge-.*"
+                  }[15m]
+                ) > 10
+              for: 2m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaBridgePodNotReady
+              annotations:
+                description: |
+                  Pod {{ $labels.pod }} has been in NotReady state for more than 5 minutes.
+                summary: Kafka Bridge pod is not ready
+              expr: |
+                kube_pod_status_ready{
+                  namespace="NAMESPACE",
+                  pod=~"apps-kafka-bridge-bridge-.*",
+                  condition="true"
+                } == 0
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaBridgeDeploymentReplicasMismatch
+              annotations:
+                description: |
+                  Deployment has unavailable replicas for more than 10 minutes.
+                summary: Kafka Bridge deployment replica mismatch
+              expr: |
+                kube_deployment_spec_replicas{
+                  namespace="NAMESPACE",
+                  deployment="apps-kafka-bridge-bridge"
+                }
+                !=
+                kube_deployment_status_replicas_available{
+                  namespace="NAMESPACE",
+                  deployment="apps-kafka-bridge-bridge"
+                }
+              for: 10m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaBridgeOauthProxyPodCrashLooping
+              annotations:
+                description: |
+                  Pod {{ $labels.pod }} restarted more than 10 times in the last 15 minutes.
+                summary: Kafka Bridge Oauth Proxy pod is crash looping
+              expr: |
+                increase(
+                  kube_pod_container_status_restarts_total{
+                    namespace="NAMESPACE",
+                    pod=~"apps-kafka-bridge-oauth-proxy-.*"
+                  }[15m]
+                ) > 10
+              for: 2m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaBridgeOauthProxyPodNotReady
+              annotations:
+                description: |
+                  Pod {{ $labels.pod }} has been in NotReady state for more than 5 minutes.
+                summary: Kafka Bridge Oauth Proxy pod is not ready
+              expr: |
+                kube_pod_status_ready{
+                  namespace="NAMESPACE",
+                  pod=~"apps-kafka-bridge-oauth-proxy-.*",
+                  condition="true"
+                } == 0
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: KafkaBridgeOauthProxyDeploymentReplicasMismatch
+              annotations:
+                description: |
+                  Deployment has unavailable replicas for more than 10 minutes.
+                summary: Kafka Bridge Oauth Proxy deployment replica mismatch
+              expr: |
+                kube_deployment_spec_replicas{
+                  namespace="NAMESPACE",
+                  deployment="apps-kafka-bridge-oauth-proxy"
+                }
+                !=
+                kube_deployment_status_replicas_available{
+                  namespace="NAMESPACE",
+                  deployment="apps-kafka-bridge-oauth-proxy"
+                }
+              for: 10m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+  7: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.1.0
+      name: apps-kafka-bridge-account-access
+      namespace: NAMESPACE
+    rules:
+      - apiGroups:
+          - ""
+        resourceNames:
+          - apps-kafka-bridge-account-access
+        resources:
+          - secrets
+        verbs:
+          - edit
+  8: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.1.0
+      name: apps-kafka-bridge-account-access
+      namespace: NAMESPACE
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: apps-kafka-bridge-account-access
+    subjects:
+      - kind: ServiceAccount
+        name: apps-kafka-bridge-account-access
+        namespace: ekp
+  9: |
+    apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.1.0
+      name: apps-kafka-bridge
+      namespace: NAMESPACE
+    spec:
+      host: apps-kafka-bridge.apps.test.example.com
+      port:
+        targetPort: http
+      tls:
+        termination: edge
+      to:
+        kind: Service
+        name: apps-kafka-bridge-oauth-proxy
+        weight: 100
+      wildcardPolicy: None
+  10: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.1.0
+      name: apps-kafka-bridge-account-access
+      namespace: NAMESPACE
+    stringData:
+      description: Fake Secret to give service account access to a given service behind openshift-oauth-proxy.
+  11: |
+    apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.1.0
+      name: apps-kafka-bridge-oauth-proxy
+      namespace: NAMESPACE
+    spec:
+      ports:
+        - name: http
+          port: 8080
+          protocol: TCP
+          targetPort: 8080
+      selector:
+        app: apps-kafka-bridge-oauth-proxy
+      type: ClusterIP
+  12: |
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.1.0
+      name: apps-kafka-bridge-account-access
+      namespace: ekp
+  13: |
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      annotations:
+        serviceaccounts.openshift.io/oauth-redirectreference.primary: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"apps-kafka-bridge"}}'
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.1.0
+      name: apps-kafka-bridge-oauth-proxy
+      namespace: NAMESPACE
+  14: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apps-kafka-bridge
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apps-kafka-bridge
+        app.kubernetes.io/version: 0.46.1
+        helm.sh/chart: apps-kafka-bridge-1.1.0
+      name: apps-kafka-bridge
+      namespace: NAMESPACE
+    spec:
+      endpoints:
+        - interval: 30s
+          path: /metrics
+          port: rest-api
+      selector:
+        matchLabels:
+          strimzi.io/cluster: apps-kafka-bridge
+          strimzi.io/name: apps-kafka-bridge-bridge
