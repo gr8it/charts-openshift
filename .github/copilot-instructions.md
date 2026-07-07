@@ -4,7 +4,9 @@
 
 The project contains **Helm charts** for deploying applications on OpenShift clusters. These charts are part of a product and are intentionally opinionated to minimize deployment complexity and favor a convention-over-configuration design paradigm. They are orchestrated from per-customer repositories (called "config repositories" or shorter "conf repos") using `helmfile` and deployed using gitops. The goal of Helmfile is to install only relevant components (charts), prepare environment values (combining global, per-environment, and per-cluster settings), and make them available to the charts in the form of global values. Charts should not access the global values directly; instead, they should use helper functions from `apc-global-overrides`, such as `{{ include "apc-global-overrides.environmentShort" . }}`, to enable override capabilities. 
 
-## Think Before Coding
+## Must follow rules
+
+### Think Before Coding
 
 **Don't assume. Don't hide confusion. Surface tradeoffs.**
 
@@ -14,7 +16,7 @@ Before implementing:
 - If a simpler approach exists, say so. Push back when warranted.
 - If something is unclear, stop. Name what's confusing. Ask.
 
-## Simplicity First
+### Simplicity First
 
 **Minimum code that solves the problem. Nothing speculative.**
 
@@ -26,7 +28,7 @@ Before implementing:
 
 Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 
-## Surgical Changes
+### Surgical Changes
 
 **Touch only what you must. Clean up only your own mess.**
 
@@ -42,7 +44,7 @@ When your changes create orphans:
 
 The test: Every changed line should trace directly to the user's request.
 
-## Goal-Driven Execution
+### Goal-Driven Execution
 
 **Define success criteria. Loop until verified.**
 
@@ -60,22 +62,22 @@ For multi-step tasks, state a brief plan:
 
 Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
-## General guidance for reviews
+## Guidance for reviews
 
 - Prefer concise bullet points; include code snippets when helpful.
 - When you flag an issue, always include: (a) the rationale, (b) a suggested change, and (c) a quick check to verify the fix.
 - If multiple valid approaches exist, list the recommended one first and briefly note trade‑offs.
 
-## Security & reliability (applies to all code)
-
-- Default to secure, least‑privilege configurations.
-- Call out deprecated APIs, unstable flags, or risky defaults and propose supported alternatives.
-
-## Tone & format
+### Tone & format
 
 - Be direct, specific, and constructive.
 - Use headings, checklists, and short code blocks for readability.
 - Avoid vague feedback; instead, provide clear, actionable guidance.
+
+### Security & reliability (applies to all code)
+
+- Default to secure, least‑privilege configurations.
+- Call out deprecated APIs, unstable flags, or risky defaults and propose supported alternatives.
 
 ## Directory Layout
 
@@ -129,17 +131,6 @@ charts-openshift/
 
 - Always include a `values.schema.json` file for each chart. This ensures that values are validated during `helm install/upgrade` and prevents misconfigurations.
 
-## PrometheusRule Conventions
-
-Per-rule labels always include:
-
-```yaml
-labels:
-  severity: warning | critical
-  vendor: aspecta
-  team: platform
-```
-
 ## Unit Tests
 
 Framework: [helm-unittest](https://github.com/helm-unittest/helm-unittest)
@@ -165,6 +156,39 @@ tests:
 - Charts should include proper unittests, covering all edge cases
 - Run all tests: `make unittest` (runs `helm unittest --strict <folder>` for every chart with a `tests/` dir).
 
+## PrometheusRule Conventions
+
+Per-rule labels always include severity, vendor and team, e.g.:
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+...
+spec:
+  groups:
+    - rules:
+        - labels:
+            severity: warning | critical
+            vendor: aspecta
+            team: platform
+```
+
+## URLs
+
+### No private URLs in docs
+
+Always use example.com domain for private URLs in examples, e.g. `https://example.com/` or `https://vault.example.com/`. Do not use real URLs, even if they are public.
+
+### Image FQDNs
+
+Always use FQDNs when referencing an image! Do not assume search registries are correctly set up and no aliasing is going on. For example, use `docker.io/library/nginx:1.25.2` instead of `nginx:1.25.2`.
+
+## Contributing rules
+
+[contributing rules]: /.github/CONTRIBUTING.md
+
+General Contributing rules are covered in [CONTRIBUTING.md][contributing rules].
+
 ## Build & Release Workflow
 
 | Command | What it does |
@@ -187,19 +211,3 @@ tests:
 helm repo add gr8it-openshift https://raw.githubusercontent.com/gr8it/charts-openshift/main/
 helm search repo gr8it-openshift -l
 ```
-
-## URLs
-
-### No private URLs in docs
-
-Always use example.com domain for private URLs in examples, e.g. `https://example.com/` or `https://vault.example.com/`. Do not use real URLs, even if they are public.
-
-### Image FQDNs
-
-Always use FQDNs when referencing an image! Do not assume search registries are correctly set up and no aliasing is going on. For example, use `docker.io/library/nginx:1.25.2` instead of `nginx:1.25.2`.
-
-## Contributing rules
-
-[contributing rules]: /.github/CONTRIBUTING.md
-
-General Contributing rules are covered in [CONTRIBUTING.md][contributing rules].
