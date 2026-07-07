@@ -624,10 +624,10 @@ manifests should match snapshot:
             all:
               - key: '{{ obcsecret }} | length(keys(@))'
                 operator: NotEquals
-                value: "0"
+                value: 0
               - key: '{{ obcconfigmap }} | length(keys(@))'
                 operator: NotEquals
-                value: "0"
+                value: 0
               - key: '{{ request.object.metadata.deletionTimestamp || '''' }}'
                 operator: Equals
                 value: ""
