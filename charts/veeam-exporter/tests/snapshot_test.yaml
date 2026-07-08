@@ -1,0 +1,12 @@
+suite: Snapshot test
+templates:
+  - templates/*
+release:
+  name: veeam-exporter
+  namespace: apc-observability
+set:
+  customer: test-customer
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}
