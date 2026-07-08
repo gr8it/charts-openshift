@@ -9,7 +9,7 @@ spec:
   size: {{ .Values.lokistack.size }}
   storage:
     secret:
-      name: {{ printf "%s-allinfo" (include "logging-instance.fullname" .) }}
+      name: {{ printf "%s-allinfo" (.Values.objectBucketClaim.name | default (include "logging-instance.fullname" .)) }}
       type: s3
     schemas:
       {{- toYaml .Values.lokistack.storage.schemas | nindent 6 }}
