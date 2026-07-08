@@ -1,4 +1,3 @@
-{{- if .Values.uiplugin.enabled }}
 apiVersion: observability.openshift.io/v1alpha1
 kind: UIPlugin
 metadata:
@@ -12,4 +11,3 @@ spec:
       name: {{ include "logging-instance.fullname" . }}
     # Workaround for issue https://access.redhat.com/solutions/6998442
     timeout: {{ .Values.uiplugin.timeout | default "120s" }}
-{{- end }}
