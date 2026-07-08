@@ -8,4 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2026-05-21
 
 _Initial release._
+
+- Default PrometheusRule alert labels `app: veeam`, `team: platform`, `vendor: aspecta` (in addition to `severity: warning`).
+
 _([SPEXAPC-7749](https://aspecta.atlassian.net/browse/SPEXAPC-7749))_
