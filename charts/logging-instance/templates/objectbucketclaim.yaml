@@ -1,4 +1,3 @@
-{{- if .Values.objectBucketClaim.enabled }}
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
@@ -9,4 +8,3 @@ metadata:
 spec:
   storageClassName: {{ .Values.objectBucketClaim.storageClassName }}
   bucketName: {{ .Values.objectBucketClaim.bucketName | default (include "logging-instance.fullname" .) }}
-{{- end }}
