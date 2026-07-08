@@ -1,35 +1,23 @@
-renders the Alertmanager ServiceMonitor mutation policy for hub clusters:
+renders the Alertmanager ServiceMonitor server-side apply patch for hub clusters:
   1: |
-    apiVersion: kyverno.io/v1
-    kind: Policy
+    apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
     metadata:
       annotations:
-        policies.kyverno.io/category: Observability
-        policies.kyverno.io/minversion: 1.13.0
-        policies.kyverno.io/subject: ServiceMonitor
-        policies.kyverno.io/title: Patch Alertmanager ServiceMonitor
-      labels:
-        app.kubernetes.io/instance: multi-cluster-observability
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: multi-cluster-observability
-        app.kubernetes.io/part-of: multi-cluster-observability
-        helm.sh/chart: multi-cluster-observability-1.0.0
-      name: patch-alertmanager-servicemonitor
+        argocd.argoproj.io/sync-options: ServerSideApply=true
+      name: alertmanager
       namespace: open-cluster-management-observability
     spec:
-      background: false
-      rules:
-        - match:
-            any:
-              - resources:
-                  kinds:
-                    - monitoring.coreos.com/v1/ServiceMonitor
-                  names:
-                    - alertmanager
-          mutate:
-            patchStrategicMerge:
-              spec:
-                endpoints:
-                  - (port): metrics
-                    bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
-          name: add-bearer-token-file
+      endpoints:
+        - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+          interval: 30s
+          port: metrics
+          scheme: https
+          tlsConfig:
+            caFile: /etc/prometheus/configmaps/serving-certs-ca-bundle/service-ca.crt
+            certFile: /etc/prometheus/secrets/metrics-client-certs/tls.crt
+            keyFile: /etc/prometheus/secrets/metrics-client-certs/tls.key
+            serverName: alertmanager-metrics.open-cluster-management-observability.svc
+      selector:
+        matchLabels:
+          app: multicluster-observability-alertmanager-metrics

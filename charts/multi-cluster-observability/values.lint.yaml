@@ -1,10 +1,13 @@
 global:
   apc:
+    environmentShort: h
     cluster:
       isHub: true
     services:
       externalSecretsOperator:
         defaultClusterSecretStore: vault-hub-secret-store
+      vault:
+        KVmountPlatform: apc-platform
 
 alertmanagerConfig:
   vault:

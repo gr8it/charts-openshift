@@ -1,4 +1,4 @@
-suite: Alertmanager ServiceMonitor policy
+suite: Alertmanager ServiceMonitor patch
 values:
   - ../values.lint.yaml
 release:
@@ -6,28 +6,37 @@ release:
   namespace: open-cluster-management-observability
 
 tests:
-  - it: renders the Alertmanager ServiceMonitor mutation policy for hub clusters
+  - it: renders the Alertmanager ServiceMonitor server-side apply patch for hub clusters
     template: templates/policy-alertmanager-servicemonitor.yaml
     asserts:
       - hasDocuments:
           count: 1
       - isKind:
-          of: Policy
+          of: ServiceMonitor
       - equal:
           path: metadata.name
-          value: patch-alertmanager-servicemonitor
+          value: alertmanager
       - equal:
           path: metadata.namespace
           value: open-cluster-management-observability
       - equal:
-          path: spec.background
-          value: false
+          path: metadata.annotations["argocd.argoproj.io/sync-options"]
+          value: ServerSideApply=true
       - equal:
-          path: spec.rules[0].match.any[0].resources.kinds[0]
-          value: monitoring.coreos.com/v1/ServiceMonitor
+          path: spec.endpoints[0].port
+          value: metrics
       - equal:
-          path: spec.rules[0].match.any[0].resources.names[0]
-          value: alertmanager
+          path: spec.endpoints[0].scheme
+          value: https
+      - equal:
+          path: spec.endpoints[0].bearerTokenFile
+          value: /var/run/secrets/kubernetes.io/serviceaccount/token
+      - equal:
+          path: spec.endpoints[0].tlsConfig.serverName
+          value: alertmanager-metrics.open-cluster-management-observability.svc
+      - equal:
+          path: spec.selector.matchLabels.app
+          value: multicluster-observability-alertmanager-metrics
       - matchSnapshot: {}
 
   - it: does not render for non-hub clusters
