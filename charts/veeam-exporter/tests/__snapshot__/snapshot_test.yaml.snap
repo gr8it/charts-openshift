@@ -10,7 +10,7 @@ manifests should match snapshot:
         app.kubernetes.io/name: veeam-exporter
         dashboard: veeam-backup
         dashboards: apc-grafana
-        helm.sh/chart: veeam-exporter-1.0.0
+        helm.sh/chart: veeam-exporter-1.0.1
       name: veeam-exporter-dashboard
       namespace: apc-observability
     spec:
@@ -567,7 +567,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: veeam-exporter
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: veeam-exporter
-        helm.sh/chart: veeam-exporter-1.0.0
+        helm.sh/chart: veeam-exporter-1.0.1
       name: veeam-alerts
       namespace: prometheus-pushgateway
     spec:
@@ -584,8 +584,11 @@ manifests should match snapshot:
                 or
                 max_over_time(veeam_job_result_info{job="veeam_job_report",namespace="prometheus-pushgateway"}[2d]) == 2
               labels:
+                app: veeam
                 customerName: test-customer
                 severity: warning
+                team: platform
+                vendor: aspecta
             - alert: veeam_repo_full
               annotations:
                 description: The repository is 80% or more full.
@@ -596,8 +599,11 @@ manifests should match snapshot:
                   / veeam_repo_total_size_bytes{job="veeam_repo_report"}
                 ) * 100 > 79
               labels:
+                app: veeam
                 customerName: test-customer
                 severity: warning
+                team: platform
+                vendor: aspecta
             - alert: veeam_noreport_2_hours
               annotations:
                 description: No Veeam Metrics have been received for the past 2 hours.
@@ -605,8 +611,11 @@ manifests should match snapshot:
               expr: |
                 (max_over_time(push_time_seconds{job="veeam_job_report"}[2h]) < time() - 7200)
               labels:
+                app: veeam
                 customerName: test-customer
                 severity: warning
+                team: platform
+                vendor: aspecta
             - alert: veeam_nobackup_two_days
               annotations:
                 description: No backup for {{ $labels.name }} has been performed in the past 2 days.
@@ -616,5 +625,8 @@ manifests should match snapshot:
                 and
                 max_over_time(veeam_job_result_info{job="veeam_job_report"}[2d]) < 99
               labels:
+                app: veeam
                 customerName: test-customer
                 severity: warning
+                team: platform
+                vendor: aspecta
