@@ -1,4 +1,4 @@
-{{- if and (eq (include "apc-global-overrides.clusterIsHub" .) "true") .Values.hub.spokeLogforward.enabled }}
+{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
 ---
 apiVersion: v1
 kind: ServiceAccount

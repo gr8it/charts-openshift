@@ -67,13 +67,10 @@ externalSecret:
 
 # --- Hub-specific resources ---
 hub:
-  spokeLogforward:
-    enabled: false
   alertingRules:
     customerName: ""
-    acs:
-      enabled: false
-      centralUrl: ""
-      namespaceRegex: "apc-.*|cert-manager.*|cert-utils|crossplane-system|default|group-sync-operator|kube.*|nodepool-.*|open-cluster-management.*|openshift.*|rhacs-operator|stackrox|veeam|vm-templates"
+    # ACS policy violation alerting via Loki AlertingRule is intentionally not
+    # supported here - ACS alert delivery is expected to use the RHACS Generic
+    # Webhook -> Vector -> Jira Operations path instead.
     hwEvents:
       enabled: false
