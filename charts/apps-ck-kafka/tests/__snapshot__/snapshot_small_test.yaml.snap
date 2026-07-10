@@ -7,7 +7,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.2.3
+        helm.sh/chart: apps-ck-kafka-1.3.0
       name: kafka-brokers
       namespace: kafka
     spec:
@@ -196,7 +196,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.2.3
+        helm.sh/chart: apps-ck-kafka-1.3.0
       name: kafka-metrics
       namespace: kafka
   3: |
@@ -207,7 +207,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.2.3
+        helm.sh/chart: apps-ck-kafka-1.3.0
       name: kafka-oauth-proxy
       namespace: kafka
     spec:
@@ -257,7 +257,111 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.2.3
+        helm.sh/chart: apps-ck-kafka-1.3.0
+      name: app-producer
+      namespace: kafka
+    spec:
+      dataFrom:
+        - extract:
+            conversionStrategy: Default
+            decodingStrategy: None
+            key: //app-producer
+            metadataPolicy: None
+      refreshInterval: 1h
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: vault-hub-secret-store
+      target:
+        creationPolicy: Orphan
+        deletionPolicy: Retain
+        name: app-producer-eso
+  5: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.3.0
+      name: app-consumer
+      namespace: kafka
+    spec:
+      dataFrom:
+        - extract:
+            conversionStrategy: Default
+            decodingStrategy: None
+            key: //app-consumer
+            metadataPolicy: None
+      refreshInterval: 1h
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: vault-hub-secret-store
+      target:
+        creationPolicy: Orphan
+        deletionPolicy: Retain
+        name: app-consumer-eso
+  6: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.3.0
+      name: analytics-consumer
+      namespace: kafka
+    spec:
+      dataFrom:
+        - extract:
+            conversionStrategy: Default
+            decodingStrategy: None
+            key: //analytics-consumer
+            metadataPolicy: None
+      refreshInterval: 1h
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: vault-hub-secret-store
+      target:
+        creationPolicy: Orphan
+        deletionPolicy: Retain
+        name: analytics-consumer-eso
+  7: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.3.0
+      name: admin
+      namespace: kafka
+    spec:
+      dataFrom:
+        - extract:
+            conversionStrategy: Default
+            decodingStrategy: None
+            key: //admin
+            metadataPolicy: None
+      refreshInterval: 1h
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: vault-hub-secret-store
+      target:
+        creationPolicy: Orphan
+        deletionPolicy: Retain
+        name: admin-eso
+  8: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.3.0
       name: kafka-oauth-proxy-cookie-secret
       namespace: kafka
     spec:
@@ -279,9 +383,9 @@ manifests should match snapshot:
               app.kubernetes.io/instance: kafka
               app.kubernetes.io/managed-by: Helm
               app.kubernetes.io/name: kafka
-              helm.sh/chart: apps-ck-kafka-1.2.3
+              helm.sh/chart: apps-ck-kafka-1.3.0
           type: Opaque
-  5: |
+  9: |
     apiVersion: kafka.strimzi.io/v1beta2
     kind: Kafka
     metadata:
@@ -292,7 +396,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.2.3
+        helm.sh/chart: apps-ck-kafka-1.3.0
       name: kafka
       namespace: kafka
     spec:
@@ -372,7 +476,7 @@ manifests should match snapshot:
         rack:
           topologyKey: topology.kubernetes.io/zone
         version: 4.0.0
-  6: |
+  10: |
     apiVersion: kafka.strimzi.io/v1beta2
     kind: KafkaNodePool
     metadata:
@@ -380,7 +484,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.2.3
+        helm.sh/chart: apps-ck-kafka-1.3.0
         strimzi.io/cluster: kafka
       name: kafka-brokers
       namespace: kafka
@@ -403,7 +507,7 @@ manifests should match snapshot:
             kraftMetadata: shared
             size: 10Gi
             type: persistent-claim
-  7: |
+  11: |
     apiVersion: kafka.strimzi.io/v1beta2
     kind: KafkaNodePool
     metadata:
@@ -411,7 +515,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.2.3
+        helm.sh/chart: apps-ck-kafka-1.3.0
         strimzi.io/cluster: kafka
       name: kafka-controllers
       namespace: kafka
@@ -434,7 +538,7 @@ manifests should match snapshot:
             kraftMetadata: shared
             size: 5Gi
             type: persistent-claim
-  8: |
+  12: |
     apiVersion: kafka.strimzi.io/v1beta2
     kind: KafkaTopic
     metadata:
@@ -442,7 +546,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.2.3
+        helm.sh/chart: apps-ck-kafka-1.3.0
         strimzi.io/cluster: kafka
       name: events-v1
       namespace: kafka
@@ -454,7 +558,7 @@ manifests should match snapshot:
       partitions: 6
       replicas: 3
       topicName: events.v1
-  9: |
+  13: |
     apiVersion: kafka.strimzi.io/v1beta2
     kind: KafkaUser
     metadata:
@@ -462,12 +566,17 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.2.3
+        helm.sh/chart: apps-ck-kafka-1.3.0
         strimzi.io/cluster: kafka
       name: app-producer
       namespace: kafka
     spec:
       authentication:
+        password:
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: app-producer-eso
         type: scram-sha-512
       authorization:
         acls:
@@ -499,7 +608,7 @@ manifests should match snapshot:
               patternType: literal
               type: topic
         type: simple
-  10: |
+  14: |
     apiVersion: kafka.strimzi.io/v1beta2
     kind: KafkaUser
     metadata:
@@ -507,12 +616,17 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.2.3
+        helm.sh/chart: apps-ck-kafka-1.3.0
         strimzi.io/cluster: kafka
       name: app-consumer
       namespace: kafka
     spec:
       authentication:
+        password:
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: app-consumer-eso
         type: scram-sha-512
       authorization:
         acls:
@@ -540,7 +654,7 @@ manifests should match snapshot:
               patternType: Prefix
               type: group
         type: simple
-  11: |
+  15: |
     apiVersion: kafka.strimzi.io/v1beta2
     kind: KafkaUser
     metadata:
@@ -548,12 +662,17 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.2.3
+        helm.sh/chart: apps-ck-kafka-1.3.0
         strimzi.io/cluster: kafka
       name: analytics-consumer
       namespace: kafka
     spec:
       authentication:
+        password:
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: analytics-consumer-eso
         type: scram-sha-512
       authorization:
         acls:
@@ -581,7 +700,7 @@ manifests should match snapshot:
               patternType: Prefix
               type: group
         type: simple
-  12: |
+  16: |
     apiVersion: kafka.strimzi.io/v1beta2
     kind: KafkaUser
     metadata:
@@ -589,17 +708,22 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.2.3
+        helm.sh/chart: apps-ck-kafka-1.3.0
         strimzi.io/cluster: kafka
       name: admin
       namespace: kafka
     spec:
       authentication:
+        password:
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: admin-eso
         type: scram-sha-512
       authorization:
         acls: []
         type: simple
-  13: |
+  17: |
     apiVersion: kafka.strimzi.io/v1beta2
     kind: KafkaUser
     metadata:
@@ -607,7 +731,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.2.3
+        helm.sh/chart: apps-ck-kafka-1.3.0
         strimzi.io/cluster: kafka
       name: apc-kafka-admin
       namespace: kafka
@@ -617,7 +741,7 @@ manifests should match snapshot:
       authorization:
         acls: []
         type: simple
-  14: |
+  18: |
     apiVersion: generators.external-secrets.io/v1alpha1
     kind: Password
     metadata:
@@ -625,7 +749,24 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.2.3
+        helm.sh/chart: apps-ck-kafka-1.3.0
+      name: kafka-pwd-gen
+      namespace: kafka
+    spec:
+      allowRepeat: false
+      digits: 5
+      length: 20
+      noUpper: false
+      symbols: 0
+  19: |
+    apiVersion: generators.external-secrets.io/v1alpha1
+    kind: Password
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.3.0
       name: kafka-oauth-proxy-cookie-secret
       namespace: kafka
     spec:
@@ -634,7 +775,95 @@ manifests should match snapshot:
       length: 20
       noUpper: false
       symbols: 0
-  15: |
+  20: |
+    apiVersion: external-secrets.io/v1alpha1
+    kind: PushSecret
+    metadata:
+      name: app-producer
+      namespace: kafka
+    spec:
+      data:
+        - conversionStrategy: None
+          match:
+            remoteRef:
+              remoteKey: //app-producer
+      refreshInterval: 1h
+      secretStoreRefs:
+        - kind: ClusterSecretStore
+          name: vault-hub-secret-store
+      selector:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: Password
+          name: kafka-pwd-gen
+      updatePolicy: IfNotExists
+  21: |
+    apiVersion: external-secrets.io/v1alpha1
+    kind: PushSecret
+    metadata:
+      name: app-consumer
+      namespace: kafka
+    spec:
+      data:
+        - conversionStrategy: None
+          match:
+            remoteRef:
+              remoteKey: //app-consumer
+      refreshInterval: 1h
+      secretStoreRefs:
+        - kind: ClusterSecretStore
+          name: vault-hub-secret-store
+      selector:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: Password
+          name: kafka-pwd-gen
+      updatePolicy: IfNotExists
+  22: |
+    apiVersion: external-secrets.io/v1alpha1
+    kind: PushSecret
+    metadata:
+      name: analytics-consumer
+      namespace: kafka
+    spec:
+      data:
+        - conversionStrategy: None
+          match:
+            remoteRef:
+              remoteKey: //analytics-consumer
+      refreshInterval: 1h
+      secretStoreRefs:
+        - kind: ClusterSecretStore
+          name: vault-hub-secret-store
+      selector:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: Password
+          name: kafka-pwd-gen
+      updatePolicy: IfNotExists
+  23: |
+    apiVersion: external-secrets.io/v1alpha1
+    kind: PushSecret
+    metadata:
+      name: admin
+      namespace: kafka
+    spec:
+      data:
+        - conversionStrategy: None
+          match:
+            remoteRef:
+              remoteKey: //admin
+      refreshInterval: 1h
+      secretStoreRefs:
+        - kind: ClusterSecretStore
+          name: vault-hub-secret-store
+      selector:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: Password
+          name: kafka-pwd-gen
+      updatePolicy: IfNotExists
+  24: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: Role
     metadata:
@@ -642,7 +871,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.2.3
+        helm.sh/chart: apps-ck-kafka-1.3.0
       name: kafka-oauth-service-account-access
       namespace: kafka
     rules:
@@ -654,7 +883,7 @@ manifests should match snapshot:
           - kafka
         verbs:
           - get
-  16: |
+  25: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
@@ -662,7 +891,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.2.3
+        helm.sh/chart: apps-ck-kafka-1.3.0
       name: kafka-oauth-service-account-access
       namespace: kafka
     roleRef:
@@ -672,7 +901,7 @@ manifests should match snapshot:
     subjects:
       - kind: ServiceAccount
         name: kafka-oauth-proxy
-  17: |
+  26: |
     apiVersion: route.openshift.io/v1
     kind: Route
     metadata:
@@ -680,7 +909,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.2.3
+        helm.sh/chart: apps-ck-kafka-1.3.0
       name: kafka-kafka-ui
       namespace: kafka
     spec:
@@ -694,7 +923,7 @@ manifests should match snapshot:
         name: kafka-oauth-proxy
         weight: 100
       wildcardPolicy: None
-  18: |
+  27: |
     apiVersion: velero.io/v1
     kind: Schedule
     metadata:
@@ -702,7 +931,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.2.3
+        helm.sh/chart: apps-ck-kafka-1.3.0
       name: kafka-brokers
       namespace: openshift-adp
     spec:
@@ -715,7 +944,7 @@ manifests should match snapshot:
           - '*'
         snapshotVolumes: true
         ttl: 72h
-  19: |
+  28: |
     apiVersion: v1
     kind: Service
     metadata:
@@ -723,7 +952,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.2.3
+        helm.sh/chart: apps-ck-kafka-1.3.0
       name: kafka-oauth-proxy
       namespace: kafka
     spec:
@@ -735,7 +964,7 @@ manifests should match snapshot:
       selector:
         app: kafka-oauth-proxy
       type: ClusterIP
-  20: |
+  29: |
     apiVersion: v1
     kind: ServiceAccount
     metadata:
@@ -745,6 +974,6 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.2.3
+        helm.sh/chart: apps-ck-kafka-1.3.0
       name: kafka-oauth-proxy
       namespace: kafka

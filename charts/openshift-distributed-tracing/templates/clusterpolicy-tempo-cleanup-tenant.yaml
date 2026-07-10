@@ -1,0 +1,43 @@
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: {{ default "apc-tempo-stack" .Values.tempoStack.name }}-tempo-cleanup-tenants
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
+    policies.kyverno.io/title: Update TempoStack tenants on namespace delete
+    policies.kyverno.io/category: gitops
+    policies.kyverno.io/subject: Cleanup TempoStack tenants
+    policies.kyverno.io/minversion: 1.13.0
+  labels:
+{{- include "tempo-stack.labels" . | nindent 4 }}
+spec:
+  mutateExistingOnPolicyUpdate: false 
+  rules:
+    - name: remove-tenant-from-tempostack-on-namespace-delete
+      match:
+        any:
+          - resources:
+              kinds:
+                - Namespace
+              selector:
+                matchLabels:
+                  {{ .Values.namespaceSelector.key }}: {{ .Values.namespaceSelector.value }}
+              operations:
+                - DELETE
+      mutate:
+        targets:
+          - apiVersion: tempo.grafana.com/v1alpha1
+            kind: TempoStack
+            name: {{ default "apc-tempo-stack" .Values.tempoStack.name }}
+            namespace: {{ .Release.Namespace }}
+        foreach:
+          - list: "target.spec.tenants.authentication"
+            preconditions:
+              all:
+                - key: {{`"{{ element.tenantName }}"`}}
+                  operator: Equals
+                  value: {{`"{{ request.oldObject.metadata.name }}"`}}
+            patchesJson6902: |-
+              - op: remove
+                path: /spec/tenants/authentication/{{`{{ elementIndex }}`}}

@@ -5,6 +5,12 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-07-02
+
+### Fixed
+
+- Use fully qualified Docker Hub repository for the Vault server image.
+
 ## [1.0.1] - 2026-02-18
 
 _([SPEXAPC-12666](https://aspecta.atlassian.net/browse/SPEXAPC-12666))_
