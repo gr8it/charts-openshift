@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: apc-flowlogs-pipeline-network-policy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "netobserv-config.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: flowlogs-pipeline
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Release.Namespace }}-privileged
+          podSelector:
+            matchLabels:
+              app: netobserv-ebpf-agent
+      ports:
+        - port: 2055
+          protocol: TCP
