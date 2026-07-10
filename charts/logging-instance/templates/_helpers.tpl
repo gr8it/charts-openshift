@@ -24,6 +24,13 @@ If release name contains chart name it will be used as a full name.
 {{- end }}
 
 {{/*
+Create the LokiStack name, allowing override to adopt an existing LokiStack.
+*/}}
+{{- define "logging-instance.lokistackName" -}}
+{{- .Values.lokistack.name | default (include "logging-instance.fullname" .) }}
+{{- end }}
+
+{{/*
 Create chart name and version as used by the chart label.
 */}}
 {{- define "logging-instance.chart" -}}

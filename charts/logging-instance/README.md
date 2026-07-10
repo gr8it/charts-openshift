@@ -16,6 +16,7 @@ This chart deploys the `LokiStack`, `ClusterLogForwarder` and `UIPlugin` custom 
 The chart is configured through `values.yaml`. Key parameters include:
 
 - `objectBucketClaim.name` / `objectBucketClaim.bucketName`: override the generated `ObjectBucketClaim`/bucket name (needed when adopting an existing, already-provisioned bucket instead of the default release-name-based one)
+- `lokistack.name`: override the `LokiStack` (and matching `ClusterLogForwarder` output / `UIPlugin` reference) name - needed when adopting an existing `LokiStack` instead of the default release-name-based one
 - `lokistack.*`: LokiStack sizing, storage, replication, ingestion/query limits and retention
 - `uiplugin.timeout`: request timeout for the Logging UIPlugin (defaults to `120s`, a workaround for [this issue](https://access.redhat.com/solutions/6998442))
 - `collector.resources`: resource requests/limits for the log collector
