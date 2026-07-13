@@ -1,0 +1,12 @@
+{{- if and .Values.mirror.enabled (eq .Release.Namespace .Values.mirror.upstreamComponent) }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "apps-ck-kafka.fullname" . }}-bootstrap
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "apps-ck-kafka.labels" . | nindent 4 }}
+spec:
+  type: ExternalName
+  externalName: {{ .Values.mirror.activeService }}
+{{- end }}
