@@ -1,9 +1,10 @@
 # HyperConverged (OpenShift Virtualization) configuration.
 # The spec is stable across clusters; only the env-specific knobs below are exposed.
+# Defaults match the production clusters; QA overrides them per conf repo.
 hyperconverged:
   # VM eviction strategy (LiveMigrate | LiveMigrateIfPossible | None).
-  evictionStrategy: LiveMigrateIfPossible
+  evictionStrategy: LiveMigrate
   # StorageClass backing persisted VM state. Leave empty to omit the field.
-  vmStateStorageClass: ocs-storagecluster-cephfs
+  vmStateStorageClass: ""
   # Additional network (NAD name in openshift-cnv) used for live-migration traffic.
   liveMigrationNetwork: vmlm

@@ -209,7 +209,7 @@ clean: check-helm check-yq
 
 # update versions.txt with all chart names and versions
 update-versions: check-yq
-	@ find charts -name Chart.yaml -exec yq -M '.name + ":" + .version' {} \; | sort > versions.txt
+	@ find charts -name Chart.yaml -exec yq -M '.name + ":" + .version' {} \; | LC_ALL=C sort --version-sort > versions.txt
 
 # Gets particular chart version (specified via CHARTFOLDER) and updates all other charts that depend on it
 # usage:

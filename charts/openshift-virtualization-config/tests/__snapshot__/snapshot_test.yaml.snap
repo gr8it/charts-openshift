@@ -6,7 +6,7 @@ manifests should match snapshot:
       name: kubevirt-hyperconverged
       namespace: openshift-cnv
     spec:
-      evictionStrategy: LiveMigrateIfPossible
+      evictionStrategy: LiveMigrate
       higherWorkloadDensity:
         memoryOvercommitPercentage: 100
       infra: {}
@@ -21,5 +21,4 @@ manifests should match snapshot:
       virtualMachineOptions:
         disableFreePageReporting: false
         disableSerialConsoleLog: true
-      vmStateStorageClass: ocs-storagecluster-cephfs
       workloads: {}
