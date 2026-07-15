@@ -15,6 +15,9 @@ spec:
         matchLabels:
           app.kubernetes.io/name: {{ include "etcd-hcp-backup.name" . }}
           app.kubernetes.io/instance: {{ include "etcd-hcp-backup.fullname" . }}
+    ports:
+    - protocol: TCP
+      port: 2379
   podSelector:
     matchExpressions:
     - key: "statefulset.kubernetes.io/pod-name"

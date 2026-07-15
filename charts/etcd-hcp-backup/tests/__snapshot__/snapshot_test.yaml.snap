@@ -439,6 +439,9 @@ manifests should match snapshot:
                 matchLabels:
                   app.kubernetes.io/instance: etcd-hcp-backup-hub01
                   app.kubernetes.io/name: etcd-hcp-backup
+          ports:
+            - port: 2379
+              protocol: TCP
       podSelector:
         matchExpressions:
           - key: statefulset.kubernetes.io/pod-name
