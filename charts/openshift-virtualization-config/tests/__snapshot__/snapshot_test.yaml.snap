@@ -1,0 +1,25 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: hco.kubevirt.io/v1beta1
+    kind: HyperConverged
+    metadata:
+      name: kubevirt-hyperconverged
+      namespace: openshift-cnv
+    spec:
+      evictionStrategy: LiveMigrateIfPossible
+      higherWorkloadDensity:
+        memoryOvercommitPercentage: 100
+      infra: {}
+      liveMigrationConfig:
+        allowAutoConverge: false
+        allowPostCopy: false
+        completionTimeoutPerGiB: 800
+        network: vmlm
+        parallelMigrationsPerCluster: 5
+        parallelOutboundMigrationsPerNode: 2
+        progressTimeout: 150
+      virtualMachineOptions:
+        disableFreePageReporting: false
+        disableSerialConsoleLog: true
+      vmStateStorageClass: ocs-storagecluster-cephfs
+      workloads: {}
