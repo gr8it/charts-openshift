@@ -22,7 +22,7 @@ The chart is configured through `values.yaml`. Key parameters include:
 - `collector.resources`: resource requests/limits for the log collector
 - `auditToHub.enabled` / `auditToHub.url`: forward audit logs to the hub's Loki gateway (spoke clusters). Enables both the `hub-loki-audit` output and the `audit-to-hub` pipeline in the `ClusterLogForwarder`; requires the `hub-spoke-logforward` token secret (see `externalSecret` below)
 - `pgaudit.enabled` / `pgaudit.url`: forward CloudNativePG audit logs to an external vector webhook endpoint
-- `externalSecret.enabled` / `externalSecret.refreshInterval`: the `hub-spoke-logforward` `ExternalSecret` used to authenticate `auditToHub` forwarding against the hub. When `enabled` is left unset, it defaults to `true` on spoke clusters and `false` on the hub; set explicitly to override
+- `externalSecret.refreshInterval`: the `hub-spoke-logforward` `ExternalSecret` used to authenticate `auditToHub` forwarding against the hub. Created automatically on spoke clusters only (not on the hub) - there is no toggle to override this
 - `hub.alertingRules.hwEvents.enabled`: hub-only Loki `AlertingRule` for HW/infrastructure event alerts (UPS/PDU/XCA), evaluated against the `audit` tenant
 
 ACS policy violation alerting via Loki `AlertingRule` is intentionally not included — ACS alert delivery is expected to go through the RHACS Generic Webhook -> Vector -> Jira Operations path instead. See the conf repo's `ocp-hub01/observability/logging/10-acs-policy-alerts.yaml` for the historical (unused) manifest.
