@@ -22,13 +22,22 @@ If you are co-locating the reminder with the component it monitors (e.g. an in-c
 |---|---|---|
 | `releaseServiceOverride` | _unset_ | Overrides `app.kubernetes.io/managed-by` label (e.g. `ArgoCD`). |
 | `defaultLabels` | `vendor: aspecta`<br>`team: platform` | Labels applied to every alert rule. Per-reminder `labels` take precedence. |
-| `reminders` | `[]` | List of reminder rules (see below). |
+| `reminders` | `{}` | Map of reminder rules keyed by alert name (see below). |
 
 ### Per-reminder fields
 
+Each reminder entry is keyed by the alert name. For example:
+
+```yaml
+reminders:
+  OIDCVaultSecretExpirySoon:
+    summary: ...
+    description: ...
+    datetime: "01.04.2027"
+```
+
 | Field | Required | Description |
 |---|---|---|
-| `alert` | yes | Prometheus alert name (used for routing/deduplication), e.g. `OIDCVaultSecretExpirySoon`. |
 | `summary` | yes | Short annotation shown in alert notifications. |
 | `description` | yes | Detailed annotation explaining context and impact. |
 | `datetime` | yes | Expiry date in `dd.mm.yyyy` or `dd.mm.yyyy HH:MM` format. Time defaults to `00:00` when omitted. **Always interpreted as UTC.** |
@@ -44,7 +53,7 @@ If you are co-locating the reminder with the component it monitors (e.g. an in-c
 ```yaml
 # values.yaml
 reminders:
-  - alert: OIDCVaultSecretExpirySoon
+  OIDCVaultSecretExpirySoon:
     summary: Azure Entra ID secret for vault.example.com OIDC expires soon
     description: >
       Azure Entra ID client secret used for OIDC authentication in vault.example.com

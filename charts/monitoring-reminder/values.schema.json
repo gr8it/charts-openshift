@@ -24,19 +24,16 @@
       }
     },
     "reminders": {
-      "type": "array",
-      "description": "List of static date-based alert rules. No PrometheusRule is created when empty.",
-      "items": {
+      "type": "object",
+      "description": "Map of static date-based alert rules. No PrometheusRule is created when empty.",
+      "propertyNames": {
+        "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+      },
+      "additionalProperties": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["alert", "summary", "description", "datetime"],
+        "required": ["summary", "description", "datetime"],
         "properties": {
-          "alert": {
-            "type": "string",
-            "description": "Prometheus alert name used for routing and deduplication.",
-            "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
-            "minLength": 1
-          },
           "summary": {
             "type": "string",
             "description": "Short human-readable summary shown in alert notifications.",
