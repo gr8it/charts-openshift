@@ -33,7 +33,7 @@ The `spoke-logforward` `ServiceAccount`/`ClusterRoleBinding` (whose token spokes
 
 The `TOKEN` synced by `externalSecret` (Vault key `<platform>/<environmentShort>/openshift-logging/hub-spoke-logforward`) is a long-lived bound token for the `spoke-logforward` `ServiceAccount`, created on the hub (namespace `openshift-logging`, bound to the `cluster-logging-write-audit-logs` `ClusterRole`). It authorizes the bearer to push audit logs into the hub's Loki gateway.
 
-The token is currently minted and stored in Vault manually, on the hub, via:
+The token is currently created and stored in Vault manually, on the hub, via:
 
 ```bash
 TOKEN=`oc create token spoke-logforward -n openshift-logging --duration=$((720*24))h`
