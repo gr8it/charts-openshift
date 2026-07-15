@@ -92,9 +92,13 @@ spec:
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
+              # root + DAC_READ_SEARCH: the host backup dir is 0700 core:core
+              runAsUser: 0
               capabilities:
                 drop:
                 - ALL
+                add:
+                - DAC_READ_SEARCH
             command:
             - /bin/bash
             - '-c'
