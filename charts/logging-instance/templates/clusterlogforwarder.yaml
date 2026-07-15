@@ -51,7 +51,7 @@ spec:
     - name: hub-loki-audit
       type: loki
       loki:
-        url: {{ .Values.auditToHub.url | quote }}
+        url: {{ required "auditToHub.url is required when auditToHub.enabled is true" .Values.auditToHub.url | quote }}
         authentication:
           token:
             from: secret
@@ -63,7 +63,7 @@ spec:
     - name: vector-webhook
       type: http
       http:
-        url: {{ .Values.pgaudit.url | quote }}
+        url: {{ required "pgaudit.url is required when pgaudit.enabled is true" .Values.pgaudit.url | quote }}
       tls:
         ca:
           configMapName: kube-root-ca.crt
