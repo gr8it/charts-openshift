@@ -6,8 +6,7 @@
 {{/*
 Resolve cluster name with defaults*/}}
 {{- define "openshift-etcd-backup.clusterName" -}}
-{{- $ctx := dict "Values" (dict "cluster" (dict "name" .Values.clusterName) "global" .Values.global) -}}
-{{- include "apc-global-overrides.require-clusterName" $ctx -}}
+{{- include "apc-global-overrides.require-clusterName" . -}}
 {{- end -}}
 
 {{/* Fullname = chart name + cluster name */}}

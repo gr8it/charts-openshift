@@ -11,11 +11,11 @@ The Job will create etcd snapshot, and uploads it to an S3 endpoint.
 
 |Variable                         | Type | Default                         |  Notes |
 |:---                             |:---  |:---                             |:---    |
-| clusterName                     | str  |                                 | Name of the OpenShift Cluster. Defaults to `global.apc.cluster.name` when not set. |
+| cluster.name                     | str  |                                 | Name of the OpenShift Cluster. Defaults to `global.apc.cluster.name` when not set. |
 | etcdBackupSchedule              | str  | `"0 * * * *"`                   | Cron notation for ETCD backup schedule |
 | retentionDays                   | int  | `3`                             | Specifies the number of days to retain old backups during the cleanup phase |
 | compressSnapshot                | bool | `false`                         | Controls whether to use gzip to compress the snapshot before uploading to S3 |
-| objectBucketClaim.name          | str  | `etcd-{clusterName}-backup`     | This parameter is mandatory when using a pre-existing ObjectBucketClaim. Overrides the default ObjectBucketClaim name if `{objectBucketClaim.create}` is `true` |
+| objectBucketClaim.name          | str  | `etcd-{cluster.name}-backup`     | This parameter is mandatory when using a pre-existing ObjectBucketClaim. Overrides the default ObjectBucketClaim name if `{objectBucketClaim.create}` is `true` |
 | objectBucketClaim.storageClass  | str  | `ocs-storagecluster-ceph-rgw`   | An optional parameter that defines a storageClass for the ObjectBucketClaim. Only used when `{objectBucketClaim.create}` is `true` |
 | image.awscli                    | str  | `amazon/aws-cli:2.24.27`        | Container image with `aws` cli tool |
 | image.busybox                   | str  | `busybox:1.37-glibc`            | Simple container image with `sh`   |
@@ -24,7 +24,8 @@ The Job will create etcd snapshot, and uploads it to an S3 endpoint.
 
 ```yaml
 # my-values.yaml
-clusterName: ocpdemo
+cluster:
+  name: ocpdemo
 retentionDays: 7
 etcdBackupSchedule: "0 */2 * * *"
 compressSnapshot: false
