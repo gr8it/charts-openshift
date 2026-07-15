@@ -1,0 +1,21 @@
+# HyperConverged (OpenShift Virtualization) configuration.
+# The spec is stable across clusters; only the env-specific knobs below are exposed.
+# Defaults match the production clusters; QA overrides them per conf repo.
+hyperconverged:
+  # VM eviction strategy (LiveMigrate | LiveMigrateIfPossible | None).
+  evictionStrategy: LiveMigrate
+  # StorageClass backing persisted VM state. Leave empty to omit the field.
+  vmStateStorageClass: ""
+  # Additional network (NAD name in openshift-cnv) used for live-migration traffic.
+  liveMigrationNetwork: vmlm
+
+# CNV secondary networks merged into the cluster Network operator's
+# additionalNetworks (merge-keyed by name, applied via ServerSideApply so
+# other owners' entries such as the ODF network are left intact).
+# Empty by default; set per cluster in the conf repo.
+additionalNetworks: []
+# - name: vmlm
+#   namespace: openshift-cnv
+#   type: Raw
+#   rawCNIConfig: |-
+#     { "cniVersion": "0.3.1", "name": "vmlm", "type": "macvlan", ... }
