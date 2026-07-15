@@ -25,7 +25,7 @@ The chart is configured through `values.yaml`. Key parameters include:
 - `externalSecret.refreshInterval`: the `hub-spoke-logforward` `ExternalSecret` used to authenticate `auditToHub` forwarding against the hub. Created automatically on spoke clusters only (not on the hub) - there is no toggle to override this
 - `hub.alertingRules.hwEvents.enabled`: hub-only Loki `AlertingRule` for HW/infrastructure event alerts (UPS/PDU/XCA), evaluated against the `audit` tenant
 
-ACS policy violation alerting via Loki `AlertingRule` is intentionally not included — ACS alert delivery is expected to go through the RHACS Generic Webhook -> Vector -> Jira Operations path instead. See the conf repo's `ocp-hub01/observability/logging/10-acs-policy-alerts.yaml` for the historical (unused) manifest.
+ACS policy violation alerting via Loki `AlertingRule` is intentionally not included — ACS alert delivery is expected to go through the RHACS Generic Webhook -> Vector -> Jira Operations path instead.
 
 The `spoke-logforward` `ServiceAccount`/`ClusterRoleBinding` (whose token spokes authenticate `auditToHub` requests with) is created automatically on the hub — it is not a separate toggle, it follows the same hub/spoke cluster detection as `externalSecret` above.
 
@@ -39,7 +39,7 @@ The token is currently created and stored in Vault manually, on the hub, via:
 TOKEN=`oc create token spoke-logforward -n openshift-logging --duration=$((720*24))h`
 ```
 
-(see the conf repo's `ocp-hub01/observability/logging/09-ocp-log-fw-audit-spoke2hub.sh`). Automating this rotation is tracked separately as a follow-up.
+Automating this rotation is tracked separately as a follow-up.
 
 ## Usage
 
