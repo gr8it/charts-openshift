@@ -1,0 +1,13 @@
+{{- with .Values.additionalNetworks }}
+# CNV secondary networks are merged into the cluster Network operator's
+# additionalNetworks list (merge-keyed by name). The owning ArgoCD app must use
+# ServerSideApply so only these entries are managed and other owners' entries
+# (e.g. the ODF network) are left intact.
+apiVersion: operator.openshift.io/v1
+kind: Network
+metadata:
+  name: cluster
+spec:
+  additionalNetworks:
+    {{- toYaml . | nindent 4 }}
+{{- end }}

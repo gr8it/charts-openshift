@@ -1,4 +1,4 @@
-manifests should match snapshot:
+manifests should match snapshot (defaults, no additional networks):
   1: |
     apiVersion: hco.kubevirt.io/v1beta1
     kind: HyperConverged
@@ -22,3 +22,62 @@ manifests should match snapshot:
         disableFreePageReporting: false
         disableSerialConsoleLog: true
       workloads: {}
+renders the Network additionalNetworks when set:
+  1: |
+    apiVersion: hco.kubevirt.io/v1beta1
+    kind: HyperConverged
+    metadata:
+      name: kubevirt-hyperconverged
+      namespace: openshift-cnv
+    spec:
+      evictionStrategy: LiveMigrate
+      higherWorkloadDensity:
+        memoryOvercommitPercentage: 100
+      infra: {}
+      liveMigrationConfig:
+        allowAutoConverge: false
+        allowPostCopy: false
+        completionTimeoutPerGiB: 800
+        network: vmlm
+        parallelMigrationsPerCluster: 5
+        parallelOutboundMigrationsPerNode: 2
+        progressTimeout: 150
+      virtualMachineOptions:
+        disableFreePageReporting: false
+        disableSerialConsoleLog: true
+      workloads: {}
+  2: |
+    apiVersion: operator.openshift.io/v1
+    kind: Network
+    metadata:
+      name: cluster
+    spec:
+      additionalNetworks:
+        - name: vmlm
+          namespace: openshift-cnv
+          rawCNIConfig: |-
+            {
+              "cniVersion": "0.3.1",
+              "name": "vmlm",
+              "type": "macvlan",
+              "master": "bond1.1079",
+              "mode": "bridge",
+              "ipam": {
+                "type": "whereabouts",
+                "range": "10.11.79.0/25",
+                "range_start": "10.11.79.10",
+                "range_end": "10.11.79.126"
+              }
+            }
+          type: Raw
+        - name: vm-br-8
+          namespace: openshift-cnv
+          rawCNIConfig: |-
+            {
+              "cniVersion": "0.3.1",
+              "name": "vm-br-8",
+              "type": "cnv-bridge",
+              "bridge": "br-8",
+              "disableContainerInterface": true
+            }
+          type: Raw
