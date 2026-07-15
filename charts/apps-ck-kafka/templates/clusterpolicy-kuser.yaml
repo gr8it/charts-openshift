@@ -1,0 +1,56 @@
+{{- $userToAppNs := false }}
+
+{{- range $user, $userData := .Values.kafkaUsers.users }}
+{{- if $userData.appNs }}
+  {{- $userToAppNs = true }}
+  {{- break }}
+{{- end }}
+{{- end }}
+
+{{- if $userToAppNs }}
+{{- if not (and .Values.mirror.enabled (ne .Release.Namespace .Values.mirror.upstreamComponent)) }}
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: sync-kuser-to-appns
+  labels:
+    {{- include "apps-ck-kafka.labels" . | nindent 4 }}
+spec:
+  background: true
+  rules:
+  {{- range $idx, $userData := .Values.kafkaUsers.users }}
+  {{- if $userData.appNs }}
+    {{- range $appNs := $userData.appNs }}
+    - name: {{ $userData.name }}-to-{{ $appNs }}
+      match:
+        any:
+          - resources:
+              kinds:
+                - Secret
+              names:
+                - {{ $userData.name }}-eso
+              namespaces:
+                - {{ $.Release.Namespace }}
+      generate:
+        generateExisting: true
+        synchronize: true
+
+        apiVersion: v1
+        kind: Secret
+        name: "{{ `{{ replace_all(request.object.metadata.name, '-eso', '') }}` }}"
+        namespace: {{ $appNs }}
+        data:
+          kind: Secret
+          type: Opaque
+          metadata:
+            labels:
+              kyverno-test: "true"
+          data: "{{ `{{ request.object.data }}` }}"
+          stringData:
+            sasl.jaas.config: >-
+              org.apache.kafka.common.security.scram.ScramLoginModule required username="{{ `{{ replace_all(request.object.metadata.name, '-eso', '') }}` }}" password="{{ `{{ base64_decode(request.object.data.password) }}` }}";
+    {{- end }}
+  {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}

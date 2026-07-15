@@ -119,6 +119,11 @@ With actual kafka user management there is specific procedure for password reset
 - force secret synchronization from vault with ```oc annotate externalsecret <username> force-sync=$(date +%s) --overwrite```
 - you can wait few moments or force the kafkauser reconciliation ```oc annotate kafkauser <username> strimzi.io/force-reconciliation="true" --overwrite```
 
+### Password sync to applicaiton namespace
+
+There is a possibility to copy the secret with kafka user password to application namespace for applicaiton use. The secret can be copied to multiple namespaces if needed. The copied secret will have ```password``` and ```sasl.jaas.config``` keys available.  
+To enable the secret copy function specify the list of the application namespaces where to copy the secret under ```.Values.kafkaUsers.users.<username>.appNs```.
+
 ## TODO
 
 - Kafka monitoring
