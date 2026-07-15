@@ -23,9 +23,11 @@ The chart is configured through `values.yaml`. Key parameters include:
 - `auditToHub.enabled` / `auditToHub.url`: forward audit logs to the hub's Loki gateway (spoke clusters). Enables both the `hub-loki-audit` output and the `audit-to-hub` pipeline in the `ClusterLogForwarder`; requires the `hub-spoke-logforward` token secret (see `externalSecret` below)
 - `pgaudit.enabled` / `pgaudit.url`: forward CloudNativePG audit logs to an external vector webhook endpoint
 - `externalSecret.refreshInterval`: the `hub-spoke-logforward` `ExternalSecret` used to authenticate `auditToHub` forwarding against the hub. Created automatically on spoke clusters only (not on the hub) - there is no toggle to override this
-- `hub.alertingRules.hwEvents.enabled`: hub-only Loki `AlertingRule` for HW/infrastructure event alerts (UPS/PDU/XCA), evaluated against the `audit` tenant
+- `monitoring-reminder.reminders`: [monitoring-reminder](https://github.com/gr8it/charts-openshift/tree/main/charts/monitoring-reminder) dependency used to alert before the `hub-spoke-logforward` token expires. **When deploying to a spoke cluster, this must be set in the conf repo** with the actual expiry `datetime` of the token created below - left empty (`[]`) by default since the chart has no way to know the expiry itself. See `values.lint.yaml` or `values.example.yaml` for what fields to fill in
 
-ACS policy violation alerting via Loki `AlertingRule` is intentionally not included — ACS alert delivery is expected to go through the RHACS Generic Webhook -> Vector -> Jira Operations path instead.
+This chart intentionally does not include Loki `AlertingRule` resources (ACS policy violation alerts, HW/infrastructure event alerts):
+- ACS alert delivery is expected to go through the RHACS Generic Webhook -> Vector -> Jira Operations path instead of Loki/Alertmanager.
+- HW/infrastructure event alerting doesn't belong in a logging-config chart; tracked as a follow-up to move it into a dedicated HW-monitoring chart.
 
 The `spoke-logforward` `ServiceAccount`/`ClusterRoleBinding` (whose token spokes authenticate `auditToHub` requests with) is created automatically on the hub — it is not a separate toggle, it follows the same hub/spoke cluster detection as `externalSecret` above.
 

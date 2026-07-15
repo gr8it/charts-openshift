@@ -1,0 +1,30 @@
+# Example values for a hub cluster
+global:
+  apc:
+    cluster:
+      isHub: true
+    environmentShort: h
+    services:
+      externalSecretsOperator:
+        defaultClusterSecretStore: apc
+      vault:
+        KVmountPlatform: apc-platform
+
+lokistack:
+  size: 1x.small
+  limits:
+    global:
+      ingestion:
+        ingestionRate: 20
+        ingestionBurstSize: 40
+      retention:
+        days: 20
+
+collector:
+  resources:
+    limits:
+      cpu: 8
+      memory: 8Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi

@@ -1,13 +1,18 @@
 suite: Snapshot test
 templates:
   - templates/*
-values:
-  - ../values.example.yaml
 release:
   name: logging-instance
   namespace: openshift-logging
 
 tests:
   - it: manifests should match snapshot
+    values:
+      - ../values.example.yaml
+    asserts:
+      - matchSnapshot: {}
+  - it: hub manifests should match snapshot
+    values:
+      - ../values.example.hub.yaml
     asserts:
       - matchSnapshot: {}
