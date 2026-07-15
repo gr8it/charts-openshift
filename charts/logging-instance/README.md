@@ -4,7 +4,7 @@ This Helm chart configures OpenShift logging infrastructure (LokiStack, ClusterL
 
 ## Description
 
-This chart deploys the `LokiStack`, `ClusterLogForwarder` and `UIPlugin` custom resources that make up the logging stack on a cluster, along with the supporting `ObjectBucketClaim`, `ServiceAccount`/`ClusterRoleBinding`s and (on spoke clusters) the `ExternalSecret` needed to forward audit logs to the hub. It requires the Loki Operator and OpenShift Logging Operator to be already installed (use the `loki-operator` and `cluster-logging-operator` charts for that).
+This chart deploys the `LokiStack`, `ClusterLogForwarder` and `UIPlugin` custom resources that make up the logging stack on a cluster, along with the supporting `ObjectBucketClaim`, `ServiceAccount`/`ClusterRoleBinding`s, (on spoke clusters) the `ExternalSecret` needed to forward audit logs to the hub, and (optionally) a `monitoring-reminder` `PrometheusRule` warning before that secret's token expires. It requires the Loki Operator and OpenShift Logging Operator to be already installed (use the `loki-operator` and `cluster-logging-operator` charts for that).
 
 ## Prerequisites
 
@@ -23,7 +23,7 @@ The chart is configured through `values.yaml`. Key parameters include:
 - `auditToHub.enabled` / `auditToHub.url`: forward audit logs to the hub's Loki gateway (spoke clusters). Enables both the `hub-loki-audit` output and the `audit-to-hub` pipeline in the `ClusterLogForwarder`; requires the `hub-spoke-logforward` token secret (see `externalSecret` below)
 - `pgaudit.enabled` / `pgaudit.url`: forward CloudNativePG audit logs to an external vector webhook endpoint
 - `externalSecret.refreshInterval`: the `hub-spoke-logforward` `ExternalSecret` used to authenticate `auditToHub` forwarding against the hub. Created automatically on spoke clusters only (not on the hub) - there is no toggle to override this
-- `monitoring-reminder.reminders`: [monitoring-reminder](https://github.com/gr8it/charts-openshift/tree/main/charts/monitoring-reminder) dependency used to alert before the `hub-spoke-logforward` token expires. **When deploying to a spoke cluster, this must be set in the conf repo** with the actual expiry `datetime` of the token created below - left empty (`[]`) by default since the chart has no way to know the expiry itself. See `values.lint.yaml` or `values.example.yaml` for what fields to fill in
+- `monitoring-reminder.reminders`: [monitoring-reminder](https://github.com/gr8it/charts-openshift/tree/main/charts/monitoring-reminder) dependency used to alert before the `hub-spoke-logforward` token expires. The token is created manually (see below), so the chart has no way to know its expiry - left empty (`{}`) by default, no `PrometheusRule` is created. **When deploying to a spoke cluster, this must be set in the conf repo** with the actual expiry `datetime` of the token. See `values.lint.yaml` or `values.example.yaml` for the expected fields
 
 This chart intentionally does not include Loki `AlertingRule` resources (ACS policy violation alerts, HW/infrastructure event alerts):
 - ACS alert delivery is expected to go through the RHACS Generic Webhook -> Vector -> Jira Operations path instead of Loki/Alertmanager.
@@ -55,4 +55,11 @@ auditToHub:
 
 externalSecret:
   refreshInterval: "15m"
+
+monitoring-reminder:
+  reminders:
+    HubSpokeLogforwardTokenExpirySoon:
+      summary: "hub-spoke-logforward Vault token is expiring soon"
+      description: "..."
+      datetime: "01.04.2027"
 ```

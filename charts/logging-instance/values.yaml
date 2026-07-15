@@ -65,8 +65,10 @@ externalSecret:
   refreshInterval: "15m"
 
 # --- Reminder for hub-spoke-logforward token expiry ---
-# The token is created and rotated manually (see README). When deploying to a
-# spoke cluster, set the actual expiry datetime here in the conf repo so a
-# warning/critical alert fires before it expires - required for helm lint.
+# The token is created manually (see README) - the chart has no way to know
+# its expiry itself, so this is empty by default and no PrometheusRule is
+# created. When deploying to a spoke cluster, set the actual expiry datetime
+# here in the conf repo (see values.lint.yaml for the expected fields) so a
+# warning/critical alert fires before the token expires.
 monitoring-reminder:
   reminders: {}
