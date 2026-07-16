@@ -472,7 +472,7 @@ manifests should match snapshot:
           rules:
             - alert: EtcdBackupJobFailure
               annotations:
-                description: ETCD backup job for hub01 {{ $labels.namespace }}/{{ $labels.job_name}} has failed. Fires as long as the failed Job object exists; see EtcdBackupMissing for actual backup staleness.
+                description: ETCD backup job for hub01 {{ $labels.namespace }}/{{ $labels.job_name}} has failed.
                 summary: ETCD backup job for hub01 has failed
               expr: kube_job_status_failed{namespace="apc-backup", job_name=~"etcd-hcp-backup-hub01-.*"} > 0
               labels:

@@ -19,7 +19,7 @@ spec:
           team: platform
         annotations:
           summary: "ETCD backup job for {{ $clusterName }} has failed"
-          description: "ETCD backup job for {{ $clusterName }} {{`{{ $labels.namespace }}/{{ $labels.job_name}}`}} has failed. Fires as long as the failed Job object exists; see EtcdBackupMissing for actual backup staleness."
+          description: "ETCD backup job for {{ $clusterName }} {{`{{ $labels.namespace }}/{{ $labels.job_name}}`}} has failed."
       - alert: EtcdBackupMissing
         expr: time() - kube_cronjob_status_last_successful_time{namespace="{{ .Release.Namespace }}", cronjob="{{ include "etcd-hcp-backup.fullname" . }}"} > 129600
         labels:
