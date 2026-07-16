@@ -34,62 +34,36 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
         helm.sh/chart: apps-ck-kafka-1.4.0
-      name: sync-kuser-to-appns
+      name: kafka-kuser-sync
     spec:
       background: true
       rules:
         - generate:
-            apiVersion: v1
-            data:
-              data: '{{ request.object.data }}'
-              kind: Secret
-              metadata:
-                labels:
-                  kyverno-test: "true"
-              stringData:
-                sasl.jaas.config: org.apache.kafka.common.security.scram.ScramLoginModule required username="{{ replace_all(request.object.metadata.name, '-eso', '') }}" password="{{ base64_decode(request.object.data.password) }}";
-              type: Opaque
+            foreach:
+              - apiVersion: v1
+                data:
+                  data: '{{ request.object.data }}'
+                  kind: Secret
+                  stringData:
+                    sasl.jaas.config: org.apache.kafka.common.security.scram.ScramLoginModule required username="{{ replace_all(request.object.metadata.name, '-eso', '') }}" password="{{ base64_decode(request.object.data.password) }}";
+                  type: Opaque
+                kind: Secret
+                list: request.object.metadata.annotations."sync-kafkauser-to-appns" | parse_json(@)
+                name: kafka-user-{{ replace_all(request.object.metadata.name, '-eso', '') }}
+                namespace: '{{ element }}'
             generateExisting: true
-            kind: Secret
-            name: '{{ replace_all(request.object.metadata.name, ''-eso'', '''') }}'
-            namespace: app-namespace-1
             synchronize: true
           match:
             any:
               - resources:
                   kinds:
                     - Secret
-                  names:
-                    - app-producer-eso
                   namespaces:
                     - kafka
-          name: app-producer-to-app-namespace-1
-        - generate:
-            apiVersion: v1
-            data:
-              data: '{{ request.object.data }}'
-              kind: Secret
-              metadata:
-                labels:
-                  kyverno-test: "true"
-              stringData:
-                sasl.jaas.config: org.apache.kafka.common.security.scram.ScramLoginModule required username="{{ replace_all(request.object.metadata.name, '-eso', '') }}" password="{{ base64_decode(request.object.data.password) }}";
-              type: Opaque
-            generateExisting: true
-            kind: Secret
-            name: '{{ replace_all(request.object.metadata.name, ''-eso'', '''') }}'
-            namespace: app-namespace-2
-            synchronize: true
-          match:
-            any:
-              - resources:
-                  kinds:
-                    - Secret
-                  names:
-                    - app-producer-eso
-                  namespaces:
-                    - kafka
-          name: app-producer-to-app-namespace-2
+                  selector:
+                    matchLabels:
+                      kafka-user-sync: "true"
+          name: sync-kafkauser-to-appns
   3: |
     apiVersion: v1
     data:
@@ -340,6 +314,13 @@ manifests should match snapshot:
         creationPolicy: Orphan
         deletionPolicy: Retain
         name: app-producer-eso
+        template:
+          metadata:
+            annotations:
+              sync-kafkauser-to-appns: |
+                ["app-namespace-1","app-namespace-2"]
+            labels:
+              kafka-user-sync: "true"
   6: |
     apiVersion: external-secrets.io/v1beta1
     kind: ExternalSecret
@@ -844,6 +825,11 @@ manifests should match snapshot:
     apiVersion: external-secrets.io/v1alpha1
     kind: PushSecret
     metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.4.0
       name: app-producer
       namespace: kafka
     spec:
@@ -851,7 +837,7 @@ manifests should match snapshot:
         - conversionStrategy: None
           match:
             remoteRef:
-              remoteKey: //app-producer
+              remoteKey: /kafka/app-producer
       refreshInterval: 1h
       secretStoreRefs:
         - kind: ClusterSecretStore
@@ -866,6 +852,11 @@ manifests should match snapshot:
     apiVersion: external-secrets.io/v1alpha1
     kind: PushSecret
     metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.4.0
       name: app-consumer
       namespace: kafka
     spec:
@@ -873,7 +864,7 @@ manifests should match snapshot:
         - conversionStrategy: None
           match:
             remoteRef:
-              remoteKey: //app-consumer
+              remoteKey: /kafka/app-consumer
       refreshInterval: 1h
       secretStoreRefs:
         - kind: ClusterSecretStore
@@ -888,6 +879,11 @@ manifests should match snapshot:
     apiVersion: external-secrets.io/v1alpha1
     kind: PushSecret
     metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.4.0
       name: analytics-consumer
       namespace: kafka
     spec:
@@ -895,7 +891,7 @@ manifests should match snapshot:
         - conversionStrategy: None
           match:
             remoteRef:
-              remoteKey: //analytics-consumer
+              remoteKey: /kafka/analytics-consumer
       refreshInterval: 1h
       secretStoreRefs:
         - kind: ClusterSecretStore
@@ -910,6 +906,11 @@ manifests should match snapshot:
     apiVersion: external-secrets.io/v1alpha1
     kind: PushSecret
     metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-1.4.0
       name: admin
       namespace: kafka
     spec:
@@ -917,7 +918,7 @@ manifests should match snapshot:
         - conversionStrategy: None
           match:
             remoteRef:
-              remoteKey: //admin
+              remoteKey: /kafka/admin
       refreshInterval: 1h
       secretStoreRefs:
         - kind: ClusterSecretStore
