@@ -1,0 +1,428 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: kyverno.io/v1
+    kind: ClusterPolicy
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-options: Replace=true
+        policies.kyverno.io/category: gitops
+        policies.kyverno.io/minversion: 1.13.0
+        policies.kyverno.io/subject: Sync Open Telemetry tenants with namespaces
+        policies.kyverno.io/title: Remove Open Telemetry tenants on namespace delete or label removal
+      name: opentelemetry-collector-cleanup-tenants
+    spec:
+      rules:
+        - match:
+            any:
+              - resources:
+                  kinds:
+                    - Namespace
+                  operations:
+                    - DELETE
+                  selector:
+                    matchLabels:
+                      apc.namespace.type: application
+          mutate:
+            patchStrategicMerge:
+              spec:
+                config:
+                  connectors:
+                    routing:
+                      table:
+                        - $patch: delete
+                          (statement): route() where resource.attributes["k8s.namespace.name"] == "{{ request.oldObject.metadata.name }}"
+                  exporters:
+                    otlp/{{ request.oldObject.metadata.name }}: null
+                  service:
+                    pipelines:
+                      traces/{{ request.oldObject.metadata.name }}: null
+            targets:
+              - apiVersion: opentelemetry.io/v1beta1
+                kind: OpenTelemetryCollector
+                name: opentelemetry-collector
+                namespace: NAMESPACE
+          name: remove-tenant-on-namespace-delete
+  2: |
+    apiVersion: kyverno.io/v1
+    kind: ClusterPolicy
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-options: Replace=true
+        policies.kyverno.io/category: gitops
+        policies.kyverno.io/minversion: 1.13.0
+        policies.kyverno.io/subject: Sync Open Telemetry tenants with namespaces
+        policies.kyverno.io/title: Sync Open Telemetry tenants on namespace create or label change
+      name: opentelemetry-collector-sync-tenants
+    spec:
+      background: true
+      mutateExistingOnPolicyUpdate: true
+      rules:
+        - match:
+            all:
+              - resources:
+                  kinds:
+                    - Namespace
+                  selector:
+                    matchLabels:
+                      apc.namespace.type: application
+          mutate:
+            mutateExistingOnPolicyUpdate: true
+            patchStrategicMerge:
+              spec:
+                config:
+                  exporters:
+                    otlp/{{ request.object.metadata.name }}:
+                      auth:
+                        authenticator: bearertokenauth
+                      endpoint: traces.svc
+                      headers:
+                        X-Scope-OrgID: '{{ request.object.metadata.name }}'
+                      tls:
+                        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
+                        insecure: false
+                  service:
+                    pipelines:
+                      traces/{{ request.object.metadata.name }}:
+                        exporters:
+                          - otlp/{{ request.object.metadata.name }}
+                        receivers:
+                          - routing
+            targets:
+              - apiVersion: opentelemetry.io/v1beta1
+                kind: OpenTelemetryCollector
+                name: opentelemetry-collector
+                namespace: NAMESPACE
+          name: add-tenant-exporter-pipeline
+        - context:
+            - apiCall:
+                default: []
+                jmesPath: spec.config.connectors.routing.table[*].pipelines[0]
+                method: GET
+                urlPath: /apis/opentelemetry.io/v1beta1/namespaces/NAMESPACE/opentelemetrycollectors/opentelemetry-collector
+              name: existingRoutes
+          match:
+            all:
+              - resources:
+                  kinds:
+                    - Namespace
+                  selector:
+                    matchLabels:
+                      apc.namespace.type: application
+          mutate:
+            mutateExistingOnPolicyUpdate: true
+            patchesJson6902: |-
+              - op: add
+                path: "/spec/config/connectors/routing/table/-"
+                value:
+                  statement: route() where resource.attributes["k8s.namespace.name"] == "{{ request.object.metadata.name }}"
+                  pipelines: ["traces/{{ request.object.metadata.name }}"]
+            targets:
+              - apiVersion: opentelemetry.io/v1beta1
+                kind: OpenTelemetryCollector
+                name: opentelemetry-collector
+                namespace: NAMESPACE
+          name: add-tenant-route
+          preconditions:
+            all:
+              - key: traces/{{ request.object.metadata.name }}
+                operator: AnyNotIn
+                value: '{{ existingRoutes }}'
+      validationFailureAction: Audit
+  3: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      labels:
+        rbac.kyverno.io/aggregate-to-background-controller: "true"
+      name: kyverno:background-controller:opentelemetry-collector
+    rules:
+      - apiGroups:
+          - ""
+        resources:
+          - serviceaccounts
+        verbs:
+          - create
+          - delete
+          - get
+          - update
+      - apiGroups:
+          - opentelemetry.io
+        resources:
+          - opentelemetrycollectors
+        verbs:
+          - get
+          - list
+          - watch
+          - update
+          - patch
+  4: |
+    aggregationRule:
+      clusterRoleSelectors:
+        - matchLabels:
+            rbac.authorization.k8s.io/apc-opentelemetry-collector-apc-observability-cluster-role: "true"
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      labels:
+        app.kubernetes.io/instance: opentelemetry-collector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: opentelemetry-collector
+        app.kubernetes.io/version: v0.144.0-3
+        helm.sh/chart: opentelemetry-collector-1.2.0
+      name: opentelemetry-collector-tempostack-traces-write
+  5: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      labels:
+        app.kubernetes.io/instance: opentelemetry-collector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: opentelemetry-collector
+        app.kubernetes.io/version: v0.144.0-3
+        helm.sh/chart: opentelemetry-collector-1.2.0
+        rbac.authorization.k8s.io/apc-opentelemetry-collector-apc-observability-cluster-role: "true"
+      name: opentelemetry-collector-tempostack-writer-application
+    rules:
+      - apiGroups:
+          - tempo.grafana.com
+        resourceNames:
+          - traces
+        resources:
+          - application
+        verbs:
+          - create
+  6: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      labels:
+        app.kubernetes.io/instance: opentelemetry-collector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: opentelemetry-collector
+        app.kubernetes.io/version: v0.144.0-3
+        helm.sh/chart: opentelemetry-collector-1.2.0
+      name: opentelemetry-collector
+    rules:
+      - apiGroups:
+          - ""
+          - config.openshift.io
+        resources:
+          - pods
+          - namespaces
+          - infrastructures
+          - infrastructures/status
+        verbs:
+          - get
+          - list
+          - watch
+      - apiGroups:
+          - apps
+        resources:
+          - replicasets
+        verbs:
+          - get
+          - list
+          - watch
+      - apiGroups:
+          - extensions
+        resources:
+          - replicasets
+        verbs:
+          - get
+          - list
+          - watch
+  7: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: opentelemetry-collector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: opentelemetry-collector
+        app.kubernetes.io/version: v0.144.0-3
+        helm.sh/chart: opentelemetry-collector-1.2.0
+      name: opentelemetry-collector-cluster-monitoring-view
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-monitoring-view
+    subjects:
+      - kind: ServiceAccount
+        name: opentelemetry-collector-deployment
+        namespace: NAMESPACE
+  8: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: opentelemetry-collector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: opentelemetry-collector
+        app.kubernetes.io/version: v0.144.0-3
+        helm.sh/chart: opentelemetry-collector-1.2.0
+      name: opentelemetry-collector
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: opentelemetry-collector
+    subjects:
+      - kind: ServiceAccount
+        name: opentelemetry-collector-deployment
+        namespace: NAMESPACE
+  9: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: opentelemetry-collector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: opentelemetry-collector
+        app.kubernetes.io/version: v0.144.0-3
+        helm.sh/chart: opentelemetry-collector-1.2.0
+      name: opentelemetry-collector-tempostack-traces-write
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: opentelemetry-collector-tempostack-traces-write
+    subjects:
+      - kind: ServiceAccount
+        name: opentelemetry-collector-deployment
+        namespace: NAMESPACE
+  10: |
+    apiVersion: opentelemetry.io/v1beta1
+    kind: OpenTelemetryCollector
+    metadata:
+      labels:
+        app.kubernetes.io/instance: opentelemetry-collector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: opentelemetry-collector
+        app.kubernetes.io/version: v0.144.0-3
+        helm.sh/chart: opentelemetry-collector-1.2.0
+      name: opentelemetry-collector
+      namespace: NAMESPACE
+    spec:
+      config:
+        connectors:
+          routing:
+            default_pipelines:
+              - traces/application
+            table:
+              - pipelines:
+                  - traces/application
+                statement: route() where resource.attributes["k8s.namespace.name"] == "application"
+        exporters:
+          otlp/application:
+            auth:
+              authenticator: bearertokenauth
+            endpoint: traces.svc
+            headers:
+              X-Scope-OrgID: application
+            tls:
+              ca_file: /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
+              insecure: false
+          otlphttp/loki:
+            auth:
+              authenticator: bearertokenauth
+            endpoint: logs.svc
+            tls:
+              ca_file: /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
+              insecure: false
+          prometheus:
+            endpoint: metrics.svc
+            resource_to_telemetry_conversion:
+              enabled: true
+        extensions:
+          bearertokenauth:
+            filename: /var/run/secrets/kubernetes.io/serviceaccount/token
+        processors:
+          batch: {}
+          k8sattributes:
+            extract:
+              metadata:
+                - k8s.namespace.name
+          memory_limiter:
+            check_interval: 1s
+            limit_percentage: 50
+            spike_limit_percentage: 30
+          resourcedetection:
+            detectors:
+              - openshift
+        receivers:
+          jaeger:
+            protocols:
+              grpc: {}
+              thrift_binary: {}
+              thrift_compact: {}
+              thrift_http: {}
+          otlp:
+            protocols:
+              grpc: {}
+              http: {}
+          zipkin: {}
+        service:
+          extensions:
+            - bearertokenauth
+          pipelines:
+            logs:
+              exporters:
+                - otlphttp/loki
+              processors:
+                - memory_limiter
+                - k8sattributes
+                - resourcedetection
+                - batch
+              receivers:
+                - otlp
+            metrics:
+              exporters:
+                - prometheus
+              processors:
+                - memory_limiter
+                - k8sattributes
+                - resourcedetection
+                - batch
+              receivers:
+                - otlp
+            traces:
+              exporters:
+                - routing
+              processors:
+                - memory_limiter
+                - k8sattributes
+                - resourcedetection
+                - batch
+              receivers:
+                - jaeger
+                - otlp
+                - zipkin
+            traces/application:
+              exporters:
+                - otlp/application
+              receivers:
+                - routing
+          telemetry:
+            metrics:
+              readers:
+                - pull:
+                    exporter:
+                      prometheus:
+                        host: 0.0.0.0
+                        port: 8888
+      mode: deployment
+      observability:
+        metrics:
+          enableMetrics: true
+      replicas: 2
+      serviceAccount: opentelemetry-collector-deployment
+  11: |
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      labels:
+        app.kubernetes.io/instance: opentelemetry-collector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: opentelemetry-collector
+        app.kubernetes.io/version: v0.144.0-3
+        helm.sh/chart: opentelemetry-collector-1.2.0
+      name: opentelemetry-collector-deployment
+      namespace: NAMESPACE

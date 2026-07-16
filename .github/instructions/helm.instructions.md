@@ -4,8 +4,6 @@ applyTo: "charts/**"
 
 # Copilot — Helm Chart Review Instructions
 
-You are reviewing **Helm charts**. These charts are part of a product and are intentionally opinionated to minimize deployment complexity and favor a convention-over-configuration design paradigm. They are orchestrated from per-customer repositories using `helmfile`. The goal of Helmfile is to install only relevant components (charts), prepare environment values (combining global, per-environment, and per-cluster settings), and make them available to the charts. Charts should not access these values directly; instead, they should use helper functions from `apc-global-overrides`, such as `{{ include "apc-global-overrides.environmentShort" . }}`, to enable override capabilities.
-
 Focus on chart structure, templating quality, Kubernetes & OpenShift compatibility, runtime security, reliability, and upgrade safety.  
 Always provide: (a) root cause, (b) concrete fix, (c) suggested diff.
 When you find an issue, cite the relevant Helm or Kubernetes best practice and provide a concrete fix.
@@ -19,7 +17,7 @@ When you find an issue, cite the relevant Helm or Kubernetes best practice and p
   - Optional but recommended: `README.md`.
   - Optional: `values.schema.json`, `templates/NOTES.txt`.
   - Enforce naming conventions: lowercase, hyphenated chart names; SemVer for `version`.
-  - If the chart uses a dependency to install an application, the set `appVersion` should match the version of the application being installed.
+  - If the chart uses a dependency, set `appVersion` to match the version of the application being installed. `apc-global-overrides` is an exception to this rule, as it is a library chart that does not install an application.
   - Check Chart.yaml metadata: description, keywords, maintainers (optional), `kubeVersion` if applicable.
   - Validate chart structure per Helm best practices.
   - Suggest fixes if missing.

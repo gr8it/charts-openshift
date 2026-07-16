@@ -1,0 +1,40 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: monitoring-reminder
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: monitoring-reminder
+        helm.sh/chart: monitoring-reminder-2.0.0
+      name: monitoring-reminder
+      namespace: NAMESPACE
+    spec:
+      groups:
+        - name: monitoring-reminder.rules
+          rules:
+            - alert: OIDCVaultSecretExpirySoon
+              annotations:
+                description: |
+                  Azure Entra ID client secret used for OIDC authentication in vault.lab.gr8it.cloud expires in less than 30 days. The secret is stored in Azure App Registration. After expiry, login to Vault via OIDC will stop working.
+                runbook_url: https://github.com/gr8it/vault/blob/develop/docs/ops_guide.md#how-to-renew-expired-entraid-oidc-credentials
+                summary: Azure Entra ID secret for vault.lab.gr8it.cloud OIDC expires in less than 30 days
+              expr: |
+                (1806537600 - time()) / 86400 < 30
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: OIDCVaultSecretExpirySoonCritical
+              annotations:
+                description: |
+                  Azure Entra ID client secret used for OIDC authentication in vault.lab.gr8it.cloud expires in less than 30 days. The secret is stored in Azure App Registration. After expiry, login to Vault via OIDC will stop working.
+                runbook_url: https://github.com/gr8it/vault/blob/develop/docs/ops_guide.md#how-to-renew-expired-entraid-oidc-credentials
+                summary: Azure Entra ID secret for vault.lab.gr8it.cloud OIDC expires in less than 30 days
+              expr: |
+                (1806537600 - time()) / 86400 < 1
+              labels:
+                severity: critical
+                team: platform
+                vendor: aspecta

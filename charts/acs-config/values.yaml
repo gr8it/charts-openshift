@@ -135,6 +135,14 @@ central:
           requests:
             cpu: '200m'
             memory: 512Mi
+      db:
+        resources:
+          limits:
+            cpu: '2'
+            memory: 12Gi
+          requests:
+            cpu: '200m'
+            memory: 4Gi
     scannerV4:
       db:
         persistence:
@@ -166,5 +174,4 @@ prometheusRule:
   name: rhacs-prometheus-rules
   labels:
     app: rhacs
-
 

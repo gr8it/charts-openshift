@@ -1,0 +1,4 @@
+Pushgateway deployed in {{ .Release.Namespace }}.
+
+Route:  oc get route {{ include "pushgateway-helm.routeName" . }} -n {{ .Release.Namespace }}
+Secret: oc get externalsecret {{ include "pushgateway-helm.fullname" . }}-oauth-cookie -n {{ .Release.Namespace }}

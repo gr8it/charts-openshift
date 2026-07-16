@@ -1,0 +1,188 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    {{- include "apps-kafka-bridge.labels" . | nindent 4 }}
+  name: {{ .Release.Name }}-alerts
+  namespace: {{ .Release.Namespace }}
+spec:
+  groups:
+  - name: kafka-bridge.rules
+    rules:
+# Kafka bridge functionality oriented alerts
+      - alert: KafkaBridgeContainerDown
+        expr: absent(
+                container_last_seen{
+                  namespace="{{ .Release.Namespace }}",
+                  container=~".+-bridge",pod=~"{{ .Release.Name }}-bridge-.*"
+                }
+              )
+        for: 3m
+        labels:
+          severity: warning
+          vendor: aspecta
+          team: platform
+        annotations:
+          summary: 'All Kafka Bridge containers down or in CrashLoopBackOff status'
+          description: 'All Kafka Bridge containers have been down or in CrashLoopBackOff status for 3 minutes'
+      - alert: KafkaBridgeMonitoringAvailability
+        expr: up{
+                job="{{ .Release.Name }}-bridge-service",
+                namespace="{{ .Release.Namespace }}"
+              } == 0
+        for: 5m
+        labels:
+          severity: critical
+          vendor: aspecta
+          team: platform
+        annotations:
+          summary: 'Kafka Bridge monitoring is unavailable'
+          description: 'Kafka Bridge monitoring has been unavailable for 5 minutes'
+      - alert: KafkaBridgeQueuePending
+        expr: strimzi_bridge_pool_queue_pending{namespace="{{ .Release.Namespace }}"} > 50
+        for: 5m
+        labels:
+          severity: warning
+          vendor: aspecta
+          team: platform
+        annotations:
+          summary: 'Kafka Bridge queue pending is high'
+          description: 'Kafka Bridge queue pending is {{ `{{ $value }}` }}'
+      - alert: KafkaBridgeQueuePendingCritical
+        expr: strimzi_bridge_pool_queue_pending{namespace="{{ .Release.Namespace }}"} > 200
+        for: 2m
+        labels:
+          severity: critical
+          vendor: aspecta
+          team: platform
+        annotations:
+          summary: 'Kafka Bridge queue pending is critical'
+          description: 'Kafka Bridge queue pending is {{ `{{ $value }}` }}'
+      - alert: KafkaBridgePoolUsageHigh
+        expr: strimzi_bridge_pool_ratio{namespace="{{ .Release.Namespace }}"} > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          vendor: aspecta
+          team: platform
+        annotations:
+          summary: 'Kafka Bridge pool usage is high'
+          description: 'Kafka Bridge pool usage is {{ `{{ $value }}` }}'
+      - alert: KafkaBridgePoolUsageCritical
+        expr: strimzi_bridge_pool_ratio{namespace="{{ .Release.Namespace }}"} > 0.95
+        for: 2m
+        labels:
+          severity: critical
+          vendor: aspecta
+          team: platform
+        annotations:
+          summary: 'Kafka Bridge pool usage is critical'
+          description: 'Kafka Bridge pool usage is {{ `{{ $value }}` }}'
+# Kafka bridge pod oriented alerts
+      - alert: KafkaBridgePodCrashLooping
+        expr: |
+          increase(
+            kube_pod_container_status_restarts_total{
+              namespace="{{ .Release.Namespace }}",
+              pod=~"{{ .Release.Name }}-bridge-.*"
+            }[15m]
+          ) > 10
+        for: 2m
+        labels:
+          severity: warning
+          vendor: aspecta
+          team: platform
+        annotations:
+          summary: Kafka Bridge pod is crash looping
+          description: >
+            Pod {{ `{{ $labels.pod }}` }} restarted more than 10 times in the last 15 minutes.
+      - alert: KafkaBridgePodNotReady
+        expr: |
+          kube_pod_status_ready{
+            namespace="{{ .Release.Namespace }}",
+            pod=~"{{ .Release.Name }}-bridge-.*",
+            condition="true"
+          } == 0
+        for: 5m
+        labels:
+          severity: warning
+          vendor: aspecta
+          team: platform
+        annotations:
+          summary: Kafka Bridge pod is not ready
+          description: >
+            Pod {{ `{{ $labels.pod }}` }} has been in NotReady state for more than 5 minutes.
+      - alert: KafkaBridgeDeploymentReplicasMismatch
+        expr: |
+          kube_deployment_spec_replicas{
+            namespace="{{ .Release.Namespace }}",
+            deployment="{{ .Release.Name }}-bridge"
+          }
+          !=
+          kube_deployment_status_replicas_available{
+            namespace="{{ .Release.Namespace }}",
+            deployment="{{ .Release.Name }}-bridge"
+          }
+        for: 10m
+        labels:
+          severity: warning
+          vendor: aspecta
+          team: platform
+        annotations:
+          summary: Kafka Bridge deployment replica mismatch
+          description: >
+            Deployment has unavailable replicas for more than 10 minutes.
+# Kafka bridge oauth proxy pod oriented alerts
+      - alert: KafkaBridgeOauthProxyPodCrashLooping
+        expr: |
+          increase(
+            kube_pod_container_status_restarts_total{
+              namespace="{{ .Release.Namespace }}",
+              pod=~"{{ .Release.Name }}-oauth-proxy-.*"
+            }[15m]
+          ) > 10
+        for: 2m
+        labels:
+          severity: warning
+          vendor: aspecta
+          team: platform
+        annotations:
+          summary: Kafka Bridge Oauth Proxy pod is crash looping
+          description: >
+            Pod {{ `{{ $labels.pod }}` }} restarted more than 10 times in the last 15 minutes.
+      - alert: KafkaBridgeOauthProxyPodNotReady
+        expr: |
+          kube_pod_status_ready{
+            namespace="{{ .Release.Namespace }}",
+            pod=~"{{ .Release.Name }}-oauth-proxy-.*",
+            condition="true"
+          } == 0
+        for: 5m
+        labels:
+          severity: warning
+          vendor: aspecta
+          team: platform
+        annotations:
+          summary: Kafka Bridge Oauth Proxy pod is not ready
+          description: >
+            Pod {{ `{{ $labels.pod }}` }} has been in NotReady state for more than 5 minutes.
+      - alert: KafkaBridgeOauthProxyDeploymentReplicasMismatch
+        expr: |
+          kube_deployment_spec_replicas{
+            namespace="{{ .Release.Namespace }}",
+            deployment="{{ .Release.Name }}-oauth-proxy"
+          }
+          !=
+          kube_deployment_status_replicas_available{
+            namespace="{{ .Release.Namespace }}",
+            deployment="{{ .Release.Name }}-oauth-proxy"
+          }
+        for: 10m
+        labels:
+          severity: warning
+          vendor: aspecta
+          team: platform
+        annotations:
+          summary: Kafka Bridge Oauth Proxy deployment replica mismatch
+          description: >
+            Deployment has unavailable replicas for more than 10 minutes.

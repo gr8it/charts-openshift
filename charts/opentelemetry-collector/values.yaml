@@ -9,3 +9,11 @@ instanceNameOverride: ~
 logsEndpoint:    ~  # Logs endpoint - i.e. loki gateway svc
 metricsEndpoint: ~  # Metrics endpoint - i.e. prometheus svc
 tracesEndpoint:  ~  # Traces endpoint - i.e. tempo svc
+
+OpenTelemetryCollector:
+  # Overrides the default OpenTelemetryCollector configuration
+  image: ~
+  replicas: 2
+namespaceSelector:
+  key: apc.namespace.type
+  value: application  
