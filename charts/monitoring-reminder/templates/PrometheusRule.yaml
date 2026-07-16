@@ -3,26 +3,27 @@
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  labels:
-    {{- include "monitoring-reminder.labels" . | nindent 4 }}
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "monitoring-reminder.labels" . | nindent 4 }}
 spec:
   groups:
   - name: monitoring-reminder.rules
     rules:
-    {{- range .Values.reminders }}
-    {{- $dt := .datetime }}
+    {{- range $alert := sortAlpha (keys .Values.reminders) }}
+    {{- $reminder := index $.Values.reminders $alert }}
+    {{- $dt := $reminder.datetime }}
     {{- if not (contains " " $dt) }}{{- $dt = printf "%s 00:00" $dt }}{{- end }}
     {{- $unixTs := toDate "02.01.2006 15:04 -07:00" (printf "%s +00:00" $dt) | unixEpoch }}
-    {{- $days := default 30 .daysBeforeExpiry }}
-    {{- $mergedLabels := merge (deepCopy (default dict .labels)) $defaultLabels }}
-    - alert: {{ .alert }}
+    {{- $days := default 30 $reminder.daysBeforeExpiry }}
+    {{- $mergedLabels := merge (deepCopy (default dict $reminder.labels)) $defaultLabels }}
+    - alert: {{ $alert }}
       annotations:
-        summary: {{ .summary | quote }}
-        description: {{ .description | quote }}
-        {{- if .runbookUrl }}
-        runbook_url: {{ .runbookUrl | quote }}
+        summary: {{ $reminder.summary | quote }}
+        description: {{ $reminder.description | quote }}
+        {{- if $reminder.runbookUrl }}
+        runbook_url: {{ $reminder.runbookUrl | quote }}
         {{- end }}
       expr: |
         ({{ $unixTs }} - time()) / 86400 < {{ $days }}
@@ -31,13 +32,13 @@ spec:
         {{- with $mergedLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
-    {{- if .critical }}
-    - alert: {{ .alert }}Critical
+    {{- if $reminder.critical }}
+    - alert: {{ $alert }}Critical
       annotations:
-        summary: {{ .summary | quote }}
-        description: {{ .description | quote }}
-        {{- if .runbookUrl }}
-        runbook_url: {{ .runbookUrl | quote }}
+        summary: {{ $reminder.summary | quote }}
+        description: {{ $reminder.description | quote }}
+        {{- if $reminder.runbookUrl }}
+        runbook_url: {{ $reminder.runbookUrl | quote }}
         {{- end }}
       expr: |
         ({{ $unixTs }} - time()) / 86400 < 1
