@@ -472,9 +472,18 @@ manifests should match snapshot:
           rules:
             - alert: EtcdBackupJobFailure
               annotations:
-                description: ETCD backup job for hub01 {{ $labels.namespace }}/{{ $labels.job_name}} has failed.
+                description: ETCD backup job for hub01 {{ $labels.namespace }}/{{ $labels.job_name}} has failed. Fires as long as the failed Job object exists; see EtcdBackupMissing for actual backup staleness.
                 summary: ETCD backup job for hub01 has failed
               expr: kube_job_status_failed{namespace="apc-backup", job_name=~"etcd-hcp-backup-hub01-.*"} > 0
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: EtcdBackupMissing
+              annotations:
+                description: No successful ETCD backup for hub01 ({{ $labels.namespace }}/{{ $labels.cronjob }}) in the last 36 hours.
+                summary: ETCD backup for hub01 is missing
+              expr: time() - kube_cronjob_status_last_successful_time{namespace="apc-backup", cronjob="etcd-hcp-backup-hub01"} > 129600
               labels:
                 severity: critical
                 team: platform

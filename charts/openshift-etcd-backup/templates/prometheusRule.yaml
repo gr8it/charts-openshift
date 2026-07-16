@@ -13,9 +13,19 @@ spec:
     - alert: EtcdBackupJobFailure
       expr: kube_job_status_failed{namespace="{{ .Release.Namespace }}", job_name=~"{{ include "openshift-etcd-backup.fullname" . }}-.*"} > 0
       labels:
-        severity: critical
+        severity: warning
         vendor: aspecta
         team: platform
       annotations:
         summary: "ETCD backup job has failed"
-        description: "ETCD backup job {{`{{ $labels.namespace }}/{{ $labels.job_name}}`}} has failed."
+        description: "ETCD backup job {{`{{ $labels.namespace }}/{{ $labels.job_name}}`}} has failed. Fires as long as the failed Job object exists; see EtcdBackupMissing for actual backup staleness."
+    # fires only when there is no fresh successful backup; self-resolves on the next good run
+    - alert: EtcdBackupMissing
+      expr: time() - kube_cronjob_status_last_successful_time{namespace="{{ .Release.Namespace }}", cronjob="{{ include "openshift-etcd-backup.fullname" . }}"} > 129600
+      labels:
+        severity: critical
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "ETCD backup is missing"
+        description: "No successful ETCD backup ({{`{{ $labels.namespace }}/{{ $labels.cronjob }}`}}) in the last 36 hours."
