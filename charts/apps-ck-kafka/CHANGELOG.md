@@ -5,6 +5,16 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-07-14
+
+### Added
+
+- possibility to copy the kafka user secret to application namespace
+
+### Fixed
+
+- path in vault for kafka user secret in case kafka mirror is not enabled
+
 ## [1.3.0] - 2026-06-15
 
 ### Added
