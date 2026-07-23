@@ -1,0 +1,23 @@
+{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: alertmanager
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-options: ServerSideApply=true
+spec:
+  endpoints:
+    - port: metrics
+      interval: 30s
+      scheme: https
+      bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+      tlsConfig:
+        caFile: /etc/prometheus/configmaps/serving-certs-ca-bundle/service-ca.crt
+        certFile: /etc/prometheus/secrets/metrics-client-certs/tls.crt
+        keyFile: /etc/prometheus/secrets/metrics-client-certs/tls.key
+        serverName: alertmanager-metrics.{{ .Release.Namespace }}.svc
+  selector:
+    matchLabels:
+      app: multicluster-observability-alertmanager-metrics
+{{- end }}

@@ -1,0 +1,15 @@
+global:
+  apc:
+    environmentShort: h
+    cluster:
+      isHub: true
+    services:
+      externalSecretsOperator:
+        defaultClusterSecretStore: vault-hub-secret-store
+      vault:
+        KVmountPlatform: apc-platform
+
+alertmanagerConfig:
+  vault:
+    key: customers/socpoist/msteams
+    property: sp-apc-alerts-!hub-url
