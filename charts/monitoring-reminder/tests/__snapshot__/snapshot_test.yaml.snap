@@ -7,7 +7,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: monitoring-reminder
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring-reminder
-        helm.sh/chart: monitoring-reminder-2.0.0
+        helm.sh/chart: monitoring-reminder-2.0.1
       name: monitoring-reminder
       namespace: NAMESPACE
     spec:
@@ -18,7 +18,7 @@ manifests should match snapshot:
               annotations:
                 description: |
                   Azure Entra ID client secret used for OIDC authentication in vault.lab.gr8it.cloud expires in less than 30 days. The secret is stored in Azure App Registration. After expiry, login to Vault via OIDC will stop working.
-                runbook_url: https://github.com/gr8it/vault/blob/develop/docs/ops_guide.md#how-to-renew-expired-entraid-oidc-credentials
+                runbook_url: https://github.com/company/repo/runbook.md
                 summary: Azure Entra ID secret for vault.lab.gr8it.cloud OIDC expires in less than 30 days
               expr: |
                 (1806537600 - time()) / 86400 < 30
@@ -30,7 +30,7 @@ manifests should match snapshot:
               annotations:
                 description: |
                   Azure Entra ID client secret used for OIDC authentication in vault.lab.gr8it.cloud expires in less than 30 days. The secret is stored in Azure App Registration. After expiry, login to Vault via OIDC will stop working.
-                runbook_url: https://github.com/gr8it/vault/blob/develop/docs/ops_guide.md#how-to-renew-expired-entraid-oidc-credentials
+                runbook_url: https://github.com/company/repo/runbook.md
                 summary: Azure Entra ID secret for vault.lab.gr8it.cloud OIDC expires in less than 30 days
               expr: |
                 (1806537600 - time()) / 86400 < 1
