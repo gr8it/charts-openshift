@@ -1,0 +1,74 @@
+nameOverride: ""
+fullnameOverride: ""
+
+# --- ObjectBucketClaim ---
+objectBucketClaim:
+  storageClassName: ocs-storagecluster-ceph-rgw
+  name: ~
+  bucketName: ~
+
+# --- LokiStack ---
+lokistack:
+  name: ~
+  size: 1x.pico
+  storage:
+    schemas:
+      - effectiveDate: "2024-10-01"
+        version: v13
+  storageClassName: ocs-storagecluster-ceph-rbd
+  replication:
+    factor: 2
+    zones:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+  limits:
+    global:
+      ingestion:
+        ingestionRate: 6
+        ingestionBurstSize: 32
+        perStreamRateLimit: 4
+        perStreamRateLimitBurst: 17
+      queries:
+        queryTimeout: 5m
+      retention:
+        days: 7
+  # rules: ~  # uncomment and configure to enable LokiStack alerting rules
+
+# --- UIPlugin ---
+uiplugin:
+  # Workaround for issue https://access.redhat.com/solutions/6998442
+  timeout: 120s
+
+# --- ClusterLogForwarder collector ---
+collector:
+  resources:
+    limits:
+      cpu: "6"
+      memory: 4Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+
+# --- Audit to hub forwarding ---
+auditToHub:
+  enabled: false
+  url: ""
+
+# --- Postgres audit forwarding (vector webhook) ---
+pgaudit:
+  enabled: false
+  url: ""
+
+# --- ExternalSecret (hub-spoke token) ---
+# created automatically on spoke clusters only (not hub)
+externalSecret:
+  refreshInterval: "15m"
+
+# --- Reminder for hub-spoke-logforward token expiry ---
+# The token is created manually (see README) - the chart has no way to know
+# its expiry itself, so this is empty by default and no PrometheusRule is
+# created. When deploying to a spoke cluster, set the actual expiry datetime
+# here in the conf repo (see values.lint.yaml for the expected fields) so a
+# warning/critical alert fires before the token expires.
+monitoring-reminder:
+  reminders: {}
