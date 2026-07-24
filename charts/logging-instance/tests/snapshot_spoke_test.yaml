@@ -1,4 +1,4 @@
-suite: Snapshot test
+suite: Snapshot test (spoke)
 templates:
   - templates/*
   - charts/*/templates/*
@@ -10,10 +10,5 @@ tests:
   - it: manifests should match snapshot
     values:
       - ../values.example.yaml
-    asserts:
-      - matchSnapshot: {}
-  - it: hub manifests should match snapshot
-    values:
-      - ../values.example.hub.yaml
     asserts:
       - matchSnapshot: {}
