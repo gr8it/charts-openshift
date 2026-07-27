@@ -14,8 +14,8 @@ manifests should match snapshot:
     spec:
       data:
         - remoteRef:
-            key: apc-platform/h/customers/socpoist/msteams
-            property: sp-apc-alerts-!hub-url
+            key: apc-platform/h/msteams
+            property: apc-alerts-hub-url
           secretKey: webhookUrl
       refreshInterval: 15m
       secretStoreRef:
@@ -522,28 +522,6 @@ manifests should match snapshot:
       generateBucketName: acm-thanos-rgw
       storageClassName: ocs-storagecluster-ceph-rgw
   27: |
-    apiVersion: monitoring.coreos.com/v1
-    kind: ServiceMonitor
-    metadata:
-      annotations:
-        argocd.argoproj.io/sync-options: ServerSideApply=true
-      name: alertmanager
-      namespace: open-cluster-management-observability
-    spec:
-      endpoints:
-        - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
-          interval: 30s
-          port: metrics
-          scheme: https
-          tlsConfig:
-            caFile: /etc/prometheus/configmaps/serving-certs-ca-bundle/service-ca.crt
-            certFile: /etc/prometheus/secrets/metrics-client-certs/tls.crt
-            keyFile: /etc/prometheus/secrets/metrics-client-certs/tls.key
-            serverName: alertmanager-metrics.open-cluster-management-observability.svc
-      selector:
-        matchLabels:
-          app: multicluster-observability-alertmanager-metrics
-  28: |
     apiVersion: kyverno.io/v1
     kind: Policy
     metadata:
