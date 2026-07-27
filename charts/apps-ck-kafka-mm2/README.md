@@ -59,7 +59,7 @@ There are required specific users and theirs configuration for source and target
 
 <details>
 
-<summary>Kafka MM2 replication users configuration defined in <a href="https://github.com/gr8it/conf-socpoist/blob/main/gitops/components/apps-ck-kafka/values.dev01.yaml.gotmpl#L120-L167">kafka-mm2 component</a>:</summary>
+<summary>Kafka MM2 replication users configuration defined in apps-ck-kafka-mm2 component:</summary>
 
 ```yaml
     - name: mm2-source-user

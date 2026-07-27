@@ -9,7 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- adding detailed information about replicaiton users settings
+- detailed information about replicaiton users settings
+
+### Changed
+
 - setting 2 replicas in default values
 
 ## [1.0.0] - 2026-06-15
