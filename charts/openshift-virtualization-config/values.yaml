@@ -6,3 +6,12 @@ hyperconverged:
   liveMigrationNetwork: vmlm
   evictionStrategy: LiveMigrateIfPossible
   vmStateStorageClass: ocs-storagecluster-cephfs
+
+# CNV secondary networks merged into the cluster Network operator's
+# additionalNetworks. Empty by default; set per cluster in the conf repo.
+additionalNetworks: []
+# - name: vmlm
+#   namespace: openshift-cnv
+#   type: Raw
+#   rawCNIConfig: |-
+#     { "cniVersion": "0.3.1", "name": "vmlm", "type": "macvlan", ... }
