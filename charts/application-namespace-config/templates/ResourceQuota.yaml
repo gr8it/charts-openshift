@@ -1,0 +1,17 @@
+{{- if .Values.resourceQuota }}
+{{- range $namespace, $quotas := .Values.resourceQuota }}
+{{- range $quotaName, $quotaData := $quotas }}
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  labels:
+    {{- include "application-namespace-config.labels" $ | nindent 4 }}
+  name: {{ $quotaName }}
+  namespace: {{ $namespace }}
+spec:
+  hard:
+{{ toYaml $quotaData | indent 4 }}
+---
+{{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,54 @@
+{{- $userToAppNs := false }}
+
+{{- range $userData := .Values.kafkaUsers.users }}
+{{- if $userData.appNs }}
+  {{- $userToAppNs = true }}
+  {{- break }}
+{{- end }}
+{{- end }}
+
+{{- if $userToAppNs }}
+{{- if not (and .Values.mirror.enabled (ne .Release.Namespace .Values.mirror.upstreamComponent)) }}
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: {{ $.Release.Namespace }}-kuser-sync
+  labels:
+    {{- include "apps-ck-kafka.labels" . | nindent 4 }}
+spec:
+  background: true
+  rules:
+    - name: sync-kafkauser-to-appns
+      match:
+        any:
+          - resources:
+              kinds:
+                - Secret
+              namespaces:
+                - {{ $.Release.Namespace }}
+              selector:
+                matchLabels:
+                  kafka-user-sync: "true"
+      generate:
+        synchronize: true
+        generateExisting: true
+        foreach:
+          - list: 'request.object.metadata.annotations."sync-kafkauser-to-appns" | parse_json(@)'
+
+            apiVersion: v1
+            kind: Secret
+            namespace: "{{ `{{ element }}` }}"
+            name: "kafka-user-{{ `{{ replace_all(request.object.metadata.name, '-eso', '') }}` }}"
+
+            data:
+              kind: Secret
+              type: Opaque
+              data: "{{ `{{ request.object.data }}` }}"
+              stringData:
+                sasl.jaas.config: >-
+                  org.apache.kafka.common.security.scram.ScramLoginModule required
+                  username="{{ `{{ replace_all(request.object.metadata.name, '-eso', '') }}` }}"
+                  password="{{ `{{ base64_decode(request.object.data.password) }}` }}";
+
+{{- end }}
+{{- end }}

@@ -1,0 +1,12 @@
+{{- if and .Values.backup.enabled .Values.backup.s3Internal.enabled }}
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: {{ printf "%s-backup" .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mongodb-config.labels" . | nindent 4 }}
+spec:
+  storageClassName: {{ .Values.backup.s3Internal.storageClass }}
+  generateBucketName: {{ printf "%s-backup" .Release.Name }}
+{{- end }}

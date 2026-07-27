@@ -1,0 +1,13 @@
+suite: Snapshot test
+templates:
+  - templates/*
+values:
+  - ../values.lint.yaml
+  - ../values.yaml
+release:
+  name: openshift-distributed-tracing
+
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}

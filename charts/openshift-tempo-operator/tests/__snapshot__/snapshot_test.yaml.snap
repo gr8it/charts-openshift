@@ -1,0 +1,41 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: openshift-tempo-operator
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: openshift-tempo-operator
+        app.kubernetes.io/version: v0.15
+        helm.sh/chart: openshift-tempo-operator-1.0.0
+      name: tempo-operator-custom-prometheus-rules
+      namespace: NAMESPACE
+    spec:
+      groups:
+        - name: tempo-operator-custom-monitoring.rules
+          rules:
+            - alert: TempoOperatorDown
+              annotations:
+                description: Tempo operator pod has been down for more than 5 minutes
+                summary: Tempo operator is not running
+              expr: |
+                absent(up{job="tempo-operator-controller-manager-metrics-service"}) == 1
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+  2: |
+    apiVersion: observability.openshift.io/v1alpha1
+    kind: UIPlugin
+    metadata:
+      labels:
+        app.kubernetes.io/instance: openshift-tempo-operator
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: openshift-tempo-operator
+        app.kubernetes.io/version: v0.15
+        helm.sh/chart: openshift-tempo-operator-1.0.0
+      name: distributed-tracing
+    spec:
+      type: DistributedTracing

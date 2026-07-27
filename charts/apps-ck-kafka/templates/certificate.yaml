@@ -37,6 +37,10 @@ spec:
   {{- end }}
   {{- end }}
   {{- end }}
+  {{- if and .Values.mirror.enabled }}
+  - {{ $.Values.mirror.upstreamComponent }}-bootstrap.{{ $.Values.mirror.upstreamComponent }}.svc
+  - {{ $.Values.mirror.upstreamComponent }}-bootstrap.{{ $.Values.mirror.upstreamComponent }}.svc.cluster.local
+  {{- end }}
   issuerRef:
     kind: ClusterIssuer
     name: {{ include "apc-global-overrides.require-certManagerDefaultClusterIssuer" . }}

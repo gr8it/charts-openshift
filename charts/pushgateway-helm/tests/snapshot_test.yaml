@@ -1,0 +1,11 @@
+suite: Snapshot test
+templates:
+  - templates/*
+  - charts/*/templates/*
+release:
+  name: prometheus-pushgateway
+  namespace: prometheus-pushgateway
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}

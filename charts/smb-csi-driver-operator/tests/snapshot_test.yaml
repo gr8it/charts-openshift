@@ -1,0 +1,12 @@
+suite: Snapshot test
+templates:
+  - charts/*/templates/*
+  - templates/*
+release:
+  name: smb-csi-driver-operator
+  namespace: openshift-cluster-csi-drivers
+
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}

@@ -1,0 +1,53 @@
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: {{ default "apc-tempo-stack" .Values.tempoStack.name }}-tempo-sync-tenants
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
+    policies.kyverno.io/title: Update TempoStack tenants on namespace create
+    policies.kyverno.io/category: gitops
+    policies.kyverno.io/subject: Sync TempoStack tenants with namespaces
+    policies.kyverno.io/minversion: 1.13.0
+  labels:
+{{- include "tempo-stack.labels" . | nindent 4 }}
+spec:
+  background: true
+  validationFailureAction: Audit
+  mutateExistingOnPolicyUpdate: true
+  rules:
+    - name: add-tenant-to-tempostack
+      match:
+        all:
+        - resources:
+            kinds:
+            - Namespace
+            selector:
+              matchLabels:
+                {{ .Values.namespaceSelector.key }}: {{ .Values.namespaceSelector.value }}
+      context:
+        - name: tenantNames
+          apiCall:
+            method: GET
+            urlPath: {{ printf "%s%s%s%s" "/apis/tempo.grafana.com/v1alpha1/namespaces/" .Release.Namespace "/tempostacks/" (default "apc-tempo-stack" .Values.tempoStack.name) }}
+            jmesPath: spec.tenants.authentication[*].tenantName
+            default: []
+      preconditions:
+        all:
+          - key: {{`"{{ request.object.metadata.name }}"`}}
+            operator: AnyNotIn
+            value: {{`"{{ tenantNames }}"`}}
+            message: A tenant is added into tempo.
+      mutate:
+        mutateExistingOnPolicyUpdate: true
+        targets:
+          - apiVersion: tempo.grafana.com/v1alpha1
+            kind: TempoStack
+            name: {{ default "apc-tempo-stack" .Values.tempoStack.name }}
+            namespace: {{ .Release.Namespace }}
+        patchesJson6902: |-
+          - op: add
+            path: "/spec/tenants/authentication/-"
+            value:
+              tenantName: {{`"{{ request.object.metadata.name }}"`}}
+              tenantId: {{`"{{ request.object.metadata.name }}"`}}

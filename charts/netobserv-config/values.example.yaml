@@ -1,0 +1,41 @@
+global:
+  apc:
+    customer: socpoistsk
+    environment: dev
+    cluster:
+      name: dev01
+    vault:
+      kvMountPlatform: customers
+    services:
+      externalSecretsOperator:
+        defaultClusterSecretStore: apc
+
+lokistack:
+  size: 1x.small
+  limits:
+    global:
+      ingestion:
+        ingestionRate: 8
+        ingestionBurstSize: 24
+      retention:
+        days: 14
+
+flowCollector:
+  agent:
+    ebpf:
+      sampling: 100
+      resources:
+        requests:
+          memory: 50Mi
+          cpu: 100m
+        limits:
+          memory: 1Gi
+          cpu: "2"
+  processor:
+    resources:
+      requests:
+        memory: 100Mi
+        cpu: 100m
+      limits:
+        memory: 1Gi
+        cpu: "2"

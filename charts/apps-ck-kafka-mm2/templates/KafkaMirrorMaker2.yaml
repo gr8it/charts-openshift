@@ -1,0 +1,66 @@
+{{- $source := include "apps-ck-kafka-mm2.clusterByType" (dict
+      "clusters" .Values.clusters
+      "type" "source"
+    ) | fromYaml }}
+
+{{- $target := include "apps-ck-kafka-mm2.clusterByType" (dict
+      "clusters" .Values.clusters
+      "type" "target"
+    ) | fromYaml }}
+
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaMirrorMaker2
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ $target.name }}
+  labels:
+    {{- include "apps-ck-kafka-mm2.labels" . | nindent 4 }}
+spec:
+  version: {{ .Values.version }}
+  replicas: {{ .Values.replicas }}
+  resources:
+    {{- toYaml .Values.resources | nindent 4 }}
+  jvmOptions:
+    {{- toYaml .Values.jvmOptions | nindent 4 }}
+  connectCluster: {{ $target.name | quote }}
+  clusters:
+  {{- range $cluster, $clusterSpec := .Values.clusters }}
+    - alias: {{ $cluster | quote }}
+      bootstrapServers: {{ $clusterSpec.bootstrapServers | join "," | quote }}
+      authentication:
+        type: {{ $clusterSpec.auth.type }}
+        username: {{ $clusterSpec.auth.username | quote }}
+        passwordSecret:
+          secretName: {{ $clusterSpec.auth.passwordSecret.secretName | quote }}
+          password: {{ $clusterSpec.auth.passwordSecret.password | quote }}
+      tls:
+        trustedCertificates: 
+          - secretName: brokers-ca-certificate
+            certificate: sp2-root-ca.crt
+      {{- if $clusterSpec.config }}
+      config:
+        {{- $clusterSpec.config | toYaml | nindent 8 }}
+      {{- end }}
+  {{- end }}
+  mirrors:
+    - sourceCluster: {{ $source.name | quote }}
+      targetCluster: {{ $target.name | quote }}
+      topicsPattern: ".*"
+      groupsPattern: ".*"
+      sourceConnector:
+        tasksMax: {{ .Values.mirrors.sourceConnector.tasksMax }}
+        config:
+          {{- .Values.mirrors.sourceConnector.config | toYaml | nindent 10 }}
+      checkpointConnector:
+        tasksMax: {{ .Values.mirrors.checkpointConnector.tasksMax }}
+        config:
+          {{- .Values.mirrors.checkpointConnector.config | toYaml | nindent 10 }}
+      heartbeatConnector:
+        config:
+          {{- .Values.mirrors.heartbeatConnector.config | toYaml | nindent 10 }}
+  metricsConfig:
+    type: jmxPrometheusExporter
+    valueFrom:
+      configMapKeyRef:
+        name: {{ .Release.Name }}-metrics
+        key: metrics-config.yml

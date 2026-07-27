@@ -1,0 +1,12 @@
+---
+# ClusterRole needed to grant permissions to the service account to write traces and metrics to all tenants
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "opentelemetry-collector.fullname" . }}-tempostack-traces-write
+  labels:
+    {{- include "opentelemetry-collector.labels" . | nindent 4 }}
+aggregationRule:
+  clusterRoleSelectors:
+  - matchLabels:
+      rbac.authorization.k8s.io/apc-opentelemetry-collector-apc-observability-cluster-role: "true"

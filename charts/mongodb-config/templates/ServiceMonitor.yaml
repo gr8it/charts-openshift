@@ -1,0 +1,25 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: "monitoring.coreos.com/v1"
+kind: ServiceMonitor
+metadata:
+  name: {{ printf "%s-svcmon" .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ printf "%s-svc" .Release.Name }}
+  namespaceSelector:
+    matchNames:
+    - {{ .Release.Namespace }}
+  endpoints:
+  - port: {{ .Values.monitoring.port }}
+    interval: {{ .Values.monitoring.scrapeInterval }}
+    scrapeTimeout: {{ .Values.monitoring.scrapeTimeout }}
+    basicAuth:
+      username:
+        name: mongodb-monitoring-pwd
+        key: username
+      password:
+        name: mongodb-monitoring-pwd
+        key: password
+{{- end }}

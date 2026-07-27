@@ -1,0 +1,68 @@
+## uses following global values => do not set here
+# global:
+#   apc:
+#     environmentShort:
+## and their local overrides
+# environmentShort:
+
+releaseServiceOverride: ArgoCD
+
+version: 4.0.0
+replicas: 1
+resources:
+  requests:
+    cpu: "1000m"
+    memory: "2Gi"
+  limits:
+    cpu: "2000m"
+    memory: "4Gi"
+jvmOptions:
+  "-Xmx": "1g"
+  "-Xms": "1g"
+clusters: {}
+  # # Example cluster configuration
+  # ck-kafka:
+  #   type: source
+  #   bootstrapServers:
+  #     - "ck-kafka-kafka-bootstrap.ck-kafka.svc:9093"
+  #   auth:
+  #     type: scram-sha-512
+  #     username: mm2-source-user
+  #     passwordSecret:
+  #       secretName: mm2-source-user
+  #       password: password
+  # ck-kafka-mirror:
+  #   type: target
+  #   bootstrapServers:
+  #     - "ck-kafka-mirror-kafka-bootstrap.ck-kafka-mirror.svc:9093"
+  #   auth:
+  #     type: scram-sha-512
+  #     username: mm2-target-user
+  #     passwordSecret:
+  #       secretName: mm2-target-user
+  #       password: password
+  #   config:
+  #     # -1 means it will use the default replication factor configured in the broker
+  #     config.storage.replication.factor: -1
+  #     offset.storage.replication.factor: -1
+  #     status.storage.replication.factor: -1
+mirrors:
+  sourceConnector:
+    tasksMax: 1
+    config:
+        sync.topic.acls.enabled: "false"
+        sync.topic.configs.enabled: "false"
+        replication.policy.class: "org.apache.kafka.connect.mirror.IdentityReplicationPolicy"
+  checkpointConnector:
+    tasksMax: 1
+    config:
+      replication.policy.class: "org.apache.kafka.connect.mirror.IdentityReplicationPolicy"
+      emit.checkpoints.enabled: "true"
+      sync.group.offsets.enabled: "true"
+  heartbeatConnector:
+    config:
+      heartbeats.topic.replication.factor: -1
+monitoring:
+  enabled: true
+  scrapeInterval: "30s"
+  scrapeTimeout: "10s"

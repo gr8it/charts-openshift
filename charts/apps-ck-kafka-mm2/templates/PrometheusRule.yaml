@@ -1,0 +1,223 @@
+{{- $source := include "apps-ck-kafka-mm2.clusterByType" (dict
+      "clusters" .Values.clusters
+      "type" "source"
+    ) | fromYaml }}
+
+{{- $target := include "apps-ck-kafka-mm2.clusterByType" (dict
+      "clusters" .Values.clusters
+      "type" "target"
+    ) | fromYaml }}
+
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ .Release.Name }}-alerts
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "apps-ck-kafka-mm2.labels" . | nindent 4 }}
+    role: alert-rules
+spec:
+  groups:
+  - name: mirrormaker2
+    rules:
+    - alert: MirrorMaker2ContainerDown
+      expr: absent(container_last_seen{container=~".+-mirrormaker2",pod=~".+-mirrormaker2-.+"})
+      for: 3m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: 'All Kafka Mirror Maker 2 containers down or in CrashLookBackOff status'
+        description: 'All Kafka Mirror Maker 2 containers have been down or in CrashLookBackOff status for 3 minutes'
+    - alert: KafkaMirrorMakerConnectorFailed
+      expr: |
+        kafka_connect_connector_status{
+          status=~"failed|destroyed|unassigned"
+        } == 1
+      for: 5m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "MM2 connector failed"
+        description: 'Kafka Mirror Maker 2 connector has been in failed, destroyed or unassigned status for 5 minutes'
+    - alert: KafkaMirrorMakerTaskErrors
+      expr: |
+        increase(
+          kafka_connect_task_error_total_errors_logged[5m]
+        ) > 0
+      for: 1m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "MM2 task errors"
+        description: 'Kafka Mirror Maker 2 task has reported errors in the last 1 minute'
+    - alert: KafkaMirrorMakerReplicationLagHigh
+      expr: |
+        max(kafka_consumer_fetch_manager_records_lag)
+          by (topic)
+          > 10000
+      for: 10m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "MM2 replication lag high"
+        description: "Kafka Mirror Maker 2 replication lag is high for topic {{ `{{ $labels.topic }}` }} for 10 minutes"
+    - alert: KafkaMirrorMaker2HighHeapUsage
+      expr: |
+        (
+          jvm_memory_used_bytes{area="heap"}
+          /
+          jvm_memory_max_bytes{area="heap"}
+        ) * 100 > 80
+      for: 10m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "Kafka MirrorMaker2 heap usage is high"
+        description: "Heap utilization is above 80% for 10 minutes. Current value: {{ `{{ $value }}%` }}"
+    - alert: KafkaMirrorMaker2CriticalHeapUsage
+      expr: |
+        (
+          jvm_memory_used_bytes{area="heap"}
+          /
+          jvm_memory_max_bytes{area="heap"}
+        ) * 100 > 90
+      for: 5m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "Kafka MirrorMaker2 heap usage is critical"
+        description: "Heap utilization is above 90% for 5 minutes. Current value: {{ `{{ $value }}%` }}"
+    - alert: KafkaMirrorMaker2FrequentGC
+      expr: |
+        rate(jvm_gc_collection_seconds_count[5m]) > 5
+      for: 10m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "Kafka MirrorMaker2 frequent garbage collections"
+        description: "JVM garbage collection frequency is unusually high."
+    - alert: KafkaMirrorMaker2OOMKilled
+      expr: |
+        kube_pod_container_status_last_terminated_reason{
+          pod=~".*mirrormaker2.*",
+          reason="OOMKilled"
+        } == 1
+      for: 0m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "Kafka MirrorMaker2 container OOMKilled"
+        description: |
+          MirrorMaker2 container was terminated due to out-of-memory.
+    - alert: KafkaMirrorMakerTaskFailed
+      expr: kafka_connect_worker_connector_failed_task_count > 0
+      for: 1m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "MirrorMaker2 task failed"
+        description: "At least one MirrorMaker2 task has failed. Check the task status for details."
+    - alert: KafkaMirrorMakerRecordErrors
+      expr: increase(kafka_connect_task_error_total_record_errors[5m]) > 0
+      for: 1m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "MirrorMaker2 record errors"
+        description: "Kafka MirrorMaker2 has reported record errors in the last 1 minute."
+    - alert: KafkaMirrorMakerRetries
+      expr: increase(kafka_connect_task_error_total_retries[5m]) > 100
+      for: 5m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "MirrorMaker2 retries"
+        description: "Kafka MirrorMaker2 has reported excessive retries in the last 5 minutes."
+    - alert: KafkaMirrorMakerProducerErrors
+      expr: increase(kafka_producer_record_error[5m]) > 0
+      for: 1m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "MirrorMaker2 producer errors"
+        description: "Kafka MirrorMaker2 has reported producer errors in the last 1 minute."
+    - alert: MM2HeartbeatErrors
+      expr: |
+        increase(
+          kafka_producer_topic_record_error{
+            topic="heartbeats"
+          }[5m]
+        ) > 0
+      for: 1m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "MM2 heartbeat production errors"
+        description: "Kafka MirrorMaker2 has reported producer errors for heartbeats topic in the last 1 minute."
+    - alert: MM2ConnectCoordinatorHeartbeatLost
+      expr: |
+        kafka_connect_coordinator_last_heartbeat_seconds_ago > 30
+      for: 2m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "Kafka Connect worker is not heartbeating"
+        description: "Kafka Connect worker has not sent a heartbeat in the last 2 minutes."
+    - alert: MM2HeartbeatStopped
+      expr: |
+        rate(
+          kafka_producer_topic_record_send{
+            topic="heartbeats"
+          }[5m]
+        ) == 0
+      for: 5m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "MM2 heartbeat production stopped"
+        description: "Kafka MirrorMaker2 has stopped producing heartbeats for 5 minutes. Check the connection between source kafka cluster and MirrorMaker2."
+    - alert: MM2ProducerIoRatioMissing
+      expr: |
+        absent(
+          kafka_producer_io_ratio{
+            clientid="\"connector-producer-{{ $source.name }}->{{ $target.name }}.MirrorSourceConnector-0\""
+          }
+        )
+      for: 5m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "MM2 producer I/O metric missing"
+        description: "The kafka_producer_io_ratio metric for MirrorSourceConnector has not been present for 5 minutes. Check if the MM2 pod is running and if there is connection to source cluster."
