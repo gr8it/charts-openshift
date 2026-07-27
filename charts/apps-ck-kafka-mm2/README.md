@@ -57,6 +57,63 @@ Main MirrorMaker2 configuration is defined in helm chart [values file](./values.
 
 There are required specific users and theirs configuration for source and target cluster with specific ACLs to topics. The users are defined in APC Gitops component for source cluster. Topic and users configuration from source cluster is used in target cluster during the component render. Users configuration for Kafka MM2 is described in [Kafka documentation](https://strimzi.io/docs/operators/latest/full/deploying.html?#proc-config-mirrormaker2-securing-connection-str). 
 
+<details>
+
+<summary>Kafka MM2 replication users configuration defined in <a href="https://github.com/gr8it/conf-socpoist/blob/main/gitops/components/apps-ck-kafka/values.dev01.yaml.gotmpl#L120-L167">kafka-mm2 component</a>:</summary>
+
+```yaml
+    - name: mm2-source-user
+      acls:
+        - resourceType: topic
+          resourceName: 'mm2-offset-syncs.ck-kafka-mirror.internal'
+          patternType: literal
+          operations: [Create, Read, Write, DescribeConfigs]
+        - resourceType: topic
+          resourceName: '*'
+          patternType: literal
+          operations: [Read, DescribeConfigs]
+        - resourceType: group
+          resourceName: '*'
+          patternType: literal
+          operations: [Describe]
+        - resourceType: cluster
+          operations: [Describe]
+
+    - name: mm2-target-user
+      acls:
+        - resourceType: group
+          resourceName: 'mirrormaker2-cluster'
+          operations: [Read]
+        - resourceType: topic
+          resourceName: '*'
+          patternType: literal
+          operations: [Read, Write, Describe]
+        - resourceType: group
+          resourceName: '*'
+          patternType: literal
+          operations: [Read, Describe]
+        - resourceType: cluster
+          operations: [Describe]
+        - resourceType: topic
+          resourceName: 'mirrormaker2-cluster-configs'
+          operations: [Create, Describe, DescribeConfigs, Read, Write]
+        - resourceType: topic
+          resourceName: 'mirrormaker2-cluster-status'
+          operations: [Create, Describe, DescribeConfigs, Read, Write]
+        - resourceType: topic
+          resourceName: 'mirrormaker2-cluster-offsets'
+          operations: [Create, Describe, DescribeConfigs, Read, Write]
+        - resourceType: topic
+          resourceName: 'ck-kafka.checkpoints.internal'
+          operations: [Create, Describe, Read, Write]
+        - resourceType: topic
+          resourceName: 'heartbeats'
+          patternType: literal
+          operations: [Create, Describe, Write]
+```
+
+</details><br>  
+
 Example environment configuration for target kafka cluster:
 
 ```yaml
