@@ -6,7 +6,7 @@ manifests should match snapshot (defaults, no additional networks):
       name: kubevirt-hyperconverged
       namespace: openshift-cnv
     spec:
-      evictionStrategy: LiveMigrate
+      evictionStrategy: LiveMigrateIfPossible
       higherWorkloadDensity:
         memoryOvercommitPercentage: 100
       infra: {}
@@ -21,6 +21,7 @@ manifests should match snapshot (defaults, no additional networks):
       virtualMachineOptions:
         disableFreePageReporting: false
         disableSerialConsoleLog: true
+      vmStateStorageClass: ocs-storagecluster-cephfs
       workloads: {}
 renders the Network additionalNetworks when set:
   1: |
@@ -30,7 +31,7 @@ renders the Network additionalNetworks when set:
       name: kubevirt-hyperconverged
       namespace: openshift-cnv
     spec:
-      evictionStrategy: LiveMigrate
+      evictionStrategy: LiveMigrateIfPossible
       higherWorkloadDensity:
         memoryOvercommitPercentage: 100
       infra: {}
@@ -45,11 +46,14 @@ renders the Network additionalNetworks when set:
       virtualMachineOptions:
         disableFreePageReporting: false
         disableSerialConsoleLog: true
+      vmStateStorageClass: ocs-storagecluster-cephfs
       workloads: {}
   2: |
     apiVersion: operator.openshift.io/v1
     kind: Network
     metadata:
+      annotations:
+        argocd.argoproj.io/sync-options: ServerSideApply=true
       name: cluster
     spec:
       additionalNetworks:

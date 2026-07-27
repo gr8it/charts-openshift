@@ -4,10 +4,12 @@
 hyperconverged:
   # Additional network (NAD name in openshift-cnv) used for live-migration traffic.
   liveMigrationNetwork: vmlm
+  evictionStrategy: LiveMigrateIfPossible
+  vmStateStorageClass: ocs-storagecluster-cephfs
 
 # CNV secondary networks merged into the cluster Network operator's
-# additionalNetworks (merge-keyed by name, applied via ServerSideApply so
-# other owners' entries such as the ODF network are left intact).
+# additionalNetworks (merge-keyed by name, applied via ServerSideApply on this
+# resource so other owners' entries such as the ODF network are left intact).
 # Empty by default; set per cluster in the conf repo.
 additionalNetworks: []
 # - name: vmlm

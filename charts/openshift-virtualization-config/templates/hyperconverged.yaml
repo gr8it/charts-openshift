@@ -17,6 +17,7 @@ spec:
     parallelMigrationsPerCluster: 5
     parallelOutboundMigrationsPerNode: 2
     progressTimeout: 150
-  evictionStrategy: LiveMigrate
+  evictionStrategy: {{ .Values.hyperconverged.evictionStrategy }}
+  vmStateStorageClass: {{ .Values.hyperconverged.vmStateStorageClass }}
   infra: {}
   workloads: {}
