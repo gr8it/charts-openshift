@@ -256,6 +256,13 @@ manifests should match snapshot:
             queryTimeout: 5m
           retention:
             days: 20
+        tenants:
+          application:
+            retention:
+              days: 20
+              streams:
+                - days: 14
+                  selector: '{kubernetes_namespace_name="app-example"}'
       replication:
         factor: 2
         zones:

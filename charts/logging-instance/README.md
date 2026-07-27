@@ -18,6 +18,21 @@ The chart is configured through `values.yaml`. Key parameters include:
 - `objectBucketClaim.name` / `objectBucketClaim.bucketName`: override the generated `ObjectBucketClaim`/bucket name (needed when adopting an existing, already-provisioned bucket instead of the default release-name-based one)
 - `lokistack.name`: override the `LokiStack` (and matching `ClusterLogForwarder` output / `UIPlugin` reference) name - needed when adopting an existing `LokiStack` instead of the default release-name-based one
 - `lokistack.*`: LokiStack sizing, storage, replication, ingestion/query limits and retention
+- `lokistack.limits.tenants`: per-tenant limit/retention overrides, passed straight through to `spec.limits.tenants`. Used for example to give a specific application namespace a shorter retention than the cluster-wide default:
+
+  ```yaml
+  lokistack:
+    limits:
+      tenants:
+        application:
+          retention:
+            days: 20 # tenant-wide default, same as lokistack.limits.global.retention.days
+            streams:
+              - days: 14
+                selector: '{kubernetes_namespace_name="app-example"}'
+  ```
+
+  Note: `spec.limits.tenants.<tenant>.retention.streams` has no merge key in the LokiStack CRD, so this list can only be managed from one place - it can't be safely composed from multiple independent Helm releases (e.g. one per namespace)
 - `uiplugin.timeout`: request timeout for the Logging UIPlugin (defaults to `120s`, a workaround for [this issue](https://access.redhat.com/solutions/6998442))
 - `collector.resources`: resource requests/limits for the log collector
 - `auditToHub.enabled` / `auditToHub.url`: forward audit logs to the hub's Loki gateway (spoke clusters). Enables both the `hub-loki-audit` output and the `audit-to-hub` pipeline in the `ClusterLogForwarder`; requires the `hub-spoke-logforward` token secret (see `externalSecret` below)
