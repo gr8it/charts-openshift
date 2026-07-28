@@ -1,0 +1,86 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: velero.io/v1
+    kind: Schedule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: openshift-adp-backups
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: openshift-adp-backups
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: openshift-adp-backups-1.1.0
+      name: hcp-spokea2
+      namespace: openshift-adp
+    spec:
+      paused: false
+      schedule: 0 22 * * *
+      template:
+        defaultVolumesToFSBackup: false
+        excludedNamespaceScopedResources:
+          - events
+          - events.events.k8s.io
+          - pods
+          - replicasets.apps
+        includedClusterScopedResources:
+          - managedclusters.cluster.open-cluster-management.io
+          - persistentvolumes
+          - priorityclasses.scheduling.k8s.io
+        includedNamespaceScopedResources:
+          - '*'
+        includedNamespaces:
+          - spokea2
+          - spokea2-spokea2
+          - klusterlet-spokea2
+        snapshotMoveData: false
+        ttl: 336h0m0s
+  2: |
+    apiVersion: velero.io/v1
+    kind: Schedule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: openshift-adp-backups
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: openshift-adp-backups
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: openshift-adp-backups-1.1.0
+      name: infraenv-spokea2
+      namespace: openshift-adp
+    spec:
+      paused: false
+      schedule: 15 22 * * *
+      template:
+        defaultVolumesToFSBackup: false
+        excludedNamespaceScopedResources:
+          - events
+          - events.events.k8s.io
+          - pods
+          - replicasets.apps
+        includedNamespaceScopedResources:
+          - '*'
+        includedNamespaces:
+          - infrastructure-spokea2
+        snapshotMoveData: false
+        ttl: 336h0m0s
+  3: |
+    apiVersion: velero.io/v1
+    kind: Schedule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: openshift-adp-backups
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: openshift-adp-backups
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: openshift-adp-backups-1.1.0
+      name: 01-test01-prometheus
+      namespace: openshift-adp
+    spec:
+      schedule: 0 20 * * *
+      template:
+        includedNamespaces:
+          - openshift-user-workload-monitoring
+          - openshift-monitoring
+        includedResources:
+          - configmaps
+          - persistentvolumes
+          - persistentvolumeclaims
+        ttl: 24h
