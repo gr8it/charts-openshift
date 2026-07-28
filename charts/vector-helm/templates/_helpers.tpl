@@ -109,15 +109,6 @@ Vector container ports for the APC wrapper config.
 - name: prom-exporter
   containerPort: {{ include "vector-helm.port.promExporter" . }}
   protocol: TCP
-- name: udp-syslog
-  containerPort: {{ include "vector-helm.port.udpSyslog" . }}
-  protocol: UDP
-- name: tcp-syslog
-  containerPort: {{ include "vector-helm.port.tcpSyslog" . }}
-  protocol: TCP
-- name: webhook
-  containerPort: {{ include "vector-helm.port.webhook" . }}
-  protocol: TCP
 {{- end }}
 
 {{/*
