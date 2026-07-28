@@ -158,21 +158,6 @@ Framework: [helm-unittest](https://github.com/helm-unittest/helm-unittest)
 
 ## PrometheusRule Conventions
 
-Per-rule labels always include severity, vendor and team, e.g.:
-
-```yaml
-apiVersion: monitoring.coreos.com/v1
-kind: PrometheusRule
-...
-spec:
-  groups:
-    - rules:
-        - labels:
-            severity: warning | critical
-            vendor: aspecta
-            team: platform
-```
-
 - `PrometheusRule` `metadata.labels` must include the standard chart labels via the `<chart>.labels` helper.
 - `PrometheusRule` labels must include severity, vendor and team labels to allow filtering by vendor and team in the Prometheus UI. Usually the labels in this repo should be `vendor: aspecta` and `team: platform` - other values are exceptions and need to be justified.
 - Alert names must be prefixed with the component name to avoid global collisions (e.g., `KafkaBridgeContainerDown`, not `MonitoringAvailability`).
