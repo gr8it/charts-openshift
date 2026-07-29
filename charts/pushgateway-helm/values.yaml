@@ -1,0 +1,73 @@
+resourceNames:
+  route: prometheus-pushgateway
+  oauthProxyService: pushgateway-oauth-proxy
+  # OpenShift serving-cert secret for the OAuth proxy. Referenced by the Service
+  # annotation (templated) and by prometheus-pushgateway.extraVolumes below — the
+  # extraVolumes secretName is consumed by the subchart and cannot be templated, so
+  # it must be kept equal to this value.
+  tlsSecret: prometheus-pushgateway-tls
+  tokenReviewClusterRole: tokenreview-access
+  tokenReviewClusterRoleBinding: pushgw-sa-tokenreview-binding
+  prometheusAccessRole: pushgw-sa-prometheus-access
+  prometheusAccessRoleBinding: pushgw-sa-binding
+  pushMetricsClusterRole: service-sa-push-metrics
+
+prometheus-pushgateway:
+  replicaCount: 2
+
+  image:
+    repository: quay.io/prometheus/pushgateway
+    tag: v1.10.0
+    pullPolicy: IfNotPresent
+
+  persistentVolume:
+    enabled: true
+    size: 2Gi
+
+  extraArgs:
+    - --web.enable-admin-api
+
+  serviceAccount:
+    # create: false — the wrapper chart owns the SA (templates/serviceaccount.yaml) so it can
+    # add the OpenShift OAuth redirect annotation the upstream chart cannot set.
+    # The SA name is taken from this value (default pushgw-sa); the oauth-proxy
+    # --openshift-service-account arg below must be kept in sync if you change it.
+    create: false
+    name: pushgw-sa
+
+  serviceMonitor:
+    enabled: true
+    honorLabels: true
+    namespace: openshift-monitoring
+
+  extraContainers:
+    - name: oauth-proxy
+      image: registry.redhat.io/openshift4/ose-oauth-proxy:v4.12.0
+      imagePullPolicy: Always
+      args:
+        - '--https-address=:9092'
+        - '--provider=openshift'
+        - '--openshift-service-account=pushgw-sa'
+        - >-
+          --openshift-delegate-urls={"/":{"group":"monitoring.coreos.com","resource":"prometheuses","verb":"get"}}
+        - '--upstream=http://localhost:9091'
+        - '--tls-cert=/etc/tls/private/tls.crt'
+        - '--tls-key=/etc/tls/private/tls.key'
+        - '--cookie-secret-file=/etc/proxy/secrets/cookie-secret'
+      ports:
+        - containerPort: 9092
+          name: public
+      volumeMounts:
+        - name: prometheus-pushgateway-tls
+          mountPath: /etc/tls/private
+        - name: pushgateway-cookie-secret
+          mountPath: /etc/proxy/secrets
+          readOnly: true
+
+  extraVolumes:
+    - name: prometheus-pushgateway-tls
+      secret:
+        secretName: prometheus-pushgateway-tls
+    - name: pushgateway-cookie-secret
+      secret:
+        secretName: pushgateway-oauth-cookie-secret

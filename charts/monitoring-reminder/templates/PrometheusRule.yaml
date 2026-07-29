@@ -1,0 +1,52 @@
+{{- if .Values.reminders }}
+{{- $defaultLabels := .Values.defaultLabels | default dict }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "monitoring-reminder.labels" . | nindent 4 }}
+spec:
+  groups:
+  - name: monitoring-reminder.rules
+    rules:
+    {{- range $alert := sortAlpha (keys .Values.reminders) }}
+    {{- $reminder := index $.Values.reminders $alert }}
+    {{- $dt := $reminder.datetime }}
+    {{- if not (contains " " $dt) }}{{- $dt = printf "%s 00:00" $dt }}{{- end }}
+    {{- $unixTs := toDate "02.01.2006 15:04 -07:00" (printf "%s +00:00" $dt) | unixEpoch }}
+    {{- $days := default 30 $reminder.daysBeforeExpiry }}
+    {{- $mergedLabels := merge (deepCopy (default dict $reminder.labels)) $defaultLabels }}
+    - alert: {{ $alert }}
+      annotations:
+        summary: {{ $reminder.summary | quote }}
+        description: {{ $reminder.description | quote }}
+        {{- if $reminder.runbookUrl }}
+        runbook_url: {{ $reminder.runbookUrl | quote }}
+        {{- end }}
+      expr: |
+        ({{ $unixTs }} - time()) / 86400 < {{ $days }}
+      labels:
+        severity: warning
+        {{- with $mergedLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    {{- if $reminder.critical }}
+    - alert: {{ $alert }}Critical
+      annotations:
+        summary: {{ $reminder.summary | quote }}
+        description: {{ $reminder.description | quote }}
+        {{- if $reminder.runbookUrl }}
+        runbook_url: {{ $reminder.runbookUrl | quote }}
+        {{- end }}
+      expr: |
+        ({{ $unixTs }} - time()) / 86400 < 1
+      labels:
+        severity: critical
+        {{- with $mergedLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    {{- end }}
+    {{- end }}
+{{- end }}

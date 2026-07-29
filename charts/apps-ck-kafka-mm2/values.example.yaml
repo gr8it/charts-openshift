@@ -1,0 +1,30 @@
+global:
+  apc:
+    environmentShort: dev
+clusters:
+  # Example cluster configuration
+  ck-kafka:
+    type: source
+    bootstrapServers:
+      - "ck-kafka-kafka-bootstrap.ck-kafka.svc:9093"
+    auth:
+      type: scram-sha-512
+      username: mm2-source-user
+      passwordSecret:
+        secretName: mm2-source-user
+        password: password
+  ck-kafka-mirror:
+    type: target
+    bootstrapServers:
+      - "ck-kafka-mirror-kafka-bootstrap.ck-kafka-mirror.svc:9093"
+    auth:
+      type: scram-sha-512
+      username: mm2-target-user
+      passwordSecret:
+        secretName: mm2-target-user
+        password: password
+    config:
+      # -1 means it will use the default replication factor configured in the broker
+      config.storage.replication.factor: -1
+      offset.storage.replication.factor: -1
+      status.storage.replication.factor: -1

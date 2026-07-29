@@ -1,0 +1,135 @@
+suite: Legacy resource names
+release:
+  name: prometheus-pushgateway
+  namespace: prometheus-pushgateway
+
+tests:
+  - it: renders legacy tokenreview ClusterRole name
+    template: templates/clusterrole-tokenreview.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ClusterRole
+      - equal:
+          path: metadata.name
+          value: tokenreview-access
+
+  - it: renders legacy tokenreview ClusterRoleBinding name and roleRef
+    template: templates/clusterrolebinding-tokenreview.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ClusterRoleBinding
+      - equal:
+          path: metadata.name
+          value: pushgw-sa-tokenreview-binding
+      - equal:
+          path: roleRef.name
+          value: tokenreview-access
+
+  - it: renders legacy push-metrics ClusterRole name and rules
+    template: templates/clusterrole-push-metrics.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ClusterRole
+      - equal:
+          path: metadata.name
+          value: service-sa-push-metrics
+      - equal:
+          path: rules[0].resources
+          value: [prometheuses, servicemonitors]
+      - equal:
+          path: rules[0].verbs
+          value: [get, list]
+
+  - it: renders legacy prometheus access Role name
+    template: templates/role-prometheus-access.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Role
+      - equal:
+          path: metadata.name
+          value: pushgw-sa-prometheus-access
+
+  - it: renders legacy prometheus access RoleBinding name and roleRef
+    template: templates/rolebinding-prometheus-access.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: RoleBinding
+      - equal:
+          path: metadata.name
+          value: pushgw-sa-binding
+      - equal:
+          path: roleRef.name
+          value: pushgw-sa-prometheus-access
+
+  - it: renders legacy oauth proxy Service name
+    template: templates/service-oauth-proxy.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - equal:
+          path: metadata.name
+          value: pushgateway-oauth-proxy
+
+  - it: renders legacy Route name and target service
+    template: templates/route.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Route
+      - equal:
+          path: metadata.name
+          value: prometheus-pushgateway
+      - equal:
+          path: spec.to.name
+          value: pushgateway-oauth-proxy
+
+  - it: ServiceAccount name is pushgw-sa with OAuth redirect annotation to correct route
+    template: templates/serviceaccount.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ServiceAccount
+      - equal:
+          path: metadata.name
+          value: pushgw-sa
+      - matchRegex:
+          path: metadata.annotations["serviceaccounts.openshift.io/oauth-redirectreference.primary"]
+          pattern: '"name":"prometheus-pushgateway"'
+
+  - it: ESO Password generator renders
+    template: templates/secret-oauth-cookie-generator.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: apiVersion
+          value: generators.external-secrets.io/v1alpha1
+      - equal:
+          path: kind
+          value: Password
+
+  - it: ESO ExternalSecret renders targeting pushgateway-oauth-cookie-secret
+    template: templates/secret-oauth-cookie.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: apiVersion
+          value: external-secrets.io/v1beta1
+      - equal:
+          path: spec.target.name
+          value: pushgateway-oauth-cookie-secret

@@ -1,0 +1,20 @@
+dashboard:
+  resyncPeriod: 5m
+  instanceSelector:
+    matchLabels:
+      dashboards: apc-grafana
+  datasource:
+    name: prometheus
+    inputName: DS_OPENSHIFT_PROMETHEUS
+
+prometheusRule:
+  enabled: true
+  name: veeam-alerts
+  namespace: prometheus-pushgateway
+  groupName: veeam_alerts
+  interval: 1h
+  labels:
+    app: veeam
+    severity: warning
+    team: platform
+    vendor: aspecta

@@ -161,8 +161,8 @@ Follow <https://learnk8s.io/production-best-practices>
 
   - For markdown you can use DavidAnson.vscode-markdownlint extension
   - For yaml you can use redhat.vscode-yaml extension
-
   </details>
+
 
 - Prefer indented sequences for yaml
   <details>

@@ -1,0 +1,12 @@
+suite: Snapshot test
+templates:
+  - templates/*
+values:
+  - ../values.example.yaml
+release:
+  name: apps-ck-kafka-mm2
+
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}

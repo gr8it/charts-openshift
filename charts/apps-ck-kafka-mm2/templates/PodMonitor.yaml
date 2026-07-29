@@ -1,0 +1,52 @@
+{{- if .Values.monitoring.enabled }}
+# PodMonitor for Kafka Brokers - scrapes JMX metrics
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "apps-ck-kafka-mm2.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      strimzi.io/cluster: {{ .Release.Name }}
+      strimzi.io/kind: KafkaMirrorMaker2
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  podMetricsEndpoints:
+  - path: /metrics
+    port: tcp-prometheus
+    interval: {{ .Values.monitoring.scrapeInterval | default "30s" }}
+    scrapeTimeout: {{ .Values.monitoring.scrapeTimeout | default "10s" }}
+    relabelings:
+    - separator: ;
+      regex: __meta_kubernetes_pod_label_(strimzi_io_.+)
+      replacement: $1
+      action: labelmap
+    - sourceLabels: [__meta_kubernetes_namespace]
+      separator: ;
+      regex: (.*)
+      targetLabel: namespace
+      replacement: $1
+      action: replace
+    - sourceLabels: [__meta_kubernetes_pod_name]
+      separator: ;
+      regex: (.*)
+      targetLabel: kubernetes_pod_name
+      replacement: $1
+      action: replace
+    - sourceLabels: [__meta_kubernetes_pod_node_name]
+      separator: ;
+      regex: (.*)
+      targetLabel: node_name
+      replacement: $1
+      action: replace
+    - sourceLabels: [__meta_kubernetes_pod_host_ip]
+      separator: ;
+      regex: (.*)
+      targetLabel: node_ip
+      replacement: $1
+      action: replace
+{{- end }}

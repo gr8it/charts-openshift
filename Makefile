@@ -147,7 +147,7 @@ publish: check-helm
 
 clean: check-helm check-yq
 	@echo -e "\033[0;36m~> Cleanup of orphaned helm packages and index references ...\033[0m"
-  # Cleanup all references and artefacts for charts that are no logner available
+  # Cleanup all references and artifacts for charts that are no longer available
 	@YQ_USED=0; \
 	declare -a package_cleanup=(); \
 	charts_list=$$($(YQ) eval '(.entries | keys)[]' $(INDEX_FILE)); \
