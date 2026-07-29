@@ -98,7 +98,22 @@ charts-openshift/
 
 [apc-global-overrides-helpers]: /charts/apc-global-overrides/README.md#helper-function-list
 
-Cluster/environment values (customer name, cluster name, base URL, proxy, shared stores, etc.) come from the conf repo via `apc-global-overrides`. Never hardcode them — use the library's helpers (see [README][apc-global-overrides-helpers]). Prefer the `require-` variant to fail fast when a value is missing.
+- Cluster/environment specific values (customer name, cluster name, base URL, proxy, shared stores, etc.) is configured once (DRY) in config repository.
+  - Never hardcode them — use the `apc-global-overrides` library helpers, (see [README][apc-global-overrides-helpers]).
+- Prefer the `require-` variant to fail fast when a value is missing if possible.
+- Configuration, which is shared between multiple charts, should be placed in `apc-global-overrides` rather than in individual charts.
+- Document which `apc-global-overrides` are used as comments in the values.yaml, but don't set them:
+
+  ```yaml
+  ## uses following global values => do not set here
+  # global:
+  #   apc:
+  #     cluster:
+  #       appsDomain:
+  ```
+
+- The used `apc-global-overrides` should be set in values.lint.yaml, values.example.yaml or other example values files, but not in values.yaml.
+- Preferably all `apc-global-overrides` should be set in values.example.yaml, including optional ones such as proxy, ca certificates, etc. This ensures that the example values file is a complete example of a working configuration.
 
 ### values.yaml Conventions
 
@@ -112,15 +127,7 @@ Cluster/environment values (customer name, cluster name, base URL, proxy, shared
 - Security-sensitive defaults must be secure by default: admin APIs must be opt-in (default disabled), `insecureSkipTLSVerify` must default to `false`.
 - Chart default values should reflect the production-ready cluster state, not a QA-specific non-default.
 - Favor convention-over-configuration = don't add a value unless it must be configurable, e.g. do not configure ingress URL - construct it from a convention-based pattern using the cluster's base URL (from apc-global-overrides) and the standard chart helpers, e.g. `application-xy.{{ include "apc-global-overrides.require-clusterAppsDomain" . }}`
-- Global cluster values come from the `apc-global-overrides` library; document them as comments but don't set them:
 
-  ```yaml
-  ## uses following global values => do not set here
-  # global:
-  #   apc:
-  #     cluster:
-  #       appsDomain:
-  ```
 
 ### values.example.yaml
 
