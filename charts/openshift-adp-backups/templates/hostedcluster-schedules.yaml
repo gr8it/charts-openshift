@@ -1,8 +1,9 @@
 {{- range .Values.hostedClusters }}
+{{- $name := required "hostedClusters[].name is required" .name }}
 apiVersion: velero.io/v1
 kind: Schedule
 metadata:
-  name: {{ printf "hcp-%s" .name | quote }}
+  name: {{ printf "hcp-%s" $name | quote }}
   namespace: {{ $.Values.namespace | default $.Release.Namespace | quote }}
   labels:
     {{- include "openshift-adp-backups.labels" $ | nindent 4 }}
@@ -11,9 +12,9 @@ spec:
   paused: {{ .paused | default false }}
   template:
     includedNamespaces:
-      - {{ .name }}
-      - {{ printf "%s-%s" .name .name }}
-      - {{ printf "klusterlet-%s" .name }}
+      - {{ $name }}
+      - {{ printf "%s-%s" $name $name }}
+      - {{ printf "klusterlet-%s" $name }}
     includedNamespaceScopedResources:
       - '*'
     excludedNamespaceScopedResources:
@@ -27,12 +28,12 @@ spec:
       - priorityclasses.scheduling.k8s.io
     snapshotMoveData: false
     defaultVolumesToFSBackup: false
-    ttl: {{ .ttl | default "336h0m0s" }}
+    ttl: {{ .ttl | default "336h0m0s" | quote }}
 ---
 apiVersion: velero.io/v1
 kind: Schedule
 metadata:
-  name: {{ printf "infraenv-%s" .name | quote }}
+  name: {{ printf "infraenv-%s" $name | quote }}
   namespace: {{ $.Values.namespace | default $.Release.Namespace | quote }}
   labels:
     {{- include "openshift-adp-backups.labels" $ | nindent 4 }}
@@ -41,7 +42,7 @@ spec:
   paused: {{ .paused | default false }}
   template:
     includedNamespaces:
-      - {{ printf "infrastructure-%s" .name }}
+      - {{ printf "infrastructure-%s" $name }}
     includedNamespaceScopedResources:
       - '*'
     excludedNamespaceScopedResources:
@@ -51,6 +52,6 @@ spec:
       - replicasets.apps
     snapshotMoveData: false
     defaultVolumesToFSBackup: false
-    ttl: {{ .ttl | default "336h0m0s" }}
+    ttl: {{ .ttl | default "336h0m0s" | quote }}
 ---
 {{- end }}
