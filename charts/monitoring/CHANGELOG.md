@@ -5,6 +5,14 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-07-29
+
+_([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
+
+### Fixed
+
+- Restored `PrometheusRuleFailures`/`ceph.rules` silence route in Alertmanager config, dropped during the raw-manifest-to-chart migration
+
 ## [1.1.0] - 2026-05-05
 
 _([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
