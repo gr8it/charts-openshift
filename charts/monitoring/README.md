@@ -78,7 +78,7 @@ Both alertmanager secrets use `dataFrom.extract` — the entire Vault secret is 
 
 | Value | Default | Description |
 |---|---|---|
-| `clusterMonitoring.prometheus.retention` | `7d` | Cluster Prometheus retention |
+| `clusterMonitoring.prometheus.retention` | `14d` | Cluster Prometheus retention |
 | `clusterMonitoring.prometheus.storageSize` | `60Gi` | Cluster Prometheus PVC size |
 | `userWorkloadMonitoring.prometheus.retention` | `14d` | UWM Prometheus retention |
 | `userWorkloadMonitoring.prometheus.remoteWrite.enabled` | `true` | Enable remote write to Red Hat telemetry |

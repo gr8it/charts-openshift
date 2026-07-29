@@ -5,6 +5,14 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2026-07-29
+
+_([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
+
+### Fixed
+
+- `clusterMonitoring.prometheus.retention` default corrected from `7d` to `14d`, matching the actual standard on spoke clusters (dev01, test01) — mirrors the same fix already applied to `userWorkloadMonitoring.prometheus.retention`
+
 ## [1.1.1] - 2026-07-29
 
 _([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
