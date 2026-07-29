@@ -1,0 +1,67 @@
+nameOverride: ""
+fullnameOverride: ""
+
+## uses following global values => do not set here
+# global:
+#   apc:
+#     proxy: ~
+#     noProxy: ~
+#     services:
+#       externalSecretsOperator:
+#         defaultClusterSecretStore: ~
+#       vault:
+#         KVmountPlatform: ~
+
+envName: ""
+location: "BA"
+
+# InfraEnv name — also used as the namespace and NMStateConfig label selector value
+# e.g. infrastructure-prod01
+infraEnvName: "" # defaults to infrastructure-{{ .Values.envName }}
+
+cpuArchitecture: x86_64
+
+# iPXE script type for agent discovery
+ipxeScriptType: DiscoveryImageAlways
+
+# SSH public key(s) per line injected into discovered agents
+sshAuthorizedKey: ""
+
+ntpServers: []
+
+# NMState network configurations, one per physical host
+nmStateConfigs: []
+# - name: my-node-01
+#   macInterfaceMappings:
+#     - macAddress: "aa:bb:cc:dd:ee:ff"
+#       logicalNICName: ens7f0np0
+#     - macAddress: "aa:bb:cc:dd:ee:ff"
+#       logicalNICName: ens13f0np0
+#   networkConfig:
+#     interfaces:
+#       - name: bond0
+#         type: bond
+#         state: up
+#         ipv4:
+#           address:
+#             - ip: 10.0.0.1
+#               prefix-length: 24
+#           enabled: true
+#         link-aggregation:
+#           mode: 802.3ad
+#           options:
+#             miimon: '140'
+#             xmit_hash_policy: layer2
+#           port:
+#             - ens7f0np0
+#             - ens13f0np0
+#     dns-resolver:
+#       config:
+#         server:
+#           - 10.0.0.53
+#     routes:
+#       config:
+#         - destination: 0.0.0.0/0
+#           next-hop-address: 10.0.0.1
+#           next-hop-interface: bond0
+#           table-id: 254

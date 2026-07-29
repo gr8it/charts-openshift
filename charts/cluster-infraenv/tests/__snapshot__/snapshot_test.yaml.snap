@@ -1,0 +1,185 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        agent-install.openshift.io/watch: "true"
+        app.kubernetes.io/instance: cluster-infraenv-prod01
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-infraenv
+        cluster.open-cluster-management.io/backup: "true"
+        helm.sh/chart: cluster-infraenv-1.0.0
+      name: pullsecret-infrastructure-example01
+      namespace: infrastructure-example01
+    spec:
+      data:
+        - remoteRef:
+            key: apc-platform/e/infraenv/infrastructure-example01
+            property: .dockerconfigjson
+          secretKey: pullsecret
+      refreshInterval: 1h
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: vault
+      target:
+        creationPolicy: Owner
+        name: pullsecret-infrastructure-example01
+        template:
+          data:
+            .dockerconfigjson: '{{ .pullsecret | toString }}'
+          type: kubernetes.io/dockerconfigjson
+  2: |
+    apiVersion: agent-install.openshift.io/v1beta1
+    kind: InfraEnv
+    metadata:
+      labels:
+        agentclusterinstalls.extensions.hive.openshift.io/location: BA
+        app.kubernetes.io/instance: cluster-infraenv-prod01
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-infraenv
+        helm.sh/chart: cluster-infraenv-1.0.0
+        networkType: static
+      name: infrastructure-example01
+      namespace: infrastructure-example01
+    spec:
+      additionalNTPSources:
+        - 10.0.0.11
+        - 10.0.0.12
+      agentLabels:
+        agentclusterinstalls.extensions.hive.openshift.io/location: BA
+        environment: example01
+      cpuArchitecture: x86_64
+      ipxeScriptType: DiscoveryImageAlways
+      nmStateConfigLabelSelector:
+        matchLabels:
+          infraenvs.agent-install.openshift.io: infrastructure-example01
+      proxy:
+        httpProxy: http://proxy.example.com:8080
+        httpsProxy: http://proxy.example.com:8080
+        noProxy: .example.com,.svc,.cluster.local,localhost
+      pullSecretRef:
+        name: pullsecret-infrastructure-example01
+      sshAuthorizedKey: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN45Yki8PhtTZ7NFk9xST9LHvrPgmHuSTHXI2CdXLxzF ops@example.com
+  3: |
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-infraenv-prod01
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-infraenv
+        helm.sh/chart: cluster-infraenv-1.0.0
+      name: infrastructure-example01
+  4: |
+    apiVersion: agent-install.openshift.io/v1beta1
+    kind: NMStateConfig
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-infraenv-prod01
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-infraenv
+        helm.sh/chart: cluster-infraenv-1.0.0
+        infraenvs.agent-install.openshift.io: infrastructure-example01
+      name: node-01
+      namespace: infrastructure-example01
+    spec:
+      config:
+        dns-resolver:
+          config:
+            server:
+              - 10.0.0.11
+              - 10.0.0.12
+        interfaces:
+          - ipv4:
+              address:
+                - ip: 10.0.10.10
+                  prefix-length: 24
+              enabled: true
+            link-aggregation:
+              mode: 802.3ad
+              options:
+                miimon: "140"
+                xmit_hash_policy: layer2
+              port:
+                - ens7f0np0
+                - ens13f0np0
+            name: bond0
+            state: up
+            type: bond
+        routes:
+          config:
+            - destination: 0.0.0.0/0
+              next-hop-address: 10.0.10.1
+              next-hop-interface: bond0
+              table-id: 254
+      interfaces:
+        - macAddress: aa:bb:cc:dd:ee:01
+          name: ens7f0np0
+        - macAddress: aa:bb:cc:dd:ee:02
+          name: ens13f0np0
+  5: |
+    apiVersion: agent-install.openshift.io/v1beta1
+    kind: NMStateConfig
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-infraenv-prod01
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-infraenv
+        helm.sh/chart: cluster-infraenv-1.0.0
+        infraenvs.agent-install.openshift.io: infrastructure-example01
+      name: node-02
+      namespace: infrastructure-example01
+    spec:
+      config:
+        dns-resolver:
+          config:
+            server:
+              - 10.0.0.11
+              - 10.0.0.12
+        interfaces:
+          - ipv4:
+              address:
+                - ip: 10.0.10.11
+                  prefix-length: 24
+              enabled: true
+            link-aggregation:
+              mode: 802.3ad
+              options:
+                miimon: "140"
+                xmit_hash_policy: layer2
+              port:
+                - ens7f0np0
+                - ens13f0np0
+            name: bond0
+            state: up
+            type: bond
+        routes:
+          config:
+            - destination: 0.0.0.0/0
+              next-hop-address: 10.0.10.1
+              next-hop-interface: bond0
+              table-id: 254
+      interfaces:
+        - macAddress: aa:bb:cc:dd:ee:03
+          name: ens7f0np0
+        - macAddress: aa:bb:cc:dd:ee:04
+          name: ens13f0np0
+  6: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-infraenv-prod01
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-infraenv
+        helm.sh/chart: cluster-infraenv-1.0.0
+      name: capi-provider-role
+      namespace: infrastructure-example01
+    rules:
+      - apiGroups:
+          - agent-install.openshift.io
+        resources:
+          - agents
+        verbs:
+          - '*'

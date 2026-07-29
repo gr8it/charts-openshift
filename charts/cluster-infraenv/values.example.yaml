@@ -1,0 +1,90 @@
+global:
+  apc:
+    environmentShort: e
+    proxy: http://proxy.example.com:8080
+    noProxy: .example.com,.svc,.cluster.local,localhost
+    services:
+      externalSecretsOperator:
+        defaultClusterSecretStore: vault
+      vault:
+        KVmountPlatform: apc-platform
+
+envName: example01
+
+sshAuthorizedKey: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN45Yki8PhtTZ7NFk9xST9LHvrPgmHuSTHXI2CdXLxzF ops@example.com"
+
+ntpServers:
+  - 10.0.0.11
+  - 10.0.0.12
+
+nmStateConfigs:
+  - name: node-01
+    macInterfaceMappings:
+      - macAddress: "aa:bb:cc:dd:ee:01"
+        logicalNICName: ens7f0np0
+      - macAddress: "aa:bb:cc:dd:ee:02"
+        logicalNICName: ens13f0np0
+    networkConfig:
+      interfaces:
+        - name: bond0
+          type: bond
+          state: up
+          ipv4:
+            address:
+              - ip: 10.0.10.10
+                prefix-length: 24
+            enabled: true
+          link-aggregation:
+            mode: 802.3ad
+            options:
+              miimon: '140'
+              xmit_hash_policy: layer2
+            port:
+              - ens7f0np0
+              - ens13f0np0
+      dns-resolver:
+        config:
+          server:
+            - 10.0.0.11
+            - 10.0.0.12
+      routes:
+        config:
+          - destination: 0.0.0.0/0
+            next-hop-address: 10.0.10.1
+            next-hop-interface: bond0
+            table-id: 254
+  - name: node-02
+    macInterfaceMappings:
+      - macAddress: "aa:bb:cc:dd:ee:03"
+        logicalNICName: ens7f0np0
+      - macAddress: "aa:bb:cc:dd:ee:04"
+        logicalNICName: ens13f0np0
+    networkConfig:
+      interfaces:
+        - name: bond0
+          type: bond
+          state: up
+          ipv4:
+            address:
+              - ip: 10.0.10.11
+                prefix-length: 24
+            enabled: true
+          link-aggregation:
+            mode: 802.3ad
+            options:
+              miimon: '140'
+              xmit_hash_policy: layer2
+            port:
+              - ens7f0np0
+              - ens13f0np0
+      dns-resolver:
+        config:
+          server:
+            - 10.0.0.11
+            - 10.0.0.12
+      routes:
+        config:
+          - destination: 0.0.0.0/0
+            next-hop-address: 10.0.10.1
+            next-hop-interface: bond0
+            table-id: 254

@@ -1,0 +1,19 @@
+{{- range .Values.nmStateConfigs }}
+---
+apiVersion: agent-install.openshift.io/v1beta1
+kind: NMStateConfig
+metadata:
+  name: {{ .name }}
+  namespace: {{ include "cluster-infraenv.infraEnvName" $ }}
+  labels:
+    {{- include "cluster-infraenv.labels" $ | nindent 4 }}
+    infraenvs.agent-install.openshift.io: {{ include "cluster-infraenv.infraEnvName" $ }}
+spec:
+  config:
+    {{- toYaml .networkConfig | nindent 4 }}
+  interfaces:
+    {{- range .macInterfaceMappings }}
+    - macAddress: {{ .macAddress | quote }}
+      name: {{ .logicalNICName }}
+    {{- end }}
+{{- end }}
