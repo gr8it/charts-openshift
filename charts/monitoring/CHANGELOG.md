@@ -5,6 +5,14 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2026-07-29
+
+_([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
+
+### Fixed
+
+- conditional `prometheusrule-ldap-monitoring.yaml` behind `vaultBastionMonitoring.bastionIP`, matching the other vault-bastion templates — was rendering unconditionally into the `apc-monitoring-bastion` namespace, which doesn't exist on clusters without bastion monitoring enabled
+
 ## [1.1.2] - 2026-07-29
 
 _([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_

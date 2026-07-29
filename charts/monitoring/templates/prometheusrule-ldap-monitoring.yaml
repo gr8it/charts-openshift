@@ -1,3 +1,4 @@
+{{- if .Values.vaultBastionMonitoring.bastionIP }}
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -39,3 +40,4 @@ spec:
           annotations:
             summary: "Only single instance found for repica id {{ `{{ $labels.replica_id }}` }}"
             description: "Replica ID {{ `{{ $labels.replica_id }}` }} has only single instance. LDAP replication is not working properly."
+{{- end }}
