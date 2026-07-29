@@ -1,0 +1,15 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: cluster-instance-hcp snapshot
+templates:
+  - templates/*
+values:
+  - ../values.example.yaml
+  - globals.yaml
+release:
+  name: cluster-instance-hcp
+  namespace: example01
+
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}

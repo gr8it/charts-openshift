@@ -1,0 +1,18 @@
+global:
+  apc:
+    environmentShort: p
+    services:
+      externalSecretsOperator:
+        defaultClusterSecretStore: vault
+      vault:
+        KVmountPlatform: apc-platform
+
+clusterName: lint-cluster
+baseDomain: example.com
+etcd:
+  storageClassName: standard
+ntpServers:
+  - 10.0.0.1
+vault:
+  pullSecretKey: lint-cluster
+  sshKeyKey: lint-cluster

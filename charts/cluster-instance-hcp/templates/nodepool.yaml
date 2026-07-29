@@ -1,0 +1,32 @@
+{{- $clusterName := include "cluster-instance-hcp.clusterName" . }}
+apiVersion: hypershift.openshift.io/v1beta1
+kind: NodePool
+metadata:
+  name: nodepool-{{ $clusterName }}-1
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
+spec:
+  clusterName: {{ $clusterName }}
+  config:
+    - name: machineconfig-chrony
+    - name: machineconfig-logind
+    - name: kubeletconfig-worker
+    {{- if .Values.imageProxy.enabled }}
+    - name: machineconfig-mirror-registries
+    {{- end }}
+  replicas: {{ .Values.nodePool.replicas }}
+  management:
+    autoRepair: {{ .Values.nodePool.autoRepair }}
+    upgradeType: {{ .Values.nodePool.upgradeType }}
+  {{- with .Values.nodePool.nodeLabels }}
+  nodeLabels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  platform:
+    type: Agent
+    agent:
+      agentLabelSelector:
+        matchLabels: {}
+  release:
+    image: {{ .Values.releaseImage }}

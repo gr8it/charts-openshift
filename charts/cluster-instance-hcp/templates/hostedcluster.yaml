@@ -1,0 +1,171 @@
+{{- $clusterName := include "cluster-instance-hcp.clusterName" . }}
+{{- $baseDomain := required "baseDomain is required" .Values.baseDomain }}
+{{- $proxyURL := include "apc-global-overrides.proxy" . }}
+{{- $caBundle := include "apc-global-overrides.caCertificatesBundle" . }}
+apiVersion: hypershift.openshift.io/v1beta1
+kind: HostedCluster
+metadata:
+  name: {{ $clusterName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
+    {{- with .Values.clusterSet }}
+    cluster.open-cluster-management.io/clusterset: {{ . | quote }}
+    {{- end }}
+spec:
+  {{- if $proxyURL }}
+  additionalTrustBundle:
+    name: user-ca-bundle
+  {{- end }}
+  {{- with .Values.tolerations }}
+  tolerations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.nodeSelector }}
+  nodeSelector:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  etcd:
+    managed:
+      storage:
+        persistentVolume:
+          size: {{ .Values.etcd.storageSize }}
+          storageClassName: {{ required "etcd.storageClassName is required" .Values.etcd.storageClassName }}
+        type: PersistentVolume
+    managementType: Managed
+  release:
+    image: {{ .Values.releaseImage }}
+  pullSecret:
+    name: pullsecret-cluster-{{ $clusterName }}
+  sshKey:
+    name: sshkey-cluster-{{ $clusterName }}
+  networking:
+    clusterNetwork:
+      - cidr: {{ .Values.networking.clusterCIDR }}
+        hostPrefix: {{ .Values.networking.clusterHostPrefix }}
+    serviceNetwork:
+      - cidr: {{ .Values.networking.serviceCIDR }}
+    networkType: {{ .Values.networking.networkType }}
+  configuration:
+    {{- if .Values.imageProxy.enabled }}
+    image:
+      additionalTrustedCA:
+        name: registry-ca-bundle
+      imageContentSources:
+        {{- range .Values.imageProxy.sources }}
+        - mirrors:
+            - {{ $.Values.imageProxy.registryHost }}/{{ . }}
+          source: {{ . }}
+        {{- end }}
+    {{- end }}
+    {{- if $proxyURL }}
+    proxy:
+      httpProxy: {{ $proxyURL | quote }}
+      httpsProxy: {{ $proxyURL | quote }}
+      noProxy: {{ include "apc-global-overrides.noProxy" . | quote }}
+      trustedCA:
+        name: user-ca-bundle
+    {{- end }}
+    {{- if .Values.apiServerCert.enabled }}
+    apiServer:
+      audit:
+        profile: Default
+      servingCerts:
+        namedCertificates:
+          - names:
+              {{- if .Values.apiServerCert.names }}
+              {{- range .Values.apiServerCert.names }}
+              - {{ . }}
+              {{- end }}
+              {{- else }}
+              - api.{{ $clusterName }}.{{ $baseDomain }}
+              {{- end }}
+            servingCertificate:
+              name: kube-apiserver-cert
+    {{- end }}
+    {{- if or .Values.adIntegration.enabled .Values.ldapIntegration.enabled }}
+    oauth:
+      identityProviders:
+        {{- if .Values.adIntegration.enabled }}
+        - name: {{ required "adIntegration.idpName is required when adIntegration.enabled" .Values.adIntegration.idpName | quote }}
+          mappingMethod: claim
+          type: LDAP
+          ldap:
+            url: {{ required "adIntegration.ldapURL is required when adIntegration.enabled" .Values.adIntegration.ldapURL | quote }}
+            bindDN: {{ required "adIntegration.bindDN is required when adIntegration.enabled" .Values.adIntegration.bindDN | quote }}
+            bindPassword:
+              name: ad-ldap-bind-secret
+            ca:
+              name: ad-ldap-ca
+            insecure: false
+            attributes:
+              email:
+                - {{ .Values.adIntegration.attributes.email }}
+              id:
+                - {{ .Values.adIntegration.attributes.id }}
+              name:
+                - {{ .Values.adIntegration.attributes.name }}
+              preferredUsername:
+                - {{ .Values.adIntegration.attributes.preferredUsername }}
+        {{- end }}
+        {{- if .Values.ldapIntegration.enabled }}
+        - name: {{ required "ldapIntegration.idpName is required when ldapIntegration.enabled" .Values.ldapIntegration.idpName | quote }}
+          mappingMethod: claim
+          type: LDAP
+          ldap:
+            url: {{ required "ldapIntegration.ldapURL is required when ldapIntegration.enabled" .Values.ldapIntegration.ldapURL | quote }}
+            bindDN: {{ required "ldapIntegration.bindDN is required when ldapIntegration.enabled" .Values.ldapIntegration.bindDN | quote }}
+            bindPassword:
+              name: bastion-ldap-bind-secret
+            ca:
+              name: bastion-ldap-ca
+            insecure: false
+            attributes:
+              email:
+                - {{ .Values.ldapIntegration.attributes.email }}
+              id:
+                - {{ .Values.ldapIntegration.attributes.id }}
+              name:
+                - {{ .Values.ldapIntegration.attributes.name }}
+              preferredUsername:
+                - {{ .Values.ldapIntegration.attributes.preferredUsername }}
+        {{- end }}
+    {{- end }}
+  controllerAvailabilityPolicy: HighlyAvailable
+  infrastructureAvailabilityPolicy: HighlyAvailable
+  olmCatalogPlacement: management
+  platform:
+    type: Agent
+    agent:
+      agentNamespace: {{ include "cluster-instance-hcp.infrastructureNamespace" . }}
+  infraID: {{ $clusterName }}
+  dns:
+    baseDomain: {{ $baseDomain }}
+  services:
+    - service: APIServer
+      servicePublishingStrategy:
+        type: LoadBalancer
+    - service: OAuthServer
+      servicePublishingStrategy:
+        type: NodePort
+        nodePort:
+          address: oauth.{{ $clusterName }}.{{ $baseDomain }}
+          port: {{ .Values.nodePorts.oauthPort }}
+    - service: Konnectivity
+      servicePublishingStrategy:
+        type: NodePort
+        nodePort:
+          address: konnectivity.{{ $clusterName }}.{{ $baseDomain }}
+          port: {{ .Values.nodePorts.konnectivityPort }}
+    - service: Ignition
+      servicePublishingStrategy:
+        type: NodePort
+        nodePort:
+          address: ignition.{{ $clusterName }}.{{ $baseDomain }}
+          port: {{ .Values.nodePorts.ignitionPort }}
+    - service: OIDC
+      servicePublishingStrategy:
+        type: NodePort
+        nodePort:
+          address: oidc.{{ $clusterName }}.{{ $baseDomain }}
+          port: {{ .Values.nodePorts.oidcPort }}

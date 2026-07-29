@@ -1,0 +1,12 @@
+{{- if .Values.imageProxy.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: registry-ca-bundle
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
+data:
+  {{ required "imageProxy.registryHost is required when imageProxy.enabled" .Values.imageProxy.registryHost }}..443: |
+    {{- include "cluster-instance-hcp.registryCACert" . | nindent 4 }}
+{{- end }}

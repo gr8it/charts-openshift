@@ -1,0 +1,12 @@
+{{- if .Values.adIntegration.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ad-ldap-ca
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
+data:
+  ca.crt: |
+    {{- required "adIntegration.caCert is required when adIntegration.enabled" .Values.adIntegration.caCert | nindent 4 }}
+{{- end }}

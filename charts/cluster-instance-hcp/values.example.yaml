@@ -1,0 +1,103 @@
+clusterName: example01
+clusterSet: prod
+releaseImage: "quay.io/openshift-release-dev/ocp-release:4.17.11-multi"
+baseDomain: cloud.example.com
+
+etcd:
+  storageClassName: lvms-vglvms
+  storageSize: 8Gi
+
+nodePool:
+  replicas: 4
+  nodeLabels:
+    k8s.ovn.org/egress-assignable: ""
+
+networking:
+  clusterCIDR: 172.26.0.0/16
+  clusterHostPrefix: 21
+  serviceCIDR: 172.25.64.0/18
+  networkType: OVNKubernetes
+
+nodePorts:
+  oauthPort: 30102
+  konnectivityPort: 30103
+  ignitionPort: 30104
+  oidcPort: 30101
+
+ntpServers:
+  - 10.0.0.11
+  - 10.0.0.12
+
+apiServerCert:
+  enabled: true
+  names:
+    - api.example01.cloud.example.com
+    - oauth.example01.cloud.example.com
+  vaultKey: example01-apiserver-cert
+  vaultTLSCrt: tls.crt
+  vaultTLSKey: tls.key
+
+imageProxy:
+  enabled: true
+  registryHost: my-registry.example.com
+  sources:
+    - quay.io
+    - registry.connect.redhat.com
+    - registry.redhat.io
+    - docker.io
+    - ghcr.io
+  caCert: ""
+
+adIntegration:
+  enabled: true
+  idpName: AD Login
+  ldapURL: "ldaps://ad.example.com/DC=example,DC=com?sAMAccountName?sub?(objectClass=person)"
+  bindDN: "CN=svc-ocp,OU=Service Accounts,DC=example,DC=com"
+  caCert: |
+    -----BEGIN CERTIFICATE-----
+    MIIBxTCCAW+gAwIBAgIJAExample
+    -----END CERTIFICATE-----
+  attributes:
+    email: mail
+    id: sAMAccountName
+    name: cn
+    preferredUsername: sAMAccountName
+  vaultKey: example01-ad-bind
+  vaultProperty: bindPassword
+
+ldapIntegration:
+  enabled: true
+  idpName: LDAP Login
+  ldapURL: "ldaps://ldap.example.com/OU=Users,dc=example,dc=com?uid"
+  bindDN: "cn=svc-ocp,ou=Technical-Accounts,ou=prod,ou=Users,dc=example,dc=com"
+  caCert: |
+    -----BEGIN CERTIFICATE-----
+    MIIBxTCCAW+gAwIBAgIJAExample
+    -----END CERTIFICATE-----
+  attributes:
+    email: mail
+    id: dn
+    name: cn
+    preferredUsername: uid
+  vaultKey: example01-ldap-bind
+  vaultProperty: bindPassword
+
+vault:
+  pullSecretKey: example01-cluster
+  sshKeyKey: example01-cluster
+
+## global values used (set in conf repo, not here)
+# global:
+#   apc:
+#     proxy: http://proxy.example.com:8080
+#     noProxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,10.0.0.0/8,172.16.0.0/12
+#     caCertificates:
+#       root-ca.crt: |
+#         -----BEGIN CERTIFICATE-----
+#         ...
+#         -----END CERTIFICATE-----
+#     services:
+#       externalSecretsOperator:
+#         defaultClusterSecretStore: vault
+#       vault:
+#         KVmountPlatform: apc-platform
