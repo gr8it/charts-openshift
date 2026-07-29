@@ -1,0 +1,66 @@
+{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
+apiVersion: loki.grafana.com/v1
+kind: AlertingRule
+metadata:
+  name: apc-hw-events-alerts
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "hw-monitoring.labels" . | nindent 4 }}
+    openshift.io/log-alerting: 'true'
+spec:
+  tenantID: "audit"
+  groups:
+    - name: apc-hw-events-alerts.rules
+      rules:
+        - alert: HW-Events-Notification-Critical
+          expr: sum by (hostname,source_ip,message) (count_over_time({log_type="audit",environment="infrastructure",hw_type=~"ups|pdu|xca",severity="critical"}[15m]) > 0)
+          for: 5m
+          labels:
+            severity: critical
+            customerName: {{ include "apc-global-overrides.require-customer" . }}
+            hostname: "{{ `{{ $labels.hostname }}` }}"
+            environment: infrastructure
+            source_ip: "{{ `{{ $labels.source_ip }}` }}"
+            message: "{{ `{{ $labels.message }}` }}"
+            source: logs
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: "HW Event - hostname:{{ `{{ $labels.hostname }}` }}"
+            description: "HW Event - Source: https://{{ `{{ $labels.source_ip }}` }}"
+            message: "{{ `{{ $labels.message }}` }}"
+        - alert: HW-Events-Notification-Warning
+          expr: sum by (hostname,source_ip,message) (count_over_time({log_type="audit",hw_type=~"ups|pdu|xca",severity="warning"}[15m]) > 0)
+          for: 5m
+          labels:
+            severity: warning
+            customerName: {{ include "apc-global-overrides.require-customer" . }}
+            hostname: "{{ `{{ $labels.hostname }}` }}"
+            environment: infrastructure
+            source_ip: "{{ `{{ $labels.source_ip }}` }}"
+            message: "{{ `{{ $labels.message }}` }}"
+            source: logs
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: "HW Event - hostname:{{ `{{ $labels.hostname }}` }}"
+            description: "HW Event - Source: https://{{ `{{ $labels.source_ip }}` }}"
+            message: "{{ `{{ $labels.message }}` }}"
+        - alert: HW-Events-Notification-Info
+          expr: sum by (hostname,source_ip,message) (count_over_time({log_type="audit",hw_type=~"ups|pdu|xca",severity="info"}[15m]) > 0)
+          for: 5m
+          labels:
+            severity: info
+            customerName: {{ include "apc-global-overrides.require-customer" . }}
+            hostname: "{{ `{{ $labels.hostname }}` }}"
+            environment: infrastructure
+            source_ip: "{{ `{{ $labels.source_ip }}` }}"
+            message: "{{ `{{ $labels.message }}` }}"
+            source: logs
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: "HW Event - hostname:{{ `{{ $labels.hostname }}` }}"
+            description: "HW Event - Source: https://{{ `{{ $labels.source_ip }}` }}"
+            message: "{{ `{{ $labels.message }}` }}"
+{{- end }}

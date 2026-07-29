@@ -1,0 +1,34 @@
+# HW Monitoring
+
+Helm chart for Loki `AlertingRule` alerts on HW/infrastructure events (UPS/PDU/XCA), evaluated against the `audit` tenant of the hub's LokiStack.
+
+## Deployed resources
+
+| Resource | Kind | Namespace |
+|---|---|---|
+| `apc-hw-events-alerts` | AlertingRule (`loki.grafana.com/v1`) | `.Release.Namespace` |
+
+## Prerequisites
+
+- Loki Operator and a `LokiStack` with an `audit` tenant must already be installed (see the `loki-operator` and `logging-instance` charts)
+- Install this chart into the same namespace as the `LokiStack` (`openshift-logging`)
+
+## Hub vs non-hub clusters
+
+The `AlertingRule` is only rendered when `global.apc.cluster.isHub: true` — HW/infrastructure events (UPS/PDU/XCA) are only ingested into the `audit` tenant on the hub. There is no override toggle; installing this chart on a spoke cluster renders no resources.
+
+## Dependencies
+
+| Chart | Version | Purpose |
+|---|---|---|
+| `apc-global-overrides` | 1.8.0 | Global helpers (customer, isHub) |
+
+## Alert rules
+
+Three alerts, one per severity, fire when HW events (`hw_type` one of `ups`, `pdu`, `xca`) are seen in the `audit` tenant within the last 15 minutes:
+
+- `HW-Events-Notification-Critical`
+- `HW-Events-Notification-Warning`
+- `HW-Events-Notification-Info`
+
+The `customerName` alert label is taken from `apc-global-overrides.require-customer`.
