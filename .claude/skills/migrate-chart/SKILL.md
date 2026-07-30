@@ -9,7 +9,7 @@ Turn a pre-existing, manually-applied set of manifests into a chart that renders
 
 ## 1. Locate the source manifests
 
-The conf repo is a separate git repository, usually checked out as a sibling directory (e.g. `conf-<customer>`). If you don't already have its path from context, ask rather than guessing.
+The conf repo is a separate git repository, usually checked out as a sibling directory (e.g. `conf-<customer>`). There is no single conf repo — every customer has their own, and charts-openshift itself has no way to know which one applies to this task. Resolve it from what's already granted in the local session, or from the task's own context (customer/ticket); if more than one `conf-*` sibling is present and it's still not obvious which one, ask — never guess between them.
 
 Static, pre-GitOps manifests for a component live at:
 

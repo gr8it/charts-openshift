@@ -9,7 +9,8 @@ Charts are consumed from a separate per-customer **conf repo** via `helmfile` an
 ## Repository & agent boundaries
 
 - This repo only produces charts (`charts/`, `packaged_charts/`, `index.yaml`). It has no knowledge of a specific customer or cluster — that lives entirely in the conf repo.
-- The conf repo is a **separate git repository**, typically checked out as a sibling directory. It holds two things relevant to chart work:
+- There is no single "the conf repo" — every customer has their own (`conf-<customer>`, e.g. `conf-socpoist`), each typically checked out as a sibling directory. Which one is relevant to a given task is never inferrable from charts-openshift alone: resolve it from what's already granted in the local session (e.g. `.claude/settings.local.json`) or from context already stated in the task; if it's still not clear — especially if more than one `conf-*` sibling exists — ask rather than picking one.
+- Once you know which conf repo applies, it holds two things relevant to chart work:
   - `gitops/components/<component>/values.<common|dev01|test01|prod01>.yaml.gotmpl` — the helmfile values fed into charts already under GitOps.
   - `ocp-<environment>/<component>/*.yaml` — static manifests for objects deployed **before** GitOps existed, not yet backed by a chart. These are the source material when migrating a component to a chart.
 - Read the conf repo for context (existing values, static manifests to migrate) but never edit, commit, or push there — changes to the conf repo happen in that repo's own session, with its own review.
@@ -41,6 +42,23 @@ A chart change is not finished until:
 - [ ] PR opened (not merged, not published) with the Jira ticket ID in the branch/PR name
 
 If you're unsure whether something is genuinely required or just convenient, default to leaving it out — see values.yaml Conventions.
+
+## Guidance for reviews
+
+- Prefer concise bullet points; include code snippets when helpful.
+- When you flag an issue, always include: (a) the rationale, (b) a suggested change, and (c) a quick check to verify the fix.
+- If multiple valid approaches exist, list the recommended one first and briefly note trade‑offs.
+
+### Tone & format
+
+- Be direct, specific, and constructive.
+- Use headings, checklists, and short code blocks for readability.
+- Avoid vague feedback; instead, provide clear, actionable guidance.
+
+### Security & reliability (applies to all code)
+
+- Default to secure, least‑privilege configurations.
+- Call out deprecated APIs, unstable flags, or risky defaults and propose supported alternatives.
 
 ## Directory Layout
 
