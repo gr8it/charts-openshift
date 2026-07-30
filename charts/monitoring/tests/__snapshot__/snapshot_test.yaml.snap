@@ -7,7 +7,7 @@ rendered cluster-policy-cluster-monitoring manifest:
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.0.9
+        helm.sh/chart: monitoring-1.0.10
       name: cluster-policy-cluster-monitoring
     spec:
       generateExisting: true
@@ -51,6 +51,17 @@ rendered cluster-policy-cluster-monitoring manifest:
                               1, max by (namespace, pod, owner_kind, cluster) (kube_pod_owner{owner_kind!="Job"})
                             )
                           ) > 0
+                        for: 15m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubePodEvicted
+                        annotations:
+                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been evicted.
+                          summary: Pod has been evicted
+                        expr: kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -476,7 +487,7 @@ rendered cluster-policy-cluster-monitoring manifest:
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.0.9
+        helm.sh/chart: monitoring-1.0.10
         rbac.kyverno.io/aggregate-to-admission-controller: "true"
       name: kyverno:admission-controller:monitoring
     rules:
