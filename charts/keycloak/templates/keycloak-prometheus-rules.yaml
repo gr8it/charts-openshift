@@ -60,7 +60,7 @@ spec:
         \   [5m] \n  )\n) without (le,uri,status,outcome,method,pod,instance)  \n/\nsum(\n
         \ rate(\n    http_server_requests_seconds_count{\n      uri=~\"/admin|/admin/{realm}/console|/realms/{realm}/protocol/{protocol}.*|/realms/{realm}/login-actions.*\",
         \n      container=\"keycloak\", \n      namespace=\"{{ .Release.Namespace }}\"}\n    [5m]
-        \n  )\n) without (le,uri,status,outcome,method,pod,instance)\n) < 0.9999\n"
+        \n  )\n) without (le,uri,status,outcome,method,pod,instance)\n) > 0.001\n"
       for: 5m
       labels:
         severity: warning
