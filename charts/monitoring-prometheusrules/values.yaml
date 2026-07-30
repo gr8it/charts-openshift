@@ -25,6 +25,14 @@ rules:
     for: 15m
     labels:
       severity: warning
+  - alert: KubePodEvicted
+    annotations:
+      description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been evicted.
+      summary: Pod has been evicted
+    expr: kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
+    for: 15m
+    labels:
+      severity: warning
   - alert: KubeDeploymentGenerationMismatch
     annotations:
       description: Deployment generation for \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} does not match, this indicates that the Deployment has failed but has not been rolled back."
