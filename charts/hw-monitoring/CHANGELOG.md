@@ -8,4 +8,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2026-07-29
 
 _Initial release._
-_([SPEXAPC-7742](https://aspecta.atlassian.net/browse/SPEXAPC-7742))_
+_([SPEXAPC-20757](https://aspecta.atlassian.net/browse/SPEXAPC-20757))_
