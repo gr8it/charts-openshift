@@ -5,16 +5,8 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.1] - 2026-07-27
+## [1.0.0] - 2026-06-02
 
-### Added
+_([JIRA-7936](https://aspecta.atlassian.net/browse/SPEXAPC-7936))_
 
-- detailed information about replicaiton users settings
-
-### Changed
-
-- setting 2 replicas in default values
-
-## [1.0.0] - 2026-06-15
-
-_Initial release._
+- Initial release
