@@ -5,12 +5,12 @@ metadata:
   namespace: {{ include "cluster-infraenv.infraEnvName" . }}
   labels:
     {{- include "cluster-infraenv.labels" . | nindent 4 }}
-    agentclusterinstalls.extensions.hive.openshift.io/location: {{ $.Values.location }}
+    agentclusterinstalls.extensions.hive.openshift.io/location: {{ .Values.location }}
     networkType: static
 spec:
   agentLabels:
-    environment: {{ $.Values.envName}}
-    agentclusterinstalls.extensions.hive.openshift.io/location: {{ $.Values.location }}
+    environment: {{ .Values.agentEnvironment | default .Values.envName }}
+    agentclusterinstalls.extensions.hive.openshift.io/location: {{ .Values.location }}
   cpuArchitecture: {{ .Values.cpuArchitecture }}
   ipxeScriptType: {{ .Values.ipxeScriptType }}
   nmStateConfigLabelSelector:

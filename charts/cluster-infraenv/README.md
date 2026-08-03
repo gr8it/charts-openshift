@@ -13,6 +13,7 @@ Deploys an `InfraEnv` and related resources for a Hosted Control Plane (HCP) clu
 | Parameter | Description | Default |
 |---|---|---|
 | `envName` | Environment name. **Required.** | `""` |
+| `agentEnvironment` | Agent label environment override. Defaults to `envName` when omitted. | `""` |
 | `infraEnvName` | Name used for the InfraEnv, Namespace, and NMStateConfig selector. | `infrastructure-{{ .envName }}` |
 | `cpuArchitecture` | CPU architecture for agent discovery | `x86_64` |
 | `ipxeScriptType` | iPXE script type | `DiscoveryImageAlways` |

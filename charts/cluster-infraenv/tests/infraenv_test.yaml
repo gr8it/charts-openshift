@@ -72,6 +72,47 @@ tests:
           path: spec.nmStateConfigLabelSelector.matchLabels["infraenvs.agent-install.openshift.io"]
           value: infrastructure-mycluster
 
+  - it: should default agentEnvironment to envName when omitted
+    set:
+      envName: mycluster
+      infraEnvName: infrastructure-mycluster
+      global.apc.sshAuthorizedKeys: "ssh-ed25519 AAAA test"
+      global.apc.services.ntp.servers[0]: 10.0.0.1
+      global.apc.environmentShort: p
+      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
+      global.apc.services.vault.KVmountPlatform: apc-platform
+      nmStateConfigs:
+        - name: node-01
+          interfaces:
+            - macAddress: "aa:bb:cc:dd:ee:01"
+              name: ens0
+          config: {}
+    asserts:
+      - equal:
+          path: spec.agentLabels.environment
+          value: mycluster
+
+  - it: should use agentEnvironment for InfraEnv agent label when provided
+    set:
+      envName: mycluster
+      agentEnvironment: custom-env
+      infraEnvName: infrastructure-mycluster
+      global.apc.sshAuthorizedKeys: "ssh-ed25519 AAAA test"
+      global.apc.services.ntp.servers[0]: 10.0.0.1
+      global.apc.environmentShort: p
+      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
+      global.apc.services.vault.KVmountPlatform: apc-platform
+      nmStateConfigs:
+        - name: node-01
+          interfaces:
+            - macAddress: "aa:bb:cc:dd:ee:01"
+              name: ens0
+          config: {}
+    asserts:
+      - equal:
+          path: spec.agentLabels.environment
+          value: custom-env
+
   - it: should include NTP servers from global values
     set:
       envName: mycluster
@@ -80,15 +121,14 @@ tests:
         apc:
           sshAuthorizedKeys: "ssh-ed25519 AAAA test"
           environmentShort: p
+          ntpServers:
+            - 10.1.2.3
+            - 10.4.5.6
           services:
             externalSecretsOperator:
               defaultClusterSecretStore: vault
             vault:
               KVmountPlatform: apc-platform
-            ntp:
-              servers:
-                - 10.1.2.3
-                - 10.4.5.6
       nmStateConfigs:
         - name: node-01
           interfaces:
