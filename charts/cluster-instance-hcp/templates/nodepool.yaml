@@ -12,7 +12,7 @@ spec:
     - name: machineconfig-chrony
     - name: machineconfig-logind
     - name: kubeletconfig-worker
-    {{- if .Values.imageProxy.enabled }}
+    {{- if .Values.imageProxy.registryHost }}
     - name: machineconfig-mirror-registries
     {{- end }}
   replicas: {{ .Values.nodePool.replicas }}

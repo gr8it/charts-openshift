@@ -1,4 +1,4 @@
-{{- if .Values.adIntegration.enabled }}
+{{- if .Values.adIntegration.vaultKey }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -8,5 +8,5 @@ metadata:
     {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
 data:
   ca.crt: |
-    {{- required "adIntegration.caCert is required when adIntegration.enabled" .Values.adIntegration.caCert | nindent 4 }}
+    {{- required "adIntegration.caCert is required " .Values.adIntegration.caCert | nindent 4 }}
 {{- end }}

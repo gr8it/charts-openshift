@@ -9,6 +9,10 @@ Deploys a HyperShift Hosted Control Plane (HCP) cluster on an ACM hub cluster. C
 - `cluster-infraenv` chart deployed for the matching InfraEnv
 - Required Vault secrets provisioned before deployment ############### TOTO SU KTORE !? VYPISAT
 
+Cert
+          - api.prod01.cloud.socpoist.sk
+          - oauth.prod01.cloud.socpoist.sk
+
 ## Values
 
 | Parameter | Description | Default |

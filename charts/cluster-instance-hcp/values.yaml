@@ -6,7 +6,9 @@ fullnameOverride: ""
 #   apc:
 #     proxy: ~
 #     noProxy: ~
+#     ntpServers: []
 #     caCertificates: {}
+#     sshAuthorizedKeys: ~
 #     services:
 #       externalSecretsOperator:
 #         defaultClusterSecretStore: ~
@@ -62,21 +64,16 @@ nodePorts:
   ignitionPort: 30104
   oidcPort: 30101
 
-# NTP servers for worker nodes (used in machineconfig-chrony)
-ntpServers: []
-
 # API server custom TLS certificate (ExternalSecret from Vault)
+# Enabled implicitly when vaultKey is non-empty; SANs default to api.<clusterName>.<baseDomain> and oauth.<clusterName>.<baseDomain>
 apiServerCert:
-  enabled: false
-  # SANs for the certificate; defaults to api.<clusterName>.<baseDomain> when empty
-  names: [] ############ NA TOTO SA POZRIET => CHCEME TAM MAT PRESNY ZOZNAM => ZREJME HARD CODE S PARAMETRAMI VYSSIE
   vaultKey: ""
   vaultTLSCrt: tls.crt
   vaultTLSKey: tls.key
 
 # Image proxy / registry mirroring
+# Enabled implicitly when registryHost is non-empty
 imageProxy:
-  enabled: false
   # Registry host without protocol, e.g. my-registry.example.com
   registryHost: ""
   sources:
@@ -90,8 +87,8 @@ imageProxy:
   caCert: ""
 
 # Active Directory IDP integration
+# Enabled implicitly when vaultKey is non-empty
 adIntegration:
-  enabled: false
   idpName: ""
   ldapURL: ""
   bindDN: ""
@@ -105,8 +102,8 @@ adIntegration:
   vaultProperty: bindPassword
 
 # Bastion LDAP IDP integration
+# Enabled implicitly when vaultKey is non-empty
 ldapIntegration:
-  enabled: false
   idpName: ""
   ldapURL: ""
   bindDN: ""

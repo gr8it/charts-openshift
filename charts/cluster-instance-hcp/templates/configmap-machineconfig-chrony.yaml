@@ -1,5 +1,5 @@
 {{- $chronyConf := "" -}}
-{{- range .Values.ntpServers -}}
+{{- range (include "apc-global-overrides.ntpServers" . | fromYamlArray) -}}
   {{- $chronyConf = printf "%sserver %s iburst\n" $chronyConf . -}}
 {{- end -}}
 {{- $chronyConf = printf "%sdriftfile /var/lib/chrony/drift\nmakestep 1.0 3\nrtcsync\nlogdir /var/log/chrony\n" $chronyConf -}}

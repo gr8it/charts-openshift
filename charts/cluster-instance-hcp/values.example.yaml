@@ -24,21 +24,12 @@ nodePorts:
   ignitionPort: 30104
   oidcPort: 30101
 
-ntpServers:
-  - 10.0.0.11
-  - 10.0.0.12
-
 apiServerCert:
-  enabled: true
-  names:
-    - api.example01.cloud.example.com
-    - oauth.example01.cloud.example.com
   vaultKey: example01-apiserver-cert
   vaultTLSCrt: tls.crt
   vaultTLSKey: tls.key
 
 imageProxy:
-  enabled: true
   registryHost: my-registry.example.com
   sources:
     - quay.io
@@ -49,7 +40,6 @@ imageProxy:
   caCert: ""
 
 adIntegration:
-  enabled: true
   idpName: AD Login
   ldapURL: "ldaps://ad.example.com/DC=example,DC=com?sAMAccountName?sub?(objectClass=person)"
   bindDN: "CN=svc-ocp,OU=Service Accounts,DC=example,DC=com"
@@ -66,7 +56,6 @@ adIntegration:
   vaultProperty: bindPassword
 
 ldapIntegration:
-  enabled: true
   idpName: LDAP Login
   ldapURL: "ldaps://ldap.example.com/OU=Users,dc=example,dc=com?uid"
   bindDN: "cn=svc-ocp,ou=Technical-Accounts,ou=prod,ou=Users,dc=example,dc=com"
@@ -91,6 +80,9 @@ vault:
 #   apc:
 #     proxy: http://proxy.example.com:8080
 #     noProxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,10.0.0.0/8,172.16.0.0/12
+#     ntpServers:
+#       - 10.0.0.11
+#       - 10.0.0.12
 #     caCertificates:
 #       root-ca.crt: |
 #         -----BEGIN CERTIFICATE-----

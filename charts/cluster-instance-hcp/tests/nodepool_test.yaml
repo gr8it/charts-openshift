@@ -12,10 +12,10 @@ tests:
       clusterName: mycluster
       baseDomain: cloud.example.com
       etcd.storageClassName: standard
-      ntpServers: [10.0.0.1]
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
       global.apc.services.vault.KVmountPlatform: apc-platform
+      global.apc.services.ntp.servers[0]: ntp.example.com
       vault.pullSecretKey: mycluster
       vault.sshKeyKey: mycluster
     asserts:
@@ -31,10 +31,10 @@ tests:
       clusterName: mycluster
       baseDomain: cloud.example.com
       etcd.storageClassName: standard
-      ntpServers: [10.0.0.1]
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
       global.apc.services.vault.KVmountPlatform: apc-platform
+      global.apc.services.ntp.servers[0]: ntp.example.com
       vault.pullSecretKey: mycluster
       vault.sshKeyKey: mycluster
     asserts:
@@ -55,17 +55,16 @@ tests:
           content:
             name: machineconfig-mirror-registries
 
-  - it: should include mirror-registries machineconfig when imageProxy.enabled
+  - it: should include mirror-registries machineconfig when imageProxy.registryHost is set
     set:
       clusterName: mycluster
       baseDomain: cloud.example.com
       etcd.storageClassName: standard
-      ntpServers: [10.0.0.1]
-      imageProxy.enabled: true
       imageProxy.registryHost: my-registry.example.com
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
       global.apc.services.vault.KVmountPlatform: apc-platform
+      global.apc.services.ntp.servers[0]: ntp.example.com
       vault.pullSecretKey: mycluster
       vault.sshKeyKey: mycluster
     asserts:
@@ -79,11 +78,11 @@ tests:
       clusterName: mycluster
       baseDomain: cloud.example.com
       etcd.storageClassName: standard
-      ntpServers: [10.0.0.1]
       nodePool.replicas: 6
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
       global.apc.services.vault.KVmountPlatform: apc-platform
+      global.apc.services.ntp.servers[0]: ntp.example.com
       vault.pullSecretKey: mycluster
       vault.sshKeyKey: mycluster
     asserts:

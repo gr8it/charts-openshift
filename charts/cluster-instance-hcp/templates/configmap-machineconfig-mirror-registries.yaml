@@ -1,5 +1,5 @@
-{{- if .Values.imageProxy.enabled }}
-{{- $registryHost := required "imageProxy.registryHost is required when imageProxy.enabled" .Values.imageProxy.registryHost }}
+{{- if .Values.imageProxy.registryHost }}
+{{- $registryHost := required "imageProxy.registryHost is required " .Values.imageProxy.registryHost }}
 {{- $toml := "" -}}
 {{- range .Values.imageProxy.sources -}}
   {{- $toml = printf "%s[[registry]]\n  prefix = \"\"\n  location = \"%s\"\n  mirror-by-digest-only = false\n\n  [[registry.mirror]]\n    location = \"%s/%s\"\n\n" $toml . $registryHost . -}}

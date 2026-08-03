@@ -47,7 +47,7 @@ spec:
       - cidr: {{ .Values.networking.serviceCIDR }}
     networkType: {{ .Values.networking.networkType }}
   configuration:
-    {{- if .Values.imageProxy.enabled }}
+    {{- if .Values.imageProxy.registryHost }}
     image:
       additionalTrustedCA:
         name: registry-ca-bundle
@@ -66,33 +66,28 @@ spec:
       trustedCA:
         name: user-ca-bundle
     {{- end }}
-    {{- if .Values.apiServerCert.enabled }}
+    {{- if .Values.apiServerCert.vaultKey }}
     apiServer:
       audit:
         profile: Default
       servingCerts:
         namedCertificates:
           - names:
-              {{- if .Values.apiServerCert.names }}
-              {{- range .Values.apiServerCert.names }}
-              - {{ . }}
-              {{- end }}
-              {{- else }}
               - api.{{ $clusterName }}.{{ $baseDomain }}
-              {{- end }}
+              - oauth.{{ $clusterName }}.{{ $baseDomain }}
             servingCertificate:
               name: kube-apiserver-cert
     {{- end }}
-    {{- if or .Values.adIntegration.enabled .Values.ldapIntegration.enabled }}
+    {{- if or .Values.adIntegration.vaultKey .Values.ldapIntegration.vaultKey }}
     oauth:
       identityProviders:
-        {{- if .Values.adIntegration.enabled }}
-        - name: {{ required "adIntegration.idpName is required when adIntegration.enabled" .Values.adIntegration.idpName | quote }}
+        {{- if .Values.adIntegration.vaultKey }}
+        - name: {{ required "adIntegration.idpName is required" .Values.adIntegration.idpName | quote }}
           mappingMethod: claim
           type: LDAP
           ldap:
-            url: {{ required "adIntegration.ldapURL is required when adIntegration.enabled" .Values.adIntegration.ldapURL | quote }}
-            bindDN: {{ required "adIntegration.bindDN is required when adIntegration.enabled" .Values.adIntegration.bindDN | quote }}
+            url: {{ required "adIntegration.ldapURL is required" .Values.adIntegration.ldapURL | quote }}
+            bindDN: {{ required "adIntegration.bindDN is required" .Values.adIntegration.bindDN | quote }}
             bindPassword:
               name: ad-ldap-bind-secret
             ca:
@@ -108,13 +103,13 @@ spec:
               preferredUsername:
                 - {{ .Values.adIntegration.attributes.preferredUsername }}
         {{- end }}
-        {{- if .Values.ldapIntegration.enabled }}
-        - name: {{ required "ldapIntegration.idpName is required when ldapIntegration.enabled" .Values.ldapIntegration.idpName | quote }}
+        {{- if .Values.ldapIntegration.vaultKey }}
+        - name: {{ required "ldapIntegration.idpName is required" .Values.ldapIntegration.idpName | quote }}
           mappingMethod: claim
           type: LDAP
           ldap:
-            url: {{ required "ldapIntegration.ldapURL is required when ldapIntegration.enabled" .Values.ldapIntegration.ldapURL | quote }}
-            bindDN: {{ required "ldapIntegration.bindDN is required when ldapIntegration.enabled" .Values.ldapIntegration.bindDN | quote }}
+            url: {{ required "ldapIntegration.ldapURL is required" .Values.ldapIntegration.ldapURL | quote }}
+            bindDN: {{ required "ldapIntegration.bindDN is required" .Values.ldapIntegration.bindDN | quote }}
             bindPassword:
               name: bastion-ldap-bind-secret
             ca:

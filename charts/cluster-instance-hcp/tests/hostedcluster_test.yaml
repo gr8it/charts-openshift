@@ -12,10 +12,10 @@ tests:
       clusterName: mycluster
       baseDomain: cloud.example.com
       etcd.storageClassName: standard
-      ntpServers: [10.0.0.1]
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
       global.apc.services.vault.KVmountPlatform: apc-platform
+      global.apc.services.ntp.servers[0]: ntp.example.com
       vault.pullSecretKey: mycluster
       vault.sshKeyKey: mycluster
     asserts:
@@ -34,10 +34,10 @@ tests:
       clusterName: mycluster
       baseDomain: cloud.example.com
       etcd.storageClassName: standard
-      ntpServers: [10.0.0.1]
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
       global.apc.services.vault.KVmountPlatform: apc-platform
+      global.apc.services.ntp.servers[0]: ntp.example.com
       vault.pullSecretKey: mycluster
       vault.sshKeyKey: mycluster
     asserts:
@@ -51,10 +51,10 @@ tests:
       infrastructureNamespace: custom-infra-ns
       baseDomain: cloud.example.com
       etcd.storageClassName: standard
-      ntpServers: [10.0.0.1]
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
       global.apc.services.vault.KVmountPlatform: apc-platform
+      global.apc.services.ntp.servers[0]: ntp.example.com
       vault.pullSecretKey: mycluster
       vault.sshKeyKey: mycluster
     asserts:
@@ -67,10 +67,10 @@ tests:
       clusterName: mycluster
       baseDomain: cloud.example.com
       etcd.storageClassName: standard
-      ntpServers: [10.0.0.1]
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
       global.apc.services.vault.KVmountPlatform: apc-platform
+      global.apc.services.ntp.servers[0]: ntp.example.com
       vault.pullSecretKey: mycluster
       vault.sshKeyKey: mycluster
     asserts:
@@ -89,12 +89,12 @@ tests:
       clusterName: mycluster
       baseDomain: cloud.example.com
       etcd.storageClassName: standard
-      ntpServers: [10.0.0.1]
       global.apc.proxy: http://proxy.example.com:8080
       global.apc.noProxy: .example.com,.svc
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
       global.apc.services.vault.KVmountPlatform: apc-platform
+      global.apc.services.ntp.servers[0]: ntp.example.com
       vault.pullSecretKey: mycluster
       vault.sshKeyKey: mycluster
     asserts:
@@ -113,10 +113,10 @@ tests:
       clusterName: mycluster
       baseDomain: cloud.example.com
       etcd.storageClassName: standard
-      ntpServers: [10.0.0.1]
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
       global.apc.services.vault.KVmountPlatform: apc-platform
+      global.apc.services.ntp.servers[0]: ntp.example.com
       vault.pullSecretKey: mycluster
       vault.sshKeyKey: mycluster
     asserts:
@@ -125,13 +125,11 @@ tests:
       - notExists:
           path: spec.configuration.proxy
 
-  - it: should include imageContentSources when imageProxy.enabled
+  - it: should include imageContentSources when imageProxy.registryHost is set
     set:
       clusterName: mycluster
       baseDomain: cloud.example.com
       etcd.storageClassName: standard
-      ntpServers: [10.0.0.1]
-      imageProxy.enabled: true
       imageProxy.registryHost: my-registry.example.com
       imageProxy.sources:
         - quay.io
@@ -139,6 +137,7 @@ tests:
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
       global.apc.services.vault.KVmountPlatform: apc-platform
+      global.apc.services.ntp.servers[0]: ntp.example.com
       vault.pullSecretKey: mycluster
       vault.sshKeyKey: mycluster
     asserts:
@@ -152,28 +151,26 @@ tests:
           path: spec.configuration.image.additionalTrustedCA.name
           value: registry-ca-bundle
 
-  - it: should omit image config when imageProxy.enabled is false
+  - it: should omit image config when imageProxy.registryHost is empty
     set:
       clusterName: mycluster
       baseDomain: cloud.example.com
       etcd.storageClassName: standard
-      ntpServers: [10.0.0.1]
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
       global.apc.services.vault.KVmountPlatform: apc-platform
+      global.apc.services.ntp.servers[0]: ntp.example.com
       vault.pullSecretKey: mycluster
       vault.sshKeyKey: mycluster
     asserts:
       - notExists:
           path: spec.configuration.image
 
-  - it: should include AD IDP when adIntegration.enabled
+  - it: should include AD IDP when adIntegration.vaultKey is set
     set:
       clusterName: mycluster
       baseDomain: cloud.example.com
       etcd.storageClassName: standard
-      ntpServers: [10.0.0.1]
-      adIntegration.enabled: true
       adIntegration.idpName: "AD Login"
       adIntegration.ldapURL: "ldaps://ad.example.com/DC=example,DC=com?sAMAccountName"
       adIntegration.bindDN: "CN=svc,DC=example,DC=com"
@@ -182,6 +179,7 @@ tests:
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
       global.apc.services.vault.KVmountPlatform: apc-platform
+      global.apc.services.ntp.servers[0]: ntp.example.com
       vault.pullSecretKey: mycluster
       vault.sshKeyKey: mycluster
     asserts:
@@ -195,19 +193,16 @@ tests:
           path: spec.configuration.oauth.identityProviders[0].ldap.bindPassword.name
           value: ad-ldap-bind-secret
 
-  - it: should include apiServer namedCertificates when apiServerCert.enabled
+  - it: should include apiServer namedCertificates when apiServerCert.vaultKey is set
     set:
       clusterName: mycluster
       baseDomain: cloud.example.com
       etcd.storageClassName: standard
-      ntpServers: [10.0.0.1]
-      apiServerCert.enabled: true
       apiServerCert.vaultKey: mycluster-cert
-      apiServerCert.names:
-        - api.mycluster.cloud.example.com
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
       global.apc.services.vault.KVmountPlatform: apc-platform
+      global.apc.services.ntp.servers[0]: ntp.example.com
       vault.pullSecretKey: mycluster
       vault.sshKeyKey: mycluster
     asserts:
@@ -217,35 +212,20 @@ tests:
       - contains:
           path: spec.configuration.apiServer.servingCerts.namedCertificates[0].names
           content: api.mycluster.cloud.example.com
-
-  - it: should default apiServerCert names to api.<clusterName>.<baseDomain> when names is empty
-    set:
-      clusterName: mycluster
-      baseDomain: cloud.example.com
-      etcd.storageClassName: standard
-      ntpServers: [10.0.0.1]
-      apiServerCert.enabled: true
-      apiServerCert.vaultKey: mycluster-cert
-      global.apc.environmentShort: p
-      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
-      global.apc.services.vault.KVmountPlatform: apc-platform
-      vault.pullSecretKey: mycluster
-      vault.sshKeyKey: mycluster
-    asserts:
       - contains:
           path: spec.configuration.apiServer.servingCerts.namedCertificates[0].names
-          content: api.mycluster.cloud.example.com
+          content: oauth.mycluster.cloud.example.com
 
   - it: should set clusterSet label when clusterSet is set
     set:
       clusterName: mycluster
       baseDomain: cloud.example.com
       etcd.storageClassName: standard
-      ntpServers: [10.0.0.1]
       clusterSet: prod
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
       global.apc.services.vault.KVmountPlatform: apc-platform
+      global.apc.services.ntp.servers[0]: ntp.example.com
       vault.pullSecretKey: mycluster
       vault.sshKeyKey: mycluster
     asserts:
