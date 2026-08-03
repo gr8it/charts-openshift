@@ -85,6 +85,29 @@ tests:
       - equal: { path: data.servicesExtracted.vault.name, value: vaultName-local }
       - equal: { path: data.servicesExtracted.vault.url, value: vaultUrl-local }
 
+  - it: imageProxy local overrides global
+    asserts:
+      - equal: { path: data.imageProxyHost, value: my-registry-local.example.com }
+      - equal:
+          path: data.imageProxySources
+          value:
+            - quay.io-local
+            - docker.io-local
+
+  - it: adIntegration local overrides global, defaults fill missing fields
+    asserts:
+      - equal: { path: data.adIntegration.idpName, value: "AD Login Local" }
+      - equal: { path: data.adIntegration.vaultKey, value: mycluster-ad-local }
+      - equal: { path: data.adIntegration.vaultProperty, value: bindPassword }
+      - equal: { path: data.adIntegration.attributes.email, value: mail }
+
+  - it: ldapIntegration local overrides global, defaults fill missing fields
+    asserts:
+      - equal: { path: data.ldapIntegration.idpName, value: "LDAP Login Local" }
+      - equal: { path: data.ldapIntegration.vaultKey, value: mycluster-ldap-local }
+      - equal: { path: data.ldapIntegration.vaultProperty, value: bindPassword }
+      - equal: { path: data.ldapIntegration.attributes.id, value: dn }
+
   - it: caCertificates and merged include global+local with local precedence; global key absent in non-merged
     asserts:
       - equal:

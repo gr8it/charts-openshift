@@ -1,6 +1,23 @@
 manifest should match snapshot:
   1: |
     data:
+      adIntegration:
+        ldap:
+          attributes:
+            bindDN: CN=svc-global,DC=global,DC=com
+            bindPassword:
+              name: ""
+            ca:
+              name: ""
+            email: mail
+            id: sAMAccountName
+            insecure: false
+            name: cn
+            preferredUsername: sAMAccountName
+            url: ldaps://ad-global.example.com/DC=global,DC=com
+        mappingMethod: claim
+        name: AD Login Global
+        type: LDAP
       caCertificates:
         global.crt: |
           -----BEGIN CERTIFICATE-----
@@ -55,6 +72,27 @@ manifest should match snapshot:
       customer: customer-global
       environment: environment-global
       environmentShort: environmentShort-global
+      imageProxyHost: global.example.com
+      imageProxySources:
+        - quay.io-global
+        - docker.io-global
+      ldapIntegration:
+        ldap:
+          attributes:
+            bindDN: cn=svc-global,dc=global,dc=com
+            bindPassword:
+              name: ""
+            ca:
+              name: ""
+            email: mail
+            id: dn
+            insecure: false
+            name: cn
+            preferredUsername: uid
+            url: ldaps://ldap-global.example.com/OU=Users,dc=global,dc=com
+        mappingMethod: claim
+        name: LDAP Login Global
+        type: LDAP
       noProxy: noProxy-global
       ntpServers:
         - ntp-global

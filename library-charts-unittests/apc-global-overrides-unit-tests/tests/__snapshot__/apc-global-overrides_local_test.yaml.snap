@@ -1,6 +1,23 @@
 manifest should match snapshot:
   1: |
     data:
+      adIntegration:
+        ldap:
+          attributes:
+            bindDN: CN=svc-local,DC=local,DC=com
+            bindPassword:
+              name: ""
+            ca:
+              name: ""
+            email: mail
+            id: sAMAccountName
+            insecure: false
+            name: cn
+            preferredUsername: sAMAccountName
+            url: ldaps://ad-local.example.com/DC=local,DC=com
+        mappingMethod: claim
+        name: AD Login Local
+        type: LDAP
       caCertificates:
         local.crt: |
           -----BEGIN CERTIFICATE-----
@@ -55,6 +72,26 @@ manifest should match snapshot:
       customer: customer-local
       environment: environment-local
       environmentShort: environmentShort-local
+      imageProxyHost: local.example.com
+      imageProxySources:
+        - local.example.com
+      ldapIntegration:
+        ldap:
+          attributes:
+            bindDN: cn=svc-local,dc=local,dc=com
+            bindPassword:
+              name: ""
+            ca:
+              name: ""
+            email: mail
+            id: dn
+            insecure: false
+            name: cn
+            preferredUsername: uid
+            url: ldaps://ldap-local.example.com/OU=Users,dc=local,dc=com
+        mappingMethod: claim
+        name: LDAP Login Local
+        type: LDAP
       noProxy: noProxy-local
       ntpServers:
         - ntp-local1

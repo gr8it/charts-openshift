@@ -83,6 +83,31 @@ tests:
     asserts:
       - equal: { path: data.sshAuthorizedKeys, value: "ssh-ed25519 AAAA local-key" }
 
+  - it: imageProxy from local
+    asserts:
+      - equal: { path: data.imageProxyHost, value: my-registry-local.example.com }
+      - equal:
+          path: data.imageProxySources
+          value:
+            - quay.io-local
+            - docker.io-local
+
+  - it: adIntegration from local with attribute defaults applied
+    asserts:
+      - equal: { path: data.adIntegration.idpName, value: "AD Login Local" }
+      - equal: { path: data.adIntegration.vaultKey, value: mycluster-ad-local }
+      - equal: { path: data.adIntegration.vaultProperty, value: bindPassword }
+      - equal: { path: data.adIntegration.attributes.email, value: mail }
+      - equal: { path: data.adIntegration.attributes.id, value: sAMAccountName }
+
+  - it: ldapIntegration from local with attribute defaults applied
+    asserts:
+      - equal: { path: data.ldapIntegration.idpName, value: "LDAP Login Local" }
+      - equal: { path: data.ldapIntegration.vaultKey, value: mycluster-ldap-local }
+      - equal: { path: data.ldapIntegration.vaultProperty, value: bindPassword }
+      - equal: { path: data.ldapIntegration.attributes.id, value: dn }
+      - equal: { path: data.ldapIntegration.attributes.preferredUsername, value: uid }
+
   - it: services and merged (local only, no global keys in non-merged)
     asserts:
       - equal: { path: data.services.local.url, value: servicesLocaltUrl-local }

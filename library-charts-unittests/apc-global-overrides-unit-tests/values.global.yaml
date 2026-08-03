@@ -34,6 +34,23 @@ global:
     ntpServers:
       - ntp-global
     sshAuthorizedKeys: "ssh-ed25519 AAAA global-key"
+    imageProxy:
+      host: global.example.com
+      sources:
+        - quay.io-global
+        - docker.io-global
+    adIntegration:
+      name: AD Login Global
+      ldap:
+        attributes:
+          bindDN: "CN=svc-global,DC=global,DC=com"
+          url: "ldaps://ad-global.example.com/DC=global,DC=com"
+    ldapIntegration:
+      name: LDAP Login Global
+      ldap:
+        attributes:
+          bindDN: "cn=svc-global,dc=global,dc=com"
+          url: "ldaps://ldap-global.example.com/OU=Users,dc=global,dc=com"
     services:
       global:
         url: servicesGlobalUrl-global

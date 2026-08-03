@@ -34,6 +34,22 @@ ntpServers:
   - ntp-local1
   - ntp-local2
 sshAuthorizedKeys: "ssh-ed25519 AAAA local-key"
+imageProxy:
+  host: local.example.com
+  sources:
+    - local.example.com
+adIntegration:
+  name: AD Login Local
+  ldap:
+    attributes:
+      bindDN: "CN=svc-local,DC=local,DC=com"
+      url: "ldaps://ad-local.example.com/DC=local,DC=com"
+ldapIntegration:
+  name: LDAP Login Local
+  ldap:
+    attributes:
+      bindDN: "cn=svc-local,dc=local,dc=com"
+      url: "ldaps://ldap-local.example.com/OU=Users,dc=local,dc=com"
 services:
   local:
     url: servicesLocaltUrl-local
