@@ -43,6 +43,18 @@ data:
     - IP: {{ . }}
     {{- end }}
   {{- end }}
+  {{- /* ntpServers as a list */}}
+  {{- /* it is not sufficient to test without fromYamlArray !!! */}}
+  {{- if (include "apc-global-overrides.ntpServers" .) | fromYamlArray }}
+  ntpServers:
+    {{- (include "apc-global-overrides.ntpServers" .) | nindent 4 }}
+  {{- /* ntpServers parsed and rendered as needed */}}
+  ntpServersArray:
+    {{- range (include "apc-global-overrides.ntpServers" . | fromYamlArray ) }}
+    - {{ . }}
+    {{- end }}
+  {{- end }}
+  sshAuthorizedKeys: {{ include "apc-global-overrides.sshAuthorizedKeys" . }}
   services:
     {{- (include "apc-global-overrides.services" .) | nindent 4 }}
   {{- /* local and global services merged into a common dictionary*/}}

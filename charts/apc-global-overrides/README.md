@@ -120,6 +120,8 @@ global:
     proxy: ~
     noProxy: ~
     proxyCIDRs: []
+    ntpServers: []
+    sshAuthorizedKeys: ~
     services:
       certManager:
         defaultClusterIssuer: ~
@@ -134,6 +136,8 @@ global:
       metallb:
         namespace: metallb-system
         l2interface: br-ex
+      ntp:
+        servers: []
       quay:
         host: ~
       vault:
@@ -189,6 +193,10 @@ global:
 |apc-global-overrides.require-noProxy|noProxy|global.apc.noProxy|string|-||
 |apc-global-overrides.proxyCIDRs|proxyCIDRs|global.apc.proxyCIDRs|list|-||
 |apc-global-overrides.require-proxyCIDRs|proxyCIDRs|global.apc.proxyCIDRs|list|-||
+|apc-global-overrides.ntpServers|ntpServers|global.apc.ntpServers|list|-| NTP servers to use, e.g. infraEnv, HCP / standalone |
+|apc-global-overrides.require-ntpServers|ntpServers|global.apc.ntpServers|list|-||
+|apc-global-overrides.sshAuthorizedKeys|sshAuthorizedKeys|global.apc.sshAuthorizedKeys|string|-| SSH public key(s) to add to authorized_keys. One key per line |
+|apc-global-overrides.require-sshAuthorizedKeys|sshAuthorizedKeys|global.apc.sshAuthorizedKeys|string|-||
 |apc-global-overrides.services|services|global.apc.services|dictionary|-|global services. Used to share values between helm charts|
 |apc-global-overrides.merge-services|services|global.apc.services|dictionary|-||
 |apc-global-overrides.caCertificates|caCertificates|global.apc.caCertificates|dictionary|-|Custom CA certificates to trust, keys contain name of the CA with suffix .crt, and values contains one or more PEM encoded certificate(s)|

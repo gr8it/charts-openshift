@@ -283,6 +283,34 @@ Create the proxyCIDRs and require it
 {{- end }}
 
 {{/*
+Create the ntpServers (list)
+*/}}
+{{- define "apc-global-overrides.ntpServers" -}}
+{{- .Values.ntpServers | default (((.Values.global).apc).ntpServers) | default list | toYaml }}
+{{- end }}
+
+{{/*
+Create the ntpServers and require it
+*/}}
+{{- define "apc-global-overrides.require-ntpServers" -}}
+{{- (include "apc-global-overrides.ntpServers" .) | fromYamlArray | default ("") | required "APC ntpServers is required" | toYaml }}
+{{- end }}
+
+{{/*
+Create the sshAuthorizedKeys (string, one key per line)
+*/}}
+{{- define "apc-global-overrides.sshAuthorizedKeys" -}}
+{{- .Values.sshAuthorizedKeys | default ((.Values.global).apc).sshAuthorizedKeys | default "" }}
+{{- end }}
+
+{{/*
+Create the sshAuthorizedKeys and require it
+*/}}
+{{- define "apc-global-overrides.require-sshAuthorizedKeys" -}}
+{{- include "apc-global-overrides.sshAuthorizedKeys" . | required "APC sshAuthorizedKeys is required" }}
+{{- end }}
+
+{{/*
 Create the services (dictionary)
 */}}
 {{- define "apc-global-overrides.services" -}}

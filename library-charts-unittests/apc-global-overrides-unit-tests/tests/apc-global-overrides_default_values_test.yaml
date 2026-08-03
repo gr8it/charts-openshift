@@ -67,6 +67,15 @@ tests:
       - notExists:
           path: data.proxyCIDRs
 
+  - it: ntpServers from default values
+    asserts:
+      - notExists:
+          path: data.ntpServers
+
+  - it: sshAuthorizedKeys from default values
+    asserts:
+      - equal: { path: data.sshAuthorizedKeys, value: ~ }
+
   - it: services and merged default values
     asserts:
       - equal:

@@ -71,6 +71,18 @@ tests:
             - proxyIP-local1
             - proxyIP-local2
 
+  - it: ntpServers from local
+    asserts:
+      - equal:
+          path: data.ntpServers
+          value:
+            - ntp-local1
+            - ntp-local2
+
+  - it: sshAuthorizedKeys from local
+    asserts:
+      - equal: { path: data.sshAuthorizedKeys, value: "ssh-ed25519 AAAA local-key" }
+
   - it: services and merged (local only, no global keys in non-merged)
     asserts:
       - equal: { path: data.services.local.url, value: servicesLocaltUrl-local }

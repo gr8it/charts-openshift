@@ -70,6 +70,17 @@ tests:
           value:
             - proxyIP-global
 
+  - it: ntpServers from global
+    asserts:
+      - equal:
+          path: data.ntpServers
+          value:
+            - ntp-global
+
+  - it: sshAuthorizedKeys from global
+    asserts:
+      - equal: { path: data.sshAuthorizedKeys, value: "ssh-ed25519 AAAA global-key" }
+
   - it: services and merged (global only, no local keys in non-merged)
     asserts:
       - equal: { path: data.services.global.url, value: servicesGlobalUrl-global }
