@@ -10,10 +10,10 @@ metadata:
     infraenvs.agent-install.openshift.io: {{ include "cluster-infraenv.infraEnvName" $ }}
 spec:
   config:
-    {{- toYaml .networkConfig | nindent 4 }}
+    {{- toYaml .config | nindent 4 }}
   interfaces:
-    {{- range .macInterfaceMappings }}
-    - macAddress: {{ .macAddress | quote }}
-      name: {{ .logicalNICName }}
+    {{- range .interfaces }}
+    - macAddress: {{ .macAddress }}
+      name: {{ .name }}
     {{- end }}
 {{- end }}

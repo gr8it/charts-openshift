@@ -16,10 +16,12 @@ spec:
   nmStateConfigLabelSelector:
     matchLabels:
       infraenvs.agent-install.openshift.io: {{ include "cluster-infraenv.infraEnvName" . }}
+  {{- if (include "apc-global-overrides.ntpServers" .) | fromYamlArray }}
   additionalNTPSources:
-    {{- range .Values.ntpServers }}
+    {{- range (include "apc-global-overrides.ntpServers" . | fromYamlArray ) }}
     - {{ . }}
     {{- end }}
+  {{- end }}
   {{- with (include "apc-global-overrides.proxy" .) }}
   proxy:
     httpProxy: {{ . }}
@@ -28,4 +30,6 @@ spec:
   {{- end }}
   pullSecretRef:
     name: pullsecret-{{ include "cluster-infraenv.infraEnvName" . }}
-  sshAuthorizedKey: {{ required "sshAuthorizedKey is required" .Values.sshAuthorizedKey | quote }}
+  {{- if include "apc-global-overrides.sshAuthorizedKeys" . }}
+  sshAuthorizedKey: {{ include "apc-global-overrides.sshAuthorizedKeys" . }}
+  {{- end }}

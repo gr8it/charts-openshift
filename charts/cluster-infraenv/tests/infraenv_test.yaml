@@ -10,12 +10,17 @@ tests:
   - it: should use envName for name and namespace
     set:
       envName: mycluster
-      sshAuthorizedKey: "ssh-ed25519 AAAA test"
-      ntpServers:
-        - 10.0.0.1
+      global.apc.sshAuthorizedKeys: "ssh-ed25519 AAAA test"
+      global.apc.services.ntp.servers[0]: 10.0.0.1
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
       global.apc.services.vault.KVmountPlatform: apc-platform
+      nmStateConfigs:
+        - name: node-01
+          interfaces:
+            - macAddress: "aa:bb:cc:dd:ee:01"
+              name: ens0
+          config: {}
     asserts:
       - equal:
           path: metadata.name
@@ -26,13 +31,19 @@ tests:
 
   - it: should use infraEnvName for name and namespace
     set:
+      envName: mycluster
       infraEnvName: infrastructure-mycluster
-      sshAuthorizedKey: "ssh-ed25519 AAAA test"
-      ntpServers:
-        - 10.0.0.1
+      global.apc.sshAuthorizedKeys: "ssh-ed25519 AAAA test"
+      global.apc.services.ntp.servers[0]: 10.0.0.1
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
       global.apc.services.vault.KVmountPlatform: apc-platform
+      nmStateConfigs:
+        - name: node-01
+          interfaces:
+            - macAddress: "aa:bb:cc:dd:ee:01"
+              name: ens0
+          config: {}
     asserts:
       - equal:
           path: metadata.name
@@ -43,28 +54,47 @@ tests:
 
   - it: should set NMStateConfig label selector from infraEnvName
     set:
+      envName: mycluster
       infraEnvName: infrastructure-mycluster
-      sshAuthorizedKey: "ssh-ed25519 AAAA test"
-      ntpServers:
-        - 10.0.0.1
+      global.apc.sshAuthorizedKeys: "ssh-ed25519 AAAA test"
+      global.apc.services.ntp.servers[0]: 10.0.0.1
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
       global.apc.services.vault.KVmountPlatform: apc-platform
+      nmStateConfigs:
+        - name: node-01
+          interfaces:
+            - macAddress: "aa:bb:cc:dd:ee:01"
+              name: ens0
+          config: {}
     asserts:
       - equal:
           path: spec.nmStateConfigLabelSelector.matchLabels["infraenvs.agent-install.openshift.io"]
           value: infrastructure-mycluster
 
-  - it: should include NTP servers
+  - it: should include NTP servers from global values
     set:
+      envName: mycluster
       infraEnvName: infrastructure-mycluster
-      sshAuthorizedKey: "ssh-ed25519 AAAA test"
-      ntpServers:
-        - 10.1.2.3
-        - 10.4.5.6
-      global.apc.environmentShort: p
-      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
-      global.apc.services.vault.KVmountPlatform: apc-platform
+      global:
+        apc:
+          sshAuthorizedKeys: "ssh-ed25519 AAAA test"
+          environmentShort: p
+          services:
+            externalSecretsOperator:
+              defaultClusterSecretStore: vault
+            vault:
+              KVmountPlatform: apc-platform
+            ntp:
+              servers:
+                - 10.1.2.3
+                - 10.4.5.6
+      nmStateConfigs:
+        - name: node-01
+          interfaces:
+            - macAddress: "aa:bb:cc:dd:ee:01"
+              name: ens0
+          config: {}
     asserts:
       - contains:
           path: spec.additionalNTPSources
@@ -75,15 +105,21 @@ tests:
 
   - it: should set proxy from global values when configured
     set:
+      envName: mycluster
       infraEnvName: infrastructure-mycluster
-      sshAuthorizedKey: "ssh-ed25519 AAAA test"
-      ntpServers:
-        - 10.0.0.1
+      global.apc.sshAuthorizedKeys: "ssh-ed25519 AAAA test"
+      global.apc.services.ntp.servers[0]: 10.0.0.1
       global.apc.proxy: http://proxy.example.com:8080
       global.apc.noProxy: .example.com,.svc
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
       global.apc.services.vault.KVmountPlatform: apc-platform
+      nmStateConfigs:
+        - name: node-01
+          interfaces:
+            - macAddress: "aa:bb:cc:dd:ee:01"
+              name: ens0
+          config: {}
     asserts:
       - equal:
           path: spec.proxy.httpProxy
@@ -97,27 +133,59 @@ tests:
 
   - it: should omit proxy block when proxy is not configured
     set:
+      envName: mycluster
       infraEnvName: infrastructure-mycluster
-      sshAuthorizedKey: "ssh-ed25519 AAAA test"
-      ntpServers:
-        - 10.0.0.1
+      global.apc.sshAuthorizedKeys: "ssh-ed25519 AAAA test"
+      global.apc.services.ntp.servers[0]: 10.0.0.1
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
       global.apc.services.vault.KVmountPlatform: apc-platform
+      nmStateConfigs:
+        - name: node-01
+          interfaces:
+            - macAddress: "aa:bb:cc:dd:ee:01"
+              name: ens0
+          config: {}
     asserts:
       - notExists:
           path: spec.proxy
 
   - it: should set pullSecretRef to expected name
     set:
+      envName: mycluster
       infraEnvName: infrastructure-mycluster
-      sshAuthorizedKey: "ssh-ed25519 AAAA test"
-      ntpServers:
-        - 10.0.0.1
+      global.apc.sshAuthorizedKeys: "ssh-ed25519 AAAA test"
+      global.apc.services.ntp.servers[0]: 10.0.0.1
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
       global.apc.services.vault.KVmountPlatform: apc-platform
+      nmStateConfigs:
+        - name: node-01
+          interfaces:
+            - macAddress: "aa:bb:cc:dd:ee:01"
+              name: ens0
+          config: {}
     asserts:
       - equal:
           path: spec.pullSecretRef.name
           value: pullsecret-infrastructure-mycluster
+
+  - it: should use sshAuthorizedKeys from global values
+    set:
+      envName: mycluster
+      infraEnvName: infrastructure-mycluster
+      global.apc.sshAuthorizedKeys: "ssh-ed25519 AAAA test-key ops@example.com"
+      global.apc.services.ntp.servers[0]: 10.0.0.1
+      global.apc.environmentShort: p
+      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
+      global.apc.services.vault.KVmountPlatform: apc-platform
+      nmStateConfigs:
+        - name: node-01
+          interfaces:
+            - macAddress: "aa:bb:cc:dd:ee:01"
+              name: ens0
+          config: {}
+    asserts:
+      - equal:
+          path: spec.sshAuthorizedKey
+          value: "ssh-ed25519 AAAA test-key ops@example.com"

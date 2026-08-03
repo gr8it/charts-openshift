@@ -9,6 +9,7 @@ release:
 tests:
   - it: should fail when nmStateConfigs is empty
     set:
+      envName: mycluster
       infraEnvName: infrastructure-mycluster
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
@@ -18,22 +19,23 @@ tests:
 
   - it: should create one NMStateConfig per entry
     set:
+      envName: mycluster
       infraEnvName: infrastructure-mycluster
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
       global.apc.services.vault.KVmountPlatform: apc-platform
       nmStateConfigs:
         - name: node-01
-          macInterfaceMappings:
+          interfaces:
             - macAddress: "aa:bb:cc:dd:ee:01"
-              logicalNICName: ens0
-          networkConfig:
+              name: ens0
+          config:
             interfaces: []
         - name: node-02
-          macInterfaceMappings:
+          interfaces:
             - macAddress: "aa:bb:cc:dd:ee:03"
-              logicalNICName: ens0
-          networkConfig:
+              name: ens0
+          config:
             interfaces: []
     asserts:
       - hasDocuments:
@@ -41,16 +43,17 @@ tests:
 
   - it: should set name and namespace from infraEnvName on each NMStateConfig
     set:
+      envName: mycluster
       infraEnvName: infrastructure-mycluster
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
       global.apc.services.vault.KVmountPlatform: apc-platform
       nmStateConfigs:
         - name: node-01
-          macInterfaceMappings:
+          interfaces:
             - macAddress: "aa:bb:cc:dd:ee:01"
-              logicalNICName: ens0
-          networkConfig:
+              name: ens0
+          config:
             interfaces: []
     asserts:
       - equal:
@@ -65,18 +68,19 @@ tests:
 
   - it: should map MAC addresses to interface names
     set:
+      envName: mycluster
       infraEnvName: infrastructure-mycluster
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
       global.apc.services.vault.KVmountPlatform: apc-platform
       nmStateConfigs:
         - name: node-01
-          macInterfaceMappings:
+          interfaces:
             - macAddress: "aa:bb:cc:dd:ee:01"
-              logicalNICName: ens7f0np0
+              name: ens7f0np0
             - macAddress: "aa:bb:cc:dd:ee:02"
-              logicalNICName: ens13f0np0
-          networkConfig:
+              name: ens13f0np0
+          config:
             interfaces: []
     asserts:
       - contains:

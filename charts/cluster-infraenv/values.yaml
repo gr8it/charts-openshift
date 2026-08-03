@@ -6,6 +6,8 @@ fullnameOverride: ""
 #   apc:
 #     proxy: ~
 #     noProxy: ~
+#     ntpServers: []
+#     sshAuthorizedKeys: ~
 #     services:
 #       externalSecretsOperator:
 #         defaultClusterSecretStore: ~
@@ -24,20 +26,15 @@ cpuArchitecture: x86_64
 # iPXE script type for agent discovery
 ipxeScriptType: DiscoveryImageAlways
 
-# SSH public key(s) per line injected into discovered agents
-sshAuthorizedKey: ""
-
-ntpServers: []
-
 # NMState network configurations, one per physical host
 nmStateConfigs: []
 # - name: my-node-01
-#   macInterfaceMappings:
+#   interfaces:
 #     - macAddress: "aa:bb:cc:dd:ee:ff"
-#       logicalNICName: ens7f0np0
+#       name: ens7f0np0
 #     - macAddress: "aa:bb:cc:dd:ee:ff"
-#       logicalNICName: ens13f0np0
-#   networkConfig:
+#       name: ens13f0np0
+#   config:
 #     interfaces:
 #       - name: bond0
 #         type: bond
