@@ -2,12 +2,6 @@
 
 Helm chart for Loki `AlertingRule` alerts on HW/infrastructure events (UPS/PDU/XCA), evaluated against the `audit` tenant of the hub's LokiStack.
 
-## Deployed resources
-
-| Resource | Kind | Namespace |
-|---|---|---|
-| `apc-hw-events-alerts` | AlertingRule (`loki.grafana.com/v1`) | `.Release.Namespace` |
-
 ## Prerequisites
 
 - Loki Operator and a `LokiStack` with an `audit` tenant must already be installed (see the `loki-operator` chart)
@@ -16,12 +10,6 @@ Helm chart for Loki `AlertingRule` alerts on HW/infrastructure events (UPS/PDU/X
 ## Hub vs non-hub clusters
 
 The `AlertingRule` is only rendered when `apc-global-overrides.clusterIsHub` resolves to `true` (`global.apc.cluster.isHub`, or a local `cluster.isHub` override) — HW/infrastructure events (UPS/PDU/XCA) are only ingested into the `audit` tenant on the hub. There is no dedicated enable/disable value for this chart; installing it on a spoke cluster renders no resources unless `cluster.isHub` is locally overridden to `true`.
-
-## Dependencies
-
-| Chart | Version | Purpose |
-|---|---|---|
-| `apc-global-overrides` | 1.8.0 | Global helpers (customer, isHub) |
 
 ## Alert rules
 

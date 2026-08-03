@@ -13,7 +13,8 @@ manifests should match snapshot:
       namespace: openshift-logging
     spec:
       groups:
-        - name: apc-hw-events-alerts.rules
+        - interval: 1m
+          name: apc-hw-events-alerts.rules
           rules:
             - alert: HW-Events-Notification-Critical
               annotations:

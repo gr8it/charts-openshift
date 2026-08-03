@@ -11,6 +11,7 @@ spec:
   tenantID: "audit"
   groups:
     - name: apc-hw-events-alerts.rules
+      interval: 1m
       rules:
         - alert: HW-Events-Notification-Critical
           expr: sum by (hostname,source_ip,message) (count_over_time({log_type="audit",environment="infrastructure",hw_type=~"ups|pdu|xca",severity="critical"}[15m]) > 0)
