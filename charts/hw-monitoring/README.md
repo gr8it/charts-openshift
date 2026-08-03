@@ -10,12 +10,12 @@ Helm chart for Loki `AlertingRule` alerts on HW/infrastructure events (UPS/PDU/X
 
 ## Prerequisites
 
-- Loki Operator and a `LokiStack` with an `audit` tenant must already be installed (see the `loki-operator` and `logging-instance` charts)
+- Loki Operator and a `LokiStack` with an `audit` tenant must already be installed (see the `loki-operator` chart)
 - Install this chart into the same namespace as the `LokiStack` (`openshift-logging`)
 
 ## Hub vs non-hub clusters
 
-The `AlertingRule` is only rendered when `global.apc.cluster.isHub: true` — HW/infrastructure events (UPS/PDU/XCA) are only ingested into the `audit` tenant on the hub. There is no override toggle; installing this chart on a spoke cluster renders no resources.
+The `AlertingRule` is only rendered when `apc-global-overrides.clusterIsHub` resolves to `true` (`global.apc.cluster.isHub`, or a local `cluster.isHub` override) — HW/infrastructure events (UPS/PDU/XCA) are only ingested into the `audit` tenant on the hub. There is no dedicated enable/disable value for this chart; installing it on a spoke cluster renders no resources unless `cluster.isHub` is locally overridden to `true`.
 
 ## Dependencies
 
