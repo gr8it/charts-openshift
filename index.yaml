@@ -520,6 +520,34 @@ entries:
     version: 1.1.1
   apps-ck-kafka:
   - apiVersion: v2
+    created: "2026-07-16T10:36:53.790883+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - condition: kafka-ui.enabled
+      name: kafka-ui
+      repository: https://kafbat.github.io/helm-charts
+      version: 1.5.3
+    description: Production-ready Kafka cluster using Strimzi operator with KRaft
+      mode
+    digest: 390e0bddba0056a8492fc42c19c6b947084a574786a51ff3da89b16cd261e717
+    home: https://github.com/gr8it/charts-openshift
+    icon: https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/main/documentation/logo/strimzi_logo.png
+    keywords:
+    - kafka
+    - strimzi
+    - kraft
+    kubeVersion: '>=1.25.0'
+    name: apps-ck-kafka
+    sources:
+    - https://github.com/gr8it/charts-openshift
+    - https://strimzi.io/
+    type: application
+    urls:
+    - packaged_charts/apps-ck-kafka-1.4.0.tgz
+    version: 1.4.0
+  - apiVersion: v2
     created: "2026-06-29T16:07:47.161615+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -716,6 +744,20 @@ entries:
     - packaged_charts/apps-ck-kafka-1.0.0.tgz
     version: 1.0.0
   apps-ck-kafka-mm2:
+  - apiVersion: v2
+    appVersion: 0.46.1
+    created: "2026-07-27T13:48:48.4481+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    description: A Helm chart for deployment and configuration of the Kafka MirrorMaker2
+    digest: 171c44becc76dee67a19014b565596ff8b0589b705547c18d56f8c9e218e2fe1
+    name: apps-ck-kafka-mm2
+    type: application
+    urls:
+    - packaged_charts/apps-ck-kafka-mm2-1.0.1.tgz
+    version: 1.0.1
   - apiVersion: v2
     appVersion: 0.46.1
     created: "2026-06-29T16:07:51.582645+02:00"
@@ -1452,6 +1494,23 @@ entries:
   crossplane-helm:
   - apiVersion: v2
     appVersion: 2.1.3
+    created: "2026-08-04T12:22:13.251236334+02:00"
+    dependencies:
+    - name: crossplane
+      repository: https://charts.crossplane.io/stable
+      version: 2.1.3
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart to install Crossplane
+    digest: 5526763a2e643edbabe72de95a33818f5723144db25912093037af00d9ccc588
+    name: crossplane-helm
+    type: application
+    urls:
+    - packaged_charts/crossplane-helm-2.2.2.tgz
+    version: 2.2.2
+  - apiVersion: v2
+    appVersion: 2.1.3
     created: "2026-03-11T07:08:53.210774+01:00"
     dependencies:
     - name: crossplane
@@ -1999,6 +2058,20 @@ entries:
     type: application
     urls:
     - packaged_charts/eck-operator-1.0.0.tgz
+    version: 1.0.0
+  etcd-hcp-backup:
+  - apiVersion: v2
+    created: "2026-07-27T14:59:16.673992925+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    description: A Helm chart for Openshift Hosted Control Plane etcd backup
+    digest: 60d9f0ed9bdfa21afc31dd11a326569dac66c1b2e700f950f1d9686176cdad50
+    name: etcd-hcp-backup
+    type: application
+    urls:
+    - packaged_charts/etcd-hcp-backup-1.0.0.tgz
     version: 1.0.0
   external-secrets-config:
   - apiVersion: v2
@@ -2645,6 +2718,20 @@ entries:
     - packaged_charts/kafka-backup-operator-0.1.0.tgz
     version: 0.1.0
   keycloak:
+  - apiVersion: v2
+    appVersion: v26.0
+    created: "2026-07-30T10:29:11.059636542+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    description: A Helm chart for APC keycloak
+    digest: 118c7b6806d86ec48cb20177927ffa2a80591ffdfd91d8f0f08db6394e68039b
+    name: keycloak
+    type: application
+    urls:
+    - packaged_charts/keycloak-1.6.2.tgz
+    version: 1.6.2
   - apiVersion: v2
     appVersion: v26.0
     created: "2026-04-08T14:31:11.90558648+02:00"
@@ -3404,6 +3491,16 @@ entries:
     version: 1.0.0
   monitoring-reminder:
   - apiVersion: v2
+    created: "2026-07-23T11:37:22.266096662+02:00"
+    description: A Helm chart for setting up PrometheusRule alerts for static date-based
+      reminders (e.g. secret/certificate expiry)
+    digest: 17ba3da89e68f4e8f7d98b86de470352f382b744384eece92fdf166d17b62045
+    name: monitoring-reminder
+    type: application
+    urls:
+    - packaged_charts/monitoring-reminder-2.0.1.tgz
+    version: 2.0.1
+  - apiVersion: v2
     created: "2026-07-15T15:14:38.615872+02:00"
     description: A Helm chart for setting up PrometheusRule alerts for static date-based
       reminders (e.g. secret/certificate expiry)
@@ -3578,6 +3675,19 @@ entries:
     type: application
     urls:
     - packaged_charts/openshift-distributed-tracing-1.0.0.tgz
+    version: 1.0.0
+  openshift-etcd-backup:
+  - apiVersion: v2
+    created: "2026-07-27T14:59:16.674771575+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    description: A Helm chart for Standalone Openshift etcd backup configurations
+    digest: 9a0f3249adff9c9c28a585425f4f13dab525d27e402b92be82b54dd56cc7e840
+    name: openshift-etcd-backup
+    urls:
+    - packaged_charts/openshift-etcd-backup-1.0.0.tgz
     version: 1.0.0
   openshift-tempo-operator:
   - apiVersion: v2
@@ -4186,4 +4296,4 @@ entries:
     urls:
     - packaged_charts/veeam-exporter-1.0.0.tgz
     version: 1.0.0
-generated: "2026-07-28T16:41:27.89179+02:00"
+generated: "2026-08-04T12:22:13.249065345+02:00"
