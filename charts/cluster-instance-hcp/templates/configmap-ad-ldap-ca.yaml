@@ -1,4 +1,4 @@
-{{- if (include "apc-global-overrides.caCertificatesBundle" .) and ((((include "apc-global-overrides.adIntegration" .) | fromYaml).ldap).attributes).url }}
+{{- if and (include "apc-global-overrides.caCertificatesBundle" .) ((((include "apc-global-overrides.adIntegration" .) | fromYaml).ldap).attributes).url }}
 apiVersion: v1
 kind: ConfigMap
 metadata:

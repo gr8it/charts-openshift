@@ -1,6 +1,6 @@
 {{- $imageProxyHost := include "apc-global-overrides.imageProxyHost" . }}
 {{- $caCertificatesBundle := include "apc-global-overrides.caCertificatesBundle" . }}
-{{- if $caCertificatesBundle and $imageProxyHost }}
+{{- if and $caCertificatesBundle $imageProxyHost }}
 apiVersion: v1
 kind: ConfigMap
 metadata:

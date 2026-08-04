@@ -12,6 +12,11 @@ tests:
   - it: should set cluster name from clusterName value
     set:
       clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
     asserts:
       - equal:
           path: metadata.name
@@ -26,6 +31,11 @@ tests:
   - it: should set infrastructure namespace to infrastructure-<clusterName> by default
     set:
       clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
     asserts:
       - equal:
           path: spec.platform.agent.agentNamespace
@@ -34,6 +44,11 @@ tests:
   - it: should use custom infrastructureNamespace when set
     set:
       clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
       infrastructureNamespace: custom-infra-ns
     asserts:
       - equal:
@@ -43,6 +58,11 @@ tests:
   - it: should construct service addresses from clusterName and rootDomain
     set:
       clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
     asserts:
       - contains:
           path: spec.services
@@ -57,6 +77,11 @@ tests:
   - it: should default networkType to OVNKubernetes
     set:
       clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
     asserts:
       - equal:
           path: spec.networking.networkType
@@ -65,6 +90,11 @@ tests:
   - it: should default clusterSet to clusterName with trailing digits removed
     set:
       clusterName: prod01
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
     asserts:
       - equal:
           path: metadata.labels["cluster.open-cluster-management.io/clusterset"]
@@ -73,6 +103,11 @@ tests:
   - it: should use explicit clusterSet when set
     set:
       clusterName: prod01
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
       clusterSet: myclusterset
     asserts:
       - equal:
@@ -82,6 +117,11 @@ tests:
   - it: should include proxy config and CA bundle reference when global proxy is configured
     set:
       clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
       global.apc.proxy: http://proxy.example.com:8080
       global.apc.noProxy: .example.com,.svc
     asserts:
@@ -98,6 +138,11 @@ tests:
   - it: should omit proxy config when global proxy is not configured
     set:
       clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
     asserts:
       - notExists:
           path: spec.additionalTrustBundle
@@ -107,6 +152,11 @@ tests:
   - it: should include imageContentSources when imageProxy.host is set in global
     set:
       clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
       global.apc.imageProxy:
         host: my-registry.example.com
         sources:
@@ -126,6 +176,11 @@ tests:
   - it: should omit image config when imageProxy.host is not set
     set:
       clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
     asserts:
       - notExists:
           path: spec.configuration.image
@@ -133,6 +188,11 @@ tests:
   - it: should include AD IDP when adIntegration.enabled is true
     set:
       clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
       global.apc.adIntegration.name: "AD Login"
       global.apc.adIntegration.ldap.attributes.url: "ldaps://ad.example.com/DC=example,DC=com?sAMAccountName"
       global.apc.adIntegration.ldap.attributes.bindDN: "CN=svc,DC=example,DC=com"
@@ -150,6 +210,11 @@ tests:
   - it: should omit AD IDP when adIntegration.enabled is false
     set:
       clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
     asserts:
       - notExists:
           path: spec.configuration.oauth
@@ -157,6 +222,11 @@ tests:
   - it: should include apiServer namedCertificates
     set:
       clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
     asserts:
       - equal:
           path: spec.configuration.apiServer.servingCerts.namedCertificates[0].servingCertificate.name

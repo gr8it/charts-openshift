@@ -141,8 +141,6 @@ global:
       metallb:
         namespace: metallb-system
         l2interface: br-ex
-      ntp:
-        servers: []
       quay:
         host: ~
       vault:

@@ -40,10 +40,12 @@ spec:
     oauth:
       identityProviders:
         {{- if $adIntegration }}
-        - {{ $adIntegration }}
+        - {{ $adIntegration | toYaml | indent 10 | trim }}
         {{- end }}
         {{- if $ldapIntegration }}
-        - {{ $ldapIntegration }}
+        {{- end }}
+        {{- if $ldapIntegration }}
+        - {{ $ldapIntegration | toYaml | indent 10 | trim}}
         {{- end }}
     {{- end }}
     {{- if $proxy }}

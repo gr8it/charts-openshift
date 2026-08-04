@@ -1,4 +1,4 @@
-{{- range .Values.nmStateConfigs }}
+{{- range .Values.nmStateConfigs | required "nmStateConfigs must be set" }}
 ---
 apiVersion: agent-install.openshift.io/v1beta1
 kind: NMStateConfig

@@ -16,10 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `apc-global-overrides.ntpServers` and `apc-global-overrides.require-ntpServers`
 - `apc-global-overrides.sshAuthorizedKeys` and `apc-global-overrides.require-sshAuthorizedKeys` helpers for SSH authorized keys
 
-### Changed
-
-- Service-extraction helpers (`ESODefaultClusterSecretStore`, `vaultKVmountPlatform`, `certManagerDefaultClusterIssuer`, and similar) now use `merge-services` instead of `services` internally, allowing charts to use `.Values.services` for their own purposes without shadowing global service configuration
-
 ## [1.8.0] - 2026-03-02
 
 _([SPEXAPC-13223](https://aspecta.atlassian.net/browse/SPEXAPC-13223))_
