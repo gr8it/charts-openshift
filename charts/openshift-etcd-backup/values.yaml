@@ -1,0 +1,18 @@
+cluster:
+  # name defaults to .Values.global.apc.cluster.name when unset
+  name: ~
+retentionDays: 3
+etcdBackupSchedule: "0 * * * *"
+compressSnapshot: false
+objectBucketClaim:
+  # create: <bool> - optional, creates an ObjectBucketClaim for storing etcd backups in .Release.Namespace
+  #                  if set to false; backup will use existing ObjectBucketClaim referenced with {objectBucketClaim.name}
+  create: false
+  # name: <string> - optional, overrides the default ObjectBucketClaim name etcd-{clusterName}-backup
+  #                  mandatory when using an existing ObjectBucketClaim
+  name: ~
+  # storageClass: <string> - optional, defines a storageClass for the ObjectBucketClaim
+  storageClass: "ocs-storagecluster-ceph-rgw"
+image:
+  awscli: amazon/aws-cli:2.35.8
+  busybox: busybox:1.37-glibc
