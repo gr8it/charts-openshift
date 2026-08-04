@@ -114,8 +114,6 @@ tests:
           path: data.adIntegration.ldap.attributes.preferredUsername
           value:
             - "sAMAccountName-local"
-      - equal: { path: data.adIntegration.ldap.attributes.bindPassword.name, value: "bindPassword-local" }
-      - equal: { path: data.adIntegration.ldap.attributes.ca.name, value: "ca-local" }
 
   - it: ldapIntegration from local with attribute defaults applied
     asserts:
@@ -140,8 +138,6 @@ tests:
           path: data.ldapIntegration.ldap.attributes.preferredUsername
           value:
             - "uid-local"
-      - equal: { path: data.ldapIntegration.ldap.attributes.bindPassword.name, value: "bindPassword-local" }
-      - equal: { path: data.ldapIntegration.ldap.attributes.ca.name, value: "ca-local" }
 
   - it: services and merged (local only, no global keys in non-merged)
     asserts:

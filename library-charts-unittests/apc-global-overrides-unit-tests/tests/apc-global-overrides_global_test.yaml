@@ -113,8 +113,6 @@ tests:
           path: data.adIntegration.ldap.attributes.preferredUsername
           value:
             - "sAMAccountName-global"
-      - equal: { path: data.adIntegration.ldap.attributes.bindPassword.name, value: "bindPassword-global" }
-      - equal: { path: data.adIntegration.ldap.attributes.ca.name, value: "ca-global" }
 
   - it: ldapIntegration from global with attribute defaults applied
     asserts:
@@ -139,8 +137,6 @@ tests:
           path: data.ldapIntegration.ldap.attributes.preferredUsername
           value:
             - "uid-global"
-      - equal: { path: data.ldapIntegration.ldap.attributes.bindPassword.name, value: "bindPassword-global" }
-      - equal: { path: data.ldapIntegration.ldap.attributes.ca.name, value: "ca-global" }
 
   - it: services and merged (global only, no local keys in non-merged)
     asserts:

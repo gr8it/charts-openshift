@@ -236,10 +236,6 @@ ldap:
     name: cn
     preferredUsername: sAMAccountName
     bindDN: ~
-    bindPassword:
-      name: ~
-    ca:
-      name: ~
     insecure: false
     url: ~
 ```
@@ -256,10 +252,6 @@ ldap:
     name: cn
     preferredUsername: uid
     bindDN: ~
-    bindPassword:
-      name: ~
-    ca:
-      name: ~
     insecure: false
     url: ~
 ```

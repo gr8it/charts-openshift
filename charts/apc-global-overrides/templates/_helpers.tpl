@@ -511,10 +511,10 @@ Create the image proxy sources (list)
 
 {{/*
 Return the adIntegration dictionary merged from: defaults < global < local.
-Defaults: vaultProperty=bindPassword, standard AD attributes.
+Defaults: standard AD attributes.
 */}}
 {{- define "apc-global-overrides.adIntegration" -}}
-{{- $defaults := dict "name" "" "type" "LDAP" "mappingMethod" "claim" "ldap" (dict "attributes" (dict "url" "" "email" (list "mail") "id" (list "sAMAccountName") "name" (list "cn") "preferredUsername" (list "sAMAccountName") "bindDN" "" "bindPassword" (dict "name" "") "ca" (dict "name" "") "insecure" false)) -}}
+{{- $defaults := dict "name" "" "type" "LDAP" "mappingMethod" "claim" "ldap" (dict "attributes" (dict "url" "" "email" (list "mail") "id" (list "sAMAccountName") "name" (list "cn") "preferredUsername" (list "sAMAccountName") "bindDN" "" "insecure" false)) -}}
 {{- $global := ((.Values.global).apc).adIntegration | default dict -}}
 {{- $local := .Values.adIntegration | default dict -}}
 {{- $result := deepCopy $defaults -}}
@@ -525,10 +525,10 @@ Defaults: vaultProperty=bindPassword, standard AD attributes.
 
 {{/*
 Return the ldapIntegration dictionary merged from: defaults < global < local.
-Defaults: vaultProperty=bindPassword, standard LDAP attributes.
+Defaults: standard LDAP attributes.
 */}}
 {{- define "apc-global-overrides.ldapIntegration" -}}
-{{- $defaults := dict "name" "" "type" "LDAP" "mappingMethod" "claim" "ldap" (dict "attributes" (dict "url" "" "email" (list "mail") "id" (list "dn") "name" (list "cn") "preferredUsername" (list "uid") "bindDN" "" "bindPassword" (dict "name" "") "ca" (dict "name" "") "insecure" false)) -}}
+{{- $defaults := dict "name" "" "type" "LDAP" "mappingMethod" "claim" "ldap" (dict "attributes" (dict "url" "" "email" (list "mail") "id" (list "dn") "name" (list "cn") "preferredUsername" (list "uid") "bindDN" "" "insecure" false)) -}}
 {{- $global := ((.Values.global).apc).ldapIntegration | default dict -}}
 {{- $local := .Values.ldapIntegration | default dict -}}
 {{- $result := deepCopy $defaults -}}
