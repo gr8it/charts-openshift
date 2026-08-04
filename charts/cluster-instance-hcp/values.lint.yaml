@@ -5,11 +5,19 @@ global:
       - 10.0.0.1
     sshAuthorizedKeys: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN45Yki8PhtTZ7NFk9xST9LHvrPgmHuSTHXI2CdXLxzF ops@example.com"
     cluster:
-      rootDomain: example.com
+      rootDomain: cloud.example.com
     services:
       externalSecretsOperator:
         defaultClusterSecretStore: vault
+      certManager:
+        defaultClusterIssuer: vault-issuer
       vault:
         KVmountPlatform: apc-platform
 
 clusterName: lint-cluster
+
+services:
+  oauthPort: 30102
+  konnectivityPort: 30103
+  ignitionPort: 30104
+  oidcPort: 30101

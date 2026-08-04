@@ -97,7 +97,7 @@ manifests should match snapshot:
               files:
                 - contents:
                     compression: ''
-                    source: 'data:text/plain;charset=utf-8;base64,c2VydmVyIG50cC5leGFtcGxlLmNvbSBpYnVyc3QKZHJpZnRmaWxlIC92YXIvbGliL2Nocm9ueS9kcmlmdAptYWtlc3RlcCAxLjAgMwpydGNzeW5jCmxvZ2RpciAvdmFyL2xvZy9jaHJvbnkK'
+                    source: 'data:text/plain;charset=utf-8;base64,c2VydmVyIDEwLjAuMC4xMSBpYnVyc3QKc2VydmVyIDEwLjAuMC4xMiBpYnVyc3QKZHJpZnRmaWxlIC92YXIvbGliL2Nocm9ueS9kcmlmdAptYWtlc3RlcCAxLjAgMwpydGNzeW5jCmxvZ2RpciAvdmFyL2xvZy9jaHJvbnkK'
                   mode: 420
                   overwrite: true
                   path: /etc/chrony.conf
@@ -311,8 +311,38 @@ manifests should match snapshot:
             name: registry-ca-bundle
         oauth:
           identityProviders:
-            - map[ldap:map[attributes:map[bindDN:CN=svc-ocp,OU=Service Accounts,DC=example,DC=com email:[mail] id:[sAMAccountName] insecure:false name:[cn] preferredUsername:[sAMAccountName] url:ldaps://ad.example.com/DC=example,DC=com?sAMAccountName?sub?(objectClass=person)]] mappingMethod:claim name:AD Login type:LDAP]
-            - map[ldap:map[attributes:map[bindDN:cn=svc-ocp,ou=Technical-Accounts,ou=prod,ou=Users,dc=example,dc=com email:[mail] id:[dn] insecure:false name:[cn] preferredUsername:[uid] url:ldaps://ldap.example.com/OU=Users,dc=example,dc=com?uid]] mappingMethod:claim name:LDAP Login type:LDAP]
+            - ldap:
+                attributes:
+                  bindDN: CN=svc-ocp,OU=Service Accounts,DC=example,DC=com
+                  email:
+                    - mail
+                  id:
+                    - sAMAccountName
+                  insecure: false
+                  name:
+                    - cn
+                  preferredUsername:
+                    - sAMAccountName
+                  url: ldaps://ad.example.com/DC=example,DC=com?sAMAccountName?sub?(objectClass=person)
+              mappingMethod: claim
+              name: AD Login
+              type: LDAP
+            - ldap:
+                attributes:
+                  bindDN: cn=svc-ocp,ou=Technical-Accounts,ou=prod,ou=Users,dc=example,dc=com
+                  email:
+                    - mail
+                  id:
+                    - dn
+                  insecure: false
+                  name:
+                    - cn
+                  preferredUsername:
+                    - uid
+                  url: ldaps://ldap.example.com/OU=Users,dc=example,dc=com?uid
+              mappingMethod: claim
+              name: LDAP Login
+              type: LDAP
         proxy:
           httpProxy: http://proxy.example.com:8080
           httpsProxy: http://proxy.example.com:8080

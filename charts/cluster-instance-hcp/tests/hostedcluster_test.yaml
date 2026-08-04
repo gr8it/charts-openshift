@@ -3,7 +3,7 @@ suite: cluster-instance-hcp HostedCluster
 templates:
   - templates/hostedcluster.yaml
 values:
-  - globals.yaml
+  - ../values.lint.yaml
 release:
   name: cluster-instance-hcp
   namespace: mycluster
@@ -114,7 +114,7 @@ tests:
           path: metadata.labels["cluster.open-cluster-management.io/clusterset"]
           value: myclusterset
 
-  - it: should include proxy config and CA bundle reference when global proxy is configured
+  - it: should include proxy config when global proxy is configured
     set:
       clusterName: mycluster
       services:
@@ -126,13 +126,30 @@ tests:
       global.apc.noProxy: .example.com,.svc
     asserts:
       - equal:
-          path: spec.additionalTrustBundle.name
-          value: user-ca-bundle
-      - equal:
           path: spec.configuration.proxy.httpProxy
           value: http://proxy.example.com:8080
       - equal:
           path: spec.configuration.proxy.trustedCA.name
+          value: user-ca-bundle
+
+  - it: should include CA bundle reference when configured
+    set:
+      clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+      global:
+        apc:
+          caCertificates:
+            example.com: |
+              -----BEGIN CERTIFICATE-----
+              MIIDVTCCAj2gAwIBAgIUeRYCH56h2vgcgcQTlLVIZW+3t98wD.example
+              -----END CERTIFICATE-----
+    asserts:
+      - equal:
+          path: spec.additionalTrustBundle.name
           value: user-ca-bundle
 
   - it: should omit proxy config when global proxy is not configured
@@ -149,7 +166,7 @@ tests:
       - notExists:
           path: spec.configuration.proxy
 
-  - it: should include imageContentSources when imageProxy.host is set in global
+  - it: should include imageContentSources when imageProxy.host and imageProxy.sources are set in global
     set:
       clusterName: mycluster
       services:
@@ -157,14 +174,20 @@ tests:
         konnectivityPort: 30103
         ignitionPort: 30104
         oidcPort: 30101
-      global.apc.imageProxy:
-        host: my-registry.example.com
-        sources:
-          - quay.io
-          - docker.io
+      global:
+        apc:
+          imageProxy:
+            host: my-registry.example.com
+            sources:
+              - quay.io
+          caCertificates:
+            example.com: |
+              -----BEGIN CERTIFICATE-----
+              MIIDVTCCAj2gAwIBAgIUeRYCH56h2vgcgcQTlLVIZW+3t98wD.example
+              -----END CERTIFICATE-----
     asserts:
       - contains:
-          path: spec.configuration.image.imageContentSources
+          path: spec.imageContentSources
           content:
             source: quay.io
             mirrors:
@@ -204,10 +227,10 @@ tests:
           path: spec.configuration.oauth.identityProviders[0].type
           value: LDAP
       - equal:
-          path: spec.configuration.oauth.identityProviders[0].ldap.url
+          path: spec.configuration.oauth.identityProviders[0].ldap.attributes.url
           value: "ldaps://ad.example.com/DC=example,DC=com?sAMAccountName"
 
-  - it: should omit AD IDP when adIntegration.enabled is false
+  - it: should omit oauth configuration when adIntegration nor ldapIntegration is set
     set:
       clusterName: mycluster
       services:

@@ -4,6 +4,7 @@
 {{- $proxy := include "apc-global-overrides.proxy" . }}
 {{- $caCertificatesBundle := include "apc-global-overrides.caCertificatesBundle" . }}
 {{- $imageProxyHost := include "apc-global-overrides.imageProxyHost" . }}
+{{- $imageProxySources := include "apc-global-overrides.imageProxySources" . | fromYamlArray }}
 {{- $adIntegration := (include "apc-global-overrides.adIntegration" .) | fromYaml }}
 {{- $ldapIntegration := (include "apc-global-overrides.ldapIntegration" .) | fromYaml }}
 apiVersion: hypershift.openshift.io/v1beta1
@@ -36,7 +37,7 @@ spec:
       additionalTrustedCA:
         name: registry-ca-bundle
     {{- end }}
-    {{- if or $adIntegration $ldapIntegration }}
+    {{- if or ((($adIntegration).ldap).attributes).url ((($ldapIntegration).ldap).attributes).url }}
     oauth:
       identityProviders:
         {{- if $adIntegration }}
@@ -56,12 +57,14 @@ spec:
       trustedCA:
         name: user-ca-bundle
     {{- end }}
+  {{- if $imageProxySources }}
   imageContentSources:
-    {{- range (include "apc-global-overrides.imageProxySources" . | fromYamlArray) }}
+    {{- range $imageProxySources }}
     - mirrors:
         - {{ $imageProxyHost }}/{{ . }}
       source: {{ . }}
     {{- end }}
+  {{- end }}
   {{- with .Values.tolerations }}
   tolerations:
     {{- toYaml . | nindent 4 }}
@@ -93,7 +96,6 @@ spec:
     networkType: OVNKubernetes
     serviceNetwork:
       - cidr: {{ .Values.networking.serviceCIDR }}
-
   controllerAvailabilityPolicy: HighlyAvailable
   infrastructureAvailabilityPolicy: HighlyAvailable
   olmCatalogPlacement: management
