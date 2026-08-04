@@ -85,28 +85,63 @@ tests:
 
   - it: imageProxy from local
     asserts:
-      - equal: { path: data.imageProxyHost, value: my-registry-local.example.com }
+      - equal: { path: data.imageProxyHost, value: local.example.com }
       - equal:
           path: data.imageProxySources
           value:
-            - quay.io-local
-            - docker.io-local
+            - local.example.com
 
   - it: adIntegration from local with attribute defaults applied
     asserts:
-      - equal: { path: data.adIntegration.idpName, value: "AD Login Local" }
-      - equal: { path: data.adIntegration.vaultKey, value: mycluster-ad-local }
-      - equal: { path: data.adIntegration.vaultProperty, value: bindPassword }
-      - equal: { path: data.adIntegration.attributes.email, value: mail }
-      - equal: { path: data.adIntegration.attributes.id, value: sAMAccountName }
+      - equal: { path: data.adIntegration.name, value: "AD Login local" }
+      - equal: { path: data.adIntegration.type, value: "LDAP" }
+      - equal: { path: data.adIntegration.mappingMethod, value: "claim" }
+      - equal: { path: data.adIntegration.ldap.attributes.bindDN, value: "cn=svc-local,dc=local,dc=com" }
+      - equal: { path: data.adIntegration.ldap.attributes.url, value: "ldaps://ad-local.example.com/dc=local,dc=com" }
+      - equal:
+          path: data.adIntegration.ldap.attributes.email
+          value:
+            - "mail-local"
+      - equal:
+          path: data.adIntegration.ldap.attributes.id
+          value:
+            - "sAMAccountName-local"
+      - equal:
+          path: data.adIntegration.ldap.attributes.name
+          value:
+            - "cn-local"
+      - equal:
+          path: data.adIntegration.ldap.attributes.preferredUsername
+          value:
+            - "sAMAccountName-local"
+      - equal: { path: data.adIntegration.ldap.attributes.bindPassword.name, value: "bindPassword-local" }
+      - equal: { path: data.adIntegration.ldap.attributes.ca.name, value: "ca-local" }
 
   - it: ldapIntegration from local with attribute defaults applied
     asserts:
-      - equal: { path: data.ldapIntegration.idpName, value: "LDAP Login Local" }
-      - equal: { path: data.ldapIntegration.vaultKey, value: mycluster-ldap-local }
-      - equal: { path: data.ldapIntegration.vaultProperty, value: bindPassword }
-      - equal: { path: data.ldapIntegration.attributes.id, value: dn }
-      - equal: { path: data.ldapIntegration.attributes.preferredUsername, value: uid }
+      - equal: { path: data.ldapIntegration.name, value: "LDAP Login local" }
+      - equal: { path: data.ldapIntegration.type, value: "LDAP" }
+      - equal: { path: data.ldapIntegration.mappingMethod, value: "claim" }
+      - equal: { path: data.ldapIntegration.ldap.attributes.bindDN, value: "cn=svc-local,dc=local,dc=com" }
+      - equal: { path: data.ldapIntegration.ldap.attributes.url, value: "ldaps://ldap-local.example.com/dc=local,dc=com" }
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.email
+          value:
+            - "mail-local"
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.id
+          value:
+            - "dn-local"
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.name
+          value:
+            - "cn-local"
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.preferredUsername
+          value:
+            - "uid-local"
+      - equal: { path: data.ldapIntegration.ldap.attributes.bindPassword.name, value: "bindPassword-local" }
+      - equal: { path: data.ldapIntegration.ldap.attributes.ca.name, value: "ca-local" }
 
   - it: services and merged (local only, no global keys in non-merged)
     asserts:

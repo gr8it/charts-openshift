@@ -40,17 +40,41 @@ global:
         - quay.io-global
         - docker.io-global
     adIntegration:
-      name: AD Login Global
-      ldap:
-        attributes:
-          bindDN: "CN=svc-global,DC=global,DC=com"
-          url: "ldaps://ad-global.example.com/DC=global,DC=com"
-    ldapIntegration:
-      name: LDAP Login Global
+      name: AD Login global
       ldap:
         attributes:
           bindDN: "cn=svc-global,dc=global,dc=com"
-          url: "ldaps://ldap-global.example.com/OU=Users,dc=global,dc=com"
+          url: "ldaps://ad-global.example.com/dc=global,dc=com"
+          email:
+            - mail-global
+          id:
+            - sAMAccountName-global
+          name:
+            - cn-global
+          preferredUsername:
+            - sAMAccountName-global
+          bindPassword:
+            name: bindPassword-global
+          ca:
+            name: ca-global
+    ldapIntegration:
+      name: LDAP Login global
+      ldap:
+        attributes:
+          bindDN: "cn=svc-global,dc=global,dc=com"
+          url: "ldaps://ldap-global.example.com/dc=global,dc=com"
+          email:
+            - mail-global
+          id:
+            - dn-global
+          name:
+            - cn-global
+          preferredUsername:
+            - uid-global
+          bindPassword:
+            name: bindPassword-global
+          ca:
+            name: ca-global
     services:
       global:
         url: servicesGlobalUrl-global

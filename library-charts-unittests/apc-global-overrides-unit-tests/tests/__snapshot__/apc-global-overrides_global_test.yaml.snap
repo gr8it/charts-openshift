@@ -4,19 +4,23 @@ manifest should match snapshot:
       adIntegration:
         ldap:
           attributes:
-            bindDN: CN=svc-global,DC=global,DC=com
+            bindDN: cn=svc-global,dc=global,dc=com
             bindPassword:
-              name: ""
+              name: bindPassword-global
             ca:
-              name: ""
-            email: mail
-            id: sAMAccountName
+              name: ca-global
+            email:
+              - mail-global
+            id:
+              - sAMAccountName-global
             insecure: false
-            name: cn
-            preferredUsername: sAMAccountName
-            url: ldaps://ad-global.example.com/DC=global,DC=com
+            name:
+              - cn-global
+            preferredUsername:
+              - sAMAccountName-global
+            url: ldaps://ad-global.example.com/dc=global,dc=com
         mappingMethod: claim
-        name: AD Login Global
+        name: AD Login global
         type: LDAP
       caCertificates:
         global.crt: |
@@ -81,17 +85,21 @@ manifest should match snapshot:
           attributes:
             bindDN: cn=svc-global,dc=global,dc=com
             bindPassword:
-              name: ""
+              name: bindPassword-global
             ca:
-              name: ""
-            email: mail
-            id: dn
+              name: ca-global
+            email:
+              - mail-global
+            id:
+              - dn-global
             insecure: false
-            name: cn
-            preferredUsername: uid
-            url: ldaps://ldap-global.example.com/OU=Users,dc=global,dc=com
+            name:
+              - cn-global
+            preferredUsername:
+              - uid-global
+            url: ldaps://ldap-global.example.com/dc=global,dc=com
         mappingMethod: claim
-        name: LDAP Login Global
+        name: LDAP Login global
         type: LDAP
       noProxy: noProxy-global
       ntpServers:

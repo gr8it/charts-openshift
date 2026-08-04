@@ -91,6 +91,85 @@ tests:
       - equal: { path: data.servicesExtracted.vault.name, value: null }
       - equal: { path: data.servicesExtracted.vault.url, value: null }
 
+  - it: imageProxy from default values
+    asserts:
+      - equal: { path: data.imageProxyHost, value: null }
+      - notExists: { path: data.imageProxySources }
+
+  - it: adIntegration from default values - none
+    asserts:
+      - notExists: { path: data.adIntegration }
+
+  - it: adIntegration from default values - merged
+    set:
+      adIntegration:
+        type: LDAP
+        mappingMethod: claim
+        ldap:
+          attributes:
+            url: "ad-merged.example.com"
+    asserts:
+      - equal: { path: data.adIntegration.name, value: "" }
+      - equal: { path: data.adIntegration.type, value: "LDAP" }
+      - equal: { path: data.adIntegration.mappingMethod, value: "claim" }
+      - equal: { path: data.adIntegration.ldap.attributes.bindDN, value: "" }
+      - equal: { path: data.adIntegration.ldap.attributes.url, value: "ad-merged.example.com" }
+      - equal:
+          path: data.adIntegration.ldap.attributes.email
+          value:
+            - "mail"
+      - equal:
+          path: data.adIntegration.ldap.attributes.id
+          value:
+            - "sAMAccountName"
+      - equal:
+          path: data.adIntegration.ldap.attributes.name
+          value:
+            - "cn"
+      - equal:
+          path: data.adIntegration.ldap.attributes.preferredUsername
+          value:
+            - "sAMAccountName"
+      - equal: { path: data.adIntegration.ldap.attributes.bindPassword.name, value: "" }
+      - equal: { path: data.adIntegration.ldap.attributes.ca.name, value: "" }
+
+  - it: ldapIntegration from default values - none
+    asserts:
+      - notExists: { path: data.ldapIntegration }
+
+  - it: ldapIntegration from default values - merged
+    set:
+      ldapIntegration:
+        type: LDAP
+        mappingMethod: claim
+        ldap:
+          attributes:
+            url: "ldap-merged.example.com"
+    asserts:
+      - equal: { path: data.ldapIntegration.name, value: "" }
+      - equal: { path: data.ldapIntegration.type, value: "LDAP" }
+      - equal: { path: data.ldapIntegration.mappingMethod, value: "claim" }
+      - equal: { path: data.ldapIntegration.ldap.attributes.bindDN, value: "" }
+      - equal: { path: data.ldapIntegration.ldap.attributes.url, value: "ldap-merged.example.com" }
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.email
+          value:
+            - "mail"
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.id
+          value:
+            - "dn"
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.name
+          value:
+            - "cn"
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.preferredUsername
+          value:
+            - "uid"
+      - equal: { path: data.ldapIntegration.ldap.attributes.bindPassword.name, value: "" }
+      - equal: { path: data.ldapIntegration.ldap.attributes.ca.name, value: "" }
+
   - it: caCertificates and merged default values
     asserts:
       - notExists:

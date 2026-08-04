@@ -5,12 +5,20 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.9.0] - 2026-07-29
+## [1.9.0] - 2026-08-03
 
 ### Added
 
+- `apc-global-overrides.imageProxyHost` and `apc-global-overrides.require-imageProxyHost` helpers
+- `apc-global-overrides.imageProxySources` helper
+- `apc-global-overrides.adIntegration` helper
+- `apc-global-overrides.ldapIntegration` helper
 - `apc-global-overrides.ntpServers` and `apc-global-overrides.require-ntpServers`
 - `apc-global-overrides.sshAuthorizedKeys` and `apc-global-overrides.require-sshAuthorizedKeys` helpers for SSH authorized keys
+
+### Changed
+
+- Service-extraction helpers (`ESODefaultClusterSecretStore`, `vaultKVmountPlatform`, `certManagerDefaultClusterIssuer`, and similar) now use `merge-services` instead of `services` internally, allowing charts to use `.Values.services` for their own purposes without shadowing global service configuration
 
 ## [1.8.0] - 2026-03-02
 

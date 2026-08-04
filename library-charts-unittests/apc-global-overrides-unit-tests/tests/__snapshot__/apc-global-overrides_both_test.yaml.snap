@@ -4,19 +4,23 @@ manifest should match snapshot:
       adIntegration:
         ldap:
           attributes:
-            bindDN: CN=svc-local,DC=local,DC=com
+            bindDN: cn=svc-local,dc=local,dc=com
             bindPassword:
-              name: ""
+              name: bindPassword-local
             ca:
-              name: ""
-            email: mail
-            id: sAMAccountName
+              name: ca-local
+            email:
+              - mail-local
+            id:
+              - sAMAccountName-local
             insecure: false
-            name: cn
-            preferredUsername: sAMAccountName
-            url: ldaps://ad-local.example.com/DC=local,DC=com
+            name:
+              - cn-local
+            preferredUsername:
+              - sAMAccountName-local
+            url: ldaps://ad-local.example.com/dc=local,dc=com
         mappingMethod: claim
-        name: AD Login Local
+        name: AD Login local
         type: LDAP
       caCertificates:
         local.crt: |
@@ -86,17 +90,21 @@ manifest should match snapshot:
           attributes:
             bindDN: cn=svc-local,dc=local,dc=com
             bindPassword:
-              name: ""
+              name: bindPassword-local
             ca:
-              name: ""
-            email: mail
-            id: dn
+              name: ca-local
+            email:
+              - mail-local
+            id:
+              - dn-local
             insecure: false
-            name: cn
-            preferredUsername: uid
-            url: ldaps://ldap-local.example.com/OU=Users,dc=local,dc=com
+            name:
+              - cn-local
+            preferredUsername:
+              - uid-local
+            url: ldaps://ldap-local.example.com/dc=local,dc=com
         mappingMethod: claim
-        name: LDAP Login Local
+        name: LDAP Login local
         type: LDAP
       noProxy: noProxy-local
       ntpServers:

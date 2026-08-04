@@ -490,3 +490,49 @@ Create the Vault KV mount for platform
 {{- define "apc-global-overrides.require-vaultKVmountPlatform" -}}
 {{- include "apc-global-overrides.vaultKVmountPlatform" . | required "APC services.vault.KVmountPlatform is required" }}
 {{- end }}
+
+{{/*
+Create the image proxy host
+*/}}
+{{- define "apc-global-overrides.imageProxyHost" -}}
+{{- (.Values.imageProxy).host | default (((.Values.global).apc).imageProxy).host | default "" }}
+{{- end }}
+
+{{- define "apc-global-overrides.require-imageProxyHost" -}}
+{{- include "apc-global-overrides.imageProxyHost" . | required "APC imageProxy.host is required" }}
+{{- end }}
+
+{{/*
+Create the image proxy sources (list)
+*/}}
+{{- define "apc-global-overrides.imageProxySources" -}}
+{{- (.Values.imageProxy).sources | default (((.Values.global).apc).imageProxy).sources | default list | toYaml }}
+{{- end }}
+
+{{/*
+Return the adIntegration dictionary merged from: defaults < global < local.
+Defaults: vaultProperty=bindPassword, standard AD attributes.
+*/}}
+{{- define "apc-global-overrides.adIntegration" -}}
+{{- $defaults := dict "name" "" "type" "LDAP" "mappingMethod" "claim" "ldap" (dict "attributes" (dict "url" "" "email" (list "mail") "id" (list "sAMAccountName") "name" (list "cn") "preferredUsername" (list "sAMAccountName") "bindDN" "" "bindPassword" (dict "name" "") "ca" (dict "name" "") "insecure" false)) -}}
+{{- $global := ((.Values.global).apc).adIntegration | default dict -}}
+{{- $local := .Values.adIntegration | default dict -}}
+{{- $result := deepCopy $defaults -}}
+{{- $_ := mergeOverwrite $result $global -}}
+{{- $_ = mergeOverwrite $result $local -}}
+{{- $result | toYaml -}}
+{{- end }}
+
+{{/*
+Return the ldapIntegration dictionary merged from: defaults < global < local.
+Defaults: vaultProperty=bindPassword, standard LDAP attributes.
+*/}}
+{{- define "apc-global-overrides.ldapIntegration" -}}
+{{- $defaults := dict "name" "" "type" "LDAP" "mappingMethod" "claim" "ldap" (dict "attributes" (dict "url" "" "email" (list "mail") "id" (list "dn") "name" (list "cn") "preferredUsername" (list "uid") "bindDN" "" "bindPassword" (dict "name" "") "ca" (dict "name" "") "insecure" false)) -}}
+{{- $global := ((.Values.global).apc).ldapIntegration | default dict -}}
+{{- $local := .Values.ldapIntegration | default dict -}}
+{{- $result := deepCopy $defaults -}}
+{{- $_ := mergeOverwrite $result $global -}}
+{{- $_ = mergeOverwrite $result $local -}}
+{{- $result | toYaml -}}
+{{- end }}
