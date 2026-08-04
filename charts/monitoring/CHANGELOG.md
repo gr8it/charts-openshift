@@ -5,6 +5,14 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4] - 2026-04-23
+
+_([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
+
+### Changed
+
+- Extend certificate expiration silence matcher with `result-client-cert-ocp4-cis-1-5` and `root-ca-ocp4-cis-1-5` to avoid false alerts on periodic cert rotation
+
 ## [1.1.3] - 2026-07-29
 
 _([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
