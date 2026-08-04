@@ -13,7 +13,7 @@ _([SPEXAPC-21171](https://aspecta.atlassian.net/browse/SPEXAPC-21171))_
 
 ### Changed
 
-- Changed memory limit for resourcesCrossplaneN
+- Changed memory limit for Crossplane resources
 
 ## [2.2.1] - 2026-03-11
 
