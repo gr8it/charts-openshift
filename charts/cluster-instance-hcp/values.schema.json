@@ -9,8 +9,8 @@
     "clusterName": { "type": "string" },
     "clusterSet": { "type": "string" },
     "releaseImage": { "type": "string" },
-    "baseDomain": { "type": "string" },
     "infrastructureNamespace": { "type": "string" },
+    "logindConfig": { "type": "string" },
     "tolerations": { "type": "array" },
     "nodeSelector": { "type": "object" },
     "etcd": {
@@ -37,11 +37,10 @@
       "properties": {
         "clusterCIDR": { "type": "string" },
         "clusterHostPrefix": { "type": "integer" },
-        "serviceCIDR": { "type": "string" },
-        "networkType": { "type": "string" }
+        "serviceCIDR": { "type": "string" }
       }
     },
-    "nodePorts": {
+    "services": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -51,77 +50,11 @@
         "oidcPort": { "type": "integer" }
       }
     },
-    "apiServerCert": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "vaultKey": { "type": "string" },
-        "vaultTLSCrt": { "type": "string" },
-        "vaultTLSKey": { "type": "string" }
-      }
-    },
-    "imageProxy": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "registryHost": { "type": "string" },
-        "sources": { "type": "array", "items": { "type": "string" } },
-        "caCert": { "type": "string" }
-      }
-    },
     "adIntegration": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "idpName": { "type": "string" },
-        "ldapURL": { "type": "string" },
-        "bindDN": { "type": "string" },
-        "caCert": { "type": "string" },
-        "attributes": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "email": { "type": "string" },
-            "id": { "type": "string" },
-            "name": { "type": "string" },
-            "preferredUsername": { "type": "string" }
-          }
-        },
-        "vaultKey": { "type": "string" },
-        "vaultProperty": { "type": "string" }
-      }
+      "type": "object"
     },
     "ldapIntegration": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "idpName": { "type": "string" },
-        "ldapURL": { "type": "string" },
-        "bindDN": { "type": "string" },
-        "caCert": { "type": "string" },
-        "attributes": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "email": { "type": "string" },
-            "id": { "type": "string" },
-            "name": { "type": "string" },
-            "preferredUsername": { "type": "string" }
-          }
-        },
-        "vaultKey": { "type": "string" },
-        "vaultProperty": { "type": "string" }
-      }
-    },
-    "vault": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "pullSecretKey": { "type": "string" },
-        "pullSecretProperty": { "type": "string" },
-        "sshKeyKey": { "type": "string" },
-        "sshKeyProperty": { "type": "string" }
-      }
+      "type": "object"
     }
   }
 }

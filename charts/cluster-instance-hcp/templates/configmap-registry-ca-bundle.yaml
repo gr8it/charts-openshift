@@ -1,4 +1,6 @@
-{{- if .Values.imageProxy.registryHost }}
+{{- $imageProxyHost := include "apc-global-overrides.imageProxyHost" . }}
+{{- $caCertificatesBundle := include "apc-global-overrides.caCertificatesBundle" . }}
+{{- if $caCertificatesBundle and $imageProxyHost }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -7,6 +9,6 @@ metadata:
   labels:
     {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
 data:
-  {{ required "imageProxy.registryHost is required " .Values.imageProxy.registryHost }}..443: |
-    {{- include "cluster-instance-hcp.registryCACert" . | nindent 4 }}
+  {{ $imageProxyHost }}..443: |
+    {{- $caCertificatesBundle | nindent 4 }}
 {{- end }}

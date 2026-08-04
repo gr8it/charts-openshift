@@ -1,4 +1,4 @@
-{{- if .Values.adIntegration.vaultKey }}
+{{- if (include "apc-global-overrides.caCertificatesBundle" .) and ((((include "apc-global-overrides.adIntegration" .) | fromYaml).ldap).attributes).url }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -8,5 +8,5 @@ metadata:
     {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
 data:
   ca.crt: |
-    {{- required "adIntegration.caCert is required " .Values.adIntegration.caCert | nindent 4 }}
+    {{- include "apc-global-overrides.caCertificatesBundle" . | nindent 4 }}
 {{- end }}

@@ -6,23 +6,21 @@ Deploys a HyperShift Hosted Control Plane (HCP) cluster on an ACM hub cluster. C
 
 - ACM with HyperShift enabled
 - External Secrets Operator with a ClusterSecretStore pointing to Vault
+- cert-manager with a ClusterIssuer configured
 - `cluster-infraenv` chart deployed for the matching InfraEnv
-- Required Vault secrets provisioned before deployment ############### TOTO SU KTORE !? VYPISAT
+- Pull secret provisioned in Vault at `<KVmountPlatform>/<environmentShort>/hcp/<clusterName>` with property `.dockerconfigjson`
 
-Cert
-          - api.prod01.cloud.socpoist.sk
-          - oauth.prod01.cloud.socpoist.sk
+pridat cesty do Vaultu ????????????????????????????
 
 ## Values
 
 | Parameter | Description | Default |
 |---|---|---|
 | `clusterName` | HCP cluster name (namespace, infraID, ManagedCluster name). **Required.** | `""` |
-| `clusterSet` | ACM ManagedClusterSet label | `""` |
+| `clusterSet` | ACM ManagedClusterSet label; defaults to `clusterName` with trailing digits removed | `""` |
 | `releaseImage` | OCP release image FQDN with tag | `quay.io/openshift-release-dev/ocp-release:4.17.11-multi` |
-| `baseDomain` | DNS base domain for the HCP cluster. **Required.** | `""` |
 | `infrastructureNamespace` | Infra namespace override; defaults to `infrastructure-<clusterName>` | `""` |
-| `etcd.storageClassName` | StorageClass for ETCD PV. **Required.** | `""` |
+| `etcd.storageClassName` | StorageClass for ETCD PV | `lvms-vg1` |
 | `etcd.storageSize` | ETCD PV size | `8Gi` |
 | `nodePool.replicas` | Number of worker nodes | `2` |
 | `nodePool.upgradeType` | Upgrade strategy (`InPlace` or `Replace`) | `InPlace` |
@@ -31,57 +29,57 @@ Cert
 | `networking.clusterCIDR` | Pod network CIDR | `172.26.0.0/16` |
 | `networking.clusterHostPrefix` | Host prefix for pod network | `21` |
 | `networking.serviceCIDR` | Service network CIDR | `172.25.64.0/18` |
-| `networking.networkType` | CNI type | `OVNKubernetes` |
 | `services.oauthPort` | NodePort for OAuthServer | `30102` |
 | `services.konnectivityPort` | NodePort for Konnectivity | `30103` |
 | `services.ignitionPort` | NodePort for Ignition | `30104` |
 | `services.oidcPort` | NodePort for OIDC | `30101` |
-| `ntpServers` | NTP servers for worker chrony config | `[]` |
-| `vault.pullSecretKey` | Vault key for cluster pull secret. **Required.** | `""` |
-| `vault.sshKeyKey` | Vault key for SSH public key. **Required.** | `""` |
 
-## Feature flags
+## Features
 
-### `proxy.enabled`
+### `apiServerCert`
 
-Enables proxy configuration in the HostedCluster. Creates a `user-ca-bundle` ConfigMap from `global.apc.caCertificates`. Proxy URLs are taken from `global.apc.proxy` and `global.apc.noProxy`.
+Creates a cert-manager `Certificate` for the API server TLS, with SANs `api.<clusterName>.<rootDomain>` and `oauth.<clusterName>.<rootDomain>`. Configures `namedCertificates` in the HostedCluster. Requires `global.apc.services.certManager.defaultClusterIssuer`.
 
-### `apiServerCert.enabled`
+### `adIntegration`
 
-Creates an ExternalSecret for a custom API server TLS certificate and configures `namedCertificates` in the HostedCluster.
+Adds an Active Directory LDAP identity provider to the HostedCluster OAuth. Creates `ad-ldap-ca` ConfigMap (from CA bundle) and `ad-ldap-bind-secret` ExternalSecret. Configuration from `global.apc.adIntegration`. Enabled, when adIntegration.ldap.attributes.url is set
 
-| Parameter | Description |
-|---|---|
-| `apiServerCert.names` | SANs; defaults to `api.<clusterName>.<baseDomain>` |
-| `apiServerCert.vaultKey` | Vault key path. **Required when enabled.** |
-| `apiServerCert.vaultTLSCrt` | Property name for the certificate | 
-| `apiServerCert.vaultTLSKey` | Property name for the private key |
+### `ldapIntegration`
 
-### `imageProxy.enabled`
+Adds a bastion LDAP identity provider to the HostedCluster OAuth. Creates `bastion-ldap-ca` ConfigMap (from CA bundle) and `bastion-ldap-bind-secret` ExternalSecret. Configuration from `global.apc.ldapIntegration`. Enabled, when ldapIntegration.ldap.attributes.url is set
 
-Enables image registry mirroring. Creates `registry-ca-bundle` ConfigMap and `machineconfig-mirror-registries`. Adds `imageContentSources` to the HostedCluster.
+### Image registry mirroring
 
-| Parameter | Description |
-|---|---|
-| `imageProxy.registryHost` | Mirror registry hostname. **Required when enabled.** |
-| `imageProxy.sources` | Source registries to mirror |
-| `imageProxy.caCert` | CA cert PEM for the registry; falls back to `global.apc.caCertificates` |
+Enabled when `global.apc.imageProxy.host` is set. Creates `registry-ca-bundle` ConfigMap and `machineconfig-mirror-registries`. Adds `imageContentSources` to the HostedCluster.
 
-### `adIntegration.enabled`
+### Proxy
 
-Adds an Active Directory LDAP identity provider to the HostedCluster OAuth. Creates `ad-ldap-ca` ConfigMap and `ad-ldap-bind-secret` ExternalSecret.
-
-### `ldapIntegration.enabled`
-
-Adds a bastion LDAP identity provider to the HostedCluster OAuth. Creates `bastion-ldap-ca` ConfigMap and `bastion-ldap-bind-secret` ExternalSecret.
+Enabled when `global.apc.proxy` is set. Creates `user-ca-bundle` ConfigMap from `global.apc.caCertificates`. Configures proxy settings in the HostedCluster.
 
 ## Global values used
 
+pridat required flag ku vsetkemu, co je naozaj required ????????????????????????
+
 | Global value | Description |
 |---|---|
-| `global.apc.proxy` | HTTP/HTTPS proxy URL (used when `proxy.enabled`) |
-| `global.apc.noProxy` | noProxy list (used when `proxy.enabled`) |
-| `global.apc.caCertificates` | CA certificates bundle for user-ca-bundle and registry-ca-bundle fallback |
-| `global.apc.services.externalSecretsOperator.defaultClusterSecretStore` | ClusterSecretStore for all ExternalSecrets |
+| `global.apc.cluster.rootDomain` | Base domain for the HCP cluster (e.g. `cloud.example.com`) |
+| `global.apc.sshAuthorizedKeys` | SSH authorized keys for worker nodes **required** |
+| `global.apc.ntpServers` | NTP server list for worker chrony config |
+| `global.apc.proxy` | HTTP/HTTPS proxy URL |
+| `global.apc.noProxy` | noProxy list |
+| `global.apc.caCertificates` | CA certificates bundle |
+| `global.apc.imageProxy.host` | Mirror registry hostname (enables image mirroring) |
+| `global.apc.imageProxy.sources` | Source registries to mirror |
+| `global.apc.adIntegration` | Active Directory IDP config |
+| `global.apc.ldapIntegration` | Bastion LDAP IDP config |
+| `global.apc.services.externalSecretsOperator.defaultClusterSecretStore` | ClusterSecretStore for ExternalSecrets |
 | `global.apc.services.vault.KVmountPlatform` | Vault KV mount path prefix |
+| `global.apc.services.certManager.defaultClusterIssuer` | ClusterIssuer for API server certificate |
 | `global.apc.environmentShort` | Environment short name used in Vault paths |
+
+## Services
+
+popisat: ?????????????????????????
+
+- API = LB, zvysok NodePort
+- kvoli bezpecnosti, t.j. aby prod, test, dev, nehovorili na rovnake endpointy = dev nemohol dotazovat prod!

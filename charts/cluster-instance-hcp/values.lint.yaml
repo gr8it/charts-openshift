@@ -1,19 +1,15 @@
 global:
   apc:
     environmentShort: p
+    ntpServers:
+      - 10.0.0.1
+    sshAuthorizedKeys: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN45Yki8PhtTZ7NFk9xST9LHvrPgmHuSTHXI2CdXLxzF ops@example.com"
+    cluster:
+      rootDomain: example.com
     services:
       externalSecretsOperator:
         defaultClusterSecretStore: vault
       vault:
         KVmountPlatform: apc-platform
-      ntp:
-        servers:
-          - 10.0.0.1
 
 clusterName: lint-cluster
-baseDomain: example.com
-etcd:
-  storageClassName: standard
-vault:
-  pullSecretKey: lint-cluster
-  sshKeyKey: lint-cluster

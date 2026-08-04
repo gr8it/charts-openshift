@@ -99,8 +99,10 @@ charts-openshift/
 [apc-global-overrides-helpers]: /charts/apc-global-overrides/README.md#helper-function-list
 
 - Cluster/environment specific values (customer name, cluster name, base URL, proxy, shared stores, etc.) is configured once (DRY) in config repository.
-  - Never hardcode them — use the `apc-global-overrides` library helpers, (see [README][apc-global-overrides-helpers]).
-- Prefer the `require-` variant to fail fast when a value is missing if possible.
+  - Never hardcode them — use the `apc-global-overrides` chart library helpers, (see [README][apc-global-overrides-helpers]).
+  - `apc-global-overrides` allows to override global values (`.Value.global.apc`) with a chart specific value if needed, e.g. `.Values.global.apc.proxy` can be overridden with `.Values.proxy` in a chart.
+- For all required parameters, prefer the `require-` variant to fail fast when a value is missing if possible.
+- All helper functions must be documented in the `apc-global-overrides` README
 - Configuration, which is shared between multiple charts, should be placed in `apc-global-overrides` rather than in individual charts.
 - Document which `apc-global-overrides` are used as comments in the values.yaml, but don't set them:
 
@@ -114,6 +116,9 @@ charts-openshift/
 
 - The used `apc-global-overrides` should be set in values.lint.yaml, values.example.yaml or other example values files, but not in values.yaml.
 - Preferably all `apc-global-overrides` should be set in values.example.yaml, including optional ones such as proxy, ca certificates, etc. This ensures that the example values file is a complete example of a working configuration.
+- unittest of the `apc-global-overrides` chart (= a library chart) are located in `library-charts-unittests/apc-global-overrides-unit-tests` directory.
+  - uses values.global.yaml (for global values) and values.local.yaml (for local overrides) 
+  - unittests cover usecases with default chart values, global values, local values, and global values with local overrides
 
 ### values.yaml Conventions
 

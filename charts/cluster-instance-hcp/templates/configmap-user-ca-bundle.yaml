@@ -1,4 +1,5 @@
-{{- if include "apc-global-overrides.proxy" . }}
+{{- $caCertificatesBundle := include "apc-global-overrides.caCertificatesBundle" . }}
+{{- if $caCertificatesBundle }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -8,5 +9,5 @@ metadata:
     {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
 data:
   ca-bundle.crt: |
-    {{- include "apc-global-overrides.caCertificatesBundle" . | nindent 4 }}
+    {{- $caCertificatesBundle | nindent 4 }}
 {{- end }}

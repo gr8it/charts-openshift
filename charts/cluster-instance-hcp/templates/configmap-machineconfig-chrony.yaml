@@ -1,3 +1,4 @@
+{{- if (include "apc-global-overrides.ntpServers" . | fromYamlArray) }}
 {{- $chronyConf := "" -}}
 {{- range (include "apc-global-overrides.ntpServers" . | fromYamlArray) -}}
   {{- $chronyConf = printf "%sserver %s iburst\n" $chronyConf . -}}
@@ -30,3 +31,4 @@ data:
               mode: 420
               overwrite: true
               path: /etc/chrony.conf
+{{- end }}

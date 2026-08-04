@@ -12,8 +12,6 @@ metadata:
     cloud: BareMetal
     vendor: OpenShift
     name: {{ $clusterName }}
-    {{- with .Values.clusterSet }}
-    cluster.open-cluster-management.io/clusterset: {{ . | quote }}
-    {{- end }}
+    cluster.open-cluster-management.io/clusterset: {{ include "cluster-instance-hcp.clusterSet" . }}
 spec:
   hubAcceptsClient: true

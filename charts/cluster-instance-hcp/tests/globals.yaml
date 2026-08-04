@@ -1,13 +1,15 @@
 global:
   apc:
     environmentShort: p
-    proxy: http://proxy.example.com:8080
-    noProxy: .example.com,.svc,.cluster.local
+    ntpServers:
+      - ntp.example.com
+    sshAuthorizedKeys: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN45Yki8PhtTZ7NFk9xST9LHvrPgmHuSTHXI2CdXLxzF ops@example.com"
+    cluster:
+      rootDomain: cloud.example.com
     services:
       externalSecretsOperator:
         defaultClusterSecretStore: vault
       vault:
         KVmountPlatform: apc-platform
-      ntp:
-        servers:
-          - ntp.example.com
+      certManager:
+        defaultClusterIssuer: vault-issuer

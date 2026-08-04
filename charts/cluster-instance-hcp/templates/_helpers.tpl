@@ -35,20 +35,16 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- required "clusterName is required" .Values.clusterName }}
 {{- end }}
 
+{{/* Returns the cluster set; defaults to clusterName with trailing digits stripped (e.g. prod01 => prod) */}}
+{{- define "cluster-instance-hcp.clusterSet" -}}
+{{- .Values.clusterSet | default (regexReplaceAll "[0-9]+$" (include "cluster-instance-hcp.clusterName" .) "") }}
+{{- end }}
+
 {{/* Returns the infrastructure namespace (infrastructure-<clusterName> by convention) */}}
 {{- define "cluster-instance-hcp.infrastructureNamespace" -}}
 {{- if .Values.infrastructureNamespace }}
 {{- .Values.infrastructureNamespace }}
 {{- else }}
 {{- printf "infrastructure-%s" (include "cluster-instance-hcp.clusterName" .) }}
-{{- end }}
-{{- end }}
-
-{{/* Returns the CA bundle to use for image proxy registry CA cert */}}
-{{- define "cluster-instance-hcp.registryCACert" -}}
-{{- if .Values.imageProxy.caCert }}
-{{- .Values.imageProxy.caCert }}
-{{- else }}
-{{- include "apc-global-overrides.caCertificatesBundle" . }}
 {{- end }}
 {{- end }}

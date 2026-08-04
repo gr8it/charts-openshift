@@ -2,6 +2,8 @@
 suite: cluster-instance-hcp NodePool
 templates:
   - templates/nodepool.yaml
+values:
+  - globals.yaml
 release:
   name: cluster-instance-hcp
   namespace: mycluster
@@ -10,14 +12,6 @@ tests:
   - it: should name NodePool as nodepool-<clusterName>-1
     set:
       clusterName: mycluster
-      baseDomain: cloud.example.com
-      etcd.storageClassName: standard
-      global.apc.environmentShort: p
-      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
-      global.apc.services.vault.KVmountPlatform: apc-platform
-      global.apc.services.ntp.servers[0]: ntp.example.com
-      vault.pullSecretKey: mycluster
-      vault.sshKeyKey: mycluster
     asserts:
       - equal:
           path: metadata.name
@@ -29,14 +23,6 @@ tests:
   - it: should include base machineconfig refs
     set:
       clusterName: mycluster
-      baseDomain: cloud.example.com
-      etcd.storageClassName: standard
-      global.apc.environmentShort: p
-      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
-      global.apc.services.vault.KVmountPlatform: apc-platform
-      global.apc.services.ntp.servers[0]: ntp.example.com
-      vault.pullSecretKey: mycluster
-      vault.sshKeyKey: mycluster
     asserts:
       - contains:
           path: spec.config
@@ -55,18 +41,11 @@ tests:
           content:
             name: machineconfig-mirror-registries
 
-  - it: should include mirror-registries machineconfig when imageProxy.registryHost is set
+  - it: should include mirror-registries machineconfig when imageProxy.host is set in global
     set:
       clusterName: mycluster
-      baseDomain: cloud.example.com
-      etcd.storageClassName: standard
-      imageProxy.registryHost: my-registry.example.com
-      global.apc.environmentShort: p
-      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
-      global.apc.services.vault.KVmountPlatform: apc-platform
-      global.apc.services.ntp.servers[0]: ntp.example.com
-      vault.pullSecretKey: mycluster
-      vault.sshKeyKey: mycluster
+      global.apc.imageProxy:
+        host: my-registry.example.com
     asserts:
       - contains:
           path: spec.config
@@ -76,15 +55,7 @@ tests:
   - it: should set replicas from nodePool.replicas
     set:
       clusterName: mycluster
-      baseDomain: cloud.example.com
-      etcd.storageClassName: standard
       nodePool.replicas: 6
-      global.apc.environmentShort: p
-      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
-      global.apc.services.vault.KVmountPlatform: apc-platform
-      global.apc.services.ntp.servers[0]: ntp.example.com
-      vault.pullSecretKey: mycluster
-      vault.sshKeyKey: mycluster
     asserts:
       - equal:
           path: spec.replicas

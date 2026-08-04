@@ -2,6 +2,8 @@
 suite: cluster-instance-hcp HostedCluster
 templates:
   - templates/hostedcluster.yaml
+values:
+  - globals.yaml
 release:
   name: cluster-instance-hcp
   namespace: mycluster
@@ -10,14 +12,6 @@ tests:
   - it: should set cluster name from clusterName value
     set:
       clusterName: mycluster
-      baseDomain: cloud.example.com
-      etcd.storageClassName: standard
-      global.apc.environmentShort: p
-      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
-      global.apc.services.vault.KVmountPlatform: apc-platform
-      global.apc.services.ntp.servers[0]: ntp.example.com
-      vault.pullSecretKey: mycluster
-      vault.sshKeyKey: mycluster
     asserts:
       - equal:
           path: metadata.name
@@ -32,14 +26,6 @@ tests:
   - it: should set infrastructure namespace to infrastructure-<clusterName> by default
     set:
       clusterName: mycluster
-      baseDomain: cloud.example.com
-      etcd.storageClassName: standard
-      global.apc.environmentShort: p
-      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
-      global.apc.services.vault.KVmountPlatform: apc-platform
-      global.apc.services.ntp.servers[0]: ntp.example.com
-      vault.pullSecretKey: mycluster
-      vault.sshKeyKey: mycluster
     asserts:
       - equal:
           path: spec.platform.agent.agentNamespace
@@ -49,30 +35,14 @@ tests:
     set:
       clusterName: mycluster
       infrastructureNamespace: custom-infra-ns
-      baseDomain: cloud.example.com
-      etcd.storageClassName: standard
-      global.apc.environmentShort: p
-      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
-      global.apc.services.vault.KVmountPlatform: apc-platform
-      global.apc.services.ntp.servers[0]: ntp.example.com
-      vault.pullSecretKey: mycluster
-      vault.sshKeyKey: mycluster
     asserts:
       - equal:
           path: spec.platform.agent.agentNamespace
           value: custom-infra-ns
 
-  - it: should construct service addresses from clusterName and baseDomain
+  - it: should construct service addresses from clusterName and rootDomain
     set:
       clusterName: mycluster
-      baseDomain: cloud.example.com
-      etcd.storageClassName: standard
-      global.apc.environmentShort: p
-      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
-      global.apc.services.vault.KVmountPlatform: apc-platform
-      global.apc.services.ntp.servers[0]: ntp.example.com
-      vault.pullSecretKey: mycluster
-      vault.sshKeyKey: mycluster
     asserts:
       - contains:
           path: spec.services
@@ -84,19 +54,36 @@ tests:
                 address: oauth.mycluster.cloud.example.com
                 port: 30102
 
+  - it: should default networkType to OVNKubernetes
+    set:
+      clusterName: mycluster
+    asserts:
+      - equal:
+          path: spec.networking.networkType
+          value: OVNKubernetes
+
+  - it: should default clusterSet to clusterName with trailing digits removed
+    set:
+      clusterName: prod01
+    asserts:
+      - equal:
+          path: metadata.labels["cluster.open-cluster-management.io/clusterset"]
+          value: prod
+
+  - it: should use explicit clusterSet when set
+    set:
+      clusterName: prod01
+      clusterSet: myclusterset
+    asserts:
+      - equal:
+          path: metadata.labels["cluster.open-cluster-management.io/clusterset"]
+          value: myclusterset
+
   - it: should include proxy config and CA bundle reference when global proxy is configured
     set:
       clusterName: mycluster
-      baseDomain: cloud.example.com
-      etcd.storageClassName: standard
       global.apc.proxy: http://proxy.example.com:8080
       global.apc.noProxy: .example.com,.svc
-      global.apc.environmentShort: p
-      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
-      global.apc.services.vault.KVmountPlatform: apc-platform
-      global.apc.services.ntp.servers[0]: ntp.example.com
-      vault.pullSecretKey: mycluster
-      vault.sshKeyKey: mycluster
     asserts:
       - equal:
           path: spec.additionalTrustBundle.name
@@ -111,35 +98,20 @@ tests:
   - it: should omit proxy config when global proxy is not configured
     set:
       clusterName: mycluster
-      baseDomain: cloud.example.com
-      etcd.storageClassName: standard
-      global.apc.environmentShort: p
-      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
-      global.apc.services.vault.KVmountPlatform: apc-platform
-      global.apc.services.ntp.servers[0]: ntp.example.com
-      vault.pullSecretKey: mycluster
-      vault.sshKeyKey: mycluster
     asserts:
       - notExists:
           path: spec.additionalTrustBundle
       - notExists:
           path: spec.configuration.proxy
 
-  - it: should include imageContentSources when imageProxy.registryHost is set
+  - it: should include imageContentSources when imageProxy.host is set in global
     set:
       clusterName: mycluster
-      baseDomain: cloud.example.com
-      etcd.storageClassName: standard
-      imageProxy.registryHost: my-registry.example.com
-      imageProxy.sources:
-        - quay.io
-        - docker.io
-      global.apc.environmentShort: p
-      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
-      global.apc.services.vault.KVmountPlatform: apc-platform
-      global.apc.services.ntp.servers[0]: ntp.example.com
-      vault.pullSecretKey: mycluster
-      vault.sshKeyKey: mycluster
+      global.apc.imageProxy:
+        host: my-registry.example.com
+        sources:
+          - quay.io
+          - docker.io
     asserts:
       - contains:
           path: spec.configuration.image.imageContentSources
@@ -151,37 +123,19 @@ tests:
           path: spec.configuration.image.additionalTrustedCA.name
           value: registry-ca-bundle
 
-  - it: should omit image config when imageProxy.registryHost is empty
+  - it: should omit image config when imageProxy.host is not set
     set:
       clusterName: mycluster
-      baseDomain: cloud.example.com
-      etcd.storageClassName: standard
-      global.apc.environmentShort: p
-      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
-      global.apc.services.vault.KVmountPlatform: apc-platform
-      global.apc.services.ntp.servers[0]: ntp.example.com
-      vault.pullSecretKey: mycluster
-      vault.sshKeyKey: mycluster
     asserts:
       - notExists:
           path: spec.configuration.image
 
-  - it: should include AD IDP when adIntegration.vaultKey is set
+  - it: should include AD IDP when adIntegration.enabled is true
     set:
       clusterName: mycluster
-      baseDomain: cloud.example.com
-      etcd.storageClassName: standard
-      adIntegration.idpName: "AD Login"
-      adIntegration.ldapURL: "ldaps://ad.example.com/DC=example,DC=com?sAMAccountName"
-      adIntegration.bindDN: "CN=svc,DC=example,DC=com"
-      adIntegration.caCert: "-----BEGIN CERTIFICATE-----\nfake\n-----END CERTIFICATE-----\n"
-      adIntegration.vaultKey: mycluster-ad
-      global.apc.environmentShort: p
-      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
-      global.apc.services.vault.KVmountPlatform: apc-platform
-      global.apc.services.ntp.servers[0]: ntp.example.com
-      vault.pullSecretKey: mycluster
-      vault.sshKeyKey: mycluster
+      global.apc.adIntegration.name: "AD Login"
+      global.apc.adIntegration.ldap.attributes.url: "ldaps://ad.example.com/DC=example,DC=com?sAMAccountName"
+      global.apc.adIntegration.ldap.attributes.bindDN: "CN=svc,DC=example,DC=com"
     asserts:
       - equal:
           path: spec.configuration.oauth.identityProviders[0].name
@@ -190,21 +144,19 @@ tests:
           path: spec.configuration.oauth.identityProviders[0].type
           value: LDAP
       - equal:
-          path: spec.configuration.oauth.identityProviders[0].ldap.bindPassword.name
-          value: ad-ldap-bind-secret
+          path: spec.configuration.oauth.identityProviders[0].ldap.url
+          value: "ldaps://ad.example.com/DC=example,DC=com?sAMAccountName"
 
-  - it: should include apiServer namedCertificates when apiServerCert.vaultKey is set
+  - it: should omit AD IDP when adIntegration.enabled is false
     set:
       clusterName: mycluster
-      baseDomain: cloud.example.com
-      etcd.storageClassName: standard
-      apiServerCert.vaultKey: mycluster-cert
-      global.apc.environmentShort: p
-      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
-      global.apc.services.vault.KVmountPlatform: apc-platform
-      global.apc.services.ntp.servers[0]: ntp.example.com
-      vault.pullSecretKey: mycluster
-      vault.sshKeyKey: mycluster
+    asserts:
+      - notExists:
+          path: spec.configuration.oauth
+
+  - it: should include apiServer namedCertificates
+    set:
+      clusterName: mycluster
     asserts:
       - equal:
           path: spec.configuration.apiServer.servingCerts.namedCertificates[0].servingCertificate.name
@@ -215,20 +167,3 @@ tests:
       - contains:
           path: spec.configuration.apiServer.servingCerts.namedCertificates[0].names
           content: oauth.mycluster.cloud.example.com
-
-  - it: should set clusterSet label when clusterSet is set
-    set:
-      clusterName: mycluster
-      baseDomain: cloud.example.com
-      etcd.storageClassName: standard
-      clusterSet: prod
-      global.apc.environmentShort: p
-      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
-      global.apc.services.vault.KVmountPlatform: apc-platform
-      global.apc.services.ntp.servers[0]: ntp.example.com
-      vault.pullSecretKey: mycluster
-      vault.sshKeyKey: mycluster
-    asserts:
-      - equal:
-          path: metadata.labels["cluster.open-cluster-management.io/clusterset"]
-          value: prod
