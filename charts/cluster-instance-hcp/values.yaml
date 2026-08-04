@@ -68,6 +68,16 @@ services:
   ignitionPort: ~
   oidcPort: ~
 
+kubeletConfig:
+  containerLogMaxFiles: 5
+  containerLogMaxSize: 20Mi
+  podsPerCore: 0
+  maxPods: 350
+  systemReserved:
+    cpu: 800m
+    memory: 4Gi
+    ephemeral-storage: 3Gi
+
 logindConfig: |
   [Login]
   # SSH hardening
