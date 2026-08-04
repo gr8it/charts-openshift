@@ -1,0 +1,91 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: cluster-instance-hcp NodePool
+templates:
+  - templates/nodepool.yaml
+release:
+  name: cluster-instance-hcp
+  namespace: mycluster
+
+tests:
+  - it: should name NodePool as nodepool-<clusterName>-1
+    set:
+      clusterName: mycluster
+      baseDomain: cloud.example.com
+      etcd.storageClassName: standard
+      global.apc.environmentShort: p
+      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
+      global.apc.services.vault.KVmountPlatform: apc-platform
+      global.apc.services.ntp.servers[0]: ntp.example.com
+      vault.pullSecretKey: mycluster
+      vault.sshKeyKey: mycluster
+    asserts:
+      - equal:
+          path: metadata.name
+          value: nodepool-mycluster-1
+      - equal:
+          path: spec.clusterName
+          value: mycluster
+
+  - it: should include base machineconfig refs
+    set:
+      clusterName: mycluster
+      baseDomain: cloud.example.com
+      etcd.storageClassName: standard
+      global.apc.environmentShort: p
+      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
+      global.apc.services.vault.KVmountPlatform: apc-platform
+      global.apc.services.ntp.servers[0]: ntp.example.com
+      vault.pullSecretKey: mycluster
+      vault.sshKeyKey: mycluster
+    asserts:
+      - contains:
+          path: spec.config
+          content:
+            name: machineconfig-chrony
+      - contains:
+          path: spec.config
+          content:
+            name: machineconfig-logind
+      - contains:
+          path: spec.config
+          content:
+            name: kubeletconfig-worker
+      - notContains:
+          path: spec.config
+          content:
+            name: machineconfig-mirror-registries
+
+  - it: should include mirror-registries machineconfig when imageProxy.registryHost is set
+    set:
+      clusterName: mycluster
+      baseDomain: cloud.example.com
+      etcd.storageClassName: standard
+      imageProxy.registryHost: my-registry.example.com
+      global.apc.environmentShort: p
+      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
+      global.apc.services.vault.KVmountPlatform: apc-platform
+      global.apc.services.ntp.servers[0]: ntp.example.com
+      vault.pullSecretKey: mycluster
+      vault.sshKeyKey: mycluster
+    asserts:
+      - contains:
+          path: spec.config
+          content:
+            name: machineconfig-mirror-registries
+
+  - it: should set replicas from nodePool.replicas
+    set:
+      clusterName: mycluster
+      baseDomain: cloud.example.com
+      etcd.storageClassName: standard
+      nodePool.replicas: 6
+      global.apc.environmentShort: p
+      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
+      global.apc.services.vault.KVmountPlatform: apc-platform
+      global.apc.services.ntp.servers[0]: ntp.example.com
+      vault.pullSecretKey: mycluster
+      vault.sshKeyKey: mycluster
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 6

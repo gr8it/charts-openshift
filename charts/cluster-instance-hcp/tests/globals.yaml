@@ -1,0 +1,13 @@
+global:
+  apc:
+    environmentShort: p
+    proxy: http://proxy.example.com:8080
+    noProxy: .example.com,.svc,.cluster.local
+    services:
+      externalSecretsOperator:
+        defaultClusterSecretStore: vault
+      vault:
+        KVmountPlatform: apc-platform
+      ntp:
+        servers:
+          - ntp.example.com

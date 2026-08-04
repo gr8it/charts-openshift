@@ -5,13 +5,28 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2026-08-03
+
+### Added
+
+- `apc-global-overrides.imageProxyHost` and `apc-global-overrides.require-imageProxyHost` helpers
+- `apc-global-overrides.imageProxySources` helper
+- `apc-global-overrides.adIntegration` helper
+- `apc-global-overrides.ldapIntegration` helper
+- `apc-global-overrides.ntpServers` and `apc-global-overrides.require-ntpServers`
+- `apc-global-overrides.sshAuthorizedKeys` and `apc-global-overrides.require-sshAuthorizedKeys` helpers for SSH authorized keys
+
+### Changed
+
+- Service-extraction helpers (`ESODefaultClusterSecretStore`, `vaultKVmountPlatform`, `certManagerDefaultClusterIssuer`, and similar) now use `merge-services` instead of `services` internally, allowing charts to use `.Values.services` for their own purposes without shadowing global service configuration
+
 ## [1.8.0] - 2026-03-02
 
 _([SPEXAPC-13223](https://aspecta.atlassian.net/browse/SPEXAPC-13223))_
 
 ### Added
 
-- apc-global-overrides.clusterRootDomain helper
+- `apc-global-overrides.clusterRootDomain` helper
 
 ## [1.7.0] - 2026-02-13
 
@@ -19,9 +34,9 @@ _([SPEXAPC-7592](https://example.atlassian.net/browse/SPEXAPC-7592))_
 
 ### Added
 
-- apc-global-overrides.crossplaneKubeKeycloakProviderConfigName helper
-- apc-global-overrides.keycloakUrl helper
-- apc-global-overrides.keycloakRealm helper
+- `apc-global-overrides.crossplaneKubeKeycloakProviderConfigName` helper
+- `apc-global-overrides.keycloakUrl` helper
+- `apc-global-overrides.keycloakRealm` helper
 
 ## [1.6.0] - 2026-02-10
 
@@ -29,7 +44,7 @@ _([SPEXAPC-8916](https://aspecta.atlassian.net/browse/SPEXAPC-8916))_
 
 ### Added 
 
-- apc-global-overrides.metallbL2Interface helper
+- `apc-global-overrides.metallbL2Interface` helper
 
 ## [1.5.0] - 2025-10-29
 
@@ -37,7 +52,7 @@ _([JIRA-6770](https://example.atlassian.net/browse/JIRA-6770))_
 
 ### Added
 
-- apc-global-overrides.metallbNamespace helper
+- `apc-global-overrides.metallbNamespace` helper
 - docs: currently supported configuration
 - docs: service specific helpers
 

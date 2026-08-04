@@ -1,0 +1,95 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: cluster-infraenv NMStateConfig
+templates:
+  - templates/nmstateconfig.yaml
+release:
+  name: cluster-infraenv-prod01
+  namespace: infrastructure-prod01
+
+tests:
+  - it: should fail when nmStateConfigs is empty
+    set:
+      envName: mycluster
+      infraEnvName: infrastructure-mycluster
+      global.apc.environmentShort: p
+      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
+      global.apc.services.vault.KVmountPlatform: apc-platform
+    asserts:
+      - failedTemplate: {}
+
+  - it: should create one NMStateConfig per entry
+    set:
+      envName: mycluster
+      infraEnvName: infrastructure-mycluster
+      global.apc.environmentShort: p
+      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
+      global.apc.services.vault.KVmountPlatform: apc-platform
+      nmStateConfigs:
+        - name: node-01
+          interfaces:
+            - macAddress: "aa:bb:cc:dd:ee:01"
+              name: ens0
+          config:
+            interfaces: []
+        - name: node-02
+          interfaces:
+            - macAddress: "aa:bb:cc:dd:ee:03"
+              name: ens0
+          config:
+            interfaces: []
+    asserts:
+      - hasDocuments:
+          count: 2
+
+  - it: should set name and namespace from infraEnvName on each NMStateConfig
+    set:
+      envName: mycluster
+      infraEnvName: infrastructure-mycluster
+      global.apc.environmentShort: p
+      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
+      global.apc.services.vault.KVmountPlatform: apc-platform
+      nmStateConfigs:
+        - name: node-01
+          interfaces:
+            - macAddress: "aa:bb:cc:dd:ee:01"
+              name: ens0
+          config:
+            interfaces: []
+    asserts:
+      - equal:
+          path: metadata.name
+          value: node-01
+      - equal:
+          path: metadata.namespace
+          value: infrastructure-mycluster
+      - equal:
+          path: metadata.labels["infraenvs.agent-install.openshift.io"]
+          value: infrastructure-mycluster
+
+  - it: should map MAC addresses to interface names
+    set:
+      envName: mycluster
+      infraEnvName: infrastructure-mycluster
+      global.apc.environmentShort: p
+      global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
+      global.apc.services.vault.KVmountPlatform: apc-platform
+      nmStateConfigs:
+        - name: node-01
+          interfaces:
+            - macAddress: "aa:bb:cc:dd:ee:01"
+              name: ens7f0np0
+            - macAddress: "aa:bb:cc:dd:ee:02"
+              name: ens13f0np0
+          config:
+            interfaces: []
+    asserts:
+      - contains:
+          path: spec.interfaces
+          content:
+            macAddress: "aa:bb:cc:dd:ee:01"
+            name: ens7f0np0
+      - contains:
+          path: spec.interfaces
+          content:
+            macAddress: "aa:bb:cc:dd:ee:02"
+            name: ens13f0np0

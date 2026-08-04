@@ -1,0 +1,124 @@
+nameOverride: ""
+fullnameOverride: ""
+
+## uses following global values => do not set here
+# global:
+#   apc:
+#     proxy: ~
+#     noProxy: ~
+#     ntpServers: []
+#     caCertificates: {}
+#     sshAuthorizedKeys: ~
+#     services:
+#       externalSecretsOperator:
+#         defaultClusterSecretStore: ~
+#       vault:
+#         KVmountPlatform: ~
+
+# HCP cluster name — also used as: namespace, infraID, ManagedCluster name
+clusterName: ""
+
+# ACM cluster set label value
+clusterSet: "" 
+
+# OCP release image (full FQDN with tag)
+releaseImage: "quay.io/openshift-release-dev/ocp-release:4.17.11-multi"
+
+# DNS base domain for the HCP cluster (not the hub baseDomain)
+baseDomain: ""
+
+# Infrastructure namespace — defaults to infrastructure-<clusterName>
+infrastructureNamespace: ""
+
+# ETCD persistent storage
+etcd:
+  storageClassName: ""
+  storageSize: 8Gi
+
+# Scheduling of HCP control plane pods on hub
+tolerations:
+  - operator: Exists
+    effect: NoSchedule
+    key: node-role.kubernetes.io/master
+nodeSelector:
+  node-role.kubernetes.io/master: ""
+
+# NodePool
+nodePool:
+  replicas: 2
+  upgradeType: InPlace
+  autoRepair: false
+  nodeLabels: {}
+
+# Cluster networking
+networking:
+  clusterCIDR: 172.26.0.0/16
+  clusterHostPrefix: 21
+  serviceCIDR: 172.25.64.0/18
+  networkType: OVNKubernetes
+
+# NodePort service publishing — ports must be unique per cluster on the same hub
+nodePorts:
+  oauthPort: 30102
+  konnectivityPort: 30103
+  ignitionPort: 30104
+  oidcPort: 30101
+
+# API server custom TLS certificate (ExternalSecret from Vault)
+# Enabled implicitly when vaultKey is non-empty; SANs default to api.<clusterName>.<baseDomain> and oauth.<clusterName>.<baseDomain>
+apiServerCert:
+  vaultKey: ""
+  vaultTLSCrt: tls.crt
+  vaultTLSKey: tls.key
+
+# Image proxy / registry mirroring
+# Enabled implicitly when registryHost is non-empty
+imageProxy:
+  # Registry host without protocol, e.g. my-registry.example.com
+  registryHost: ""
+  sources:
+    - quay.io
+    - registry.connect.redhat.com
+    - registry.redhat.io
+    - docker.io
+    - ghcr.io
+  # CA certificate in PEM format for the registry.
+  # Falls back to apc-global-overrides.caCertificatesBundle when empty.
+  caCert: ""
+
+# Active Directory IDP integration
+# Enabled implicitly when vaultKey is non-empty
+adIntegration:
+  idpName: ""
+  ldapURL: ""
+  bindDN: ""
+  caCert: ""
+  attributes:
+    email: mail
+    id: sAMAccountName
+    name: cn
+    preferredUsername: sAMAccountName
+  vaultKey: ""
+  vaultProperty: bindPassword
+
+# Bastion LDAP IDP integration
+# Enabled implicitly when vaultKey is non-empty
+ldapIntegration:
+  idpName: ""
+  ldapURL: ""
+  bindDN: ""
+  caCert: ""
+  attributes:
+    email: mail
+    id: dn
+    name: cn
+    preferredUsername: uid
+  vaultKey: ""
+  vaultProperty: bindPassword
+
+# Vault key paths for secrets (relative to KVmountPlatform/environmentShort/)
+vault:
+  pullSecretKey: ""
+  pullSecretProperty: .dockerconfigjson
+  sshKeyKey: ""
+  sshKeyProperty: id_rsa.pub

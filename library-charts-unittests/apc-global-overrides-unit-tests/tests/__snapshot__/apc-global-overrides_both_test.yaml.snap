@@ -1,6 +1,23 @@
 manifest should match snapshot:
   1: |
     data:
+      adIntegration:
+        ldap:
+          attributes:
+            bindDN: cn=svc-local,dc=local,dc=com
+            email:
+              - mail-local
+            id:
+              - sAMAccountName-local
+            insecure: false
+            name:
+              - cn-local
+            preferredUsername:
+              - sAMAccountName-local
+            url: ldaps://ad-local.example.com/dc=local,dc=com
+        mappingMethod: claim
+        name: AD Login local
+        type: LDAP
       caCertificates:
         local.crt: |
           -----BEGIN CERTIFICATE-----
@@ -61,7 +78,33 @@ manifest should match snapshot:
       customer: customer-local
       environment: environment-local
       environmentShort: environmentShort-local
+      imageProxyHost: local.example.com
+      imageProxySources:
+        - local.example.com
+      ldapIntegration:
+        ldap:
+          attributes:
+            bindDN: cn=svc-local,dc=local,dc=com
+            email:
+              - mail-local
+            id:
+              - dn-local
+            insecure: false
+            name:
+              - cn-local
+            preferredUsername:
+              - uid-local
+            url: ldaps://ldap-local.example.com/dc=local,dc=com
+        mappingMethod: claim
+        name: LDAP Login local
+        type: LDAP
       noProxy: noProxy-local
+      ntpServers:
+        - ntp-local1
+        - ntp-local2
+      ntpServersArray:
+        - ntp-local1
+        - ntp-local2
       proxy: proxy-local
       proxyCIDRs:
         - proxyIP-local1
@@ -140,3 +183,4 @@ manifest should match snapshot:
           kubeAuthMountPath: vaultKubeAuthMountPath-local
           name: vaultName-local
           url: vaultUrl-local
+      sshAuthorizedKeys: ssh-ed25519 AAAA local-key

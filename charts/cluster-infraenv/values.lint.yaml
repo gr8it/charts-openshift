@@ -1,0 +1,17 @@
+global:
+  apc:
+    environmentShort: p
+    services:
+      externalSecretsOperator:
+        defaultClusterSecretStore: vault
+      vault:
+        KVmountPlatform: apc-platform
+
+envName: prod02
+
+nmStateConfigs:
+  - name: node-01
+    interfaces:
+      - macAddress: "aa:bb:cc:dd:ee:01"
+        name: ens7f0np0
+    config: {}

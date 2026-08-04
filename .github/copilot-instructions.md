@@ -98,15 +98,11 @@ charts-openshift/
 
 [apc-global-overrides-helpers]: /charts/apc-global-overrides/README.md#helper-function-list
 
-Cluster/environment values (customer name, cluster name, base URL, proxy, shared stores, etc.) come from the conf repo via `apc-global-overrides`. Never hardcode them — use the library's helpers (see [README][apc-global-overrides-helpers]). Prefer the `require-` variant to fail fast when a value is missing.
-
-### values.yaml Conventions
-
-- Absolutely prefer deployment ease over configurability. Charts should be opinionated and not require configuration for every possible option.
-  - configuration options need to cover only the minimal / parameters changing between environments, e.g. image tags, resource sizes, etc.
-- Leave optional sections empty (`{}` or `[]`).
-- Favor convention-over-configuration = don't add a value unless it must be configurable, e.g. do not configure ingress URL - construct it from a convention-based pattern using the cluster's base URL (from apc-global-overrides) and the standard chart helpers, e.g. `application.{{ include "apc-global-overrides.require-clusterAppsDomain" . }}`
-- Global cluster values come from the `apc-global-overrides` library; document them as comments but don't set them:
+- Cluster/environment specific values (customer name, cluster name, base URL, proxy, shared stores, etc.) is configured once (DRY) in config repository.
+  - Never hardcode them — use the `apc-global-overrides` library helpers, (see [README][apc-global-overrides-helpers]).
+- Prefer the `require-` variant to fail fast when a value is missing if possible.
+- Configuration, which is shared between multiple charts, should be placed in `apc-global-overrides` rather than in individual charts.
+- Document which `apc-global-overrides` are used as comments in the values.yaml, but don't set them:
 
   ```yaml
   ## uses following global values => do not set here
@@ -116,61 +112,74 @@ Cluster/environment values (customer name, cluster name, base URL, proxy, shared
   #       appsDomain:
   ```
 
+- The used `apc-global-overrides` should be set in values.lint.yaml, values.example.yaml or other example values files, but not in values.yaml.
+- Preferably all `apc-global-overrides` should be set in values.example.yaml, including optional ones such as proxy, ca certificates, etc. This ensures that the example values file is a complete example of a working configuration.
+
+### values.yaml Conventions
+
+- Absolutely prefer deployment ease over configurability. Charts should be opinionated and not require configuration for every possible option.
+  - configuration options need to cover only the minimal / parameters changing between environments, e.g. image tags, resource sizes, etc.
+- Leave optional sections empty with correct type (`{}` or `[]`)
+- Values keys must use **lowerCamelCase** (e.g., `resourceQuota`, not `ResourceQuota`).
+- Do not duplicate defaults between `values.yaml` and template fallback expressions. If a default is set in `values.yaml`, do not also set it with `| default "..."` in the template — single source of truth.
+- Values that are not consumed by any template must be removed.
+- `image.pullPolicy` default must be `IfNotPresent` for pinned tags, and `Always` for latest tag.
+- Security-sensitive defaults must be secure by default: admin APIs must be opt-in (default disabled), `insecureSkipTLSVerify` must default to `false`.
+- Chart default values should reflect the production-ready cluster state, not a QA-specific non-default.
+- Favor convention-over-configuration = don't add a value unless it must be configurable, e.g. do not configure ingress URL - construct it from a convention-based pattern using the cluster's base URL (from apc-global-overrides) and the standard chart helpers, e.g. `application-xy.{{ include "apc-global-overrides.require-clusterAppsDomain" . }}`
+
+
 ### values.example.yaml
 
 - Contains only overrides of the default values and global values that are required to render the chart templates.
 - Contains realistic, non-secret example values.
 - Used as an example and by snapshot unit tests — never deployed directly.
+- Must exercise all key feature paths, including optional features (e.g., custom CA certs).
+- If several use cases are available (hub / spoke usage), include multiple example files (e.g., `values.example.<usecase>.yaml`)
 
 ### values.lint.yaml
 
 - Contains only values required to pass `helm lint` that are absent from `values.yaml` (typically cluster/environment globals).
+  - Remove values from `values.lint.yaml` that are already set as defaults in `values.yaml`.
+  - Remove `values.lint.yaml` entirely if it becomes unnecessary (e.g., after removing the conditional that required it).
 
 ### values.schema.json
 
 - Always include a `values.schema.json` file for each chart. This ensures that values are validated during `helm install/upgrade` and prevents misconfigurations.
+- prefer `additionalProperties: false` to prevent typos and misconfigurations in values files.
+- Every new structured value (especially objects/maps) must be added to the schema.
 
 ## Unit Tests
 
 Framework: [helm-unittest](https://github.com/helm-unittest/helm-unittest)
 
-Tests live in `tests/snapshot_test.yaml`:
-
-```yaml
-suite: Snapshot test
-templates:
-  - templates/*
-values:
-  - ../values.example.yaml
-release:
-  name: <chart-name>
-
-tests:
-  - it: manifests should match snapshot
-    asserts:
-      - matchSnapshot: {}
-```
-
 - All charts include a snapshot test usually consuming the `values.example.yaml` file.
-- Charts should include proper unittests, covering all edge cases
+- Charts should include proper unittests, covering all edge cases.
+- Use `templates: - templates/*` (wildcard) in snapshot tests, not individual filenames — a per-file list silently misses new template files added later.
+- For charts with subchart dependencies, extend snapshot tests to include `charts/*/templates/*` so rendered subchart output is also validated.
+- The `release.name` in tests must match the chart name for realistic resource names and labels.
+
 - Run all tests: `make unittest` (runs `helm unittest --strict <folder>` for every chart with a `tests/` dir).
+- A snapshot that doesn't render the feature being changed is not a useful test.
+- Regenerate snapshots after changing a template, or values — never ship a snapshot that mismatches the current template output.
 
 ## PrometheusRule Conventions
 
-Per-rule labels always include severity, vendor and team, e.g.:
+- `PrometheusRule` `metadata.labels` must include the standard chart labels via the `<chart>.labels` helper.
+- `PrometheusRule` labels must include severity, vendor and team labels to allow filtering by vendor and team in the Prometheus UI. Usually the labels in this repo should be `vendor: aspecta` and `team: platform` - other values are exceptions and need to be justified.
+- Alert names must be prefixed with the component name to avoid global collisions (e.g., `KafkaBridgeContainerDown`, not `MonitoringAvailability`).
+- Alert selectors must be scoped to the specific release, not broad regex patterns that can match other pods in the same namespace.
+- For CrashLoopBackOff detection, use `max_over_time(kube_pod_container_status_waiting_reason{...,reason="CrashLoopBackOff"}[5m]) > 0`, not restart-rate expressions that fire on normal rollouts.
+- Alert expressions using `== 0` should include an `absent(...)` branch to also fire when metric series disappear (e.g., scrape issues, component missing).
+- Do not use `for:` with counter-based (`increase()`/`rate()`) expressions — `for` only makes sense for gauges; for counters use a longer window instead.
+- Alert expressions must be validated against real metric names and label sets before merging — do not rely on LLM-generated PromQL without verification.
+- Do not hardcode namespace values in PromQL expressions when the namespace is configurable via values.
 
-```yaml
-apiVersion: monitoring.coreos.com/v1
-kind: PrometheusRule
-...
-spec:
-  groups:
-    - rules:
-        - labels:
-            severity: warning | critical
-            vendor: aspecta
-            team: platform
-```
+## Secrets
+
+Do not commit secrets to git. Store in a  secret store (e.g., Vault) and reference using ExternalSecrets of External Secret Operator. them in the conf repo.
+
+If secrets can be generated, prefer generating them dynamically over static secrets. For this PushSecret CR can be used.
 
 ## Conventions
 
@@ -198,20 +207,90 @@ Use simple component names with no prefix. Suffix when necessary:
 - `<component>-operator` / `<component>-helm` — operator/chart installation only; no followup configuration
 - `<component>-config` / `<component>-instance` / `<component>-policies` — configuration using CRs created during installation
 
+### Chart.yaml
+
+- Chart directory name must match `name` in `Chart.yaml`. A mismatch causes `make clean`/`make publish` to skip or mislocate the packaged artifact.
+- Do not set `appVersion` for charts that only configure a component (e.g., monitoring config charts, Crossplane-managed charts). For operator wrapper charts, `appVersion` must match the OLM CSV version (e.g., `v3.3.1`).
+- When running `make build`, only the charts touched in that PR should gain new entries in `versions.txt` and `index.yaml`. Spurious version bumps in unrelated charts must be reverted before merge.
+- Rebase on current `main` before running `make build` — a stale base produces large, spurious diffs in `index.yaml`/`versions.txt`.
+- Dependency versions in `Chart.yaml` must match what is present in `charts/` and `packaged_charts/`; after bumping a dependency run `helm dep update`.
+- Do not commit old/stale `.tgz` packages for charts that have been renamed or removed — use `make clean` to remove orphaned artifacts.
+
 ### Templates
 
-- Always set `namespace: {{ .Release.Namespace }}` in every manifest (rendered manifest pattern requirement).
+- Always set `namespace: {{ .Release.Namespace }}` in namespaced resources. Do **not** set `namespace` on cluster-scoped resources (`ClusterRole`, `ClusterRoleBinding`, `ClusterPolicy`, etc.).
+- Use `Namespace` kind for namespace resources, not the OpenShift-specific `Project` kind.
+- All hostnames and FQDNs must be lowercase.
+- Use `{{ include "<chart>.fullname" . }}` for resource names — not raw `.Release.Name`. The fullname helper handles the 63-character DNS limit.
+- In intra-chart Service URLs, use `.Release.Namespace` rather than hardcoding a namespace name (e.g., `myservice.{{ .Release.Namespace }}.svc:8080`).
+- Helm helper template names must be prefixed with the chart name (e.g., `<chart>.labels`, not `common.labels`) to prevent collisions in the shared Helm template namespace.
+- All resources in a chart must apply the standard chart labels via the `<chart>.labels` helper.
+- Cluster-scoped resources should include the release name in `metadata.name` to prevent collisions when the chart can be installed multiple times.
+- Do not gate deployment on `cluster.isHub` or similar conditions inside the chart. Deployment targeting (hub vs. spoke) is handled at the conf-repo level (Helmfile conditions).
+- Use `required` for mandatory template values that have no safe default. An empty value that silently produces an invalid manifest is worse than a clear error at render time.
+- Avoid `{{ if and .Values.foo }}` with a single argument — `and` requires 2+ arguments; use `{{ if .Values.foo }}` instead.
+- Conditionally created resources must gate ALL dependent resources with the same condition (e.g., if a Route depends on an oauth-proxy Service, both must be behind the same `if`).
+- Drop unused range key variables — use `$_, $val := range ...` or omit the key variable entirely.
+- Do not include `TODO` comments or testing scaffolding in production templates — remove them before merging.
 - Prefer flat over nested values, e.g. `clusterName` over `cluster.name`.
 - Each resource definition should be in its own template file.
 
+### CHANGELOG
+
+- follows [Common Changelog](https://common-changelog.org/) format and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+  - Must always include the preamble:
+    ```
+    All notable changes to this component will be documented in this file.
+    The format is based on [Common Changelog](https://common-changelog.org/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+    ```
+  - Newest release at the top. Version sections use `## [X.Y.Z] - YYYY-MM-DD`; subsections use `### Added`, `### Changed`, `### Fixed` (h3, not h2).
+  - The version tag in the changelog must match `Chart.yaml` exactly.
+  - An initial release entry should just be `_Initial release._` with no bullet list.
+  - Bullet text must start with a capital letter.
+  - Entries must be concise — no customer names, no real external URLs, no architecture descriptions. CHANGELOG is not a README.
+  - Use realistic dates; placeholder dates like `2026-00-00` are not acceptable.
+  - Every change that gets built and published must have a changelog entry.
+  - A breaking change to the values API (e.g., changing a key's type from list to map) requires a major version bump (SemVer).
+
+### README
+
+- Must stay in sync with `values.yaml` — all configurable values must appear in the README table, and described features must exist in templates.
+- Do not list parameters of external dependencies (they change and the list is never complete).
+- Document prerequisites that require manual steps (e.g., creating an external DNS record, pre-provisioning a Vault secret).
+- Never mention specific customer names — use `example.com` or generic terms like "config repository."
+- Do not include AI-generated filler or generic prose without informational value.
+
 ### Operator installation
 
-- ACM operatorpolicy should be used to install operators, and approve only allowed versions
+- Each operator should have its own dedicated namespace; operators must not share a namespace.
+- ACM operatorpolicy should be used to install operators, and approve only allowed versions.
+  - Always use `installPlanApproval: Automatic` with specified `versions`
+  - `operatorGroup` usually does not need to be specified explicitly in values for standard operator installs — remove it unless there is a concrete reason.
+- Start operators at their final target version rather than installing an old version and upgrading immediately.
+
+### Resource sizing
+
+- Resource limits should not exceed **3× requests** (e.g., if CPU request is 100m, limit must be ≤ 300m). Ratios above 3:1 are not acceptable.
+- Production-ready Deployments should default to **2 replicas**. A single replica is insufficient for HA components.
+- All Deployments must define liveness and readiness probes.
+
+### Security / RBAC
+
+- Use least-privilege RBAC — grant only the verbs and resources actually needed.
+- Do not add RBAC rules for non-existent Kubernetes resources.
+- RBAC API groups must be correct (e.g., `subjectaccessreviews` belongs to `authorization.k8s.io`, not `authentication.k8s.io`).
+- Prefer namespace-scoped Kyverno `Policy` over `ClusterPolicy` when the rule only targets resources within a single namespace.
+- Kyverno `generate` rules should include `synchronize: true` so generated resources stay in sync. Disable synchronization only for specific resources with known synchronization problems, and document why.
+- `AdminNetworkPolicy` pass rules must use the `pass-` name prefix.
+- Do not add intra-namespace `NetworkPolicy` rules — intra-namespace communication is allowed by default.
 
 ### Things to avoid
 
 - **Extra objects / extraManifests** — do not implement for APC charts; keep complexity in the chart, not in the config repo.
 - **Helm lookup** — makes deployment non-deterministic; incompatible with rendered-manifest GitOps. Use Kyverno or Crossplane instead.
+- **Hardcoding `fullnameOverride`** in chart defaults — if legacy resources require a specific name, configure it in the conf repo.
+- **Committing** — developer-local files must not be checked in.
+- **Duplicating code from other repositories** in a chart — keep it DRY; reference the other chart as a dependency instead.
 
 ## URLs
 

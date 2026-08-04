@@ -85,6 +85,62 @@ tests:
       - equal: { path: data.servicesExtracted.vault.name, value: vaultName-local }
       - equal: { path: data.servicesExtracted.vault.url, value: vaultUrl-local }
 
+  - it: imageProxy local overrides global
+    asserts:
+      - equal: { path: data.imageProxyHost, value: local.example.com }
+      - equal:
+          path: data.imageProxySources
+          value:
+            - local.example.com
+
+  - it: adIntegration from local with attribute defaults applied
+    asserts:
+      - equal: { path: data.adIntegration.name, value: "AD Login local" }
+      - equal: { path: data.adIntegration.type, value: "LDAP" }
+      - equal: { path: data.adIntegration.mappingMethod, value: "claim" }
+      - equal: { path: data.adIntegration.ldap.attributes.bindDN, value: "cn=svc-local,dc=local,dc=com" }
+      - equal: { path: data.adIntegration.ldap.attributes.url, value: "ldaps://ad-local.example.com/dc=local,dc=com" }
+      - equal:
+          path: data.adIntegration.ldap.attributes.email
+          value:
+            - "mail-local"
+      - equal:
+          path: data.adIntegration.ldap.attributes.id
+          value:
+            - "sAMAccountName-local"
+      - equal:
+          path: data.adIntegration.ldap.attributes.name
+          value:
+            - "cn-local"
+      - equal:
+          path: data.adIntegration.ldap.attributes.preferredUsername
+          value:
+            - "sAMAccountName-local"
+
+  - it: ldapIntegration from local with attribute defaults applied
+    asserts:
+      - equal: { path: data.ldapIntegration.name, value: "LDAP Login local" }
+      - equal: { path: data.ldapIntegration.type, value: "LDAP" }
+      - equal: { path: data.ldapIntegration.mappingMethod, value: "claim" }
+      - equal: { path: data.ldapIntegration.ldap.attributes.bindDN, value: "cn=svc-local,dc=local,dc=com" }
+      - equal: { path: data.ldapIntegration.ldap.attributes.url, value: "ldaps://ldap-local.example.com/dc=local,dc=com" }
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.email
+          value:
+            - "mail-local"
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.id
+          value:
+            - "dn-local"
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.name
+          value:
+            - "cn-local"
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.preferredUsername
+          value:
+            - "uid-local"
+
   - it: caCertificates and merged include global+local with local precedence; global key absent in non-merged
     asserts:
       - equal:

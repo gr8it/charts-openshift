@@ -1,0 +1,12 @@
+{{- if .Values.ldapIntegration.vaultKey }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bastion-ldap-ca
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
+data:
+  ca.crt: |
+    {{- required "ldapIntegration.caCert is required" .Values.ldapIntegration.caCert | nindent 4 }}
+{{- end }}

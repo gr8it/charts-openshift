@@ -70,6 +70,74 @@ tests:
           value:
             - proxyIP-global
 
+  - it: ntpServers from global
+    asserts:
+      - equal:
+          path: data.ntpServers
+          value:
+            - ntp-global
+
+  - it: sshAuthorizedKeys from global
+    asserts:
+      - equal: { path: data.sshAuthorizedKeys, value: "ssh-ed25519 AAAA global-key" }
+
+  - it: imageProxy from global
+    asserts:
+      - equal: { path: data.imageProxyHost, value: global.example.com }
+      - equal:
+          path: data.imageProxySources
+          value:
+            - quay.io-global
+            - docker.io-global
+
+  - it: adIntegration from global with attribute defaults applied
+    asserts:
+      - equal: { path: data.adIntegration.name, value: "AD Login global" }
+      - equal: { path: data.adIntegration.type, value: "LDAP" }
+      - equal: { path: data.adIntegration.mappingMethod, value: "claim" }
+      - equal: { path: data.adIntegration.ldap.attributes.bindDN, value: "cn=svc-global,dc=global,dc=com" }
+      - equal: { path: data.adIntegration.ldap.attributes.url, value: "ldaps://ad-global.example.com/dc=global,dc=com" }
+      - equal:
+          path: data.adIntegration.ldap.attributes.email
+          value:
+            - "mail-global"
+      - equal:
+          path: data.adIntegration.ldap.attributes.id
+          value:
+            - "sAMAccountName-global"
+      - equal:
+          path: data.adIntegration.ldap.attributes.name
+          value:
+            - "cn-global"
+      - equal:
+          path: data.adIntegration.ldap.attributes.preferredUsername
+          value:
+            - "sAMAccountName-global"
+
+  - it: ldapIntegration from global with attribute defaults applied
+    asserts:
+      - equal: { path: data.ldapIntegration.name, value: "LDAP Login global" }
+      - equal: { path: data.ldapIntegration.type, value: "LDAP" }
+      - equal: { path: data.ldapIntegration.mappingMethod, value: "claim" }
+      - equal: { path: data.ldapIntegration.ldap.attributes.bindDN, value: "cn=svc-global,dc=global,dc=com" }
+      - equal: { path: data.ldapIntegration.ldap.attributes.url, value: "ldaps://ldap-global.example.com/dc=global,dc=com" }
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.email
+          value:
+            - "mail-global"
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.id
+          value:
+            - "dn-global"
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.name
+          value:
+            - "cn-global"
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.preferredUsername
+          value:
+            - "uid-global"
+
   - it: services and merged (global only, no local keys in non-merged)
     asserts:
       - equal: { path: data.services.global.url, value: servicesGlobalUrl-global }
