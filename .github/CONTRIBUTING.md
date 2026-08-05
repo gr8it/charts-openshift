@@ -112,7 +112,9 @@ Follow <https://learnk8s.io/production-best-practices>
   <details>
   <summary>Click for explanation</summary>
 
-  - Verticalpodautoscaler should be deployed to establish resource usage base line
+  - Verticalpodautoscaler (VPA) should be deployed to establish resource usage base line
+  - if VPA is not set, default max ratio for request:limit should be 1:3
+  - possible exceptions for workloads with peaks
   </details>
 
 - Mount secrets as volumes, not environment variables
