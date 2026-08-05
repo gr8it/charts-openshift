@@ -3265,6 +3265,28 @@ entries:
     version: 1.0.0
   monitoring:
   - apiVersion: v2
+    created: "2026-08-05T09:47:38.412759+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.6
+    - alias: backups
+      condition: backups.enabled
+      name: openshift-adp-backups
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.0
+    description: Helm chart for OpenShift cluster monitoring (ClusterMonitoringConfig,
+      UserWorkloadMonitoringConfig, AlertManager via ESO, Kyverno PrometheusRule generation)
+    digest: ab21ad6ae486747806915251d9ecafd53ca3c5f1907c322923dfb8107c81e48c
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.1.6.tgz
+    version: 1.1.6
+  - apiVersion: v2
     created: "2026-08-05T08:56:03.364044+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -4428,4 +4450,4 @@ entries:
     urls:
     - packaged_charts/veeam-exporter-1.0.0.tgz
     version: 1.0.0
-generated: "2026-08-05T08:56:03.353457+02:00"
+generated: "2026-08-05T09:47:38.402617+02:00"
