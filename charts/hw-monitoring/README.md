@@ -6,6 +6,7 @@ Helm chart for Loki `AlertingRule` alerts on HW/infrastructure events (UPS/PDU/X
 
 - Loki Operator and a `LokiStack` with an `audit` tenant must already be installed (see the `loki-operator` chart)
 - Install this chart into the same namespace as the `LokiStack` (`openshift-logging`)
+- There's also a "soft" requirement for `vector` installation. Without it, there are no logs.
 
 ## Hub vs non-hub clusters
 
