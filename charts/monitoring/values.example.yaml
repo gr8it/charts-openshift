@@ -1,0 +1,21 @@
+global:
+  apc:
+    customer: examplecustomer
+    environment: dev
+    environmentShort: d
+    cluster:
+      name: dev01
+      isHub: true
+    proxy: http://proxy.example.com:8080
+    noProxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1
+    proxyCIDRs:
+      - 10.1.1.7/32
+    vault:
+      kvMountPlatform: customers
+    services:
+      externalSecretsOperator:
+        defaultClusterSecretStore: apc
+
+
+vaultBastionMonitoring:
+  bastionIP: 10.0.0.1
