@@ -9,10 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Bump ODF to the 4.18 line: subscription channel `stable-4.17` → `stable-4.18`, pinned
-  `startingCSV`/`versions` `odf-operator.v4.17.5-rhodf` → `odf-operator.v4.18.24-rhodf`
-  (matches QA `huba`). Direct single-hop upgrade from 4.17.5 (CSV `skipRange >=4.2.0 <4.18.24`).
-- `appVersion` `4.17` → `4.18`.
+- ODF upgrade `odf-operator.v4.17.5-rhodf` → `odf-operator.v4.18.24-rhodf`.
 
 ## [1.0.0] - 2026-06-24
 
