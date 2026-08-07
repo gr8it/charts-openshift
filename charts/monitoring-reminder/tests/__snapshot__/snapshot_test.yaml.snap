@@ -7,7 +7,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: monitoring-reminder
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring-reminder
-        helm.sh/chart: monitoring-reminder-2.0.1
+        helm.sh/chart: monitoring-reminder-2.0.2
       name: monitoring-reminder
       namespace: NAMESPACE
     spec:
@@ -21,7 +21,7 @@ manifests should match snapshot:
                 runbook_url: https://github.com/company/repo/runbook.md
                 summary: Azure Entra ID secret for vault.lab.gr8it.cloud OIDC expires in less than 30 days
               expr: |
-                (1806537600 - time()) / 86400 < 30
+                vector((1806537600 - time()) / 86400) < 30
               labels:
                 severity: warning
                 team: platform
@@ -33,7 +33,7 @@ manifests should match snapshot:
                 runbook_url: https://github.com/company/repo/runbook.md
                 summary: Azure Entra ID secret for vault.lab.gr8it.cloud OIDC expires in less than 30 days
               expr: |
-                (1806537600 - time()) / 86400 < 1
+                vector((1806537600 - time()) / 86400) < 1
               labels:
                 severity: critical
                 team: platform
