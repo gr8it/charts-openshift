@@ -17,9 +17,9 @@ manifests should match snapshot:
             - alert: OIDCVaultSecretExpirySoon
               annotations:
                 description: |
-                  Azure Entra ID client secret used for OIDC authentication in vault.lab.gr8it.cloud expires in less than 30 days. The secret is stored in Azure App Registration. After expiry, login to Vault via OIDC will stop working.
+                  Azure Entra ID client secret used for OIDC authentication in vault.example.com expires in less than 30 days. The secret is stored in Azure App Registration. After expiry, login to Vault via OIDC will stop working.
                 runbook_url: https://github.com/company/repo/runbook.md
-                summary: Azure Entra ID secret for vault.lab.gr8it.cloud OIDC expires in less than 30 days
+                summary: Azure Entra ID secret for vault.example.com OIDC expires in less than 30 days
               expr: |
                 vector((1806537600 - time()) / 86400) < 30
               labels:
@@ -29,9 +29,9 @@ manifests should match snapshot:
             - alert: OIDCVaultSecretExpirySoonCritical
               annotations:
                 description: |
-                  Azure Entra ID client secret used for OIDC authentication in vault.lab.gr8it.cloud expires in less than 30 days. The secret is stored in Azure App Registration. After expiry, login to Vault via OIDC will stop working.
+                  Azure Entra ID client secret used for OIDC authentication in vault.example.com expires in less than 30 days. The secret is stored in Azure App Registration. After expiry, login to Vault via OIDC will stop working.
                 runbook_url: https://github.com/company/repo/runbook.md
-                summary: Azure Entra ID secret for vault.lab.gr8it.cloud OIDC expires in less than 30 days
+                summary: Azure Entra ID secret for vault.example.com OIDC expires in less than 30 days
               expr: |
                 vector((1806537600 - time()) / 86400) < 1
               labels:
