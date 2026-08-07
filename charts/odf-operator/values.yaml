@@ -9,5 +9,8 @@ acm-operatorpolicy:
     startingCSV: odf-operator.v4.18.24-rhodf
 
   upgradeApproval: Automatic
+  # Keep the currently-installed version in the allowed list as well.
+  # Otherwise the OperatorPolicy reports non-compliant/failed during the upgrade.
   versions:
+    - odf-operator.v4.17.5-rhodf
     - odf-operator.v4.18.24-rhodf
