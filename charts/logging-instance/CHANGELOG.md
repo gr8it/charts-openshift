@@ -5,6 +5,12 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-08-07
+
+### Fixed
+
+- Fix packaged chart to bundle `monitoring-reminder` 2.0.2 (logging-instance 1.0.1 was incorrectly bundled with `monitoring-reminder` 2.0.1)
+
 ## [1.0.1] - 2026-08-07
 
 ### Fixed
