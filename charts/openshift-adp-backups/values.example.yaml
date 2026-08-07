@@ -1,0 +1,20 @@
+namespace: openshift-adp
+
+schedules:
+  - name: 01-test01-prometheus
+    spec:
+      schedule: "0 20 * * *"
+      template:
+        includedNamespaces:
+          - openshift-user-workload-monitoring
+          - openshift-monitoring
+        includedResources:
+          - configmaps
+          - persistentvolumes
+          - persistentvolumeclaims
+        ttl: 24h
+
+hostedClusters:
+  - name: spokea2
+    schedule: "0 22 * * *"
+    infraEnvSchedule: "15 22 * * *"

@@ -8,6 +8,58 @@ Helm chart that renders Velero `Schedule` resources for application backups. Use
 | --- | --- | --- |
 | `namespace` | Namespace where schedules are created | `openshift-adp` |
 | `schedules` | List of Velero schedule definitions | `[]` |
+| `hostedClusters` | Hosted control plane spokes to protect on this hub | `[]` |
+
+## Hosted Control Plane Backups
+
+On a hub cluster, declare each spoke by name and the chart renders the two
+Schedules that protect it:
+
+```yaml
+hostedClusters:
+  - name: spokea2
+    schedule: "0 22 * * *"           # control plane backup
+    infraEnvSchedule: "15 22 * * *"  # InfraEnv backup
+    paused: false                    # optional, default false
+    ttl: 336h0m0s                    # optional, default 336h0m0s (14 days)
+```
+
+Both cron expressions are required and have no defaults — like every other
+schedule in this chart, the times belong to the cluster and are set in the conf
+repo. Application backups run in an evening window (prometheus at 20:00, other
+workloads through to 23:50), so hosted cluster backups fit naturally after it.
+
+Velero queues concurrent backups, so give each spoke its own slot and leave a gap
+between its two schedules instead of starting them together.
+
+A spoke occupies four namespaces on the hub, all derived from its name — so only
+the name is configurable:
+
+| Namespace | Contents | Schedule |
+| --- | --- | --- |
+| `<name>` | HostedCluster, NodePool, ManagedCluster addons | `hcp-<name>` |
+| `<name>-<name>` | HostedControlPlane and its workloads | `hcp-<name>` |
+| `klusterlet-<name>` | ACM klusterlet (hosted mode) | `hcp-<name>` |
+| `infrastructure-<name>` | InfraEnv, agents, nmstateconfigs | `infraenv-<name>` |
+
+The cluster-scoped `ManagedCluster` is included as well; a namespace-only backup
+would miss it. The InfraEnv gets its own Schedule because it lives in a separate
+namespace and must be restorable independently of the control plane.
+
+The resource filters are fixed by the chart and intentionally not configurable —
+each one fixes a restore failure reproduced on a live cluster:
+
+- everything is captured (`'*'`) rather than a curated resource list; a curated
+  list silently dropped roughly half the objects needed to rebuild the spoke
+- `pods` and `replicasets.apps` are excluded: a restored bare Pod carries a dead
+  network sandbox and blocks its ReplicaSet from creating a healthy one
+- `snapshotMoveData: false` — etcd data is protected by the hosted-etcd snapshot
+  CronJob, not by Velero
+
+> [!IMPORTANT]
+> Deploy the `kyverno-backup-exclusions` chart on the same hub. It keeps ACM
+> registration credentials out of these backups; restoring them leaves the
+> klusterlet failing `Unauthorized` and the managed cluster never re-registers.
 
 ## Restore Notice
 

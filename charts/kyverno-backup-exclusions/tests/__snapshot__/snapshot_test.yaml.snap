@@ -1,0 +1,65 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: kyverno.io/v1
+    kind: ClusterPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: Backup
+        policies.kyverno.io/description: Labels ACM registration credentials so Velero skips them. They are bound to a ManagedCluster identity and must be regenerated on restore, not restored.
+        policies.kyverno.io/minversion: 1.13.0
+        policies.kyverno.io/subject: Secret
+        policies.kyverno.io/title: Exclude ACM registration secrets from Velero backups
+      labels:
+        app.kubernetes.io/instance: kyverno-backup-exclusions
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-backup-exclusions
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: kyverno-backup-exclusions-1.0.0
+      name: velero-exclude-acm-registration-secrets
+    spec:
+      background: true
+      mutateExistingOnPolicyUpdate: true
+      rules:
+        - match:
+            any:
+              - resources:
+                  kinds:
+                    - Secret
+                  selector:
+                    matchExpressions:
+                      - key: managedcluster-import-controller.open-cluster-management.io/import-secret
+                        operator: Exists
+          mutate:
+            patchStrategicMerge:
+              metadata:
+                labels:
+                  velero.io/exclude-from-backup: "true"
+            targets:
+              - apiVersion: v1
+                kind: Secret
+                name: '{{ request.object.metadata.name }}'
+                namespace: '{{ request.object.metadata.namespace }}'
+          name: exclude-managedcluster-import-secret
+        - match:
+            any:
+              - resources:
+                  kinds:
+                    - Secret
+                  names:
+                    - bootstrap-hub-kubeconfig
+                    - hub-kubeconfig-secret
+                  namespaceSelector:
+                    matchExpressions:
+                      - key: createdByKlusterlet
+                        operator: Exists
+          mutate:
+            patchStrategicMerge:
+              metadata:
+                labels:
+                  velero.io/exclude-from-backup: "true"
+            targets:
+              - apiVersion: v1
+                kind: Secret
+                name: '{{ request.object.metadata.name }}'
+                namespace: '{{ request.object.metadata.namespace }}'
+          name: exclude-klusterlet-hub-kubeconfigs
