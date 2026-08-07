@@ -26,7 +26,7 @@ spec:
         runbook_url: {{ $reminder.runbookUrl | quote }}
         {{- end }}
       expr: |
-        ({{ $unixTs }} - time()) / 86400 < {{ $days }}
+        vector(({{ $unixTs }} - time()) / 86400) < {{ $days }}
       labels:
         severity: warning
         {{- with $mergedLabels }}
@@ -41,7 +41,7 @@ spec:
         runbook_url: {{ $reminder.runbookUrl | quote }}
         {{- end }}
       expr: |
-        ({{ $unixTs }} - time()) / 86400 < 1
+        vector(({{ $unixTs }} - time()) / 86400) < 1
       labels:
         severity: critical
         {{- with $mergedLabels }}
