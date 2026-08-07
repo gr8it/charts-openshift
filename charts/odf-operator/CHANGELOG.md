@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- ODF upgrade `odf-operator.v4.17.5-rhodf` → `odf-operator.v4.18.24-rhodf`.
+- ODF upgrade `odf-operator.v4.17.5-rhodf` → `odf-operator.v4.18.25-rhodf` (catalog head; `v4.18.24` is not reachable from `stable-4.17` via `skipRange`, OLM resolves to head).
 - Keep the currently-installed `v4.17.5-rhodf` in the OperatorPolicy allowed `versions` so the policy stays compliant during the upgrade.
 
 ## [1.0.0] - 2026-06-24
