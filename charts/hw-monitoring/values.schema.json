@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "hw-monitoring values",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "global": {
+      "type": "object",
+      "description": "Global values to be accessed by all (sub)charts.",
+      "additionalProperties": true
+    },
+    "customer": {
+      "type": "string",
+      "description": "Local override for the customer name (falls back to global.apc.customer). Used as the customerName alert label."
+    },
+    "cluster": {
+      "type": "object",
+      "description": "Local override for cluster values (falls back to global.apc.cluster).",
+      "additionalProperties": false,
+      "properties": {
+        "isHub": {
+          "type": "boolean",
+          "description": "Local override for whether this is the hub cluster (falls back to global.apc.cluster.isHub). The AlertingRule is only rendered when true."
+        }
+      }
+    },
+    "nameOverride": {
+      "type": "string",
+      "description": "Overrides chart name used for app.kubernetes.io/name."
+    },
+    "fullnameOverride": {
+      "type": "string",
+      "description": "Overrides the full resource name."
+    },
+    "apc-global-overrides": {
+      "type": "object",
+      "description": "Values for the apc-global-overrides dependency chart.",
+      "additionalProperties": true
+    }
+  }
+}
