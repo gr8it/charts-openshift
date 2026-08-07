@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- fix packaged monitoring-reminder dependency (1.0.1 was incorrectly bundled with 2.0.1)
+- Fix packaged chart to bundle `monitoring-reminder` 2.0.2 (logging-instance 1.0.1 was incorrectly bundled with `monitoring-reminder` 2.0.1)
 
 ## [1.0.1] - 2026-08-07
 
