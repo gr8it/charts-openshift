@@ -34,7 +34,7 @@ spec:
       zipkin: {}
     processors:
       batch: {}
-      k8sattributes:
+      k8s_attributes:
         extract:
           metadata: [k8s.namespace.name]
       memory_limiter:
@@ -58,8 +58,8 @@ spec:
         tls:
           insecure: false
           ca_file: "/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt"
-      otlphttp/loki:
-        endpoint: {{ .Values.logsEndpoint | required "Logs endpoint is required!" }}
+      otlp_http/loki:
+        logs_endpoint: {{ .Values.logsEndpoint | required "Logs endpoint is required!" }}
         auth: { authenticator: bearertokenauth }
         tls:
           insecure: false
@@ -81,14 +81,14 @@ spec:
       pipelines:
         traces:
           receivers: [jaeger,otlp,zipkin]
-          processors: [memory_limiter, k8sattributes, resourcedetection, batch]
+          processors: [memory_limiter, k8s_attributes, resourcedetection, batch]
           exporters: [routing]
         traces/application: { receivers: [routing], exporters: [otlp/application] }
         metrics:
           receivers: [otlp]
-          processors: [memory_limiter, k8sattributes, resourcedetection, batch]
+          processors: [memory_limiter, k8s_attributes, resourcedetection, batch]
           exporters: [prometheus]
         logs:
           receivers: [otlp]
-          processors: [memory_limiter, k8sattributes, resourcedetection, batch]
-          exporters: [otlphttp/loki]
+          processors: [memory_limiter, k8s_attributes, resourcedetection, batch]
+          exporters: [otlp_http/loki]

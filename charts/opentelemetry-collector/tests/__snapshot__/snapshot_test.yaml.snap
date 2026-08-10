@@ -71,7 +71,7 @@ manifests should match snapshot:
               spec:
                 config:
                   exporters:
-                    otlp/{{ request.object.metadata.name }}:
+                    otlp_grpc/{{ request.object.metadata.name }}:
                       auth:
                         authenticator: bearertokenauth
                       endpoint: traces.svc
@@ -84,7 +84,7 @@ manifests should match snapshot:
                     pipelines:
                       traces/{{ request.object.metadata.name }}:
                         exporters:
-                          - otlp/{{ request.object.metadata.name }}
+                          - otlp_grpc/{{ request.object.metadata.name }}
                         receivers:
                           - routing
             targets:
@@ -168,7 +168,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: opentelemetry-collector
         app.kubernetes.io/version: v0.144.0-3
-        helm.sh/chart: opentelemetry-collector-1.2.0
+        helm.sh/chart: opentelemetry-collector-1.2.1
       name: opentelemetry-collector-tempostack-traces-write
   5: |
     apiVersion: rbac.authorization.k8s.io/v1
@@ -179,7 +179,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: opentelemetry-collector
         app.kubernetes.io/version: v0.144.0-3
-        helm.sh/chart: opentelemetry-collector-1.2.0
+        helm.sh/chart: opentelemetry-collector-1.2.1
         rbac.authorization.k8s.io/apc-opentelemetry-collector-apc-observability-cluster-role: "true"
       name: opentelemetry-collector-tempostack-writer-application
     rules:
@@ -200,7 +200,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: opentelemetry-collector
         app.kubernetes.io/version: v0.144.0-3
-        helm.sh/chart: opentelemetry-collector-1.2.0
+        helm.sh/chart: opentelemetry-collector-1.2.1
       name: opentelemetry-collector
     rules:
       - apiGroups:
@@ -240,12 +240,12 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: opentelemetry-collector
         app.kubernetes.io/version: v0.144.0-3
-        helm.sh/chart: opentelemetry-collector-1.2.0
-      name: opentelemetry-collector-cluster-monitoring-view
+        helm.sh/chart: opentelemetry-collector-1.2.1
+      name: opentelemetry-collector-cluster-logging-write
     roleRef:
       apiGroup: rbac.authorization.k8s.io
       kind: ClusterRole
-      name: cluster-monitoring-view
+      name: cluster-logging-write-application-logs
     subjects:
       - kind: ServiceAccount
         name: opentelemetry-collector-deployment
@@ -259,12 +259,12 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: opentelemetry-collector
         app.kubernetes.io/version: v0.144.0-3
-        helm.sh/chart: opentelemetry-collector-1.2.0
-      name: opentelemetry-collector
+        helm.sh/chart: opentelemetry-collector-1.2.1
+      name: opentelemetry-collector-cluster-monitoring-view
     roleRef:
       apiGroup: rbac.authorization.k8s.io
       kind: ClusterRole
-      name: opentelemetry-collector
+      name: cluster-monitoring-view
     subjects:
       - kind: ServiceAccount
         name: opentelemetry-collector-deployment
@@ -278,7 +278,26 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: opentelemetry-collector
         app.kubernetes.io/version: v0.144.0-3
-        helm.sh/chart: opentelemetry-collector-1.2.0
+        helm.sh/chart: opentelemetry-collector-1.2.1
+      name: opentelemetry-collector
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: opentelemetry-collector
+    subjects:
+      - kind: ServiceAccount
+        name: opentelemetry-collector-deployment
+        namespace: NAMESPACE
+  10: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: opentelemetry-collector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: opentelemetry-collector
+        app.kubernetes.io/version: v0.144.0-3
+        helm.sh/chart: opentelemetry-collector-1.2.1
       name: opentelemetry-collector-tempostack-traces-write
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -288,7 +307,7 @@ manifests should match snapshot:
       - kind: ServiceAccount
         name: opentelemetry-collector-deployment
         namespace: NAMESPACE
-  10: |
+  11: |
     apiVersion: opentelemetry.io/v1beta1
     kind: OpenTelemetryCollector
     metadata:
@@ -297,7 +316,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: opentelemetry-collector
         app.kubernetes.io/version: v0.144.0-3
-        helm.sh/chart: opentelemetry-collector-1.2.0
+        helm.sh/chart: opentelemetry-collector-1.2.1
       name: opentelemetry-collector
       namespace: NAMESPACE
     spec:
@@ -320,10 +339,10 @@ manifests should match snapshot:
             tls:
               ca_file: /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
               insecure: false
-          otlphttp/loki:
+          otlp_http/loki:
             auth:
               authenticator: bearertokenauth
-            endpoint: logs.svc
+            logs_endpoint: logs.svc
             tls:
               ca_file: /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
               insecure: false
@@ -336,7 +355,7 @@ manifests should match snapshot:
             filename: /var/run/secrets/kubernetes.io/serviceaccount/token
         processors:
           batch: {}
-          k8sattributes:
+          k8s_attributes:
             extract:
               metadata:
                 - k8s.namespace.name
@@ -365,10 +384,10 @@ manifests should match snapshot:
           pipelines:
             logs:
               exporters:
-                - otlphttp/loki
+                - otlp_http/loki
               processors:
                 - memory_limiter
-                - k8sattributes
+                - k8s_attributes
                 - resourcedetection
                 - batch
               receivers:
@@ -378,7 +397,7 @@ manifests should match snapshot:
                 - prometheus
               processors:
                 - memory_limiter
-                - k8sattributes
+                - k8s_attributes
                 - resourcedetection
                 - batch
               receivers:
@@ -388,7 +407,7 @@ manifests should match snapshot:
                 - routing
               processors:
                 - memory_limiter
-                - k8sattributes
+                - k8s_attributes
                 - resourcedetection
                 - batch
               receivers:
@@ -414,7 +433,7 @@ manifests should match snapshot:
           enableMetrics: true
       replicas: 2
       serviceAccount: opentelemetry-collector-deployment
-  11: |
+  12: |
     apiVersion: v1
     kind: ServiceAccount
     metadata:
@@ -423,6 +442,6 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: opentelemetry-collector
         app.kubernetes.io/version: v0.144.0-3
-        helm.sh/chart: opentelemetry-collector-1.2.0
+        helm.sh/chart: opentelemetry-collector-1.2.1
       name: opentelemetry-collector-deployment
       namespace: NAMESPACE
