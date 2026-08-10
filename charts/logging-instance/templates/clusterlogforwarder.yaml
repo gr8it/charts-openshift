@@ -1,0 +1,96 @@
+apiVersion: observability.openshift.io/v1
+kind: ClusterLogForwarder
+metadata:
+  name: instance
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "logging-instance.labels" . | nindent 4 }}
+spec:
+  managementState: Managed
+  serviceAccount:
+    name: collector
+  collector:
+    resources:
+      {{- toYaml .Values.collector.resources | nindent 6 }}
+  {{- if .Values.pgaudit.enabled }}
+  filters:
+    - name: pgaudit-filter
+      type: drop
+      drop:
+        - test:
+            - field: .message
+              notMatches: '"logger":"pgaudit"'
+            - field: .message
+              notMatches: '"command_tag":"authentication"'
+            - field: .message
+              notMatches: '"command_tag":"startup"'
+  inputs:
+    - name: pgaudit
+      type: application
+      application:
+        selector:
+          matchExpressions:
+            - key: cnpg.io/cluster
+              operator: Exists
+  {{- end }}
+  outputs:
+    - name: default-lokistack
+      type: lokiStack
+      lokiStack:
+        authentication:
+          token:
+            from: serviceAccount
+        target:
+          name: {{ include "logging-instance.lokistackName" . }}
+          namespace: {{ .Release.Namespace }}
+      tls:
+        ca:
+          configMapName: openshift-service-ca.crt
+          key: service-ca.crt
+    {{- if .Values.auditToHub.enabled }}
+    - name: hub-loki-audit
+      type: loki
+      loki:
+        url: {{ required "auditToHub.url is required when auditToHub.enabled is true" .Values.auditToHub.url | quote }}
+        authentication:
+          token:
+            from: secret
+            secret:
+              key: TOKEN
+              name: hub-spoke-logforward
+    {{- end }}
+    {{- if .Values.pgaudit.enabled }}
+    - name: vector-webhook
+      type: http
+      http:
+        url: {{ required "pgaudit.url is required when pgaudit.enabled is true" .Values.pgaudit.url | quote }}
+      tls:
+        ca:
+          configMapName: kube-root-ca.crt
+          key: ca.crt
+        insecureSkipVerify: false
+    {{- end }}
+  pipelines:
+    - name: all-to-loki
+      inputRefs:
+        - infrastructure
+        - application
+        - audit
+      outputRefs:
+        - default-lokistack
+    {{- if .Values.auditToHub.enabled }}
+    - name: audit-to-hub
+      inputRefs:
+        - audit
+      outputRefs:
+        - hub-loki-audit
+    {{- end }}
+    {{- if .Values.pgaudit.enabled }}
+    - name: postgres-audit-to-hub
+      filterRefs:
+        - pgaudit-filter
+      inputRefs:
+        - pgaudit
+      outputRefs:
+        - vector-webhook
+    {{- end }}
