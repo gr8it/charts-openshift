@@ -71,7 +71,7 @@ manifests should match snapshot:
               spec:
                 config:
                   exporters:
-                    otlp/{{ request.object.metadata.name }}:
+                    otlp_grpc/{{ request.object.metadata.name }}:
                       auth:
                         authenticator: bearertokenauth
                       endpoint: traces.svc
@@ -84,7 +84,7 @@ manifests should match snapshot:
                     pipelines:
                       traces/{{ request.object.metadata.name }}:
                         exporters:
-                          - otlp/{{ request.object.metadata.name }}
+                          - otlp_grpc/{{ request.object.metadata.name }}
                         receivers:
                           - routing
             targets:
@@ -339,10 +339,10 @@ manifests should match snapshot:
             tls:
               ca_file: /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
               insecure: false
-          otlphttp/loki:
+          otlp_http/loki:
             auth:
               authenticator: bearertokenauth
-            endpoint: logs.svc
+            logs_endpoint: logs.svc
             tls:
               ca_file: /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
               insecure: false
@@ -355,7 +355,7 @@ manifests should match snapshot:
             filename: /var/run/secrets/kubernetes.io/serviceaccount/token
         processors:
           batch: {}
-          k8sattributes:
+          k8s_attributes:
             extract:
               metadata:
                 - k8s.namespace.name
@@ -384,10 +384,10 @@ manifests should match snapshot:
           pipelines:
             logs:
               exporters:
-                - otlphttp/loki
+                - otlp_http/loki
               processors:
                 - memory_limiter
-                - k8sattributes
+                - k8s_attributes
                 - resourcedetection
                 - batch
               receivers:
@@ -397,7 +397,7 @@ manifests should match snapshot:
                 - prometheus
               processors:
                 - memory_limiter
-                - k8sattributes
+                - k8s_attributes
                 - resourcedetection
                 - batch
               receivers:
@@ -407,7 +407,7 @@ manifests should match snapshot:
                 - routing
               processors:
                 - memory_limiter
-                - k8sattributes
+                - k8s_attributes
                 - resourcedetection
                 - batch
               receivers:
