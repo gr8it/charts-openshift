@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-workload-monitoring-config
+  namespace: openshift-user-workload-monitoring
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+    {{- if .Values.eso.enabled }}
+    alertmanager:
+      enabled: true
+      enableAlertmanagerConfig: true
+      secrets:
+        - alertmanager-uwm-receivers
+    {{- end }}
+    prometheus:
+      retention: {{ .Values.userWorkloadMonitoring.prometheus.retention }}
+      volumeClaimTemplate:
+        metadata:
+          name: prometheus-user-workload-pvc
+        spec:
+          storageClassName: {{ .Values.userWorkloadMonitoring.prometheus.storageClassName }}
+          resources:
+            requests:
+              storage: {{ .Values.userWorkloadMonitoring.prometheus.storageSize }}
+      externalLabels:
+        customerName: {{ include "apc-global-overrides.require-customer" . }}
+        environment: {{ include "apc-global-overrides.require-environment" . }}
+        location: {{ .Values.userWorkloadMonitoring.location }}
+        clusterName: {{ include "apc-global-overrides.require-clusterName" . }}
+      {{- if and .Values.userWorkloadMonitoring.prometheus.remoteWrite.enabled (include "apc-global-overrides.clusterIsHub" .) }}
+      remoteWrite:
+      - url: {{ .Values.userWorkloadMonitoring.prometheus.remoteWrite.url }}
+        authorization:
+          type: Bearer
+          credentials:
+            key: token
+            name: {{ .Values.userWorkloadMonitoring.prometheus.remoteWrite.secretName }}
+        {{- with (.Values.userWorkloadMonitoring.prometheus.remoteWrite.proxyUrl | default (include "apc-global-overrides.proxy" .)) }}
+        proxyUrl: {{ . }}
+        {{- end }}
+        queueConfig:
+          batchSendDeadline: 1m
+          capacity: 30000
+          maxBackoff: 256s
+          maxSamplesPerSend: 10000
+          minBackoff: 1s
+        {{- with .Values.userWorkloadMonitoring.prometheus.remoteWrite.writeRelabelConfigs }}
+        writeRelabelConfigs:
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+    prometheusOperator: {}
+    thanosRuler:
+      volumeClaimTemplate:
+        metadata:
+          name: thanos-ruler-user-workload-pvc
+        spec:
+          storageClassName: {{ .Values.userWorkloadMonitoring.thanosRuler.storageClassName }}
+          resources:
+            requests:
+              storage: {{ .Values.userWorkloadMonitoring.thanosRuler.storageSize }}
