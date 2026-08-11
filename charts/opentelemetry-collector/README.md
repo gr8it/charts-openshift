@@ -29,3 +29,9 @@ When exporting logs to OpenShift Logging Loki via OTLP, the collector ServiceAcc
 - [Red Hat build of OpenTelemetry](https://docs.redhat.com/en/documentation/red_hat_build_of_opentelemetry/3.10)
 - [OTLP data ingestion in Loki](https://docs.redhat.com/en/documentation/red_hat_openshift_logging/6.1/html/configuring_logging/configuring-lokistack-otlp)
 - [Preserve OpenShift Pipelines logs with OpenTelemetry](https://developers.redhat.com/articles/2026/06/18/preserve-openshift-pipelines-logs-opentelemetry?source=sso#)
+
+### Samples to test
+
+```
+oc run telemetrygen   --image=ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.158.0   --restart=Never   -n apc-observability   -- logs --otlp-endpoint=apc-opentelemetry-collector-collector.apc-observability.svc.cluster.local:4317   --otlp-insecure  --body=dum4  --duration=180s   --workers=2   --logs=10   --otlp-attributes k8s.container.name=\"telemetrygen\" k8s.namespace.name=\"apc-observability\"
+```

@@ -59,8 +59,10 @@ spec:
           insecure: false
           ca_file: "/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt"
       otlp_http/loki:
-        logs_endpoint: {{ .Values.logsEndpoint | required "Logs endpoint is required!" }}
-        auth: { authenticator: bearertokenauth }
+        endpoint: {{ .Values.logsEndpoint | required "Logs endpoint is required!" }}
+        auth:
+          authenticator: bearertokenauth
+        encoding: json
         tls:
           insecure: false
           ca_file: "/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt"
