@@ -24,6 +24,8 @@ The `ignoreDifferences` block is required because the Kyverno Policy mutates the
 
 ### Reference documentation
 
+When exporting logs to OpenShift Logging Loki via OTLP, the collector ServiceAccount must be able to write application logs (typically via the `cluster-logging-write-application-logs` ClusterRole, depending on your OpenShift Logging version/config).
+
 - [Red Hat build of OpenTelemetry](https://docs.redhat.com/en/documentation/red_hat_build_of_opentelemetry/3.10)
 - [OTLP data ingestion in Loki](https://docs.redhat.com/en/documentation/red_hat_openshift_logging/6.1/html/configuring_logging/configuring-lokistack-otlp)
 - [Preserve OpenShift Pipelines logs with OpenTelemetry](https://developers.redhat.com/articles/2026/06/18/preserve-openshift-pipelines-logs-opentelemetry?source=sso#)
