@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.2.1] - 2026-08-11
 
-Bump to 1.2.1.
+Fix the Loki Operator metrics ServiceMonitor policy to enforce the full HTTPS scrape endpoint, bearer-token authentication, service CA, labels, and the correct TLS server name for the operator namespace.
 
 ## [1.2.0] - 2026-08-10
 
