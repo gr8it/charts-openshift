@@ -7,7 +7,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: cluster-alerting-rules
       namespace: openshift-monitoring
     spec:
@@ -41,7 +41,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: cluster-policy-cluster-monitoring
     spec:
       generateExisting: true
@@ -85,6 +85,17 @@ manifests should match snapshot (hub cluster):
                               1, max by (namespace, pod, owner_kind, cluster) (kube_pod_owner{owner_kind!="Job"})
                             )
                           ) > 0
+                        for: 15m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubePodEvicted
+                        annotations:
+                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been evicted.
+                          summary: Pod has been evicted
+                        expr: kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -510,7 +521,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
         rbac.kyverno.io/aggregate-to-admission-controller: "true"
       name: kyverno:admission-controller:monitoring
     rules:
@@ -581,7 +592,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: cluster-monitoring-config
       namespace: openshift-monitoring
   5: |
@@ -643,7 +654,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: user-workload-monitoring-config
       namespace: openshift-user-workload-monitoring
   6: |
@@ -654,7 +665,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: vault-bastion
       namespace: apc-monitoring-bastion
     subsets:
@@ -672,7 +683,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: alertmanager-receivers
       namespace: openshift-monitoring
     spec:
@@ -694,7 +705,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: alertmanager-uwm-receivers
       namespace: openshift-user-workload-monitoring
     spec:
@@ -716,7 +727,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: allow-proxy
       namespace: openshift-user-workload-monitoring
     spec:
@@ -735,7 +746,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: allow-proxy
       namespace: openshift-monitoring
     spec:
@@ -754,7 +765,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: disk-raid-array-monitoring
       namespace: openshift-monitoring
     spec:
@@ -791,7 +802,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: ldap-monitoring
       namespace: apc-monitoring-bastion
     spec:
@@ -836,7 +847,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: user-workload-monitoring-thanos-rules
       namespace: apc-observability
     spec:
@@ -862,7 +873,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: alertmanager-user-workload
       namespace: openshift-user-workload-monitoring
     stringData:
@@ -954,7 +965,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: alertmanager-main
       namespace: openshift-monitoring
     stringData:
@@ -1127,7 +1138,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: vault-bastion
       namespace: apc-monitoring-bastion
     spec:
@@ -1145,7 +1156,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: vault-bastion
       namespace: apc-monitoring-bastion
     spec:
@@ -1174,7 +1185,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: cluster-alerting-rules
       namespace: openshift-monitoring
     spec:
@@ -1208,7 +1219,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: cluster-policy-cluster-monitoring
     spec:
       generateExisting: true
@@ -1252,6 +1263,17 @@ manifests should match snapshot (non-hub cluster):
                               1, max by (namespace, pod, owner_kind, cluster) (kube_pod_owner{owner_kind!="Job"})
                             )
                           ) > 0
+                        for: 15m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubePodEvicted
+                        annotations:
+                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been evicted.
+                          summary: Pod has been evicted
+                        expr: kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -1677,7 +1699,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
         rbac.kyverno.io/aggregate-to-admission-controller: "true"
       name: kyverno:admission-controller:monitoring
     rules:
@@ -1748,7 +1770,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: cluster-monitoring-config
       namespace: openshift-monitoring
   5: |
@@ -1810,7 +1832,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: user-workload-monitoring-config
       namespace: openshift-user-workload-monitoring
   6: |
@@ -1821,7 +1843,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: vault-bastion
       namespace: apc-monitoring-bastion
     subsets:
@@ -1839,7 +1861,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: alertmanager-receivers
       namespace: openshift-monitoring
     spec:
@@ -1861,7 +1883,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: alertmanager-uwm-receivers
       namespace: openshift-user-workload-monitoring
     spec:
@@ -1883,7 +1905,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: allow-proxy
       namespace: openshift-user-workload-monitoring
     spec:
@@ -1902,7 +1924,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: allow-proxy
       namespace: openshift-monitoring
     spec:
@@ -1921,7 +1943,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: disk-raid-array-monitoring
       namespace: openshift-monitoring
     spec:
@@ -1958,7 +1980,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: ldap-monitoring
       namespace: apc-monitoring-bastion
     spec:
@@ -2003,7 +2025,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: user-workload-monitoring-thanos-rules
       namespace: apc-observability
     spec:
@@ -2029,7 +2051,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: alertmanager-user-workload
       namespace: openshift-user-workload-monitoring
     stringData:
@@ -2121,7 +2143,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: alertmanager-main
       namespace: openshift-monitoring
     stringData:
@@ -2222,7 +2244,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: vault-bastion
       namespace: apc-monitoring-bastion
     spec:
@@ -2240,7 +2262,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.6
+        helm.sh/chart: monitoring-1.1.7
       name: vault-bastion
       namespace: apc-monitoring-bastion
     spec:
