@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.7] - 2026-07-30
 
-_([SPEXAPC-SPEXAPC-20772](https://aspecta.atlassian.net/browse/SPEXAPC-20772))_
+_([SPEXAPC-20772](https://aspecta.atlassian.net/browse/SPEXAPC-20772))_
 
 ### Added
 
