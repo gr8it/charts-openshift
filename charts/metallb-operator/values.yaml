@@ -8,8 +8,12 @@ acm-operatorpolicy:
     namespace: metallb-system
     source: redhat-operators
     sourceNamespace: openshift-marketplace
-    startingCSV: metallb-operator.v4.17.0-202502250404
+    startingCSV: metallb-operator.v4.19.0-202607200644
 
   upgradeApproval: Automatic
+  # Keep the installed v4.17 in the allowlist so the CSV swap does not flip the
+  # policy non-compliant mid-upgrade. MetalLB tracks OCP; channel `stable` catalog
+  # head is v4.19 (clusters are OCP 4.19). 4.20 lands once OCP goes 4.20.
   versions:
     - metallb-operator.v4.17.0-202502250404
+    - metallb-operator.v4.19.0-202607200644
