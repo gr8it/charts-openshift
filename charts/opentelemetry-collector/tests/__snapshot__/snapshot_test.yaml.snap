@@ -330,7 +330,7 @@ manifests should match snapshot:
                   - traces/application
                 statement: route() where resource.attributes["k8s.namespace.name"] == "application"
         exporters:
-          otlp/application:
+          otlp_grpc/application:
             auth:
               authenticator: bearertokenauth
             endpoint: traces.svc
@@ -416,7 +416,7 @@ manifests should match snapshot:
                 - zipkin
             traces/application:
               exporters:
-                - otlp/application
+                - otlp_grpc/application
               receivers:
                 - routing
           telemetry:

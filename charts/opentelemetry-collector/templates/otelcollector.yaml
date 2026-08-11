@@ -50,7 +50,7 @@ spec:
           - statement: route() where resource.attributes["k8s.namespace.name"] == "application"
             pipelines: [traces/application]
     exporters:
-      otlp/application:
+      otlp_grpc/application:
         endpoint: {{ .Values.tracesEndpoint | required "Traces endpoint is required!" }}
         auth: { authenticator: bearertokenauth }
         headers:
@@ -83,7 +83,7 @@ spec:
           receivers: [jaeger,otlp,zipkin]
           processors: [memory_limiter, k8s_attributes, resourcedetection, batch]
           exporters: [routing]
-        traces/application: { receivers: [routing], exporters: [otlp/application] }
+        traces/application: { receivers: [routing], exporters: [otlp_grpc/application] }
         metrics:
           receivers: [otlp]
           processors: [memory_limiter, k8s_attributes, resourcedetection, batch]
