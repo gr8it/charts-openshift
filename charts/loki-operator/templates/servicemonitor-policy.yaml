@@ -25,6 +25,9 @@ spec:
         metadata:
           name: {{ $serviceMonitorName }}
           namespace: {{ $namespace }}
+          labels:
+            app.kubernetes.io/component: metrics
+            {{- include "loki-operator.labels" . | nindent 12 }}
         spec:
           endpoints:
             - authorization:
