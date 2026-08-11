@@ -14,7 +14,7 @@ spec:
       interval: 1m
       rules:
         - alert: HW-Events-Notification-Critical
-          expr: sum by (hostname,source_ip,message) (count_over_time({log_type="audit",environment="infrastructure",hw_type=~"ups|pdu|xca",severity="critical"}[15m]) > 0)
+          expr: sum by (hostname,source_ip,message) (count_over_time({log_type="audit",hw_type=~"ups|pdu|xca",severity="critical"}[15m]) > 0)
           for: 5m
           labels:
             severity: critical
@@ -31,7 +31,7 @@ spec:
             description: "HW Event - Source: https://{{ `{{ $labels.source_ip }}` }}"
             message: "{{ `{{ $labels.message }}` }}"
         - alert: HW-Events-Notification-Warning
-          expr: sum by (hostname,source_ip,message) (count_over_time({log_type="audit",environment="infrastructure",hw_type=~"ups|pdu|xca",severity="warning"}[15m]) > 0)
+          expr: sum by (hostname,source_ip,message) (count_over_time({log_type="audit",hw_type=~"ups|pdu|xca",severity="warning"}[15m]) > 0)
           for: 5m
           labels:
             severity: warning
@@ -48,7 +48,7 @@ spec:
             description: "HW Event - Source: https://{{ `{{ $labels.source_ip }}` }}"
             message: "{{ `{{ $labels.message }}` }}"
         - alert: HW-Events-Notification-Info
-          expr: sum by (hostname,source_ip,message) (count_over_time({log_type="audit",environment="infrastructure",hw_type=~"ups|pdu|xca",severity="info"}[15m]) > 0)
+          expr: sum by (hostname,source_ip,message) (count_over_time({log_type="audit",hw_type=~"ups|pdu|xca",severity="info"}[15m]) > 0)
           for: 5m
           labels:
             severity: info
