@@ -1,0 +1,24 @@
+# OperatorPolicy Values
+acm-operatorpolicy:
+  subscription:
+    channel: stable
+    name: kubevirt-hyperconverged
+    namespace: openshift-cnv
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    startingCSV: kubevirt-hyperconverged-operator.v4.18.8
+
+  upgradeApproval: Automatic
+  # OpenShift Virtualization ships a single `stable` channel; the minor is pinned
+  # via startingCSV + this versions allow-list (managed upgrade). No minor skip.
+  # 4.18.8 skipRange is >=4.17.11, so from the installed v4.17.5 OLM cannot jump
+  # straight to the 4.18 head: the path is 4.17.5 ->(skip) 4.18.1 -> 4.18.2 ->
+  # 4.18.3 -> 4.18.8, each a separate InstallPlan. Every hop on that path must be
+  # listed or the OperatorPolicy blocks the next approval mid-upgrade.
+  # Keep the currently-installed v4.17.5 in the list so the policy stays compliant.
+  versions:
+    - kubevirt-hyperconverged-operator.v4.17.5
+    - kubevirt-hyperconverged-operator.v4.18.1
+    - kubevirt-hyperconverged-operator.v4.18.2
+    - kubevirt-hyperconverged-operator.v4.18.3
+    - kubevirt-hyperconverged-operator.v4.18.8
