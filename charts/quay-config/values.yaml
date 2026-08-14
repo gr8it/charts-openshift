@@ -1,0 +1,62 @@
+## uses following global values => do not set here ########
+# global: # to be overridden by helmfile global meta env
+#   apc:
+#     environmentShort:
+#     proxy:
+#     noProxy:
+#     proxyCIDRs:
+#     services:
+#       externalSecretsOperator:
+#         defaultClusterSecretStore:
+###########################################################
+
+nameOverride: apc-registry
+
+dbVolumeSize: 200Gi
+
+quayConfig:
+  tagExpiration: 2w
+  tagExpirationOptions: [0s,1d,1w,2w]
+  actionLogRetention: 30d
+  registryTitle: APC Quay Registry
+  registryTitleShort: APC Quay
+  localAdminUser: quayadmin
+
+imageProxy:
+  # vault path to the pull-secret containing registry credentials
+  # the key name should be "pull-secret" and the value is a dockerconfig.json format
+  # registry credentials found in here will be used for authenticating to the registries listed below for image proxying
+  pullSecretVaultPath: apc-platform/h/cluster-config
+  # list of registries to be used for image proxying
+  registries:
+    - docker.io
+    - quay.io
+    - ghcr.io
+    - registry.connect.redhat.com
+    - registry.redhat.io
+
+# oc adm release info --image-for=cli
+ocImage: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+
+resourcesOverride:
+  mirror:
+    limits:
+      cpu: 1200m
+      memory: 2048Mi
+    requests:
+      cpu: 600m
+      memory: 512Mi
+  quay:
+    limits:
+      cpu: 3000m
+      memory: 10Gi
+    requests:
+      cpu: 2000m
+      memory: 8Gi
+  postinstall:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 512Mi

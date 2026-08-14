@@ -1,0 +1,54 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "quay-config.name" . }}-debug
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "quay-config.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      {{- include "quay-config.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "quay-config.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "quay-config.name" . }}-postinstall
+      containers:
+        - name: debug
+          image: {{ .Values.ocImage }}
+          command: ['/bin/sh', '-c', 'sleep 1d']
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: {{ printf "%s-%s" (include "quay-config.name" .) .Values.quayConfig.localAdminUser }}
+          env:
+            - name: ADMINUSER
+              value: {{ .Values.quayConfig.localAdminUser }}
+            - name: NAMESPACE
+              value: {{ .Release.Namespace }}
+            - name: SECRETNAME
+              value: {{ printf "%s-%s" (include "quay-config.name" .) .Values.quayConfig.localAdminUser }}
+            - name: PUSHSECRETLABELS
+              value: |2
+                {{ include "quay-config.labels" . | nindent 20 }}
+            - name: QUAYSERVICE
+              value: {{ printf "http://%s-quay-app.%s.svc.cluster.local" (include "quay-config.name" .) .Release.Namespace }}
+          resources:
+            {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+      volumes:
+        - name: postinstall-scripts
+          configMap:
+            name: {{ include "quay-config.name" . }}-postinstall-scripts
+            defaultMode: 0755
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      securityContext: {}
+      terminationGracePeriodSeconds: 30

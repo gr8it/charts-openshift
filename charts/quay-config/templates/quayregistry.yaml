@@ -1,0 +1,58 @@
+---
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: {{ include "quay-config.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "quay-config.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/sync-wave: "11"
+spec:
+  configBundleSecret: {{ printf "%s-config" (include "quay-config.name" .) }}
+  components:
+    - kind: clair
+      managed: false
+    - kind: clairpostgres
+      managed: false
+    - kind: horizontalpodautoscaler
+      managed: true
+    - kind: mirror
+      managed: true
+      overrides:
+        resources:
+          {{- .Values.resourcesOverride.mirror | toYaml | nindent 10 }}
+        env:
+          - name: HTTP_PROXY
+            value: {{ include "apc-global-overrides.proxy" . }}
+          - name: HTTPS_PROXY
+            value: {{ include "apc-global-overrides.proxy" . }}
+          - name: NO_PROXY
+            value: {{ include "apc-global-overrides.noProxy" . }}
+    - kind: monitoring
+      managed: true
+    - kind: objectstorage
+      managed: true
+    - kind: postgres
+      managed: true
+      overrides:
+        volumeSize: {{ .Values.dbVolumeSize }}
+    - kind: quay
+      managed: true
+      overrides:
+        resources:
+          {{- .Values.resourcesOverride.quay | toYaml | nindent 10 }}
+        env:
+          - name: HTTP_PROXY
+            value: {{ include "apc-global-overrides.proxy" . }}
+          - name: HTTPS_PROXY
+            value: {{ include "apc-global-overrides.proxy" . }}
+          - name: NO_PROXY
+            value: {{ include "apc-global-overrides.noProxy" . }}
+    - kind: redis
+      managed: true
+    - kind: route
+      managed: true
+    - kind: tls
+      managed: true
