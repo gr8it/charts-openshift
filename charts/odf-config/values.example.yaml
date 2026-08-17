@@ -1,0 +1,18 @@
+additionalNetworks:
+  - name: odf
+    namespace: openshift-storage
+    type: Raw
+    rawCNIConfig: |-
+      {
+        "cniVersion": "0.3.1",
+        "name": "odf",
+        "type": "macvlan",
+        "master": "bond1.100",
+        "mode": "bridge",
+        "ipam": {
+          "type": "whereabouts",
+          "range": "192.0.2.0/25",
+          "range_start": "192.0.2.10",
+          "range_end": "192.0.2.126"
+        }
+      }
