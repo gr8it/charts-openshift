@@ -46,26 +46,6 @@ pullSecret:
   vaultKey: cluster-config
   vaultProperty: pull-secret
 
-# operator.openshift.io/v1 Network "cluster" additionalNetworks (Multus).
-# Manages only .spec.additionalNetworks; other spec fields stay owned by the Cluster Network Operator.
-# Renders nothing when left unset (~). Set to [] to explicitly clear .spec.additionalNetworks
-# without un-rendering the Network object (which would otherwise get pruned by ArgoCD).
+# operator.openshift.io/v1 Network "cluster" additionalNetworks (Multus), see README.md
 additionalNetworks: ~
-# - name: odf
-#   namespace: openshift-storage
-#   type: Raw
-#   rawCNIConfig: |-
-#     {
-#       "cniVersion": "0.3.1",
-#       "name": "odf",
-#       "type": "macvlan",
-#       "master": "bond1.100",
-#       "mode": "bridge",
-#       "ipam": {
-#         "type": "whereabouts",
-#         "range": "192.0.2.0/25",
-#         "range_start": "192.0.2.10",
-#         "range_end": "192.0.2.126"
-#       }
-#     }
 
