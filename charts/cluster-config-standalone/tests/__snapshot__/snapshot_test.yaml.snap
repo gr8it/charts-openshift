@@ -12,7 +12,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.2
+        helm.sh/chart: cluster-config-standalone-1.2.0
       name: registry-ca-bundle
       namespace: openshift-config
   2: |
@@ -25,7 +25,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.2
+        helm.sh/chart: cluster-config-standalone-1.2.0
       name: oauth-idp-ca-bundle
       namespace: openshift-config
   3: |
@@ -36,7 +36,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.2
+        helm.sh/chart: cluster-config-standalone-1.2.0
       name: pull-secret
       namespace: openshift-config
     spec:
@@ -64,7 +64,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.2
+        helm.sh/chart: cluster-config-standalone-1.2.0
       name: ad-ldap-bind-secret
       namespace: openshift-config
     spec:
@@ -89,7 +89,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.2
+        helm.sh/chart: cluster-config-standalone-1.2.0
       name: comm-ldap-bind-secret
       namespace: openshift-config
     spec:
@@ -114,7 +114,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.2
+        helm.sh/chart: cluster-config-standalone-1.2.0
       name: oidcidp-secret
       namespace: openshift-config
     spec:
@@ -139,7 +139,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.2
+        helm.sh/chart: cluster-config-standalone-1.2.0
       name: htpass-secret
       namespace: openshift-config
     spec:
@@ -174,7 +174,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.2
+        helm.sh/chart: cluster-config-standalone-1.2.0
       name: quay.apps.example.com
     spec:
       imageDigestMirrors:
@@ -201,7 +201,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.2
+        helm.sh/chart: cluster-config-standalone-1.2.0
       name: quay.apps.example.com
     spec:
       imageTagMirrors:
@@ -221,6 +221,34 @@ manifests should match snapshot:
             - quay.apps.example.com/ghcr.io
           source: ghcr.io
   11: |
+    apiVersion: operator.openshift.io/v1
+    kind: Network
+    metadata:
+      name: cluster
+    spec:
+      additionalNetworks:
+        - name: odf
+          namespace: openshift-storage
+          rawCNIConfig: |-
+            {
+              "cniVersion": "0.3.1",
+              "name": "odf",
+              "type": "macvlan",
+              "master": "bond1.100",
+              "mode": "bridge",
+              "ipam": {
+                "type": "whereabouts",
+                "range": "10.11.18.128/25",
+                "range_start": "10.11.18.150",
+                "range_end": "10.11.18.180"
+              }
+            }
+          type: Raw
+        - name: vmlm
+          namespace: openshift-cnv
+          rawCNIConfig: "{\n  \"cniVersion\": \"0.3.1\",\n  \"name\": \"vmlm\",\n  \"type\": \"macvlan\",\n  \"master\": \"bond1.101\",\n  \"mode\": \"bridge\",\n  \"ipam\": {\n    \"type\": \"whereabouts\",\n    \"range\": \"10.11.19.128/25\",\n    \"range_start\": \"10.11.19.150\",\n    \"range_end\": \"10.11.19.180\"\n  }\n} "
+          type: Raw
+  12: |
     apiVersion: config.openshift.io/v1
     kind: OAuth
     metadata:

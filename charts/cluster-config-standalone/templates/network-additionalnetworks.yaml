@@ -1,0 +1,9 @@
+{{- if .Values.additionalNetworks }}
+apiVersion: operator.openshift.io/v1
+kind: Network
+metadata:
+  name: cluster
+spec:
+  additionalNetworks:
+    {{- toYaml .Values.additionalNetworks | nindent 4 }}
+{{- end }}

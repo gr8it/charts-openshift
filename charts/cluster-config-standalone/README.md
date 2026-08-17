@@ -112,3 +112,15 @@ The oauth.identityProviders  allows you to define and deploy identity provider s
 | `vaultKVmountPlatform` | mount point for platform secrets in vault apc-platform | apc-platform  | apc-platform  |
 | `caCertificates.caCrt` | CA bundle to trust identity provider, see also [apc-global-overrides](https://github.com/gr8it/charts-openshift/tree/main/charts/apc-global-overrides) | ~ | ~ |
 
+## Additional networks (Multus)
+
+Manages `.spec.additionalNetworks` on the cluster-scoped `operator.openshift.io/v1 Network "cluster"` object, which the Cluster Network Operator (CNO) uses to create/own `NetworkAttachmentDefinition` CRs for Multus.
+
+Only `.spec.additionalNetworks` is set by this chart — all other fields of the `Network` object (OVN config, cluster/service CIDRs, etc.) stay owned by CNO and are left untouched.
+
+This is deliberately GitOps-managed (rather than a one-off `oc apply`): without it, the whole list is a single field on a singleton cluster object, and any unrelated `oc apply`/`replace` of that object that omits `additionalNetworks` silently deletes every entry — including ones this chart didn't add. That has taken down ODF (missing `odf` NAD blocks Ceph's network-CIDR canary job, which then blocks daemon version upgrades) and OpenShift Virtualization (missing VM bridge/macvlan NADs) more than once. With `selfHeal: true` on the ArgoCD Application, drift here now self-corrects on the next sync instead of requiring manual recovery.
+
+| Parameter | Default | Type | Description |
+|---|---|---|---|
+| `.additionalNetworks` | `[]` | list | raw entries appended to `Network cluster` `.spec.additionalNetworks`, one per Multus network. Schema matches [`additionalNetworks`](https://docs.redhat.com/en/documentation/openshift_container_platform/4.18/html/networking/multiple-networks#nw-multus-add-network-cno_configuring-additional-network) — see [values.example.yaml](values.example.yaml) |
+

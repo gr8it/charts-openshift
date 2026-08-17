@@ -103,4 +103,41 @@ oauth:
         fileData:
           name: htpass-secret
   tokenConfig:
-    accessTokenMaxAgeSeconds : 3600 
+    accessTokenMaxAgeSeconds : 3600
+
+# operator.openshift.io/v1 Network "cluster" additionalNetworks (Multus)
+additionalNetworks:
+  - name: odf
+    namespace: openshift-storage
+    type: Raw
+    rawCNIConfig: |-
+      {
+        "cniVersion": "0.3.1",
+        "name": "odf",
+        "type": "macvlan",
+        "master": "bond1.100",
+        "mode": "bridge",
+        "ipam": {
+          "type": "whereabouts",
+          "range": "10.11.18.128/25",
+          "range_start": "10.11.18.150",
+          "range_end": "10.11.18.180"
+        }
+      }
+  - name: vmlm
+    namespace: openshift-cnv
+    type: Raw
+    rawCNIConfig: |-
+      {
+        "cniVersion": "0.3.1",
+        "name": "vmlm",
+        "type": "macvlan",
+        "master": "bond1.101",
+        "mode": "bridge",
+        "ipam": {
+          "type": "whereabouts",
+          "range": "10.11.19.128/25",
+          "range_start": "10.11.19.150",
+          "range_end": "10.11.19.180"
+        }
+      } 
