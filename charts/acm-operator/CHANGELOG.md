@@ -6,6 +6,12 @@ The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.3.0] - 2026-08-13
+
+### Changed
+
+- Updated ACM operator CSV to `advanced-cluster-management.v2.15.4` and set the subscription channel to `release-2.15`.
+
 ## [1.2.0] - 2026-07-02
 
 ### Changed

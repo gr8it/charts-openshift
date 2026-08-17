@@ -67,6 +67,21 @@ entries:
     version: 1.0.0
   acm-operator:
   - apiVersion: v2
+    appVersion: v2.15.4
+    created: "2026-08-13T12:13:13.853344+02:00"
+    dependencies:
+    - name: operators-installer
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/main/
+      version: 3.2.4
+    description: A Helm chart to install ACM operator using operators-installer helm
+      chart
+    digest: 81fd0bcabe0f8f94eb2c3a5e5cc14cdf73b363e8e4f35d3457c0ae4f63b95626
+    name: acm-operator
+    type: application
+    urls:
+    - packaged_charts/acm-operator-1.3.0.tgz
+    version: 1.3.0
+  - apiVersion: v2
     appVersion: v2.14.2
     created: "2026-07-02T09:47:14.318553+02:00"
     dependencies:
@@ -520,6 +535,34 @@ entries:
     version: 1.1.1
   apps-ck-kafka:
   - apiVersion: v2
+    created: "2026-07-16T10:36:53.790883+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - condition: kafka-ui.enabled
+      name: kafka-ui
+      repository: https://kafbat.github.io/helm-charts
+      version: 1.5.3
+    description: Production-ready Kafka cluster using Strimzi operator with KRaft
+      mode
+    digest: 390e0bddba0056a8492fc42c19c6b947084a574786a51ff3da89b16cd261e717
+    home: https://github.com/gr8it/charts-openshift
+    icon: https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/main/documentation/logo/strimzi_logo.png
+    keywords:
+    - kafka
+    - strimzi
+    - kraft
+    kubeVersion: '>=1.25.0'
+    name: apps-ck-kafka
+    sources:
+    - https://github.com/gr8it/charts-openshift
+    - https://strimzi.io/
+    type: application
+    urls:
+    - packaged_charts/apps-ck-kafka-1.4.0.tgz
+    version: 1.4.0
+  - apiVersion: v2
     created: "2026-06-29T16:07:47.161615+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -716,6 +759,20 @@ entries:
     - packaged_charts/apps-ck-kafka-1.0.0.tgz
     version: 1.0.0
   apps-ck-kafka-mm2:
+  - apiVersion: v2
+    appVersion: 0.46.1
+    created: "2026-07-27T13:48:48.4481+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    description: A Helm chart for deployment and configuration of the Kafka MirrorMaker2
+    digest: 171c44becc76dee67a19014b565596ff8b0589b705547c18d56f8c9e218e2fe1
+    name: apps-ck-kafka-mm2
+    type: application
+    urls:
+    - packaged_charts/apps-ck-kafka-mm2-1.0.1.tgz
+    version: 1.0.1
   - apiVersion: v2
     appVersion: 0.46.1
     created: "2026-06-29T16:07:51.582645+02:00"
@@ -1233,6 +1290,20 @@ entries:
     version: 1.0.0
   cluster-logging-operator:
   - apiVersion: v2
+    created: "2026-08-10T11:32:38.033121+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install the Red Hat OpenShift Logging (Cluster Logging)
+      Operator using ACM OperatorPolicy
+    digest: 0003cb891a89c0b0e09041a2b0e1f65ade09e8d8d5ca670ac445d59b6141c294
+    name: cluster-logging-operator
+    type: application
+    urls:
+    - packaged_charts/cluster-logging-operator-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
     created: "2026-06-29T11:49:47.76261+02:00"
     dependencies:
     - name: acm-operatorpolicy
@@ -1450,6 +1521,23 @@ entries:
     - packaged_charts/compliance-operator-1.0.0.tgz
     version: 1.0.0
   crossplane-helm:
+  - apiVersion: v2
+    appVersion: 2.1.3
+    created: "2026-08-04T12:22:13.251236334+02:00"
+    dependencies:
+    - name: crossplane
+      repository: https://charts.crossplane.io/stable
+      version: 2.1.3
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart to install Crossplane
+    digest: 5526763a2e643edbabe72de95a33818f5723144db25912093037af00d9ccc588
+    name: crossplane-helm
+    type: application
+    urls:
+    - packaged_charts/crossplane-helm-2.2.2.tgz
+    version: 2.2.2
   - apiVersion: v2
     appVersion: 2.1.3
     created: "2026-03-11T07:08:53.210774+01:00"
@@ -1999,6 +2087,20 @@ entries:
     type: application
     urls:
     - packaged_charts/eck-operator-1.0.0.tgz
+    version: 1.0.0
+  etcd-hcp-backup:
+  - apiVersion: v2
+    created: "2026-07-27T14:59:16.673992925+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    description: A Helm chart for Openshift Hosted Control Plane etcd backup
+    digest: 60d9f0ed9bdfa21afc31dd11a326569dac66c1b2e700f950f1d9686176cdad50
+    name: etcd-hcp-backup
+    type: application
+    urls:
+    - packaged_charts/etcd-hcp-backup-1.0.0.tgz
     version: 1.0.0
   external-secrets-config:
   - apiVersion: v2
@@ -2572,6 +2674,35 @@ entries:
     urls:
     - packaged_charts/group-sync-operator-1.0.0.tgz
     version: 1.0.0
+  hw-monitoring:
+  - apiVersion: v2
+    created: "2026-08-11T14:21:54.15725+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    description: A Helm chart for Loki AlertingRule alerts on HW/infrastructure events
+      (UPS/PDU/XCA)
+    digest: 8d088286d95aa0e9cd3e49a48edc41dc9d3efece11fe21e03e522e443c033d6c
+    name: hw-monitoring
+    type: application
+    urls:
+    - packaged_charts/hw-monitoring-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
+    created: "2026-08-07T09:28:31.654865+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    description: A Helm chart for Loki AlertingRule alerts on HW/infrastructure events
+      (UPS/PDU/XCA)
+    digest: e593a5c61723cfc2a3738c6364dfd085b466e59c9215b053a08a2d6666646854
+    name: hw-monitoring
+    type: application
+    urls:
+    - packaged_charts/hw-monitoring-1.0.0.tgz
+    version: 1.0.0
   identity-providers-config:
   - apiVersion: v2
     appVersion: 1.0.0
@@ -2645,6 +2776,20 @@ entries:
     - packaged_charts/kafka-backup-operator-0.1.0.tgz
     version: 0.1.0
   keycloak:
+  - apiVersion: v2
+    appVersion: v26.0
+    created: "2026-07-30T10:29:11.059636542+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    description: A Helm chart for APC keycloak
+    digest: 118c7b6806d86ec48cb20177927ffa2a80591ffdfd91d8f0f08db6394e68039b
+    name: keycloak
+    type: application
+    urls:
+    - packaged_charts/keycloak-1.6.2.tgz
+    version: 1.6.2
   - apiVersion: v2
     appVersion: v26.0
     created: "2026-04-08T14:31:11.90558648+02:00"
@@ -3028,7 +3173,118 @@ entries:
     urls:
     - packaged_charts/kyverno-app-project-1.0.0.tgz
     version: 1.0.0
+  local-storage-operator:
+  - apiVersion: v2
+    appVersion: v4.19.0-202607311600
+    created: "2026-08-14T14:26:16.833528+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install the Red Hat Local Storage Operator using
+      ACM OperatorPolicy
+    digest: 52c57e25a53b24b7472d8d3c7846174680693bafc1fc9e542202a957bfb5def4
+    name: local-storage-operator
+    type: application
+    urls:
+    - packaged_charts/local-storage-operator-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
+    appVersion: 4.19.0-202607311600
+    created: "2026-08-13T22:58:37.527899+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install the Red Hat Local Storage Operator using
+      ACM OperatorPolicy
+    digest: 1307632cb934965e834cbcca0b7d6e81e64f025c863f04aa12a9eb212df895b0
+    name: local-storage-operator
+    type: application
+    urls:
+    - packaged_charts/local-storage-operator-1.0.0.tgz
+    version: 1.0.0
+  logging-instance:
+  - apiVersion: v2
+    created: "2026-08-07T15:34:18.667581+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.6.0
+    - name: monitoring-reminder
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 2.0.2
+    description: A Helm chart to configure OpenShift logging infrastructure (LokiStack,
+      ClusterLogForwarder, UIPlugin)
+    digest: f289f4801b36d3b316794129124fdd3a3eb2f97e7a1f3263d87868bfee7c6d58
+    name: logging-instance
+    type: application
+    urls:
+    - packaged_charts/logging-instance-1.0.2.tgz
+    version: 1.0.2
+  - apiVersion: v2
+    created: "2026-08-07T15:10:10.765647+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.6.0
+    - name: monitoring-reminder
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 2.0.2
+    description: A Helm chart to configure OpenShift logging infrastructure (LokiStack,
+      ClusterLogForwarder, UIPlugin)
+    digest: 962f3b6689e51ec35d12beac53b782955bd5ce2ecda7a81a0c525a8e15983857
+    name: logging-instance
+    type: application
+    urls:
+    - packaged_charts/logging-instance-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
+    created: "2026-08-03T13:45:33.141844+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.6.0
+    - name: monitoring-reminder
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 2.0.1
+    description: A Helm chart to configure OpenShift logging infrastructure (LokiStack,
+      ClusterLogForwarder, UIPlugin)
+    digest: d58c09eae98ba619d1289e3338465a5a1e646b5be0fa7b3fca97a56064745366
+    name: logging-instance
+    type: application
+    urls:
+    - packaged_charts/logging-instance-1.0.0.tgz
+    version: 1.0.0
   loki-operator:
+  - apiVersion: v2
+    created: "2026-08-11T10:58:47.727945+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install the Red Hat Loki Operator using ACM OperatorPolicy
+    digest: e6b3e20efb6cb96f695d5fcce5149d9b4ba3946b8cdcfa855b448fb94e7cc0f1
+    icon: https://raw.githubusercontent.com/operator-framework/olm-docs/ea9cd734aa7a6bf2d24f273322ed9aec3ffcb02a/content/en/images/logo-sm.svg
+    name: loki-operator
+    type: application
+    urls:
+    - packaged_charts/loki-operator-1.2.1.tgz
+    version: 1.2.1
+  - apiVersion: v2
+    created: "2026-08-10T11:32:38.796974+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install the Red Hat Loki Operator using ACM OperatorPolicy
+    digest: e2375b428086587c54c73432abb0f2009478579fd684d9315eeb4ae2015ed9a9
+    icon: https://raw.githubusercontent.com/operator-framework/olm-docs/ea9cd734aa7a6bf2d24f273322ed9aec3ffcb02a/content/en/images/logo-sm.svg
+    name: loki-operator
+    type: application
+    urls:
+    - packaged_charts/loki-operator-1.2.0.tgz
+    version: 1.2.0
   - apiVersion: v2
     created: "2026-07-07T15:08:51+02:00"
     dependencies:
@@ -3104,6 +3360,20 @@ entries:
     version: 1.0.0
   metallb-operator:
   - apiVersion: v2
+    appVersion: 4.19.0-202607200644
+    created: "2026-08-11T10:09:08.107308+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install MetalLB Operator using ACM operator policy
+    digest: be3698ff8c34ed45997c8405b3504bcdbe5b41f738cd8f4d7054e6093d42e6ca
+    name: metallb-operator
+    type: application
+    urls:
+    - packaged_charts/metallb-operator-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
     appVersion: 4.17.0-202502250404
     created: "2025-10-30T14:45:47.175251+01:00"
     dependencies:
@@ -3177,6 +3447,160 @@ entries:
     - packaged_charts/mongodb-operator-helm-1.0.0.tgz
     version: 1.0.0
   monitoring:
+  - apiVersion: v2
+    created: "2026-08-05T09:47:38.412759+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.6
+    - alias: backups
+      condition: backups.enabled
+      name: openshift-adp-backups
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.0
+    description: Helm chart for OpenShift cluster monitoring (ClusterMonitoringConfig,
+      UserWorkloadMonitoringConfig, AlertManager via ESO, Kyverno PrometheusRule generation)
+    digest: ab21ad6ae486747806915251d9ecafd53ca3c5f1907c322923dfb8107c81e48c
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.1.6.tgz
+    version: 1.1.6
+  - apiVersion: v2
+    created: "2026-08-05T08:56:03.364044+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.6
+    - alias: backups
+      condition: backups.enabled
+      name: openshift-adp-backups
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.0
+    description: Helm chart for OpenShift cluster monitoring (ClusterMonitoringConfig,
+      UserWorkloadMonitoringConfig, AlertManager via ESO, Kyverno PrometheusRule generation)
+    digest: 60828274a96fbdfb21654825cbaf7885f00c63ef2142039e9b79d7b98665abbb
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.1.5.tgz
+    version: 1.1.5
+  - apiVersion: v2
+    created: "2026-08-04T15:32:13.156623+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.6
+    - alias: backups
+      condition: backups.enabled
+      name: openshift-adp-backups
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.0
+    description: Helm chart for OpenShift cluster monitoring (ClusterMonitoringConfig,
+      UserWorkloadMonitoringConfig, AlertManager via ESO, Kyverno PrometheusRule generation)
+    digest: 59fd47ed65a96f72059bba7002dbdb4ab5142ac4f64e29ab488fdf2278a00482
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.1.4.tgz
+    version: 1.1.4
+  - apiVersion: v2
+    created: "2026-07-29T15:10:33.520536+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.6
+    - alias: backups
+      condition: backups.enabled
+      name: openshift-adp-backups
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.0
+    description: Helm chart for OpenShift cluster monitoring (ClusterMonitoringConfig,
+      UserWorkloadMonitoringConfig, AlertManager via ESO, Kyverno PrometheusRule generation)
+    digest: 8c7b416b58f2d0935563b623a539215e7ed47ea94815f5f2107ec167eed47c0a
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.1.3.tgz
+    version: 1.1.3
+  - apiVersion: v2
+    created: "2026-07-29T14:59:30.28949+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.6
+    - alias: backups
+      condition: backups.enabled
+      name: openshift-adp-backups
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.0
+    description: Helm chart for OpenShift cluster monitoring (ClusterMonitoringConfig,
+      UserWorkloadMonitoringConfig, AlertManager via ESO, Kyverno PrometheusRule generation)
+    digest: e505ba534175ecb32b1c9d3fe207c909d91051987e4d4867bd91baf3b207a5c7
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.1.2.tgz
+    version: 1.1.2
+  - apiVersion: v2
+    created: "2026-07-29T14:46:35.584183+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.6
+    - alias: backups
+      condition: backups.enabled
+      name: openshift-adp-backups
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.0
+    description: Helm chart for OpenShift cluster monitoring (ClusterMonitoringConfig,
+      UserWorkloadMonitoringConfig, AlertManager via ESO, Kyverno PrometheusRule generation)
+    digest: 7c3f4324109c48d2c0b6b25bb73d90b951da26663e00f5d3000e80d2f3fc1233
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.1.1.tgz
+    version: 1.1.1
+  - apiVersion: v2
+    created: "2026-07-01T13:07:50.030659+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.6
+    - alias: backups
+      condition: backups.enabled
+      name: openshift-adp-backups
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.0
+    description: Helm chart for OpenShift cluster monitoring (ClusterMonitoringConfig,
+      UserWorkloadMonitoringConfig, AlertManager via ESO, Kyverno PrometheusRule generation)
+    digest: dd5d553f7ae2a5ab43f81e25814bef68044b1b184158f6ddfd717aef376af6cf
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.1.0.tgz
+    version: 1.1.0
   - apiVersion: v2
     created: "2026-02-27T09:19:47.96675+01:00"
     dependencies:
@@ -3402,6 +3826,37 @@ entries:
     urls:
     - packaged_charts/monitoring-prometheusrules-1.0.0.tgz
     version: 1.0.0
+  monitoring-reminder:
+  - apiVersion: v2
+    created: "2026-08-07T14:54:07.651831+02:00"
+    description: A Helm chart for setting up PrometheusRule alerts for static date-based
+      reminders (e.g. secret/certificate expiry)
+    digest: 6a757ca91cc727c4a67b2b776faacf37755307cd01242e501ffe8d248c94f1e6
+    name: monitoring-reminder
+    type: application
+    urls:
+    - packaged_charts/monitoring-reminder-2.0.2.tgz
+    version: 2.0.2
+  - apiVersion: v2
+    created: "2026-07-23T11:37:22.266096662+02:00"
+    description: A Helm chart for setting up PrometheusRule alerts for static date-based
+      reminders (e.g. secret/certificate expiry)
+    digest: 17ba3da89e68f4e8f7d98b86de470352f382b744384eece92fdf166d17b62045
+    name: monitoring-reminder
+    type: application
+    urls:
+    - packaged_charts/monitoring-reminder-2.0.1.tgz
+    version: 2.0.1
+  - apiVersion: v2
+    created: "2026-07-15T15:14:38.615872+02:00"
+    description: A Helm chart for setting up PrometheusRule alerts for static date-based
+      reminders (e.g. secret/certificate expiry)
+    digest: 57d0109dabf15c086b54369e20fefca2eef14d98501894bdf3d325a370b681a6
+    name: monitoring-reminder
+    type: application
+    urls:
+    - packaged_charts/monitoring-reminder-2.0.0.tgz
+    version: 2.0.0
   netobserv-config:
   - apiVersion: v2
     created: "2026-07-10T07:26:30.835112+02:00"
@@ -3434,6 +3889,36 @@ entries:
     - packaged_charts/netobserv-operators-1.2.0.tgz
     version: 1.2.0
   odf-operator:
+  - apiVersion: v2
+    appVersion: "4.19"
+    created: "2026-08-10T21:36:27.556389+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install the Red Hat OpenShift Data Foundation Operator
+      using ACM OperatorPolicy
+    digest: 38d453d0d65b83c892780d2c88d96cc688c213acfc1b83d4ce731bc128f18568
+    name: odf-operator
+    type: application
+    urls:
+    - packaged_charts/odf-operator-1.2.0.tgz
+    version: 1.2.0
+  - apiVersion: v2
+    appVersion: "4.18"
+    created: "2026-08-07T10:36:10.405555+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install the Red Hat OpenShift Data Foundation Operator
+      using ACM OperatorPolicy
+    digest: 4524a668814025e5261997276bdee6d629772ef38d2108ca766cc3820e24e1e6
+    name: odf-operator
+    type: application
+    urls:
+    - packaged_charts/odf-operator-1.1.0.tgz
+    version: 1.1.0
   - apiVersion: v2
     appVersion: "4.17"
     created: "2026-06-24T18:05:46.850754+02:00"
@@ -3567,6 +4052,19 @@ entries:
     type: application
     urls:
     - packaged_charts/openshift-distributed-tracing-1.0.0.tgz
+    version: 1.0.0
+  openshift-etcd-backup:
+  - apiVersion: v2
+    created: "2026-07-27T14:59:16.674771575+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    description: A Helm chart for Standalone Openshift etcd backup configurations
+    digest: 9a0f3249adff9c9c28a585425f4f13dab525d27e402b92be82b54dd56cc7e840
+    name: openshift-etcd-backup
+    urls:
+    - packaged_charts/openshift-etcd-backup-1.0.0.tgz
     version: 1.0.0
   openshift-tempo-operator:
   - apiVersion: v2
@@ -3709,6 +4207,20 @@ entries:
     - packaged_charts/pushgateway-helm-1.0.0.tgz
     version: 1.0.0
   quay-operator:
+  - apiVersion: v2
+    appVersion: v3.18.0
+    created: "2026-08-14T10:15:36.651076+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install Quay Operator using ACM operator policy
+    digest: dcc6dd8fc52291bc68be87436542a17320303478033d5771ebafbfb5e6da880c
+    name: quay-operator
+    type: application
+    urls:
+    - packaged_charts/quay-operator-1.4.0.tgz
+    version: 1.4.0
   - apiVersion: v2
     appVersion: v3.13.5
     created: "2025-10-22T12:51:32.344909+02:00"
@@ -4157,6 +4669,23 @@ entries:
     urls:
     - packaged_charts/vault-helm-1.0.0.tgz
     version: 1.0.0
+  vector-helm:
+  - apiVersion: v2
+    appVersion: 0.43.1-distroless-libc
+    created: "2026-07-28T16:41:27.894748+02:00"
+    dependencies:
+    - name: vector
+      repository: https://helm.vector.dev
+      version: 0.38.1
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    description: A Helm chart to install Vector log aggregator
+    digest: c72aba8be1919086566723302d1ea2d2f216e4c40e369a6ff690ce93a5e3dea4
+    name: vector-helm
+    urls:
+    - packaged_charts/vector-helm-1.0.0.tgz
+    version: 1.0.0
   veeam-exporter:
   - apiVersion: v2
     created: "2026-07-08T15:56:55.418966+02:00"
@@ -4186,4 +4715,4 @@ entries:
     urls:
     - packaged_charts/veeam-exporter-1.0.0.tgz
     version: 1.0.0
-generated: "2026-08-04T12:34:46.056461+02:00"
+generated: "2026-08-14T14:26:16.833008+02:00"

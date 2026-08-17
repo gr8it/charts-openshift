@@ -7,12 +7,12 @@ defaultLabels:
   vendor: aspecta
   team: platform
 
-# reminders is a list of static date-based alert rules rendered into a PrometheusRule.
-# No PrometheusRule is created when the list is empty.
+# reminders is a map of static date-based alert rules rendered into a PrometheusRule.
+# No PrometheusRule is created when the map is empty.
+# Each key is the alert name. See [example](values.example.yaml) for usage.
 #
 # Each entry supports the following fields:
 #
-#   alert            (required) Prometheus alert name, e.g. OIDCVaultSecretExpirySoon
 #   summary          (required) Short human-readable summary (used in alert annotation)
 #   description      (required) Detailed description (used in alert annotation)
 #   datetime         (required) Expiry date(time) in dd.mm.yyyy or dd.mm.yyyy HH:MM format, always UTC.
@@ -22,4 +22,4 @@ defaultLabels:
 #   critical         (optional) If true, adds a second alert with severity: critical firing < 1 day before expiry. Default: false
 #   labels           (optional) Per-alert label overrides (merged over defaultLabels)
 #
-reminders: []
+reminders: {}

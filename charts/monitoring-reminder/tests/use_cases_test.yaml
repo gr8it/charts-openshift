@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
-suite: Edge cases
+suite: Use cases
 templates:
   - templates/PrometheusRule.yaml
 release:
@@ -8,11 +8,28 @@ release:
 
 tests:
 
+  # ── global values (subchart use case) ───────────────────────────────────────
+
+  - it: chart renders when global values are present (dependency use case)
+    set:
+      global:
+        apc:
+          cluster:
+            appsDomain: example.com
+      reminders:
+        TestAlert:
+          summary: Test summary
+          description: Test description
+          datetime: "01.04.2027"
+    asserts:
+      - hasDocuments:
+          count: 1
+
   # ── Empty reminders ──────────────────────────────────────────────────────────
 
   - it: no PrometheusRule is created when reminders is empty
     set:
-      reminders: []
+      reminders: {}
     asserts:
       - hasDocuments:
           count: 0
@@ -22,7 +39,7 @@ tests:
   - it: date-only datetime defaults time to 00:00
     set:
       reminders:
-        - alert: TestAlert
+        TestAlert:
           summary: Test summary
           description: Test description
           datetime: "01.04.2027"
@@ -30,12 +47,12 @@ tests:
       - equal:
           path: spec.groups[0].rules[0].expr
           value: |
-            (1806537600 - time()) / 86400 < 30
+            vector((1806537600 - time()) / 86400) < 30
 
   - it: datetime with explicit 00:00 produces the same result as date-only
     set:
       reminders:
-        - alert: TestAlert
+        TestAlert:
           summary: Test summary
           description: Test description
           datetime: "01.04.2027 00:00"
@@ -43,12 +60,12 @@ tests:
       - equal:
           path: spec.groups[0].rules[0].expr
           value: |
-            (1806537600 - time()) / 86400 < 30
+            vector((1806537600 - time()) / 86400) < 30
 
   - it: datetime with a non-midnight time uses the correct timestamp
     set:
       reminders:
-        - alert: TestAlert
+        TestAlert:
           summary: Test summary
           description: Test description
           datetime: "01.04.2027 12:00"
@@ -56,14 +73,14 @@ tests:
       - equal:
           path: spec.groups[0].rules[0].expr
           value: |
-            (1806580800 - time()) / 86400 < 30
+            vector((1806580800 - time()) / 86400) < 30
 
   # ── daysBeforeExpiry ─────────────────────────────────────────────────────────
 
   - it: daysBeforeExpiry defaults to 30 when not set
     set:
       reminders:
-        - alert: TestAlert
+        TestAlert:
           summary: Test summary
           description: Test description
           datetime: "01.04.2027"
@@ -71,12 +88,12 @@ tests:
       - equal:
           path: spec.groups[0].rules[0].expr
           value: |
-            (1806537600 - time()) / 86400 < 30
+            vector((1806537600 - time()) / 86400) < 30
 
   - it: custom daysBeforeExpiry is reflected in the warning expression
     set:
       reminders:
-        - alert: TestAlert
+        TestAlert:
           summary: Test summary
           description: Test description
           datetime: "01.04.2027"
@@ -85,14 +102,14 @@ tests:
       - equal:
           path: spec.groups[0].rules[0].expr
           value: |
-            (1806537600 - time()) / 86400 < 60
+            vector((1806537600 - time()) / 86400) < 60
 
   # ── critical flag ────────────────────────────────────────────────────────────
 
   - it: only one rule is created when critical is not set
     set:
       reminders:
-        - alert: TestAlert
+        TestAlert:
           summary: Test summary
           description: Test description
           datetime: "01.04.2027"
@@ -104,7 +121,7 @@ tests:
   - it: only one rule is created when critical is false
     set:
       reminders:
-        - alert: TestAlert
+        TestAlert:
           summary: Test summary
           description: Test description
           datetime: "01.04.2027"
@@ -117,7 +134,7 @@ tests:
   - it: two rules are created when critical is true
     set:
       reminders:
-        - alert: TestAlert
+        TestAlert:
           summary: Test summary
           description: Test description
           datetime: "01.04.2027"
@@ -130,7 +147,7 @@ tests:
   - it: critical alert name is suffixed with Critical
     set:
       reminders:
-        - alert: TestAlert
+        TestAlert:
           summary: Test summary
           description: Test description
           datetime: "01.04.2027"
@@ -143,7 +160,7 @@ tests:
   - it: critical alert has severity critical
     set:
       reminders:
-        - alert: TestAlert
+        TestAlert:
           summary: Test summary
           description: Test description
           datetime: "01.04.2027"
@@ -156,7 +173,7 @@ tests:
   - it: critical alert fires when fewer than 1 day remains
     set:
       reminders:
-        - alert: TestAlert
+        TestAlert:
           summary: Test summary
           description: Test description
           datetime: "01.04.2027"
@@ -165,12 +182,12 @@ tests:
       - equal:
           path: spec.groups[0].rules[1].expr
           value: |
-            (1806537600 - time()) / 86400 < 1
+            vector((1806537600 - time()) / 86400) < 1
 
   - it: warning alert has severity warning
     set:
       reminders:
-        - alert: TestAlert
+        TestAlert:
           summary: Test summary
           description: Test description
           datetime: "01.04.2027"
@@ -184,7 +201,7 @@ tests:
   - it: runbook_url annotation is absent when runbookUrl is not set
     set:
       reminders:
-        - alert: TestAlert
+        TestAlert:
           summary: Test summary
           description: Test description
           datetime: "01.04.2027"
@@ -195,7 +212,7 @@ tests:
   - it: runbook_url annotation is present when runbookUrl is set
     set:
       reminders:
-        - alert: TestAlert
+        TestAlert:
           summary: Test summary
           description: Test description
           datetime: "01.04.2027"
@@ -210,7 +227,7 @@ tests:
   - it: defaultLabels are applied to all rules
     set:
       reminders:
-        - alert: TestAlert
+        TestAlert:
           summary: Test summary
           description: Test description
           datetime: "01.04.2027"
@@ -225,7 +242,7 @@ tests:
   - it: per-alert labels override defaultLabels
     set:
       reminders:
-        - alert: TestAlert
+        TestAlert:
           summary: Test summary
           description: Test description
           datetime: "01.04.2027"
@@ -242,7 +259,7 @@ tests:
   - it: per-alert labels are also applied to the critical rule
     set:
       reminders:
-        - alert: TestAlert
+        TestAlert:
           summary: Test summary
           description: Test description
           datetime: "01.04.2027"
@@ -257,7 +274,7 @@ tests:
   - it: per-alert labels can add a new key not present in defaultLabels
     set:
       reminders:
-        - alert: TestAlert
+        TestAlert:
           summary: Test summary
           description: Test description
           datetime: "01.04.2027"
@@ -276,11 +293,11 @@ tests:
   - it: multiple reminders produce one rule each
     set:
       reminders:
-        - alert: AlertOne
+        AlertOne:
           summary: Summary one
           description: Description one
           datetime: "01.04.2027"
-        - alert: AlertTwo
+        AlertTwo:
           summary: Summary two
           description: Description two
           datetime: "01.05.2027"
@@ -298,12 +315,12 @@ tests:
   - it: mixed critical and non-critical reminders produce the correct rule count
     set:
       reminders:
-        - alert: AlertOne
+        AlertOne:
           summary: Summary one
           description: Description one
           datetime: "01.04.2027"
           critical: true
-        - alert: AlertTwo
+        AlertTwo:
           summary: Summary two
           description: Description two
           datetime: "01.05.2027"

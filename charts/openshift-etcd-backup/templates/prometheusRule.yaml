@@ -1,0 +1,31 @@
+{{- $clusterName := include "openshift-etcd-backup.clusterName" . -}}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "openshift-etcd-backup.fullname" . }}-alert
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "openshift-etcd-backup.labels" . | nindent 4 }}
+spec:
+  groups:
+  - name: cronjob.rules
+    rules:
+    - alert: EtcdBackupJobFailure
+      expr: kube_job_failed{namespace="{{ .Release.Namespace }}", job_name=~"{{ include "openshift-etcd-backup.fullname" . }}-.*", condition="true"} > 0
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "ETCD backup job has failed"
+        description: "ETCD backup job for {{ $clusterName }} {{`{{ $labels.namespace }}/{{ $labels.job_name}}`}} has failed."
+    - alert: EtcdBackupMissing
+      expr: time() - kube_cronjob_status_last_successful_time{namespace="{{ .Release.Namespace }}", cronjob="{{ include "openshift-etcd-backup.fullname" . }}"} > 129600
+      labels:
+        severity: critical
+        vendor: aspecta
+        team: platform
+      annotations:
+        summary: "ETCD backup is missing"
+        description: "No successful ETCD backup for {{ $clusterName }} ({{`{{ $labels.namespace }}/{{ $labels.cronjob }}`}}) in the last 36 hours."
