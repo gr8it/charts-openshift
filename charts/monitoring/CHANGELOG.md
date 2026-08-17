@@ -5,6 +5,66 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.6] - 2026-04-23
+
+_([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
+
+### Changed
+
+- Add note to ceph.rules silence: fixed in OCP 4.17.6, remove after cluster upgrade
+
+## [1.1.5] - 2026-04-23
+
+_([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
+
+### Changed
+
+- Add KB reference comment to ceph.rules PrometheusRuleFailures silence
+
+## [1.1.4] - 2026-04-23
+
+_([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
+
+### Changed
+
+- Extend certificate expiration silence matcher with `result-client-cert-ocp4-cis-1-5` and `root-ca-ocp4-cis-1-5` to avoid false alerts on periodic cert rotation
+
+## [1.1.3] - 2026-07-29
+
+_([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
+
+### Fixed
+
+- conditional `prometheusrule-ldap-monitoring.yaml` behind `vaultBastionMonitoring.bastionIP`, matching the other vault-bastion templates — was rendering unconditionally into the `apc-monitoring-bastion` namespace, which doesn't exist on clusters without bastion monitoring enabled
+
+## [1.1.2] - 2026-07-29
+
+_([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
+
+### Fixed
+
+- `clusterMonitoring.prometheus.retention` default corrected from `7d` to `14d`, matching the actual standard on spoke clusters (dev01, test01) — mirrors the same fix already applied to `userWorkloadMonitoring.prometheus.retention`
+
+## [1.1.1] - 2026-07-29
+
+_([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
+
+### Fixed
+
+- Restored `PrometheusRuleFailures`/`ceph.rules` silence route in Alertmanager config, dropped during the raw-manifest-to-chart migration
+
+## [1.1.0] - 2026-05-05
+
+_([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
+
+### Changed
+
+- Merged `cluster-monitoring` and `user-workload-monitoring` charts into this chart
+- Added `ClusterMonitoringConfig`, `UserWorkloadMonitoringConfig`, AlertManager secrets and ExternalSecrets, AlertingRule, PrometheusRule, and NetworkPolicy templates
+- Added `openshift-adp-backups` subchart dependency for Velero backup schedules
+- Updated `apc-global-overrides` dependency to 1.8.0
+- Hub detection via `global.apc.cluster.isHub` (replaces manual `hub.enabled` flag)
+
 ## [1.0.9] - 2026-02-27
 
 _([ASPELAB-87](https://aspecta.atlassian.net/browse/ASPELAB-87))_

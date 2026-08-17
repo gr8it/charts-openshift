@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _If you are upgrading: please see [`UPGRADING.md`](UPGRADING.md)._
 
+## [2.2.2] - 2026-08-03
+
+_([SPEXAPC-21171](https://aspecta.atlassian.net/browse/SPEXAPC-21171))_
+
+### Changed
+
+- Changed memory limit for Crossplane resources
+
 ## [2.2.1] - 2026-03-11
 
 _([SPEXAPC-12529](https://aspecta.atlassian.net/browse/SPEXAPC-12529))_
