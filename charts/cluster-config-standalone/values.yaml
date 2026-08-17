@@ -48,8 +48,9 @@ pullSecret:
 
 # operator.openshift.io/v1 Network "cluster" additionalNetworks (Multus).
 # Manages only .spec.additionalNetworks; other spec fields stay owned by the Cluster Network Operator.
-# Renders nothing if left empty.
-additionalNetworks: []
+# Renders nothing when left unset (~). Set to [] to explicitly clear .spec.additionalNetworks
+# without un-rendering the Network object (which would otherwise get pruned by ArgoCD).
+additionalNetworks: ~
 # - name: odf
 #   namespace: openshift-storage
 #   type: Raw

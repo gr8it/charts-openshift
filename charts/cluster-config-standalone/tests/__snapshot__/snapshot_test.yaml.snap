@@ -224,6 +224,8 @@ manifests should match snapshot:
     apiVersion: operator.openshift.io/v1
     kind: Network
     metadata:
+      annotations:
+        argocd.argoproj.io/sync-options: Prune=false
       name: cluster
     spec:
       additionalNetworks:
@@ -246,7 +248,20 @@ manifests should match snapshot:
           type: Raw
         - name: vmlm
           namespace: openshift-cnv
-          rawCNIConfig: "{\n  \"cniVersion\": \"0.3.1\",\n  \"name\": \"vmlm\",\n  \"type\": \"macvlan\",\n  \"master\": \"bond1.101\",\n  \"mode\": \"bridge\",\n  \"ipam\": {\n    \"type\": \"whereabouts\",\n    \"range\": \"10.11.19.128/25\",\n    \"range_start\": \"10.11.19.150\",\n    \"range_end\": \"10.11.19.180\"\n  }\n} "
+          rawCNIConfig: |-
+            {
+              "cniVersion": "0.3.1",
+              "name": "vmlm",
+              "type": "macvlan",
+              "master": "bond1.101",
+              "mode": "bridge",
+              "ipam": {
+                "type": "whereabouts",
+                "range": "10.11.19.128/25",
+                "range_start": "10.11.19.150",
+                "range_end": "10.11.19.180"
+              }
+            }
           type: Raw
   12: |
     apiVersion: config.openshift.io/v1

@@ -116,11 +116,13 @@ The oauth.identityProviders  allows you to define and deploy identity provider s
 
 Manages `.spec.additionalNetworks` on the cluster-scoped `operator.openshift.io/v1 Network "cluster"` object, which the Cluster Network Operator (CNO) uses to create/own `NetworkAttachmentDefinition` CRs for Multus.
 
-Only `.spec.additionalNetworks` is set by this chart — all other fields of the `Network` object (OVN config, cluster/service CIDRs, etc.) stay owned by CNO and are left untouched.
+Only `.spec.additionalNetworks` is set by this chart — all other fields of the `Network` object (OVN config, cluster/service CIDRs, etc.) stay owned by CNO and are left untouched. `.additionalNetworks` is authoritative, not appended: the rendered list *replaces* `.spec.additionalNetworks` wholesale, so any entry not present in values is removed on the next sync.
 
 This is deliberately GitOps-managed (rather than a one-off `oc apply`): without it, the whole list is a single field on a singleton cluster object, and any unrelated `oc apply`/`replace` of that object that omits `additionalNetworks` silently deletes every entry — including ones this chart didn't add. That has taken down ODF (missing `odf` NAD blocks Ceph's network-CIDR canary job, which then blocks daemon version upgrades) and OpenShift Virtualization (missing VM bridge/macvlan NADs) more than once. With `selfHeal: true` on the ArgoCD Application, drift here now self-corrects on the next sync instead of requiring manual recovery.
 
+The `Network cluster` object only renders when `.additionalNetworks` is set at all (default `~`), and is annotated `argocd.argoproj.io/sync-options: Prune=false` so ArgoCD never deletes it outright — even if the values key is later removed entirely. To intentionally clear the managed list without touching CNO's other fields, set `additionalNetworks: []` rather than removing the key.
+
 | Parameter | Default | Type | Description |
 |---|---|---|---|
-| `.additionalNetworks` | `[]` | list | raw entries appended to `Network cluster` `.spec.additionalNetworks`, one per Multus network. Schema matches [`additionalNetworks`](https://docs.redhat.com/en/documentation/openshift_container_platform/4.18/html/networking/multiple-networks#nw-multus-add-network-cno_configuring-additional-network) — see [values.example.yaml](values.example.yaml) |
+| `.additionalNetworks` | `~` | list | entries that fully replace `Network cluster` `.spec.additionalNetworks`, one per Multus network. `~`/unset = don't manage this field at all; `[]` = manage it as an explicitly empty list. Schema matches [`additionalNetworks`](https://docs.redhat.com/en/documentation/openshift_container_platform/4.18/html/networking/multiple-networks#nw-multus-add-network-cno_configuring-additional-network) — see [values.example.yaml](values.example.yaml) |
 

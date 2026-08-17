@@ -1,8 +1,12 @@
-{{- if .Values.additionalNetworks }}
+{{- if kindIs "slice" .Values.additionalNetworks }}
 apiVersion: operator.openshift.io/v1
 kind: Network
 metadata:
   name: cluster
+  annotations:
+    # Network/cluster is a singleton operator CR: never let ArgoCD prune it, even if
+    # additionalNetworks is later unset entirely (which stops this resource from rendering).
+    argocd.argoproj.io/sync-options: Prune=false
 spec:
   additionalNetworks:
     {{- toYaml .Values.additionalNetworks | nindent 4 }}
