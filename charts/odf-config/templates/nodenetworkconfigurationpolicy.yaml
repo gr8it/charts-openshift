@@ -1,0 +1,15 @@
+{{- range .Values.nodeNetworkConfigurationPolicies }}
+{{- if .desiredState.interfaces }}
+---
+apiVersion: nmstate.io/v1
+kind: NodeNetworkConfigurationPolicy
+metadata:
+  name: {{ .name }}
+spec:
+  nodeSelector:
+    {{- .nodeSelector | toYaml | nindent 4 }}
+  desiredState:
+    interfaces:
+      {{- .desiredState.interfaces | toYaml | nindent 6 }}
+{{- end }}
+{{- end }}

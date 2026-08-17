@@ -1,0 +1,10 @@
+{{- with .Values.storageCluster.resources }}
+apiVersion: ocs.openshift.io/v1
+kind: StorageCluster
+metadata:
+  name: {{ $.Values.storageCluster.name }}
+  namespace: {{ $.Values.storageCluster.namespace }}
+spec:
+  resources:
+    {{- toYaml . | nindent 4 }}
+{{- end }}

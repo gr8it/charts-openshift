@@ -1,0 +1,109 @@
+suite: Snapshot test
+templates:
+  - templates/*
+release:
+  name: odf-config
+
+tests:
+  - it: manifests should match snapshot (defaults, no config)
+    asserts:
+      - matchSnapshot: {}
+
+  - it: renders ODF config when set
+    set:
+      nodeNetworkConfigurationPolicies:
+        - name: bond1
+          nodeSelector:
+            node-role.kubernetes.io/worker: ""
+          desiredState:
+            interfaces:
+              - name: bond1
+                state: up
+                type: bond
+                link-aggregation:
+                  mode: 802.3ad
+                  options:
+                    miimon: "140"
+                    xmit_hash_policy: layer2
+                  port:
+                    - ens1
+                    - ens2
+                ipv4:
+                  dhcp: false
+                  enabled: false
+                ipv6:
+                  dhcp: false
+                  enabled: false
+              - name: bond1.100
+                state: up
+                type: vlan
+                vlan:
+                  base-iface: bond1
+                  id: 100
+                ipv4:
+                  dhcp: false
+                  enabled: false
+                ipv6:
+                  dhcp: false
+                  enabled: false
+      additionalNetworks:
+        - name: odf
+          namespace: openshift-storage
+          type: Raw
+          rawCNIConfig: |-
+            {
+              "cniVersion": "0.3.1",
+              "name": "odf",
+              "type": "macvlan",
+              "master": "bond1.100",
+              "mode": "bridge",
+              "ipam": {
+                "type": "whereabouts",
+                "range": "192.0.2.0/25",
+                "range_start": "192.0.2.10",
+                "range_end": "192.0.2.126"
+              }
+            }
+      storageCluster:
+        name: ocs-storagecluster
+        namespace: openshift-storage
+        resources:
+          mds:
+            limits:
+              memory: 20Gi
+            requests:
+              memory: 20Gi
+      machineConfig:
+        name: 99-bond1-promisc
+        labels:
+          machineconfiguration.openshift.io/role: worker
+        configMap:
+          enabled: false
+          name: machineconfig-99-bond1-promisc
+          namespace: ""
+        spec:
+          config:
+            ignition:
+              version: 3.4.0
+            storage:
+              files:
+                - path: /usr/local/bin/bond1-promisc.sh
+                  mode: 0755
+                  contents:
+                    source: data:text/plain;charset=utf-8;base64,IyEvdXNyL2Jpbi9iYXNoCmlwIGxpbmsgc2V0IGJvbmQxIHByb21pc2Mgb24K
+            systemd:
+              units:
+                - name: bond1-promisc.service
+                  enabled: true
+                  contents: |
+                    [Unit]
+                    Description=Enable promisc mode on bond1
+
+                    [Service]
+                    Type=oneshot
+                    ExecStart=/usr/local/bin/bond1-promisc.sh
+
+                    [Install]
+                    WantedBy=multi-user.target
+    asserts:
+      - matchSnapshot: {}

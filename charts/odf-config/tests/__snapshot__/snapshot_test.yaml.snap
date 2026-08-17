@@ -1,0 +1,110 @@
+renders ODF config when set:
+  1: |
+    apiVersion: machineconfiguration.openshift.io/v1
+    kind: MachineConfig
+    metadata:
+      labels:
+        machineconfiguration.openshift.io/role: worker
+      name: 99-bond1-promisc
+    spec:
+      config:
+        ignition:
+          version: 3.4.0
+        storage:
+          files:
+            - contents:
+                source: data:text/plain;charset=utf-8;base64,IyEvdXNyL2Jpbi9iYXNoCmlwIGxpbmsgc2V0IGJvbmQxIHByb21pc2Mgb24K
+              mode: 493
+              path: /usr/local/bin/bond1-promisc.sh
+        systemd:
+          units:
+            - contents: |
+                [Unit]
+                Description=Enable promisc mode on bond1
+
+                [Service]
+                Type=oneshot
+                ExecStart=/usr/local/bin/bond1-promisc.sh
+
+                [Install]
+                WantedBy=multi-user.target
+              enabled: true
+              name: bond1-promisc.service
+  2: |
+    apiVersion: operator.openshift.io/v1
+    kind: Network
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-options: ServerSideApply=true
+      name: cluster
+    spec:
+      additionalNetworks:
+        - name: odf
+          namespace: openshift-storage
+          rawCNIConfig: |-
+            {
+              "cniVersion": "0.3.1",
+              "name": "odf",
+              "type": "macvlan",
+              "master": "bond1.100",
+              "mode": "bridge",
+              "ipam": {
+                "type": "whereabouts",
+                "range": "192.0.2.0/25",
+                "range_start": "192.0.2.10",
+                "range_end": "192.0.2.126"
+              }
+            }
+          type: Raw
+  3: |
+    apiVersion: nmstate.io/v1
+    kind: NodeNetworkConfigurationPolicy
+    metadata:
+      name: bond1
+    spec:
+      desiredState:
+        interfaces:
+          - ipv4:
+              dhcp: false
+              enabled: false
+            ipv6:
+              dhcp: false
+              enabled: false
+            link-aggregation:
+              mode: 802.3ad
+              options:
+                miimon: "140"
+                xmit_hash_policy: layer2
+              port:
+                - ens1
+                - ens2
+            name: bond1
+            state: up
+            type: bond
+          - ipv4:
+              dhcp: false
+              enabled: false
+            ipv6:
+              dhcp: false
+              enabled: false
+            name: bond1.100
+            state: up
+            type: vlan
+            vlan:
+              base-iface: bond1
+              id: 100
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
+  4: |
+    apiVersion: ocs.openshift.io/v1
+    kind: StorageCluster
+    metadata:
+      name: ocs-storagecluster
+      namespace: openshift-storage
+    spec:
+      resources:
+        mds:
+          limits:
+            memory: 20Gi
+          requests:
+            memory: 20Gi
