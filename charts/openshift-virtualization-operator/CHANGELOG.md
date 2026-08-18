@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.1] - 2026-08-18
 
-_Bump pinned CSV to v4.18.0 (v4.17.5 no longer resolvable in the `stable` channel)._
+- `kubevirt-hyperconverged-operator.v4.17.5` → `v4.18.0`
 
 ## [1.0.0] - 2026-07-13
 
