@@ -62,7 +62,7 @@ rendered cluster-policy-cluster-application manifest:
                           description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been evicted.
                           summary: Pod has been evicted
                         expr: kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
-                        for: 15m
+                        for: 0m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
                           severity: warning
@@ -551,7 +551,7 @@ rendered cluster-policy-cluster-application manifest:
                           description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been evicted.
                           summary: Pod has been evicted
                         expr: kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
-                        for: 15m
+                        for: 0m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
                           severity: warning
