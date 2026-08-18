@@ -1,0 +1,16 @@
+# OperatorPolicy Values
+acm-operatorpolicy:
+  # operatorGroup intentionally unset: openshift-cnv already has exactly one
+  # OperatorGroup on every cluster (name differs per env), so OperatorPolicy
+  # adopts the existing one instead of creating a second (OLM error) OG.
+  subscription:
+    channel: stable
+    name: kubevirt-hyperconverged
+    namespace: openshift-cnv
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    startingCSV: kubevirt-hyperconverged-operator.v4.17.5
+  # Managed upgrades: pin the currently-installed CSV and only auto-approve that version.
+  upgradeApproval: Automatic
+  versions:
+    - kubevirt-hyperconverged-operator.v4.17.5

@@ -67,6 +67,21 @@ entries:
     version: 1.0.0
   acm-operator:
   - apiVersion: v2
+    appVersion: v2.15.4
+    created: "2026-08-13T12:13:13.853344+02:00"
+    dependencies:
+    - name: operators-installer
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/main/
+      version: 3.2.4
+    description: A Helm chart to install ACM operator using operators-installer helm
+      chart
+    digest: 81fd0bcabe0f8f94eb2c3a5e5cc14cdf73b363e8e4f35d3457c0ae4f63b95626
+    name: acm-operator
+    type: application
+    urls:
+    - packaged_charts/acm-operator-1.3.0.tgz
+    version: 1.3.0
+  - apiVersion: v2
     appVersion: v2.14.2
     created: "2026-07-02T09:47:14.318553+02:00"
     dependencies:
@@ -2661,6 +2676,20 @@ entries:
     version: 1.0.0
   hw-monitoring:
   - apiVersion: v2
+    created: "2026-08-11T14:21:54.15725+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    description: A Helm chart for Loki AlertingRule alerts on HW/infrastructure events
+      (UPS/PDU/XCA)
+    digest: 8d088286d95aa0e9cd3e49a48edc41dc9d3efece11fe21e03e522e443c033d6c
+    name: hw-monitoring
+    type: application
+    urls:
+    - packaged_charts/hw-monitoring-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
     created: "2026-08-07T09:28:31.654865+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -3144,6 +3173,37 @@ entries:
     urls:
     - packaged_charts/kyverno-app-project-1.0.0.tgz
     version: 1.0.0
+  local-storage-operator:
+  - apiVersion: v2
+    appVersion: v4.19.0-202607311600
+    created: "2026-08-14T14:26:16.833528+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install the Red Hat Local Storage Operator using
+      ACM OperatorPolicy
+    digest: 52c57e25a53b24b7472d8d3c7846174680693bafc1fc9e542202a957bfb5def4
+    name: local-storage-operator
+    type: application
+    urls:
+    - packaged_charts/local-storage-operator-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
+    appVersion: 4.19.0-202607311600
+    created: "2026-08-13T22:58:37.527899+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install the Red Hat Local Storage Operator using
+      ACM OperatorPolicy
+    digest: 1307632cb934965e834cbcca0b7d6e81e64f025c863f04aa12a9eb212df895b0
+    name: local-storage-operator
+    type: application
+    urls:
+    - packaged_charts/local-storage-operator-1.0.0.tgz
+    version: 1.0.0
   logging-instance:
   - apiVersion: v2
     created: "2026-08-07T15:34:18.667581+02:00"
@@ -3197,6 +3257,20 @@ entries:
     - packaged_charts/logging-instance-1.0.0.tgz
     version: 1.0.0
   loki-operator:
+  - apiVersion: v2
+    created: "2026-08-11T10:58:47.727945+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install the Red Hat Loki Operator using ACM OperatorPolicy
+    digest: e6b3e20efb6cb96f695d5fcce5149d9b4ba3946b8cdcfa855b448fb94e7cc0f1
+    icon: https://raw.githubusercontent.com/operator-framework/olm-docs/ea9cd734aa7a6bf2d24f273322ed9aec3ffcb02a/content/en/images/logo-sm.svg
+    name: loki-operator
+    type: application
+    urls:
+    - packaged_charts/loki-operator-1.2.1.tgz
+    version: 1.2.1
   - apiVersion: v2
     created: "2026-08-10T11:32:38.796974+02:00"
     dependencies:
@@ -3285,6 +3359,20 @@ entries:
     - packaged_charts/metallb-config-1.0.0.tgz
     version: 1.0.0
   metallb-operator:
+  - apiVersion: v2
+    appVersion: 4.19.0-202607200644
+    created: "2026-08-11T10:09:08.107308+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install MetalLB Operator using ACM operator policy
+    digest: be3698ff8c34ed45997c8405b3504bcdbe5b41f738cd8f4d7054e6093d42e6ca
+    name: metallb-operator
+    type: application
+    urls:
+    - packaged_charts/metallb-operator-1.1.0.tgz
+    version: 1.1.0
   - apiVersion: v2
     appVersion: 4.17.0-202502250404
     created: "2025-10-30T14:45:47.175251+01:00"
@@ -3800,6 +3888,21 @@ entries:
     urls:
     - packaged_charts/monitoring-reminder-2.0.0.tgz
     version: 2.0.0
+  multi-cluster-observability:
+  - apiVersion: v2
+    created: "2026-07-27T14:05:15.810044+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    description: A Helm chart for ACM MultiClusterObservability and related observability
+      resources
+    digest: fe6fba6b8f1329fa93f4d8dad01a2e069d0b026c1a1ffbd58ddb3b3152388519
+    name: multi-cluster-observability
+    type: application
+    urls:
+    - packaged_charts/multi-cluster-observability-1.0.0.tgz
+    version: 1.0.0
   netobserv-config:
   - apiVersion: v2
     created: "2026-07-10T07:26:30.835112+02:00"
@@ -3832,6 +3935,21 @@ entries:
     - packaged_charts/netobserv-operators-1.2.0.tgz
     version: 1.2.0
   odf-operator:
+  - apiVersion: v2
+    appVersion: "4.19"
+    created: "2026-08-10T21:36:27.556389+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install the Red Hat OpenShift Data Foundation Operator
+      using ACM OperatorPolicy
+    digest: 38d453d0d65b83c892780d2c88d96cc688c213acfc1b83d4ce731bc128f18568
+    name: odf-operator
+    type: application
+    urls:
+    - packaged_charts/odf-operator-1.2.0.tgz
+    version: 1.2.0
   - apiVersion: v2
     appVersion: "4.18"
     created: "2026-08-07T10:36:10.405555+02:00"
@@ -4010,6 +4128,34 @@ entries:
     urls:
     - packaged_charts/openshift-tempo-operator-1.0.0.tgz
     version: 1.0.0
+  openshift-virtualization-config:
+  - apiVersion: v2
+    appVersion: v4.17.5
+    created: "2026-08-04T12:34:46.056961+02:00"
+    description: A Helm chart to configure OpenShift Virtualization (HyperConverged
+      CR)
+    digest: 40883cdbaa96fa84c292d20e51f94e221c86f6b5fb48d1ba3165ac9b62f039c9
+    name: openshift-virtualization-config
+    type: application
+    urls:
+    - packaged_charts/openshift-virtualization-config-1.0.0.tgz
+    version: 1.0.0
+  openshift-virtualization-operator:
+  - apiVersion: v2
+    appVersion: v4.17.5
+    created: "2026-07-15T11:45:45.607471+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install the OpenShift Virtualization (KubeVirt HyperConverged)
+      Operator using ACM OperatorPolicy
+    digest: 73b21cd207d6f5f09a42aefe44600e790d0d85da1f3e2f21572bd8dbddf7e0cc
+    name: openshift-virtualization-operator
+    type: application
+    urls:
+    - packaged_charts/openshift-virtualization-operator-1.0.0.tgz
+    version: 1.0.0
   opentelemetry-collector:
   - apiVersion: v2
     appVersion: v0.144.0-3
@@ -4107,6 +4253,20 @@ entries:
     - packaged_charts/pushgateway-helm-1.0.0.tgz
     version: 1.0.0
   quay-operator:
+  - apiVersion: v2
+    appVersion: v3.18.0
+    created: "2026-08-14T10:15:36.651076+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install Quay Operator using ACM operator policy
+    digest: dcc6dd8fc52291bc68be87436542a17320303478033d5771ebafbfb5e6da880c
+    name: quay-operator
+    type: application
+    urls:
+    - packaged_charts/quay-operator-1.4.0.tgz
+    version: 1.4.0
   - apiVersion: v2
     appVersion: v3.13.5
     created: "2025-10-22T12:51:32.344909+02:00"
@@ -4618,4 +4778,4 @@ entries:
     urls:
     - packaged_charts/veeam-exporter-1.0.0.tgz
     version: 1.0.0
-generated: "2026-08-11T09:05:56.107362+02:00"
+generated: "2026-08-14T14:26:16.833008+02:00"

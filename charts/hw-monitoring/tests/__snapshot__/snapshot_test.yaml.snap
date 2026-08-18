@@ -7,7 +7,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: hw-monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: hw-monitoring
-        helm.sh/chart: hw-monitoring-1.0.0
+        helm.sh/chart: hw-monitoring-1.0.1
         openshift.io/log-alerting: "true"
       name: apc-hw-events-alerts
       namespace: openshift-logging
@@ -21,7 +21,7 @@ manifests should match snapshot:
                 description: 'HW Event - Source: https://{{ $labels.source_ip }}'
                 message: '{{ $labels.message }}'
                 summary: HW Event - hostname:{{ $labels.hostname }}
-              expr: sum by (hostname,source_ip,message) (count_over_time({log_type="audit",environment="infrastructure",hw_type=~"ups|pdu|xca",severity="critical"}[15m]) > 0)
+              expr: sum by (hostname,source_ip,message) (count_over_time({log_type="audit",hw_type=~"ups|pdu|xca",severity="critical"}[15m]) > 0)
               for: 5m
               labels:
                 customerName: acme
@@ -38,7 +38,7 @@ manifests should match snapshot:
                 description: 'HW Event - Source: https://{{ $labels.source_ip }}'
                 message: '{{ $labels.message }}'
                 summary: HW Event - hostname:{{ $labels.hostname }}
-              expr: sum by (hostname,source_ip,message) (count_over_time({log_type="audit",environment="infrastructure",hw_type=~"ups|pdu|xca",severity="warning"}[15m]) > 0)
+              expr: sum by (hostname,source_ip,message) (count_over_time({log_type="audit",hw_type=~"ups|pdu|xca",severity="warning"}[15m]) > 0)
               for: 5m
               labels:
                 customerName: acme
@@ -55,7 +55,7 @@ manifests should match snapshot:
                 description: 'HW Event - Source: https://{{ $labels.source_ip }}'
                 message: '{{ $labels.message }}'
                 summary: HW Event - hostname:{{ $labels.hostname }}
-              expr: sum by (hostname,source_ip,message) (count_over_time({log_type="audit",environment="infrastructure",hw_type=~"ups|pdu|xca",severity="info"}[15m]) > 0)
+              expr: sum by (hostname,source_ip,message) (count_over_time({log_type="audit",hw_type=~"ups|pdu|xca",severity="info"}[15m]) > 0)
               for: 5m
               labels:
                 customerName: acme

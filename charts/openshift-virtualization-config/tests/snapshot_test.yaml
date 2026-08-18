@@ -1,0 +1,44 @@
+suite: Snapshot test
+templates:
+  - templates/*
+release:
+  name: openshift-virtualization-config
+
+tests:
+  - it: manifests should match snapshot (defaults, no additional networks)
+    asserts:
+      - matchSnapshot: {}
+
+  - it: renders the Network additionalNetworks when set
+    set:
+      additionalNetworks:
+        - name: vmlm
+          namespace: openshift-cnv
+          type: Raw
+          rawCNIConfig: |-
+            {
+              "cniVersion": "0.3.1",
+              "name": "vmlm",
+              "type": "macvlan",
+              "master": "bond1.1079",
+              "mode": "bridge",
+              "ipam": {
+                "type": "whereabouts",
+                "range": "10.11.79.0/25",
+                "range_start": "10.11.79.10",
+                "range_end": "10.11.79.126"
+              }
+            }
+        - name: vm-br-8
+          namespace: openshift-cnv
+          type: Raw
+          rawCNIConfig: |-
+            {
+              "cniVersion": "0.3.1",
+              "name": "vm-br-8",
+              "type": "cnv-bridge",
+              "bridge": "br-8",
+              "disableContainerInterface": true
+            }
+    asserts:
+      - matchSnapshot: {}
