@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Upgrade tempo-operator to v0.21.0-3 ([SPEXAPC-19807](https://aspecta.atlassian.net/browse/SPEXAPC-19807)) — fixes gateway/query-frontend pods not restarting after certificate rotation, which caused expired-certificate TLS errors and 502 Bad Gateway in the tracing UI. v0.21.0-3 (rather than the v0.20.0 minimum from the ticket) is used because the `stable` channel's subscription always resolves to the latest available CSV regardless of `startingCSV`/`versions` pinning — confirmed empirically on huba QA
+- Upgrade tempo-operator to v0.21.0-3 ([SPEXAPC-19807](https://aspecta.atlassian.net/browse/SPEXAPC-19807)) — fixes pods not restarting after certificate rotation, which caused expired-certificate TLS errors. v0.21.0-3 (rather than the v0.20.0) is used because the `stable` channel's subscription always resolves to the latest available CSV regardless of `startingCSV`/`versions` pinning — confirmed on huba QA
 
 ## [1.0.0] - 2026-05-12
 
