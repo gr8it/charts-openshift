@@ -1,0 +1,16 @@
+# OperatorPolicy Values
+acm-operatorpolicy:
+  # operatorGroup intentionally unset: openshift-nmstate already has exactly one
+  # OperatorGroup on every cluster (name differs per env), so OperatorPolicy
+  # adopts the existing one instead of creating a second (OLM error) OG.
+  subscription:
+    channel: stable
+    name: kubernetes-nmstate-operator
+    namespace: openshift-nmstate
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    startingCSV: kubernetes-nmstate-operator.4.17.0-202502250404
+  # Managed upgrades: list all CSVs that ACM may auto-approve (currently-installed only).
+  upgradeApproval: Automatic
+  versions:
+    - kubernetes-nmstate-operator.4.17.0-202502250404
