@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.1] - 2026-08-18
 
-- `kubevirt-hyperconverged-operator.v4.17.5` → `v4.18.0`
+- `kubevirt-hyperconverged-operator.v4.17.5` → `kubevirt-hyperconverged-operator.v4.18.0`
 
 ## [1.0.0] - 2026-07-13
 
