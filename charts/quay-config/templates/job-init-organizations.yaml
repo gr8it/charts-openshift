@@ -1,0 +1,102 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "quay-config.name" . }}-init-organizations
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "quay-config.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/sync-wave: "22"
+spec:
+  ttlSecondsAfterFinished: 600
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        {{- include "quay-config.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "quay-config.name" $ }}-postinstall
+      initContainers:
+        - name: wait-quay
+          image: {{ .Values.ocImage }}
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/wait-quay.sh"]
+          envFrom:
+            - configMapRef:
+                name: {{ include "quay-config.name" . }}-postinstall-env
+          resources:
+            {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+            - name: bootstrap-token
+              mountPath: /var/opt/token
+        - name: init-token
+          image: {{ .Values.ocImage }}
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/init-bootstrap-token.sh"]
+          envFrom:
+            - configMapRef:
+                name: {{ include "quay-config.name" . }}-postinstall-env
+          resources:
+            {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+            - name: bootstrap-token
+              mountPath: /var/opt/token
+      containers:
+        {{- range $registry := .Values.imageProxy.registries }}
+        - name: {{ printf "setup-%s" (regexReplaceAll "[^a-zA-Z0-9]+" $registry "-" | lower | trunc 63 | trimSuffix "-") }}
+          image: {{ $.Values.ocImage }}
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/init-organization.sh"]
+          envFrom:
+            - configMapRef:
+                name: {{ include "quay-config.name" $ }}-postinstall-env
+          env:
+            - name: REGISTRY
+              value: {{ $registry }}
+            - name: REGISTRYCREDENTIALS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "quay-config.name" $ }}-registry-credentials
+                  key: pull-secret
+          resources:
+            {{- $.Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+            - name: bootstrap-token
+              mountPath: /var/opt/token
+          env:
+            - name: REGISTRYLIST
+              value: {{ join "," ($.Values.imageProxy.registries|default list) }}
+            - name: REGISTRY
+              value: {{ $registry }}
+            - name: REGISTRYCREDENTIALS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "quay-config.name" $ }}-registry-credentials
+                  key: pull-secret
+          resources:
+            {{- $.Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+            - name: bootstrap-token
+              mountPath: /var/opt/token
+        {{- end }}
+      volumes:
+        - name: postinstall-scripts
+          configMap:
+            name: {{ include "quay-config.name" . }}-postinstall-scripts
+            defaultMode: 0755
+        - name: bootstrap-token
+          emptyDir: {}
+      restartPolicy: Never
+      securityContext: {}
+      terminationGracePeriodSeconds: 30

@@ -31,13 +31,20 @@ spec:
               value: {{ .Values.quayConfig.localAdminUser }}
             - name: NAMESPACE
               value: {{ .Release.Namespace }}
-            - name: SECRETNAME
+            - name: ADMINCREDSECRET
               value: {{ printf "%s-%s" (include "quay-config.name" .) .Values.quayConfig.localAdminUser }}
+            - name: TOKENSECRET
+              value: {{ include "quay-config.name" $ }}-bootstrap-token
             - name: PUSHSECRETLABELS
               value: |2
                 {{ include "quay-config.labels" . | nindent 20 }}
             - name: QUAYSERVICE
               value: {{ printf "http://%s-quay-app.%s.svc.cluster.local" (include "quay-config.name" .) .Release.Namespace }}
+            - name: REGISTRYCREDENTIALS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "quay-config.name" . }}-registry-credentials
+                  key: pull-secret
           resources:
             {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
           volumeMounts:

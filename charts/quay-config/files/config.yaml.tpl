@@ -4,7 +4,7 @@ ACTION_LOG_ROTATION_THRESHOLD: {{ .Values.quayConfig.actionLogRetention }}
 ALLOW_PULLS_WITHOUT_STRICT_LOGGING: false
 AUTHENTICATION_TYPE: Database
 BOOTSTRAP_TOKEN_OWNER: {{ .Values.quayConfig.localAdminUser }}
-BOOTSTRAP_TOKEN_EXPIRATION: 7200
+BOOTSTRAP_TOKEN_EXPIRATION: 1800
 {{/* BOOTSTRAP_TOKEN_EXPIRATION: 7776000 */}}
 BOOTSTRAP_TOKEN_SCOPE: "org:admin repo:admin repo:create repo:read repo:write super:user user:admin user:read"
 CREATE_PRIVATE_REPO_ON_PUSH: false

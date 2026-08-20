@@ -19,23 +19,31 @@ spec:
         {{- include "quay-config.labels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "quay-config.name" . }}-postinstall
+      initContainers:
+        - name: wait-quay
+          image: {{ .Values.ocImage }}
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/wait-quay.sh"]
+          envFrom:
+            - configMapRef:
+                name: {{ include "quay-config.name" . }}-postinstall-env
+          resources:
+            {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
       containers:
-        - name: postinstall
+        - name: init-admin
           image: {{ .Values.ocImage }}
           imagePullPolicy: Always
           command: ["/bin/bash", "/scripts/init-admin.sh"]
+          envFrom:
+            - configMapRef:
+                name: {{ include "quay-config.name" . }}-postinstall-env
           env:
-            - name: ADMINUSER
-              value: {{ .Values.quayConfig.localAdminUser }}
-            - name: NAMESPACE
-              value: {{ .Release.Namespace }}
-            - name: SECRETNAME
-              value: {{ printf "%s-%s" (include "quay-config.name" .) .Values.quayConfig.localAdminUser }}
             - name: PUSHSECRETLABELS
               value: |2
                 {{ include "quay-config.labels" . | nindent 20 }}
-            - name: QUAYSERVICE
-              value: {{ printf "http://%s-quay-app.%s.svc.cluster.local" (include "quay-config.name" .) .Release.Namespace }}
           resources:
             {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
           volumeMounts:
