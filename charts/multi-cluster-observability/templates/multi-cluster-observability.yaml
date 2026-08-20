@@ -1,0 +1,27 @@
+{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
+apiVersion: observability.open-cluster-management.io/v1beta2
+kind: MultiClusterObservability
+metadata:
+  name: observability
+  labels:
+    {{- include "multi-cluster-observability.labels" . | nindent 4 }}
+  annotations:
+    mco-disable-alerting: "true"
+spec:
+  observabilityAddonSpec:
+    interval: 30
+  storageConfig:
+    metricObjectStorage:
+      name: thanos-object-storage
+      key: thanos.yaml
+      tlsSecretMountPath: /etc/ssl/certs/thanos
+      tlsSecretName: thanos-tls-ca
+  advanced:
+    retentionConfig:
+      blockDuration: {{ .Values.retentionConfig.blockDuration }}
+      deleteDelay: {{ .Values.retentionConfig.deleteDelay }}
+      retentionInLocal: {{ .Values.retentionConfig.retentionInLocal }}
+      retentionResolutionRaw: {{ .Values.retentionConfig.retentionResolutionRaw }}
+      retentionResolution5m: {{ .Values.retentionConfig.retentionResolution5m }}
+      retentionResolution1h: {{ .Values.retentionConfig.retentionResolution1h }}
+{{- end }}
