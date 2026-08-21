@@ -62,31 +62,31 @@ each one fixes a restore failure reproduced on a live cluster:
 - `snapshotMoveData: false` — etcd data is protected by the hosted-etcd snapshot
   CronJob, not by Velero
 
-Three ACM registration secrets are bound to the `ManagedCluster` identity and
-must be regenerated on restore, not restored — restoring an old one leaves the
+The chart also renders a Kyverno `ClusterPolicy` labelling the ACM registration
+credentials (`<cluster>-import`, `bootstrap-hub-kubeconfig`,
+`hub-kubeconfig-secret`) with `velero.io/exclude-from-backup: "true"`, so they
+are never captured. They are bound to the `ManagedCluster` identity and must be
+regenerated on restore, not restored — restoring the old secret leaves the
 klusterlet failing `Unauthorized` and the managed cluster never re-registers.
-Two different mechanisms keep them out of backups:
+This runs regardless of `hostedClusters`, since Kyverno matches by label/name,
+not by spoke. Requires the Kyverno operator on the hub.
 
-- `<name>-import` (in the `<name>` namespace): the chart pre-seeds a bare
-  `Secret` per `hostedClusters` entry containing only the
-  `velero.io/exclude-from-backup: "true"` label. ACM's import-controller later
-  fills in the data with a plain `Update`, which leaves our label field alone —
-  verified live via `managedFields`, both co-exist. No Kyverno needed for this
-  one.
-- `bootstrap-hub-kubeconfig` / `hub-kubeconfig-secret` (in `klusterlet-<name>`):
-  labelled by a Kyverno `ClusterPolicy` instead, since that namespace doesn't
-  exist yet at the point we'd need to pre-seed a stub — Kyverno's background
-  scan catches them once ACM creates them. Requires the Kyverno operator on the
-  hub. Runs regardless of `hostedClusters`, matches by name/namespace label.
+A pre-seeded `Secret` (label only, no data, applied via server-side apply
+instead of Kyverno) was tested as an alternative for `<name>-import`: it works,
+ACM's import-controller does a Get-then-Update that preserves the pre-existing
+label field. The same approach fails for `bootstrap-hub-kubeconfig` and
+`hub-kubeconfig-secret` — their owning controllers (`work-agent`,
+`registration`) do a full replace of `metadata.labels`, wiping the pre-seeded
+label entirely. Kept on Kyverno for all three rather than splitting the
+mechanism per secret.
 
 > [!NOTE]
-> Validated end-to-end on a live cluster, twice: full destroy (all four
+> Validated end-to-end on a live cluster, three times: full destroy (all four
 > namespaces, `ManagedCluster`, `NodePool`, etcd PVC) and restore from backups
-> taken with this chart's exact filters. Both runs: `HostedCluster`
+> taken with this chart's exact filters. Every run: `HostedCluster`
 > `Completed`/`Available`, `NodePool` 2/2, `ManagedCluster` `JOINED`/`AVAILABLE`
 > automatically within ~9 minutes, zero `Unauthorized` errors, all HCP pods
-> running, InfraEnv and agents restored and approved. Second run also confirmed
-> the pre-seeded `<name>-import` Secret keeps its label through ACM's own write.
+> running, InfraEnv and agents restored and approved.
 
 ## Restore Notice
 
