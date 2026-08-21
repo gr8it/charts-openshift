@@ -5,7 +5,7 @@ manifests should match snapshot:
     metadata:
       annotations:
         policies.kyverno.io/category: Backup
-        policies.kyverno.io/description: Labels ACM registration credentials so Velero skips them. They are bound to a ManagedCluster identity and must be regenerated on restore, not restored.
+        policies.kyverno.io/description: Labels klusterlet hub-kubeconfig credentials so Velero skips them. They are bound to a ManagedCluster identity and must be regenerated on restore, not restored. The managedcluster-import-controller import secret is excluded via a pre-seeded Secret instead (see import-secret-exclusion.yaml) - server-side apply proved sufficient there, no Kyverno needed for it.
         policies.kyverno.io/minversion: 1.13.0
         policies.kyverno.io/subject: Secret
         policies.kyverno.io/title: Exclude ACM registration secrets from Velero backups
@@ -20,26 +20,6 @@ manifests should match snapshot:
       background: true
       mutateExistingOnPolicyUpdate: true
       rules:
-        - match:
-            any:
-              - resources:
-                  kinds:
-                    - Secret
-                  selector:
-                    matchExpressions:
-                      - key: managedcluster-import-controller.open-cluster-management.io/import-secret
-                        operator: Exists
-          mutate:
-            patchStrategicMerge:
-              metadata:
-                labels:
-                  velero.io/exclude-from-backup: "true"
-            targets:
-              - apiVersion: v1
-                kind: Secret
-                name: '{{ request.object.metadata.name }}'
-                namespace: '{{ request.object.metadata.namespace }}'
-          name: exclude-managedcluster-import-secret
         - match:
             any:
               - resources:
@@ -96,6 +76,14 @@ manifests should match snapshot:
         snapshotMoveData: false
         ttl: 336h0m0s
   3: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      labels:
+        velero.io/exclude-from-backup: "true"
+      name: spokea2-import
+      namespace: spokea2
+  4: |
     apiVersion: velero.io/v1
     kind: Schedule
     metadata:
@@ -123,7 +111,7 @@ manifests should match snapshot:
           - infrastructure-spokea2
         snapshotMoveData: false
         ttl: 336h0m0s
-  4: |
+  5: |
     apiVersion: velero.io/v1
     kind: Schedule
     metadata:

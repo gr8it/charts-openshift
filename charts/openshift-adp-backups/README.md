@@ -62,23 +62,31 @@ each one fixes a restore failure reproduced on a live cluster:
 - `snapshotMoveData: false` — etcd data is protected by the hosted-etcd snapshot
   CronJob, not by Velero
 
-The chart also renders a Kyverno `ClusterPolicy` labelling the ACM registration
-credentials (`<cluster>-import`, `bootstrap-hub-kubeconfig`,
-`hub-kubeconfig-secret`) with `velero.io/exclude-from-backup: "true"`, so they
-are never captured. They are bound to the `ManagedCluster` identity and must be
-regenerated on restore, not restored — restoring the old secret leaves the
+Three ACM registration secrets are bound to the `ManagedCluster` identity and
+must be regenerated on restore, not restored — restoring an old one leaves the
 klusterlet failing `Unauthorized` and the managed cluster never re-registers.
-This runs regardless of `hostedClusters`, since Kyverno matches by label/name,
-not by spoke. Requires the Kyverno operator on the hub.
+Two different mechanisms keep them out of backups:
+
+- `<name>-import` (in the `<name>` namespace): the chart pre-seeds a bare
+  `Secret` per `hostedClusters` entry containing only the
+  `velero.io/exclude-from-backup: "true"` label. ACM's import-controller later
+  fills in the data with a plain `Update`, which leaves our label field alone —
+  verified live via `managedFields`, both co-exist. No Kyverno needed for this
+  one.
+- `bootstrap-hub-kubeconfig` / `hub-kubeconfig-secret` (in `klusterlet-<name>`):
+  labelled by a Kyverno `ClusterPolicy` instead, since that namespace doesn't
+  exist yet at the point we'd need to pre-seed a stub — Kyverno's background
+  scan catches them once ACM creates them. Requires the Kyverno operator on the
+  hub. Runs regardless of `hostedClusters`, matches by name/namespace label.
 
 > [!NOTE]
-> Validated end-to-end on a live cluster: all four namespaces, the
-> `ManagedCluster`, `NodePool` and the etcd PVC were deleted, then restored
-> from backups taken with this chart's exact filters. Result: `HostedCluster`
+> Validated end-to-end on a live cluster, twice: full destroy (all four
+> namespaces, `ManagedCluster`, `NodePool`, etcd PVC) and restore from backups
+> taken with this chart's exact filters. Both runs: `HostedCluster`
 > `Completed`/`Available`, `NodePool` 2/2, `ManagedCluster` `JOINED`/`AVAILABLE`
-> automatically within ~9 minutes with zero `Unauthorized` errors, all HCP pods
-> running, InfraEnv and agents restored and approved. The registration secrets
-> came back correctly excluded and self-regenerated rather than restored.
+> automatically within ~9 minutes, zero `Unauthorized` errors, all HCP pods
+> running, InfraEnv and agents restored and approved. Second run also confirmed
+> the pre-seeded `<name>-import` Secret keeps its label through ACM's own write.
 
 ## Restore Notice
 
