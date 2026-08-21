@@ -62,10 +62,14 @@ each one fixes a restore failure reproduced on a live cluster:
 - `snapshotMoveData: false` — etcd data is protected by the hosted-etcd snapshot
   CronJob, not by Velero
 
-> [!IMPORTANT]
-> Deploy the `kyverno-backup-exclusions` chart on the same hub. It keeps ACM
-> registration credentials out of these backups; restoring them leaves the
-> klusterlet failing `Unauthorized` and the managed cluster never re-registers.
+The chart also renders a Kyverno `ClusterPolicy` labelling the ACM registration
+credentials (`<cluster>-import`, `bootstrap-hub-kubeconfig`,
+`hub-kubeconfig-secret`) with `velero.io/exclude-from-backup: "true"`, so they
+are never captured. They are bound to the `ManagedCluster` identity and must be
+regenerated on restore, not restored — restoring the old secret leaves the
+klusterlet failing `Unauthorized` and the managed cluster never re-registers.
+This runs regardless of `hostedClusters`, since Kyverno matches by label/name,
+not by spoke. Requires the Kyverno operator on the hub.
 
 ## Restore Notice
 
