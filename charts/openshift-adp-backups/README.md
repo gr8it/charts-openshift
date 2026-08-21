@@ -71,6 +71,15 @@ klusterlet failing `Unauthorized` and the managed cluster never re-registers.
 This runs regardless of `hostedClusters`, since Kyverno matches by label/name,
 not by spoke. Requires the Kyverno operator on the hub.
 
+> [!NOTE]
+> Validated end-to-end on a live cluster: all four namespaces, the
+> `ManagedCluster`, `NodePool` and the etcd PVC were deleted, then restored
+> from backups taken with this chart's exact filters. Result: `HostedCluster`
+> `Completed`/`Available`, `NodePool` 2/2, `ManagedCluster` `JOINED`/`AVAILABLE`
+> automatically within ~9 minutes with zero `Unauthorized` errors, all HCP pods
+> running, InfraEnv and agents restored and approved. The registration secrets
+> came back correctly excluded and self-regenerated rather than restored.
+
 ## Restore Notice
 
 > [!NOTE]
