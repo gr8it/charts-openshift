@@ -24,32 +24,6 @@ spec:
       - replicasets.apps
     includedClusterScopedResources:
       - managedclusters.cluster.open-cluster-management.io
-      - persistentvolumes
-      - priorityclasses.scheduling.k8s.io
-    snapshotMoveData: false
-    defaultVolumesToFSBackup: false
-    ttl: {{ .ttl | default "336h0m0s" | quote }}
----
-apiVersion: velero.io/v1
-kind: Schedule
-metadata:
-  name: {{ printf "infraenv-%s" $name | quote }}
-  namespace: {{ $.Values.namespace | default $.Release.Namespace | quote }}
-  labels:
-    {{- include "openshift-adp-backups.labels" $ | nindent 4 }}
-spec:
-  schedule: {{ required "hostedClusters[].infraEnvSchedule is required" .infraEnvSchedule | quote }}
-  paused: {{ .paused | default false }}
-  template:
-    includedNamespaces:
-      - {{ printf "infrastructure-%s" $name }}
-    includedNamespaceScopedResources:
-      - '*'
-    excludedNamespaceScopedResources:
-      - events
-      - events.events.k8s.io
-      - pods
-      - replicasets.apps
     snapshotMoveData: false
     defaultVolumesToFSBackup: false
     ttl: {{ .ttl | default "336h0m0s" | quote }}

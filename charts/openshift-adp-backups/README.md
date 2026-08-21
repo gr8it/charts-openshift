@@ -46,6 +46,12 @@ The cluster-scoped `ManagedCluster` is included as well; a namespace-only backup
 would miss it. The InfraEnv gets its own Schedule because it lives in a separate
 namespace and must be restorable independently of the control plane.
 
+`ManagedCluster` is cluster-scoped, so Velero's resource-type inclusion is not
+spoke-filtered: every spoke's `hcp-<name>` backup contains every hub's
+`ManagedCluster` objects, not just its own. This is a small, fixed-size set (one
+per spoke) and Velero's default restore skips resources that already exist, so
+restoring one spoke does not overwrite another's.
+
 The resource filters are fixed by the chart and intentionally not configurable —
 each one fixes a restore failure reproduced on a live cluster:
 
