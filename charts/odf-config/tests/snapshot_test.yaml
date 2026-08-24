@@ -43,6 +43,38 @@ tests:
     asserts:
       - matchSnapshot: {}
 
+  - it: renders exactly one StorageCluster with only spec.resources set, even with multiple resource entries
+    template: templates/storagecluster.yaml
+    set:
+      storageCluster:
+        name: ocs-storagecluster
+        resources:
+          mds:
+            limits:
+              memory: 20Gi
+            requests:
+              memory: 20Gi
+          mgr:
+            limits:
+              cpu: "2"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: StorageCluster
+      - equal:
+          path: spec
+          value:
+            resources:
+              mds:
+                limits:
+                  memory: 20Gi
+                requests:
+                  memory: 20Gi
+              mgr:
+                limits:
+                  cpu: "2"
+
   - it: renders MachineConfig as a hosted-cluster ConfigMap on a hub cluster
     set:
       machineConfig:
