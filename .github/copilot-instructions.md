@@ -153,7 +153,7 @@ tests:
   - `<component>` — single resource, e.g. `remove-kubeadmin`
   - `<component>-operator` / `<component>-helm` — operator/chart installation only; no followup configuration
   - `<component>-config` / `<component>-instance` / `<component>-policies` — configuration using CRs created during installation
-- Operator installation — use an ACM `operatorpolicy` to install operators, and approve only allowed versions.
+- Operator installation — use an ACM `operatorpolicy` to install operators, and approve only allowed versions. When bumping an operator version, keep the currently-installed CSV in the allowed versions list too. An ACM OperatorPolicy reports non-compliant/failed if the CSV currently on the cluster is not in versions. During an upgrade the old CSV is still present until OLM swaps it, so the list must carry both current and target, e.g. versions: [odf-operator.v4.17.5-rhodf, odf-operator.v4.18.24-rhodf]. Drop the old version only in a later PR once every cluster has settled on the target.
 - Follow <https://learnk8s.io/production-best-practices> and the [Helm chart best practices](https://helm.sh/docs/chart_best_practices/).
 
 ## PrometheusRule Conventions
