@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "quay-config.name" . }}-init-admin
+  name: {{ include "quay-config.name" . }}-prune-organizations
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "quay-config.labels" . | nindent 4 }}
@@ -11,10 +11,10 @@ metadata:
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded
     argocd.argoproj.io/sync-options: Replace=true
-    argocd.argoproj.io/sync-wave: "20"
+    argocd.argoproj.io/sync-wave: "24"
 spec:
   ttlSecondsAfterFinished: 1800
-  backoffLimit: 1
+  backoffLimit: 2
   template:
     metadata:
       labels:
@@ -34,28 +34,57 @@ spec:
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
-      containers:
-        - name: init-admin
+        - name: wait-init-org
           image: {{ .Values.ocImage }}
           imagePullPolicy: Always
-          command: ["/bin/bash", "/scripts/init-admin.sh"]
-          envFrom:
-            - configMapRef:
-                name: {{ include "quay-config.name" . }}-postinstall-env
+          command: ["/bin/bash", "/scripts/wait-init-org.sh"]
           env:
-            - name: PUSHSECRETLABELS
-              value: |2
-                {{ include "quay-config.labels" . | nindent 20 }}
+            - name: INITORGJOB
+              value: {{ printf "%s-init-organizations"  (include "quay-config.name" .) }}
           resources:
             {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
+        - name: init-token
+          image: {{ .Values.ocImage }}
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/init-bootstrap-token.sh"]
+          envFrom:
+            - configMapRef:
+                name: {{ include "quay-config.name" . }}-postinstall-env
+          resources:
+            {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+            - name: bootstrap-token
+              mountPath: /var/opt/token
+      containers:
+        - name: prune-organizations
+          image: {{ .Values.ocImage }}
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/prune-organizations.sh"]
+          envFrom:
+            - configMapRef:
+                name: {{ include "quay-config.name" . }}-postinstall-env
+          env:
+            - name: REGISTRYLIST
+              value: {{ join "," .Values.imageProxy.registries }}
+          resources:
+            {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+            - name: bootstrap-token
+              mountPath: /var/opt/token
       volumes:
         - name: postinstall-scripts
           configMap:
             name: {{ include "quay-config.name" . }}-postinstall-scripts
             defaultMode: 0755
+        - name: bootstrap-token
+          emptyDir: {}
       restartPolicy: Never
       securityContext: {}
       terminationGracePeriodSeconds: 30

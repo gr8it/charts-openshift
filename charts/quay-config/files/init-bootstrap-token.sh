@@ -51,13 +51,12 @@ if [ "$checkTokenCode" -eq 401 ]; then
   if [ "$renewReply" != '{"status": "rotated"}' ]; then
     log_error "There was a problem with renewing the bootstrap token:"
     echo "$renewReply"
-    #exit 1
+    exit 1
   fi
   while [ "${newBootstrapToken:-$bootstrapToken}" = "$bootstrapToken"  ]; do
     if [ $tokenRotated -ge $((waitRetries/2)) ]; then
       log_error "Giving up. New bootstrap token was not provisioned in time."
-      #exit 1
-      break
+      exit 1
     fi
     bootstrapTokenJson=$( oc get secret $bootstrapTokenSecret -o go-template='{{ index .data "token.json" | base64decode}}' 2>/dev/null || true )
     newBootstrapToken="$(get_json_value "${bootstrapTokenJson:-}" "access_token")"

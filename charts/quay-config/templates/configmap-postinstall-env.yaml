@@ -12,6 +12,8 @@ metadata:
 data:
   NAMESPACE: {{ .Release.Namespace }}
   QUAYSERVICE: {{ printf "http://%s-quay-app.%s.svc.cluster.local" (include "quay-config.name" .) .Release.Namespace }}
+  QUAYNAME: {{ include "quay-config.name" . }}
   QUAYADMINUSER: {{ .Values.quayConfig.localAdminUser }}
   QUAYADMINSECRET: {{ printf "%s-%s" (include "quay-config.name" .) .Values.quayConfig.localAdminUser }}
   BOOTSTRAPTOKENSECRET: {{ include "quay-config.name" . }}-bootstrap-token
+  MANAGEDORGCM: {{ include "quay-config.name" . }}-managed-orgs

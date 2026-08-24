@@ -9,10 +9,11 @@ metadata:
   annotations:
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/sync-options: Replace=true
     argocd.argoproj.io/sync-wave: "22"
 spec:
-  ttlSecondsAfterFinished: 600
-  backoffLimit: 1
+  ttlSecondsAfterFinished: 1800
+  backoffLimit: 2
   template:
     metadata:
       labels:
@@ -48,6 +49,22 @@ spec:
               mountPath: /scripts
             - name: bootstrap-token
               mountPath: /var/opt/token
+        - name: init-mr-cm
+          image: {{ .Values.ocImage }}
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/init-manged-registries-cm.sh"]
+          envFrom:
+            - configMapRef:
+                name: {{ include "quay-config.name" . }}-postinstall-env
+          env:
+            - name: CMLABELS
+              value: |2
+                {{ include "quay-config.labels" . | nindent 20 }}
+          resources:
+            {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
       containers:
         {{- range $registry := .Values.imageProxy.registries }}
         - name: {{ printf "setup-%s" (regexReplaceAll "[^a-zA-Z0-9]+" $registry "-" | lower | trunc 63 | trimSuffix "-") }}

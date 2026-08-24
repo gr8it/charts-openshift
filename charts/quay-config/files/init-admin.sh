@@ -14,6 +14,7 @@ admin_credentials() {
 adminPassword="$(openssl rand -base64 32 | tr -d /=+ | cut -c1-20)"
 adminUser="$QUAYADMINUSER"
 namespace="$NAMESPACE"
+quayName="$QUAYNAME"
 secretName="$QUAYADMINSECRET"
 pushSecretLabels="$PUSHSECRETLABELS"
 quayService="$QUAYSERVICE"
@@ -44,7 +45,8 @@ case "$adminInitCode" in
 esac
 
 log_phase "Storing admin credentials in a secret ..."
-oc apply -f - <<EOT
+quayUuid=$(oc get QuayRegistry "$quayName" -o jsonpath='{.metadata.uid}')
+oc apply -f - <<EOT > /dev/null
 apiVersion: v1
 kind: Secret
 metadata:
@@ -52,6 +54,11 @@ metadata:
   namespace: "$namespace"
   labels:
     ${pushSecretLabels}
+  ownerReferences:
+    - apiVersion: quay.redhat.com/v1
+      kind: QuayRegistry
+      name: "$quayName"
+      uid: "$quayUuid"
 type: Opaque
 stringData:
   username: "$adminUser"

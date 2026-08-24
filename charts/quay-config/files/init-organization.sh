@@ -20,6 +20,7 @@ proxycache_data_auth() {
 
 #-- variables ---------------------------------------------
 bootstrapToken="$(cat /var/opt/token/bootstrap)"
+managedRegistriesCm="$MANAGEDORGCM"
 tagExpirationSeconds=604800
 quayService="$QUAYSERVICE"
 registryCredentials="$REGISTRYCREDENTIALS"
@@ -39,6 +40,8 @@ createOrgMsg=$(echo "$createOrgResponse" | sed '$d')
 case "$createOrgCode" in
   201)
     log_info "Organization $proxyRegistry created successfully."
+    oc patch configmap "$managedRegistriesCm" --type merge \
+      --patch '{"data":{"'"$proxyRegistry"'":"managed"}}'
     ;;
   400)
     log_info "Organization $proxyRegistry already exists. Nothing to do."
