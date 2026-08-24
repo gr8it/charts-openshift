@@ -9,46 +9,10 @@ tests:
     asserts:
       - matchSnapshot: {}
 
-  - it: renders ODF config when set
+  - it: renders ODF config on a standalone cluster
     set:
-      nodeNetworkConfigurationPolicies:
-        - name: bond1
-          nodeSelector:
-            node-role.kubernetes.io/worker: ""
-          desiredState:
-            interfaces:
-              - name: bond1
-                state: up
-                type: bond
-                link-aggregation:
-                  mode: 802.3ad
-                  options:
-                    miimon: "140"
-                    xmit_hash_policy: layer2
-                  port:
-                    - ens1
-                    - ens2
-                ipv4:
-                  dhcp: false
-                  enabled: false
-                ipv6:
-                  dhcp: false
-                  enabled: false
-              - name: bond1.100
-                state: up
-                type: vlan
-                vlan:
-                  base-iface: bond1
-                  id: 100
-                ipv4:
-                  dhcp: false
-                  enabled: false
-                ipv6:
-                  dhcp: false
-                  enabled: false
       additionalNetworks:
         - name: odf
-          namespace: openshift-storage
           type: Raw
           rawCNIConfig: |-
             {
@@ -66,7 +30,6 @@ tests:
             }
       storageCluster:
         name: ocs-storagecluster
-        namespace: openshift-storage
         resources:
           mds:
             limits:
@@ -74,36 +37,19 @@ tests:
             requests:
               memory: 20Gi
       machineConfig:
-        name: 99-bond1-promisc
-        labels:
-          machineconfiguration.openshift.io/role: worker
+        enabled: true
         configMap:
-          enabled: false
           name: machineconfig-99-bond1-promisc
-          namespace: ""
-        spec:
-          config:
-            ignition:
-              version: 3.4.0
-            storage:
-              files:
-                - path: /usr/local/bin/bond1-promisc.sh
-                  mode: 0755
-                  contents:
-                    source: data:text/plain;charset=utf-8;base64,IyEvdXNyL2Jpbi9iYXNoCmlwIGxpbmsgc2V0IGJvbmQxIHByb21pc2Mgb24K
-            systemd:
-              units:
-                - name: bond1-promisc.service
-                  enabled: true
-                  contents: |
-                    [Unit]
-                    Description=Enable promisc mode on bond1
+    asserts:
+      - matchSnapshot: {}
 
-                    [Service]
-                    Type=oneshot
-                    ExecStart=/usr/local/bin/bond1-promisc.sh
-
-                    [Install]
-                    WantedBy=multi-user.target
+  - it: renders MachineConfig as a hosted-cluster ConfigMap on a hub cluster
+    set:
+      machineConfig:
+        enabled: true
+        configMap:
+          name: machineconfig-99-bond1-promisc
+      global.apc.cluster.isHub: true
+      global.apc.cluster.name: example-spoke
     asserts:
       - matchSnapshot: {}

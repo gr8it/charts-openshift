@@ -1,33 +1,10 @@
-# ODF secondary networks merged into the cluster Network operator's
-# additionalNetworks. Empty by default; set per cluster in the conf repo.
 additionalNetworks: []
-# - name: odf
-#   namespace: openshift-storage
-#   type: Raw
-#   rawCNIConfig: |-
-#     { "cniVersion": "0.3.1", "name": "odf", "type": "macvlan", ... }
 
-# Host network interfaces required by the ODF additional network.
-nodeNetworkConfigurationPolicies: []
-# - name: bond1
-#   nodeSelector:
-#     node-role.kubernetes.io/worker: ""
-#   desiredState:
-#     interfaces: []
-
-# Partial StorageCluster spec merged into the existing ODF StorageCluster.
 storageCluster:
   name: ocs-storagecluster
-  namespace: openshift-storage
   resources: {}
 
-# Optional MachineConfig used when ODF secondary interfaces require host setup.
 machineConfig:
-  name: 99-bond1-promisc
-  labels:
-    machineconfiguration.openshift.io/role: worker
-  spec: {}
+  enabled: false
   configMap:
-    enabled: false
     name: machineconfig-99-bond1-promisc
-    namespace: ""

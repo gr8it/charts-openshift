@@ -3,44 +3,6 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "nodeNetworkConfigurationPolicies": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "nodeSelector": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
-            }
-          },
-          "desiredState": {
-            "type": "object",
-            "additionalProperties": true,
-            "properties": {
-              "interfaces": {
-                "type": "array",
-                "items": {
-                  "type": "object"
-                }
-              }
-            },
-            "required": [
-              "interfaces"
-            ]
-          }
-        },
-        "required": [
-          "name",
-          "nodeSelector",
-          "desiredState"
-        ]
-      }
-    },
     "additionalNetworks": {
       "type": "array",
       "items": {
@@ -48,9 +10,6 @@
         "additionalProperties": false,
         "properties": {
           "name": {
-            "type": "string"
-          },
-          "namespace": {
             "type": "string"
           },
           "type": {
@@ -62,7 +21,6 @@
         },
         "required": [
           "name",
-          "namespace",
           "type",
           "rawCNIConfig"
         ]
@@ -75,9 +33,6 @@
         "name": {
           "type": "string"
         },
-        "namespace": {
-          "type": "string"
-        },
         "resources": {
           "type": "object",
           "additionalProperties": true
@@ -85,7 +40,6 @@
       },
       "required": [
         "name",
-        "namespace",
         "resources"
       ]
     },
@@ -93,53 +47,39 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "name": {
-          "type": "string"
-        },
-        "labels": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
-        "spec": {
-          "type": "object",
-          "additionalProperties": true
+        "enabled": {
+          "type": "boolean"
         },
         "configMap": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "enabled": {
-              "type": "boolean"
-            },
             "name": {
-              "type": "string"
-            },
-            "namespace": {
               "type": "string"
             }
           },
           "required": [
-            "enabled",
-            "name",
-            "namespace"
+            "name"
           ]
         }
       },
       "required": [
-        "name",
-        "labels",
-        "spec",
+        "enabled",
         "configMap"
       ]
     },
     "global": {
-      "type": "object"
+      "type": "object",
+      "description": "Global values to be accessed by all (sub)charts.",
+      "additionalProperties": true
+    },
+    "apc-global-overrides": {
+      "type": "object",
+      "description": "Values for the apc-global-overrides dependency chart.",
+      "additionalProperties": true
     }
   },
   "required": [
-    "nodeNetworkConfigurationPolicies",
     "additionalNetworks",
     "storageCluster",
     "machineConfig"

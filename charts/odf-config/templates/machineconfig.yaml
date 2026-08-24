@@ -1,28 +1,72 @@
-{{- with .Values.machineConfig.spec }}
-{{- if $.Values.machineConfig.configMap.enabled }}
+{{- if .Values.machineConfig.enabled }}
+{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ $.Values.machineConfig.configMap.name }}
-  namespace: {{ $.Values.machineConfig.configMap.namespace }}
+  name: {{ .Values.machineConfig.configMap.name }}
+  namespace: {{ include "apc-global-overrides.require-clusterName" . }}
 data:
   config: |
     apiVersion: machineconfiguration.openshift.io/v1
     kind: MachineConfig
     metadata:
       labels:
-        {{- $.Values.machineConfig.labels | toYaml | nindent 8 }}
-      name: {{ $.Values.machineConfig.name }}
+        machineconfiguration.openshift.io/role: worker
+      name: 99-bond1-promisc
     spec:
-      {{- toYaml . | nindent 6 }}
+      config:
+        ignition:
+          version: 3.4.0
+        storage:
+          files:
+            - path: /usr/local/bin/bond1-promisc.sh
+              mode: 0755
+              contents:
+                source: data:text/plain;charset=utf-8;base64,IyEvdXNyL2Jpbi9iYXNoCmlwIGxpbmsgc2V0IGJvbmQxIHByb21pc2Mgb24K
+        systemd:
+          units:
+            - name: bond1-promisc.service
+              enabled: true
+              contents: |
+                [Unit]
+                Description=Enable promisc mode on bond1
+
+                [Service]
+                Type=oneshot
+                ExecStart=/usr/local/bin/bond1-promisc.sh
+
+                [Install]
+                WantedBy=multi-user.target
 {{- else }}
 apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfig
 metadata:
   labels:
-    {{- $.Values.machineConfig.labels | toYaml | nindent 4 }}
-  name: {{ $.Values.machineConfig.name }}
+    machineconfiguration.openshift.io/role: worker
+  name: 99-bond1-promisc
 spec:
-  {{- toYaml . | nindent 2 }}
+  config:
+    ignition:
+      version: 3.4.0
+    storage:
+      files:
+        - path: /usr/local/bin/bond1-promisc.sh
+          mode: 0755
+          contents:
+            source: data:text/plain;charset=utf-8;base64,IyEvdXNyL2Jpbi9iYXNoCmlwIGxpbmsgc2V0IGJvbmQxIHByb21pc2Mgb24K
+    systemd:
+      units:
+        - name: bond1-promisc.service
+          enabled: true
+          contents: |
+            [Unit]
+            Description=Enable promisc mode on bond1
+
+            [Service]
+            Type=oneshot
+            ExecStart=/usr/local/bin/bond1-promisc.sh
+
+            [Install]
+            WantedBy=multi-user.target
 {{- end }}
 {{- end }}

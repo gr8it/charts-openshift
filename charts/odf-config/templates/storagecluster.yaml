@@ -3,7 +3,7 @@ apiVersion: ocs.openshift.io/v1
 kind: StorageCluster
 metadata:
   name: {{ $.Values.storageCluster.name }}
-  namespace: {{ $.Values.storageCluster.namespace }}
+  namespace: openshift-storage
 spec:
   resources:
     {{- toYaml . | nindent 4 }}
