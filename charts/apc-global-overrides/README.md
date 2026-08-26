@@ -73,6 +73,8 @@ Helper functions prefixed with `require-` execute previous logic, but expect at 
 
 Local override boolean is used when defined, otherwise global boolean is used.
 
+#### Internal implementation
+
 Standard default function would use global value, if local override value is set and set to false.
 
 To workaround this issue a boolDefaults helper function is available, which corrects the behaviour as expected.
