@@ -16,9 +16,10 @@ pridat cesty do Vaultu ????????????????????????????
 
 | Parameter | Description | Default |
 |---|---|---|
-| `clusterName` | HCP cluster name (namespace, infraID, ManagedCluster name). **Required.** | `""` |
+| `clusterName` | HCP cluster name (namespace, infraID, ManagedCluster name). **Required.** | — |
 | `clusterSet` | ACM ManagedClusterSet label; defaults to `clusterName` with trailing digits removed | `""` |
 | `releaseImage` | OCP release image FQDN with tag | `quay.io/openshift-release-dev/ocp-release:4.17.11-multi` |
+| `channel` | OCP update channel | `eus-4.18` |
 | `infrastructureNamespace` | Infra namespace override; defaults to `infrastructure-<clusterName>` | `""` |
 | `etcd.storageClassName` | StorageClass for ETCD PV | `lvms-vg1` |
 | `etcd.storageSize` | ETCD PV size | `8Gi` |
@@ -26,13 +27,14 @@ pridat cesty do Vaultu ????????????????????????????
 | `nodePool.upgradeType` | Upgrade strategy (`InPlace` or `Replace`) | `InPlace` |
 | `nodePool.autoRepair` | Enable automatic node repair | `false` |
 | `nodePool.nodeLabels` | Labels applied to worker nodes | `{}` |
+| `kubeletConfig` | KubeletConfig settings applied to worker nodes | see `values.yaml` |
 | `networking.clusterCIDR` | Pod network CIDR | `172.26.0.0/16` |
 | `networking.clusterHostPrefix` | Host prefix for pod network | `21` |
 | `networking.serviceCIDR` | Service network CIDR | `172.25.64.0/18` |
-| `services.oauthPort` | NodePort for OAuthServer | `30102` |
-| `services.konnectivityPort` | NodePort for Konnectivity | `30103` |
-| `services.ignitionPort` | NodePort for Ignition | `30104` |
-| `services.oidcPort` | NodePort for OIDC | `30101` |
+| `services.oauthPort` | NodePort for OAuthServer. **Required.** | — |
+| `services.konnectivityPort` | NodePort for Konnectivity. **Required.** | — |
+| `services.ignitionPort` | NodePort for Ignition. **Required.** | — |
+| `services.oidcPort` | NodePort for OIDC. **Required.** | — |
 
 ## Features
 
