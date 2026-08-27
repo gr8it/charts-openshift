@@ -262,10 +262,10 @@ entries:
     version: 1.0.0
   apc-global-overrides:
   - apiVersion: v2
-    created: "2026-08-04T14:02:40.608449065+02:00"
+    created: "2026-08-27T14:13:44.732858745+02:00"
     description: A Helm chart containing helm helper functions to override global
       APC values by local values
-    digest: db7ca46383e1ada5c61be1638244db8c7bbb27d72d91979c17b0c752ce2ea63c
+    digest: b067e9cc6a37d112f9e015aab1c349714e2c28c3523d1fcf00d5b2e03ccc1556
     name: apc-global-overrides
     type: library
     urls:
@@ -1282,6 +1282,35 @@ entries:
     type: application
     urls:
     - packaged_charts/cluster-config-standalone-1.0.0.tgz
+    version: 1.0.0
+  cluster-infraenv:
+  - apiVersion: v2
+    created: "2026-08-20T09:41:13.903402753+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: file://../../charts/apc-global-overrides
+      version: 1.9.0
+    description: Deploys an InfraEnv and related resources for a Hosted Control Plane
+      cluster on an ACM hub
+    digest: 8ae31738b0c511de8976c85f1e0e18bd0ec1dbeaf13dc6b1a3cdcafa95ceb3f9
+    name: cluster-infraenv
+    type: application
+    urls:
+    - packaged_charts/cluster-infraenv-1.0.0.tgz
+    version: 1.0.0
+  cluster-instance-hcp:
+  - apiVersion: v2
+    created: "2026-08-20T09:43:21.345407242+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.9.0
+    description: Deploys a HyperShift Hosted Control Plane cluster on an ACM hub cluster
+    digest: 48ed266ae8b795597c1b97e0a73e991c54345ea58f8d4202e492e97a04b380e2
+    name: cluster-instance-hcp
+    type: application
+    urls:
+    - packaged_charts/cluster-instance-hcp-1.0.0.tgz
     version: 1.0.0
   cluster-logging-operator:
   - apiVersion: v2
@@ -4231,4 +4260,4 @@ entries:
     urls:
     - packaged_charts/veeam-exporter-1.0.0.tgz
     version: 1.0.0
-generated: "2026-08-04T14:02:40.607273811+02:00"
+generated: "2026-08-27T14:13:44.732476022+02:00"

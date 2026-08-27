@@ -296,6 +296,17 @@ Create the ntpServers and require it
 {{- (include "apc-global-overrides.ntpServers" .) | fromYamlArray | default ("") | required "APC ntpServers is required" | toYaml }}
 {{- end }}
 
+{{- define "apc-global-overrides.chronyConfig" -}}
+{{- if (include "apc-global-overrides.ntpServers" . | fromYamlArray) }}
+{{- $chronyConf := "" -}}
+{{- range (include "apc-global-overrides.ntpServers" . | fromYamlArray) -}}
+  {{- $chronyConf = printf "%sserver %s iburst\n" $chronyConf . -}}
+{{- end }}
+{{- $chronyConf = printf "%sdriftfile /var/lib/chrony/drift\nmakestep 1.0 3\nrtcsync\nlogdir /var/log/chrony\n" $chronyConf }}
+{{- $chronyConf }}
+{{- end }}
+{{- end }}
+
 {{/*
 Create the sshAuthorizedKeys (string, one key per line)
 */}}

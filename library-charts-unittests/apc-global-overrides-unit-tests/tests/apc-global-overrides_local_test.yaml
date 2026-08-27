@@ -79,6 +79,15 @@ tests:
             - ntp-local1
             - ntp-local2
 
+  - it: chronyConfig from local
+    asserts:
+      - matchRegex:
+          path: data.chronyConfig
+          pattern: ntp-local1
+      - matchRegex:
+          path: data.chronyConfig
+          pattern: ntp-local2
+
   - it: sshAuthorizedKeys from local
     asserts:
       - equal: { path: data.sshAuthorizedKeys, value: "ssh-ed25519 AAAA local-key" }
@@ -89,7 +98,7 @@ tests:
       - equal:
           path: data.imageProxySources
           value:
-            - local.example.com
+            - quay.io-local
 
   - it: adIntegration from local with attribute defaults applied
     asserts:

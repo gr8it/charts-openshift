@@ -46,6 +46,13 @@ manifest should match snapshot:
           -----BEGIN CERTIFICATE-----
           global
           -----END CERTIFICATE-----
+      chronyConfig: |-
+        server ntp-global iburst
+        driftfile /var/lib/chrony/drift
+        makestep 1.0 3
+        rtcsync
+        logdir /var/log/chrony
+      chronyConfigBase64: c2VydmVyIG50cC1nbG9iYWwgaWJ1cnN0CmRyaWZ0ZmlsZSAvdmFyL2xpYi9jaHJvbnkvZHJpZnQKbWFrZXN0ZXAgMS4wIDMKcnRjc3luYwpsb2dkaXIgL3Zhci9sb2cvY2hyb255Cg==
       clusterAcmName: clusterAcmName-global
       clusterApiURL: clusterApiURL-global
       clusterApiVersions:
