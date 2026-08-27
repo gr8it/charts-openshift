@@ -16,7 +16,7 @@ tests:
   - it: customer from global
     asserts:
       - equal: { path: data.customer, value: customer-global }
-  
+
   - it: repo fields from global
     asserts:
       - equal: { path: data.repoURL, value: repoURL-global }
@@ -76,6 +76,12 @@ tests:
           path: data.ntpServers
           value:
             - ntp-global
+
+  - it: chronyConfig from global
+    asserts:
+      - matchRegex:
+          path: data.chronyConfig
+          pattern: ntp-global
 
   - it: sshAuthorizedKeys from global
     asserts:

@@ -45,15 +45,18 @@ data:
   {{- end }}
   {{- /* ntpServers as a list */}}
   {{- /* it is not sufficient to test without fromYamlArray !!! */}}
-  {{- if (include "apc-global-overrides.ntpServers" .) | fromYamlArray }}
   ntpServers:
     {{- (include "apc-global-overrides.ntpServers" .) | nindent 4 }}
   {{- /* ntpServers parsed and rendered as needed */}}
+  {{- if (include "apc-global-overrides.ntpServers" .) | fromYamlArray }}
   ntpServersArray:
     {{- range (include "apc-global-overrides.ntpServers" . | fromYamlArray ) }}
     - {{ . }}
     {{- end }}
   {{- end }}
+  chronyConfig: |-
+  {{- include "apc-global-overrides.chronyConfig" . | nindent 4 }}
+  chronyConfigBase64: {{ include "apc-global-overrides.chronyConfig" . | b64enc }}
   sshAuthorizedKeys: {{ include "apc-global-overrides.sshAuthorizedKeys" . }}
   services:
     {{- (include "apc-global-overrides.services" .) | nindent 4 }}

@@ -50,6 +50,14 @@ manifest should match snapshot:
           -----BEGIN CERTIFICATE-----
           local
           -----END CERTIFICATE-----
+      chronyConfig: |-
+        server ntp-local1 iburst
+        server ntp-local2 iburst
+        driftfile /var/lib/chrony/drift
+        makestep 1.0 3
+        rtcsync
+        logdir /var/log/chrony
+      chronyConfigBase64: c2VydmVyIG50cC1sb2NhbDEgaWJ1cnN0CnNlcnZlciBudHAtbG9jYWwyIGlidXJzdApkcmlmdGZpbGUgL3Zhci9saWIvY2hyb255L2RyaWZ0Cm1ha2VzdGVwIDEuMCAzCnJ0Y3N5bmMKbG9nZGlyIC92YXIvbG9nL2Nocm9ueQo=
       clusterAcmName: clusterAcmName-local
       clusterApiURL: clusterApiURL-local
       clusterApiVersions:
@@ -80,7 +88,7 @@ manifest should match snapshot:
       environmentShort: environmentShort-local
       imageProxyHost: local.example.com
       imageProxySources:
-        - local.example.com
+        - quay.io-local
       ldapIntegration:
         ldap:
           attributes:

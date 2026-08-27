@@ -69,8 +69,15 @@ tests:
 
   - it: ntpServers from default values
     asserts:
-      - notExists:
+      - equal:
           path: data.ntpServers
+          value: []
+      - equal:
+          path: data.chronyConfig
+          value: ""
+      - equal:
+          path: data.chronyConfigBase64
+          value: null
 
   - it: sshAuthorizedKeys from default values
     asserts:
