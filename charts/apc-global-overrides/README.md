@@ -196,8 +196,9 @@ global:
 |apc-global-overrides.require-noProxy|noProxy|global.apc.noProxy|string|-||
 |apc-global-overrides.proxyCIDRs|proxyCIDRs|global.apc.proxyCIDRs|list|-||
 |apc-global-overrides.require-proxyCIDRs|proxyCIDRs|global.apc.proxyCIDRs|list|-||
-|apc-global-overrides.ntpServers|ntpServers|global.apc.ntpServers|list|-| NTP servers to use, e.g. infraEnv, HCP / standalone |
+|apc-global-overrides.ntpServers|ntpServers|global.apc.ntpServers|list|-| NTP servers to use in e.g. infraEnv, HCP / standalone |
 |apc-global-overrides.require-ntpServers|ntpServers|global.apc.ntpServers|list|-||
+|apc-global-overrides.chronyConfig|ntpServers|global.apc.ntpServers|list|-| Chrony config from ntpServers |
 |apc-global-overrides.sshAuthorizedKeys|sshAuthorizedKeys|global.apc.sshAuthorizedKeys|string|-| SSH public key(s) to add to authorized_keys. One key per line |
 |apc-global-overrides.require-sshAuthorizedKeys|sshAuthorizedKeys|global.apc.sshAuthorizedKeys|string|-||
 |apc-global-overrides.imageProxyHost|imageProxy.host|global.apc.imageProxy.host|string|-|Mirror registry hostname|
