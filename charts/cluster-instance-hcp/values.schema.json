@@ -1,14 +1,16 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "additionalProperties": false,
+  "required": ["clusterName"],
   "properties": {
     "nameOverride": { "type": "string" },
     "fullnameOverride": { "type": "string" },
     "global": { "type": "object" },
     "apc-global-overrides": { "type": "object" },
-    "clusterName": { "type": "string" },
+    "clusterName": { "type": "string", "minLength": 1 },
     "clusterSet": { "type": "string" },
     "releaseImage": { "type": "string" },
+    "channel": { "type": "string" },
     "infrastructureNamespace": { "type": "string" },
     "kubeletConfig": { "type": "object" },
     "logindConfig": { "type": "string" },
@@ -44,6 +46,7 @@
     "services": {
       "type": "object",
       "additionalProperties": false,
+      "required": ["oauthPort", "konnectivityPort", "ignitionPort", "oidcPort"],
       "properties": {
         "oauthPort": { "type": "integer" },
         "konnectivityPort": { "type": "integer" },
