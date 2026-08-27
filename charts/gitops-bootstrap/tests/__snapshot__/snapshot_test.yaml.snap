@@ -8,7 +8,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.9.3
+        helm.sh/chart: gitops-bootstrap-2.9.4
       name: global
       namespace: apc-bootstrap
     spec:
@@ -23,7 +23,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.9.3
+        helm.sh/chart: gitops-bootstrap-2.9.4
       name: apc-bootstrap
   3: |
     apiVersion: cluster.open-cluster-management.io/v1beta1
@@ -34,7 +34,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.9.3
+        helm.sh/chart: gitops-bootstrap-2.9.4
       name: gitops-bootstrap
       namespace: apc-bootstrap
     spec:
@@ -54,7 +54,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.9.3
+        helm.sh/chart: gitops-bootstrap-2.9.4
       name: gitops-bootstrap
       namespace: apc-bootstrap
     placementRef:
@@ -76,7 +76,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.9.3
+        helm.sh/chart: gitops-bootstrap-2.9.4
       name: gitops-bootstrap
       namespace: apc-bootstrap
     spec:
@@ -754,7 +754,15 @@ manifests should match snapshot:
                           rules:
                             - alert: ArgoCDAppSyncUnknownAlert
                               annotations:
-                                description: Argo CD application {{ "{{ $labels.name }}" }} sync status is Unknown.
+                                description: |
+                                  Argo CD application {{ "{{ $labels.name }}" }} in project {{ "{{ $labels.project }}" }} has sync status Unknown.
+                                  name = {{ "{{ $labels.name }}" }}
+                                  project = {{ "{{ $labels.project }}" }}
+                                  repo = {{ "{{ $labels.repo }}" }}
+                                  dest_namespace = {{ "{{ $labels.dest_namespace }}" }}
+                                  sync_status = {{ "{{ $labels.sync_status }}" }}
+                                  health_status = {{ "{{ $labels.health_status }}" }}
+                                  autosync_enabled = {{ "{{ $labels.autosync_enabled }}" }}
                                 summary: Argo CD application sync status is Unknown
                               expr: argocd_app_info{namespace="apc-gitops",sync_status="Unknown"} > 0
                               for: 5m
@@ -765,8 +773,7 @@ manifests should match snapshot:
                             - alert: ArgoCDAppsSyncMajorityUnknownAlert
                               annotations:
                                 description: |
-                                  {{ "{{ $value | humanizePercentage }}" }} of Argo CD applications in namespace "apc-gitops" sync status is Unknown.
-                                  Maybe a problem with connectivity to repo?
+                                  {{ "{{ $value | humanizePercentage }}" }} of Argo CD applications have sync status Unknown. Check repository connectivity.
                                 summary: Majority of Argo CD applications sync status is Unknown
                               expr: |
                                 (
@@ -792,7 +799,15 @@ manifests should match snapshot:
                           rules:
                             - alert: ArgocdServiceUnhealthy
                               annotations:
-                                description: Service {{ "{{ $labels.name }}" }} run by argo is currently not healthy.\n  VALUE = {{ "{{ $value }}" }}\n  LABELS = {{ "{{ $labels }}" }}
+                                description: |
+                                  Argo CD application {{ "{{ $labels.name }}" }} in project {{ "{{ $labels.project }}" }} has health status {{ "{{ $labels.health_status }}" }}.
+                                  name = {{ "{{ $labels.name }}" }}
+                                  project = {{ "{{ $labels.project }}" }}
+                                  repo = {{ "{{ $labels.repo }}" }}
+                                  dest_namespace = {{ "{{ $labels.dest_namespace }}" }}
+                                  sync_status = {{ "{{ $labels.sync_status }}" }}
+                                  health_status = {{ "{{ $labels.health_status }}" }}
+                                  autosync_enabled = {{ "{{ $labels.autosync_enabled }}" }}
                                 summary: ArgoCD service unhealthy (instance {{ "{{ $labels.instance }}" }})
                               expr: argocd_app_info{health_status!="Healthy"} != 0
                               for: 1h
@@ -840,7 +855,7 @@ manifests should match snapshot:
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
         argocd.argoproj.io/secret-type: repo-creds
-        helm.sh/chart: gitops-bootstrap-2.9.3
+        helm.sh/chart: gitops-bootstrap-2.9.4
       name: null
       namespace: apc-bootstrap
     stringData:
