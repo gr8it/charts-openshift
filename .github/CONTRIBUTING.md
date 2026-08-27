@@ -27,7 +27,7 @@ Original generic contributing rules located at <https://github.com/gr8it/private
 - Branch / Pull request name shall include the Jira ticket ID, e.g. SPEXAPC-3288, so Jira can map the PR to a ticket automatically
 - Creator of the comment should resolve the conversation, as he opened it
 - Creator of the PR should merge the PR, so all required parties gave their review
-- When implementing Gitops for already deployed application, ArgoCD application(s) in relevant environments with **sync disabled** must be included in the PR. Ensure, that the diffs are minimal, usually consisting of resource label changes only
+- When implementing GitOps for an already deployed application, ArgoCD Application(s) in relevant environments with **automated sync disabled** must be included in the PR. Ensure that the diffs are minimal, usually consisting of resource label changes only
 - Keep git history
   <details>
   <summary>Click for explanation</summary>
