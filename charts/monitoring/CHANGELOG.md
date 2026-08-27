@@ -5,6 +5,12 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.8] - 2026-08-27
+
+### Changed
+
+- Bump `userWorkloadMonitoring.prometheus.storageSize` default from `24Gi` to `75Gi`, to match the live PVC size on hub01 (already resized manually)
+
 ## [1.1.7] - 2026-08-11
 
 _([SPEXAPC-20772](https://aspecta.atlassian.net/browse/SPEXAPC-20772))_
