@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `apc-global-overrides.imageProxySources` helper
 - `apc-global-overrides.adIntegration` helper
 - `apc-global-overrides.ldapIntegration` helper
-- `apc-global-overrides.ntpServers` and `apc-global-overrides.require-ntpServers`
+- `apc-global-overrides.ntpServers`, `apc-global-overrides.require-ntpServers` and `apc-global-overrides.chronyConfig` which uses the ntpServers helper functions
 - `apc-global-overrides.sshAuthorizedKeys` and `apc-global-overrides.require-sshAuthorizedKeys` helpers for SSH authorized keys
 
 ## [1.8.0] - 2026-03-02
