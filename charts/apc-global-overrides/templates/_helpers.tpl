@@ -283,6 +283,45 @@ Create the proxyCIDRs and require it
 {{- end }}
 
 {{/*
+Create the ntpServers (list)
+*/}}
+{{- define "apc-global-overrides.ntpServers" -}}
+{{- .Values.ntpServers | default (((.Values.global).apc).ntpServers) | default list | toYaml }}
+{{- end }}
+
+{{/*
+Create the ntpServers and require it
+*/}}
+{{- define "apc-global-overrides.require-ntpServers" -}}
+{{- (include "apc-global-overrides.ntpServers" .) | fromYamlArray | default ("") | required "APC ntpServers is required" | toYaml }}
+{{- end }}
+
+{{- define "apc-global-overrides.chronyConfig" -}}
+{{- if (include "apc-global-overrides.ntpServers" . | fromYamlArray) }}
+{{- $chronyConf := "" -}}
+{{- range (include "apc-global-overrides.ntpServers" . | fromYamlArray) -}}
+  {{- $chronyConf = printf "%sserver %s iburst\n" $chronyConf . -}}
+{{- end }}
+{{- $chronyConf = printf "%sdriftfile /var/lib/chrony/drift\nmakestep 1.0 3\nrtcsync\nlogdir /var/log/chrony\n" $chronyConf }}
+{{- $chronyConf }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create the sshAuthorizedKeys (string, one key per line)
+*/}}
+{{- define "apc-global-overrides.sshAuthorizedKeys" -}}
+{{- .Values.sshAuthorizedKeys | default ((.Values.global).apc).sshAuthorizedKeys | default "" }}
+{{- end }}
+
+{{/*
+Create the sshAuthorizedKeys and require it
+*/}}
+{{- define "apc-global-overrides.require-sshAuthorizedKeys" -}}
+{{- include "apc-global-overrides.sshAuthorizedKeys" . | required "APC sshAuthorizedKeys is required" }}
+{{- end }}
+
+{{/*
 Create the services (dictionary)
 */}}
 {{- define "apc-global-overrides.services" -}}
@@ -330,7 +369,7 @@ Extraction of particular service parameters
 Create the cert-manager cluster issuer name
 */}}
 {{- define "apc-global-overrides.certManagerDefaultClusterIssuer" -}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).certManager).defaultClusterIssuer | default "" }}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).certManager).defaultClusterIssuer | default "" }}
 {{- end }}
 
 {{- define "apc-global-overrides.require-certManagerDefaultClusterIssuer" -}}
@@ -341,7 +380,7 @@ Create the cert-manager cluster issuer name
 Create the Crossplane Vault provider config name
 */}}
 {{- define "apc-global-overrides.crossplaneKubeVaultProviderConfigName" -}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).crossplane).kubeVaultProviderConfigName | default "" }}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).crossplane).kubeVaultProviderConfigName | default "" }}
 {{- end }}
 
 {{- define "apc-global-overrides.require-crossplaneKubeVaultProviderConfigName" -}}
@@ -352,7 +391,7 @@ Create the Crossplane Vault provider config name
 Create the Crossplane Keycloak provider config name
 */}}
 {{- define "apc-global-overrides.crossplaneKubeKeycloakProviderConfigName" -}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).crossplane).kubeKeycloakProviderConfigName | default "" }}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).crossplane).kubeKeycloakProviderConfigName | default "" }}
 {{- end }}
 
 {{- define "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" -}}
@@ -363,7 +402,7 @@ Create the Crossplane Keycloak provider config name
 Create the eso default cluster secret store
 */}}
 {{- define "apc-global-overrides.ESODefaultClusterSecretStore" -}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).externalSecretsOperator).defaultClusterSecretStore | default "" }}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).externalSecretsOperator).defaultClusterSecretStore | default "" }}
 {{- end }}
 
 {{- define "apc-global-overrides.require-ESODefaultClusterSecretStore" -}}
@@ -374,7 +413,7 @@ Create the eso default cluster secret store
 Create the Keycloak Admin API URL
 */}}
 {{- define "apc-global-overrides.keycloakUrl" -}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).keycloak).url | default "" }}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).keycloak).url | default "" }}
 {{- end }}
 
 {{- define "apc-global-overrides.require-keycloakUrl" -}}
@@ -385,7 +424,7 @@ Create the Keycloak Admin API URL
 Create the Keycloak Realm
 */}}
 {{- define "apc-global-overrides.keycloakRealm" -}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).keycloak).realm | default "" }}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).keycloak).realm | default "" }}
 {{- end }}
 
 {{- define "apc-global-overrides.require-keycloakRealm" -}}
@@ -396,21 +435,21 @@ Create the Keycloak Realm
 Create the MetalLB namespace
 */}}
 {{- define "apc-global-overrides.metallbNamespace" -}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).metallb).namespace | default "metallb-system" }}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).metallb).namespace | default "metallb-system" }}
 {{- end }}
 
 {{/*
 Create the MetalLB L2interface
 */}}
 {{- define "apc-global-overrides.metallbL2Interface" -}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).metallb).l2interface | default "br-ex" }}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).metallb).l2interface | default "br-ex" }}
 {{- end }}
 
 {{/*
 Create the Quay host
 */}}
 {{- define "apc-global-overrides.quayHost" -}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).quay).host | default "" }}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).quay).host | default "" }}
 {{- end }}
 
 {{- define "apc-global-overrides.require-quayHost" -}}
@@ -421,7 +460,7 @@ Create the Quay host
 Create the Vault kube auth mount path
 */}}
 {{- define "apc-global-overrides.vaultKubeAuthMountPath" -}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).vault).kubeAuthMountPath | default "" }}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).vault).kubeAuthMountPath | default "" }}
 {{- end }}
 
 {{- define "apc-global-overrides.require-vaultKubeAuthMountPath" -}}
@@ -434,7 +473,7 @@ From VaultURL = hostname, or override if specified
 */}}
 {{- define "apc-global-overrides.vaultName" -}}
 {{/* https://github.com/helm/helm/issues/13487 */}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).vault).name | default "" }}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).vault).name | default "" }}
 {{- end }}
 
 {{- define "apc-global-overrides.require-vaultName" -}}
@@ -445,7 +484,7 @@ From VaultURL = hostname, or override if specified
 Create the Vault URL
 */}}
 {{- define "apc-global-overrides.vaultUrl" -}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).vault).url | default "" }}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).vault).url | default "" }}
 {{- end }}
 
 {{- define "apc-global-overrides.require-vaultUrl" -}}
@@ -456,9 +495,55 @@ Create the Vault URL
 Create the Vault KV mount for platform
 */}}
 {{- define "apc-global-overrides.vaultKVmountPlatform" -}}
-{{- (((include "apc-global-overrides.services" .) | fromYaml).vault).KVmountPlatform | default "apc-platform" }}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).vault).KVmountPlatform | default "apc-platform" }}
 {{- end }}
 
 {{- define "apc-global-overrides.require-vaultKVmountPlatform" -}}
 {{- include "apc-global-overrides.vaultKVmountPlatform" . | required "APC services.vault.KVmountPlatform is required" }}
+{{- end }}
+
+{{/*
+Create the image proxy host
+*/}}
+{{- define "apc-global-overrides.imageProxyHost" -}}
+{{- (.Values.imageProxy).host | default (((.Values.global).apc).imageProxy).host | default "" }}
+{{- end }}
+
+{{- define "apc-global-overrides.require-imageProxyHost" -}}
+{{- include "apc-global-overrides.imageProxyHost" . | required "APC imageProxy.host is required" }}
+{{- end }}
+
+{{/*
+Create the image proxy sources (list)
+*/}}
+{{- define "apc-global-overrides.imageProxySources" -}}
+{{- (.Values.imageProxy).sources | default (((.Values.global).apc).imageProxy).sources | default list | toYaml }}
+{{- end }}
+
+{{/*
+Return the adIntegration dictionary merged from: defaults < global < local.
+Defaults: standard AD attributes.
+*/}}
+{{- define "apc-global-overrides.adIntegration" -}}
+{{- $defaults := dict "name" "" "type" "LDAP" "mappingMethod" "claim" "ldap" (dict "attributes" (dict "url" "" "email" (list "mail") "id" (list "sAMAccountName") "name" (list "cn") "preferredUsername" (list "sAMAccountName") "bindDN" "" "insecure" false)) -}}
+{{- $global := ((.Values.global).apc).adIntegration | default dict -}}
+{{- $local := .Values.adIntegration | default dict -}}
+{{- $result := deepCopy $defaults -}}
+{{- $_ := mergeOverwrite $result $global -}}
+{{- $_ = mergeOverwrite $result $local -}}
+{{- $result | toYaml -}}
+{{- end }}
+
+{{/*
+Return the ldapIntegration dictionary merged from: defaults < global < local.
+Defaults: standard LDAP attributes.
+*/}}
+{{- define "apc-global-overrides.ldapIntegration" -}}
+{{- $defaults := dict "name" "" "type" "LDAP" "mappingMethod" "claim" "ldap" (dict "attributes" (dict "url" "" "email" (list "mail") "id" (list "dn") "name" (list "cn") "preferredUsername" (list "uid") "bindDN" "" "insecure" false)) -}}
+{{- $global := ((.Values.global).apc).ldapIntegration | default dict -}}
+{{- $local := .Values.ldapIntegration | default dict -}}
+{{- $result := deepCopy $defaults -}}
+{{- $_ := mergeOverwrite $result $global -}}
+{{- $_ = mergeOverwrite $result $local -}}
+{{- $result | toYaml -}}
 {{- end }}
