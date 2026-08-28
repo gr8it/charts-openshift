@@ -33,7 +33,8 @@ global:
       - proxyIP-global
     ntpServers:
       - ntp-global
-    sshAuthorizedKeys: "ssh-ed25519 AAAA global-key"
+    sshAuthorizedKeys:
+      - ssh-ed25519 AAAA global-key
     imageProxy:
       host: global.example.com
       sources:
@@ -42,9 +43,10 @@ global:
     adIntegration:
       name: AD Login global
       ldap:
+        bindDN: "cn=svc-global,dc=global,dc=com"
+        url: "ldaps://ad-global.example.com/dc=global,dc=com"
+        insecure: false
         attributes:
-          bindDN: "cn=svc-global,dc=global,dc=com"
-          url: "ldaps://ad-global.example.com/dc=global,dc=com"
           email:
             - mail-global
           id:
@@ -56,9 +58,10 @@ global:
     ldapIntegration:
       name: LDAP Login global
       ldap:
+        bindDN: "cn=svc-global,dc=global,dc=com"
+        url: "ldaps://ldap-global.example.com/dc=global,dc=com"
+        insecure: false
         attributes:
-          bindDN: "cn=svc-global,dc=global,dc=com"
-          url: "ldaps://ldap-global.example.com/dc=global,dc=com"
           email:
             - mail-global
           id:

@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `apc-global-overrides.ntpServers`, `apc-global-overrides.require-ntpServers` and `apc-global-overrides.chronyConfig` which uses the ntpServers helper functions
 - `apc-global-overrides.sshAuthorizedKeys` and `apc-global-overrides.require-sshAuthorizedKeys` helpers for SSH authorized keys
 
+### Changed
+
+- use `apc-global-overrides.merge-services` for all service extraction
+
 ## [1.8.0] - 2026-03-02
 
 _([SPEXAPC-13223](https://aspecta.atlassian.net/browse/SPEXAPC-13223))_

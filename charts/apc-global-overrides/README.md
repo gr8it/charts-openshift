@@ -121,7 +121,7 @@ global:
     noProxy: ~
     proxyCIDRs: []
     ntpServers: []
-    sshAuthorizedKeys: ~
+    sshAuthorizedKeys: []
     imageProxy:
       host: ~
       sources: []
@@ -199,8 +199,8 @@ global:
 |apc-global-overrides.ntpServers|ntpServers|global.apc.ntpServers|list|-| NTP servers to use in e.g. infraEnv, HCP / standalone |
 |apc-global-overrides.require-ntpServers|ntpServers|global.apc.ntpServers|list|-||
 |apc-global-overrides.chronyConfig|ntpServers|global.apc.ntpServers|list|-| Chrony config from ntpServers |
-|apc-global-overrides.sshAuthorizedKeys|sshAuthorizedKeys|global.apc.sshAuthorizedKeys|string|-| SSH public key(s) to add to authorized_keys. One key per line |
-|apc-global-overrides.require-sshAuthorizedKeys|sshAuthorizedKeys|global.apc.sshAuthorizedKeys|string|-||
+|apc-global-overrides.sshAuthorizedKeys|sshAuthorizedKeys|global.apc.sshAuthorizedKeys|list|-| SSH public key(s) to add to authorized_keys. Array |
+|apc-global-overrides.require-sshAuthorizedKeys|sshAuthorizedKeys|global.apc.sshAuthorizedKeys|list|-||
 |apc-global-overrides.imageProxyHost|imageProxy.host|global.apc.imageProxy.host|string|-|Mirror registry hostname|
 |apc-global-overrides.require-imageProxyHost|imageProxy.host|global.apc.imageProxy.host|string|-||
 |apc-global-overrides.imageProxySources|imageProxy.sources|global.apc.imageProxy.sources|list|[]|Source registries to mirror through the image proxy|
@@ -230,13 +230,17 @@ type: LDAP
 mappingMethod: claim
 ldap:
   attributes:
-    email: mail
-    id: sAMAccountName
-    name: cn
-    preferredUsername: sAMAccountName
-    bindDN: ~
-    insecure: false
-    url: ~
+    email:
+      - mail
+    id:
+      - sAMAccountName
+    name:
+      - cn
+    preferredUsername:
+      - sAMAccountName
+  bindDN: ~
+  insecure: false
+  url: ~
 ```
 
 **ldapIntegration:**
@@ -246,13 +250,17 @@ type: LDAP
 mappingMethod: claim
 ldap:
   attributes:
-    email: mail
-    id: dn
-    name: cn
-    preferredUsername: uid
-    bindDN: ~
-    insecure: false
-    url: ~
+    email:
+      - mail
+    id:
+      - dn
+    name:
+      - cn
+    preferredUsername:
+      - uid
+  bindDN: ~
+  insecure: false
+  url: ~
 ```
 
 ### Service specific helpers

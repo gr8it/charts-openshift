@@ -308,17 +308,17 @@ Create the ntpServers and require it
 {{- end }}
 
 {{/*
-Create the sshAuthorizedKeys (string, one key per line)
+Create the sshAuthorizedKeys array
 */}}
 {{- define "apc-global-overrides.sshAuthorizedKeys" -}}
-{{- .Values.sshAuthorizedKeys | default ((.Values.global).apc).sshAuthorizedKeys | default "" }}
+{{- .Values.sshAuthorizedKeys | default ((.Values.global).apc).sshAuthorizedKeys | default list | toYaml }}
 {{- end }}
 
 {{/*
 Create the sshAuthorizedKeys and require it
 */}}
 {{- define "apc-global-overrides.require-sshAuthorizedKeys" -}}
-{{- include "apc-global-overrides.sshAuthorizedKeys" . | required "APC sshAuthorizedKeys is required" }}
+{{- include "apc-global-overrides.sshAuthorizedKeys" . | fromYamlArray | default ("") | required "APC sshAuthorizedKeys is required" | toYaml }}
 {{- end }}
 
 {{/*
@@ -525,7 +525,7 @@ Return the adIntegration dictionary merged from: defaults < global < local.
 Defaults: standard AD attributes.
 */}}
 {{- define "apc-global-overrides.adIntegration" -}}
-{{- $defaults := dict "name" "" "type" "LDAP" "mappingMethod" "claim" "ldap" (dict "attributes" (dict "url" "" "email" (list "mail") "id" (list "sAMAccountName") "name" (list "cn") "preferredUsername" (list "sAMAccountName") "bindDN" "" "insecure" false)) -}}
+{{- $defaults := dict "name" "" "type" "LDAP" "mappingMethod" "claim" "ldap" (dict "url" "" "bindDN" "" "insecure" false "attributes" (dict "email" (list "mail") "id" (list "sAMAccountName") "name" (list "cn") "preferredUsername" (list "sAMAccountName"))) -}}
 {{- $global := ((.Values.global).apc).adIntegration | default dict -}}
 {{- $local := .Values.adIntegration | default dict -}}
 {{- $result := deepCopy $defaults -}}
@@ -539,7 +539,7 @@ Return the ldapIntegration dictionary merged from: defaults < global < local.
 Defaults: standard LDAP attributes.
 */}}
 {{- define "apc-global-overrides.ldapIntegration" -}}
-{{- $defaults := dict "name" "" "type" "LDAP" "mappingMethod" "claim" "ldap" (dict "attributes" (dict "url" "" "email" (list "mail") "id" (list "dn") "name" (list "cn") "preferredUsername" (list "uid") "bindDN" "" "insecure" false)) -}}
+{{- $defaults := dict "name" "" "type" "LDAP" "mappingMethod" "claim" "ldap" (dict "url" "" "bindDN" "" "insecure" false "attributes" (dict "email" (list "mail") "id" (list "dn") "name" (list "cn") "preferredUsername" (list "uid"))) -}}
 {{- $global := ((.Values.global).apc).ldapIntegration | default dict -}}
 {{- $local := .Values.ldapIntegration | default dict -}}
 {{- $result := deepCopy $defaults -}}

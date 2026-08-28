@@ -72,16 +72,14 @@ tests:
       - equal:
           path: data.ntpServers
           value: []
-      - equal:
+      - notExists:
           path: data.chronyConfig
-          value: ""
-      - equal:
+      - notExists:
           path: data.chronyConfigBase64
-          value: null
 
   - it: sshAuthorizedKeys from default values
     asserts:
-      - equal: { path: data.sshAuthorizedKeys, value: ~ }
+      - equal: { path: data.sshAuthorizedKeys, value: [] }
 
   - it: services and merged default values
     asserts:
@@ -110,17 +108,15 @@ tests:
   - it: adIntegration from default values - merged
     set:
       adIntegration:
-        type: LDAP
-        mappingMethod: claim
         ldap:
-          attributes:
-            url: "ad-merged.example.com"
+          url: "ad-merged.example.com"
     asserts:
       - equal: { path: data.adIntegration.name, value: "" }
       - equal: { path: data.adIntegration.type, value: "LDAP" }
       - equal: { path: data.adIntegration.mappingMethod, value: "claim" }
-      - equal: { path: data.adIntegration.ldap.attributes.bindDN, value: "" }
-      - equal: { path: data.adIntegration.ldap.attributes.url, value: "ad-merged.example.com" }
+      - equal: { path: data.adIntegration.ldap.bindDN, value: "" }
+      - equal: { path: data.adIntegration.ldap.url, value: "ad-merged.example.com" }
+      - equal: { path: data.adIntegration.ldap.insecure, value: false }
       - equal:
           path: data.adIntegration.ldap.attributes.email
           value:
@@ -145,17 +141,15 @@ tests:
   - it: ldapIntegration from default values - merged
     set:
       ldapIntegration:
-        type: LDAP
-        mappingMethod: claim
         ldap:
-          attributes:
-            url: "ldap-merged.example.com"
+          url: "ldap-merged.example.com"
     asserts:
       - equal: { path: data.ldapIntegration.name, value: "" }
       - equal: { path: data.ldapIntegration.type, value: "LDAP" }
       - equal: { path: data.ldapIntegration.mappingMethod, value: "claim" }
-      - equal: { path: data.ldapIntegration.ldap.attributes.bindDN, value: "" }
-      - equal: { path: data.ldapIntegration.ldap.attributes.url, value: "ldap-merged.example.com" }
+      - equal: { path: data.ldapIntegration.ldap.bindDN, value: "" }
+      - equal: { path: data.ldapIntegration.ldap.url, value: "ldap-merged.example.com" }
+      - equal: { path: data.ldapIntegration.ldap.insecure, value: false }
       - equal:
           path: data.ldapIntegration.ldap.attributes.email
           value:

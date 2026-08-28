@@ -4,17 +4,17 @@ manifest should match snapshot:
       adIntegration:
         ldap:
           attributes:
-            bindDN: cn=svc-local,dc=local,dc=com
             email:
               - mail-local
             id:
               - sAMAccountName-local
-            insecure: false
             name:
               - cn-local
             preferredUsername:
               - sAMAccountName-local
-            url: ldaps://ad-local.example.com/dc=local,dc=com
+          bindDN: cn=svc-local,dc=local,dc=com
+          insecure: true
+          url: ldaps://ad-local.example.com/dc=local,dc=com
         mappingMethod: claim
         name: AD Login local
         type: LDAP
@@ -92,17 +92,17 @@ manifest should match snapshot:
       ldapIntegration:
         ldap:
           attributes:
-            bindDN: cn=svc-local,dc=local,dc=com
             email:
               - mail-local
             id:
               - dn-local
-            insecure: false
             name:
               - cn-local
             preferredUsername:
               - uid-local
-            url: ldaps://ldap-local.example.com/dc=local,dc=com
+          bindDN: cn=svc-local,dc=local,dc=com
+          insecure: true
+          url: ldaps://ldap-local.example.com/dc=local,dc=com
         mappingMethod: claim
         name: LDAP Login local
         type: LDAP
@@ -191,4 +191,12 @@ manifest should match snapshot:
           kubeAuthMountPath: vaultKubeAuthMountPath-local
           name: vaultName-local
           url: vaultUrl-local
-      sshAuthorizedKeys: ssh-ed25519 AAAA local-key
+      sshAuthorizedKeys:
+        - ssh-ed25519 AAAA local1-key
+        - ssh-ed25519 AAAA local2-key
+      sshAuthorizedKeysArray:
+        - ssh-ed25519 AAAA local1-key
+        - ssh-ed25519 AAAA local2-key
+      sshAuthorizedKeysBundle: |
+        ssh-ed25519 AAAA local1-key
+        ssh-ed25519 AAAA local2-key

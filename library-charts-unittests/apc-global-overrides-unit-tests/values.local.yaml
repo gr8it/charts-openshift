@@ -33,7 +33,9 @@ proxyCIDRs:
 ntpServers:
   - ntp-local1
   - ntp-local2
-sshAuthorizedKeys: "ssh-ed25519 AAAA local-key"
+sshAuthorizedKeys:
+  - ssh-ed25519 AAAA local1-key
+  - ssh-ed25519 AAAA local2-key
 imageProxy:
   host: local.example.com
   sources:
@@ -41,9 +43,10 @@ imageProxy:
 adIntegration:
   name: AD Login local
   ldap:
+    bindDN: "cn=svc-local,dc=local,dc=com"
+    url: "ldaps://ad-local.example.com/dc=local,dc=com"
+    insecure: true
     attributes:
-      bindDN: "cn=svc-local,dc=local,dc=com"
-      url: "ldaps://ad-local.example.com/dc=local,dc=com"
       email:
         - mail-local
       id:
@@ -55,9 +58,10 @@ adIntegration:
 ldapIntegration:
   name: LDAP Login local
   ldap:
+    bindDN: "cn=svc-local,dc=local,dc=com"
+    url: "ldaps://ldap-local.example.com/dc=local,dc=com"
+    insecure: true
     attributes:
-      bindDN: "cn=svc-local,dc=local,dc=com"
-      url: "ldaps://ldap-local.example.com/dc=local,dc=com"
       email:
         - mail-local
       id:

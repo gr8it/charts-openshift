@@ -4,17 +4,17 @@ manifest should match snapshot:
       adIntegration:
         ldap:
           attributes:
-            bindDN: cn=svc-global,dc=global,dc=com
             email:
               - mail-global
             id:
               - sAMAccountName-global
-            insecure: false
             name:
               - cn-global
             preferredUsername:
               - sAMAccountName-global
-            url: ldaps://ad-global.example.com/dc=global,dc=com
+          bindDN: cn=svc-global,dc=global,dc=com
+          insecure: false
+          url: ldaps://ad-global.example.com/dc=global,dc=com
         mappingMethod: claim
         name: AD Login global
         type: LDAP
@@ -86,17 +86,17 @@ manifest should match snapshot:
       ldapIntegration:
         ldap:
           attributes:
-            bindDN: cn=svc-global,dc=global,dc=com
             email:
               - mail-global
             id:
               - dn-global
-            insecure: false
             name:
               - cn-global
             preferredUsername:
               - uid-global
-            url: ldaps://ldap-global.example.com/dc=global,dc=com
+          bindDN: cn=svc-global,dc=global,dc=com
+          insecure: false
+          url: ldaps://ldap-global.example.com/dc=global,dc=com
         mappingMethod: claim
         name: LDAP Login global
         type: LDAP
@@ -179,4 +179,9 @@ manifest should match snapshot:
           kubeAuthMountPath: vaultKubeAuthMountPath-global
           name: vaultName-global
           url: vaultUrl-global
-      sshAuthorizedKeys: ssh-ed25519 AAAA global-key
+      sshAuthorizedKeys:
+        - ssh-ed25519 AAAA global-key
+      sshAuthorizedKeysArray:
+        - ssh-ed25519 AAAA global-key
+      sshAuthorizedKeysBundle: |
+        ssh-ed25519 AAAA global-key

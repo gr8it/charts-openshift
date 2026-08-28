@@ -44,20 +44,33 @@ data:
     {{- end }}
   {{- end }}
   {{- /* ntpServers as a list */}}
-  {{- /* it is not sufficient to test without fromYamlArray !!! */}}
   ntpServers:
     {{- (include "apc-global-overrides.ntpServers" .) | nindent 4 }}
-  {{- /* ntpServers parsed and rendered as needed */}}
+  {{- /* it is not sufficient to test without fromYamlArray !!! */}}
   {{- if (include "apc-global-overrides.ntpServers" .) | fromYamlArray }}
+  {{- /* ntpServers parsed and rendered as needed */}}
   ntpServersArray:
     {{- range (include "apc-global-overrides.ntpServers" . | fromYamlArray ) }}
     - {{ . }}
     {{- end }}
   {{- end }}
+  {{- if (include "apc-global-overrides.chronyConfig" .) }}
   chronyConfig: |-
   {{- include "apc-global-overrides.chronyConfig" . | nindent 4 }}
   chronyConfigBase64: {{ include "apc-global-overrides.chronyConfig" . | b64enc }}
-  sshAuthorizedKeys: {{ include "apc-global-overrides.sshAuthorizedKeys" . }}
+  {{- end }}
+  sshAuthorizedKeys:
+    {{- include "apc-global-overrides.sshAuthorizedKeys" . | nindent 4 }}
+  {{- if (include "apc-global-overrides.sshAuthorizedKeys" .) | fromYamlArray }}
+  sshAuthorizedKeysArray:
+    {{- range (include "apc-global-overrides.sshAuthorizedKeys" . | fromYamlArray ) }}
+    - {{ . }}
+    {{- end }}
+  sshAuthorizedKeysBundle: |
+    {{- range (include "apc-global-overrides.sshAuthorizedKeys" . | fromYamlArray ) }}
+    {{ . }}
+    {{- end }}
+  {{- end }}
   services:
     {{- (include "apc-global-overrides.services" .) | nindent 4 }}
   {{- /* local and global services merged into a common dictionary*/}}
@@ -91,11 +104,11 @@ data:
   imageProxySources:
     {{- (include "apc-global-overrides.imageProxySources" .) | nindent 4 }}
   {{- end }}
-  {{- if ((((include "apc-global-overrides.adIntegration" .) | fromYaml).ldap).attributes).url }}
+  {{- if (((include "apc-global-overrides.adIntegration" .) | fromYaml).ldap).url }}
   adIntegration:
     {{- (include "apc-global-overrides.adIntegration" .) | nindent 4 }}
   {{- end }}
-  {{- if ((((include "apc-global-overrides.ldapIntegration" .) | fromYaml).ldap).attributes).url }}
+  {{- if (((include "apc-global-overrides.ldapIntegration" .) | fromYaml).ldap).url }}
   ldapIntegration:
     {{- (include "apc-global-overrides.ldapIntegration" .) | nindent 4 }}
   {{- end }}
