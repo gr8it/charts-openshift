@@ -1,0 +1,252 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/component: instance-report
+        app.kubernetes.io/instance: mongodb-operator-helm
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: mongodb-operator-helm
+        app.kubernetes.io/version: 1.4.0
+        helm.sh/chart: mongodb-operator-helm-1.2.0
+      name: mongodb-kubernetes-operator-report
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: mongodb-kubernetes-operator-report
+    subjects:
+      - kind: ServiceAccount
+        name: mongodb-kubernetes-operator-report
+        namespace: NAMESPACE
+  2: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      labels:
+        app.kubernetes.io/component: instance-report
+        app.kubernetes.io/instance: mongodb-operator-helm
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: mongodb-operator-helm
+        app.kubernetes.io/version: 1.4.0
+        helm.sh/chart: mongodb-operator-helm-1.2.0
+      name: mongodb-kubernetes-operator-report
+    rules:
+      - apiGroups:
+          - apiextensions.k8s.io
+        resources:
+          - customresourcedefinitions
+        verbs:
+          - list
+          - watch
+      - apiGroups:
+          - mongodbcommunity.mongodb.com
+        resources:
+          - mongodbcommunity
+        verbs:
+          - get
+          - list
+          - watch
+  3: |
+    apiVersion: v1
+    data:
+      crs-config.yaml: |
+        kind: CustomResourceStateMetrics
+        spec:
+          resources:
+            - groupVersionKind:
+                group: mongodbcommunity.mongodb.com
+                version: v1
+                kind: MongoDBCommunity
+              labelsFromPath:
+                name: [metadata, name]
+                namespace: [metadata, namespace]
+              metrics:
+                - name: mongodbcommunity_info
+                  help: "Info metric for MongoDBCommunity custom resources (inventory)"
+                  each:
+                    type: Info
+                    info:
+                      labelsFromPath:
+                        version: [spec, version]
+                        type: [spec, type]
+                # Assumes the operator's CRD exposes status.phase as one of these strings;
+                # re-check against `oc get mongodbcommunity <name> -o yaml` if the operator version changes.
+                - name: mongodbcommunity_status_phase
+                  help: "Current status.phase of a MongoDBCommunity resource"
+                  each:
+                    type: StateSet
+                    stateSet:
+                      labelName: phase
+                      path: [status, phase]
+                      list: ["Running", "Pending", "Failed"]
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/component: instance-report
+        app.kubernetes.io/instance: mongodb-operator-helm
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: mongodb-operator-helm
+        app.kubernetes.io/version: 1.4.0
+        helm.sh/chart: mongodb-operator-helm-1.2.0
+      name: mongodb-kubernetes-operator-report
+      namespace: NAMESPACE
+  4: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app.kubernetes.io/component: instance-report
+        app.kubernetes.io/instance: mongodb-operator-helm
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: mongodb-operator-helm
+        app.kubernetes.io/version: 1.4.0
+        helm.sh/chart: mongodb-operator-helm-1.2.0
+      name: mongodb-kubernetes-operator-report
+      namespace: NAMESPACE
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app.kubernetes.io/component: instance-report
+          app.kubernetes.io/instance: mongodb-operator-helm
+          app.kubernetes.io/name: mongodb-operator-helm
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/component: instance-report
+            app.kubernetes.io/instance: mongodb-operator-helm
+            app.kubernetes.io/name: mongodb-operator-helm
+        spec:
+          containers:
+            - args:
+                - --custom-resource-state-config-file=/etc/kube-state-metrics/crs-config.yaml
+                - --custom-resource-state-only=true
+                - --port=8080
+                - --telemetry-port=8081
+              image: registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.13.0
+              imagePullPolicy: IfNotPresent
+              name: kube-state-metrics
+              ports:
+                - containerPort: 8080
+                  name: metrics
+                - containerPort: 8081
+                  name: telemetry
+              resources:
+                limits:
+                  cpu: 200m
+                  memory: 512Mi
+                requests:
+                  cpu: 100m
+                  memory: 300Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                runAsNonRoot: true
+              volumeMounts:
+                - mountPath: /etc/kube-state-metrics
+                  name: crs-config
+          serviceAccountName: mongodb-kubernetes-operator-report
+          volumes:
+            - configMap:
+                name: mongodb-kubernetes-operator-report
+              name: crs-config
+  5: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      labels:
+        app.kubernetes.io/component: instance-report
+        app.kubernetes.io/instance: mongodb-operator-helm
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: mongodb-operator-helm
+        app.kubernetes.io/version: 1.4.0
+        helm.sh/chart: mongodb-operator-helm-1.2.0
+      name: mongodb-kubernetes-operator-report
+      namespace: NAMESPACE
+    spec:
+      groups:
+        - name: mongodb-kubernetes-operator-report.rules
+          rules:
+            - alert: MongodbInstanceReportDown
+              annotations:
+                description: The MongoDB instance report deployment in namespace {{ $labels.namespace }} has no available replicas for more than 5 minutes.
+                summary: MongoDB instance report is down
+              expr: kube_deployment_status_replicas_available{namespace="NAMESPACE",deployment="mongodb-kubernetes-operator-report"} == 0 or absent(kube_deployment_status_replicas_available{namespace="NAMESPACE",deployment="mongodb-kubernetes-operator-report"})
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: MongodbInstanceReportPodCrashLooping
+              annotations:
+                description: Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is crash looping.
+                summary: MongoDB instance report pod is crash looping
+              expr: max_over_time(kube_pod_container_status_waiting_reason{namespace="NAMESPACE",pod=~"mongodb-kubernetes-operator-report-.*",reason="CrashLoopBackOff"}[5m]) > 0
+              for: 5m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+  6: |
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      labels:
+        app.kubernetes.io/component: instance-report
+        app.kubernetes.io/instance: mongodb-operator-helm
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: mongodb-operator-helm
+        app.kubernetes.io/version: 1.4.0
+        helm.sh/chart: mongodb-operator-helm-1.2.0
+      name: mongodb-kubernetes-operator-report
+      namespace: NAMESPACE
+  7: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      labels:
+        app.kubernetes.io/component: instance-report
+        app.kubernetes.io/instance: mongodb-operator-helm
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: mongodb-operator-helm
+        app.kubernetes.io/version: 1.4.0
+        helm.sh/chart: mongodb-operator-helm-1.2.0
+      name: mongodb-kubernetes-operator-report
+      namespace: NAMESPACE
+    spec:
+      endpoints:
+        - interval: 30s
+          port: metrics
+      selector:
+        matchLabels:
+          app.kubernetes.io/component: instance-report
+          app.kubernetes.io/instance: mongodb-operator-helm
+          app.kubernetes.io/name: mongodb-operator-helm
+  8: |
+    apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app.kubernetes.io/component: instance-report
+        app.kubernetes.io/instance: mongodb-operator-helm
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: mongodb-operator-helm
+        app.kubernetes.io/version: 1.4.0
+        helm.sh/chart: mongodb-operator-helm-1.2.0
+      name: mongodb-kubernetes-operator-report
+      namespace: NAMESPACE
+    spec:
+      ports:
+        - name: metrics
+          port: 8080
+          targetPort: 8080
+        - name: telemetry
+          port: 8081
+          targetPort: 8081
+      selector:
+        app.kubernetes.io/component: instance-report
+        app.kubernetes.io/instance: mongodb-operator-helm
+        app.kubernetes.io/name: mongodb-operator-helm

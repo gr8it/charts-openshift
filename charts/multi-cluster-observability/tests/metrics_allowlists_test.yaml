@@ -14,10 +14,10 @@ tests:
           count: 3
       - matchSnapshot: {}
 
-  - it: renders spoke allowlists with Kafka and External Secrets configmaps and without hub-only ones
+  - it: renders spoke allowlists with Kafka, ESO and MongoDB report configmaps and without hub-only ones
     set:
       global.apc.cluster.isHub: false
     asserts:
       - hasDocuments:
-          count: 3
+          count: 4
       - matchSnapshot: {}

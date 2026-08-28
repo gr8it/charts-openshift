@@ -8,3 +8,21 @@ mongodb-kubernetes:
 
     telemetry:
       enabled: false
+
+instanceReport:
+  enabled: true
+  replicas: 1
+  image:
+    repository: registry.k8s.io/kube-state-metrics/kube-state-metrics
+    tag: v2.13.0
+  ports:
+    metrics: 8080
+    telemetry: 8081
+  scrapeInterval: 30s
+  resources:
+    requests:
+      cpu: 100m
+      memory: 300Mi
+    limits:
+      cpu: 200m
+      memory: 512Mi
