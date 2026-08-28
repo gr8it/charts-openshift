@@ -1,0 +1,13 @@
+suite: Snapshot test
+templates:
+  - templates/*
+values:
+  - ../values.yaml
+release:
+  name: apc-gatling-operator
+  namespace: apc-gatling-operator
+
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}
