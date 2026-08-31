@@ -17,6 +17,8 @@ spec:
       app.kubernetes.io/component: instance-report
   template:
     metadata:
+      annotations:
+        checksum/instance-report-config: {{ include (print $.Template.BasePath "/instance-report-config-map.yaml") . | sha256sum }}
       labels:
         {{- include "mongodb-operator-helm.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: instance-report
@@ -36,9 +38,24 @@ spec:
               containerPort: {{ .Values.instanceReport.ports.metrics }}
             - name: telemetry
               containerPort: {{ .Values.instanceReport.ports.telemetry }}
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: metrics
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: telemetry
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
             capabilities:
               drop: ["ALL"]
           resources:

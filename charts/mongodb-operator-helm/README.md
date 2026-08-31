@@ -19,4 +19,4 @@ Most important configuration options, for full list consult values.yaml file.
 | instanceReport.image.repository / .tag | `registry.k8s.io/kube-state-metrics/kube-state-metrics` / `v2.13.0` | kube-state-metrics image used by the instance report |
 | instanceReport.ports.metrics / .telemetry | `8080` / `8081` | Ports the instance report exposes for scraped metrics and its own self-monitoring telemetry |
 | instanceReport.scrapeInterval | `30s` | ServiceMonitor scrape interval for the instance report metrics endpoint |
-| instanceReport.resources | requests: 10m/32Mi, limits: 100m/128Mi | Resource requests/limits for the instance report container |
+| instanceReport.resources | requests: 100m/300Mi, limits: 200m/512Mi | Resource requests/limits for the instance report container |
