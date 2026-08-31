@@ -26,16 +26,11 @@
       "type": "object",
       "description": "Optional kube-state-metrics deployment reporting inventory and status.phase for MongoDBCommunity custom resources cluster-wide.",
       "additionalProperties": false,
-      "required": ["enabled", "replicas", "image", "ports", "scrapeInterval", "resources"],
+      "required": ["enabled", "image", "ports", "scrapeInterval", "resources"],
       "properties": {
         "enabled": {
           "type": "boolean",
           "description": "Whether to deploy the MongoDB instance report."
-        },
-        "replicas": {
-          "type": "integer",
-          "description": "Number of instance report pod replicas.",
-          "minimum": 1
         },
         "image": {
           "type": "object",

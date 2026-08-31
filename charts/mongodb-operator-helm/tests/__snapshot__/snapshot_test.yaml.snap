@@ -113,6 +113,8 @@ manifests should match snapshot:
           app.kubernetes.io/name: mongodb-operator-helm
       template:
         metadata:
+          annotations:
+            checksum/instance-report-config: f00fac07604b7490b837ed67cab6dff44959f11df59db4f8692ff6551b39787a
           labels:
             app.kubernetes.io/component: instance-report
             app.kubernetes.io/instance: mongodb-operator-helm
@@ -126,12 +128,24 @@ manifests should match snapshot:
                 - --telemetry-port=8081
               image: registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.13.0
               imagePullPolicy: IfNotPresent
+              livenessProbe:
+                httpGet:
+                  path: /livez
+                  port: metrics
+                initialDelaySeconds: 5
+                timeoutSeconds: 5
               name: kube-state-metrics
               ports:
                 - containerPort: 8080
                   name: metrics
                 - containerPort: 8081
                   name: telemetry
+              readinessProbe:
+                httpGet:
+                  path: /readyz
+                  port: telemetry
+                initialDelaySeconds: 5
+                timeoutSeconds: 5
               resources:
                 limits:
                   cpu: 200m
@@ -144,7 +158,10 @@ manifests should match snapshot:
                 capabilities:
                   drop:
                     - ALL
+                readOnlyRootFilesystem: true
                 runAsNonRoot: true
+                seccompProfile:
+                  type: RuntimeDefault
               volumeMounts:
                 - mountPath: /etc/kube-state-metrics
                   name: crs-config

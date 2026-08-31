@@ -10,7 +10,7 @@ metadata:
     {{- include "mongodb-operator-helm.labels" . | nindent 4 }}
     app.kubernetes.io/component: instance-report
 spec:
-  replicas: {{ .Values.instanceReport.replicas }}
+  replicas: 1
   selector:
     matchLabels:
       {{- include "mongodb-operator-helm.selectorLabels" . | nindent 6 }}
