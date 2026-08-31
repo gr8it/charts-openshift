@@ -38,6 +38,20 @@ Create the customer and require it
 {{- end }}
 
 {{/*
+Create the customer full name
+*/}}
+{{- define "apc-global-overrides.customerName" -}}
+{{- .Values.customerName | default (((.Values.global).apc).customerName) | default "" }}
+{{- end }}
+
+{{/*
+Create the customer full name and require it
+*/}}
+{{- define "apc-global-overrides.require-customerName" -}}
+{{- include "apc-global-overrides.customerName" . | required "APC customerName is required" }}
+{{- end }}
+
+{{/*
 Create the repoURL
 */}}
 {{- define "apc-global-overrides.repoURL" -}}

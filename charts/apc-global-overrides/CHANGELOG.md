@@ -20,6 +20,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - use `apc-global-overrides.merge-services` for all service extraction
 
+## [1.9.0] - 2026-08-26
+
+_([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
+
+### Added
+
+- apc-global-overrides.customerName / apc-global-overrides.require-customerName helpers
+
 ## [1.8.0] - 2026-03-02
 
 _([SPEXAPC-13223](https://aspecta.atlassian.net/browse/SPEXAPC-13223))_

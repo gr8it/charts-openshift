@@ -161,6 +161,8 @@ global:
 |apc-global-overrides.boolDefaults|-|-|boolean|-|see [booleans](#booleans) do not use directly|
 |apc-global-overrides.customer|customer|global.apc.customer|string|-|customer name, used as prefix|
 |apc-global-overrides.require-customer|customer|global.apc.customer|string|-||
+|apc-global-overrides.customerName|customerName|global.apc.customerName|string|-|full customer name, e.g. shown in Alertmanager messages/ITSM|
+|apc-global-overrides.require-customerName|customerName|global.apc.customerName|string|-||
 |apc-global-overrides.repoURL|repoURL|global.apc.repoURL|string|-|repo URL, used for GitOps|
 |apc-global-overrides.require-repoURL|repoURL|global.apc.repoURL|string|-||
 |apc-global-overrides.repoShort|repoShort|global.apc.repoShort|string|-|extracts organization and project name from repoURL and concatenates them using '-', e.g. gr8it-charts-openshift|

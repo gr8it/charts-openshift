@@ -43,8 +43,8 @@ data:
             requests:
               storage: {{ .Values.clusterMonitoring.prometheus.storageSize }}
       externalLabels:
-        managed_cluster: {{ include "apc-global-overrides.require-clusterName" . }}
-        customerName: {{ include "apc-global-overrides.require-customer" . }}
+        customerName: {{ include "apc-global-overrides.require-customerName" . }}
+        customerNameShort: {{ include "apc-global-overrides.require-customer" . }}
         environment: {{ include "apc-global-overrides.require-environment" . }}
         location: {{ .Values.clusterMonitoring.location }}
         clusterName: {{ include "apc-global-overrides.require-clusterName" . }}
