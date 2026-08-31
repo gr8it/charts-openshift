@@ -78,6 +78,7 @@ Both alertmanager secrets use `dataFrom.extract` — the entire Vault secret is 
 
 | Value | Default | Description |
 |---|---|---|
+| `global.apc.customerName` | - | Required. Full customer name shown in Alertmanager messages/ITSM (from `apc-global-overrides`) |
 | `clusterMonitoring.prometheus.retention` | `14d` | Cluster Prometheus retention |
 | `clusterMonitoring.prometheus.storageSize` | `60Gi` | Cluster Prometheus PVC size |
 | `userWorkloadMonitoring.prometheus.retention` | `14d` | UWM Prometheus retention |
