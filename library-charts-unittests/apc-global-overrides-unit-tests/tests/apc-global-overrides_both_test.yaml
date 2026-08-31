@@ -73,6 +73,89 @@ tests:
             - proxyIP-local1
             - proxyIP-local2
 
+  - it: ntpServers prefer local over global
+    asserts:
+      - equal:
+          path: data.ntpServers
+          value:
+            - ntp-local1
+            - ntp-local2
+
+  - it: chronyConfig prefer local over global
+    asserts:
+      - matchRegex:
+          path: data.chronyConfig
+          pattern: ntp-local1
+      - matchRegex:
+          path: data.chronyConfig
+          pattern: ntp-local2
+
+  - it: sshAuthorizedKeys prefer local over global
+    asserts:
+      - equal:
+          path: data.sshAuthorizedKeys
+          value: 
+            - ssh-ed25519 AAAA local1-key
+            - ssh-ed25519 AAAA local2-key
+
+  - it: imageProxy prefer local over global
+    asserts:
+      - equal: { path: data.imageProxyHost, value: local.example.com }
+      - equal:
+          path: data.imageProxySources
+          value:
+            - quay.io-local
+
+  - it: adIntegration prefer local over global with attribute defaults applied
+    asserts:
+      - equal: { path: data.adIntegration.name, value: "AD Login local" }
+      - equal: { path: data.adIntegration.type, value: "LDAP" }
+      - equal: { path: data.adIntegration.mappingMethod, value: "claim" }
+      - equal: { path: data.adIntegration.ldap.bindDN, value: "cn=svc-local,dc=local,dc=com" }
+      - equal: { path: data.adIntegration.ldap.url, value: "ldaps://ad-local.example.com/dc=local,dc=com" }
+      - equal: { path: data.ldapIntegration.ldap.insecure, value: true }
+      - equal:
+          path: data.adIntegration.ldap.attributes.email
+          value:
+            - "mail-local"
+      - equal:
+          path: data.adIntegration.ldap.attributes.id
+          value:
+            - "sAMAccountName-local"
+      - equal:
+          path: data.adIntegration.ldap.attributes.name
+          value:
+            - "cn-local"
+      - equal:
+          path: data.adIntegration.ldap.attributes.preferredUsername
+          value:
+            - "sAMAccountName-local"
+
+  - it: ldapIntegration prefer local over global with attribute defaults applied
+    asserts:
+      - equal: { path: data.ldapIntegration.name, value: "LDAP Login local" }
+      - equal: { path: data.ldapIntegration.type, value: "LDAP" }
+      - equal: { path: data.ldapIntegration.mappingMethod, value: "claim" }
+      - equal: { path: data.ldapIntegration.ldap.bindDN, value: "cn=svc-local,dc=local,dc=com" }
+      - equal: { path: data.ldapIntegration.ldap.url, value: "ldaps://ldap-local.example.com/dc=local,dc=com" }
+      - equal: { path: data.ldapIntegration.ldap.insecure, value: true }
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.email
+          value:
+            - "mail-local"
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.id
+          value:
+            - "dn-local"
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.name
+          value:
+            - "cn-local"
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.preferredUsername
+          value:
+            - "uid-local"
+
   - it: services and merged include global+local with local precedence; global key absent in non-merged
     asserts:
       - equal: { path: data.services.local.url, value: servicesLocaltUrl-local }
@@ -85,6 +168,64 @@ tests:
       - equal: { path: data.servicesExtracted.vault.kubeAuthMountPath, value: vaultKubeAuthMountPath-local }
       - equal: { path: data.servicesExtracted.vault.name, value: vaultName-local }
       - equal: { path: data.servicesExtracted.vault.url, value: vaultUrl-local }
+
+  - it: imageProxy local overrides global
+    asserts:
+      - equal: { path: data.imageProxyHost, value: local.example.com }
+      - equal:
+          path: data.imageProxySources
+          value:
+            - quay.io-local
+
+  - it: adIntegration from local with attribute defaults applied
+    asserts:
+      - equal: { path: data.adIntegration.name, value: "AD Login local" }
+      - equal: { path: data.adIntegration.type, value: "LDAP" }
+      - equal: { path: data.adIntegration.mappingMethod, value: "claim" }
+      - equal: { path: data.adIntegration.ldap.bindDN, value: "cn=svc-local,dc=local,dc=com" }
+      - equal: { path: data.adIntegration.ldap.url, value: "ldaps://ad-local.example.com/dc=local,dc=com" }
+      - equal: { path: data.adIntegration.ldap.insecure, value: true }
+      - equal:
+          path: data.adIntegration.ldap.attributes.email
+          value:
+            - "mail-local"
+      - equal:
+          path: data.adIntegration.ldap.attributes.id
+          value:
+            - "sAMAccountName-local"
+      - equal:
+          path: data.adIntegration.ldap.attributes.name
+          value:
+            - "cn-local"
+      - equal:
+          path: data.adIntegration.ldap.attributes.preferredUsername
+          value:
+            - "sAMAccountName-local"
+
+  - it: ldapIntegration from local with attribute defaults applied
+    asserts:
+      - equal: { path: data.ldapIntegration.name, value: "LDAP Login local" }
+      - equal: { path: data.ldapIntegration.type, value: "LDAP" }
+      - equal: { path: data.ldapIntegration.mappingMethod, value: "claim" }
+      - equal: { path: data.ldapIntegration.ldap.bindDN, value: "cn=svc-local,dc=local,dc=com" }
+      - equal: { path: data.ldapIntegration.ldap.url, value: "ldaps://ldap-local.example.com/dc=local,dc=com" }
+      - equal: { path: data.ldapIntegration.ldap.insecure, value: true }
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.email
+          value:
+            - "mail-local"
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.id
+          value:
+            - "dn-local"
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.name
+          value:
+            - "cn-local"
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.preferredUsername
+          value:
+            - "uid-local"
 
   - it: caCertificates and merged include global+local with local precedence; global key absent in non-merged
     asserts:

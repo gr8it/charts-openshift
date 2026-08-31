@@ -68,6 +68,20 @@ tests:
       - notExists:
           path: data.proxyCIDRs
 
+  - it: ntpServers from default values
+    asserts:
+      - equal:
+          path: data.ntpServers
+          value: []
+      - notExists:
+          path: data.chronyConfig
+      - notExists:
+          path: data.chronyConfigBase64
+
+  - it: sshAuthorizedKeys from default values
+    asserts:
+      - equal: { path: data.sshAuthorizedKeys, value: [] }
+
   - it: services and merged default values
     asserts:
       - equal:
@@ -82,6 +96,77 @@ tests:
       - equal: { path: data.servicesExtracted.vault.kubeAuthMountPath, value: null }
       - equal: { path: data.servicesExtracted.vault.name, value: null }
       - equal: { path: data.servicesExtracted.vault.url, value: null }
+
+  - it: imageProxy from default values
+    asserts:
+      - equal: { path: data.imageProxyHost, value: null }
+      - notExists: { path: data.imageProxySources }
+
+  - it: adIntegration from default values - none
+    asserts:
+      - notExists: { path: data.adIntegration }
+
+  - it: adIntegration from default values - merged
+    set:
+      adIntegration:
+        ldap:
+          url: "ad-merged.example.com"
+    asserts:
+      - equal: { path: data.adIntegration.name, value: "" }
+      - equal: { path: data.adIntegration.type, value: "LDAP" }
+      - equal: { path: data.adIntegration.mappingMethod, value: "claim" }
+      - equal: { path: data.adIntegration.ldap.bindDN, value: "" }
+      - equal: { path: data.adIntegration.ldap.url, value: "ad-merged.example.com" }
+      - equal: { path: data.adIntegration.ldap.insecure, value: false }
+      - equal:
+          path: data.adIntegration.ldap.attributes.email
+          value:
+            - "mail"
+      - equal:
+          path: data.adIntegration.ldap.attributes.id
+          value:
+            - "sAMAccountName"
+      - equal:
+          path: data.adIntegration.ldap.attributes.name
+          value:
+            - "cn"
+      - equal:
+          path: data.adIntegration.ldap.attributes.preferredUsername
+          value:
+            - "sAMAccountName"
+
+  - it: ldapIntegration from default values - none
+    asserts:
+      - notExists: { path: data.ldapIntegration }
+
+  - it: ldapIntegration from default values - merged
+    set:
+      ldapIntegration:
+        ldap:
+          url: "ldap-merged.example.com"
+    asserts:
+      - equal: { path: data.ldapIntegration.name, value: "" }
+      - equal: { path: data.ldapIntegration.type, value: "LDAP" }
+      - equal: { path: data.ldapIntegration.mappingMethod, value: "claim" }
+      - equal: { path: data.ldapIntegration.ldap.bindDN, value: "" }
+      - equal: { path: data.ldapIntegration.ldap.url, value: "ldap-merged.example.com" }
+      - equal: { path: data.ldapIntegration.ldap.insecure, value: false }
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.email
+          value:
+            - "mail"
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.id
+          value:
+            - "dn"
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.name
+          value:
+            - "cn"
+      - equal:
+          path: data.ldapIntegration.ldap.attributes.preferredUsername
+          value:
+            - "uid"
 
   - it: caCertificates and merged default values
     asserts:

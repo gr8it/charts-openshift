@@ -31,6 +31,46 @@ noProxy: noProxy-local
 proxyCIDRs:
   - proxyIP-local1
   - proxyIP-local2
+ntpServers:
+  - ntp-local1
+  - ntp-local2
+sshAuthorizedKeys:
+  - ssh-ed25519 AAAA local1-key
+  - ssh-ed25519 AAAA local2-key
+imageProxy:
+  host: local.example.com
+  sources:
+    - quay.io-local
+adIntegration:
+  name: AD Login local
+  ldap:
+    bindDN: "cn=svc-local,dc=local,dc=com"
+    url: "ldaps://ad-local.example.com/dc=local,dc=com"
+    insecure: true
+    attributes:
+      email:
+        - mail-local
+      id:
+        - sAMAccountName-local
+      name:
+        - cn-local
+      preferredUsername:
+        - sAMAccountName-local
+ldapIntegration:
+  name: LDAP Login local
+  ldap:
+    bindDN: "cn=svc-local,dc=local,dc=com"
+    url: "ldaps://ldap-local.example.com/dc=local,dc=com"
+    insecure: true
+    attributes:
+      email:
+        - mail-local
+      id:
+        - dn-local
+      name:
+        - cn-local
+      preferredUsername:
+        - uid-local
 services:
   local:
     url: servicesLocaltUrl-local
