@@ -5,6 +5,17 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.9] - 2026-07-30
+
+_([SPEXAPC-20772](https://aspecta.atlassian.net/browse/SPEXAPC-20772))_
+
+### Changed
+
+- Bump dependency on `monitoring-prometheusrules` to 1.0.7
+
+### Added
+
+- missing labels on clusterrole
 
 ## [1.0.8] - 2026-02-25
 
