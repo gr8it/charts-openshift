@@ -47,4 +47,26 @@ pullSecret:
   vaultProperty: pull-secret
 
 dedicatedEtcdStorage: true
+dedicatedEtcdStorageConfig: |
+  #!/bin/bash
+  set -uo pipefail
+
+  devices="/dev/vg1/77c80d55-a815-4f2e-9a5b-bae4d85467a2 \
+          /dev/vg1/05316655-58e5-4c70-bc48-46ddb225e6fc \
+          /dev/vg1/c82595fb-a1f6-4fbf-a7ec-3eb466873116"
+
+  for device in $devices; do
+    /usr/bin/test -b "$device" || continue
+    /usr/sbin/blkid "$device" &> /dev/null
+    if [ $? == 2  ]; then
+      echo "Secondary block device found: $device"
+      echo "Creating filesystem for etcd mount"
+      /usr/sbin/mkfs.xfs -L var-lib-etcd -f "$device" &> /dev/null
+      /usr/sbin/udevadm settle
+      /usr/bin/touch /etc/var-lib-etcd-mount
+      exit 0
+    fi
+  done
+  echo "Couldn't find secondary block device!" >&2
+  exit 77
 
