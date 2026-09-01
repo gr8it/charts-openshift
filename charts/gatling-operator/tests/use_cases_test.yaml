@@ -99,6 +99,18 @@ tests:
       - equal:
           path: spec.template.spec.containers[1].image
           value: registry.example.com/platform/gatling-operator:0.9.12
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation
+          value: false
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
+          value: true
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 50m
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.memory
+          value: 128Mi
 
   - it: renders ServiceMonitor when enabled
     template: templates/servicemonitor.yaml

@@ -1065,6 +1065,19 @@ manifests should match snapshot:
               ports:
                 - containerPort: 8443
                   name: https
+              resources:
+                limits:
+                  cpu: 100m
+                  memory: 128Mi
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                readOnlyRootFilesystem: true
               volumeMounts:
                 - mountPath: /etc/tls/private
                   name: service-tls
