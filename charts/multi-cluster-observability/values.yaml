@@ -44,6 +44,13 @@ metricsAllowlists:
       dataKey: uwl_metrics_list.yaml
       names:
         - secretstore_status_condition
+    - name: observability-metrics-custom-allowlist
+      namespace: apc-mongodb-operator
+      spokeOnly: true
+      dataKey: uwl_metrics_list.yaml
+      names:
+        - kube_customresource_mongodbcommunity_status_phase
+        - kube_customresource_mongodbcommunity_info
 
 retentionConfig:
   blockDuration: 2h

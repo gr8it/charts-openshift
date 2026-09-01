@@ -1,0 +1,19 @@
+{{- if .Values.instanceReport.enabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ (index .Values "mongodb-kubernetes").operator.name }}-report
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mongodb-operator-helm.labels" . | nindent 4 }}
+    app.kubernetes.io/component: instance-report
+spec:
+  selector:
+    matchLabels:
+      {{- include "mongodb-operator-helm.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: instance-report
+  endpoints:
+    - port: metrics
+      interval: {{ .Values.instanceReport.scrapeInterval }}
+{{- end }}
