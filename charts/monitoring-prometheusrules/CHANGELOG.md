@@ -5,6 +5,14 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.7] - 2026-07-30
+
+_([SPEXAPC-20772](https://aspecta.atlassian.net/browse/SPEXAPC-20772))_
+
+### Added
+
+- added alert for evicted pod
+
 ## [1.0.6] - 2026-02-25
 
 _([SPEXAPC-12860](https://aspecta.atlassian.net/browse/SPEXAPC-12860))_

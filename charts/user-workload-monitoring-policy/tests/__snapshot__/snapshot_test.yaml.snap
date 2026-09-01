@@ -7,7 +7,7 @@ rendered cluster-policy-cluster-application manifest:
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: user-workload-monitoring-policy
-        helm.sh/chart: user-workload-monitoring-policy-1.0.8
+        helm.sh/chart: user-workload-monitoring-policy-1.0.9
       name: cluster-policy-application
     spec:
       generateExisting: true
@@ -52,6 +52,17 @@ rendered cluster-policy-cluster-application manifest:
                             )
                           ) > 0
                         for: 15m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: developers
+                          vendor: socpoist
+                      - alert: KubePodEvicted
+                        annotations:
+                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been evicted.
+                          summary: Pod has been evicted
+                        expr: kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
+                        for: 0m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
                           severity: warning
@@ -485,7 +496,7 @@ rendered cluster-policy-cluster-application manifest:
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: user-workload-monitoring-policy
-        helm.sh/chart: user-workload-monitoring-policy-1.0.8
+        helm.sh/chart: user-workload-monitoring-policy-1.0.9
       name: cluster-policy-non-application
     spec:
       generateExisting: true
@@ -530,6 +541,17 @@ rendered cluster-policy-cluster-application manifest:
                             )
                           ) > 0
                         for: 15m
+                        labels:
+                          namespace: '{{request.object.metadata.name}}'
+                          severity: warning
+                          team: platform
+                          vendor: aspecta
+                      - alert: KubePodEvicted
+                        annotations:
+                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been evicted.
+                          summary: Pod has been evicted
+                        expr: kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
+                        for: 0m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
                           severity: warning
@@ -961,6 +983,10 @@ rendered cluster-policy-cluster-application manifest:
     kind: ClusterRole
     metadata:
       labels:
+        app.kubernetes.io/instance: monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: user-workload-monitoring-policy
+        helm.sh/chart: user-workload-monitoring-policy-1.0.9
         rbac.kyverno.io/aggregate-to-admission-controller: "true"
       name: kyverno:admission-controller:monitoring
     rules:
