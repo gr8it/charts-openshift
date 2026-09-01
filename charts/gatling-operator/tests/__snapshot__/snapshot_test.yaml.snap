@@ -169,9 +169,6 @@ manifests should match snapshot:
           control-plane: controller-manager
       template:
         metadata:
-          annotations:
-            prometheus.io/port: "8443"
-            prometheus.io/scrape: "true"
           labels:
             app.kubernetes.io/component: controller
             app.kubernetes.io/instance: apc-gatling-operator
@@ -184,47 +181,8 @@ manifests should match snapshot:
         spec:
           containers:
             - args:
-                - --secure-listen-address=0.0.0.0:8443
-                - --upstream=http://127.0.0.1:8080/
-                - --logtostderr=true
-                - --v=2
-                - --tls-cert-file=/etc/tls/private/tls.crt
-                - --tls-private-key-file=/etc/tls/private/tls.key
-              image: ghcr.io/kube-rbac-proxy/kube-rbac-proxy:v0.22.1
-              livenessProbe:
-                initialDelaySeconds: 15
-                periodSeconds: 20
-                tcpSocket:
-                  port: https
-              name: kube-rbac-proxy
-              ports:
-                - containerPort: 8443
-                  name: https
-              readinessProbe:
-                initialDelaySeconds: 5
-                periodSeconds: 10
-                tcpSocket:
-                  port: https
-              resources:
-                limits:
-                  cpu: 100m
-                  memory: 128Mi
-                requests:
-                  cpu: 50m
-                  memory: 64Mi
-              securityContext:
-                allowPrivilegeEscalation: false
-                capabilities:
-                  drop:
-                    - ALL
-                readOnlyRootFilesystem: true
-              volumeMounts:
-                - mountPath: /etc/tls/private
-                  name: service-tls
-                  readOnly: true
-            - args:
                 - --health-probe-bind-address=:8081
-                - --metrics-bind-address=127.0.0.1:8080
+                - --metrics-bind-address=0.0.0.0:8080
                 - --leader-elect
                 - --max-concurrent-reconciles=1
               command:
@@ -239,8 +197,8 @@ manifests should match snapshot:
                 periodSeconds: 20
               name: manager
               ports:
-                - containerPort: 8443
-                  name: http
+                - containerPort: 8080
+                  name: metrics
                   protocol: TCP
               readinessProbe:
                 httpGet:
@@ -266,44 +224,7 @@ manifests should match snapshot:
             seccompProfile:
               type: RuntimeDefault
           serviceAccountName: gatling-controller
-          volumes:
-            - name: service-tls
-              secret:
-                secretName: gatling-controller-tls
   6: |
-    apiVersion: networking.k8s.io/v1
-    kind: Ingress
-    metadata:
-      annotations:
-        cert-manager.io/cluster-issuer: example-issuer
-        nginx.ingress.kubernetes.io/backend-protocol: HTTPS
-      labels:
-        app.kubernetes.io/instance: apc-gatling-operator
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: gatling-controller
-        app.kubernetes.io/version: 0.9.11
-        control-plane: controller-manager
-        helm.sh/chart: gatling-operator-1.0.0
-      name: gatling-controller
-      namespace: apc-gatling-operator
-    spec:
-      ingressClassName: nginx
-      rules:
-        - host: gatling.example.com
-          http:
-            paths:
-              - backend:
-                  service:
-                    name: gatling-controller
-                    port:
-                      number: 8443
-                path: /
-                pathType: Prefix
-      tls:
-        - hosts:
-            - gatling.example.com
-          secretName: gatling-tls
-  7: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: Role
     metadata:
@@ -341,7 +262,7 @@ manifests should match snapshot:
         verbs:
           - create
           - patch
-  8: |
+  7: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
@@ -355,12 +276,10 @@ manifests should match snapshot:
       - kind: ServiceAccount
         name: gatling-controller
         namespace: apc-gatling-operator
-  9: |
+  8: |
     apiVersion: v1
     kind: Service
     metadata:
-      annotations:
-        service.beta.openshift.io/serving-cert-secret-name: gatling-controller-tls
       labels:
         app.kubernetes.io/instance: apc-gatling-operator
         app.kubernetes.io/managed-by: Helm
@@ -372,16 +291,16 @@ manifests should match snapshot:
       namespace: apc-gatling-operator
     spec:
       ports:
-        - name: https
-          port: 8443
+        - name: metrics
+          port: 8080
           protocol: TCP
-          targetPort: https
+          targetPort: metrics
       selector:
         app.kubernetes.io/instance: apc-gatling-operator
         app.kubernetes.io/name: gatling-controller
         control-plane: controller-manager
       type: ClusterIP
-  10: |
+  9: |
     apiVersion: v1
     automountServiceAccountToken: true
     kind: ServiceAccount
@@ -397,7 +316,7 @@ manifests should match snapshot:
         helm.sh/chart: gatling-operator-1.0.0
       name: gatling-controller
       namespace: apc-gatling-operator
-  11: |
+  10: |
     apiVersion: monitoring.coreos.com/v1
     kind: ServiceMonitor
     metadata:
@@ -412,36 +331,13 @@ manifests should match snapshot:
       namespace: apc-gatling-operator
     spec:
       endpoints:
-        - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
-          interval: 30s
+        - interval: 30s
           path: /metrics
-          port: https
-          scheme: https
+          port: metrics
+          scheme: http
           scrapeTimeout: 10s
-          tlsConfig:
-            ca:
-              configMap:
-                key: service-ca.crt
-                name: gatling-controller-serving-certs-ca-bundle
-            serverName: gatling-controller.apc-gatling-operator.svc
       selector:
         matchLabels:
           app.kubernetes.io/instance: apc-gatling-operator
           app.kubernetes.io/name: gatling-controller
           control-plane: controller-manager
-  12: |
-    apiVersion: v1
-    data: {}
-    kind: ConfigMap
-    metadata:
-      annotations:
-        service.beta.openshift.io/inject-cabundle: "true"
-      labels:
-        app.kubernetes.io/instance: apc-gatling-operator
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: gatling-controller
-        app.kubernetes.io/version: 0.9.11
-        control-plane: controller-manager
-        helm.sh/chart: gatling-operator-1.0.0
-      name: gatling-controller-serving-certs-ca-bundle
-      namespace: apc-gatling-operator

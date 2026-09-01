@@ -5,22 +5,16 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "gatling-operator.labels" . | nindent 4 }}
-  {{- $servingCertSecretName := default (printf "%s-tls" (include "gatling-operator.fullname" .)) .Values.serviceMonitor.openshift.serviceCA.servingCertSecretName }}
-  {{- if or .Values.service.annotations .Values.serviceMonitor.openshift.serviceCA.enabled }}
+  {{- with .Values.service.annotations }}
   annotations:
-    {{- with .Values.service.annotations }}
     {{- toYaml . | nindent 4 }}
-    {{- end }}
-    {{- if .Values.serviceMonitor.openshift.serviceCA.enabled }}
-    service.beta.openshift.io/serving-cert-secret-name: {{ $servingCertSecretName }}
-    {{- end }}
   {{- end }}
 spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: https
+      targetPort: metrics
       protocol: TCP
-      name: https
+      name: metrics
   selector:
     {{- include "gatling-operator.selectorLabels" . | nindent 4 }}

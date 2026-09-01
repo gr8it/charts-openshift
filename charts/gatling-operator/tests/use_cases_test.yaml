@@ -2,8 +2,6 @@
 suite: Use cases
 templates:
   - templates/deployment.yaml
-  - templates/ingress.yaml
-  - templates/serving-certs-ca-bundle-configmap.yaml
   - templates/servicemonitor.yaml
   - templates/serviceaccount.yaml
   - templates/service.yaml
@@ -14,32 +12,6 @@ release:
   namespace: apc-gatling-operator
 
 tests:
-  - it: renders the configured ingress
-    template: templates/ingress.yaml
-    asserts:
-      - hasDocuments:
-          count: 1
-      - equal:
-          path: metadata.annotations["cert-manager.io/cluster-issuer"]
-          value: example-issuer
-      - equal:
-          path: spec.ingressClassName
-          value: nginx
-      - equal:
-          path: spec.rules[0].host
-          value: gatling.example.com
-      - equal:
-          path: spec.tls[0].secretName
-          value: gatling-tls
-
-  - it: does not render ingress when disabled
-    template: templates/ingress.yaml
-    set:
-      ingress.enabled: false
-    asserts:
-      - hasDocuments:
-          count: 0
-
   - it: applies service account annotations and overrides
     template: templates/serviceaccount.yaml
     asserts:
@@ -88,16 +60,13 @@ tests:
           path: metadata.name
           value: gatling-controller
       - equal:
-          path: spec.template.metadata.annotations["prometheus.io/scrape"]
-          value: "true"
-      - equal:
           path: spec.template.metadata.labels["app.kubernetes.io/component"]
           value: controller
       - equal:
           path: spec.template.metadata.labels.team
           value: performance
       - equal:
-          path: spec.template.spec.containers[1].image
+          path: spec.template.spec.containers[0].image
           value: registry.example.com/platform/gatling-operator:0.9.12
       - equal:
           path: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation
@@ -107,28 +76,16 @@ tests:
           value: true
       - equal:
           path: spec.template.spec.containers[0].resources.requests.cpu
-          value: 50m
-      - equal:
-          path: spec.template.spec.containers[0].resources.limits.memory
-          value: 128Mi
-      - equal:
-          path: spec.template.spec.containers[0].livenessProbe.tcpSocket.port
-          value: https
-      - equal:
-          path: spec.template.spec.containers[0].readinessProbe.tcpSocket.port
-          value: https
-      - equal:
-          path: spec.template.spec.containers[1].securityContext.allowPrivilegeEscalation
-          value: false
-      - equal:
-          path: spec.template.spec.containers[1].resources.requests.cpu
           value: 250m
       - equal:
-          path: spec.template.spec.containers[1].livenessProbe.httpGet.path
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
           value: /healthz
       - equal:
-          path: spec.template.spec.containers[1].readinessProbe.httpGet.path
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
           value: /readyz
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].name
+          value: metrics
 
   - it: renders ServiceMonitor when enabled
     template: templates/servicemonitor.yaml
@@ -143,38 +100,20 @@ tests:
           value: /metrics
       - equal:
           path: spec.endpoints[0].scheme
-          value: https
+          value: http
       - equal:
           path: spec.endpoints[0].port
-          value: https
-      - equal:
-          path: spec.endpoints[0].tlsConfig.serverName
-          value: gatling-controller.apc-gatling-operator.svc
-      - equal:
-          path: spec.endpoints[0].tlsConfig.ca.configMap.name
-          value: gatling-controller-serving-certs-ca-bundle
+          value: metrics
 
-  - it: annotates Service for OpenShift serving cert when enabled
+  - it: aligns service target port to manager metrics port
     template: templates/service.yaml
     asserts:
       - equal:
-          path: metadata.annotations["service.beta.openshift.io/serving-cert-secret-name"]
-          value: gatling-controller-tls
-      - equal:
           path: spec.ports[0].name
-          value: https
+          value: metrics
       - equal:
           path: spec.ports[0].targetPort
-          value: https
-
-  - it: renders injected CA bundle configmap when OpenShift service-ca is enabled
-    template: templates/serving-certs-ca-bundle-configmap.yaml
-    asserts:
-      - hasDocuments:
-          count: 1
-      - equal:
-          path: metadata.annotations["service.beta.openshift.io/inject-cabundle"]
-          value: "true"
+          value: metrics
 
   - it: does not render ServiceMonitor when disabled
     template: templates/servicemonitor.yaml

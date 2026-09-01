@@ -22,7 +22,6 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      {{- $servingCertSecretName := default (printf "%s-tls" (include "gatling-operator.fullname" .)) .Values.serviceMonitor.openshift.serviceCA.servingCertSecretName }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -34,44 +33,8 @@ spec:
       {{- end }}
       containers:
         - args:
-          - --secure-listen-address=0.0.0.0:8443
-          - --upstream=http://127.0.0.1:8080/
-          - --logtostderr=true
-          - --v=2
-          {{- if .Values.serviceMonitor.openshift.serviceCA.enabled }}
-          - --tls-cert-file=/etc/tls/private/tls.crt
-          - --tls-private-key-file=/etc/tls/private/tls.key
-          {{- end }}
-          image: ghcr.io/kube-rbac-proxy/kube-rbac-proxy:v0.22.1
-          name: kube-rbac-proxy
-          {{- with .Values.kubeRbacProxy.securityContext }}
-          securityContext:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- if .Values.serviceMonitor.openshift.serviceCA.enabled }}
-          volumeMounts:
-          - mountPath: /etc/tls/private
-            name: service-tls
-            readOnly: true
-          {{- end }}
-          ports:
-          - containerPort: 8443
-            name: https
-          {{- with .Values.kubeRbacProxy.livenessProbe }}
-          livenessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.kubeRbacProxy.readinessProbe }}
-          readinessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.kubeRbacProxy.resources }}
-          resources:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-        - args:
           - --health-probe-bind-address=:8081
-          - --metrics-bind-address=127.0.0.1:8080
+          - --metrics-bind-address=0.0.0.0:{{ .Values.service.port }}
           - --leader-elect
           - --max-concurrent-reconciles=1
           command:
@@ -84,7 +47,7 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - name: http
+            - name: metrics
               containerPort: {{ .Values.service.port }}
               protocol: TCP
           {{- with .Values.livenessProbe }}
@@ -103,16 +66,9 @@ spec:
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-      {{- if or .Values.volumes .Values.serviceMonitor.openshift.serviceCA.enabled }}
+      {{- with .Values.volumes }}
       volumes:
-        {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
-        {{- end }}
-        {{- if .Values.serviceMonitor.openshift.serviceCA.enabled }}
-        - name: service-tls
-          secret:
-            secretName: {{ $servingCertSecretName }}
-        {{- end }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

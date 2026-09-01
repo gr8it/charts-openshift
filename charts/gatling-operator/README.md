@@ -13,6 +13,21 @@ Additional to [Gatling operator quickstart](https://github.com/st-tech/gatling-o
 - clusterrole-project-admin.yaml - aggregates full permissions for gatling resources to project admin, developer, tester, operator cluster roles 
 - clusterrole-project-view.yaml - aggregates view permissions for gatling resources to project view cluster role
 
+## Metrics Exposure
+
+The chart exposes controller metrics directly from the manager container on port `8443`.
+
+OpenShift prerequisite for user workload monitoring:
+
+```bash
+oc label namespace apc-gatling-operator openshift.io/user-monitoring=true --overwrite
+```
+
+Changes from community version:
+- No `kube-rbac-proxy` sidecar is deployed
+- No Ingress resource is deployed by this chart.
+- ServiceMonitor scrapes the Service endpoint on port `metrics` over `http`.
+
 ## Install
 
 Install from the published Helm repository:
@@ -74,39 +89,27 @@ helm uninstall apc-gatling-operator --namespace apc-gatling-operator
 
 ## Common Overrides
 
-Commonly overridden values are image tag, ingress host/TLS, service account name, and service monitoring behavior.
+Commonly overridden values are image tag, service account name, service port, and service monitoring behavior.
 
 Example override file:
 
 ```yaml
 image:
-	repository: registry.example.com/platform/gatling-operator
-	tag: "0.9.12"
+  repository: registry.example.com/platform/gatling-operator
+  tag: "0.9.12"
 
 serviceAccount:
-	create: true
-	name: gatling-controller
+  create: true
+  name: gatling-controller
 
-ingress:
-	enabled: true
-	className: nginx
-	hosts:
-		- host: gatling.example.com
-			paths:
-				- path: /
-					pathType: Prefix
-	tls:
-		- secretName: gatling-tls
-			hosts:
-				- gatling.example.com
+service:
+  port: 8443
 
 serviceMonitor:
-	enabled: true
-	scheme: https
-	port: https
-	openshift:
-		serviceCA:
-			enabled: true
+  enabled: true
+  scheme: http
+  port: metrics
+  path: /metrics
 ```
 
 Apply it during install or upgrade:

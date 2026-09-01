@@ -12,10 +12,6 @@ serviceAccount:
     example.com/owner: performance-team
   name: gatling-controller
 
-podAnnotations:
-  prometheus.io/scrape: "true"
-  prometheus.io/port: "8443"
-
 podLabels:
   app.kubernetes.io/component: controller
   team: performance
@@ -25,33 +21,7 @@ serviceMonitor:
   interval: 30s
   scrapeTimeout: 10s
   path: /metrics
-  scheme: https
-  port: https
+  scheme: http
+  port: metrics
   additionalLabels: {}
-  tlsConfig:
-    insecureSkipVerify: false
-    serverName: ""
-  openshift:
-    serviceCA:
-      enabled: true
-      servingCertSecretName: ""
-      caBundleConfigMapName: ""
-      caBundleConfigMapKey: service-ca.crt
-
-
-ingress:
-  enabled: true
-  className: nginx
-  annotations:
-    cert-manager.io/cluster-issuer: example-issuer
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-  hosts:
-    - host: gatling.example.com
-      paths:
-        - path: /
-          pathType: Prefix
-  tls:
-    - secretName: gatling-tls
-      hosts:
-        - gatling.example.com
 

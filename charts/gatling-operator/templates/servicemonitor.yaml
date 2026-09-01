@@ -1,7 +1,5 @@
 {{- if .Values.serviceMonitor.enabled }}
 {{- $fullName := include "gatling-operator.fullname" . }}
-{{- $caBundleConfigMapName := default (printf "%s-serving-certs-ca-bundle" $fullName) .Values.serviceMonitor.openshift.serviceCA.caBundleConfigMapName }}
-{{- $serverName := default (printf "%s.%s.svc" $fullName .Release.Namespace) .Values.serviceMonitor.tlsConfig.serverName }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
@@ -17,21 +15,9 @@ spec:
     matchLabels:
       {{- include "gatling-operator.selectorLabels" . | nindent 6 }}
   endpoints:
-    - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
-      port: {{ .Values.serviceMonitor.port }}
+    - port: {{ .Values.serviceMonitor.port }}
       path: {{ .Values.serviceMonitor.path }}
       interval: {{ .Values.serviceMonitor.interval }}
       scrapeTimeout: {{ .Values.serviceMonitor.scrapeTimeout }}
       scheme: {{ .Values.serviceMonitor.scheme }}
-      {{- if .Values.serviceMonitor.openshift.serviceCA.enabled }}
-      tlsConfig:
-        ca:
-          configMap:
-            name: {{ $caBundleConfigMapName }}
-            key: {{ .Values.serviceMonitor.openshift.serviceCA.caBundleConfigMapKey }}
-        serverName: {{ $serverName }}
-      {{- else }}
-      tlsConfig:
-        {{- toYaml .Values.serviceMonitor.tlsConfig | nindent 8 }}
-      {{- end }}
 {{- end }}
