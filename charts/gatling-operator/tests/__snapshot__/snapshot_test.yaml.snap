@@ -1104,8 +1104,14 @@ manifests should match snapshot:
                   memory: 250Mi
               securityContext:
                 allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                readOnlyRootFilesystem: true
           securityContext:
             runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
           serviceAccountName: gatling-controller
           volumes:
             - name: service-tls
@@ -1117,6 +1123,7 @@ manifests should match snapshot:
     metadata:
       annotations:
         cert-manager.io/cluster-issuer: example-issuer
+        nginx.ingress.kubernetes.io/backend-protocol: HTTPS
       labels:
         app.kubernetes.io/instance: apc-gatling-operator
         app.kubernetes.io/managed-by: Helm
