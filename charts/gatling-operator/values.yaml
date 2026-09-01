@@ -40,9 +40,15 @@ podLabels: {}
 
 podSecurityContext:
   runAsNonRoot: true
-  
+  seccompProfile:
+    type: RuntimeDefault
+
 securityContext:
   allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
 
 # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
