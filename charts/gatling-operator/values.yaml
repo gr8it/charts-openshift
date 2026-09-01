@@ -33,7 +33,9 @@ serviceAccount:
 
 # This is for setting Kubernetes Annotations to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
-podAnnotations: {}
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8443"
 # This is for setting Kubernetes Labels to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 podLabels: {}
@@ -50,6 +52,27 @@ service:
   type: ClusterIP
   # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
   port: 8443
+  # Additional annotations for the Service resource.
+  annotations: {}
+
+# Configure ServiceMonitor for Prometheus Operator / OpenShift UWM scraping.
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  scrapeTimeout: 10s
+  path: /metrics
+  scheme: https
+  port: https
+  additionalLabels: {}
+  tlsConfig:
+    insecureSkipVerify: false
+    serverName: ""
+  openshift:
+    serviceCA:
+      enabled: true
+      servingCertSecretName: ""
+      caBundleConfigMapName: ""
+      caBundleConfigMapKey: service-ca.crt
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
@@ -147,3 +170,4 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
