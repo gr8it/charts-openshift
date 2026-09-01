@@ -1,4 +1,4 @@
-{{- if .Values.dedicatedEtcdStorage }}
+{{- if .Values.dedicatedEtcdStorageDevices }}
 apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfig
 metadata:
@@ -12,7 +12,7 @@ spec:
     storage:
       files:
         - contents:
-            source: data:text/plain;charset=utf-8;base64,{{ .Values.dedicatedEtcdStorageConfig | b64enc }}
+            source: data:text/plain;charset=utf-8;base64,{{ include "cluster-config-standalone.dedicatedEtcdStorageConfig" . | b64enc }}
           mode: 493
           path: /etc/find-secondary-device
     systemd:
