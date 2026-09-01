@@ -38,6 +38,18 @@ manifests should match snapshot:
           - list
           - watch
       - apiGroups:
+          - authentication.k8s.io
+        resources:
+          - tokenreviews
+        verbs:
+          - create
+      - apiGroups:
+          - authorization.k8s.io
+        resources:
+          - subjectaccessreviews
+        verbs:
+          - create
+      - apiGroups:
           - gatling-operator.tech.zozo.com
         resources:
           - gatlings
@@ -1272,7 +1284,8 @@ manifests should match snapshot:
       namespace: apc-gatling-operator
     spec:
       endpoints:
-        - interval: 30s
+        - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+          interval: 30s
           path: /metrics
           port: https
           scheme: https
