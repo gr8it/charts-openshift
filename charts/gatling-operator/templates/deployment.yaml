@@ -57,6 +57,14 @@ spec:
           ports:
           - containerPort: 8443
             name: https
+          {{- with .Values.kubeRbacProxy.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.kubeRbacProxy.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with .Values.kubeRbacProxy.resources }}
           resources:
             {{- toYaml . | nindent 12 }}

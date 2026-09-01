@@ -111,6 +111,24 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].resources.limits.memory
           value: 128Mi
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.tcpSocket.port
+          value: https
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.tcpSocket.port
+          value: https
+      - equal:
+          path: spec.template.spec.containers[1].securityContext.allowPrivilegeEscalation
+          value: false
+      - equal:
+          path: spec.template.spec.containers[1].resources.requests.cpu
+          value: 250m
+      - equal:
+          path: spec.template.spec.containers[1].livenessProbe.httpGet.path
+          value: /healthz
+      - equal:
+          path: spec.template.spec.containers[1].readinessProbe.httpGet.path
+          value: /readyz
 
   - it: renders ServiceMonitor when enabled
     template: templates/servicemonitor.yaml
