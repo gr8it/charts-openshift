@@ -6,7 +6,7 @@ metadata:
   labels:
     {{- include "gatling-operator.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount | default 1}}
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       {{- include "gatling-operator.selectorLabels" . | nindent 6 }}

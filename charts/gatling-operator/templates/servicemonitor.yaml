@@ -17,7 +17,8 @@ spec:
     matchLabels:
       {{- include "gatling-operator.selectorLabels" . | nindent 6 }}
   endpoints:
-    - port: {{ .Values.serviceMonitor.port }}
+    - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+      port: {{ .Values.serviceMonitor.port }}
       path: {{ .Values.serviceMonitor.path }}
       interval: {{ .Values.serviceMonitor.interval }}
       scrapeTimeout: {{ .Values.serviceMonitor.scrapeTimeout }}
