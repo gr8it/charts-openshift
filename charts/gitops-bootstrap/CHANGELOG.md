@@ -5,11 +5,13 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.9.4] - 2026-08-27
+## [2.10.0] - 2026-09-02
 
 ### Changed
 
 - Curate ArgoCD sync/health alert descriptions, add `argocdAlertSeverity` value
+
+## [2.9.4] - 2026-08-27
 
 ## [2.9.3] - 2026-04-09
 

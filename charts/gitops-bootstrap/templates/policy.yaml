@@ -751,7 +751,7 @@ spec:
                       expr: argocd_app_info{namespace="{{ .Values.namespace }}",sync_status="Unknown"} > 0
                       for: 5m
                       labels:
-                        severity: {{ .Values.argocdAlertSeverity | default "warning" }}
+                        severity: {{ .Values.argocdAlertSeverity }}
                         team: platform
                         vendor: aspecta
                     - alert: ArgoCDAppsSyncMajorityUnknownAlert
@@ -763,7 +763,7 @@ spec:
                         ) > 0.5
                       for: 15m
                       labels:
-                        severity: {{ .Values.argocdAlertSeverity | default "warning" }}
+                        severity: {{ .Values.argocdAlertSeverity }}
                         team: platform
                         vendor: aspecta
                       annotations:
@@ -785,7 +785,7 @@ spec:
                       expr: argocd_app_info{health_status!="Healthy"} != 0
                       for: 1h
                       labels:
-                        severity: {{ .Values.argocdAlertSeverity | default "warning" }}
+                        severity: {{ .Values.argocdAlertSeverity }}
                         team: platform
                         vendor: aspecta
                       annotations:
