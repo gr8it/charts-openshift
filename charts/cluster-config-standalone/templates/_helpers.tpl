@@ -71,3 +71,28 @@ Defines image proxy URL without protocol
 {{- .Values.imageProxy.host }}:{{ .Values.imageProxy.port }}
 {{- end }}
 {{- end }}
+
+{{/*
+Defines dedicatedEtcdStorageConfig
+*/}}
+{{- define "cluster-config-standalone.dedicatedEtcdStorageConfig" -}}
+#!/bin/bash
+set -uo pipefail
+
+devices="{{ join " \\\n         " .Values.dedicatedEtcdStorageDevices }}"
+
+for device in $devices; do
+  /usr/bin/test -b "$device" || continue
+  /usr/sbin/blkid "$device" &> /dev/null
+  if [ $? == 2 ]; then
+    echo "Secondary block device found: $device"
+    echo "Creating filesystem for etcd mount"
+    /usr/sbin/mkfs.xfs -L var-lib-etcd -f "$device" &> /dev/null
+    /usr/sbin/udevadm settle
+    /usr/bin/touch /etc/var-lib-etcd-mount
+    exit 0
+  fi
+done
+echo "Couldn't find secondary block device!" >&2
+exit 77
+{{- end }}
