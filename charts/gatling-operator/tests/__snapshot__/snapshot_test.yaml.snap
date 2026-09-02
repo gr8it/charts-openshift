@@ -1,0 +1,343 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      name: gatling-controller-manager-role
+    rules:
+      - apiGroups:
+          - batch
+        resources:
+          - jobs
+        verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+      - apiGroups:
+          - ""
+        resources:
+          - configmaps
+        verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+      - apiGroups:
+          - ""
+        resources:
+          - secrets
+        verbs:
+          - get
+          - list
+          - watch
+      - apiGroups:
+          - authentication.k8s.io
+        resources:
+          - tokenreviews
+        verbs:
+          - create
+      - apiGroups:
+          - authorization.k8s.io
+        resources:
+          - subjectaccessreviews
+        verbs:
+          - create
+      - apiGroups:
+          - gatling-operator.tech.zozo.com
+        resources:
+          - gatlings
+        verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+      - apiGroups:
+          - gatling-operator.tech.zozo.com
+        resources:
+          - gatlings/finalizers
+        verbs:
+          - update
+      - apiGroups:
+          - gatling-operator.tech.zozo.com
+        resources:
+          - gatlings/status
+        verbs:
+          - get
+          - patch
+          - update
+  2: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      labels:
+        rbac.authorization.k8s.io/aggregate-to-apc-project-admin: "true"
+        rbac.authorization.k8s.io/aggregate-to-apc-project-developer: "true"
+        rbac.authorization.k8s.io/aggregate-to-apc-project-operator: "true"
+        rbac.authorization.k8s.io/aggregate-to-apc-project-tester: "true"
+      name: gatling-controller-project-admin
+    rules:
+      - apiGroups:
+          - gatling-operator.tech.zozo.com
+        resources:
+          - gatlings
+        verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+      - apiGroups:
+          - gatling-operator.tech.zozo.com
+        resources:
+          - gatlings/finalizers
+        verbs:
+          - update
+      - apiGroups:
+          - gatling-operator.tech.zozo.com
+        resources:
+          - gatlings/status
+        verbs:
+          - get
+          - patch
+          - update
+  3: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      labels:
+        rbac.authorization.k8s.io/aggregate-to-apc-project-view: "true"
+      name: gatling-controller-project-view
+    rules:
+      - apiGroups:
+          - gatling-operator.tech.zozo.com
+        resources:
+          - gatlings
+        verbs:
+          - get
+          - list
+          - watch
+      - apiGroups:
+          - gatling-operator.tech.zozo.com
+        resources:
+          - gatlings/status
+        verbs:
+          - get
+  4: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      name: gatling-controller-manager-rolebinding
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: gatling-controller-manager-role
+    subjects:
+      - kind: ServiceAccount
+        name: gatling-controller
+        namespace: apc-gatling-operator
+  5: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-gatling-operator
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: gatling-controller
+        app.kubernetes.io/version: 0.9.11
+        control-plane: controller-manager
+        helm.sh/chart: gatling-operator-1.0.0
+      name: gatling-controller
+      namespace: apc-gatling-operator
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app.kubernetes.io/instance: apc-gatling-operator
+          app.kubernetes.io/name: gatling-controller
+          control-plane: controller-manager
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/component: controller
+            app.kubernetes.io/instance: apc-gatling-operator
+            app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/name: gatling-controller
+            app.kubernetes.io/version: 0.9.11
+            control-plane: controller-manager
+            helm.sh/chart: gatling-operator-1.0.0
+            team: performance
+        spec:
+          containers:
+            - args:
+                - --health-probe-bind-address=:8081
+                - --metrics-bind-address=0.0.0.0:8080
+                - --leader-elect
+                - --max-concurrent-reconciles=1
+              command:
+                - /manager
+              image: registry.example.com/platform/gatling-operator:0.9.12
+              imagePullPolicy: IfNotPresent
+              livenessProbe:
+                httpGet:
+                  path: /healthz
+                  port: 8081
+                initialDelaySeconds: 15
+                periodSeconds: 20
+              name: manager
+              ports:
+                - containerPort: 8080
+                  name: metrics
+                  protocol: TCP
+              readinessProbe:
+                httpGet:
+                  path: /readyz
+                  port: 8081
+                initialDelaySeconds: 5
+                periodSeconds: 10
+              resources:
+                limits:
+                  cpu: 1
+                  memory: 1Gi
+                requests:
+                  cpu: 250m
+                  memory: 250Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                readOnlyRootFilesystem: true
+          securityContext:
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+          serviceAccountName: gatling-controller
+  6: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      name: gatling-controller-leader-election-role
+      namespace: apc-gatling-operator
+    rules:
+      - apiGroups:
+          - ""
+        resources:
+          - configmaps
+        verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - patch
+          - delete
+      - apiGroups:
+          - coordination.k8s.io
+        resources:
+          - leases
+        verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - patch
+          - delete
+      - apiGroups:
+          - ""
+        resources:
+          - events
+        verbs:
+          - create
+          - patch
+  7: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      name: gatling-controller-leader-election-rolebinding
+      namespace: apc-gatling-operator
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: gatling-controller-leader-election-role
+    subjects:
+      - kind: ServiceAccount
+        name: gatling-controller
+        namespace: apc-gatling-operator
+  8: |
+    apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-gatling-operator
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: gatling-controller
+        app.kubernetes.io/version: 0.9.11
+        control-plane: controller-manager
+        helm.sh/chart: gatling-operator-1.0.0
+      name: gatling-controller
+      namespace: apc-gatling-operator
+    spec:
+      ports:
+        - name: metrics
+          port: 8080
+          protocol: TCP
+          targetPort: metrics
+      selector:
+        app.kubernetes.io/instance: apc-gatling-operator
+        app.kubernetes.io/name: gatling-controller
+        control-plane: controller-manager
+      type: ClusterIP
+  9: |
+    apiVersion: v1
+    automountServiceAccountToken: true
+    kind: ServiceAccount
+    metadata:
+      annotations:
+        example.com/owner: performance-team
+      labels:
+        app.kubernetes.io/instance: apc-gatling-operator
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: gatling-controller
+        app.kubernetes.io/version: 0.9.11
+        control-plane: controller-manager
+        helm.sh/chart: gatling-operator-1.0.0
+      name: gatling-controller
+      namespace: apc-gatling-operator
+  10: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-gatling-operator
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: gatling-controller
+        app.kubernetes.io/version: 0.9.11
+        control-plane: controller-manager
+        helm.sh/chart: gatling-operator-1.0.0
+      name: gatling-controller
+      namespace: apc-gatling-operator
+    spec:
+      endpoints:
+        - interval: 30s
+          path: /metrics
+          port: metrics
+          scheme: http
+          scrapeTimeout: 10s
+      selector:
+        matchLabels:
+          app.kubernetes.io/instance: apc-gatling-operator
+          app.kubernetes.io/name: gatling-controller
+          control-plane: controller-manager

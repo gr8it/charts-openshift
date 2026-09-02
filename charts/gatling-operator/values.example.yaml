@@ -1,0 +1,27 @@
+image:
+  repository: registry.example.com/platform/gatling-operator
+  tag: "0.9.12"
+
+nameOverride: gatling-controller
+fullnameOverride: gatling-controller
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations:
+    example.com/owner: performance-team
+  name: gatling-controller
+
+podLabels:
+  app.kubernetes.io/component: controller
+  team: performance
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  scrapeTimeout: 10s
+  path: /metrics
+  scheme: http
+  port: metrics
+  additionalLabels: {}
+

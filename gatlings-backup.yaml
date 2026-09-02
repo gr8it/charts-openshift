@@ -1,0 +1,365 @@
+apiVersion: v1
+items:
+- apiVersion: gatling-operator.tech.zozo.com/v1alpha1
+  kind: Gatling
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: integration_gatling-load-test:gatling-operator.tech.zozo.com/Gatling:integration/daup-load-test
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"gatling-operator.tech.zozo.com/v1alpha1","kind":"Gatling","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"integration_gatling-load-test:gatling-operator.tech.zozo.com/Gatling:integration/daup-load-test"},"name":"daup-load-test","namespace":"integration"},"spec":{"cleanupAfterJobDone":false,"cloudStorageSpec":{"bucket":"gatling-sample-01","env":[{"name":"RCLONE_S3_PROVIDER","value":"Other"},{"name":"RCLONE_NO_CHECK_CERTIFICATE","value":"true"},{"name":"SSL_CERT_FILE","value":"/etc/ssl/certs/service-ca.crt"},{"name":"RCLONE_S3_ACCESS_KEY_ID","valueFrom":{"secretKeyRef":{"key":"access_key_id","name":"obc-gatling-sample-01-allinfo"}}},{"name":"RCLONE_S3_SECRET_ACCESS_KEY","valueFrom":{"secretKeyRef":{"key":"access_key_secret","name":"obc-gatling-sample-01-allinfo"}}},{"name":"RCLONE_S3_ENDPOINT","valueFrom":{"secretKeyRef":{"key":"endpoint","name":"obc-gatling-sample-01-allinfo"}}},{"name":"RCLONE_S3_REGION","value":"us-east-1"}],"provider":"s3","region":"us-east-1"},"generateLocalReport":true,"generateReport":true,"notifyReport":false,"podSpec":{"gatlingImage":"gcr.isreg.gr8it.cloud/isreg/integration/load-and-performance-testing:1.6.0","rcloneImage":"rclone/rclone:latest","resources":{"limits":{"cpu":"1000m","memory":"2Gi"}},"serviceAccountName":"gatling-operator-worker"},"testScenarioSpec":{"env":[{"name":"ENV","value":"dev"},{"name":"TARGET_URL","value":"https://daup.apps.s1.lab.sp.gr8it.cloud"},{"name":"CONCURRENCY","value":"2"},{"name":"DURATION","value":"10"},{"name":"JAVA_OPTS","value":"-Dgatling.http.warmUpUrl=https://daup.apps.s1.lab.sp.gr8it.cloud/health"},{"name":"RCLONE_S3_PROVIDER","value":"Other"},{"name":"RCLONE_NO_CHECK_CERTIFICATE","value":"true"},{"name":"RCLONE_S3_ACCESS_KEY_ID","valueFrom":{"secretKeyRef":{"key":"access_key_id","name":"obc-gatling-sample-01-allinfo"}}},{"name":"RCLONE_S3_SECRET_ACCESS_KEY","valueFrom":{"secretKeyRef":{"key":"access_key_secret","name":"obc-gatling-sample-01-allinfo"}}},{"name":"RCLONE_S3_ENDPOINT","valueFrom":{"secretKeyRef":{"key":"endpoint","name":"obc-gatling-sample-01-allinfo"}}},{"name":"RCLONE_S3_REGION","value":"us-east-1"},{"name":"SSL_CERT_FILE","value":"/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt"}],"parallelism":1,"simulationClass":"MyBasicSimulation","simulationData":{"MyBasicSimulation.scala":"import io.gatling.core.Predef._\nimport io.gatling.http.Predef._\n\nclass MyBasicSimulation extends Simulation {\n\n  val targetUrl = sys.env.getOrElse(\"TARGET_URL\", \"https://daup.apps.s1.lab.sp.gr8it.cloud\")\n\n  val httpProtocol = http\n    .baseUrl(targetUrl)\n    .acceptHeader(\"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\")\n    .acceptLanguageHeader(\"en-US,en;q=0.5\")\n    .acceptEncodingHeader(\"gzip, deflate\")\n    .userAgentHeader(\"Mozilla/5.0\")\n\n  val scn = scenario(\"Inline K8s Load Test\")\n    .exec(http(\"Health check\").get(\"/health\"))\n\n  setUp(\n    scn.inject(atOnceUsers(sys.env.getOrElse(\"CONCURRENCY\", \"2\").toInt))\n  ).protocols(httpProtocol)\n}\n"}}}}
+    creationTimestamp: "2026-08-31T10:19:05Z"
+    generation: 1
+    name: daup-load-test
+    namespace: integration
+    resourceVersion: "853317164"
+    uid: f09b89ec-b849-4c21-bcd9-a7a0364026d1
+  spec:
+    cleanupAfterJobDone: false
+    cloudStorageSpec:
+      bucket: gatling-sample-01
+      env:
+      - name: RCLONE_S3_PROVIDER
+        value: Other
+      - name: RCLONE_NO_CHECK_CERTIFICATE
+        value: "true"
+      - name: SSL_CERT_FILE
+        value: /etc/ssl/certs/service-ca.crt
+      - name: RCLONE_S3_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            key: access_key_id
+            name: obc-gatling-sample-01-allinfo
+      - name: RCLONE_S3_SECRET_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            key: access_key_secret
+            name: obc-gatling-sample-01-allinfo
+      - name: RCLONE_S3_ENDPOINT
+        valueFrom:
+          secretKeyRef:
+            key: endpoint
+            name: obc-gatling-sample-01-allinfo
+      - name: RCLONE_S3_REGION
+        value: us-east-1
+      provider: s3
+      region: us-east-1
+    generateLocalReport: true
+    generateReport: true
+    notifyReport: false
+    podSpec:
+      gatlingImage: gcr.isreg.gr8it.cloud/isreg/integration/load-and-performance-testing:1.6.0
+      rcloneImage: rclone/rclone:latest
+      resources:
+        limits:
+          cpu: 1000m
+          memory: 2Gi
+      serviceAccountName: gatling-operator-worker
+    testScenarioSpec:
+      env:
+      - name: ENV
+        value: dev
+      - name: TARGET_URL
+        value: https://daup.apps.s1.lab.sp.gr8it.cloud
+      - name: CONCURRENCY
+        value: "2"
+      - name: DURATION
+        value: "10"
+      - name: JAVA_OPTS
+        value: -Dgatling.http.warmUpUrl=https://daup.apps.s1.lab.sp.gr8it.cloud/health
+      - name: RCLONE_S3_PROVIDER
+        value: Other
+      - name: RCLONE_NO_CHECK_CERTIFICATE
+        value: "true"
+      - name: RCLONE_S3_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            key: access_key_id
+            name: obc-gatling-sample-01-allinfo
+      - name: RCLONE_S3_SECRET_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            key: access_key_secret
+            name: obc-gatling-sample-01-allinfo
+      - name: RCLONE_S3_ENDPOINT
+        valueFrom:
+          secretKeyRef:
+            key: endpoint
+            name: obc-gatling-sample-01-allinfo
+      - name: RCLONE_S3_REGION
+        value: us-east-1
+      - name: SSL_CERT_FILE
+        value: /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
+      parallelism: 1
+      simulationClass: MyBasicSimulation
+      simulationData:
+        MyBasicSimulation.scala: |
+          import io.gatling.core.Predef._
+          import io.gatling.http.Predef._
+
+          class MyBasicSimulation extends Simulation {
+
+            val targetUrl = sys.env.getOrElse("TARGET_URL", "https://daup.apps.s1.lab.sp.gr8it.cloud")
+
+            val httpProtocol = http
+              .baseUrl(targetUrl)
+              .acceptHeader("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+              .acceptLanguageHeader("en-US,en;q=0.5")
+              .acceptEncodingHeader("gzip, deflate")
+              .userAgentHeader("Mozilla/5.0")
+
+            val scn = scenario("Inline K8s Load Test")
+              .exec(http("Health check").get("/health"))
+
+            setUp(
+              scn.inject(atOnceUsers(sys.env.getOrElse("CONCURRENCY", "2").toInt))
+            ).protocols(httpProtocol)
+          }
+  status:
+    reportCompleted: true
+    reportStoragePath: s3:gatling-sample-01/daup-load-test/1815490394
+    reportUrl: https://gatling-sample-01.s3.amazonaws.com/daup-load-test/1815490394/index.html
+    reporterJobName: daup-load-test-reporter
+    reporterStartTime: 1788171681
+    runnerCompleted: true
+    runnerCompletions: 1/1
+    runnerJobName: daup-load-test-runner
+    runnerStartTime: 1788171545
+    succeeded: 1
+- apiVersion: gatling-operator.tech.zozo.com/v1alpha1
+  kind: Gatling
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"gatling-operator.tech.zozo.com/v1alpha1","kind":"Gatling","metadata":{"annotations":{},"name":"gatling-sample-example","namespace":"integration"},"spec":{"cleanupAfterJobDone":false,"cloudStorageSpec":{"bucket":"gatling-sample-01","env":[{"name":"RCLONE_S3_PROVIDER","value":"Other"},{"name":"RCLONE_NO_CHECK_CERTIFICATE","value":"true"},{"name":"SSL_CERT_FILE","value":"/etc/ssl/certs/service-ca.crt"},{"name":"RCLONE_S3_ACCESS_KEY_ID","valueFrom":{"secretKeyRef":{"key":"access_key_id","name":"obc-gatling-sample-01-allinfo"}}},{"name":"RCLONE_S3_SECRET_ACCESS_KEY","valueFrom":{"secretKeyRef":{"key":"access_key_secret","name":"obc-gatling-sample-01-allinfo"}}},{"name":"RCLONE_S3_ENDPOINT","valueFrom":{"secretKeyRef":{"key":"endpoint","name":"obc-gatling-sample-01-allinfo"}}},{"name":"RCLONE_S3_REGION","value":"us-east-1"}],"provider":"s3","region":"us-east-1"},"generateLocalReport":true,"generateReport":true,"notifyReport":false,"podSpec":{"gatlingImage":"ghcr.io/st-tech/gatling:latest","rcloneImage":"rclone/rclone:latest","resources":{"limits":{"cpu":"1000m","memory":"2Gi"}},"runnerContainerSecurityContext":{"runAsGroup":1000,"runAsUser":1000},"serviceAccountName":"gatling-operator-worker","volumes":[{"configMap":{"items":[{"key":"service-ca.crt","path":"service-ca.crt"}],"name":"openshift-service-ca.crt"},"name":"openshift-service-ca"}]},"testScenarioSpec":{"env":[{"name":"ENV","value":"dev"},{"name":"TARGET_URL","value":"https://daup.apps.s1.lab.sp.gr8it.cloud"},{"name":"CONCURRENCY","value":"2"},{"name":"DURATION","value":"10"},{"name":"JAVA_OPTS","value":"-Dgatling.http.warmUpUrl=https://daup.apps.s1.lab.sp.gr8it.cloud/health"},{"name":"RCLONE_S3_PROVIDER","value":"Other"},{"name":"RCLONE_NO_CHECK_CERTIFICATE","value":"true"},{"name":"RCLONE_S3_ACCESS_KEY_ID","valueFrom":{"secretKeyRef":{"key":"access_key_id","name":"obc-gatling-sample-01-allinfo"}}},{"name":"RCLONE_S3_SECRET_ACCESS_KEY","valueFrom":{"secretKeyRef":{"key":"access_key_secret","name":"obc-gatling-sample-01-allinfo"}}},{"name":"RCLONE_S3_ENDPOINT","valueFrom":{"secretKeyRef":{"key":"endpoint","name":"obc-gatling-sample-01-allinfo"}}},{"name":"RCLONE_S3_REGION","value":"us-east-1"},{"name":"SSL_CERT_FILE","value":"/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt"}],"parallelism":1,"simulationClass":"MyBasicSimulation","simulationData":{"MyBasicSimulation.scala":"import io.gatling.core.Predef._\nimport io.gatling.http.Predef._\n\nclass MyBasicSimulation extends Simulation {\n\n  val targetUrl = sys.env.getOrElse(\"TARGET_URL\", \"https://daup.apps.s1.lab.sp.gr8it.cloud\")\n\n  val httpProtocol = http\n    .baseUrl(targetUrl)\n    .acceptHeader(\"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\")\n    .acceptLanguageHeader(\"en-US,en;q=0.5\")\n    .acceptEncodingHeader(\"gzip, deflate\")\n    .userAgentHeader(\"Mozilla/5.0\")\n\n  val scn = scenario(\"Inline K8s Load Test\")\n    .exec(http(\"Health check\").get(\"/health\"))\n\n  setUp(\n    scn.inject(atOnceUsers(sys.env.getOrElse(\"CONCURRENCY\", \"2\").toInt))\n  ).protocols(httpProtocol)\n}\n"},"volumeMounts":[{"mountPath":"/etc/ssl/certs/service-ca.crt","name":"openshift-service-ca","readOnly":true,"subPath":"service-ca.crt"}]}}}
+    creationTimestamp: "2026-08-17T08:03:25Z"
+    generation: 1
+    name: gatling-sample-example
+    namespace: integration
+    resourceVersion: "826197330"
+    uid: 04aae67b-b426-4bd7-93f9-036c50da10c8
+  spec:
+    cleanupAfterJobDone: false
+    cloudStorageSpec:
+      bucket: gatling-sample-01
+      env:
+      - name: RCLONE_S3_PROVIDER
+        value: Other
+      - name: RCLONE_NO_CHECK_CERTIFICATE
+        value: "true"
+      - name: SSL_CERT_FILE
+        value: /etc/ssl/certs/service-ca.crt
+      - name: RCLONE_S3_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            key: access_key_id
+            name: obc-gatling-sample-01-allinfo
+      - name: RCLONE_S3_SECRET_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            key: access_key_secret
+            name: obc-gatling-sample-01-allinfo
+      - name: RCLONE_S3_ENDPOINT
+        valueFrom:
+          secretKeyRef:
+            key: endpoint
+            name: obc-gatling-sample-01-allinfo
+      - name: RCLONE_S3_REGION
+        value: us-east-1
+      provider: s3
+      region: us-east-1
+    generateLocalReport: true
+    generateReport: true
+    notifyReport: false
+    podSpec:
+      gatlingImage: ghcr.io/st-tech/gatling:latest
+      rcloneImage: rclone/rclone:latest
+      resources:
+        limits:
+          cpu: 1000m
+          memory: 2Gi
+      serviceAccountName: gatling-operator-worker
+    testScenarioSpec:
+      env:
+      - name: ENV
+        value: dev
+      - name: TARGET_URL
+        value: https://daup.apps.s1.lab.sp.gr8it.cloud
+      - name: CONCURRENCY
+        value: "2"
+      - name: DURATION
+        value: "10"
+      - name: JAVA_OPTS
+        value: -Dgatling.http.warmUpUrl=https://daup.apps.s1.lab.sp.gr8it.cloud/health
+      - name: RCLONE_S3_PROVIDER
+        value: Other
+      - name: RCLONE_NO_CHECK_CERTIFICATE
+        value: "true"
+      - name: RCLONE_S3_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            key: access_key_id
+            name: obc-gatling-sample-01-allinfo
+      - name: RCLONE_S3_SECRET_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            key: access_key_secret
+            name: obc-gatling-sample-01-allinfo
+      - name: RCLONE_S3_ENDPOINT
+        valueFrom:
+          secretKeyRef:
+            key: endpoint
+            name: obc-gatling-sample-01-allinfo
+      - name: RCLONE_S3_REGION
+        value: us-east-1
+      - name: SSL_CERT_FILE
+        value: /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
+      parallelism: 1
+      simulationClass: MyBasicSimulation
+      simulationData:
+        MyBasicSimulation.scala: |
+          import io.gatling.core.Predef._
+          import io.gatling.http.Predef._
+
+          class MyBasicSimulation extends Simulation {
+
+            val targetUrl = sys.env.getOrElse("TARGET_URL", "https://daup.apps.s1.lab.sp.gr8it.cloud")
+
+            val httpProtocol = http
+              .baseUrl(targetUrl)
+              .acceptHeader("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+              .acceptLanguageHeader("en-US,en;q=0.5")
+              .acceptEncodingHeader("gzip, deflate")
+              .userAgentHeader("Mozilla/5.0")
+
+            val scn = scenario("Inline K8s Load Test")
+              .exec(http("Health check").get("/health"))
+
+            setUp(
+              scn.inject(atOnceUsers(sys.env.getOrElse("CONCURRENCY", "2").toInt))
+            ).protocols(httpProtocol)
+          }
+  status:
+    reportCompleted: true
+    reportStoragePath: s3:gatling-sample-01/gatling-sample-example/562852175
+    reportUrl: https://gatling-sample-01.s3.amazonaws.com/gatling-sample-example/562852175/index.html
+    reporterJobName: gatling-sample-example-reporter
+    reporterStartTime: 1786953911
+    runnerCompleted: true
+    runnerCompletions: 1/1
+    runnerJobName: gatling-sample-example-runner
+    runnerStartTime: 1786953805
+    succeeded: 1
+- apiVersion: gatling-operator.tech.zozo.com/v1alpha1
+  kind: Gatling
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"gatling-operator.tech.zozo.com/v1alpha1","kind":"Gatling","metadata":{"annotations":{},"name":"gatling-sample-mvn","namespace":"integration"},"spec":{"cleanupAfterJobDone":false,"cloudStorageSpec":{"bucket":"gatling-sample-01","env":[{"name":"RCLONE_S3_PROVIDER","value":"Other"},{"name":"RCLONE_NO_CHECK_CERTIFICATE","value":"true"},{"name":"SSL_CERT_FILE","value":"/etc/ssl/certs/service-ca.crt"},{"name":"RCLONE_S3_ACCESS_KEY_ID","valueFrom":{"secretKeyRef":{"key":"access_key_id","name":"obc-gatling-sample-01-allinfo"}}},{"name":"RCLONE_S3_SECRET_ACCESS_KEY","valueFrom":{"secretKeyRef":{"key":"access_key_secret","name":"obc-gatling-sample-01-allinfo"}}},{"name":"RCLONE_S3_ENDPOINT","valueFrom":{"secretKeyRef":{"key":"endpoint","name":"obc-gatling-sample-01-allinfo"}}},{"name":"RCLONE_S3_REGION","value":"us-east-1"}],"provider":"s3","region":"us-east-1"},"generateLocalReport":true,"generateReport":true,"notifyReport":false,"podSpec":{"gatlingImage":"gcr.isreg.gr8it.cloud/isreg/load-and-performance-testing:latest","rcloneImage":"rclone/rclone:latest","resources":{"limits":{"cpu":"1000m","memory":"2Gi"}},"runnerContainerSecurityContext":{"runAsGroup":1000,"runAsUser":1000},"serviceAccountName":"gatling-operator-worker","volumes":[{"configMap":{"items":[{"key":"service-ca.crt","path":"service-ca.crt"}],"name":"openshift-service-ca.crt"},"name":"openshift-service-ca"}]},"testScenarioSpec":{"env":[{"name":"GATLING_BASE_URL","value":"http://submission-provider-integration.integration.svc.cluster.local:8080"},{"name":"GATLING_DB_URL","value":"jdbc:sqlserver://mssql02.vm.app.lab.sp.gr8it.cloud;encrypt=true;trustServerCertificate=true;loginTimeout=30;databaseName=AR_INTEG_SUB_D;integratedSecurity=true;authenticationScheme=NTLM;domain=SPLAB"},{"name":"GATLING_DB_USER","valueFrom":{"secretKeyRef":{"key":"MAIN_DATASOURCE_USERNAME","name":"submission-provider-integration"}}},{"name":"GATLING_DB_PASSWORD","valueFrom":{"secretKeyRef":{"key":"MAIN_DATASOURCE_PASSWORD","name":"submission-provider-integration"}}},{"name":"GATLING_OTLP_URL","value":"http://apc-opentelemetry-collector-collector.apc-observability.svc.cluster.local:4318/v1/metrics"},{"name":"JAVA_OPTS","value":"-DsystemId=JVP-WS -Dseed=true -DseedTotal=1000 -DtestType=workers -Dvu=5 -Drepeat=20"},{"name":"RCLONE_S3_PROVIDER","value":"Other"},{"name":"RCLONE_NO_CHECK_CERTIFICATE","value":"true"},{"name":"RCLONE_S3_ACCESS_KEY_ID","valueFrom":{"secretKeyRef":{"key":"access_key_id","name":"obc-gatling-sample-01-allinfo"}}},{"name":"RCLONE_S3_SECRET_ACCESS_KEY","valueFrom":{"secretKeyRef":{"key":"access_key_secret","name":"obc-gatling-sample-01-allinfo"}}},{"name":"RCLONE_S3_ENDPOINT","valueFrom":{"secretKeyRef":{"key":"endpoint","name":"obc-gatling-sample-01-allinfo"}}},{"name":"RCLONE_S3_REGION","value":"us-east-1"},{"name":"SSL_CERT_FILE","value":"/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt"}],"parallelism":1,"simulationClass":"example.SubmissionListSimulation","volumeMounts":[{"mountPath":"/etc/ssl/certs/service-ca.crt","name":"openshift-service-ca","readOnly":true,"subPath":"service-ca.crt"}]}}}
+    creationTimestamp: "2026-08-24T13:59:06Z"
+    generation: 1
+    name: gatling-sample-mvn
+    namespace: integration
+    resourceVersion: "840370407"
+    uid: 7820cde5-5ee0-421f-9d71-199553391c38
+  spec:
+    cleanupAfterJobDone: false
+    cloudStorageSpec:
+      bucket: gatling-sample-01
+      env:
+      - name: RCLONE_S3_PROVIDER
+        value: Other
+      - name: RCLONE_NO_CHECK_CERTIFICATE
+        value: "true"
+      - name: SSL_CERT_FILE
+        value: /etc/ssl/certs/service-ca.crt
+      - name: RCLONE_S3_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            key: access_key_id
+            name: obc-gatling-sample-01-allinfo
+      - name: RCLONE_S3_SECRET_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            key: access_key_secret
+            name: obc-gatling-sample-01-allinfo
+      - name: RCLONE_S3_ENDPOINT
+        valueFrom:
+          secretKeyRef:
+            key: endpoint
+            name: obc-gatling-sample-01-allinfo
+      - name: RCLONE_S3_REGION
+        value: us-east-1
+      provider: s3
+      region: us-east-1
+    generateLocalReport: true
+    generateReport: true
+    notifyReport: false
+    podSpec:
+      gatlingImage: gcr.isreg.gr8it.cloud/isreg/load-and-performance-testing:latest
+      rcloneImage: rclone/rclone:latest
+      resources:
+        limits:
+          cpu: 1000m
+          memory: 2Gi
+      serviceAccountName: gatling-operator-worker
+    testScenarioSpec:
+      env:
+      - name: GATLING_BASE_URL
+        value: http://submission-provider-integration.integration.svc.cluster.local:8080
+      - name: GATLING_DB_URL
+        value: jdbc:sqlserver://mssql02.vm.app.lab.sp.gr8it.cloud;encrypt=true;trustServerCertificate=true;loginTimeout=30;databaseName=AR_INTEG_SUB_D;integratedSecurity=true;authenticationScheme=NTLM;domain=SPLAB
+      - name: GATLING_DB_USER
+        valueFrom:
+          secretKeyRef:
+            key: MAIN_DATASOURCE_USERNAME
+            name: submission-provider-integration
+      - name: GATLING_DB_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            key: MAIN_DATASOURCE_PASSWORD
+            name: submission-provider-integration
+      - name: GATLING_OTLP_URL
+        value: http://apc-opentelemetry-collector-collector.apc-observability.svc.cluster.local:4318/v1/metrics
+      - name: JAVA_OPTS
+        value: -DsystemId=JVP-WS -Dseed=true -DseedTotal=1000 -DtestType=workers -Dvu=5
+          -Drepeat=20
+      - name: RCLONE_S3_PROVIDER
+        value: Other
+      - name: RCLONE_NO_CHECK_CERTIFICATE
+        value: "true"
+      - name: RCLONE_S3_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            key: access_key_id
+            name: obc-gatling-sample-01-allinfo
+      - name: RCLONE_S3_SECRET_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            key: access_key_secret
+            name: obc-gatling-sample-01-allinfo
+      - name: RCLONE_S3_ENDPOINT
+        valueFrom:
+          secretKeyRef:
+            key: endpoint
+            name: obc-gatling-sample-01-allinfo
+      - name: RCLONE_S3_REGION
+        value: us-east-1
+      - name: SSL_CERT_FILE
+        value: /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
+      parallelism: 1
+      simulationClass: example.SubmissionListSimulation
+  status:
+    error: Runs out of time (10800 sec) in running the reporter job, and no longer
+      requeue
+    reportStoragePath: s3:gatling-sample-01/gatling-sample-mvn/1331674338
+    reportUrl: https://gatling-sample-01.s3.amazonaws.com/gatling-sample-mvn/1331674338/index.html
+    reporterJobName: gatling-sample-mvn-reporter
+    reporterStartTime: 1787580107
+    runnerCompleted: true
+    runnerCompletions: 1/1
+    runnerJobName: gatling-sample-mvn-runner
+    runnerStartTime: 1787579946
+    succeeded: 1
+kind: List
+metadata:
+  resourceVersion: ""
