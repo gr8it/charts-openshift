@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: monitoring-prometheusrules-test
+spec:
+  groups:
+    - name: application
+      rules:
+{{ include "monitoring-prometheusrules.rulesApp" . | indent 8 }}
+    - name: platform
+      rules:
+{{ include "monitoring-prometheusrules.rulesPlatform" . | indent 8 }}
+    - name: cluster-monitoring
+      rules:
+{{ include "monitoring-prometheusrules.rulesClusterMonitoring" . | indent 8 }}

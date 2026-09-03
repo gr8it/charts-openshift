@@ -1,0 +1,19 @@
+monitoring-prometheusrules:
+  rules:
+  - alert: RunbookConfigured
+    expr: vector(1)
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      description: A rule with a configured runbook
+      summary: Runbook configured
+      runbook_url: https://example.com/runbook/configured
+  - alert: RunbookAbsent
+    expr: vector(1)
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      description: A rule without a configured runbook
+      summary: Runbook absent

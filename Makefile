@@ -106,6 +106,16 @@ unittest: check-helm check-helm-unittest
 		else \
 		  echo "NA"; \
 		fi; \
+		if [ -f $${folder}/tests/chart/Chart.yaml ]; then \
+			echo -n "$$(basename $${folder}): Library chart unittest "; \
+			if out=$$(helm dependency build $${folder}/tests/chart >/dev/null 2>&1 && helm unittest --strict -f 'tests/unit/*.yaml' $${folder}/tests/chart 2>&1); then \
+				echo -e "\033[0;32mOK\033[0m "; \
+			else \
+				echo -e "\033[0;31mFAILED\033[0m "; \
+				echo "$$out"; \
+				exit 1; \
+			fi; \
+		fi; \
 	done
 
 # lints, unittests, checks release notes, and packages charts

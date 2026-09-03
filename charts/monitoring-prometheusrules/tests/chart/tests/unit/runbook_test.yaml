@@ -1,0 +1,25 @@
+suite: runbook annotation propagation
+templates:
+  - templates/prometheusrule.yaml
+tests:
+  - it: preserves runbook_url in the application helper and omits it when absent
+    asserts:
+      - equal:
+          path: spec.groups[0].rules[0].annotations.runbook_url
+          value: https://example.com/runbook/configured
+      - notExists:
+          path: spec.groups[0].rules[1].annotations.runbook_url
+  - it: preserves runbook_url in the platform helper and omits it when absent
+    asserts:
+      - equal:
+          path: spec.groups[1].rules[0].annotations.runbook_url
+          value: https://example.com/runbook/configured
+      - notExists:
+          path: spec.groups[1].rules[1].annotations.runbook_url
+  - it: preserves runbook_url in the cluster monitoring helper and omits it when absent
+    asserts:
+      - equal:
+          path: spec.groups[2].rules[0].annotations.runbook_url
+          value: https://example.com/runbook/configured
+      - notExists:
+          path: spec.groups[2].rules[1].annotations.runbook_url
