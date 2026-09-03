@@ -5,6 +5,14 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.11] - 2026-09-03
+
+_([SPEXAPC-8225](https://aspecta.atlassian.net/browse/SPEXAPC-8225))_
+
+### Fixed
+
+- Removed a redundant double aggregation on the LDAP replication alert expressions.
+
 ## [1.1.10] - 2026-09-03
 
 _([SPEXAPC-8225](https://aspecta.atlassian.net/browse/SPEXAPC-8225))_
