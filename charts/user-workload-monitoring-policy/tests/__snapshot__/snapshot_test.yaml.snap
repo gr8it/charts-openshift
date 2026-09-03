@@ -7,7 +7,7 @@ rendered cluster-policy-cluster-application manifest:
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: user-workload-monitoring-policy
-        helm.sh/chart: user-workload-monitoring-policy-1.0.10
+        helm.sh/chart: user-workload-monitoring-policy-1.0.11
       name: cluster-policy-application
     spec:
       generateExisting: true
@@ -32,7 +32,11 @@ rendered cluster-policy-cluster-application manifest:
                         annotations:
                           description: Pod \{{ $labels.pod }}, container \{{ $labels.container }} in namespace \{{ $labels.namespace }} is in a CrashLoopBackOff state.
                           summary: Pod is crash looping
-                        expr: max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m]) >= 1
+                        expr: |-
+                          max by () (
+
+                            max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m]) >= 1
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -44,13 +48,16 @@ rendered cluster-policy-cluster-application manifest:
                           description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been in a non-ready state for longer than 15 minutes.
                           summary: Pod has been in a non-ready state for more than 15 minutes
                         expr: |-
-                          sum by (namespace, pod, cluster) (
-                            max by (namespace, pod, cluster) (
-                              kube_pod_status_phase{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", phase=~"Pending|Unknown|Failed"}
-                            ) * on (namespace, pod, cluster) group_left(owner_kind) topk by (namespace, pod, cluster) (
-                              1, max by (namespace, pod, owner_kind, cluster) (kube_pod_owner{owner_kind!="Job"})
-                            )
-                          ) > 0
+                          max by () (
+
+                            sum by (namespace, pod, cluster) (
+                              max by (namespace, pod, cluster) (
+                                kube_pod_status_phase{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", phase=~"Pending|Unknown|Failed"}
+                              ) * on (namespace, pod, cluster) group_left(owner_kind) topk by (namespace, pod, cluster) (
+                                1, max by (namespace, pod, owner_kind, cluster) (kube_pod_owner{owner_kind!="Job"})
+                              )
+                            ) > 0
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -61,7 +68,11 @@ rendered cluster-policy-cluster-application manifest:
                         annotations:
                           description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been evicted.
                           summary: Pod has been evicted
-                        expr: kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
+                        expr: |-
+                          max by () (
+
+                            kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
+                          )
                         for: 0m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -73,9 +84,12 @@ rendered cluster-policy-cluster-application manifest:
                           description: Deployment generation for \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} does not match, this indicates that the Deployment has failed but has not been rolled back."
                           summary: Deployment generation mismatch due to possible roll-back
                         expr: |-
-                          kube_deployment_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            !=
-                          kube_deployment_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          max by () (
+
+                            kube_deployment_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              !=
+                            kube_deployment_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -87,14 +101,17 @@ rendered cluster-policy-cluster-application manifest:
                           description: Deployment \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} has not matched the expected number of replicas for longer than 15 minutes.
                           summary: Deployment has not matched the expected number of replicas
                         expr: |-
-                          (
-                            kube_deployment_spec_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                              >
-                            kube_deployment_status_replicas_available{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                          ) and (
-                            changes(kube_deployment_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[10m])
-                              ==
-                            0
+                          max by () (
+
+                            (
+                              kube_deployment_spec_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                >
+                              kube_deployment_status_replicas_available{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            ) and (
+                              changes(kube_deployment_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[10m])
+                                ==
+                              0
+                            )
                           )
                         for: 15m
                         labels:
@@ -107,8 +124,11 @@ rendered cluster-policy-cluster-application manifest:
                           description: Rollout of deployment \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} is not progressing for longer than 15 minutes.
                           summary: Deployment rollout is not progressing
                         expr: |-
-                          kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                          != 0
+                          max by () (
+
+                            kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            != 0
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -120,14 +140,17 @@ rendered cluster-policy-cluster-application manifest:
                           description: StatefulSet \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} has not matched the expected number of replicas for longer than 15 minutes.
                           summary: StatefulSet has not matched the expected number of replicas
                         expr: |-
-                          (
-                            kube_statefulset_status_replicas_ready{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                              !=
-                            kube_statefulset_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                          ) and (
-                            changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[10m])
-                              ==
-                            0
+                          max by () (
+
+                            (
+                              kube_statefulset_status_replicas_ready{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                !=
+                              kube_statefulset_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            ) and (
+                              changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[10m])
+                                ==
+                              0
+                            )
                           )
                         for: 15m
                         labels:
@@ -140,9 +163,12 @@ rendered cluster-policy-cluster-application manifest:
                           description: StatefulSet generation for \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} does not match, this indicates that the StatefulSet has failed but has not been rolled back.
                           summary: StatefulSet generation mismatch due to possible roll-back
                         expr: |-
-                          kube_statefulset_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            !=
-                          kube_statefulset_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          max by () (
+
+                            kube_statefulset_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              !=
+                            kube_statefulset_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -154,22 +180,25 @@ rendered cluster-policy-cluster-application manifest:
                           description: StatefulSet \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} update has not been rolled out.
                           summary: StatefulSet update has not been rolled out
                         expr: |-
-                          (
-                            max by (namespace, statefulset, job, cluster) (
-                              kube_statefulset_status_current_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                                unless
-                              kube_statefulset_status_update_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            )
-                              * on (namespace, statefulset, job, cluster)
+                          max by () (
+
                             (
-                              kube_statefulset_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                                !=
-                              kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              max by (namespace, statefulset, job, cluster) (
+                                kube_statefulset_status_current_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                  unless
+                                kube_statefulset_status_update_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              )
+                                * on (namespace, statefulset, job, cluster)
+                              (
+                                kube_statefulset_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                  !=
+                                kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              )
+                            )  and on (namespace, statefulset, job, cluster) (
+                              changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m])
+                                ==
+                              0
                             )
-                          )  and on (namespace, statefulset, job, cluster) (
-                            changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m])
-                              ==
-                            0
                           )
                         for: 15m
                         labels:
@@ -182,28 +211,31 @@ rendered cluster-policy-cluster-application manifest:
                           description: DaemonSet \{{ $labels.daemonset }} in namespace \{{ $labels.namespace }} has not finished or progressed for at least 15m.
                           summary: DaemonSet rollout is stuck
                         expr: |-
-                          (
+                          max by () (
+
                             (
-                              kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                                !=
-                              kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            ) or (
-                              kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                                !=
+                              (
+                                kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                  !=
+                                kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              ) or (
+                                kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                  !=
+                                0
+                              ) or (
+                                kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                  !=
+                                kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              ) or (
+                                kube_daemonset_status_number_available{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                  !=
+                                kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              )
+                            ) and (
+                              changes(kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m])
+                                ==
                               0
-                            ) or (
-                              kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                                !=
-                              kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            ) or (
-                              kube_daemonset_status_number_available{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                                !=
-                              kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                             )
-                          ) and (
-                            changes(kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m])
-                              ==
-                            0
                           )
                         for: 15m
                         labels:
@@ -215,7 +247,11 @@ rendered cluster-policy-cluster-application manifest:
                         annotations:
                           description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} on container \{{ $labels.container}} has been in waiting state for longer than 1 hour.
                           summary: Pod container waiting longer than 1 hour
-                        expr: kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                        expr: |-
+                          max by () (
+
+                            kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                          )
                         for: 1h
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -227,9 +263,12 @@ rendered cluster-policy-cluster-application manifest:
                           description: There are \{{ $value }} pods of DaemonSet \{{ $labels.daemonset }} that are not scheduled.
                           summary: DaemonSet pods are not scheduled
                         expr: |-
-                          kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            -
-                          kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                          max by () (
+
+                            kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              -
+                            kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                          )
                         for: 10m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -240,7 +279,11 @@ rendered cluster-policy-cluster-application manifest:
                         annotations:
                           description: Found \{{ $value }} mis-scheduled pods for DaemonSet \{{ $labels.daemonset }} in namespace \{{ $labels.namespace }}.
                           summary: DaemonSet pods are misscheduled
-                        expr: kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                        expr: |-
+                          max by () (
+
+                            kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -252,9 +295,12 @@ rendered cluster-policy-cluster-application manifest:
                           description: Job \{{ $labels.job_name }} in namespace \{{ $labels.namespace }} has been running for \{{ humanizeDuration $value }} and has not completed.
                           summary: Job did not complete in time
                         expr: |-
-                          time() - max by (namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            and
-                          kube_job_status_active{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0) > 43200
+                          max by () (
+
+                            time() - max by (namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              and
+                            kube_job_status_active{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0) > 43200
+                          )
                         for: null
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -265,7 +311,11 @@ rendered cluster-policy-cluster-application manifest:
                         annotations:
                           description: Job \{{ $labels.job_name }} in namespace \{{ $labels.namespace }} failed to complete. Removing failed job after investigation should clear this alert.
                           summary: Job failed to complete
-                        expr: kube_job_failed{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}  > 0
+                        expr: |-
+                          max by () (
+
+                            kube_job_failed{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}  > 0
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -277,19 +327,22 @@ rendered cluster-policy-cluster-application manifest:
                           description: HPA \{{ $labels.horizontalpodautoscaler  }} has not matched the desired number of replicas for longer than 15 minutes.
                           summary: HPA has not matched desired number of replicas
                         expr: |-
-                          (kube_horizontalpodautoscaler_status_desired_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            !=
-                          kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
-                            and
-                          (kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            >
-                          kube_horizontalpodautoscaler_spec_min_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
-                            and
-                          (kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            <
-                          kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
-                            and
-                          changes(kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[15m]) == 0
+                          max by () (
+
+                            (kube_horizontalpodautoscaler_status_desired_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              !=
+                            kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
+                              and
+                            (kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              >
+                            kube_horizontalpodautoscaler_spec_min_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
+                              and
+                            (kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              <
+                            kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
+                              and
+                            changes(kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[15m]) == 0
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -301,9 +354,12 @@ rendered cluster-policy-cluster-application manifest:
                           description: HPA \{{ $labels.horizontalpodautoscaler  }} in namespace \{{ $labels.namespace }} has been running at max replicas for longer than 15 minutes.
                           summary: HPA is running at max replicas
                         expr: |-
-                          kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            ==
-                          kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          max by () (
+
+                            kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              ==
+                            kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -315,12 +371,15 @@ rendered cluster-policy-cluster-application manifest:
                           description: PDB \{{ $labels.poddisruptionbudget }} expects \{{ $value }} more healthy pods. The desired number of healthy pods has not been met for at least 15m.
                           summary: PDB does not have enough healthy pods
                         expr: |-
-                          (
-                            kube_poddisruptionbudget_status_desired_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            -
-                            kube_poddisruptionbudget_status_current_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          max by () (
+
+                            (
+                              kube_poddisruptionbudget_status_desired_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              -
+                              kube_poddisruptionbudget_status_current_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            )
+                            > 0
                           )
-                          > 0
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -332,17 +391,20 @@ rendered cluster-policy-cluster-application manifest:
                           description: The PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is only \{{ $value | humanizePercentage }} free.
                           summary: PersistentVolume is filling up
                         expr: |-
-                          (
-                            kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                              /
-                            kubelet_volume_stats_capacity_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                          ) < 0.03
-                          and
-                          kubelet_volume_stats_used_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          max by () (
+
+                            (
+                              kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                                /
+                              kubelet_volume_stats_capacity_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                            ) < 0.03
+                            and
+                            kubelet_volume_stats_used_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          )
                         for: 1m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -354,19 +416,22 @@ rendered cluster-policy-cluster-application manifest:
                           description: Based on recent sampling, the PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is expected to fill up within four days. Currently \{{ $value | humanizePercentage }} is available.
                           summary: PersistentVolume is filling up
                         expr: |-
-                          (
-                            kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                              /
-                            kubelet_volume_stats_capacity_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                          ) < 0.15
-                          and
-                          kubelet_volume_stats_used_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
-                          and
-                          predict_linear(kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          max by () (
+
+                            (
+                              kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                                /
+                              kubelet_volume_stats_capacity_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                            ) < 0.15
+                            and
+                            kubelet_volume_stats_used_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
+                            and
+                            predict_linear(kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          )
                         for: 1h
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -378,17 +443,20 @@ rendered cluster-policy-cluster-application manifest:
                           description: The PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} has only \{{ $value | humanizePercentage }} free inodes.
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
-                          (
-                            kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                              /
-                            kubelet_volume_stats_inodes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                          ) < 0.03
-                          and
-                          kubelet_volume_stats_inodes_used{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          max by () (
+
+                            (
+                              kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                                /
+                              kubelet_volume_stats_inodes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                            ) < 0.03
+                            and
+                            kubelet_volume_stats_inodes_used{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          )
                         for: 1m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -400,19 +468,22 @@ rendered cluster-policy-cluster-application manifest:
                           description: Based on recent sampling, the PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is expected to run out of inodes within four days. Currently \{{ $value | humanizePercentage }} of its inodes are free.
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
-                          (
-                            kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                              /
-                            kubelet_volume_stats_inodes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                          ) < 0.15
-                          and
-                          kubelet_volume_stats_inodes_used{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
-                          and
-                          predict_linear(kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          max by () (
+
+                            (
+                              kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                                /
+                              kubelet_volume_stats_inodes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                            ) < 0.15
+                            and
+                            kubelet_volume_stats_inodes_used{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
+                            and
+                            predict_linear(kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          )
                         for: 1h
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -423,7 +494,11 @@ rendered cluster-policy-cluster-application manifest:
                         annotations:
                           description: The persistent volume \{{ $labels.persistentvolume }} has status \{{ $labels.phase }}.
                           summary: PersistentVolume is having issues with provisioning
-                        expr: kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"} > 0
+                        expr: |-
+                          max by () (
+
+                            kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"} > 0
+                          )
                         for: 5m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -435,11 +510,14 @@ rendered cluster-policy-cluster-application manifest:
                           description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 95% of its CPU limit for over 15 minutes. Current value is \{{ $value | humanizePercentage }}.
                           summary: CPU utilization is above 95%
                         expr: |-
-                          (
-                            sum by (namespace, pod) (pod:container_cpu_usage:sum{namespace="{{ request.object.metadata.name }}"})
-                            /
-                            sum by (namespace, pod) (kube_pod_container_resource_limits{resource="cpu", namespace="{{ request.object.metadata.name }}"})
-                          ) > 0.95
+                          max by () (
+
+                            (
+                              sum by (namespace, pod) (pod:container_cpu_usage:sum{namespace="{{ request.object.metadata.name }}"})
+                              /
+                              sum by (namespace, pod) (kube_pod_container_resource_limits{resource="cpu", namespace="{{ request.object.metadata.name }}"})
+                            ) > 0.95
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -451,11 +529,14 @@ rendered cluster-policy-cluster-application manifest:
                           description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 90% of its memory limit for over 15 minutes. Current utilization is \{{ $value | humanizePercentage }}
                           summary: Memory utilization (90%+) on pod \{{ $labels.pod }}
                         expr: |-
-                          (
-                            sum by (namespace, pod, container) (container_memory_working_set_bytes{container!="", namespace="{{ request.object.metadata.name }}"})
-                            /
-                            sum by (namespace, pod, container) (kube_pod_container_resource_limits{resource="memory", namespace="{{ request.object.metadata.name }}"})
-                          ) > 0.90
+                          max by () (
+
+                            (
+                              sum by (namespace, pod, container) (container_memory_working_set_bytes{container!="", namespace="{{ request.object.metadata.name }}"})
+                              /
+                              sum by (namespace, pod, container) (kube_pod_container_resource_limits{resource="memory", namespace="{{ request.object.metadata.name }}"})
+                            ) > 0.90
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -496,7 +577,7 @@ rendered cluster-policy-cluster-application manifest:
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: user-workload-monitoring-policy
-        helm.sh/chart: user-workload-monitoring-policy-1.0.10
+        helm.sh/chart: user-workload-monitoring-policy-1.0.11
       name: cluster-policy-non-application
     spec:
       generateExisting: true
@@ -521,7 +602,11 @@ rendered cluster-policy-cluster-application manifest:
                         annotations:
                           description: Pod \{{ $labels.pod }}, container \{{ $labels.container }} in namespace \{{ $labels.namespace }} is in a CrashLoopBackOff state.
                           summary: Pod is crash looping
-                        expr: max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m]) >= 1
+                        expr: |-
+                          max by () (
+
+                            max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m]) >= 1
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -533,13 +618,16 @@ rendered cluster-policy-cluster-application manifest:
                           description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been in a non-ready state for longer than 15 minutes.
                           summary: Pod has been in a non-ready state for more than 15 minutes
                         expr: |-
-                          sum by (namespace, pod, cluster) (
-                            max by (namespace, pod, cluster) (
-                              kube_pod_status_phase{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", phase=~"Pending|Unknown|Failed"}
-                            ) * on (namespace, pod, cluster) group_left(owner_kind) topk by (namespace, pod, cluster) (
-                              1, max by (namespace, pod, owner_kind, cluster) (kube_pod_owner{owner_kind!="Job"})
-                            )
-                          ) > 0
+                          max by () (
+
+                            sum by (namespace, pod, cluster) (
+                              max by (namespace, pod, cluster) (
+                                kube_pod_status_phase{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", phase=~"Pending|Unknown|Failed"}
+                              ) * on (namespace, pod, cluster) group_left(owner_kind) topk by (namespace, pod, cluster) (
+                                1, max by (namespace, pod, owner_kind, cluster) (kube_pod_owner{owner_kind!="Job"})
+                              )
+                            ) > 0
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -550,7 +638,11 @@ rendered cluster-policy-cluster-application manifest:
                         annotations:
                           description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been evicted.
                           summary: Pod has been evicted
-                        expr: kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
+                        expr: |-
+                          max by () (
+
+                            kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
+                          )
                         for: 0m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -562,9 +654,12 @@ rendered cluster-policy-cluster-application manifest:
                           description: Deployment generation for \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} does not match, this indicates that the Deployment has failed but has not been rolled back."
                           summary: Deployment generation mismatch due to possible roll-back
                         expr: |-
-                          kube_deployment_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            !=
-                          kube_deployment_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          max by () (
+
+                            kube_deployment_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              !=
+                            kube_deployment_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -576,14 +671,17 @@ rendered cluster-policy-cluster-application manifest:
                           description: Deployment \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} has not matched the expected number of replicas for longer than 15 minutes.
                           summary: Deployment has not matched the expected number of replicas
                         expr: |-
-                          (
-                            kube_deployment_spec_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                              >
-                            kube_deployment_status_replicas_available{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                          ) and (
-                            changes(kube_deployment_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[10m])
-                              ==
-                            0
+                          max by () (
+
+                            (
+                              kube_deployment_spec_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                >
+                              kube_deployment_status_replicas_available{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            ) and (
+                              changes(kube_deployment_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[10m])
+                                ==
+                              0
+                            )
                           )
                         for: 15m
                         labels:
@@ -596,8 +694,11 @@ rendered cluster-policy-cluster-application manifest:
                           description: Rollout of deployment \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} is not progressing for longer than 15 minutes.
                           summary: Deployment rollout is not progressing
                         expr: |-
-                          kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                          != 0
+                          max by () (
+
+                            kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            != 0
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -609,14 +710,17 @@ rendered cluster-policy-cluster-application manifest:
                           description: StatefulSet \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} has not matched the expected number of replicas for longer than 15 minutes.
                           summary: StatefulSet has not matched the expected number of replicas
                         expr: |-
-                          (
-                            kube_statefulset_status_replicas_ready{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                              !=
-                            kube_statefulset_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                          ) and (
-                            changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[10m])
-                              ==
-                            0
+                          max by () (
+
+                            (
+                              kube_statefulset_status_replicas_ready{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                !=
+                              kube_statefulset_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            ) and (
+                              changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[10m])
+                                ==
+                              0
+                            )
                           )
                         for: 15m
                         labels:
@@ -629,9 +733,12 @@ rendered cluster-policy-cluster-application manifest:
                           description: StatefulSet generation for \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} does not match, this indicates that the StatefulSet has failed but has not been rolled back.
                           summary: StatefulSet generation mismatch due to possible roll-back
                         expr: |-
-                          kube_statefulset_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            !=
-                          kube_statefulset_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          max by () (
+
+                            kube_statefulset_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              !=
+                            kube_statefulset_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -643,22 +750,25 @@ rendered cluster-policy-cluster-application manifest:
                           description: StatefulSet \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} update has not been rolled out.
                           summary: StatefulSet update has not been rolled out
                         expr: |-
-                          (
-                            max by (namespace, statefulset, job, cluster) (
-                              kube_statefulset_status_current_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                                unless
-                              kube_statefulset_status_update_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            )
-                              * on (namespace, statefulset, job, cluster)
+                          max by () (
+
                             (
-                              kube_statefulset_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                                !=
-                              kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              max by (namespace, statefulset, job, cluster) (
+                                kube_statefulset_status_current_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                  unless
+                                kube_statefulset_status_update_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              )
+                                * on (namespace, statefulset, job, cluster)
+                              (
+                                kube_statefulset_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                  !=
+                                kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              )
+                            )  and on (namespace, statefulset, job, cluster) (
+                              changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m])
+                                ==
+                              0
                             )
-                          )  and on (namespace, statefulset, job, cluster) (
-                            changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m])
-                              ==
-                            0
                           )
                         for: 15m
                         labels:
@@ -671,28 +781,31 @@ rendered cluster-policy-cluster-application manifest:
                           description: DaemonSet \{{ $labels.daemonset }} in namespace \{{ $labels.namespace }} has not finished or progressed for at least 15m.
                           summary: DaemonSet rollout is stuck
                         expr: |-
-                          (
+                          max by () (
+
                             (
-                              kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                                !=
-                              kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            ) or (
-                              kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                                !=
+                              (
+                                kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                  !=
+                                kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              ) or (
+                                kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                  !=
+                                0
+                              ) or (
+                                kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                  !=
+                                kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              ) or (
+                                kube_daemonset_status_number_available{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                  !=
+                                kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              )
+                            ) and (
+                              changes(kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m])
+                                ==
                               0
-                            ) or (
-                              kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                                !=
-                              kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            ) or (
-                              kube_daemonset_status_number_available{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                                !=
-                              kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                             )
-                          ) and (
-                            changes(kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m])
-                              ==
-                            0
                           )
                         for: 15m
                         labels:
@@ -704,7 +817,11 @@ rendered cluster-policy-cluster-application manifest:
                         annotations:
                           description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} on container \{{ $labels.container}} has been in waiting state for longer than 1 hour.
                           summary: Pod container waiting longer than 1 hour
-                        expr: kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                        expr: |-
+                          max by () (
+
+                            kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                          )
                         for: 1h
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -716,9 +833,12 @@ rendered cluster-policy-cluster-application manifest:
                           description: There are \{{ $value }} pods of DaemonSet \{{ $labels.daemonset }} that are not scheduled.
                           summary: DaemonSet pods are not scheduled
                         expr: |-
-                          kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            -
-                          kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                          max by () (
+
+                            kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              -
+                            kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                          )
                         for: 10m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -729,7 +849,11 @@ rendered cluster-policy-cluster-application manifest:
                         annotations:
                           description: Found \{{ $value }} mis-scheduled pods for DaemonSet \{{ $labels.daemonset }} in namespace \{{ $labels.namespace }}.
                           summary: DaemonSet pods are misscheduled
-                        expr: kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                        expr: |-
+                          max by () (
+
+                            kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -741,9 +865,12 @@ rendered cluster-policy-cluster-application manifest:
                           description: Job \{{ $labels.job_name }} in namespace \{{ $labels.namespace }} has been running for \{{ humanizeDuration $value }} and has not completed.
                           summary: Job did not complete in time
                         expr: |-
-                          time() - max by (namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            and
-                          kube_job_status_active{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0) > 43200
+                          max by () (
+
+                            time() - max by (namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              and
+                            kube_job_status_active{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0) > 43200
+                          )
                         for: null
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -754,7 +881,11 @@ rendered cluster-policy-cluster-application manifest:
                         annotations:
                           description: Job \{{ $labels.job_name }} in namespace \{{ $labels.namespace }} failed to complete. Removing failed job after investigation should clear this alert.
                           summary: Job failed to complete
-                        expr: kube_job_failed{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}  > 0
+                        expr: |-
+                          max by () (
+
+                            kube_job_failed{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}  > 0
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -766,19 +897,22 @@ rendered cluster-policy-cluster-application manifest:
                           description: HPA \{{ $labels.horizontalpodautoscaler  }} has not matched the desired number of replicas for longer than 15 minutes.
                           summary: HPA has not matched desired number of replicas
                         expr: |-
-                          (kube_horizontalpodautoscaler_status_desired_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            !=
-                          kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
-                            and
-                          (kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            >
-                          kube_horizontalpodautoscaler_spec_min_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
-                            and
-                          (kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            <
-                          kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
-                            and
-                          changes(kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[15m]) == 0
+                          max by () (
+
+                            (kube_horizontalpodautoscaler_status_desired_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              !=
+                            kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
+                              and
+                            (kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              >
+                            kube_horizontalpodautoscaler_spec_min_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
+                              and
+                            (kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              <
+                            kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
+                              and
+                            changes(kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[15m]) == 0
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -790,9 +924,12 @@ rendered cluster-policy-cluster-application manifest:
                           description: HPA \{{ $labels.horizontalpodautoscaler  }} in namespace \{{ $labels.namespace }} has been running at max replicas for longer than 15 minutes.
                           summary: HPA is running at max replicas
                         expr: |-
-                          kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            ==
-                          kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          max by () (
+
+                            kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              ==
+                            kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -804,12 +941,15 @@ rendered cluster-policy-cluster-application manifest:
                           description: PDB \{{ $labels.poddisruptionbudget }} expects \{{ $value }} more healthy pods. The desired number of healthy pods has not been met for at least 15m.
                           summary: PDB does not have enough healthy pods
                         expr: |-
-                          (
-                            kube_poddisruptionbudget_status_desired_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            -
-                            kube_poddisruptionbudget_status_current_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          max by () (
+
+                            (
+                              kube_poddisruptionbudget_status_desired_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              -
+                              kube_poddisruptionbudget_status_current_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            )
+                            > 0
                           )
-                          > 0
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -821,17 +961,20 @@ rendered cluster-policy-cluster-application manifest:
                           description: The PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is only \{{ $value | humanizePercentage }} free.
                           summary: PersistentVolume is filling up
                         expr: |-
-                          (
-                            kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                              /
-                            kubelet_volume_stats_capacity_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                          ) < 0.03
-                          and
-                          kubelet_volume_stats_used_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          max by () (
+
+                            (
+                              kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                                /
+                              kubelet_volume_stats_capacity_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                            ) < 0.03
+                            and
+                            kubelet_volume_stats_used_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          )
                         for: 1m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -843,19 +986,22 @@ rendered cluster-policy-cluster-application manifest:
                           description: Based on recent sampling, the PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is expected to fill up within four days. Currently \{{ $value | humanizePercentage }} is available.
                           summary: PersistentVolume is filling up
                         expr: |-
-                          (
-                            kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                              /
-                            kubelet_volume_stats_capacity_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                          ) < 0.15
-                          and
-                          kubelet_volume_stats_used_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
-                          and
-                          predict_linear(kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          max by () (
+
+                            (
+                              kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                                /
+                              kubelet_volume_stats_capacity_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                            ) < 0.15
+                            and
+                            kubelet_volume_stats_used_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
+                            and
+                            predict_linear(kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          )
                         for: 1h
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -867,17 +1013,20 @@ rendered cluster-policy-cluster-application manifest:
                           description: The PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} has only \{{ $value | humanizePercentage }} free inodes.
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
-                          (
-                            kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                              /
-                            kubelet_volume_stats_inodes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                          ) < 0.03
-                          and
-                          kubelet_volume_stats_inodes_used{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          max by () (
+
+                            (
+                              kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                                /
+                              kubelet_volume_stats_inodes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                            ) < 0.03
+                            and
+                            kubelet_volume_stats_inodes_used{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          )
                         for: 1m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -889,19 +1038,22 @@ rendered cluster-policy-cluster-application manifest:
                           description: Based on recent sampling, the PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is expected to run out of inodes within four days. Currently \{{ $value | humanizePercentage }} of its inodes are free.
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
-                          (
-                            kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                              /
-                            kubelet_volume_stats_inodes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                          ) < 0.15
-                          and
-                          kubelet_volume_stats_inodes_used{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
-                          and
-                          predict_linear(kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          max by () (
+
+                            (
+                              kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                                /
+                              kubelet_volume_stats_inodes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                            ) < 0.15
+                            and
+                            kubelet_volume_stats_inodes_used{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
+                            and
+                            predict_linear(kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          )
                         for: 1h
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -912,7 +1064,11 @@ rendered cluster-policy-cluster-application manifest:
                         annotations:
                           description: The persistent volume \{{ $labels.persistentvolume }} has status \{{ $labels.phase }}.
                           summary: PersistentVolume is having issues with provisioning
-                        expr: kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"} > 0
+                        expr: |-
+                          max by () (
+
+                            kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"} > 0
+                          )
                         for: 5m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -924,11 +1080,14 @@ rendered cluster-policy-cluster-application manifest:
                           description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 95% of its CPU limit for over 15 minutes. Current value is \{{ $value | humanizePercentage }}.
                           summary: CPU utilization is above 95%
                         expr: |-
-                          (
-                            sum by (namespace, pod) (pod:container_cpu_usage:sum{namespace="{{ request.object.metadata.name }}"})
-                            /
-                            sum by (namespace, pod) (kube_pod_container_resource_limits{resource="cpu", namespace="{{ request.object.metadata.name }}"})
-                          ) > 0.95
+                          max by () (
+
+                            (
+                              sum by (namespace, pod) (pod:container_cpu_usage:sum{namespace="{{ request.object.metadata.name }}"})
+                              /
+                              sum by (namespace, pod) (kube_pod_container_resource_limits{resource="cpu", namespace="{{ request.object.metadata.name }}"})
+                            ) > 0.95
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -940,11 +1099,14 @@ rendered cluster-policy-cluster-application manifest:
                           description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 90% of its memory limit for over 15 minutes. Current utilization is \{{ $value | humanizePercentage }}
                           summary: Memory utilization (90%+) on pod \{{ $labels.pod }}
                         expr: |-
-                          (
-                            sum by (namespace, pod, container) (container_memory_working_set_bytes{container!="", namespace="{{ request.object.metadata.name }}"})
-                            /
-                            sum by (namespace, pod, container) (kube_pod_container_resource_limits{resource="memory", namespace="{{ request.object.metadata.name }}"})
-                          ) > 0.90
+                          max by () (
+
+                            (
+                              sum by (namespace, pod, container) (container_memory_working_set_bytes{container!="", namespace="{{ request.object.metadata.name }}"})
+                              /
+                              sum by (namespace, pod, container) (kube_pod_container_resource_limits{resource="memory", namespace="{{ request.object.metadata.name }}"})
+                            ) > 0.90
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -986,7 +1148,7 @@ rendered cluster-policy-cluster-application manifest:
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: user-workload-monitoring-policy
-        helm.sh/chart: user-workload-monitoring-policy-1.0.10
+        helm.sh/chart: user-workload-monitoring-policy-1.0.11
         rbac.kyverno.io/aggregate-to-admission-controller: "true"
       name: kyverno:admission-controller:monitoring
     rules:

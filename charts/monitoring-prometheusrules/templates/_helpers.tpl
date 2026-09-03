@@ -70,7 +70,7 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Applicatio
 - alert: {{ .alert }}
   expr: |-
     max by ({{ join "," .alertLabels }}) (
-{{ .expr | nindent 6 }}
+{{ .expr | trim | nindent 6 }}
     )
   for: {{ .for }}
   labels:
@@ -93,7 +93,7 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Platform (
 - alert: {{ .alert }}
   expr: |-
     max by ({{ join "," .alertLabels }}) (
-{{ .expr | nindent 6 }}
+{{ .expr | trim | nindent 6 }}
     )
   for: {{ .for }}
   labels:
@@ -116,7 +116,7 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Cluster Mo
 - alert: {{ .alert }}
   expr: |-
     max by ({{ join "," .alertLabels }}) (
-{{ .expr | nindent 6 }}
+{{ .expr | trim | nindent 6 }}
     )
   for: {{ .for }}
   labels:
