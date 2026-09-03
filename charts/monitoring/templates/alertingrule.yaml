@@ -12,11 +12,13 @@ spec:
     - alert: PodRepeatedOOMKilled
       for: 0m
       expr: |
-        (
-          increase(kube_pod_container_status_restarts_total[30m])
-          * on(namespace,pod,container) group_left()
-            kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}
-        ) > 1
+        max by (namespace, pod, container) (
+          (
+            increase(kube_pod_container_status_restarts_total[30m])
+            * on(namespace,pod,container) group_left()
+              kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}
+          ) > 1
+        )
       labels:
         severity: warning
         team: platform

@@ -17,7 +17,9 @@ spec:
           runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/NodeRAIDDegraded.md
           summary: RAID Array is degraded.
         expr: |
-          node_md_disks_required{job="node-exporter",namespace="openshift-monitoring",device=~"md.+"} - ignoring (state) (node_md_disks{state="active",namespace="openshift-monitoring",job="node-exporter",device=~"md.+"}) > 0
+          max by (device) (
+            node_md_disks_required{job="node-exporter",namespace="openshift-monitoring",device=~"md.+"} - ignoring (state) (node_md_disks{state="active",namespace="openshift-monitoring",job="node-exporter",device=~"md.+"}) > 0
+          )
         for: 15m
         labels:
           vendor: aspecta
@@ -30,7 +32,9 @@ spec:
             device = {{ `{{ $labels.device }}` }}
           summary: Failed device in RAID array.
         expr: |
-          node_md_disks{state="failed",namespace="openshift-monitoring",job="node-exporter",device=~"md.+"} > 0
+          max by (device) (
+            node_md_disks{state="failed",namespace="openshift-monitoring",job="node-exporter",device=~"md.+"} > 0
+          )
         labels:
           severity: warning
           vendor: aspecta

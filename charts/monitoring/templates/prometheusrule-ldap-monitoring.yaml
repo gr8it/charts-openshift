@@ -11,7 +11,7 @@ spec:
     - name: ldap-monitor
       rules:
         - alert: LdapServiceUp
-          expr: openldap_service_up != 1
+          expr: max by (host) (openldap_service_up != 1)
           for: 1m
           labels:
             severity: critical
@@ -23,7 +23,7 @@ spec:
               LDAP service is down.
               host = {{ `{{ $labels.host }}` }}
         - alert: LdapReplicationTimestamp
-          expr: max by (replica_id) (openldap_replication_sync_timestamp) != min by (replica_id) (openldap_replication_sync_timestamp)
+          expr: max by (replica_id) (max by (replica_id) (openldap_replication_sync_timestamp) != min by (replica_id) (openldap_replication_sync_timestamp))
           for: 1m
           labels:
             severity: critical
@@ -35,7 +35,7 @@ spec:
               LDAP instances are not synchronized.
               replica_id = {{ `{{ $labels.replica_id }}` }}
         - alert: LdapSingleReplica
-          expr: count by (replica_id) (openldap_replication_sync_timestamp) == 1
+          expr: max by (replica_id) (count by (replica_id) (openldap_replication_sync_timestamp) == 1)
           for: 5m
           labels:
             severity: warning
