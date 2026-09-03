@@ -78,6 +78,9 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Applicatio
   annotations:
     description: {{ .annotations.description }}
     summary: {{ .annotations.summary }}
+    {{- with .annotations.runbook_url }}
+    runbook_url: {{ . }}
+    {{- end }}
 {{- end }}
 {{- end }}
 
@@ -98,6 +101,9 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Platform (
   annotations:
     description: {{ .annotations.description }}
     summary: {{ .annotations.summary }}
+    {{- with .annotations.runbook_url }}
+    runbook_url: {{ . }}
+    {{- end }}
 {{- end }}
 {{- end }}
 
@@ -118,5 +124,8 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Cluster Mo
   annotations:
     description: {{ .annotations.description }}
     summary: {{ .annotations.summary }}
+    {{- with .annotations.runbook_url }}
+    runbook_url: {{ . }}
+    {{- end }}
 {{- end }}
 {{- end }}
