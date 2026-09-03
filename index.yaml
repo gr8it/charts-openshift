@@ -3468,6 +3468,28 @@ entries:
     version: 1.0.0
   monitoring:
   - apiVersion: v2
+    created: "2026-09-03T16:33:04.364637+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.9.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.1.0
+    - alias: backups
+      condition: backups.enabled
+      name: openshift-adp-backups
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.0
+    description: Helm chart for OpenShift cluster monitoring (ClusterMonitoringConfig,
+      UserWorkloadMonitoringConfig, AlertManager via ESO, Kyverno PrometheusRule generation)
+    digest: 0b5ae3a9e62d29c44e13ed6e9cd08c3868872c8bb878d0e501697f3472da9ed3
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.1.10.tgz
+    version: 1.1.10
+  - apiVersion: v2
     created: "2026-09-03T16:30:40.091983+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -4732,6 +4754,23 @@ entries:
     - packaged_charts/trust-manager-helm-1.0.0.tgz
     version: 1.0.0
   user-workload-monitoring-policy:
+  - apiVersion: v2
+    created: "2026-09-03T16:33:04.457995+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.1.0
+    description: A Helm chart that automatically creates PrometheusRules for app /
+      non-app workload namespaces
+    digest: b237e6e4432c2e41ff88c4be2e597f18fb809f922eff6e13dbb38f5f74f2f7c3
+    name: user-workload-monitoring-policy
+    type: application
+    urls:
+    - packaged_charts/user-workload-monitoring-policy-1.0.11.tgz
+    version: 1.0.11
   - apiVersion: v2
     created: "2026-09-03T16:30:40.123358+02:00"
     dependencies:
