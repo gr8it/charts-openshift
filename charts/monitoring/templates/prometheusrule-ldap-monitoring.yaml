@@ -19,7 +19,9 @@ spec:
             team: platform
           annotations:
             summary: "LDAP service {{ `{{ $labels.host }}` }} is down."
-            description: "LDAP service {{ `{{ $labels.host }}` }} is down."
+            description: |-
+              LDAP service is down.
+              host = {{ `{{ $labels.host }}` }}
         - alert: LdapReplicationTimestamp
           expr: max by (replica_id) (openldap_replication_sync_timestamp) != min by (replica_id) (openldap_replication_sync_timestamp)
           for: 1m
@@ -29,7 +31,9 @@ spec:
             team: platform
           annotations:
             summary: "Inconsistent sync timestamp for {{ `{{ $labels.replica_id }}` }}"
-            description: "Replica ID {{ `{{ $labels.replica_id }}` }} has inconsistent sync timestamp across servers. LDAP instances are not synchonized."
+            description: |-
+              LDAP instances are not synchronized.
+              replica_id = {{ `{{ $labels.replica_id }}` }}
         - alert: LdapSingleReplica
           expr: count by (replica_id) (openldap_replication_sync_timestamp) == 1
           for: 5m
@@ -39,5 +43,7 @@ spec:
             team: platform
           annotations:
             summary: "Only single instance found for repica id {{ `{{ $labels.replica_id }}` }}"
-            description: "Replica ID {{ `{{ $labels.replica_id }}` }} has only single instance. LDAP replication is not working properly."
+            description: |-
+              LDAP replication has only one instance.
+              replica_id = {{ `{{ $labels.replica_id }}` }}
 {{- end }}

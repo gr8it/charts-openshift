@@ -25,6 +25,8 @@ spec:
         summary: |
           Container {{ `{{ $labels.container }}` }} in pod {{ `{{ $labels.namespace }}` }}/{{ `{{ $labels.pod }}` }} was OOM-killed {{ `{{ printf "%.0f" $value }}` }} times in the last 30 minutes
         description: |
-          The kernel Out-Of-Memory killer has restarted this container at least
-          twice within the last 30 minutes. Check memory limits, look for leaks or
-          sudden load spikes before the pod enters CrashLoopBackOff.
+          Container was OOM-killed more than once in the last 30 minutes.
+          pod = {{ `{{ $labels.pod }}` }}
+          container = {{ `{{ $labels.container }}` }}
+          namespace = {{ `{{ $labels.namespace }}` }}
+          restarts = {{ `{{ printf "%.0f" $value }}` }}

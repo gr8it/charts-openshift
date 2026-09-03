@@ -7,7 +7,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: cluster-alerting-rules
       namespace: openshift-monitoring
     spec:
@@ -17,9 +17,11 @@ manifests should match snapshot (hub cluster):
             - alert: PodRepeatedOOMKilled
               annotations:
                 description: |
-                  The kernel Out-Of-Memory killer has restarted this container at least
-                  twice within the last 30 minutes. Check memory limits, look for leaks or
-                  sudden load spikes before the pod enters CrashLoopBackOff.
+                  Container was OOM-killed more than once in the last 30 minutes.
+                  pod = {{ $labels.pod }}
+                  container = {{ $labels.container }}
+                  namespace = {{ $labels.namespace }}
+                  restarts = {{ printf "%.0f" $value }}
                 summary: |
                   Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} was OOM-killed {{ printf "%.0f" $value }} times in the last 30 minutes
               expr: |
@@ -41,7 +43,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: cluster-policy-cluster-monitoring
     spec:
       generateExisting: true
@@ -64,7 +66,11 @@ manifests should match snapshot (hub cluster):
                     rules:
                       - alert: KubePodCrashLooping
                         annotations:
-                          description: Pod \{{ $labels.pod }}, container \{{ $labels.container }} in namespace \{{ $labels.namespace }} is in a CrashLoopBackOff state.
+                          description: |-
+                            Pod is in CrashLoopBackOff.
+                            pod = \{{ $labels.pod }}
+                            container = \{{ $labels.container }}
+                            namespace = \{{ $labels.namespace }}
                           summary: Pod is crash looping
                         expr: max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m]) >= 1
                         for: 15m
@@ -75,7 +81,10 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubePodNotReady
                         annotations:
-                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been in a non-ready state for longer than 15 minutes.
+                          description: |-
+                            Pod has been non-ready for longer than 15 minutes.
+                            pod = \{{ $labels.pod }}
+                            namespace = \{{ $labels.namespace }}
                           summary: Pod has been in a non-ready state for more than 15 minutes
                         expr: |-
                           sum by (namespace, pod, cluster) (
@@ -93,7 +102,10 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubePodEvicted
                         annotations:
-                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been evicted.
+                          description: |-
+                            Pod has been evicted.
+                            pod = \{{ $labels.pod }}
+                            namespace = \{{ $labels.namespace }}
                           summary: Pod has been evicted
                         expr: kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
                         for: 0m
@@ -104,7 +116,10 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeDeploymentGenerationMismatch
                         annotations:
-                          description: Deployment generation for \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} does not match, this indicates that the Deployment has failed but has not been rolled back."
+                          description: |-
+                            Deployment generation does not match.
+                            deployment = \{{ $labels.deployment }}
+                            namespace = \{{ $labels.namespace }}
                           summary: Deployment generation mismatch due to possible roll-back
                         expr: |-
                           kube_deployment_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -118,7 +133,10 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeDeploymentReplicasMismatch
                         annotations:
-                          description: Deployment \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} has not matched the expected number of replicas for longer than 15 minutes.
+                          description: |-
+                            Deployment has not matched the expected number of replicas for longer than 15 minutes.
+                            deployment = \{{ $labels.deployment }}
+                            namespace = \{{ $labels.namespace }}
                           summary: Deployment has not matched the expected number of replicas
                         expr: |-
                           (
@@ -138,7 +156,10 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeDeploymentRolloutStuck
                         annotations:
-                          description: Rollout of deployment \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} is not progressing for longer than 15 minutes.
+                          description: |-
+                            Deployment rollout is not progressing for longer than 15 minutes.
+                            deployment = \{{ $labels.deployment }}
+                            namespace = \{{ $labels.namespace }}
                           summary: Deployment rollout is not progressing
                         expr: |-
                           kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -151,7 +172,10 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeStatefulSetReplicasMismatch
                         annotations:
-                          description: StatefulSet \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} has not matched the expected number of replicas for longer than 15 minutes.
+                          description: |-
+                            StatefulSet has not matched the expected number of replicas for longer than 15 minutes.
+                            statefulset = \{{ $labels.statefulset }}
+                            namespace = \{{ $labels.namespace }}
                           summary: StatefulSet has not matched the expected number of replicas
                         expr: |-
                           (
@@ -171,7 +195,10 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeStatefulSetGenerationMismatch
                         annotations:
-                          description: StatefulSet generation for \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} does not match, this indicates that the StatefulSet has failed but has not been rolled back.
+                          description: |-
+                            StatefulSet generation does not match.
+                            statefulset = \{{ $labels.statefulset }}
+                            namespace = \{{ $labels.namespace }}
                           summary: StatefulSet generation mismatch due to possible roll-back
                         expr: |-
                           kube_statefulset_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -185,7 +212,10 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeStatefulSetUpdateNotRolledOut
                         annotations:
-                          description: StatefulSet \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} update has not been rolled out.
+                          description: |-
+                            StatefulSet update has not been rolled out.
+                            statefulset = \{{ $labels.statefulset }}
+                            namespace = \{{ $labels.namespace }}
                           summary: StatefulSet update has not been rolled out
                         expr: |-
                           (
@@ -213,7 +243,10 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeDaemonSetRolloutStuck
                         annotations:
-                          description: DaemonSet \{{ $labels.daemonset }} in namespace \{{ $labels.namespace }} has not finished or progressed for at least 15m.
+                          description: |-
+                            DaemonSet rollout is stuck for at least 15 minutes.
+                            daemonset = \{{ $labels.daemonset }}
+                            namespace = \{{ $labels.namespace }}
                           summary: DaemonSet rollout is stuck
                         expr: |-
                           (
@@ -247,7 +280,11 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeContainerWaiting
                         annotations:
-                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} on container \{{ $labels.container}} has been in waiting state for longer than 1 hour.
+                          description: |-
+                            Pod container has been waiting for longer than one hour.
+                            pod = \{{ $labels.pod }}
+                            container = \{{ $labels.container }}
+                            namespace = \{{ $labels.namespace }}
                           summary: Pod container waiting longer than 1 hour
                         expr: kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
                         for: 1h
@@ -258,7 +295,11 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeDaemonSetNotScheduled
                         annotations:
-                          description: There are \{{ $value }} pods of DaemonSet \{{ $labels.daemonset }} that are not scheduled.
+                          description: |-
+                            DaemonSet pods are not scheduled.
+                            daemonset = \{{ $labels.daemonset }}
+                            namespace = \{{ $labels.namespace }}
+                            unscheduled_pods = \{{ $value }}
                           summary: DaemonSet pods are not scheduled
                         expr: |-
                           kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -272,7 +313,11 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeDaemonSetMisScheduled
                         annotations:
-                          description: Found \{{ $value }} mis-scheduled pods for DaemonSet \{{ $labels.daemonset }} in namespace \{{ $labels.namespace }}.
+                          description: |-
+                            DaemonSet has mis-scheduled pods.
+                            daemonset = \{{ $labels.daemonset }}
+                            namespace = \{{ $labels.namespace }}
+                            mis_scheduled_pods = \{{ $value }}
                           summary: DaemonSet pods are misscheduled
                         expr: kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
                         for: 15m
@@ -283,7 +328,11 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeJobNotCompleted
                         annotations:
-                          description: Job \{{ $labels.job_name }} in namespace \{{ $labels.namespace }} has been running for \{{ humanizeDuration $value }} and has not completed.
+                          description: |-
+                            Job has not completed within the expected time.
+                            job_name = \{{ $labels.job_name }}
+                            namespace = \{{ $labels.namespace }}
+                            running_for = \{{ humanizeDuration $value }}
                           summary: Job did not complete in time
                         expr: |-
                           time() - max by (namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -297,7 +346,10 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeJobFailed
                         annotations:
-                          description: Job \{{ $labels.job_name }} in namespace \{{ $labels.namespace }} failed to complete. Removing failed job after investigation should clear this alert.
+                          description: |-
+                            Job failed to complete.
+                            job_name = \{{ $labels.job_name }}
+                            namespace = \{{ $labels.namespace }}
                           summary: Job failed to complete
                         expr: kube_job_failed{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}  > 0
                         for: 15m
@@ -308,7 +360,10 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeHpaReplicasMismatch
                         annotations:
-                          description: HPA \{{ $labels.horizontalpodautoscaler  }} has not matched the desired number of replicas for longer than 15 minutes.
+                          description: |-
+                            HPA has not matched the desired number of replicas for longer than 15 minutes.
+                            horizontalpodautoscaler = \{{ $labels.horizontalpodautoscaler }}
+                            namespace = \{{ $labels.namespace }}
                           summary: HPA has not matched desired number of replicas
                         expr: |-
                           (kube_horizontalpodautoscaler_status_desired_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -332,7 +387,10 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeHpaMaxedOut
                         annotations:
-                          description: HPA \{{ $labels.horizontalpodautoscaler  }} in namespace \{{ $labels.namespace }} has been running at max replicas for longer than 15 minutes.
+                          description: |-
+                            HPA has been running at maximum replicas for longer than 15 minutes.
+                            horizontalpodautoscaler = \{{ $labels.horizontalpodautoscaler }}
+                            namespace = \{{ $labels.namespace }}
                           summary: HPA is running at max replicas
                         expr: |-
                           kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -346,7 +404,11 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubePdbNotEnoughHealthyPods
                         annotations:
-                          description: PDB \{{ $labels.poddisruptionbudget }} expects \{{ $value }} more healthy pods. The desired number of healthy pods has not been met for at least 15m.
+                          description: |-
+                            Pod disruption budget does not have enough healthy pods.
+                            poddisruptionbudget = \{{ $labels.poddisruptionbudget }}
+                            namespace = \{{ $labels.namespace }}
+                            missing_healthy_pods = \{{ $value }}
                           summary: PDB does not have enough healthy pods
                         expr: |-
                           (
@@ -363,7 +425,11 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubePersistentVolumeFillingUp
                         annotations:
-                          description: The PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is only \{{ $value | humanizePercentage }} free.
+                          description: |-
+                            PersistentVolume is almost full.
+                            persistentvolumeclaim = \{{ $labels.persistentvolumeclaim }}
+                            namespace = \{{ $labels.namespace }}
+                            available = \{{ $value | humanizePercentage }}
                           summary: PersistentVolume is filling up
                         expr: |-
                           (
@@ -385,7 +451,11 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubePersistentVolumeFillingUp
                         annotations:
-                          description: Based on recent sampling, the PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is expected to fill up within four days. Currently \{{ $value | humanizePercentage }} is available.
+                          description: |-
+                            PersistentVolume is expected to fill up within four days.
+                            persistentvolumeclaim = \{{ $labels.persistentvolumeclaim }}
+                            namespace = \{{ $labels.namespace }}
+                            available = \{{ $value | humanizePercentage }}
                           summary: PersistentVolume is filling up
                         expr: |-
                           (
@@ -409,7 +479,11 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubePersistentVolumeInodesFillingUp
                         annotations:
-                          description: The PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} has only \{{ $value | humanizePercentage }} free inodes.
+                          description: |-
+                            PersistentVolume is almost out of free inodes.
+                            persistentvolumeclaim = \{{ $labels.persistentvolumeclaim }}
+                            namespace = \{{ $labels.namespace }}
+                            free_inodes = \{{ $value | humanizePercentage }}
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
                           (
@@ -431,7 +505,11 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubePersistentVolumeInodesFillingUp
                         annotations:
-                          description: Based on recent sampling, the PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is expected to run out of inodes within four days. Currently \{{ $value | humanizePercentage }} of its inodes are free.
+                          description: |-
+                            PersistentVolume is expected to run out of inodes within four days.
+                            persistentvolumeclaim = \{{ $labels.persistentvolumeclaim }}
+                            namespace = \{{ $labels.namespace }}
+                            free_inodes = \{{ $value | humanizePercentage }}
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
                           (
@@ -455,7 +533,10 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubePersistentVolumeErrors
                         annotations:
-                          description: The persistent volume \{{ $labels.persistentvolume }} has status \{{ $labels.phase }}.
+                          description: |-
+                            PersistentVolume has an unhealthy status.
+                            persistentvolume = \{{ $labels.persistentvolume }}
+                            phase = \{{ $labels.phase }}
                           summary: PersistentVolume is having issues with provisioning
                         expr: kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"} > 0
                         for: 5m
@@ -466,7 +547,11 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: HighCPUUtilization
                         annotations:
-                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 95% of its CPU limit for over 15 minutes. Current value is \{{ $value | humanizePercentage }}.
+                          description: |-
+                            Pod CPU utilization is above 95% for over 15 minutes.
+                            pod = \{{ $labels.pod }}
+                            namespace = \{{ $labels.namespace }}
+                            utilization = \{{ $value | humanizePercentage }}
                           summary: CPU utilization is above 95%
                         expr: |-
                           (
@@ -482,7 +567,12 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: HighMemoryUtilization
                         annotations:
-                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 90% of its memory limit for over 15 minutes. Current utilization is \{{ $value | humanizePercentage }}
+                          description: |-
+                            Pod container memory utilization is above 90% for over 15 minutes.
+                            pod = \{{ $labels.pod }}
+                            container = \{{ $labels.container }}
+                            namespace = \{{ $labels.namespace }}
+                            utilization = \{{ $value | humanizePercentage }}
                           summary: Memory utilization (90%+) on pod \{{ $labels.pod }}
                         expr: |-
                           (
@@ -521,7 +611,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
         rbac.kyverno.io/aggregate-to-admission-controller: "true"
       name: kyverno:admission-controller:monitoring
     rules:
@@ -592,7 +682,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: cluster-monitoring-config
       namespace: openshift-monitoring
   5: |
@@ -655,7 +745,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: user-workload-monitoring-config
       namespace: openshift-user-workload-monitoring
   6: |
@@ -666,7 +756,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: vault-bastion
       namespace: apc-monitoring-bastion
     subsets:
@@ -684,7 +774,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: alertmanager-receivers
       namespace: openshift-monitoring
     spec:
@@ -706,7 +796,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: alertmanager-uwm-receivers
       namespace: openshift-user-workload-monitoring
     spec:
@@ -728,7 +818,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: allow-proxy
       namespace: openshift-user-workload-monitoring
     spec:
@@ -747,7 +837,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: allow-proxy
       namespace: openshift-monitoring
     spec:
@@ -766,7 +856,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: disk-raid-array-monitoring
       namespace: openshift-monitoring
     spec:
@@ -775,7 +865,9 @@ manifests should match snapshot (hub cluster):
           rules:
             - alert: APC-NodeRAIDDegraded
               annotations:
-                description: RAID array '{{ $labels.device }}' at {{ $labels.instance }} is in degraded state due to one or more disks failures. Number of spare drives is insufficient to fix issue automatically.
+                description: |-
+                  RAID array is degraded.
+                  device = {{ $labels.device }}
                 runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/NodeRAIDDegraded.md
                 summary: RAID Array is degraded.
               expr: |
@@ -787,7 +879,9 @@ manifests should match snapshot (hub cluster):
                 vendor: aspecta
             - alert: APC-NodeRAIDDiskFailure
               annotations:
-                description: At least one device in RAID array at {{ $labels.instance }} failed. Array '{{ $labels.device }}' needs attention and possibly a disk swap.
+                description: |-
+                  RAID array has a failed device.
+                  device = {{ $labels.device }}
                 summary: Failed device in RAID array.
               expr: |
                 node_md_disks{state="failed",namespace="openshift-monitoring",job="node-exporter",device=~"md.+"} > 0
@@ -803,7 +897,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: ldap-monitoring
       namespace: apc-monitoring-bastion
     spec:
@@ -812,7 +906,9 @@ manifests should match snapshot (hub cluster):
           rules:
             - alert: LdapServiceUp
               annotations:
-                description: LDAP service {{ $labels.host }} is down.
+                description: |-
+                  LDAP service is down.
+                  host = {{ $labels.host }}
                 summary: LDAP service {{ $labels.host }} is down.
               expr: openldap_service_up != 1
               for: 1m
@@ -822,7 +918,9 @@ manifests should match snapshot (hub cluster):
                 vendor: aspecta
             - alert: LdapReplicationTimestamp
               annotations:
-                description: Replica ID {{ $labels.replica_id }} has inconsistent sync timestamp across servers. LDAP instances are not synchonized.
+                description: |-
+                  LDAP instances are not synchronized.
+                  replica_id = {{ $labels.replica_id }}
                 summary: Inconsistent sync timestamp for {{ $labels.replica_id }}
               expr: max by (replica_id) (openldap_replication_sync_timestamp) != min by (replica_id) (openldap_replication_sync_timestamp)
               for: 1m
@@ -832,7 +930,9 @@ manifests should match snapshot (hub cluster):
                 vendor: aspecta
             - alert: LdapSingleReplica
               annotations:
-                description: Replica ID {{ $labels.replica_id }} has only single instance. LDAP replication is not working properly.
+                description: |-
+                  LDAP replication has only one instance.
+                  replica_id = {{ $labels.replica_id }}
                 summary: Only single instance found for repica id {{ $labels.replica_id }}
               expr: count by (replica_id) (openldap_replication_sync_timestamp) == 1
               for: 5m
@@ -848,7 +948,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: user-workload-monitoring-thanos-rules
       namespace: apc-observability
     spec:
@@ -874,7 +974,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: alertmanager-user-workload
       namespace: openshift-user-workload-monitoring
     stringData:
@@ -966,7 +1066,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: alertmanager-main
       namespace: openshift-monitoring
     stringData:
@@ -1139,7 +1239,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: vault-bastion
       namespace: apc-monitoring-bastion
     spec:
@@ -1157,7 +1257,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: vault-bastion
       namespace: apc-monitoring-bastion
     spec:
@@ -1186,7 +1286,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: cluster-alerting-rules
       namespace: openshift-monitoring
     spec:
@@ -1196,9 +1296,11 @@ manifests should match snapshot (non-hub cluster):
             - alert: PodRepeatedOOMKilled
               annotations:
                 description: |
-                  The kernel Out-Of-Memory killer has restarted this container at least
-                  twice within the last 30 minutes. Check memory limits, look for leaks or
-                  sudden load spikes before the pod enters CrashLoopBackOff.
+                  Container was OOM-killed more than once in the last 30 minutes.
+                  pod = {{ $labels.pod }}
+                  container = {{ $labels.container }}
+                  namespace = {{ $labels.namespace }}
+                  restarts = {{ printf "%.0f" $value }}
                 summary: |
                   Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} was OOM-killed {{ printf "%.0f" $value }} times in the last 30 minutes
               expr: |
@@ -1220,7 +1322,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: cluster-policy-cluster-monitoring
     spec:
       generateExisting: true
@@ -1243,7 +1345,11 @@ manifests should match snapshot (non-hub cluster):
                     rules:
                       - alert: KubePodCrashLooping
                         annotations:
-                          description: Pod \{{ $labels.pod }}, container \{{ $labels.container }} in namespace \{{ $labels.namespace }} is in a CrashLoopBackOff state.
+                          description: |-
+                            Pod is in CrashLoopBackOff.
+                            pod = \{{ $labels.pod }}
+                            container = \{{ $labels.container }}
+                            namespace = \{{ $labels.namespace }}
                           summary: Pod is crash looping
                         expr: max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m]) >= 1
                         for: 15m
@@ -1254,7 +1360,10 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubePodNotReady
                         annotations:
-                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been in a non-ready state for longer than 15 minutes.
+                          description: |-
+                            Pod has been non-ready for longer than 15 minutes.
+                            pod = \{{ $labels.pod }}
+                            namespace = \{{ $labels.namespace }}
                           summary: Pod has been in a non-ready state for more than 15 minutes
                         expr: |-
                           sum by (namespace, pod, cluster) (
@@ -1272,7 +1381,10 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubePodEvicted
                         annotations:
-                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been evicted.
+                          description: |-
+                            Pod has been evicted.
+                            pod = \{{ $labels.pod }}
+                            namespace = \{{ $labels.namespace }}
                           summary: Pod has been evicted
                         expr: kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
                         for: 0m
@@ -1283,7 +1395,10 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeDeploymentGenerationMismatch
                         annotations:
-                          description: Deployment generation for \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} does not match, this indicates that the Deployment has failed but has not been rolled back."
+                          description: |-
+                            Deployment generation does not match.
+                            deployment = \{{ $labels.deployment }}
+                            namespace = \{{ $labels.namespace }}
                           summary: Deployment generation mismatch due to possible roll-back
                         expr: |-
                           kube_deployment_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -1297,7 +1412,10 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeDeploymentReplicasMismatch
                         annotations:
-                          description: Deployment \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} has not matched the expected number of replicas for longer than 15 minutes.
+                          description: |-
+                            Deployment has not matched the expected number of replicas for longer than 15 minutes.
+                            deployment = \{{ $labels.deployment }}
+                            namespace = \{{ $labels.namespace }}
                           summary: Deployment has not matched the expected number of replicas
                         expr: |-
                           (
@@ -1317,7 +1435,10 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeDeploymentRolloutStuck
                         annotations:
-                          description: Rollout of deployment \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} is not progressing for longer than 15 minutes.
+                          description: |-
+                            Deployment rollout is not progressing for longer than 15 minutes.
+                            deployment = \{{ $labels.deployment }}
+                            namespace = \{{ $labels.namespace }}
                           summary: Deployment rollout is not progressing
                         expr: |-
                           kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -1330,7 +1451,10 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeStatefulSetReplicasMismatch
                         annotations:
-                          description: StatefulSet \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} has not matched the expected number of replicas for longer than 15 minutes.
+                          description: |-
+                            StatefulSet has not matched the expected number of replicas for longer than 15 minutes.
+                            statefulset = \{{ $labels.statefulset }}
+                            namespace = \{{ $labels.namespace }}
                           summary: StatefulSet has not matched the expected number of replicas
                         expr: |-
                           (
@@ -1350,7 +1474,10 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeStatefulSetGenerationMismatch
                         annotations:
-                          description: StatefulSet generation for \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} does not match, this indicates that the StatefulSet has failed but has not been rolled back.
+                          description: |-
+                            StatefulSet generation does not match.
+                            statefulset = \{{ $labels.statefulset }}
+                            namespace = \{{ $labels.namespace }}
                           summary: StatefulSet generation mismatch due to possible roll-back
                         expr: |-
                           kube_statefulset_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -1364,7 +1491,10 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeStatefulSetUpdateNotRolledOut
                         annotations:
-                          description: StatefulSet \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} update has not been rolled out.
+                          description: |-
+                            StatefulSet update has not been rolled out.
+                            statefulset = \{{ $labels.statefulset }}
+                            namespace = \{{ $labels.namespace }}
                           summary: StatefulSet update has not been rolled out
                         expr: |-
                           (
@@ -1392,7 +1522,10 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeDaemonSetRolloutStuck
                         annotations:
-                          description: DaemonSet \{{ $labels.daemonset }} in namespace \{{ $labels.namespace }} has not finished or progressed for at least 15m.
+                          description: |-
+                            DaemonSet rollout is stuck for at least 15 minutes.
+                            daemonset = \{{ $labels.daemonset }}
+                            namespace = \{{ $labels.namespace }}
                           summary: DaemonSet rollout is stuck
                         expr: |-
                           (
@@ -1426,7 +1559,11 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeContainerWaiting
                         annotations:
-                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} on container \{{ $labels.container}} has been in waiting state for longer than 1 hour.
+                          description: |-
+                            Pod container has been waiting for longer than one hour.
+                            pod = \{{ $labels.pod }}
+                            container = \{{ $labels.container }}
+                            namespace = \{{ $labels.namespace }}
                           summary: Pod container waiting longer than 1 hour
                         expr: kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
                         for: 1h
@@ -1437,7 +1574,11 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeDaemonSetNotScheduled
                         annotations:
-                          description: There are \{{ $value }} pods of DaemonSet \{{ $labels.daemonset }} that are not scheduled.
+                          description: |-
+                            DaemonSet pods are not scheduled.
+                            daemonset = \{{ $labels.daemonset }}
+                            namespace = \{{ $labels.namespace }}
+                            unscheduled_pods = \{{ $value }}
                           summary: DaemonSet pods are not scheduled
                         expr: |-
                           kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -1451,7 +1592,11 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeDaemonSetMisScheduled
                         annotations:
-                          description: Found \{{ $value }} mis-scheduled pods for DaemonSet \{{ $labels.daemonset }} in namespace \{{ $labels.namespace }}.
+                          description: |-
+                            DaemonSet has mis-scheduled pods.
+                            daemonset = \{{ $labels.daemonset }}
+                            namespace = \{{ $labels.namespace }}
+                            mis_scheduled_pods = \{{ $value }}
                           summary: DaemonSet pods are misscheduled
                         expr: kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
                         for: 15m
@@ -1462,7 +1607,11 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeJobNotCompleted
                         annotations:
-                          description: Job \{{ $labels.job_name }} in namespace \{{ $labels.namespace }} has been running for \{{ humanizeDuration $value }} and has not completed.
+                          description: |-
+                            Job has not completed within the expected time.
+                            job_name = \{{ $labels.job_name }}
+                            namespace = \{{ $labels.namespace }}
+                            running_for = \{{ humanizeDuration $value }}
                           summary: Job did not complete in time
                         expr: |-
                           time() - max by (namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -1476,7 +1625,10 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeJobFailed
                         annotations:
-                          description: Job \{{ $labels.job_name }} in namespace \{{ $labels.namespace }} failed to complete. Removing failed job after investigation should clear this alert.
+                          description: |-
+                            Job failed to complete.
+                            job_name = \{{ $labels.job_name }}
+                            namespace = \{{ $labels.namespace }}
                           summary: Job failed to complete
                         expr: kube_job_failed{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}  > 0
                         for: 15m
@@ -1487,7 +1639,10 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeHpaReplicasMismatch
                         annotations:
-                          description: HPA \{{ $labels.horizontalpodautoscaler  }} has not matched the desired number of replicas for longer than 15 minutes.
+                          description: |-
+                            HPA has not matched the desired number of replicas for longer than 15 minutes.
+                            horizontalpodautoscaler = \{{ $labels.horizontalpodautoscaler }}
+                            namespace = \{{ $labels.namespace }}
                           summary: HPA has not matched desired number of replicas
                         expr: |-
                           (kube_horizontalpodautoscaler_status_desired_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -1511,7 +1666,10 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeHpaMaxedOut
                         annotations:
-                          description: HPA \{{ $labels.horizontalpodautoscaler  }} in namespace \{{ $labels.namespace }} has been running at max replicas for longer than 15 minutes.
+                          description: |-
+                            HPA has been running at maximum replicas for longer than 15 minutes.
+                            horizontalpodautoscaler = \{{ $labels.horizontalpodautoscaler }}
+                            namespace = \{{ $labels.namespace }}
                           summary: HPA is running at max replicas
                         expr: |-
                           kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -1525,7 +1683,11 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubePdbNotEnoughHealthyPods
                         annotations:
-                          description: PDB \{{ $labels.poddisruptionbudget }} expects \{{ $value }} more healthy pods. The desired number of healthy pods has not been met for at least 15m.
+                          description: |-
+                            Pod disruption budget does not have enough healthy pods.
+                            poddisruptionbudget = \{{ $labels.poddisruptionbudget }}
+                            namespace = \{{ $labels.namespace }}
+                            missing_healthy_pods = \{{ $value }}
                           summary: PDB does not have enough healthy pods
                         expr: |-
                           (
@@ -1542,7 +1704,11 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubePersistentVolumeFillingUp
                         annotations:
-                          description: The PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is only \{{ $value | humanizePercentage }} free.
+                          description: |-
+                            PersistentVolume is almost full.
+                            persistentvolumeclaim = \{{ $labels.persistentvolumeclaim }}
+                            namespace = \{{ $labels.namespace }}
+                            available = \{{ $value | humanizePercentage }}
                           summary: PersistentVolume is filling up
                         expr: |-
                           (
@@ -1564,7 +1730,11 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubePersistentVolumeFillingUp
                         annotations:
-                          description: Based on recent sampling, the PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is expected to fill up within four days. Currently \{{ $value | humanizePercentage }} is available.
+                          description: |-
+                            PersistentVolume is expected to fill up within four days.
+                            persistentvolumeclaim = \{{ $labels.persistentvolumeclaim }}
+                            namespace = \{{ $labels.namespace }}
+                            available = \{{ $value | humanizePercentage }}
                           summary: PersistentVolume is filling up
                         expr: |-
                           (
@@ -1588,7 +1758,11 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubePersistentVolumeInodesFillingUp
                         annotations:
-                          description: The PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} has only \{{ $value | humanizePercentage }} free inodes.
+                          description: |-
+                            PersistentVolume is almost out of free inodes.
+                            persistentvolumeclaim = \{{ $labels.persistentvolumeclaim }}
+                            namespace = \{{ $labels.namespace }}
+                            free_inodes = \{{ $value | humanizePercentage }}
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
                           (
@@ -1610,7 +1784,11 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubePersistentVolumeInodesFillingUp
                         annotations:
-                          description: Based on recent sampling, the PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is expected to run out of inodes within four days. Currently \{{ $value | humanizePercentage }} of its inodes are free.
+                          description: |-
+                            PersistentVolume is expected to run out of inodes within four days.
+                            persistentvolumeclaim = \{{ $labels.persistentvolumeclaim }}
+                            namespace = \{{ $labels.namespace }}
+                            free_inodes = \{{ $value | humanizePercentage }}
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
                           (
@@ -1634,7 +1812,10 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubePersistentVolumeErrors
                         annotations:
-                          description: The persistent volume \{{ $labels.persistentvolume }} has status \{{ $labels.phase }}.
+                          description: |-
+                            PersistentVolume has an unhealthy status.
+                            persistentvolume = \{{ $labels.persistentvolume }}
+                            phase = \{{ $labels.phase }}
                           summary: PersistentVolume is having issues with provisioning
                         expr: kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"} > 0
                         for: 5m
@@ -1645,7 +1826,11 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: HighCPUUtilization
                         annotations:
-                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 95% of its CPU limit for over 15 minutes. Current value is \{{ $value | humanizePercentage }}.
+                          description: |-
+                            Pod CPU utilization is above 95% for over 15 minutes.
+                            pod = \{{ $labels.pod }}
+                            namespace = \{{ $labels.namespace }}
+                            utilization = \{{ $value | humanizePercentage }}
                           summary: CPU utilization is above 95%
                         expr: |-
                           (
@@ -1661,7 +1846,12 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: HighMemoryUtilization
                         annotations:
-                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 90% of its memory limit for over 15 minutes. Current utilization is \{{ $value | humanizePercentage }}
+                          description: |-
+                            Pod container memory utilization is above 90% for over 15 minutes.
+                            pod = \{{ $labels.pod }}
+                            container = \{{ $labels.container }}
+                            namespace = \{{ $labels.namespace }}
+                            utilization = \{{ $value | humanizePercentage }}
                           summary: Memory utilization (90%+) on pod \{{ $labels.pod }}
                         expr: |-
                           (
@@ -1700,7 +1890,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
         rbac.kyverno.io/aggregate-to-admission-controller: "true"
       name: kyverno:admission-controller:monitoring
     rules:
@@ -1771,7 +1961,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: cluster-monitoring-config
       namespace: openshift-monitoring
   5: |
@@ -1815,7 +2005,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: user-workload-monitoring-config
       namespace: openshift-user-workload-monitoring
   6: |
@@ -1826,7 +2016,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: vault-bastion
       namespace: apc-monitoring-bastion
     subsets:
@@ -1844,7 +2034,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: alertmanager-receivers
       namespace: openshift-monitoring
     spec:
@@ -1866,7 +2056,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: alertmanager-uwm-receivers
       namespace: openshift-user-workload-monitoring
     spec:
@@ -1888,7 +2078,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: allow-proxy
       namespace: openshift-user-workload-monitoring
     spec:
@@ -1907,7 +2097,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: allow-proxy
       namespace: openshift-monitoring
     spec:
@@ -1926,7 +2116,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: disk-raid-array-monitoring
       namespace: openshift-monitoring
     spec:
@@ -1935,7 +2125,9 @@ manifests should match snapshot (non-hub cluster):
           rules:
             - alert: APC-NodeRAIDDegraded
               annotations:
-                description: RAID array '{{ $labels.device }}' at {{ $labels.instance }} is in degraded state due to one or more disks failures. Number of spare drives is insufficient to fix issue automatically.
+                description: |-
+                  RAID array is degraded.
+                  device = {{ $labels.device }}
                 runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/NodeRAIDDegraded.md
                 summary: RAID Array is degraded.
               expr: |
@@ -1947,7 +2139,9 @@ manifests should match snapshot (non-hub cluster):
                 vendor: aspecta
             - alert: APC-NodeRAIDDiskFailure
               annotations:
-                description: At least one device in RAID array at {{ $labels.instance }} failed. Array '{{ $labels.device }}' needs attention and possibly a disk swap.
+                description: |-
+                  RAID array has a failed device.
+                  device = {{ $labels.device }}
                 summary: Failed device in RAID array.
               expr: |
                 node_md_disks{state="failed",namespace="openshift-monitoring",job="node-exporter",device=~"md.+"} > 0
@@ -1963,7 +2157,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: ldap-monitoring
       namespace: apc-monitoring-bastion
     spec:
@@ -1972,7 +2166,9 @@ manifests should match snapshot (non-hub cluster):
           rules:
             - alert: LdapServiceUp
               annotations:
-                description: LDAP service {{ $labels.host }} is down.
+                description: |-
+                  LDAP service is down.
+                  host = {{ $labels.host }}
                 summary: LDAP service {{ $labels.host }} is down.
               expr: openldap_service_up != 1
               for: 1m
@@ -1982,7 +2178,9 @@ manifests should match snapshot (non-hub cluster):
                 vendor: aspecta
             - alert: LdapReplicationTimestamp
               annotations:
-                description: Replica ID {{ $labels.replica_id }} has inconsistent sync timestamp across servers. LDAP instances are not synchonized.
+                description: |-
+                  LDAP instances are not synchronized.
+                  replica_id = {{ $labels.replica_id }}
                 summary: Inconsistent sync timestamp for {{ $labels.replica_id }}
               expr: max by (replica_id) (openldap_replication_sync_timestamp) != min by (replica_id) (openldap_replication_sync_timestamp)
               for: 1m
@@ -1992,7 +2190,9 @@ manifests should match snapshot (non-hub cluster):
                 vendor: aspecta
             - alert: LdapSingleReplica
               annotations:
-                description: Replica ID {{ $labels.replica_id }} has only single instance. LDAP replication is not working properly.
+                description: |-
+                  LDAP replication has only one instance.
+                  replica_id = {{ $labels.replica_id }}
                 summary: Only single instance found for repica id {{ $labels.replica_id }}
               expr: count by (replica_id) (openldap_replication_sync_timestamp) == 1
               for: 5m
@@ -2008,7 +2208,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: user-workload-monitoring-thanos-rules
       namespace: apc-observability
     spec:
@@ -2034,7 +2234,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: alertmanager-user-workload
       namespace: openshift-user-workload-monitoring
     stringData:
@@ -2126,7 +2326,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: alertmanager-main
       namespace: openshift-monitoring
     stringData:
@@ -2227,7 +2427,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: vault-bastion
       namespace: apc-monitoring-bastion
     spec:
@@ -2245,7 +2445,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.1.9
       name: vault-bastion
       namespace: apc-monitoring-bastion
     spec:

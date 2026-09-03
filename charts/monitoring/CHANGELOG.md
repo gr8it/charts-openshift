@@ -5,6 +5,15 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.9] - 2026-09-03
+
+_([SPEXAPC-8225](https://aspecta.atlassian.net/browse/SPEXAPC-8225))_
+
+### Changed
+
+- Bump `monitoring-prometheusrules` to 1.0.8 with curated alert descriptions.
+- Curate direct monitoring alert descriptions for easier incident triage.
+
 ## [1.1.8] - 2026-08-26
 
 _([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_

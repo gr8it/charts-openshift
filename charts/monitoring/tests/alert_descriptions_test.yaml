@@ -1,0 +1,44 @@
+suite: Curated alert descriptions
+templates:
+  - templates/alertingrule.yaml
+  - templates/prometheusrule-disk-raid-monitoring.yaml
+  - templates/prometheusrule-ldap-monitoring.yaml
+values:
+  - ../values.example.yaml
+release:
+  name: monitoring
+  namespace: openshift-monitoring
+
+tests:
+  - it: keeps useful OOM context without scrape metadata
+    template: templates/alertingrule.yaml
+    asserts:
+      - matchRegex:
+          path: spec.groups[0].rules[0].annotations.description
+          pattern: '(?s)pod = \{\{ \$labels\.pod \}\}.*container = \{\{ \$labels\.container \}\}.*namespace = \{\{ \$labels\.namespace \}\}'
+      - notMatchRegex:
+          path: spec.groups[0].rules[0].annotations.description
+          pattern: 'instance|job|prometheus|service|endpoint'
+
+  - it: keeps the RAID device and removes the instance address
+    template: templates/prometheusrule-disk-raid-monitoring.yaml
+    documentSelector:
+      path: metadata.name
+      value: disk-raid-array-monitoring
+    asserts:
+      - matchRegex:
+          path: spec.groups[0].rules[0].annotations.description
+          pattern: 'device = \{\{ \$labels\.device \}\}'
+      - notMatchRegex:
+          path: spec.groups[0].rules[0].annotations.description
+          pattern: 'instance'
+
+  - it: keeps the LDAP host identity
+    template: templates/prometheusrule-ldap-monitoring.yaml
+    documentSelector:
+      path: metadata.name
+      value: ldap-monitoring
+    asserts:
+      - matchRegex:
+          path: spec.groups[0].rules[0].annotations.description
+          pattern: 'host = \{\{ \$labels\.host \}\}'
