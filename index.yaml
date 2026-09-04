@@ -3468,6 +3468,28 @@ entries:
     version: 1.0.0
   monitoring:
   - apiVersion: v2
+    created: "2026-09-04T11:11:50.115397+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.9.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.1.0
+    - alias: backups
+      condition: backups.enabled
+      name: openshift-adp-backups
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.0
+    description: Helm chart for OpenShift cluster monitoring (ClusterMonitoringConfig,
+      UserWorkloadMonitoringConfig, AlertManager via ESO, Kyverno PrometheusRule generation)
+    digest: 83262561b618c8b205844152bfee7d6c3863d56c5466ef93c6ebb695ddffe63b
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.2.0.tgz
+    version: 1.2.0
+  - apiVersion: v2
     created: "2026-08-26T14:25:18.060957+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -3893,6 +3915,15 @@ entries:
     - packaged_charts/monitoring-1.0.0.tgz
     version: 1.0.0
   monitoring-prometheusrules:
+  - apiVersion: v2
+    created: "2026-09-04T11:11:46.181818+02:00"
+    description: A Helm chart for prometheusrules used in other helm charts.
+    digest: b7cb0762e55fb9b462683317db4ec88a3493308b0995d44042e2cc2cafb4a2c3
+    name: monitoring-prometheusrules
+    type: library
+    urls:
+    - packaged_charts/monitoring-prometheusrules-1.1.0.tgz
+    version: 1.1.0
   - apiVersion: v2
     created: "2026-08-18T16:39:34.992959+02:00"
     description: A Helm chart for prometheusrules used in other helm charts.
@@ -4702,6 +4733,23 @@ entries:
     version: 1.0.0
   user-workload-monitoring-policy:
   - apiVersion: v2
+    created: "2026-09-04T11:11:50.856217+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.1.0
+    description: A Helm chart that automatically creates PrometheusRules for app /
+      non-app workload namespaces
+    digest: a0a2eb91c715406d9756b6dbf5351bbb2b7cedf7b7655fb3daca74432148aeca
+    name: user-workload-monitoring-policy
+    type: application
+    urls:
+    - packaged_charts/user-workload-monitoring-policy-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
     created: "2026-08-18T16:39:59.64665+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -4973,4 +5021,4 @@ entries:
     urls:
     - packaged_charts/veeam-exporter-1.0.0.tgz
     version: 1.0.0
-generated: "2026-08-31T08:36:26.153412339+02:00"
+generated: "2026-09-04T11:11:50.855296+02:00"
