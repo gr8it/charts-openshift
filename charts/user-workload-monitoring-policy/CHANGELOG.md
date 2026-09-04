@@ -11,7 +11,7 @@ _([SPEXAPC-8225](https://aspecta.atlassian.net/browse/SPEXAPC-8225))_
 
 ### Changed
 
-- Reduce PrometheusRule output to diagnostic labels only while preserving alert conditions.
+- Made alerts more readable.
 
 ## [1.0.9] - 2026-07-30
 

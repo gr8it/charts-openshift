@@ -11,8 +11,7 @@ _([SPEXAPC-8225](https://aspecta.atlassian.net/browse/SPEXAPC-8225))_
 
 ### Changed
 
-- Curated Kubernetes workload alert descriptions to show only affected objects, status, and measured values.
-- `HighMemoryUtilization` summary no longer restates the pod name already in the description, matching `HighCPUUtilization`.
+- Made alerts more readable.
 
 ## [1.0.7] - 2026-07-30
 
