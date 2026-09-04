@@ -20,7 +20,6 @@ spec:
           annotations:
             summary: "LDAP service {{ `{{ $labels.host }}` }} is down."
             description: |-
-              LDAP service is down.
               host = {{ `{{ $labels.host }}` }}
         - alert: LdapReplicationTimestamp
           expr: max by (replica_id) (openldap_replication_sync_timestamp) != min by (replica_id) (openldap_replication_sync_timestamp)
@@ -42,8 +41,7 @@ spec:
             vendor: aspecta
             team: platform
           annotations:
-            summary: "Only single instance found for repica id {{ `{{ $labels.replica_id }}` }}"
+            summary: "Only single instance found for replica id {{ `{{ $labels.replica_id }}` }}"
             description: |-
-              LDAP replication has only one instance.
               replica_id = {{ `{{ $labels.replica_id }}` }}
 {{- end }}

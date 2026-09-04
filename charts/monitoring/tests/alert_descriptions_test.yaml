@@ -10,17 +10,17 @@ release:
   namespace: openshift-monitoring
 
 tests:
-  - it: keeps useful OOM context without scrape metadata
+  - it: keeps the OOM restart count without restating labels already on the alert
     template: templates/alertingrule.yaml
     asserts:
       - matchRegex:
           path: spec.groups[0].rules[0].annotations.description
-          pattern: '(?s)pod = \{\{ \$labels\.pod \}\}.*container = \{\{ \$labels\.container \}\}.*namespace = \{\{ \$labels\.namespace \}\}'
+          pattern: 'restarts = \{\{ printf "%.0f" \$value \}\}'
       - notMatchRegex:
           path: spec.groups[0].rules[0].annotations.description
-          pattern: 'instance|job|prometheus|service|endpoint'
+          pattern: 'instance|job|prometheus|service|endpoint|pod =|container =|namespace ='
 
-  - it: keeps the RAID device and removes the instance address
+  - it: keeps the RAID device without scrape metadata
     template: templates/prometheusrule-disk-raid-monitoring.yaml
     documentSelector:
       path: metadata.name

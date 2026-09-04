@@ -12,6 +12,7 @@ _([SPEXAPC-8225](https://aspecta.atlassian.net/browse/SPEXAPC-8225))_
 ### Changed
 
 - Reduce PrometheusRule output to diagnostic labels only while preserving alert conditions.
+- Remove duplicate wording between `summary` and `description` on the RAID, OOM, and LDAP alerts.
 
 ## [1.1.8] - 2026-08-26
 

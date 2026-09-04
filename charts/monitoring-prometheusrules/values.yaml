@@ -395,7 +395,7 @@ rules:
     alertLabels: [namespace, pod, container]
     annotations:
       description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 90% of its memory limit for over 15 minutes. Current utilization is \{{ $value | humanizePercentage }}
-      summary: Memory utilization (90%+) on pod \{{ $labels.pod }}
+      summary: Memory utilization is above 90%
     expr: |-
       (
         sum by (namespace, pod, container) (container_memory_working_set_bytes{container!="", namespace="{{ request.object.metadata.name }}"})

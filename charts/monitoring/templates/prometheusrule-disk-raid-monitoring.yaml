@@ -12,7 +12,6 @@ spec:
       - alert: APC-NodeRAIDDegraded
         annotations:
           description: |-
-            RAID array is degraded.
             device = {{ `{{ $labels.device }}` }}
           runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/NodeRAIDDegraded.md
           summary: RAID Array is degraded.
@@ -28,7 +27,6 @@ spec:
       - alert: APC-NodeRAIDDiskFailure
         annotations:
           description: |-
-            RAID array has a failed device.
             device = {{ `{{ $labels.device }}` }}
           summary: Failed device in RAID array.
         expr: |
