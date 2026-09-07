@@ -17,12 +17,6 @@ Additional to [Gatling operator quickstart](https://github.com/st-tech/gatling-o
 
 The chart exposes controller metrics directly from the manager container on port `8443`.
 
-OpenShift prerequisite for user workload monitoring:
-
-```bash
-oc label namespace apc-gatling-operator openshift.io/user-monitoring=true --overwrite
-```
-
 Changes from community version:
 - No `kube-rbac-proxy` sidecar is deployed
 - No Ingress resource is deployed by this chart.
