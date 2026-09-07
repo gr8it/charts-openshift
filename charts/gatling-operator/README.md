@@ -15,7 +15,7 @@ Additional to [Gatling operator quickstart](https://github.com/st-tech/gatling-o
 
 ## Metrics Exposure
 
-The chart exposes controller metrics directly from the manager container on port `8443`.
+The chart exposes controller metrics directly from the manager container on port `8080`.
 
 Changes from community version:
 - No `kube-rbac-proxy` sidecar is deployed
@@ -83,7 +83,7 @@ helm uninstall apc-gatling-operator --namespace apc-gatling-operator
 
 ## Common Overrides
 
-Commonly overridden values are image tag, service account name, service port, and service monitoring behavior.
+The chart follows convention over configuration. Commonly overridden values are the image repository, image tag, and resources.
 
 Example override file:
 
@@ -92,18 +92,13 @@ image:
   repository: registry.example.com/platform/gatling-operator
   tag: "0.9.12"
 
-serviceAccount:
-  create: true
-  name: gatling-controller
-
-service:
-  port: 8443
-
-serviceMonitor:
-  enabled: true
-  scheme: http
-  port: metrics
-  path: /metrics
+resources:
+	limits:
+		cpu: 1
+		memory: 1Gi
+	requests:
+		cpu: 250m
+		memory: 250Mi
 ```
 
 Apply it during install or upgrade:

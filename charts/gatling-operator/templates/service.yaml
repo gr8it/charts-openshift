@@ -5,14 +5,10 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "gatling-operator.labels" . | nindent 4 }}
-  {{- with .Values.service.annotations }}
-  annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
 spec:
-  type: {{ .Values.service.type }}
+  type: ClusterIP
   ports:
-    - port: {{ .Values.service.port }}
+    - port: 8080
       targetPort: metrics
       protocol: TCP
       name: metrics
