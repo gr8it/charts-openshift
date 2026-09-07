@@ -40,3 +40,31 @@ manifests should match snapshot:
       upgradeApproval: Automatic
       versions:
         - custom-metrics-autoscaler-operator.v2.19.0-3
+  2: |
+    raw: |
+      Custom Metrics Autoscaler Operator 2.19.0-3 is managed by the generated ACM OperatorPolicy.
+  3: |
+    apiVersion: policy.open-cluster-management.io/v1
+    kind: ConfigurationPolicy
+    metadata:
+      labels:
+        app.kubernetes.io/instance: custom-metrics-autoscaler-operator
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: custom-metrics-autoscaler-operator
+        app.kubernetes.io/version: 2.19.0-3
+        helm.sh/chart: custom-metrics-autoscaler-operator-1.0.0
+      name: custom-metrics-autoscaler-operator-namespace-monitoring
+      namespace: open-cluster-management-policies
+    spec:
+      object-templates:
+        - complianceType: musthave
+          objectDefinition:
+            apiVersion: v1
+            kind: Namespace
+            metadata:
+              labels:
+                openshift.io/cluster-monitoring: "true"
+              name: openshift-keda
+      pruneObjectBehavior: None
+      remediationAction: enforce
+      severity: medium
