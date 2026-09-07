@@ -25,11 +25,12 @@ data:
             requests:
               storage: {{ .Values.userWorkloadMonitoring.prometheus.storageSize }}
       externalLabels:
-        customerName: {{ include "apc-global-overrides.require-customer" . }}
+        customerName: {{ include "apc-global-overrides.require-customerName" . }}
+        customerNameShort: {{ include "apc-global-overrides.require-customer" . }}
         environment: {{ include "apc-global-overrides.require-environment" . }}
         location: {{ .Values.userWorkloadMonitoring.location }}
         clusterName: {{ include "apc-global-overrides.require-clusterName" . }}
-      {{- if and .Values.userWorkloadMonitoring.prometheus.remoteWrite.enabled (include "apc-global-overrides.clusterIsHub" .) }}
+      {{- if and .Values.userWorkloadMonitoring.prometheus.remoteWrite.enabled (eq "true" (include "apc-global-overrides.clusterIsHub" .)) }}
       remoteWrite:
       - url: {{ .Values.userWorkloadMonitoring.prometheus.remoteWrite.url }}
         authorization:

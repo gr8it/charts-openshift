@@ -5,6 +5,23 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.8] - 2026-08-26
+
+_([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
+
+### Added
+
+- `customerNameShort` and `customerName` external labels (via `apc-global-overrides.customerName`/`apc-global-overrides.require-customer` helpers) on ClusterMonitoring and UserWorkloadMonitoring Prometheus, per Labeling Rules decision
+
+### Fixed
+
+- User Workload Monitoring `remoteWrite` was enabled on all clusters regardless of hub/spoke status due to a Go-template truthiness bug in the `clusterIsHub` check; now correctly gated to hub only
+- Remove redundant `managed_cluster` external label (duplicate of `clusterName`)
+
+### Changed
+
+- Bump `apc-global-overrides` dependency to 1.9.0
+
 ## [1.1.7] - 2026-08-11
 
 _([SPEXAPC-20772](https://aspecta.atlassian.net/browse/SPEXAPC-20772))_
