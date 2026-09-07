@@ -41,7 +41,7 @@ spec:
     selectors:
       cluster: openshift-storage/{{ (first .Values.additionalNetworks).name }}
   nodeTopologies: {}
-  resourceProfile: balanced
+  resourceProfile: {{ .Values.storageCluster.resourceProfile }}
   resources:
     {{- toYaml .Values.storageCluster.resources | nindent 4 }}
   storageDeviceSets:
