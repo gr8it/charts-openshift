@@ -30,12 +30,15 @@ tests:
             }
       storageCluster:
         name: ocs-storagecluster
+        nodeCount: 3
+        localVolumeSetCount: 2
         resources:
           mds:
             limits:
               memory: 20Gi
             requests:
               memory: 20Gi
+        cephCluster: {}
       machineConfig:
         enabled: true
         configMap:
@@ -43,37 +46,90 @@ tests:
     asserts:
       - matchSnapshot: {}
 
-  - it: renders exactly one StorageCluster with only spec.resources set, even with multiple resource entries
+  - it: renders exactly one StorageCluster with a device set per local volume set, sized to nodeCount
     template: templates/storagecluster.yaml
     set:
+      additionalNetworks:
+        - name: odf
+          type: Raw
+          rawCNIConfig: "{}"
       storageCluster:
         name: ocs-storagecluster
+        nodeCount: 4
+        localVolumeSetCount: 2
         resources:
           mds:
             limits:
               memory: 20Gi
             requests:
               memory: 20Gi
-          mgr:
-            limits:
-              cpu: "2"
+        cephCluster: {}
     asserts:
       - hasDocuments:
           count: 1
       - isKind:
           of: StorageCluster
       - equal:
-          path: spec
+          path: spec.resources
           value:
-            resources:
-              mds:
-                limits:
-                  memory: 20Gi
-                requests:
-                  memory: 20Gi
-              mgr:
-                limits:
-                  cpu: "2"
+            mds:
+              limits:
+                memory: 20Gi
+              requests:
+                memory: 20Gi
+      - equal:
+          path: spec.storageDeviceSets
+          value:
+            - count: 4
+              dataPVCTemplate:
+                spec:
+                  accessModes:
+                    - ReadWriteOnce
+                  resources:
+                    requests:
+                      storage: "1"
+                  storageClassName: local-volumeset-1
+                  volumeMode: Block
+              name: ocs-deviceset-local-volumeset-1
+              placement: {}
+              replica: 1
+              resources: {}
+            - count: 4
+              dataPVCTemplate:
+                spec:
+                  accessModes:
+                    - ReadWriteOnce
+                  resources:
+                    requests:
+                      storage: "1"
+                  storageClassName: local-volumeset-2
+                  volumeMode: Block
+              name: ocs-deviceset-local-volumeset-2
+              placement: {}
+              replica: 1
+              resources: {}
+
+  - it: does not render StorageCluster, StorageSystem, LocalVolumeDiscovery or LocalVolumeSet when nodeCount is 0
+    set:
+      storageCluster:
+        name: ocs-storagecluster
+        nodeCount: 0
+        localVolumeSetCount: 0
+        resources: {}
+        cephCluster: {}
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: templates/storagecluster.yaml
+      - hasDocuments:
+          count: 0
+        template: templates/storagesystem.yaml
+      - hasDocuments:
+          count: 0
+        template: templates/localvolumediscovery.yaml
+      - hasDocuments:
+          count: 0
+        template: templates/localvolumeset.yaml
 
   - it: renders MachineConfig as a hosted-cluster ConfigMap on a hub cluster
     set:

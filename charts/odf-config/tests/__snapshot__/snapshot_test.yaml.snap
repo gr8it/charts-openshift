@@ -39,6 +39,56 @@ renders MachineConfig as a hosted-cluster ConfigMap on a hub cluster:
       namespace: example-spoke
 renders ODF config on a standalone cluster:
   1: |
+    apiVersion: local.storage.openshift.io/v1alpha1
+    kind: LocalVolumeDiscovery
+    metadata:
+      name: auto-discover-devices
+      namespace: openshift-local-storage
+    spec:
+      nodeSelector:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: cluster.ocs.openshift.io/openshift-storage
+                operator: Exists
+  2: |
+    apiVersion: local.storage.openshift.io/v1alpha1
+    kind: LocalVolumeSet
+    metadata:
+      name: local-volumeset-1
+      namespace: openshift-local-storage
+    spec:
+      deviceInclusionSpec:
+        deviceTypes:
+          - disk
+        minSize: 6000Gi
+      maxDeviceCount: 1
+      nodeSelector:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: cluster.ocs.openshift.io/openshift-storage
+                operator: Exists
+      storageClassName: local-volumeset-1
+      volumeMode: Block
+  3: |
+    apiVersion: local.storage.openshift.io/v1alpha1
+    kind: LocalVolumeSet
+    metadata:
+      name: local-volumeset-2
+      namespace: openshift-local-storage
+    spec:
+      deviceInclusionSpec:
+        deviceTypes:
+          - disk
+        minSize: 6000Gi
+      maxDeviceCount: 1
+      nodeSelector:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: cluster.ocs.openshift.io/openshift-storage
+                operator: Exists
+      storageClassName: local-volumeset-2
+      volumeMode: Block
+  4: |
     apiVersion: machineconfiguration.openshift.io/v1
     kind: MachineConfig
     metadata:
@@ -69,7 +119,7 @@ renders ODF config on a standalone cluster:
                 WantedBy=multi-user.target
               enabled: true
               name: bond1-promisc.service
-  2: |
+  5: |
     apiVersion: operator.openshift.io/v1
     kind: Network
     metadata:
@@ -95,16 +145,91 @@ renders ODF config on a standalone cluster:
               }
             }
           type: Raw
-  3: |
+  6: |
     apiVersion: ocs.openshift.io/v1
     kind: StorageCluster
     metadata:
+      annotations:
+        cluster.ocs.openshift.io/local-devices: "true"
+        uninstall.ocs.openshift.io/cleanup-policy: delete
+        uninstall.ocs.openshift.io/mode: graceful
       name: ocs-storagecluster
       namespace: openshift-storage
     spec:
+      arbiter: {}
+      enableCephTools: true
+      encryption:
+        keyRotation:
+          schedule: '@weekly'
+        kms: {}
+      externalStorage: {}
+      flexibleScaling: true
+      managedResources:
+        cephBlockPools:
+          defaultStorageClass: true
+        cephCluster: {}
+        cephConfig: {}
+        cephDashboard: {}
+        cephFilesystems: {}
+        cephNonResilientPools: {}
+        cephObjectStoreUsers: {}
+        cephObjectStores: {}
+        cephRBDMirror: {}
+        cephToolbox: {}
+      mirroring: {}
+      monDataDirHostPath: /var/lib/rook
+      multiCloudGateway:
+        disableLoadBalancerService: true
+      network:
+        connections:
+          encryption: {}
+        provider: multus
+        selectors:
+          cluster: openshift-storage/odf
+      nodeTopologies: {}
+      resourceProfile: balanced
       resources:
         mds:
           limits:
             memory: 20Gi
           requests:
             memory: 20Gi
+      storageDeviceSets:
+        - count: 3
+          dataPVCTemplate:
+            spec:
+              accessModes:
+                - ReadWriteOnce
+              resources:
+                requests:
+                  storage: "1"
+              storageClassName: local-volumeset-1
+              volumeMode: Block
+          name: ocs-deviceset-local-volumeset-1
+          placement: {}
+          replica: 1
+          resources: {}
+        - count: 3
+          dataPVCTemplate:
+            spec:
+              accessModes:
+                - ReadWriteOnce
+              resources:
+                requests:
+                  storage: "1"
+              storageClassName: local-volumeset-2
+              volumeMode: Block
+          name: ocs-deviceset-local-volumeset-2
+          placement: {}
+          replica: 1
+          resources: {}
+  7: |
+    apiVersion: odf.openshift.io/v1alpha1
+    kind: StorageSystem
+    metadata:
+      name: ocs-storagecluster-storagesystem
+      namespace: openshift-storage
+    spec:
+      kind: storagecluster.ocs.openshift.io/v1
+      name: ocs-storagecluster
+      namespace: openshift-storage

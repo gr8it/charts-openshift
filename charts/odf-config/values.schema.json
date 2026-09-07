@@ -33,14 +33,27 @@
         "name": {
           "type": "string"
         },
+        "nodeCount": {
+          "type": "integer"
+        },
+        "localVolumeSetCount": {
+          "type": "integer"
+        },
         "resources": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "cephCluster": {
           "type": "object",
           "additionalProperties": true
         }
       },
       "required": [
         "name",
-        "resources"
+        "nodeCount",
+        "localVolumeSetCount",
+        "resources",
+        "cephCluster"
       ]
     },
     "machineConfig": {

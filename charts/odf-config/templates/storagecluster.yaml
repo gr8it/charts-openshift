@@ -1,10 +1,65 @@
-{{- with .Values.storageCluster.resources }}
+{{- if .Values.storageCluster.nodeCount }}
 apiVersion: ocs.openshift.io/v1
 kind: StorageCluster
 metadata:
-  name: {{ $.Values.storageCluster.name }}
+  annotations:
+    cluster.ocs.openshift.io/local-devices: "true"
+    uninstall.ocs.openshift.io/cleanup-policy: delete
+    uninstall.ocs.openshift.io/mode: graceful
+  name: {{ .Values.storageCluster.name }}
   namespace: openshift-storage
 spec:
+  arbiter: {}
+  enableCephTools: true
+  encryption:
+    keyRotation:
+      schedule: '@weekly'
+    kms: {}
+  externalStorage: {}
+  flexibleScaling: true
+  managedResources:
+    cephBlockPools:
+      defaultStorageClass: true
+    cephCluster:
+      {{- toYaml .Values.storageCluster.cephCluster | nindent 6 }}
+    cephConfig: {}
+    cephDashboard: {}
+    cephFilesystems: {}
+    cephNonResilientPools: {}
+    cephObjectStoreUsers: {}
+    cephObjectStores: {}
+    cephRBDMirror: {}
+    cephToolbox: {}
+  mirroring: {}
+  monDataDirHostPath: /var/lib/rook
+  multiCloudGateway:
+    disableLoadBalancerService: true
+  network:
+    connections:
+      encryption: {}
+    provider: multus
+    selectors:
+      cluster: openshift-storage/{{ (first .Values.additionalNetworks).name }}
+  nodeTopologies: {}
+  resourceProfile: balanced
   resources:
-    {{- toYaml . | nindent 4 }}
+    {{- toYaml .Values.storageCluster.resources | nindent 4 }}
+  storageDeviceSets:
+    {{- range $i := until (int .Values.storageCluster.localVolumeSetCount) }}
+    {{- $n := add1 $i }}
+    - count: {{ $.Values.storageCluster.nodeCount }}
+      dataPVCTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: "1"
+          storageClassName: local-volumeset-{{ $n }}
+          volumeMode: Block
+      name: ocs-deviceset-local-volumeset-{{ $n }}
+      placement: {}
+      replica: 1
+      resources: {}
+    {{- end }}
 {{- end }}

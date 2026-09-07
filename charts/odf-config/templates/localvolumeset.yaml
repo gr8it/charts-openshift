@@ -1,0 +1,22 @@
+{{- range $i := until (int .Values.storageCluster.localVolumeSetCount) }}
+{{- $n := add1 $i }}
+---
+apiVersion: local.storage.openshift.io/v1alpha1
+kind: LocalVolumeSet
+metadata:
+  name: local-volumeset-{{ $n }}
+  namespace: openshift-local-storage
+spec:
+  deviceInclusionSpec:
+    deviceTypes:
+      - disk
+    minSize: 6000Gi
+  maxDeviceCount: 1
+  nodeSelector:
+    nodeSelectorTerms:
+      - matchExpressions:
+          - key: cluster.ocs.openshift.io/openshift-storage
+            operator: Exists
+  storageClassName: local-volumeset-{{ $n }}
+  volumeMode: Block
+{{- end }}
