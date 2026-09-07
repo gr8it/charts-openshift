@@ -1,0 +1,65 @@
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+## KEDA Operator deployment config
+operator:
+  logLevel: info
+  logEncoder: console
+  resources: {}
+
+## KEDA Metrics Server deployment config
+metricsServer:
+  logLevel: "0"
+  resources: {}
+
+## KEDA Admission Webhooks deployment config
+admissionWebhooks:
+  logLevel: info
+  logEncoder: console
+  resources: {}
+
+
+## Optional KEDA HTTP Add-on.
+## Unlike the core components above, operator/interceptor/scaler here support a configurable 'replicas' field.
+httpAddon:
+  enabled: true
+  operator:
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: operator
+                app.kubernetes.io/name: http-add-on
+            topologyKey: kubernetes.io/hostname
+    logLevel: info
+    logEncoder: console
+    replicas: 2
+    resources: {}
+  interceptor:
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: interceptor
+                app.kubernetes.io/name: http-add-on
+            topologyKey: kubernetes.io/hostname
+    logLevel: info
+    logEncoder: console
+    replicas: 2
+    resources: {}
+  scaler:
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: scaler
+                app.kubernetes.io/name: http-add-on
+            topologyKey: kubernetes.io/hostname
+    logLevel: info
+    logEncoder: console
+    replicas: 2
+    resources: {}
