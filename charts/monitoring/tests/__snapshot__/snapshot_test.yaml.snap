@@ -1005,6 +1005,10 @@ manifests should match snapshot (hub cluster):
                 {{ range .Alerts }}
                 {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}
                 {{ end }}
+              description: |
+                {{ range .Alerts }}
+                {{ if .Annotations.description }}{{ .Annotations.description }}{{ else if .Annotations.summary }}{{ .Annotations.summary }}{{ else }}{{ .Annotations.message }}{{ end }}
+                {{ end }}
               priority: '{{ if eq .CommonLabels.severity "critical" }}P1{{ else if eq .CommonLabels.severity "warning" }}P2{{ else if eq .CommonLabels.severity "info" }}P3{{ else }}P4{{ end }}'
               tags: |
                 {{ with .CommonLabels.clusterName }}clusterName={{ . }}{{ end }},
@@ -1097,6 +1101,10 @@ manifests should match snapshot (hub cluster):
                 {{ range .Alerts }}
                 {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}
                 {{ end }}
+              description: |
+                {{ range .Alerts }}
+                {{ if .Annotations.description }}{{ .Annotations.description }}{{ else if .Annotations.summary }}{{ .Annotations.summary }}{{ else }}{{ .Annotations.message }}{{ end }}
+                {{ end }}
               priority: '{{ if eq .CommonLabels.severity "critical" }}P1{{ else if eq .CommonLabels.severity "warning" }}P2{{ else if eq .CommonLabels.severity "info" }}P3{{ else }}P4{{ end }}'
               tags: |
                 {{ with .CommonLabels.clusterName }}clusterName={{ . }}{{ end }},
@@ -1117,6 +1125,10 @@ manifests should match snapshot (hub cluster):
                 {{ range .Alerts }}
                 {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}
                 {{ end }}
+              description: |
+                {{ range .Alerts }}
+                {{ if .Annotations.description }}{{ .Annotations.description }}{{ else if .Annotations.summary }}{{ .Annotations.summary }}{{ else }}{{ .Annotations.message }}{{ end }}
+                {{ end }}
               priority: '{{ if eq .CommonLabels.severity "critical" }}P1{{ else if eq .CommonLabels.severity "warning" }}P2{{ else if eq .CommonLabels.severity "info" }}P3{{ else }}P4{{ end }}'
               tags: |
                 {{ with .CommonLabels.clusterName }}clusterName={{ . }}{{ end }},
@@ -1136,6 +1148,10 @@ manifests should match snapshot (hub cluster):
                 [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -
                 {{ range .Alerts }}
                 {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}
+                {{ end }}
+              description: |
+                {{ range .Alerts }}
+                {{ if .Annotations.description }}{{ .Annotations.description }}{{ else if .Annotations.summary }}{{ .Annotations.summary }}{{ else }}{{ .Annotations.message }}{{ end }}
                 {{ end }}
               priority: '{{ if eq .CommonLabels.severity "critical" }}P1{{ else if eq .CommonLabels.severity "warning" }}P2{{ else if eq .CommonLabels.severity "info" }}P3{{ else }}P4{{ end }}'
               tags: |
@@ -2253,6 +2269,10 @@ manifests should match snapshot (non-hub cluster):
                 {{ range .Alerts }}
                 {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}
                 {{ end }}
+              description: |
+                {{ range .Alerts }}
+                {{ if .Annotations.description }}{{ .Annotations.description }}{{ else if .Annotations.summary }}{{ .Annotations.summary }}{{ else }}{{ .Annotations.message }}{{ end }}
+                {{ end }}
               priority: '{{ if eq .CommonLabels.severity "critical" }}P1{{ else if eq .CommonLabels.severity "warning" }}P2{{ else if eq .CommonLabels.severity "info" }}P3{{ else }}P4{{ end }}'
               tags: |
                 {{ with .CommonLabels.clusterName }}clusterName={{ . }}{{ end }},
@@ -2344,6 +2364,10 @@ manifests should match snapshot (non-hub cluster):
                 [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -
                 {{ range .Alerts }}
                 {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}
+                {{ end }}
+              description: |
+                {{ range .Alerts }}
+                {{ if .Annotations.description }}{{ .Annotations.description }}{{ else if .Annotations.summary }}{{ .Annotations.summary }}{{ else }}{{ .Annotations.message }}{{ end }}
                 {{ end }}
               priority: '{{ if eq .CommonLabels.severity "critical" }}P1{{ else if eq .CommonLabels.severity "warning" }}P2{{ else if eq .CommonLabels.severity "info" }}P3{{ else }}P4{{ end }}'
               tags: |
