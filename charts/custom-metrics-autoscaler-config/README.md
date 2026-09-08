@@ -23,4 +23,4 @@ httpAddon:
 ## Usage
 
 - Install the `custom-metrics-autoscaler-operator` (KEDA Operator) chart first.
-- Install `custom-metrics-autoscaler-config` in the same namespace as the operator (`keda`).
+- Install `custom-metrics-autoscaler-config` in the same namespace as the operator (typically `openshift-keda`).
