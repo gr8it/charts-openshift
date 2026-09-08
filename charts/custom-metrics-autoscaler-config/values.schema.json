@@ -6,9 +6,29 @@
   "properties": {
     "nameOverride": { "type": "string" },
     "fullnameOverride": { "type": "string" },
-    "operator": { "type": "object" },
-    "metricsServer": { "type": "object" },
-    "admissionWebhooks": { "type": "object" },
+    "operator": {
+      "type": "object",
+      "properties": {
+        "logLevel": { "type": "string" },
+        "logEncoder": { "type": "string" },
+        "resources": { "type": "object" }
+      }
+    },
+    "metricsServer": {
+      "type": "object",
+      "properties": {
+        "logLevel": { "type": "string" },
+        "resources": { "type": "object" }
+      }
+    },
+    "admissionWebhooks": {
+      "type": "object",
+      "properties": {
+        "logLevel": { "type": "string" },
+        "logEncoder": { "type": "string" },
+        "resources": { "type": "object" }
+      }
+    }
     "httpAddon": {
       "type": "object",
       "required": ["enabled"],
