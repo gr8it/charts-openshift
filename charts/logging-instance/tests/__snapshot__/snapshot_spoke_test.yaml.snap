@@ -44,7 +44,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: logging-instance
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: logging-instance
-        helm.sh/chart: logging-instance-1.0.2
+        helm.sh/chart: logging-instance-1.1.0
       name: instance
       namespace: openshift-logging
     spec:
@@ -57,6 +57,8 @@ manifests should match snapshot:
             cpu: 500m
             memory: 1Gi
       filters:
+        - name: detect-multiline-exception
+          type: detectMultilineException
         - drop:
             - test:
                 - field: .message
@@ -110,11 +112,17 @@ manifests should match snapshot:
             insecureSkipVerify: false
           type: http
       pipelines:
-        - inputRefs:
+        - filterRefs:
+            - detect-multiline-exception
+          inputRefs:
             - infrastructure
             - application
+          name: containers-to-loki
+          outputRefs:
+            - default-lokistack
+        - inputRefs:
             - audit
-          name: all-to-loki
+          name: audit-to-loki
           outputRefs:
             - default-lokistack
         - inputRefs:
@@ -139,7 +147,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: logging-instance
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: logging-instance
-        helm.sh/chart: logging-instance-1.0.2
+        helm.sh/chart: logging-instance-1.1.0
       name: collect-application-logs-collector
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -158,7 +166,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: logging-instance
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: logging-instance
-        helm.sh/chart: logging-instance-1.0.2
+        helm.sh/chart: logging-instance-1.1.0
       name: collect-audit-logs-collector
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -177,7 +185,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: logging-instance
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: logging-instance
-        helm.sh/chart: logging-instance-1.0.2
+        helm.sh/chart: logging-instance-1.1.0
       name: collect-infrastructure-logs-collector
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -195,7 +203,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: logging-instance
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: logging-instance
-        helm.sh/chart: logging-instance-1.0.2
+        helm.sh/chart: logging-instance-1.1.0
       name: logging-collector-logs-writer-collector
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -213,7 +221,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: logging-instance
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: logging-instance
-        helm.sh/chart: logging-instance-1.0.2
+        helm.sh/chart: logging-instance-1.1.0
       name: hub-spoke-logforward
       namespace: openshift-logging
     spec:
@@ -237,7 +245,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: logging-instance
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: logging-instance
-        helm.sh/chart: logging-instance-1.0.2
+        helm.sh/chart: logging-instance-1.1.0
       name: logging-instance
       namespace: openshift-logging
     spec:
@@ -290,7 +298,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: logging-instance
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: logging-instance
-        helm.sh/chart: logging-instance-1.0.2
+        helm.sh/chart: logging-instance-1.1.0
       name: logging-instance
       namespace: openshift-logging
     spec:
@@ -304,7 +312,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: logging-instance
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: logging-instance
-        helm.sh/chart: logging-instance-1.0.2
+        helm.sh/chart: logging-instance-1.1.0
       name: collector
       namespace: openshift-logging
   11: |
@@ -315,7 +323,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: logging-instance
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: logging-instance
-        helm.sh/chart: logging-instance-1.0.2
+        helm.sh/chart: logging-instance-1.1.0
       name: logging
     spec:
       logging:

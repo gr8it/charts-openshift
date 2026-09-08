@@ -7,7 +7,7 @@ hub manifests should match snapshot:
         app.kubernetes.io/instance: logging-instance
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: logging-instance
-        helm.sh/chart: logging-instance-1.0.2
+        helm.sh/chart: logging-instance-1.1.0
       name: instance
       namespace: openshift-logging
     spec:
@@ -19,6 +19,9 @@ hub manifests should match snapshot:
           requests:
             cpu: 500m
             memory: 1Gi
+      filters:
+        - name: detect-multiline-exception
+          type: detectMultilineException
       managementState: Managed
       outputs:
         - lokiStack:
@@ -35,11 +38,17 @@ hub manifests should match snapshot:
               key: service-ca.crt
           type: lokiStack
       pipelines:
-        - inputRefs:
+        - filterRefs:
+            - detect-multiline-exception
+          inputRefs:
             - infrastructure
             - application
+          name: containers-to-loki
+          outputRefs:
+            - default-lokistack
+        - inputRefs:
             - audit
-          name: all-to-loki
+          name: audit-to-loki
           outputRefs:
             - default-lokistack
       serviceAccount:
@@ -52,7 +61,7 @@ hub manifests should match snapshot:
         app.kubernetes.io/instance: logging-instance
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: logging-instance
-        helm.sh/chart: logging-instance-1.0.2
+        helm.sh/chart: logging-instance-1.1.0
       name: cluster-logging-write-audit-logs-spoke-logforward
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -70,7 +79,7 @@ hub manifests should match snapshot:
         app.kubernetes.io/instance: logging-instance
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: logging-instance
-        helm.sh/chart: logging-instance-1.0.2
+        helm.sh/chart: logging-instance-1.1.0
       name: collect-application-logs-collector
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -89,7 +98,7 @@ hub manifests should match snapshot:
         app.kubernetes.io/instance: logging-instance
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: logging-instance
-        helm.sh/chart: logging-instance-1.0.2
+        helm.sh/chart: logging-instance-1.1.0
       name: collect-audit-logs-collector
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -108,7 +117,7 @@ hub manifests should match snapshot:
         app.kubernetes.io/instance: logging-instance
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: logging-instance
-        helm.sh/chart: logging-instance-1.0.2
+        helm.sh/chart: logging-instance-1.1.0
       name: collect-infrastructure-logs-collector
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -126,7 +135,7 @@ hub manifests should match snapshot:
         app.kubernetes.io/instance: logging-instance
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: logging-instance
-        helm.sh/chart: logging-instance-1.0.2
+        helm.sh/chart: logging-instance-1.1.0
       name: logging-collector-logs-writer-collector
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -144,7 +153,7 @@ hub manifests should match snapshot:
         app.kubernetes.io/instance: logging-instance
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: logging-instance
-        helm.sh/chart: logging-instance-1.0.2
+        helm.sh/chart: logging-instance-1.1.0
       name: logging-instance
       namespace: openshift-logging
     spec:
@@ -191,7 +200,7 @@ hub manifests should match snapshot:
         app.kubernetes.io/instance: logging-instance
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: logging-instance
-        helm.sh/chart: logging-instance-1.0.2
+        helm.sh/chart: logging-instance-1.1.0
       name: logging-instance
       namespace: openshift-logging
     spec:
@@ -205,7 +214,7 @@ hub manifests should match snapshot:
         app.kubernetes.io/instance: logging-instance
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: logging-instance
-        helm.sh/chart: logging-instance-1.0.2
+        helm.sh/chart: logging-instance-1.1.0
       name: spoke-logforward
       namespace: openshift-logging
   10: |
@@ -216,7 +225,7 @@ hub manifests should match snapshot:
         app.kubernetes.io/instance: logging-instance
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: logging-instance
-        helm.sh/chart: logging-instance-1.0.2
+        helm.sh/chart: logging-instance-1.1.0
       name: collector
       namespace: openshift-logging
   11: |
@@ -227,7 +236,7 @@ hub manifests should match snapshot:
         app.kubernetes.io/instance: logging-instance
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: logging-instance
-        helm.sh/chart: logging-instance-1.0.2
+        helm.sh/chart: logging-instance-1.1.0
       name: logging
     spec:
       logging:
