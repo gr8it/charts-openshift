@@ -12,8 +12,10 @@ spec:
   collector:
     resources:
       {{- toYaml .Values.collector.resources | nindent 6 }}
-  {{- if .Values.pgaudit.enabled }}
   filters:
+    - name: detect-multiline-exception
+      type: detectMultilineException
+    {{- if .Values.pgaudit.enabled }}
     - name: pgaudit-filter
       type: drop
       drop:
@@ -71,10 +73,16 @@ spec:
         insecureSkipVerify: false
     {{- end }}
   pipelines:
-    - name: all-to-loki
+    - name: containers-to-loki
+      filterRefs:
+        - detect-multiline-exception
       inputRefs:
         - infrastructure
         - application
+      outputRefs:
+        - default-lokistack
+    - name: audit-to-loki
+      inputRefs:
         - audit
       outputRefs:
         - default-lokistack
