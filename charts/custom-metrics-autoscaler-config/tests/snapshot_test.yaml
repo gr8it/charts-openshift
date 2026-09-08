@@ -11,3 +11,10 @@ tests:
   - it: manifests should match snapshot
     asserts:
       - matchSnapshot: {}
+  - it: omits the HTTP add-on when disabled
+    set:
+      httpAddon:
+        enabled: false
+    asserts:
+      - notExists:
+          path: spec.httpAddon
