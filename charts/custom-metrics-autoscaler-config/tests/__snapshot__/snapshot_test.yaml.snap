@@ -25,11 +25,18 @@ manifests should match snapshot:
                 - labelSelector:
                     matchLabels:
                       app.kubernetes.io/component: interceptor
-                      app.kubernetes.io/name: http-add-on
+                      app.kubernetes.io/name: add-on
                   topologyKey: kubernetes.io/hostname
+          env:
+            - name: OTEL_PROM_EXPORTER_PORT
+              value: "2223"
+            - name: OTEL_PROM_EXPORTER_ENABLED
+              value: "true"
+            - name: KEDA_HTTP_LOG_REQUESTS
+              value: "true"
           logEncoder: console
           logLevel: info
-          replicas: 2
+          replicas: 1
           resources: {}
         operator:
           affinity:
@@ -65,3 +72,21 @@ manifests should match snapshot:
         logEncoder: console
         logLevel: info
         resources: {}
+  2: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      labels:
+        app.kubernetes.io/component: interceptor
+        app.kubernetes.io/name: http-add-on
+      name: keda-http-addon-interceptor
+      namespace: keda
+    spec:
+      endpoints:
+        - interval: 30s
+          port: metrics
+          scheme: http
+      selector:
+        matchLabels:
+          app.kubernetes.io/component: interceptor
+          app.kubernetes.io/name: http-add-on

@@ -44,11 +44,18 @@ httpAddon:
           - labelSelector:
               matchLabels:
                 app.kubernetes.io/component: interceptor
-                app.kubernetes.io/name: http-add-on
+                app.kubernetes.io/name: add-on
             topologyKey: kubernetes.io/hostname
+    env:
+      - name: OTEL_PROM_EXPORTER_PORT
+        value: "2223"
+      - name: OTEL_PROM_EXPORTER_ENABLED
+        value: "true"
+      - name: KEDA_HTTP_LOG_REQUESTS
+        value: "true"
     logLevel: info
     logEncoder: console
-    replicas: 2
+    replicas: 1
     resources: {}
   scaler:
     affinity:
