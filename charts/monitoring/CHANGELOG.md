@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _([SPEXAPC-8225](https://aspecta.atlassian.net/browse/SPEXAPC-8225))_
 
+### Removed
+
+- `allow-proxy` NetworkPolicies in `openshift-monitoring` and `openshift-user-workload-monitoring` (added in 1.1.0, not wanted)
+
 ### Changed
 
 - Made alerts more readable.
