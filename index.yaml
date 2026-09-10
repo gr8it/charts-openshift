@@ -1310,6 +1310,20 @@ entries:
     version: 1.0.0
   cluster-logging-operator:
   - apiVersion: v2
+    created: "2026-09-07T14:13:08.371757213+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install the Red Hat OpenShift Logging (Cluster Logging)
+      Operator using ACM OperatorPolicy
+    digest: 2ed9f42de5eef3bad1d65a2e508be37455144a552a7ae2e19f29770d74bb20e6
+    name: cluster-logging-operator
+    type: application
+    urls:
+    - packaged_charts/cluster-logging-operator-1.2.0.tgz
+    version: 1.2.0
+  - apiVersion: v2
     created: "2026-08-10T11:32:38.033121+02:00"
     dependencies:
     - name: acm-operatorpolicy
@@ -1949,6 +1963,18 @@ entries:
     urls:
     - packaged_charts/crossplane-xr-functions-1.0.0.tgz
     version: 1.0.0
+  custom-metrics-autoscaler-config:
+  - apiVersion: v2
+    appVersion: 2.19.0-3
+    created: "2026-09-08T11:45:45.737469856+02:00"
+    description: KedaController custom resource to configure KEDA for the OpenShift
+      Custom Metrics Autoscaler Operator
+    digest: 4b77c88123bc3925071383a4217fcd5e9440ddda5edf4a7a3ad0ea104ed1efec
+    name: custom-metrics-autoscaler-config
+    type: application
+    urls:
+    - packaged_charts/custom-metrics-autoscaler-config-1.0.0.tgz
+    version: 1.0.0
   default-network-policies:
   - apiVersion: v2
     created: "2026-02-03T10:42:07.6080652+01:00"
@@ -2284,7 +2310,42 @@ entries:
     urls:
     - packaged_charts/external-secrets-operator-1.0.0.tgz
     version: 1.0.0
+  gatling-operator:
+  - apiVersion: v2
+    appVersion: 0.9.11
+    created: "2026-09-07T11:00:36.760889462+02:00"
+    description: A Helm chart for Gatling Operator
+    digest: 3eeaf6e4a5a4b686198c76bdb54b320f3666b16be76a7629fd9ab1a0f6c59f8d
+    name: gatling-operator
+    type: application
+    urls:
+    - packaged_charts/gatling-operator-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
+    appVersion: 0.9.11
+    created: "2026-09-07T11:01:42.843232787+02:00"
+    description: A Helm chart for Gatling Operator
+    digest: ea6d6c22355347fe60f3fff43e10dcf4dfff118aa09ec3e9d390c75275177400
+    name: gatling-operator
+    type: application
+    urls:
+    - packaged_charts/gatling-operator-1.0.0.tgz
+    version: 1.0.0
   gitops-bootstrap:
+  - apiVersion: v2
+    appVersion: v1
+    created: "2026-09-02T22:27:51.342342+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.7.0
+    description: A Helm chart to bootstrap APC GitOps using ACM policies
+    digest: 4653c2dff0dffbd4017732f857a24c11e4c811cf750caeccc8db1f55d34b5bcf
+    name: gitops-bootstrap
+    type: application
+    urls:
+    - packaged_charts/gitops-bootstrap-2.10.0.tgz
+    version: 2.10.0
   - apiVersion: v2
     appVersion: v1
     created: "2026-04-09T06:38:40.865888+02:00"
@@ -3226,6 +3287,23 @@ entries:
     version: 1.0.0
   logging-instance:
   - apiVersion: v2
+    created: "2026-09-07T14:13:12.710834528+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.10.0
+    - name: monitoring-reminder
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 2.0.2
+    description: A Helm chart to configure OpenShift logging infrastructure (LokiStack,
+      ClusterLogForwarder, UIPlugin)
+    digest: 8001f7d10912735d0720d2984814ab0bfefb1d9d54046d4fb04bcca5e61ce6ee
+    name: logging-instance
+    type: application
+    urls:
+    - packaged_charts/logging-instance-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
     created: "2026-08-07T15:34:18.667581+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -3277,6 +3355,20 @@ entries:
     - packaged_charts/logging-instance-1.0.0.tgz
     version: 1.0.0
   loki-operator:
+  - apiVersion: v2
+    created: "2026-09-07T14:13:10.215456951+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install the Red Hat Loki Operator using ACM OperatorPolicy
+    digest: 59260a4f633263f6f0f0a2153e688ef7e84f140e697d48e23a25753c6a988ac1
+    icon: https://raw.githubusercontent.com/operator-framework/olm-docs/ea9cd734aa7a6bf2d24f273322ed9aec3ffcb02a/content/en/images/logo-sm.svg
+    name: loki-operator
+    type: application
+    urls:
+    - packaged_charts/loki-operator-1.3.0.tgz
+    version: 1.3.0
   - apiVersion: v2
     created: "2026-08-11T10:58:47.727945+02:00"
     dependencies:
@@ -3467,28 +3559,6 @@ entries:
     - packaged_charts/mongodb-operator-helm-1.0.0.tgz
     version: 1.0.0
   monitoring:
-  - apiVersion: v2
-    created: "2026-09-10T11:33:07.345672+02:00"
-    dependencies:
-    - name: apc-global-overrides
-      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
-      version: 1.9.0
-    - name: monitoring-prometheusrules
-      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
-      version: 1.1.0
-    - alias: backups
-      condition: backups.enabled
-      name: openshift-adp-backups
-      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
-      version: 1.0.0
-    description: Helm chart for OpenShift cluster monitoring (ClusterMonitoringConfig,
-      UserWorkloadMonitoringConfig, AlertManager via ESO, Kyverno PrometheusRule generation)
-    digest: 0d212ed63d6adbf38f5a2d6b98a729f26523c57fe486969e8e237ffa602b9ecb
-    name: monitoring
-    type: application
-    urls:
-    - packaged_charts/monitoring-1.2.0.tgz
-    version: 1.2.0
   - apiVersion: v2
     created: "2026-08-26T14:25:18.060957+02:00"
     dependencies:
@@ -3916,15 +3986,6 @@ entries:
     version: 1.0.0
   monitoring-prometheusrules:
   - apiVersion: v2
-    created: "2026-09-10T11:33:03.174584+02:00"
-    description: A Helm chart for prometheusrules used in other helm charts.
-    digest: 87b5fd792919fba07ced0e89d54028dfaf2e2d82b4ae10ba1ac0fad6ccbc348f
-    name: monitoring-prometheusrules
-    type: library
-    urls:
-    - packaged_charts/monitoring-prometheusrules-1.1.0.tgz
-    version: 1.1.0
-  - apiVersion: v2
     created: "2026-08-18T16:39:34.992959+02:00"
     description: A Helm chart for prometheusrules used in other helm charts.
     digest: 21fd0b05322b23bed0b860be3c4806532623da180ad2d0ea2ce1ccbf8ead1f73
@@ -4268,6 +4329,21 @@ entries:
     - packaged_charts/openshift-etcd-backup-1.0.0.tgz
     version: 1.0.0
   openshift-tempo-operator:
+  - apiVersion: v2
+    appVersion: v0.22.0-1
+    created: "2026-09-10T11:03:30.18839781+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart for installing Tempo Operator
+    digest: b26ecaf7483bb5c72fe7381629af025606341ba8a2668db368b0eacea2638e4b
+    kubeVersion: '>=1.16-0'
+    name: openshift-tempo-operator
+    type: application
+    urls:
+    - packaged_charts/openshift-tempo-operator-1.2.0.tgz
+    version: 1.2.0
   - apiVersion: v2
     appVersion: v0.21.0-3
     created: "2026-08-19T19:39:31.636232+02:00"
@@ -4733,23 +4809,6 @@ entries:
     version: 1.0.0
   user-workload-monitoring-policy:
   - apiVersion: v2
-    created: "2026-09-10T11:33:08.110711+02:00"
-    dependencies:
-    - name: apc-global-overrides
-      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
-      version: 1.5.0
-    - name: monitoring-prometheusrules
-      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
-      version: 1.1.0
-    description: A Helm chart that automatically creates PrometheusRules for app /
-      non-app workload namespaces
-    digest: bc50e1d2d008ede81e9784bb11697a0f34f03c9beaa5292873635bb44041ade0
-    name: user-workload-monitoring-policy
-    type: application
-    urls:
-    - packaged_charts/user-workload-monitoring-policy-1.1.0.tgz
-    version: 1.1.0
-  - apiVersion: v2
     created: "2026-08-18T16:39:59.64665+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -5021,4 +5080,4 @@ entries:
     urls:
     - packaged_charts/veeam-exporter-1.0.0.tgz
     version: 1.0.0
-generated: "2026-09-10T11:33:08.109295+02:00"
+generated: "2026-09-10T11:03:30.187674726+02:00"
