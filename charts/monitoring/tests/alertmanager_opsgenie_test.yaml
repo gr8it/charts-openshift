@@ -17,6 +17,9 @@ tests:
           pattern: '\{\{ with \$a\.GeneratorURL \}\}Source: \{\{ \. \}\}\{\{ end \}\}'
       - matchRegex:
           path: stringData["alertmanager.yaml"]
+          pattern: '\{\{ with \$a\.Annotations\.runbook_url \}\}Runbook: \{\{ \. \}\}\{\{ end \}\}'
+      - matchRegex:
+          path: stringData["alertmanager.yaml"]
           pattern: '\{\{ if \$i \}\}\n\s*---\n\s*\{\{ end \}\}'
 
   - it: UWM Opsgenie tags carry the object-identifying labels alongside the common set
