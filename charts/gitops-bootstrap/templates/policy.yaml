@@ -725,7 +725,7 @@ spec:
           remediationAction: enforce
           severity: high
           object-templates:
-            - complianceType: musthave
+            - complianceType: mustonlyhave
               objectDefinition:
                 apiVersion: monitoring.coreos.com/v1
                 kind: PrometheusRule
@@ -738,17 +738,9 @@ spec:
                     rules:
                     - alert: ArgoCDAppSyncUnknownAlert
                       annotations:
-                        description: |
-                          Argo CD application {{ "{{ \"{{ $labels.name }}\" }}" }} in project {{ "{{ \"{{ $labels.project }}\" }}" }} has sync status Unknown.
-                          name = {{ "{{ \"{{ $labels.name }}\" }}" }}
-                          project = {{ "{{ \"{{ $labels.project }}\" }}" }}
-                          repo = {{ "{{ \"{{ $labels.repo }}\" }}" }}
-                          dest_namespace = {{ "{{ \"{{ $labels.dest_namespace }}\" }}" }}
-                          sync_status = {{ "{{ \"{{ $labels.sync_status }}\" }}" }}
-                          health_status = {{ "{{ \"{{ $labels.health_status }}\" }}" }}
-                          autosync_enabled = {{ "{{ \"{{ $labels.autosync_enabled }}\" }}" }}
+                        description: Argo CD application {{ "{{ \"{{ $labels.name }}\" }}" }} in project {{ "{{ \"{{ $labels.project }}\" }}" }} has sync status Unknown.
                         summary: Argo CD application sync status is Unknown
-                      expr: argocd_app_info{namespace="{{ .Values.namespace }}",sync_status="Unknown"} > 0
+                      expr: max by (namespace, name, project, repo, dest_namespace, sync_status, health_status, autosync_enabled) (argocd_app_info{namespace="{{ .Values.namespace }}",sync_status="Unknown"}) > 0
                       for: 5m
                       labels:
                         severity: {{ .Values.argocdAlertSeverity }}
@@ -770,7 +762,7 @@ spec:
                         description: |
                           {{ "{{ \"{{ $value | humanizePercentage }}\" }}" }} of Argo CD applications have sync status Unknown. Check repository connectivity.
                         summary: Majority of Argo CD applications sync status is Unknown
-            - complianceType: musthave
+            - complianceType: mustonlyhave
               objectDefinition:
                 apiVersion: monitoring.coreos.com/v1
                 kind: PrometheusRule
@@ -782,23 +774,15 @@ spec:
                   - name: ArgoCDAppUnhealthyAlerts
                     rules:
                     - alert: ArgocdServiceUnhealthy
-                      expr: argocd_app_info{health_status!="Healthy"} != 0
+                      expr: max by (namespace, name, project, repo, dest_namespace, sync_status, health_status, autosync_enabled) (argocd_app_info{health_status!="Healthy"}) != 0
                       for: 1h
                       labels:
                         severity: {{ .Values.argocdAlertSeverity }}
                         team: platform
                         vendor: aspecta
                       annotations:
-                        summary: ArgoCD service unhealthy (instance {{ "{{ \"{{ $labels.instance }}\" }}" }})
-                        description: |
-                          Argo CD application {{ "{{ \"{{ $labels.name }}\" }}" }} in project {{ "{{ \"{{ $labels.project }}\" }}" }} has health status {{ "{{ \"{{ $labels.health_status }}\" }}" }}.
-                          name = {{ "{{ \"{{ $labels.name }}\" }}" }}
-                          project = {{ "{{ \"{{ $labels.project }}\" }}" }}
-                          repo = {{ "{{ \"{{ $labels.repo }}\" }}" }}
-                          dest_namespace = {{ "{{ \"{{ $labels.dest_namespace }}\" }}" }}
-                          sync_status = {{ "{{ \"{{ $labels.sync_status }}\" }}" }}
-                          health_status = {{ "{{ \"{{ $labels.health_status }}\" }}" }}
-                          autosync_enabled = {{ "{{ \"{{ $labels.autosync_enabled }}\" }}" }}
+                        summary: ArgoCD application is unhealthy
+                        description: Argo CD application {{ "{{ \"{{ $labels.name }}\" }}" }} in project {{ "{{ \"{{ $labels.project }}\" }}" }} has health status {{ "{{ \"{{ $labels.health_status }}\" }}" }}.
 
     - extraDependencies:
         - name: {{ include "gitops-bootstrap.fullname" . }}-instance

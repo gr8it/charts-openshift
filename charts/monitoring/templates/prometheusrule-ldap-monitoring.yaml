@@ -11,7 +11,7 @@ spec:
     - name: ldap-monitor
       rules:
         - alert: LdapServiceUp
-          expr: openldap_service_up != 1
+          expr: max by (host) (openldap_service_up != 1)
           for: 1m
           labels:
             severity: critical
@@ -19,7 +19,8 @@ spec:
             team: platform
           annotations:
             summary: "LDAP service {{ `{{ $labels.host }}` }} is down."
-            description: "LDAP service {{ `{{ $labels.host }}` }} is down."
+            description: |-
+              host = {{ `{{ $labels.host }}` }}
         - alert: LdapReplicationTimestamp
           expr: max by (replica_id) (openldap_replication_sync_timestamp) != min by (replica_id) (openldap_replication_sync_timestamp)
           for: 1m
@@ -29,7 +30,9 @@ spec:
             team: platform
           annotations:
             summary: "Inconsistent sync timestamp for {{ `{{ $labels.replica_id }}` }}"
-            description: "Replica ID {{ `{{ $labels.replica_id }}` }} has inconsistent sync timestamp across servers. LDAP instances are not synchonized."
+            description: |-
+              LDAP instances are not synchronized.
+              replica_id = {{ `{{ $labels.replica_id }}` }}
         - alert: LdapSingleReplica
           expr: count by (replica_id) (openldap_replication_sync_timestamp) == 1
           for: 5m
@@ -38,6 +41,7 @@ spec:
             vendor: aspecta
             team: platform
           annotations:
-            summary: "Only single instance found for repica id {{ `{{ $labels.replica_id }}` }}"
-            description: "Replica ID {{ `{{ $labels.replica_id }}` }} has only single instance. LDAP replication is not working properly."
+            summary: "Only single instance found for replica id {{ `{{ $labels.replica_id }}` }}"
+            description: |-
+              replica_id = {{ `{{ $labels.replica_id }}` }}
 {{- end }}

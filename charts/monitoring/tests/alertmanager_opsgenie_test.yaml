@@ -1,0 +1,55 @@
+suite: Alertmanager Opsgenie description and tags
+templates:
+  - templates/secret-alertmanager-uwm.yaml
+  - templates/secret-alertmanager.yaml
+values:
+  - ../values.example.yaml
+release:
+  name: monitoring
+  namespace: openshift-monitoring
+
+tests:
+  - it: UWM Opsgenie description includes a Source line and separates grouped alerts
+    template: templates/secret-alertmanager-uwm.yaml
+    asserts:
+      - matchRegex:
+          path: stringData["alertmanager.yaml"]
+          pattern: '\{\{ with \$a\.GeneratorURL \}\}Source: \{\{ reReplaceAll'
+      - matchRegex:
+          path: stringData["alertmanager.yaml"]
+          pattern: '\{\{ with \$a\.Annotations\.runbook_url \}\}Runbook: \{\{ \. \}\}'
+      - matchRegex:
+          path: stringData["alertmanager.yaml"]
+          pattern: '\{\{ if \$i \}\}\n\s*---\n\s*\{\{ end \}\}'
+
+  - it: UWM Opsgenie tags carry the object-identifying labels alongside the common set
+    template: templates/secret-alertmanager-uwm.yaml
+    asserts:
+      - matchRegex:
+          path: stringData["alertmanager.yaml"]
+          pattern: 'alertname=\{\{ \. \}\}'
+      - matchRegex:
+          path: stringData["alertmanager.yaml"]
+          pattern: 'sync_status=\{\{ \. \}\}'
+      - matchRegex:
+          path: stringData["alertmanager.yaml"]
+          pattern: 'health_status=\{\{ \. \}\}'
+      - matchRegex:
+          path: stringData["alertmanager.yaml"]
+          pattern: 'autosync_enabled=\{\{ \. \}\}'
+      - matchRegex:
+          path: stringData["alertmanager.yaml"]
+          pattern: 'project=\{\{ \. \}\}'
+      - matchRegex:
+          path: stringData["alertmanager.yaml"]
+          pattern: 'repo=\{\{ \. \}\}'
+
+  - it: platform Opsgenie description and tags on hub match the UWM receiver
+    template: templates/secret-alertmanager.yaml
+    asserts:
+      - matchRegex:
+          path: stringData["alertmanager.yaml"]
+          pattern: '\{\{ with \$a\.GeneratorURL \}\}Source: \{\{ reReplaceAll'
+      - matchRegex:
+          path: stringData["alertmanager.yaml"]
+          pattern: 'sync_status=\{\{ \. \}\}'

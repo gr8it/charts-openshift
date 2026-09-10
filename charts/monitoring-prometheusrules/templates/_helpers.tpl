@@ -68,7 +68,10 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Applicatio
 {{- $rules := index .Values "monitoring-prometheusrules" "rules" | default .Values.rules }}
 {{- range $rules }}
 - alert: {{ .alert }}
-  expr: {{ .expr | quote }}
+  expr: |-
+    max by ({{ join "," .alertLabels }}) (
+{{ .expr | trim | nindent 6 }}
+    )
   for: {{ .for }}
   labels:
     vendor: socpoist
@@ -76,8 +79,12 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Applicatio
     severity: {{ .labels.severity }}
     namespace: "{{`{{request.object.metadata.name}}`}}"
   annotations:
-    description: {{ .annotations.description }}
+    description: |-
+      {{- .annotations.description | nindent 6 }}
     summary: {{ .annotations.summary }}
+    {{- with .annotations.runbook_url }}
+    runbook_url: {{ . }}
+    {{- end }}
 {{- end }}
 {{- end }}
 
@@ -88,7 +95,10 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Platform (
 {{- $rules := index .Values "monitoring-prometheusrules" "rules" | default .Values.rules }}
 {{- range $rules }}
 - alert: {{ .alert }}
-  expr: {{ .expr | quote }}
+  expr: |-
+    max by ({{ join "," .alertLabels }}) (
+{{ .expr | trim | nindent 6 }}
+    )
   for: {{ .for }}
   labels:
     vendor: aspecta
@@ -96,8 +106,12 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Platform (
     severity: {{ .labels.severity }}
     namespace: "{{`{{request.object.metadata.name}}`}}"
   annotations:
-    description: {{ .annotations.description }}
+    description: |-
+      {{- .annotations.description | nindent 6 }}
     summary: {{ .annotations.summary }}
+    {{- with .annotations.runbook_url }}
+    runbook_url: {{ . }}
+    {{- end }}
 {{- end }}
 {{- end }}
 
@@ -108,7 +122,10 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Cluster Mo
 {{- $rules := index .Values "monitoring-prometheusrules" "rules" | default .Values.rules }}
 {{- range $rules }}
 - alert: {{ .alert }}
-  expr: {{ .expr | quote }}
+  expr: |-
+    max by ({{ join "," .alertLabels }}) (
+{{ .expr | trim | nindent 6 }}
+    )
   for: {{ .for }}
   labels:
     vendor: aspecta
@@ -116,7 +133,11 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Cluster Mo
     severity: {{ .labels.severity }}
     namespace: "{{`{{request.object.metadata.name}}`}}"
   annotations:
-    description: {{ .annotations.description }}
+    description: |-
+      {{- .annotations.description | nindent 6 }}
     summary: {{ .annotations.summary }}
+    {{- with .annotations.runbook_url }}
+    runbook_url: {{ . }}
+    {{- end }}
 {{- end }}
 {{- end }}

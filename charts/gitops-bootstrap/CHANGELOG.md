@@ -5,6 +5,18 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.1] - 2026-09-10
+
+### Fixed
+
+- ArgoCD PrometheusRule object-templates use `complianceType: mustonlyhave` instead of `musthave` - `musthave` never prunes stale array entries, so every content change to `ArgoCDAppSyncUnknownAlert`/`ArgocdServiceUnhealthy` left the old version stacked alongside the new one on managed clusters, firing both together in the same notification
+
+## [2.11.0] - 2026-09-10
+
+### Changed
+
+- Reduce ArgoCD sync/health alert labels to object-identifying ones only (drop scrape metadata)
+
 ## [2.10.0] - 2026-09-02
 
 ### Changed

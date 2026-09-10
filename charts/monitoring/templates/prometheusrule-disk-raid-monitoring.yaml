@@ -11,13 +11,14 @@ spec:
       rules:
       - alert: APC-NodeRAIDDegraded
         annotations:
-          description: RAID array '{{ `{{ $labels.device }}` }}' at {{ `{{ $labels.instance }}` }}
-            is in degraded state due to one or more disks failures. Number of spare
-            drives is insufficient to fix issue automatically.
+          description: |-
+            device = {{ `{{ $labels.device }}` }}
           runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/NodeRAIDDegraded.md
           summary: RAID Array is degraded.
         expr: |
-          node_md_disks_required{job="node-exporter",namespace="openshift-monitoring",device=~"md.+"} - ignoring (state) (node_md_disks{state="active",namespace="openshift-monitoring",job="node-exporter",device=~"md.+"}) > 0
+          max by (device) (
+            node_md_disks_required{job="node-exporter",namespace="openshift-monitoring",device=~"md.+"} - ignoring (state) (node_md_disks{state="active",namespace="openshift-monitoring",job="node-exporter",device=~"md.+"}) > 0
+          )
         for: 15m
         labels:
           vendor: aspecta
@@ -25,12 +26,13 @@ spec:
           severity: critical
       - alert: APC-NodeRAIDDiskFailure
         annotations:
-          description: At least one device in RAID array at {{ `{{ $labels.instance }}` }}
-            failed. Array '{{ `{{ $labels.device }}` }}' needs attention and possibly a disk
-            swap.
+          description: |-
+            device = {{ `{{ $labels.device }}` }}
           summary: Failed device in RAID array.
         expr: |
-          node_md_disks{state="failed",namespace="openshift-monitoring",job="node-exporter",device=~"md.+"} > 0
+          max by (device) (
+            node_md_disks{state="failed",namespace="openshift-monitoring",job="node-exporter",device=~"md.+"} > 0
+          )
         labels:
           severity: warning
           vendor: aspecta

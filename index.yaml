@@ -2334,6 +2334,34 @@ entries:
   gitops-bootstrap:
   - apiVersion: v2
     appVersion: v1
+    created: "2026-09-10T14:08:09.520828+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.7.0
+    description: A Helm chart to bootstrap APC GitOps using ACM policies
+    digest: 3547acba48260e8779db586108b44a3f26ccbef779c443a189acc7108887a1d2
+    name: gitops-bootstrap
+    type: application
+    urls:
+    - packaged_charts/gitops-bootstrap-2.11.1.tgz
+    version: 2.11.1
+  - apiVersion: v2
+    appVersion: v1
+    created: "2026-09-10T12:20:56.354667+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.7.0
+    description: A Helm chart to bootstrap APC GitOps using ACM policies
+    digest: 6a66f4a8999f6b3b303601b3692b5aaf6e439bb4bb62bc4e83379cbf4187d867
+    name: gitops-bootstrap
+    type: application
+    urls:
+    - packaged_charts/gitops-bootstrap-2.11.0.tgz
+    version: 2.11.0
+  - apiVersion: v2
+    appVersion: v1
     created: "2026-09-02T22:27:51.342342+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -3560,6 +3588,28 @@ entries:
     version: 1.0.0
   monitoring:
   - apiVersion: v2
+    created: "2026-09-10T14:31:46.641364+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.9.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.1.0
+    - alias: backups
+      condition: backups.enabled
+      name: openshift-adp-backups
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.0
+    description: Helm chart for OpenShift cluster monitoring (ClusterMonitoringConfig,
+      UserWorkloadMonitoringConfig, AlertManager via ESO, Kyverno PrometheusRule generation)
+    digest: 7ea6801dfaf996addebb0712847eebea60a384a7e0509cdc0b29531f1eb306e9
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.2.0.tgz
+    version: 1.2.0
+  - apiVersion: v2
     created: "2026-08-26T14:25:18.060957+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -3985,6 +4035,15 @@ entries:
     - packaged_charts/monitoring-1.0.0.tgz
     version: 1.0.0
   monitoring-prometheusrules:
+  - apiVersion: v2
+    created: "2026-09-10T14:31:36.762271+02:00"
+    description: A Helm chart for prometheusrules used in other helm charts.
+    digest: 01c95a5d7b3bee3db4d584fec88f73507783fc7f6e8f59ae1f82e4f9d6019c35
+    name: monitoring-prometheusrules
+    type: library
+    urls:
+    - packaged_charts/monitoring-prometheusrules-1.1.0.tgz
+    version: 1.1.0
   - apiVersion: v2
     created: "2026-08-18T16:39:34.992959+02:00"
     description: A Helm chart for prometheusrules used in other helm charts.
@@ -4809,6 +4868,23 @@ entries:
     version: 1.0.0
   user-workload-monitoring-policy:
   - apiVersion: v2
+    created: "2026-09-10T14:31:47.403781+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.1.0
+    description: A Helm chart that automatically creates PrometheusRules for app /
+      non-app workload namespaces
+    digest: be97e6993ca36c774c4d39cb5953c1f3a41eebca46c82a7e5c2b1ae520b76120
+    name: user-workload-monitoring-policy
+    type: application
+    urls:
+    - packaged_charts/user-workload-monitoring-policy-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
     created: "2026-08-18T16:39:59.64665+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -5080,4 +5156,4 @@ entries:
     urls:
     - packaged_charts/veeam-exporter-1.0.0.tgz
     version: 1.0.0
-generated: "2026-09-10T11:03:30.187674726+02:00"
+generated: "2026-09-10T14:31:47.402466+02:00"

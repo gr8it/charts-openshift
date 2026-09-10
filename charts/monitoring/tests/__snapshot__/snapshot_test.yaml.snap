@@ -7,7 +7,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: cluster-alerting-rules
       namespace: openshift-monitoring
     spec:
@@ -17,17 +17,18 @@ manifests should match snapshot (hub cluster):
             - alert: PodRepeatedOOMKilled
               annotations:
                 description: |
-                  The kernel Out-Of-Memory killer has restarted this container at least
-                  twice within the last 30 minutes. Check memory limits, look for leaks or
-                  sudden load spikes before the pod enters CrashLoopBackOff.
+                  Container was OOM-killed more than once in the last 30 minutes.
+                  restarts = {{ printf "%.0f" $value }}
                 summary: |
                   Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} was OOM-killed {{ printf "%.0f" $value }} times in the last 30 minutes
               expr: |
-                (
-                  increase(kube_pod_container_status_restarts_total[30m])
-                  * on(namespace,pod,container) group_left()
-                    kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}
-                ) > 1
+                max by (namespace, pod, container) (
+                  (
+                    increase(kube_pod_container_status_restarts_total[30m])
+                    * on(namespace,pod,container) group_left()
+                      kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}
+                  ) > 1
+                )
               for: 0m
               labels:
                 severity: warning
@@ -41,7 +42,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: cluster-policy-cluster-monitoring
     spec:
       generateExisting: true
@@ -65,8 +66,13 @@ manifests should match snapshot (hub cluster):
                       - alert: KubePodCrashLooping
                         annotations:
                           description: Pod \{{ $labels.pod }}, container \{{ $labels.container }} in namespace \{{ $labels.namespace }} is in a CrashLoopBackOff state.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodcrashlooping
                           summary: Pod is crash looping
-                        expr: max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m]) >= 1
+                        expr: |-
+                          max by (namespace,pod,container) (
+
+                            max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m]) >= 1
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -76,15 +82,19 @@ manifests should match snapshot (hub cluster):
                       - alert: KubePodNotReady
                         annotations:
                           description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been in a non-ready state for longer than 15 minutes.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodnotready
                           summary: Pod has been in a non-ready state for more than 15 minutes
                         expr: |-
-                          sum by (namespace, pod, cluster) (
-                            max by (namespace, pod, cluster) (
-                              kube_pod_status_phase{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", phase=~"Pending|Unknown|Failed"}
-                            ) * on (namespace, pod, cluster) group_left(owner_kind) topk by (namespace, pod, cluster) (
-                              1, max by (namespace, pod, owner_kind, cluster) (kube_pod_owner{owner_kind!="Job"})
-                            )
-                          ) > 0
+                          max by (namespace,pod) (
+
+                            sum by (namespace, pod, cluster) (
+                              max by (namespace, pod, cluster) (
+                                kube_pod_status_phase{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", phase=~"Pending|Unknown|Failed"}
+                              ) * on (namespace, pod, cluster) group_left(owner_kind) topk by (namespace, pod, cluster) (
+                                1, max by (namespace, pod, owner_kind, cluster) (kube_pod_owner{owner_kind!="Job"})
+                              )
+                            ) > 0
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -95,7 +105,11 @@ manifests should match snapshot (hub cluster):
                         annotations:
                           description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been evicted.
                           summary: Pod has been evicted
-                        expr: kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
+                        expr: |-
+                          max by (namespace,pod) (
+
+                            kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
+                          )
                         for: 0m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -105,11 +119,15 @@ manifests should match snapshot (hub cluster):
                       - alert: KubeDeploymentGenerationMismatch
                         annotations:
                           description: Deployment generation for \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} does not match, this indicates that the Deployment has failed but has not been rolled back."
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentgenerationmismatch
                           summary: Deployment generation mismatch due to possible roll-back
                         expr: |-
-                          kube_deployment_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            !=
-                          kube_deployment_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          max by (namespace,deployment) (
+
+                            kube_deployment_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              !=
+                            kube_deployment_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -119,16 +137,20 @@ manifests should match snapshot (hub cluster):
                       - alert: KubeDeploymentReplicasMismatch
                         annotations:
                           description: Deployment \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} has not matched the expected number of replicas for longer than 15 minutes.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentreplicasmismatch
                           summary: Deployment has not matched the expected number of replicas
                         expr: |-
-                          (
-                            kube_deployment_spec_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                              >
-                            kube_deployment_status_replicas_available{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                          ) and (
-                            changes(kube_deployment_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[10m])
-                              ==
-                            0
+                          max by (namespace,deployment) (
+
+                            (
+                              kube_deployment_spec_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                >
+                              kube_deployment_status_replicas_available{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            ) and (
+                              changes(kube_deployment_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[10m])
+                                ==
+                              0
+                            )
                           )
                         for: 15m
                         labels:
@@ -139,10 +161,14 @@ manifests should match snapshot (hub cluster):
                       - alert: KubeDeploymentRolloutStuck
                         annotations:
                           description: Rollout of deployment \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} is not progressing for longer than 15 minutes.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentrolloutstuck
                           summary: Deployment rollout is not progressing
                         expr: |-
-                          kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                          != 0
+                          max by (namespace,deployment) (
+
+                            kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            != 0
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -152,16 +178,20 @@ manifests should match snapshot (hub cluster):
                       - alert: KubeStatefulSetReplicasMismatch
                         annotations:
                           description: StatefulSet \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} has not matched the expected number of replicas for longer than 15 minutes.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetreplicasmismatch
                           summary: StatefulSet has not matched the expected number of replicas
                         expr: |-
-                          (
-                            kube_statefulset_status_replicas_ready{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                              !=
-                            kube_statefulset_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                          ) and (
-                            changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[10m])
-                              ==
-                            0
+                          max by (namespace,statefulset) (
+
+                            (
+                              kube_statefulset_status_replicas_ready{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                !=
+                              kube_statefulset_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            ) and (
+                              changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[10m])
+                                ==
+                              0
+                            )
                           )
                         for: 15m
                         labels:
@@ -172,11 +202,15 @@ manifests should match snapshot (hub cluster):
                       - alert: KubeStatefulSetGenerationMismatch
                         annotations:
                           description: StatefulSet generation for \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} does not match, this indicates that the StatefulSet has failed but has not been rolled back.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetgenerationmismatch
                           summary: StatefulSet generation mismatch due to possible roll-back
                         expr: |-
-                          kube_statefulset_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            !=
-                          kube_statefulset_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          max by (namespace,statefulset) (
+
+                            kube_statefulset_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              !=
+                            kube_statefulset_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -186,24 +220,28 @@ manifests should match snapshot (hub cluster):
                       - alert: KubeStatefulSetUpdateNotRolledOut
                         annotations:
                           description: StatefulSet \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} update has not been rolled out.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetupdatenotrolledout
                           summary: StatefulSet update has not been rolled out
                         expr: |-
-                          (
-                            max by (namespace, statefulset, job, cluster) (
-                              kube_statefulset_status_current_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                                unless
-                              kube_statefulset_status_update_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            )
-                              * on (namespace, statefulset, job, cluster)
+                          max by (namespace,statefulset) (
+
                             (
-                              kube_statefulset_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                                !=
-                              kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              max by (namespace, statefulset, job, cluster) (
+                                kube_statefulset_status_current_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                  unless
+                                kube_statefulset_status_update_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              )
+                                * on (namespace, statefulset, job, cluster)
+                              (
+                                kube_statefulset_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                  !=
+                                kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              )
+                            )  and on (namespace, statefulset, job, cluster) (
+                              changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m])
+                                ==
+                              0
                             )
-                          )  and on (namespace, statefulset, job, cluster) (
-                            changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m])
-                              ==
-                            0
                           )
                         for: 15m
                         labels:
@@ -214,30 +252,34 @@ manifests should match snapshot (hub cluster):
                       - alert: KubeDaemonSetRolloutStuck
                         annotations:
                           description: DaemonSet \{{ $labels.daemonset }} in namespace \{{ $labels.namespace }} has not finished or progressed for at least 15m.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetrolloutstuck
                           summary: DaemonSet rollout is stuck
                         expr: |-
-                          (
+                          max by (namespace,daemonset) (
+
                             (
-                              kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                                !=
-                              kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            ) or (
-                              kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                                !=
+                              (
+                                kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                  !=
+                                kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              ) or (
+                                kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                  !=
+                                0
+                              ) or (
+                                kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                  !=
+                                kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              ) or (
+                                kube_daemonset_status_number_available{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                  !=
+                                kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              )
+                            ) and (
+                              changes(kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m])
+                                ==
                               0
-                            ) or (
-                              kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                                !=
-                              kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            ) or (
-                              kube_daemonset_status_number_available{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                                !=
-                              kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                             )
-                          ) and (
-                            changes(kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m])
-                              ==
-                            0
                           )
                         for: 15m
                         labels:
@@ -248,8 +290,13 @@ manifests should match snapshot (hub cluster):
                       - alert: KubeContainerWaiting
                         annotations:
                           description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} on container \{{ $labels.container}} has been in waiting state for longer than 1 hour.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubecontainerwaiting
                           summary: Pod container waiting longer than 1 hour
-                        expr: kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                        expr: |-
+                          max by (namespace,pod,container) (
+
+                            kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                          )
                         for: 1h
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -259,11 +306,15 @@ manifests should match snapshot (hub cluster):
                       - alert: KubeDaemonSetNotScheduled
                         annotations:
                           description: There are \{{ $value }} pods of DaemonSet \{{ $labels.daemonset }} that are not scheduled.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetnotscheduled
                           summary: DaemonSet pods are not scheduled
                         expr: |-
-                          kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            -
-                          kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                          max by (namespace,daemonset) (
+
+                            kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              -
+                            kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                          )
                         for: 10m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -273,8 +324,13 @@ manifests should match snapshot (hub cluster):
                       - alert: KubeDaemonSetMisScheduled
                         annotations:
                           description: Found \{{ $value }} mis-scheduled pods for DaemonSet \{{ $labels.daemonset }} in namespace \{{ $labels.namespace }}.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetmisscheduled
                           summary: DaemonSet pods are misscheduled
-                        expr: kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                        expr: |-
+                          max by (namespace,daemonset) (
+
+                            kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -284,11 +340,15 @@ manifests should match snapshot (hub cluster):
                       - alert: KubeJobNotCompleted
                         annotations:
                           description: Job \{{ $labels.job_name }} in namespace \{{ $labels.namespace }} has been running for \{{ humanizeDuration $value }} and has not completed.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobnotcompleted
                           summary: Job did not complete in time
                         expr: |-
-                          time() - max by (namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            and
-                          kube_job_status_active{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0) > 43200
+                          max by (namespace,job_name) (
+
+                            time() - max by (namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              and
+                            kube_job_status_active{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0) > 43200
+                          )
                         for: null
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -298,8 +358,13 @@ manifests should match snapshot (hub cluster):
                       - alert: KubeJobFailed
                         annotations:
                           description: Job \{{ $labels.job_name }} in namespace \{{ $labels.namespace }} failed to complete. Removing failed job after investigation should clear this alert.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobfailed
                           summary: Job failed to complete
-                        expr: kube_job_failed{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}  > 0
+                        expr: |-
+                          max by (namespace,job_name) (
+
+                            kube_job_failed{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}  > 0
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -309,21 +374,25 @@ manifests should match snapshot (hub cluster):
                       - alert: KubeHpaReplicasMismatch
                         annotations:
                           description: HPA \{{ $labels.horizontalpodautoscaler  }} has not matched the desired number of replicas for longer than 15 minutes.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubehpareplicasmismatch
                           summary: HPA has not matched desired number of replicas
                         expr: |-
-                          (kube_horizontalpodautoscaler_status_desired_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            !=
-                          kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
-                            and
-                          (kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            >
-                          kube_horizontalpodautoscaler_spec_min_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
-                            and
-                          (kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            <
-                          kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
-                            and
-                          changes(kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[15m]) == 0
+                          max by (namespace,horizontalpodautoscaler) (
+
+                            (kube_horizontalpodautoscaler_status_desired_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              !=
+                            kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
+                              and
+                            (kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              >
+                            kube_horizontalpodautoscaler_spec_min_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
+                              and
+                            (kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              <
+                            kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
+                              and
+                            changes(kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[15m]) == 0
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -333,11 +402,15 @@ manifests should match snapshot (hub cluster):
                       - alert: KubeHpaMaxedOut
                         annotations:
                           description: HPA \{{ $labels.horizontalpodautoscaler  }} in namespace \{{ $labels.namespace }} has been running at max replicas for longer than 15 minutes.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubehpamaxedout
                           summary: HPA is running at max replicas
                         expr: |-
-                          kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            ==
-                          kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          max by (namespace,horizontalpodautoscaler) (
+
+                            kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              ==
+                            kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -347,14 +420,18 @@ manifests should match snapshot (hub cluster):
                       - alert: KubePdbNotEnoughHealthyPods
                         annotations:
                           description: PDB \{{ $labels.poddisruptionbudget }} expects \{{ $value }} more healthy pods. The desired number of healthy pods has not been met for at least 15m.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepdbnotenoughhealthypods
                           summary: PDB does not have enough healthy pods
                         expr: |-
-                          (
-                            kube_poddisruptionbudget_status_desired_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            -
-                            kube_poddisruptionbudget_status_current_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          max by (namespace,poddisruptionbudget) (
+
+                            (
+                              kube_poddisruptionbudget_status_desired_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              -
+                              kube_poddisruptionbudget_status_current_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            )
+                            > 0
                           )
-                          > 0
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -364,19 +441,23 @@ manifests should match snapshot (hub cluster):
                       - alert: KubePersistentVolumeFillingUp
                         annotations:
                           description: The PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is only \{{ $value | humanizePercentage }} free.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumefillingup
                           summary: PersistentVolume is filling up
                         expr: |-
-                          (
-                            kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                              /
-                            kubelet_volume_stats_capacity_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                          ) < 0.03
-                          and
-                          kubelet_volume_stats_used_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          max by (namespace,persistentvolumeclaim) (
+
+                            (
+                              kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                                /
+                              kubelet_volume_stats_capacity_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                            ) < 0.03
+                            and
+                            kubelet_volume_stats_used_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          )
                         for: 1m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -386,21 +467,25 @@ manifests should match snapshot (hub cluster):
                       - alert: KubePersistentVolumeFillingUp
                         annotations:
                           description: Based on recent sampling, the PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is expected to fill up within four days. Currently \{{ $value | humanizePercentage }} is available.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumefillingup
                           summary: PersistentVolume is filling up
                         expr: |-
-                          (
-                            kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                              /
-                            kubelet_volume_stats_capacity_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                          ) < 0.15
-                          and
-                          kubelet_volume_stats_used_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
-                          and
-                          predict_linear(kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          max by (namespace,persistentvolumeclaim) (
+
+                            (
+                              kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                                /
+                              kubelet_volume_stats_capacity_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                            ) < 0.15
+                            and
+                            kubelet_volume_stats_used_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
+                            and
+                            predict_linear(kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          )
                         for: 1h
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -410,19 +495,23 @@ manifests should match snapshot (hub cluster):
                       - alert: KubePersistentVolumeInodesFillingUp
                         annotations:
                           description: The PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} has only \{{ $value | humanizePercentage }} free inodes.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumeinodesfillingup
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
-                          (
-                            kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                              /
-                            kubelet_volume_stats_inodes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                          ) < 0.03
-                          and
-                          kubelet_volume_stats_inodes_used{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          max by (namespace,persistentvolumeclaim) (
+
+                            (
+                              kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                                /
+                              kubelet_volume_stats_inodes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                            ) < 0.03
+                            and
+                            kubelet_volume_stats_inodes_used{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          )
                         for: 1m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -432,21 +521,25 @@ manifests should match snapshot (hub cluster):
                       - alert: KubePersistentVolumeInodesFillingUp
                         annotations:
                           description: Based on recent sampling, the PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is expected to run out of inodes within four days. Currently \{{ $value | humanizePercentage }} of its inodes are free.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumeinodesfillingup
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
-                          (
-                            kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                              /
-                            kubelet_volume_stats_inodes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                          ) < 0.15
-                          and
-                          kubelet_volume_stats_inodes_used{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
-                          and
-                          predict_linear(kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          max by (namespace,persistentvolumeclaim) (
+
+                            (
+                              kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                                /
+                              kubelet_volume_stats_inodes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                            ) < 0.15
+                            and
+                            kubelet_volume_stats_inodes_used{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
+                            and
+                            predict_linear(kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          )
                         for: 1h
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -456,8 +549,13 @@ manifests should match snapshot (hub cluster):
                       - alert: KubePersistentVolumeErrors
                         annotations:
                           description: The persistent volume \{{ $labels.persistentvolume }} has status \{{ $labels.phase }}.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumeerrors
                           summary: PersistentVolume is having issues with provisioning
-                        expr: kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"} > 0
+                        expr: |-
+                          max by (persistentvolume,phase) (
+
+                            kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"} > 0
+                          )
                         for: 5m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -469,11 +567,14 @@ manifests should match snapshot (hub cluster):
                           description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 95% of its CPU limit for over 15 minutes. Current value is \{{ $value | humanizePercentage }}.
                           summary: CPU utilization is above 95%
                         expr: |-
-                          (
-                            sum by (namespace, pod) (pod:container_cpu_usage:sum{namespace="{{ request.object.metadata.name }}"})
-                            /
-                            sum by (namespace, pod) (kube_pod_container_resource_limits{resource="cpu", namespace="{{ request.object.metadata.name }}"})
-                          ) > 0.95
+                          max by (namespace,pod) (
+
+                            (
+                              sum by (namespace, pod) (pod:container_cpu_usage:sum{namespace="{{ request.object.metadata.name }}"})
+                              /
+                              sum by (namespace, pod) (kube_pod_container_resource_limits{resource="cpu", namespace="{{ request.object.metadata.name }}"})
+                            ) > 0.95
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -483,13 +584,16 @@ manifests should match snapshot (hub cluster):
                       - alert: HighMemoryUtilization
                         annotations:
                           description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 90% of its memory limit for over 15 minutes. Current utilization is \{{ $value | humanizePercentage }}
-                          summary: Memory utilization (90%+) on pod \{{ $labels.pod }}
+                          summary: Memory utilization is above 90%
                         expr: |-
-                          (
-                            sum by (namespace, pod, container) (container_memory_working_set_bytes{container!="", namespace="{{ request.object.metadata.name }}"})
-                            /
-                            sum by (namespace, pod, container) (kube_pod_container_resource_limits{resource="memory", namespace="{{ request.object.metadata.name }}"})
-                          ) > 0.90
+                          max by (namespace,pod,container) (
+
+                            (
+                              sum by (namespace, pod, container) (container_memory_working_set_bytes{container!="", namespace="{{ request.object.metadata.name }}"})
+                              /
+                              sum by (namespace, pod, container) (kube_pod_container_resource_limits{resource="memory", namespace="{{ request.object.metadata.name }}"})
+                            ) > 0.90
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -521,7 +625,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
         rbac.kyverno.io/aggregate-to-admission-controller: "true"
       name: kyverno:admission-controller:monitoring
     rules:
@@ -592,7 +696,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: cluster-monitoring-config
       namespace: openshift-monitoring
   5: |
@@ -655,7 +759,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: user-workload-monitoring-config
       namespace: openshift-user-workload-monitoring
   6: |
@@ -666,7 +770,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: vault-bastion
       namespace: apc-monitoring-bastion
     subsets:
@@ -684,7 +788,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: alertmanager-receivers
       namespace: openshift-monitoring
     spec:
@@ -706,7 +810,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: alertmanager-uwm-receivers
       namespace: openshift-user-workload-monitoring
     spec:
@@ -721,44 +825,6 @@ manifests should match snapshot (hub cluster):
         creationPolicy: Owner
         name: alertmanager-uwm-receivers
   9: |
-    apiVersion: networking.k8s.io/v1
-    kind: NetworkPolicy
-    metadata:
-      labels:
-        app.kubernetes.io/instance: monitoring
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
-      name: allow-proxy
-      namespace: openshift-user-workload-monitoring
-    spec:
-      egress:
-        - to:
-            - ipBlock:
-                cidr: 10.1.1.7/32
-      podSelector: {}
-      policyTypes:
-        - Egress
-  10: |
-    apiVersion: networking.k8s.io/v1
-    kind: NetworkPolicy
-    metadata:
-      labels:
-        app.kubernetes.io/instance: monitoring
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
-      name: allow-proxy
-      namespace: openshift-monitoring
-    spec:
-      egress:
-        - to:
-            - ipBlock:
-                cidr: 10.1.1.7/32
-      podSelector: {}
-      policyTypes:
-        - Egress
-  11: |
     apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule
     metadata:
@@ -766,7 +832,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: disk-raid-array-monitoring
       namespace: openshift-monitoring
     spec:
@@ -775,11 +841,13 @@ manifests should match snapshot (hub cluster):
           rules:
             - alert: APC-NodeRAIDDegraded
               annotations:
-                description: RAID array '{{ $labels.device }}' at {{ $labels.instance }} is in degraded state due to one or more disks failures. Number of spare drives is insufficient to fix issue automatically.
+                description: device = {{ $labels.device }}
                 runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/NodeRAIDDegraded.md
                 summary: RAID Array is degraded.
               expr: |
-                node_md_disks_required{job="node-exporter",namespace="openshift-monitoring",device=~"md.+"} - ignoring (state) (node_md_disks{state="active",namespace="openshift-monitoring",job="node-exporter",device=~"md.+"}) > 0
+                max by (device) (
+                  node_md_disks_required{job="node-exporter",namespace="openshift-monitoring",device=~"md.+"} - ignoring (state) (node_md_disks{state="active",namespace="openshift-monitoring",job="node-exporter",device=~"md.+"}) > 0
+                )
               for: 15m
               labels:
                 severity: critical
@@ -787,15 +855,17 @@ manifests should match snapshot (hub cluster):
                 vendor: aspecta
             - alert: APC-NodeRAIDDiskFailure
               annotations:
-                description: At least one device in RAID array at {{ $labels.instance }} failed. Array '{{ $labels.device }}' needs attention and possibly a disk swap.
+                description: device = {{ $labels.device }}
                 summary: Failed device in RAID array.
               expr: |
-                node_md_disks{state="failed",namespace="openshift-monitoring",job="node-exporter",device=~"md.+"} > 0
+                max by (device) (
+                  node_md_disks{state="failed",namespace="openshift-monitoring",job="node-exporter",device=~"md.+"} > 0
+                )
               labels:
                 severity: warning
                 team: platform
                 vendor: aspecta
-  12: |
+  10: |
     apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule
     metadata:
@@ -803,7 +873,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: ldap-monitoring
       namespace: apc-monitoring-bastion
     spec:
@@ -812,9 +882,9 @@ manifests should match snapshot (hub cluster):
           rules:
             - alert: LdapServiceUp
               annotations:
-                description: LDAP service {{ $labels.host }} is down.
+                description: host = {{ $labels.host }}
                 summary: LDAP service {{ $labels.host }} is down.
-              expr: openldap_service_up != 1
+              expr: max by (host) (openldap_service_up != 1)
               for: 1m
               labels:
                 severity: critical
@@ -822,7 +892,9 @@ manifests should match snapshot (hub cluster):
                 vendor: aspecta
             - alert: LdapReplicationTimestamp
               annotations:
-                description: Replica ID {{ $labels.replica_id }} has inconsistent sync timestamp across servers. LDAP instances are not synchonized.
+                description: |-
+                  LDAP instances are not synchronized.
+                  replica_id = {{ $labels.replica_id }}
                 summary: Inconsistent sync timestamp for {{ $labels.replica_id }}
               expr: max by (replica_id) (openldap_replication_sync_timestamp) != min by (replica_id) (openldap_replication_sync_timestamp)
               for: 1m
@@ -832,15 +904,15 @@ manifests should match snapshot (hub cluster):
                 vendor: aspecta
             - alert: LdapSingleReplica
               annotations:
-                description: Replica ID {{ $labels.replica_id }} has only single instance. LDAP replication is not working properly.
-                summary: Only single instance found for repica id {{ $labels.replica_id }}
+                description: replica_id = {{ $labels.replica_id }}
+                summary: Only single instance found for replica id {{ $labels.replica_id }}
               expr: count by (replica_id) (openldap_replication_sync_timestamp) == 1
               for: 5m
               labels:
                 severity: warning
                 team: platform
                 vendor: aspecta
-  13: |
+  11: |
     apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule
     metadata:
@@ -848,7 +920,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: user-workload-monitoring-thanos-rules
       namespace: apc-observability
     spec:
@@ -866,7 +938,7 @@ manifests should match snapshot (hub cluster):
               labels:
                 namespace: apc-observability
                 severity: none
-  14: |
+  12: |
     apiVersion: v1
     kind: Secret
     metadata:
@@ -874,91 +946,13 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: alertmanager-user-workload
       namespace: openshift-user-workload-monitoring
     stringData:
-      alertmanager.yaml: |
-        global:
-          http_config:
-            proxy_url: http://proxy.example.com:8080
-            no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1
-        inhibit_rules:
-        - equal:
-          - namespace
-          - alertname
-          source_matchers:
-          - "severity = critical"
-          target_matchers:
-          - "severity =~ warning|info"
-        - equal:
-          - namespace
-          - alertname
-          source_matchers:
-          - "severity = warning"
-          target_matchers:
-          - "severity = info"
-        receivers:
-        - name: "null"
-        - name: teams_aspecta
-          msteams_configs:
-            - send_resolved: true
-              webhook_url_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/msteams_url
-        - name: healthchecksioUWMthanos
-          webhook_configs:
-            - url_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/healthchecks_url
-              send_resolved: false
-        - name: atlassian_aspecta
-          opsgenie_configs:
-            - send_resolved: true
-              api_key_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/opsgenie_key
-              message: |
-                [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -
-                {{ range .Alerts }}
-                {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}
-                {{ end }}
-              priority: '{{ if eq .CommonLabels.severity "critical" }}P1{{ else if eq .CommonLabels.severity "warning" }}P2{{ else if eq .CommonLabels.severity "info" }}P3{{ else }}P4{{ end }}'
-              tags: |
-                {{ with .CommonLabels.clusterName }}clusterName={{ . }}{{ end }},
-                {{ with .CommonLabels.customerName }}customerName={{ . }}{{ end }},
-                {{ with .CommonLabels.environment }}environment={{ . }}{{ end }},
-                {{ with .CommonLabels.location }}location={{ . }}{{ end }},
-                {{ with .CommonLabels.namespace }}namespace={{ . }}{{ end }},
-                {{ with .CommonLabels.severity }}severity={{ . }}{{ end }},
-                {{ with .CommonLabels.team }}team={{ . }}{{ end }},
-                {{ with .CommonLabels.vendor }}vendor={{ . }}{{ end }},
-                {{ with .CommonLabels.app }}app={{ . }}{{ end }}
-        route:
-          group_by:
-          - namespace
-          - alertname
-          - severity
-          group_interval: 5m
-          group_wait: 30s
-          receiver: teams_aspecta
-          repeat_interval: 12h
-          routes:
-          - receiver: atlassian_aspecta
-            continue: true
-            matchers:
-            - severity =~ "warning|critical"
-            - alertname != Watchdog
-            - vendor = "aspecta"
-            - team = "platform"
-          - receiver: healthchecksioUWMthanos
-            matchers:
-            - alertname = WatchdogUWMthanos
-            group_wait: 0s
-            group_interval: 60s
-            repeat_interval: 60s
-          - receiver: "null"
-            matchers:
-            - severity =~ "info|none"
-          - receiver: "null"
-            matchers:
-            - vendor != "aspecta"
+      alertmanager.yaml: "global:\n  http_config:\n    proxy_url: http://proxy.example.com:8080\n    no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1\ninhibit_rules:\n- equal:\n  - namespace\n  - alertname\n  source_matchers:\n  - \"severity = critical\"\n  target_matchers:\n  - \"severity =~ warning|info\"\n- equal:\n  - namespace\n  - alertname\n  source_matchers:\n  - \"severity = warning\"\n  target_matchers:\n  - \"severity = info\"\nreceivers:\n- name: \"null\"\n- name: teams_aspecta\n  msteams_configs:\n    - send_resolved: true\n      webhook_url_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/msteams_url\n- name: healthchecksioUWMthanos\n  webhook_configs:\n    - url_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/healthchecks_url\n      send_resolved: false\n- name: atlassian_aspecta\n  opsgenie_configs:\n    - send_resolved: true\n      api_key_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/opsgenie_key\n      message: |\n        [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -\n        {{ range .Alerts }}\n        {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}\n        {{ end }}\n      description: |\n        {{ range $i, $a := .Alerts }}\n        {{ if $i }}\n        ---\n        {{ end }}\n        {{ if $a.Annotations.description }}{{ $a.Annotations.description }}{{ else if $a.Annotations.summary }}{{ $a.Annotations.summary }}{{ else }}{{ $a.Annotations.message }}{{ end }}\n        \n        {{ with $a.Annotations.runbook_url }}Runbook: {{ . }}\n        \n        {{ end }}{{ with $a.GeneratorURL }}Source: {{ reReplaceAll `^(.*)/monitoring/graph\\?g0\\.expr=` \"${1}/monitoring/query-browser?query0=\" . }}{{ end }}\n        {{ end }}\n      priority: '{{ if eq .CommonLabels.severity \"critical\" }}P1{{ else if eq .CommonLabels.severity \"warning\" }}P2{{ else if eq .CommonLabels.severity \"info\" }}P3{{ else }}P4{{ end }}'\n      tags: |\n        {{- with .CommonLabels.alertname }}alertname={{ . }},{{- end }}\n        {{- with .CommonLabels.clusterName }}clusterName={{ . }},{{- end }}\n        {{- with .CommonLabels.customerName }}customerName={{ . }},{{- end }}\n        {{- with .CommonLabels.environment }}environment={{ . }},{{- end }}\n        {{- with .CommonLabels.location }}location={{ . }},{{- end }}\n        {{- with .CommonLabels.namespace }}namespace={{ . }},{{- end }}\n        {{- with .CommonLabels.hostname }}hostname={{ . }},{{- end }}\n        {{- with .CommonLabels.name }}name={{ . }},{{- end }}\n        {{- with .CommonLabels.project }}project={{ . }},{{- end }}\n        {{- with .CommonLabels.repo }}repo={{ . }},{{- end }}\n        {{- with .CommonLabels.sync_status }}sync_status={{ . }},{{- end }}\n        {{- with .CommonLabels.health_status }}health_status={{ . }},{{- end }}\n        {{- with .CommonLabels.autosync_enabled }}autosync_enabled={{ . }},{{- end }}\n        {{- with .CommonLabels.severity }}severity={{ . }},{{- end }}\n        {{- with .CommonLabels.team }}team={{ . }},{{- end }}\n        {{- with .CommonLabels.vendor }}vendor={{ . }},{{- end }}\n        {{- with .CommonLabels.app }}app={{ . }}{{- end }}\nroute:\n  group_by:\n  - namespace\n  - alertname\n  - severity\n  group_interval: 5m\n  group_wait: 30s\n  receiver: teams_aspecta\n  repeat_interval: 12h\n  routes:\n  - receiver: atlassian_aspecta\n    continue: true\n    matchers:\n    - severity =~ \"warning|critical\"\n    - alertname != Watchdog\n    - vendor = \"aspecta\"\n    - team = \"platform\"\n  - receiver: healthchecksioUWMthanos\n    matchers:\n    - alertname = WatchdogUWMthanos\n    group_wait: 0s\n    group_interval: 60s\n    repeat_interval: 60s\n  - receiver: \"null\"\n    matchers:\n    - severity =~ \"info|none\"\n  - receiver: \"null\"\n    matchers:\n    - vendor != \"aspecta\"\n"
     type: Opaque
-  15: |
+  13: |
     apiVersion: v1
     kind: Secret
     metadata:
@@ -966,171 +960,13 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: alertmanager-main
       namespace: openshift-monitoring
     stringData:
-      alertmanager.yaml: |
-        global:
-          http_config:
-            proxy_url: http://proxy.example.com:8080
-            no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1
-        inhibit_rules:
-        - equal:
-          - namespace
-          - alertname
-          source_matchers:
-          - "severity = critical"
-          target_matchers:
-          - "severity =~ warning|info"
-        - equal:
-          - namespace
-          - alertname
-          source_matchers:
-          - "severity = warning"
-          target_matchers:
-          - "severity = info"
-        receivers:
-        - name: "null"
-        - name: teams_aspecta
-          msteams_configs:
-            - send_resolved: true
-              webhook_url_file: /etc/alertmanager/secrets/alertmanager-receivers/msteams_url
-        - name: healthchecksio
-          webhook_configs:
-            - url_file: /etc/alertmanager/secrets/alertmanager-receivers/healthchecks_url
-              send_resolved: false
-        - name: atlassian_aspecta
-          opsgenie_configs:
-            - send_resolved: true
-              api_key_file: /etc/alertmanager/secrets/alertmanager-receivers/opsgenie_key
-              message: |
-                [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -
-                {{ range .Alerts }}
-                {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}
-                {{ end }}
-              priority: '{{ if eq .CommonLabels.severity "critical" }}P1{{ else if eq .CommonLabels.severity "warning" }}P2{{ else if eq .CommonLabels.severity "info" }}P3{{ else }}P4{{ end }}'
-              tags: |
-                {{ with .CommonLabels.clusterName }}clusterName={{ . }}{{ end }},
-                {{ with .CommonLabels.customerName }}customerName={{ . }}{{ end }},
-                {{ with .CommonLabels.environment }}environment={{ . }}{{ end }},
-                {{ with .CommonLabels.location }}location={{ . }}{{ end }},
-                {{ with .CommonLabels.namespace }}namespace={{ . }}{{ end }},
-                {{ with .CommonLabels.severity }}severity={{ . }}{{ end }},
-                {{ with .CommonLabels.team }}team={{ . }}{{ end }},
-                {{ with .CommonLabels.vendor }}vendor={{ . }}{{ end }},
-                {{ with .CommonLabels.app }}app={{ . }}{{ end }}
-        - name: atlassian_aspecta_security
-          opsgenie_configs:
-            - send_resolved: false
-              api_key_file: /etc/alertmanager/secrets/alertmanager-receivers/opsgenie_key_acs
-              message: |
-                [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -
-                {{ range .Alerts }}
-                {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}
-                {{ end }}
-              priority: '{{ if eq .CommonLabels.severity "critical" }}P1{{ else if eq .CommonLabels.severity "warning" }}P2{{ else if eq .CommonLabels.severity "info" }}P3{{ else }}P4{{ end }}'
-              tags: |
-                {{ with .CommonLabels.clusterName }}clusterName={{ . }}{{ end }},
-                {{ with .CommonLabels.customerName }}customerName={{ . }}{{ end }},
-                {{ with .CommonLabels.environment }}environment={{ . }}{{ end }},
-                {{ with .CommonLabels.location }}location={{ . }}{{ end }},
-                {{ with .CommonLabels.namespace }}namespace={{ . }}{{ end }},
-                {{ with .CommonLabels.severity }}severity={{ . }}{{ end }},
-                {{ with .CommonLabels.team }}team={{ . }}{{ end }},
-                {{ with .CommonLabels.vendor }}vendor={{ . }}{{ end }},
-                {{ with .CommonLabels.app }}app={{ . }}{{ end }}
-        - name: atlassian_aspecta_logs
-          opsgenie_configs:
-            - send_resolved: false
-              api_key_file: /etc/alertmanager/secrets/alertmanager-receivers/opsgenie_key_logs
-              message: |
-                [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -
-                {{ range .Alerts }}
-                {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}
-                {{ end }}
-              priority: '{{ if eq .CommonLabels.severity "critical" }}P1{{ else if eq .CommonLabels.severity "warning" }}P2{{ else if eq .CommonLabels.severity "info" }}P3{{ else }}P4{{ end }}'
-              tags: |
-                {{ with .CommonLabels.clusterName }}clusterName={{ . }}{{ end }},
-                {{ with .CommonLabels.customerName }}customerName={{ . }}{{ end }},
-                {{ with .CommonLabels.hostname }}hostname={{ . }}{{ end }},
-                {{ with .CommonLabels.environment }}environment={{ . }}{{ end }},
-                {{ with .CommonLabels.location }}location={{ . }}{{ end }},
-                {{ with .CommonLabels.namespace }}namespace={{ . }}{{ end }},
-                {{ with .CommonLabels.severity }}severity={{ . }}{{ end }},
-                {{ with .CommonLabels.team }}team={{ . }}{{ end }},
-                {{ with .CommonLabels.vendor }}vendor={{ . }}{{ end }},
-                {{ with .CommonLabels.app }}app={{ . }}{{ end }}
-        route:
-          group_by:
-          - namespace
-          - alertname
-          - severity
-          group_interval: 5m
-          group_wait: 30s
-          receiver: teams_aspecta
-          repeat_interval: 12h
-          routes:
-          # fixed in OCP 4.17.6 — remove once cluster is upgraded (https://access.redhat.com/solutions/7103336)
-          - receiver: "null"
-            matchers:
-            - alertname = PrometheusRuleFailures
-            - rule_group =~ ".*ceph\\.rules$"
-          - receiver: "null"
-            matchers:
-            - alertname =~ "CertificateIsAboutToExpire|CertificateApproachingExpiration"
-            - name =~ "kubemacpool-service|result-server-cert-ocp4-cis-1-5|result-client-cert-ocp4-cis-1-5|root-ca-ocp4-cis-1-5"
-          - receiver: teams_aspecta
-            continue: true
-            matchers:
-            - severity =~ "warning|critical"
-            - alertname != Watchdog
-          - receiver: atlassian_aspecta
-            continue: true
-            matchers:
-            - severity =~ "warning|critical"
-            - alertname != Watchdog
-            - team != security
-            - source != logs
-          - receiver: atlassian_aspecta_security
-            continue: true
-            matchers:
-            - severity =~ "warning|critical"
-            - alertname != Watchdog
-            - team = security
-            group_by:
-            - namespace
-            - alertname
-            - severity
-            - clusterName
-            - acs_alert_id
-          - receiver: atlassian_aspecta_logs
-            continue: true
-            matchers:
-            - severity =~ "warning|critical"
-            - alertname != Watchdog
-            - source = logs
-            group_by:
-            - namespace
-            - alertname
-            - severity
-            - clusterName
-            - hostname
-            - msgid
-          - receiver: healthchecksio
-            matchers:
-            - alertname = Watchdog
-            group_wait: 0s
-            group_interval: 60s
-            repeat_interval: 60s
-          - receiver: "null"
-            matchers:
-            - severity =~ "info|none"
-          - receiver: "null"
-            matchers:
-            - vendor != "aspecta"
+      alertmanager.yaml: "global:\n  http_config:\n    proxy_url: http://proxy.example.com:8080\n    no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1\ninhibit_rules:\n- equal:\n  - namespace\n  - alertname\n  source_matchers:\n  - \"severity = critical\"\n  target_matchers:\n  - \"severity =~ warning|info\"\n- equal:\n  - namespace\n  - alertname\n  source_matchers:\n  - \"severity = warning\"\n  target_matchers:\n  - \"severity = info\"\nreceivers:\n- name: \"null\"\n- name: teams_aspecta\n  msteams_configs:\n    - send_resolved: true\n      webhook_url_file: /etc/alertmanager/secrets/alertmanager-receivers/msteams_url\n- name: healthchecksio\n  webhook_configs:\n    - url_file: /etc/alertmanager/secrets/alertmanager-receivers/healthchecks_url\n      send_resolved: false\n- name: atlassian_aspecta\n  opsgenie_configs:\n    - send_resolved: true\n      api_key_file: /etc/alertmanager/secrets/alertmanager-receivers/opsgenie_key\n      message: |\n        [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -\n        {{ range .Alerts }}\n        {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}\n        {{ end }}\n      description: |\n        {{ range $i, $a := .Alerts }}\n        {{ if $i }}\n        ---\n        {{ end }}\n        {{ if $a.Annotations.description }}{{ $a.Annotations.description }}{{ else if $a.Annotations.summary }}{{ $a.Annotations.summary }}{{ else }}{{ $a.Annotations.message }}{{ end }}\n        \n        {{ with $a.Annotations.runbook_url }}Runbook: {{ . }}\n        \n        {{ end }}{{ with $a.GeneratorURL }}Source: {{ reReplaceAll `^(.*)/monitoring/graph\\?g0\\.expr=` \"${1}/monitoring/query-browser?query0=\" . }}{{ end }}\n        {{ end }}\n      priority: '{{ if eq .CommonLabels.severity \"critical\" }}P1{{ else if eq .CommonLabels.severity \"warning\" }}P2{{ else if eq .CommonLabels.severity \"info\" }}P3{{ else }}P4{{ end }}'\n      tags: |\n        {{- with .CommonLabels.alertname }}alertname={{ . }},{{- end }}\n        {{- with .CommonLabels.clusterName }}clusterName={{ . }},{{- end }}\n        {{- with .CommonLabels.customerName }}customerName={{ . }},{{- end }}\n        {{- with .CommonLabels.environment }}environment={{ . }},{{- end }}\n        {{- with .CommonLabels.location }}location={{ . }},{{- end }}\n        {{- with .CommonLabels.namespace }}namespace={{ . }},{{- end }}\n        {{- with .CommonLabels.hostname }}hostname={{ . }},{{- end }}\n        {{- with .CommonLabels.name }}name={{ . }},{{- end }}\n        {{- with .CommonLabels.project }}project={{ . }},{{- end }}\n        {{- with .CommonLabels.repo }}repo={{ . }},{{- end }}\n        {{- with .CommonLabels.sync_status }}sync_status={{ . }},{{- end }}\n        {{- with .CommonLabels.health_status }}health_status={{ . }},{{- end }}\n        {{- with .CommonLabels.autosync_enabled }}autosync_enabled={{ . }},{{- end }}\n        {{- with .CommonLabels.severity }}severity={{ . }},{{- end }}\n        {{- with .CommonLabels.team }}team={{ . }},{{- end }}\n        {{- with .CommonLabels.vendor }}vendor={{ . }},{{- end }}\n        {{- with .CommonLabels.app }}app={{ . }}{{- end }}\n- name: atlassian_aspecta_security\n  opsgenie_configs:\n    - send_resolved: false\n      api_key_file: /etc/alertmanager/secrets/alertmanager-receivers/opsgenie_key_acs\n      message: |\n        [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -\n        {{ range .Alerts }}\n        {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}\n        {{ end }}\n      description: |\n        {{ range $i, $a := .Alerts }}\n        {{ if $i }}\n        ---\n        {{ end }}\n        {{ if $a.Annotations.description }}{{ $a.Annotations.description }}{{ else if $a.Annotations.summary }}{{ $a.Annotations.summary }}{{ else }}{{ $a.Annotations.message }}{{ end }}\n        \n        {{ with $a.Annotations.runbook_url }}Runbook: {{ . }}\n        \n        {{ end }}{{ with $a.GeneratorURL }}Source: {{ reReplaceAll `^(.*)/monitoring/graph\\?g0\\.expr=` \"${1}/monitoring/query-browser?query0=\" . }}{{ end }}\n        {{ end }}\n      priority: '{{ if eq .CommonLabels.severity \"critical\" }}P1{{ else if eq .CommonLabels.severity \"warning\" }}P2{{ else if eq .CommonLabels.severity \"info\" }}P3{{ else }}P4{{ end }}'\n      tags: |\n        {{- with .CommonLabels.alertname }}alertname={{ . }},{{- end }}\n        {{- with .CommonLabels.clusterName }}clusterName={{ . }},{{- end }}\n        {{- with .CommonLabels.customerName }}customerName={{ . }},{{- end }}\n        {{- with .CommonLabels.environment }}environment={{ . }},{{- end }}\n        {{- with .CommonLabels.location }}location={{ . }},{{- end }}\n        {{- with .CommonLabels.namespace }}namespace={{ . }},{{- end }}\n        {{- with .CommonLabels.hostname }}hostname={{ . }},{{- end }}\n        {{- with .CommonLabels.name }}name={{ . }},{{- end }}\n        {{- with .CommonLabels.project }}project={{ . }},{{- end }}\n        {{- with .CommonLabels.repo }}repo={{ . }},{{- end }}\n        {{- with .CommonLabels.sync_status }}sync_status={{ . }},{{- end }}\n        {{- with .CommonLabels.health_status }}health_status={{ . }},{{- end }}\n        {{- with .CommonLabels.autosync_enabled }}autosync_enabled={{ . }},{{- end }}\n        {{- with .CommonLabels.severity }}severity={{ . }},{{- end }}\n        {{- with .CommonLabels.team }}team={{ . }},{{- end }}\n        {{- with .CommonLabels.vendor }}vendor={{ . }},{{- end }}\n        {{- with .CommonLabels.app }}app={{ . }}{{- end }}\n- name: atlassian_aspecta_logs\n  opsgenie_configs:\n    - send_resolved: false\n      api_key_file: /etc/alertmanager/secrets/alertmanager-receivers/opsgenie_key_logs\n      message: |\n        [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -\n        {{ range .Alerts }}\n        {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}\n        {{ end }}\n      description: |\n        {{ range $i, $a := .Alerts }}\n        {{ if $i }}\n        ---\n        {{ end }}\n        {{ if $a.Annotations.description }}{{ $a.Annotations.description }}{{ else if $a.Annotations.summary }}{{ $a.Annotations.summary }}{{ else }}{{ $a.Annotations.message }}{{ end }}\n        \n        {{ with $a.Annotations.runbook_url }}Runbook: {{ . }}\n        \n        {{ end }}{{ with $a.GeneratorURL }}Source: {{ reReplaceAll `^(.*)/monitoring/graph\\?g0\\.expr=` \"${1}/monitoring/query-browser?query0=\" . }}{{ end }}\n        {{ end }}\n      priority: '{{ if eq .CommonLabels.severity \"critical\" }}P1{{ else if eq .CommonLabels.severity \"warning\" }}P2{{ else if eq .CommonLabels.severity \"info\" }}P3{{ else }}P4{{ end }}'\n      tags: |\n        {{- with .CommonLabels.alertname }}alertname={{ . }},{{- end }}\n        {{- with .CommonLabels.clusterName }}clusterName={{ . }},{{- end }}\n        {{- with .CommonLabels.customerName }}customerName={{ . }},{{- end }}\n        {{- with .CommonLabels.environment }}environment={{ . }},{{- end }}\n        {{- with .CommonLabels.location }}location={{ . }},{{- end }}\n        {{- with .CommonLabels.namespace }}namespace={{ . }},{{- end }}\n        {{- with .CommonLabels.hostname }}hostname={{ . }},{{- end }}\n        {{- with .CommonLabels.name }}name={{ . }},{{- end }}\n        {{- with .CommonLabels.project }}project={{ . }},{{- end }}\n        {{- with .CommonLabels.repo }}repo={{ . }},{{- end }}\n        {{- with .CommonLabels.sync_status }}sync_status={{ . }},{{- end }}\n        {{- with .CommonLabels.health_status }}health_status={{ . }},{{- end }}\n        {{- with .CommonLabels.autosync_enabled }}autosync_enabled={{ . }},{{- end }}\n        {{- with .CommonLabels.severity }}severity={{ . }},{{- end }}\n        {{- with .CommonLabels.team }}team={{ . }},{{- end }}\n        {{- with .CommonLabels.vendor }}vendor={{ . }},{{- end }}\n        {{- with .CommonLabels.app }}app={{ . }}{{- end }}\nroute:\n  group_by:\n  - namespace\n  - alertname\n  - severity\n  group_interval: 5m\n  group_wait: 30s\n  receiver: teams_aspecta\n  repeat_interval: 12h\n  routes:\n  # fixed in OCP 4.17.6 — remove once cluster is upgraded (https://access.redhat.com/solutions/7103336)\n  - receiver: \"null\"\n    matchers:\n    - alertname = PrometheusRuleFailures\n    - rule_group =~ \".*ceph\\\\.rules$\"\n  - receiver: \"null\"\n    matchers:\n    - alertname =~ \"CertificateIsAboutToExpire|CertificateApproachingExpiration\"\n    - name =~ \"kubemacpool-service|result-server-cert-ocp4-cis-1-5|result-client-cert-ocp4-cis-1-5|root-ca-ocp4-cis-1-5\"\n  - receiver: teams_aspecta\n    continue: true\n    matchers:\n    - severity =~ \"warning|critical\"\n    - alertname != Watchdog\n  - receiver: atlassian_aspecta\n    continue: true\n    matchers:\n    - severity =~ \"warning|critical\"\n    - alertname != Watchdog\n    - team != security\n    - source != logs\n  - receiver: atlassian_aspecta_security\n    continue: true\n    matchers:\n    - severity =~ \"warning|critical\"\n    - alertname != Watchdog\n    - team = security\n    group_by:\n    - namespace\n    - alertname\n    - severity\n    - clusterName\n    - acs_alert_id\n  - receiver: atlassian_aspecta_logs\n    continue: true\n    matchers:\n    - severity =~ \"warning|critical\"\n    - alertname != Watchdog\n    - source = logs\n    group_by:\n    - namespace\n    - alertname\n    - severity\n    - clusterName\n    - hostname\n    - msgid\n  - receiver: healthchecksio\n    matchers:\n    - alertname = Watchdog\n    group_wait: 0s\n    group_interval: 60s\n    repeat_interval: 60s\n  - receiver: \"null\"\n    matchers:\n    - severity =~ \"info|none\"\n  - receiver: \"null\"\n    matchers:\n    - vendor != \"aspecta\"\n"
     type: Opaque
-  16: |
+  14: |
     apiVersion: v1
     kind: Service
     metadata:
@@ -1139,7 +975,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: vault-bastion
       namespace: apc-monitoring-bastion
     spec:
@@ -1149,7 +985,7 @@ manifests should match snapshot (hub cluster):
           port: 8200
           targetPort: 8200
       type: ClusterIP
-  17: |
+  15: |
     apiVersion: monitoring.coreos.com/v1
     kind: ServiceMonitor
     metadata:
@@ -1157,7 +993,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: vault-bastion
       namespace: apc-monitoring-bastion
     spec:
@@ -1186,7 +1022,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: cluster-alerting-rules
       namespace: openshift-monitoring
     spec:
@@ -1196,17 +1032,18 @@ manifests should match snapshot (non-hub cluster):
             - alert: PodRepeatedOOMKilled
               annotations:
                 description: |
-                  The kernel Out-Of-Memory killer has restarted this container at least
-                  twice within the last 30 minutes. Check memory limits, look for leaks or
-                  sudden load spikes before the pod enters CrashLoopBackOff.
+                  Container was OOM-killed more than once in the last 30 minutes.
+                  restarts = {{ printf "%.0f" $value }}
                 summary: |
                   Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} was OOM-killed {{ printf "%.0f" $value }} times in the last 30 minutes
               expr: |
-                (
-                  increase(kube_pod_container_status_restarts_total[30m])
-                  * on(namespace,pod,container) group_left()
-                    kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}
-                ) > 1
+                max by (namespace, pod, container) (
+                  (
+                    increase(kube_pod_container_status_restarts_total[30m])
+                    * on(namespace,pod,container) group_left()
+                      kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}
+                  ) > 1
+                )
               for: 0m
               labels:
                 severity: warning
@@ -1220,7 +1057,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: cluster-policy-cluster-monitoring
     spec:
       generateExisting: true
@@ -1244,8 +1081,13 @@ manifests should match snapshot (non-hub cluster):
                       - alert: KubePodCrashLooping
                         annotations:
                           description: Pod \{{ $labels.pod }}, container \{{ $labels.container }} in namespace \{{ $labels.namespace }} is in a CrashLoopBackOff state.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodcrashlooping
                           summary: Pod is crash looping
-                        expr: max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m]) >= 1
+                        expr: |-
+                          max by (namespace,pod,container) (
+
+                            max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m]) >= 1
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -1255,15 +1097,19 @@ manifests should match snapshot (non-hub cluster):
                       - alert: KubePodNotReady
                         annotations:
                           description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been in a non-ready state for longer than 15 minutes.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodnotready
                           summary: Pod has been in a non-ready state for more than 15 minutes
                         expr: |-
-                          sum by (namespace, pod, cluster) (
-                            max by (namespace, pod, cluster) (
-                              kube_pod_status_phase{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", phase=~"Pending|Unknown|Failed"}
-                            ) * on (namespace, pod, cluster) group_left(owner_kind) topk by (namespace, pod, cluster) (
-                              1, max by (namespace, pod, owner_kind, cluster) (kube_pod_owner{owner_kind!="Job"})
-                            )
-                          ) > 0
+                          max by (namespace,pod) (
+
+                            sum by (namespace, pod, cluster) (
+                              max by (namespace, pod, cluster) (
+                                kube_pod_status_phase{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", phase=~"Pending|Unknown|Failed"}
+                              ) * on (namespace, pod, cluster) group_left(owner_kind) topk by (namespace, pod, cluster) (
+                                1, max by (namespace, pod, owner_kind, cluster) (kube_pod_owner{owner_kind!="Job"})
+                              )
+                            ) > 0
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -1274,7 +1120,11 @@ manifests should match snapshot (non-hub cluster):
                         annotations:
                           description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been evicted.
                           summary: Pod has been evicted
-                        expr: kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
+                        expr: |-
+                          max by (namespace,pod) (
+
+                            kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
+                          )
                         for: 0m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -1284,11 +1134,15 @@ manifests should match snapshot (non-hub cluster):
                       - alert: KubeDeploymentGenerationMismatch
                         annotations:
                           description: Deployment generation for \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} does not match, this indicates that the Deployment has failed but has not been rolled back."
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentgenerationmismatch
                           summary: Deployment generation mismatch due to possible roll-back
                         expr: |-
-                          kube_deployment_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            !=
-                          kube_deployment_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          max by (namespace,deployment) (
+
+                            kube_deployment_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              !=
+                            kube_deployment_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -1298,16 +1152,20 @@ manifests should match snapshot (non-hub cluster):
                       - alert: KubeDeploymentReplicasMismatch
                         annotations:
                           description: Deployment \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} has not matched the expected number of replicas for longer than 15 minutes.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentreplicasmismatch
                           summary: Deployment has not matched the expected number of replicas
                         expr: |-
-                          (
-                            kube_deployment_spec_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                              >
-                            kube_deployment_status_replicas_available{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                          ) and (
-                            changes(kube_deployment_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[10m])
-                              ==
-                            0
+                          max by (namespace,deployment) (
+
+                            (
+                              kube_deployment_spec_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                >
+                              kube_deployment_status_replicas_available{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            ) and (
+                              changes(kube_deployment_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[10m])
+                                ==
+                              0
+                            )
                           )
                         for: 15m
                         labels:
@@ -1318,10 +1176,14 @@ manifests should match snapshot (non-hub cluster):
                       - alert: KubeDeploymentRolloutStuck
                         annotations:
                           description: Rollout of deployment \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} is not progressing for longer than 15 minutes.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentrolloutstuck
                           summary: Deployment rollout is not progressing
                         expr: |-
-                          kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                          != 0
+                          max by (namespace,deployment) (
+
+                            kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            != 0
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -1331,16 +1193,20 @@ manifests should match snapshot (non-hub cluster):
                       - alert: KubeStatefulSetReplicasMismatch
                         annotations:
                           description: StatefulSet \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} has not matched the expected number of replicas for longer than 15 minutes.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetreplicasmismatch
                           summary: StatefulSet has not matched the expected number of replicas
                         expr: |-
-                          (
-                            kube_statefulset_status_replicas_ready{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                              !=
-                            kube_statefulset_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                          ) and (
-                            changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[10m])
-                              ==
-                            0
+                          max by (namespace,statefulset) (
+
+                            (
+                              kube_statefulset_status_replicas_ready{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                !=
+                              kube_statefulset_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            ) and (
+                              changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[10m])
+                                ==
+                              0
+                            )
                           )
                         for: 15m
                         labels:
@@ -1351,11 +1217,15 @@ manifests should match snapshot (non-hub cluster):
                       - alert: KubeStatefulSetGenerationMismatch
                         annotations:
                           description: StatefulSet generation for \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} does not match, this indicates that the StatefulSet has failed but has not been rolled back.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetgenerationmismatch
                           summary: StatefulSet generation mismatch due to possible roll-back
                         expr: |-
-                          kube_statefulset_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            !=
-                          kube_statefulset_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          max by (namespace,statefulset) (
+
+                            kube_statefulset_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              !=
+                            kube_statefulset_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -1365,24 +1235,28 @@ manifests should match snapshot (non-hub cluster):
                       - alert: KubeStatefulSetUpdateNotRolledOut
                         annotations:
                           description: StatefulSet \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} update has not been rolled out.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetupdatenotrolledout
                           summary: StatefulSet update has not been rolled out
                         expr: |-
-                          (
-                            max by (namespace, statefulset, job, cluster) (
-                              kube_statefulset_status_current_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                                unless
-                              kube_statefulset_status_update_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            )
-                              * on (namespace, statefulset, job, cluster)
+                          max by (namespace,statefulset) (
+
                             (
-                              kube_statefulset_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                                !=
-                              kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              max by (namespace, statefulset, job, cluster) (
+                                kube_statefulset_status_current_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                  unless
+                                kube_statefulset_status_update_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              )
+                                * on (namespace, statefulset, job, cluster)
+                              (
+                                kube_statefulset_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                  !=
+                                kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              )
+                            )  and on (namespace, statefulset, job, cluster) (
+                              changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m])
+                                ==
+                              0
                             )
-                          )  and on (namespace, statefulset, job, cluster) (
-                            changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m])
-                              ==
-                            0
                           )
                         for: 15m
                         labels:
@@ -1393,30 +1267,34 @@ manifests should match snapshot (non-hub cluster):
                       - alert: KubeDaemonSetRolloutStuck
                         annotations:
                           description: DaemonSet \{{ $labels.daemonset }} in namespace \{{ $labels.namespace }} has not finished or progressed for at least 15m.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetrolloutstuck
                           summary: DaemonSet rollout is stuck
                         expr: |-
-                          (
+                          max by (namespace,daemonset) (
+
                             (
-                              kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                                !=
-                              kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            ) or (
-                              kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                                !=
+                              (
+                                kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                  !=
+                                kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              ) or (
+                                kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                  !=
+                                0
+                              ) or (
+                                kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                  !=
+                                kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              ) or (
+                                kube_daemonset_status_number_available{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                                  !=
+                                kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              )
+                            ) and (
+                              changes(kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m])
+                                ==
                               0
-                            ) or (
-                              kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                                !=
-                              kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            ) or (
-                              kube_daemonset_status_number_available{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                                !=
-                              kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                             )
-                          ) and (
-                            changes(kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m])
-                              ==
-                            0
                           )
                         for: 15m
                         labels:
@@ -1427,8 +1305,13 @@ manifests should match snapshot (non-hub cluster):
                       - alert: KubeContainerWaiting
                         annotations:
                           description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} on container \{{ $labels.container}} has been in waiting state for longer than 1 hour.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubecontainerwaiting
                           summary: Pod container waiting longer than 1 hour
-                        expr: kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                        expr: |-
+                          max by (namespace,pod,container) (
+
+                            kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                          )
                         for: 1h
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -1438,11 +1321,15 @@ manifests should match snapshot (non-hub cluster):
                       - alert: KubeDaemonSetNotScheduled
                         annotations:
                           description: There are \{{ $value }} pods of DaemonSet \{{ $labels.daemonset }} that are not scheduled.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetnotscheduled
                           summary: DaemonSet pods are not scheduled
                         expr: |-
-                          kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            -
-                          kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                          max by (namespace,daemonset) (
+
+                            kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              -
+                            kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                          )
                         for: 10m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -1452,8 +1339,13 @@ manifests should match snapshot (non-hub cluster):
                       - alert: KubeDaemonSetMisScheduled
                         annotations:
                           description: Found \{{ $value }} mis-scheduled pods for DaemonSet \{{ $labels.daemonset }} in namespace \{{ $labels.namespace }}.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetmisscheduled
                           summary: DaemonSet pods are misscheduled
-                        expr: kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                        expr: |-
+                          max by (namespace,daemonset) (
+
+                            kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -1463,11 +1355,15 @@ manifests should match snapshot (non-hub cluster):
                       - alert: KubeJobNotCompleted
                         annotations:
                           description: Job \{{ $labels.job_name }} in namespace \{{ $labels.namespace }} has been running for \{{ humanizeDuration $value }} and has not completed.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobnotcompleted
                           summary: Job did not complete in time
                         expr: |-
-                          time() - max by (namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            and
-                          kube_job_status_active{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0) > 43200
+                          max by (namespace,job_name) (
+
+                            time() - max by (namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              and
+                            kube_job_status_active{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0) > 43200
+                          )
                         for: null
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -1477,8 +1373,13 @@ manifests should match snapshot (non-hub cluster):
                       - alert: KubeJobFailed
                         annotations:
                           description: Job \{{ $labels.job_name }} in namespace \{{ $labels.namespace }} failed to complete. Removing failed job after investigation should clear this alert.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobfailed
                           summary: Job failed to complete
-                        expr: kube_job_failed{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}  > 0
+                        expr: |-
+                          max by (namespace,job_name) (
+
+                            kube_job_failed{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}  > 0
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -1488,21 +1389,25 @@ manifests should match snapshot (non-hub cluster):
                       - alert: KubeHpaReplicasMismatch
                         annotations:
                           description: HPA \{{ $labels.horizontalpodautoscaler  }} has not matched the desired number of replicas for longer than 15 minutes.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubehpareplicasmismatch
                           summary: HPA has not matched desired number of replicas
                         expr: |-
-                          (kube_horizontalpodautoscaler_status_desired_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            !=
-                          kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
-                            and
-                          (kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            >
-                          kube_horizontalpodautoscaler_spec_min_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
-                            and
-                          (kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            <
-                          kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
-                            and
-                          changes(kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[15m]) == 0
+                          max by (namespace,horizontalpodautoscaler) (
+
+                            (kube_horizontalpodautoscaler_status_desired_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              !=
+                            kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
+                              and
+                            (kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              >
+                            kube_horizontalpodautoscaler_spec_min_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
+                              and
+                            (kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              <
+                            kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
+                              and
+                            changes(kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[15m]) == 0
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -1512,11 +1417,15 @@ manifests should match snapshot (non-hub cluster):
                       - alert: KubeHpaMaxedOut
                         annotations:
                           description: HPA \{{ $labels.horizontalpodautoscaler  }} in namespace \{{ $labels.namespace }} has been running at max replicas for longer than 15 minutes.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubehpamaxedout
                           summary: HPA is running at max replicas
                         expr: |-
-                          kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            ==
-                          kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          max by (namespace,horizontalpodautoscaler) (
+
+                            kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              ==
+                            kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -1526,14 +1435,18 @@ manifests should match snapshot (non-hub cluster):
                       - alert: KubePdbNotEnoughHealthyPods
                         annotations:
                           description: PDB \{{ $labels.poddisruptionbudget }} expects \{{ $value }} more healthy pods. The desired number of healthy pods has not been met for at least 15m.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepdbnotenoughhealthypods
                           summary: PDB does not have enough healthy pods
                         expr: |-
-                          (
-                            kube_poddisruptionbudget_status_desired_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
-                            -
-                            kube_poddisruptionbudget_status_current_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                          max by (namespace,poddisruptionbudget) (
+
+                            (
+                              kube_poddisruptionbudget_status_desired_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                              -
+                              kube_poddisruptionbudget_status_current_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
+                            )
+                            > 0
                           )
-                          > 0
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -1543,19 +1456,23 @@ manifests should match snapshot (non-hub cluster):
                       - alert: KubePersistentVolumeFillingUp
                         annotations:
                           description: The PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is only \{{ $value | humanizePercentage }} free.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumefillingup
                           summary: PersistentVolume is filling up
                         expr: |-
-                          (
-                            kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                              /
-                            kubelet_volume_stats_capacity_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                          ) < 0.03
-                          and
-                          kubelet_volume_stats_used_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          max by (namespace,persistentvolumeclaim) (
+
+                            (
+                              kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                                /
+                              kubelet_volume_stats_capacity_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                            ) < 0.03
+                            and
+                            kubelet_volume_stats_used_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          )
                         for: 1m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -1565,21 +1482,25 @@ manifests should match snapshot (non-hub cluster):
                       - alert: KubePersistentVolumeFillingUp
                         annotations:
                           description: Based on recent sampling, the PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is expected to fill up within four days. Currently \{{ $value | humanizePercentage }} is available.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumefillingup
                           summary: PersistentVolume is filling up
                         expr: |-
-                          (
-                            kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                              /
-                            kubelet_volume_stats_capacity_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                          ) < 0.15
-                          and
-                          kubelet_volume_stats_used_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
-                          and
-                          predict_linear(kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          max by (namespace,persistentvolumeclaim) (
+
+                            (
+                              kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                                /
+                              kubelet_volume_stats_capacity_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                            ) < 0.15
+                            and
+                            kubelet_volume_stats_used_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
+                            and
+                            predict_linear(kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          )
                         for: 1h
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -1589,19 +1510,23 @@ manifests should match snapshot (non-hub cluster):
                       - alert: KubePersistentVolumeInodesFillingUp
                         annotations:
                           description: The PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} has only \{{ $value | humanizePercentage }} free inodes.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumeinodesfillingup
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
-                          (
-                            kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                              /
-                            kubelet_volume_stats_inodes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                          ) < 0.03
-                          and
-                          kubelet_volume_stats_inodes_used{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          max by (namespace,persistentvolumeclaim) (
+
+                            (
+                              kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                                /
+                              kubelet_volume_stats_inodes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                            ) < 0.03
+                            and
+                            kubelet_volume_stats_inodes_used{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          )
                         for: 1m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -1611,21 +1536,25 @@ manifests should match snapshot (non-hub cluster):
                       - alert: KubePersistentVolumeInodesFillingUp
                         annotations:
                           description: Based on recent sampling, the PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is expected to run out of inodes within four days. Currently \{{ $value | humanizePercentage }} of its inodes are free.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumeinodesfillingup
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
-                          (
-                            kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                              /
-                            kubelet_volume_stats_inodes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
-                          ) < 0.15
-                          and
-                          kubelet_volume_stats_inodes_used{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
-                          and
-                          predict_linear(kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
-                          unless on (cluster, namespace, persistentvolumeclaim)
-                          kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          max by (namespace,persistentvolumeclaim) (
+
+                            (
+                              kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                                /
+                              kubelet_volume_stats_inodes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
+                            ) < 0.15
+                            and
+                            kubelet_volume_stats_inodes_used{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"} > 0
+                            and
+                            predict_linear(kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
+                            unless on (cluster, namespace, persistentvolumeclaim)
+                            kube_persistentvolumeclaim_labels{label_excluded_from_alerts="true"} == 1
+                          )
                         for: 1h
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -1635,8 +1564,13 @@ manifests should match snapshot (non-hub cluster):
                       - alert: KubePersistentVolumeErrors
                         annotations:
                           description: The persistent volume \{{ $labels.persistentvolume }} has status \{{ $labels.phase }}.
+                          runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumeerrors
                           summary: PersistentVolume is having issues with provisioning
-                        expr: kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"} > 0
+                        expr: |-
+                          max by (persistentvolume,phase) (
+
+                            kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"} > 0
+                          )
                         for: 5m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -1648,11 +1582,14 @@ manifests should match snapshot (non-hub cluster):
                           description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 95% of its CPU limit for over 15 minutes. Current value is \{{ $value | humanizePercentage }}.
                           summary: CPU utilization is above 95%
                         expr: |-
-                          (
-                            sum by (namespace, pod) (pod:container_cpu_usage:sum{namespace="{{ request.object.metadata.name }}"})
-                            /
-                            sum by (namespace, pod) (kube_pod_container_resource_limits{resource="cpu", namespace="{{ request.object.metadata.name }}"})
-                          ) > 0.95
+                          max by (namespace,pod) (
+
+                            (
+                              sum by (namespace, pod) (pod:container_cpu_usage:sum{namespace="{{ request.object.metadata.name }}"})
+                              /
+                              sum by (namespace, pod) (kube_pod_container_resource_limits{resource="cpu", namespace="{{ request.object.metadata.name }}"})
+                            ) > 0.95
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -1662,13 +1599,16 @@ manifests should match snapshot (non-hub cluster):
                       - alert: HighMemoryUtilization
                         annotations:
                           description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 90% of its memory limit for over 15 minutes. Current utilization is \{{ $value | humanizePercentage }}
-                          summary: Memory utilization (90%+) on pod \{{ $labels.pod }}
+                          summary: Memory utilization is above 90%
                         expr: |-
-                          (
-                            sum by (namespace, pod, container) (container_memory_working_set_bytes{container!="", namespace="{{ request.object.metadata.name }}"})
-                            /
-                            sum by (namespace, pod, container) (kube_pod_container_resource_limits{resource="memory", namespace="{{ request.object.metadata.name }}"})
-                          ) > 0.90
+                          max by (namespace,pod,container) (
+
+                            (
+                              sum by (namespace, pod, container) (container_memory_working_set_bytes{container!="", namespace="{{ request.object.metadata.name }}"})
+                              /
+                              sum by (namespace, pod, container) (kube_pod_container_resource_limits{resource="memory", namespace="{{ request.object.metadata.name }}"})
+                            ) > 0.90
+                          )
                         for: 15m
                         labels:
                           namespace: '{{request.object.metadata.name}}'
@@ -1700,7 +1640,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
         rbac.kyverno.io/aggregate-to-admission-controller: "true"
       name: kyverno:admission-controller:monitoring
     rules:
@@ -1771,7 +1711,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: cluster-monitoring-config
       namespace: openshift-monitoring
   5: |
@@ -1815,7 +1755,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: user-workload-monitoring-config
       namespace: openshift-user-workload-monitoring
   6: |
@@ -1826,7 +1766,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: vault-bastion
       namespace: apc-monitoring-bastion
     subsets:
@@ -1844,7 +1784,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: alertmanager-receivers
       namespace: openshift-monitoring
     spec:
@@ -1866,7 +1806,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: alertmanager-uwm-receivers
       namespace: openshift-user-workload-monitoring
     spec:
@@ -1881,44 +1821,6 @@ manifests should match snapshot (non-hub cluster):
         creationPolicy: Owner
         name: alertmanager-uwm-receivers
   9: |
-    apiVersion: networking.k8s.io/v1
-    kind: NetworkPolicy
-    metadata:
-      labels:
-        app.kubernetes.io/instance: monitoring
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
-      name: allow-proxy
-      namespace: openshift-user-workload-monitoring
-    spec:
-      egress:
-        - to:
-            - ipBlock:
-                cidr: 10.1.1.7/32
-      podSelector: {}
-      policyTypes:
-        - Egress
-  10: |
-    apiVersion: networking.k8s.io/v1
-    kind: NetworkPolicy
-    metadata:
-      labels:
-        app.kubernetes.io/instance: monitoring
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
-      name: allow-proxy
-      namespace: openshift-monitoring
-    spec:
-      egress:
-        - to:
-            - ipBlock:
-                cidr: 10.1.1.7/32
-      podSelector: {}
-      policyTypes:
-        - Egress
-  11: |
     apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule
     metadata:
@@ -1926,7 +1828,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: disk-raid-array-monitoring
       namespace: openshift-monitoring
     spec:
@@ -1935,11 +1837,13 @@ manifests should match snapshot (non-hub cluster):
           rules:
             - alert: APC-NodeRAIDDegraded
               annotations:
-                description: RAID array '{{ $labels.device }}' at {{ $labels.instance }} is in degraded state due to one or more disks failures. Number of spare drives is insufficient to fix issue automatically.
+                description: device = {{ $labels.device }}
                 runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/NodeRAIDDegraded.md
                 summary: RAID Array is degraded.
               expr: |
-                node_md_disks_required{job="node-exporter",namespace="openshift-monitoring",device=~"md.+"} - ignoring (state) (node_md_disks{state="active",namespace="openshift-monitoring",job="node-exporter",device=~"md.+"}) > 0
+                max by (device) (
+                  node_md_disks_required{job="node-exporter",namespace="openshift-monitoring",device=~"md.+"} - ignoring (state) (node_md_disks{state="active",namespace="openshift-monitoring",job="node-exporter",device=~"md.+"}) > 0
+                )
               for: 15m
               labels:
                 severity: critical
@@ -1947,15 +1851,17 @@ manifests should match snapshot (non-hub cluster):
                 vendor: aspecta
             - alert: APC-NodeRAIDDiskFailure
               annotations:
-                description: At least one device in RAID array at {{ $labels.instance }} failed. Array '{{ $labels.device }}' needs attention and possibly a disk swap.
+                description: device = {{ $labels.device }}
                 summary: Failed device in RAID array.
               expr: |
-                node_md_disks{state="failed",namespace="openshift-monitoring",job="node-exporter",device=~"md.+"} > 0
+                max by (device) (
+                  node_md_disks{state="failed",namespace="openshift-monitoring",job="node-exporter",device=~"md.+"} > 0
+                )
               labels:
                 severity: warning
                 team: platform
                 vendor: aspecta
-  12: |
+  10: |
     apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule
     metadata:
@@ -1963,7 +1869,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: ldap-monitoring
       namespace: apc-monitoring-bastion
     spec:
@@ -1972,9 +1878,9 @@ manifests should match snapshot (non-hub cluster):
           rules:
             - alert: LdapServiceUp
               annotations:
-                description: LDAP service {{ $labels.host }} is down.
+                description: host = {{ $labels.host }}
                 summary: LDAP service {{ $labels.host }} is down.
-              expr: openldap_service_up != 1
+              expr: max by (host) (openldap_service_up != 1)
               for: 1m
               labels:
                 severity: critical
@@ -1982,7 +1888,9 @@ manifests should match snapshot (non-hub cluster):
                 vendor: aspecta
             - alert: LdapReplicationTimestamp
               annotations:
-                description: Replica ID {{ $labels.replica_id }} has inconsistent sync timestamp across servers. LDAP instances are not synchonized.
+                description: |-
+                  LDAP instances are not synchronized.
+                  replica_id = {{ $labels.replica_id }}
                 summary: Inconsistent sync timestamp for {{ $labels.replica_id }}
               expr: max by (replica_id) (openldap_replication_sync_timestamp) != min by (replica_id) (openldap_replication_sync_timestamp)
               for: 1m
@@ -1992,15 +1900,15 @@ manifests should match snapshot (non-hub cluster):
                 vendor: aspecta
             - alert: LdapSingleReplica
               annotations:
-                description: Replica ID {{ $labels.replica_id }} has only single instance. LDAP replication is not working properly.
-                summary: Only single instance found for repica id {{ $labels.replica_id }}
+                description: replica_id = {{ $labels.replica_id }}
+                summary: Only single instance found for replica id {{ $labels.replica_id }}
               expr: count by (replica_id) (openldap_replication_sync_timestamp) == 1
               for: 5m
               labels:
                 severity: warning
                 team: platform
                 vendor: aspecta
-  13: |
+  11: |
     apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule
     metadata:
@@ -2008,7 +1916,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: user-workload-monitoring-thanos-rules
       namespace: apc-observability
     spec:
@@ -2026,7 +1934,7 @@ manifests should match snapshot (non-hub cluster):
               labels:
                 namespace: apc-observability
                 severity: none
-  14: |
+  12: |
     apiVersion: v1
     kind: Secret
     metadata:
@@ -2034,91 +1942,13 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: alertmanager-user-workload
       namespace: openshift-user-workload-monitoring
     stringData:
-      alertmanager.yaml: |
-        global:
-          http_config:
-            proxy_url: http://proxy.example.com:8080
-            no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1
-        inhibit_rules:
-        - equal:
-          - namespace
-          - alertname
-          source_matchers:
-          - "severity = critical"
-          target_matchers:
-          - "severity =~ warning|info"
-        - equal:
-          - namespace
-          - alertname
-          source_matchers:
-          - "severity = warning"
-          target_matchers:
-          - "severity = info"
-        receivers:
-        - name: "null"
-        - name: teams_aspecta
-          msteams_configs:
-            - send_resolved: true
-              webhook_url_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/msteams_url
-        - name: healthchecksioUWMthanos
-          webhook_configs:
-            - url_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/healthchecks_url
-              send_resolved: false
-        - name: atlassian_aspecta
-          opsgenie_configs:
-            - send_resolved: true
-              api_key_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/opsgenie_key
-              message: |
-                [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -
-                {{ range .Alerts }}
-                {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}
-                {{ end }}
-              priority: '{{ if eq .CommonLabels.severity "critical" }}P1{{ else if eq .CommonLabels.severity "warning" }}P2{{ else if eq .CommonLabels.severity "info" }}P3{{ else }}P4{{ end }}'
-              tags: |
-                {{ with .CommonLabels.clusterName }}clusterName={{ . }}{{ end }},
-                {{ with .CommonLabels.customerName }}customerName={{ . }}{{ end }},
-                {{ with .CommonLabels.environment }}environment={{ . }}{{ end }},
-                {{ with .CommonLabels.location }}location={{ . }}{{ end }},
-                {{ with .CommonLabels.namespace }}namespace={{ . }}{{ end }},
-                {{ with .CommonLabels.severity }}severity={{ . }}{{ end }},
-                {{ with .CommonLabels.team }}team={{ . }}{{ end }},
-                {{ with .CommonLabels.vendor }}vendor={{ . }}{{ end }},
-                {{ with .CommonLabels.app }}app={{ . }}{{ end }}
-        route:
-          group_by:
-          - namespace
-          - alertname
-          - severity
-          group_interval: 5m
-          group_wait: 30s
-          receiver: teams_aspecta
-          repeat_interval: 12h
-          routes:
-          - receiver: atlassian_aspecta
-            continue: true
-            matchers:
-            - severity =~ "warning|critical"
-            - alertname != Watchdog
-            - vendor = "aspecta"
-            - team = "platform"
-          - receiver: healthchecksioUWMthanos
-            matchers:
-            - alertname = WatchdogUWMthanos
-            group_wait: 0s
-            group_interval: 60s
-            repeat_interval: 60s
-          - receiver: "null"
-            matchers:
-            - severity =~ "info|none"
-          - receiver: "null"
-            matchers:
-            - vendor != "aspecta"
+      alertmanager.yaml: "global:\n  http_config:\n    proxy_url: http://proxy.example.com:8080\n    no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1\ninhibit_rules:\n- equal:\n  - namespace\n  - alertname\n  source_matchers:\n  - \"severity = critical\"\n  target_matchers:\n  - \"severity =~ warning|info\"\n- equal:\n  - namespace\n  - alertname\n  source_matchers:\n  - \"severity = warning\"\n  target_matchers:\n  - \"severity = info\"\nreceivers:\n- name: \"null\"\n- name: teams_aspecta\n  msteams_configs:\n    - send_resolved: true\n      webhook_url_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/msteams_url\n- name: healthchecksioUWMthanos\n  webhook_configs:\n    - url_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/healthchecks_url\n      send_resolved: false\n- name: atlassian_aspecta\n  opsgenie_configs:\n    - send_resolved: true\n      api_key_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/opsgenie_key\n      message: |\n        [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -\n        {{ range .Alerts }}\n        {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}\n        {{ end }}\n      description: |\n        {{ range $i, $a := .Alerts }}\n        {{ if $i }}\n        ---\n        {{ end }}\n        {{ if $a.Annotations.description }}{{ $a.Annotations.description }}{{ else if $a.Annotations.summary }}{{ $a.Annotations.summary }}{{ else }}{{ $a.Annotations.message }}{{ end }}\n        \n        {{ with $a.Annotations.runbook_url }}Runbook: {{ . }}\n        \n        {{ end }}{{ with $a.GeneratorURL }}Source: {{ reReplaceAll `^(.*)/monitoring/graph\\?g0\\.expr=` \"${1}/monitoring/query-browser?query0=\" . }}{{ end }}\n        {{ end }}\n      priority: '{{ if eq .CommonLabels.severity \"critical\" }}P1{{ else if eq .CommonLabels.severity \"warning\" }}P2{{ else if eq .CommonLabels.severity \"info\" }}P3{{ else }}P4{{ end }}'\n      tags: |\n        {{- with .CommonLabels.alertname }}alertname={{ . }},{{- end }}\n        {{- with .CommonLabels.clusterName }}clusterName={{ . }},{{- end }}\n        {{- with .CommonLabels.customerName }}customerName={{ . }},{{- end }}\n        {{- with .CommonLabels.environment }}environment={{ . }},{{- end }}\n        {{- with .CommonLabels.location }}location={{ . }},{{- end }}\n        {{- with .CommonLabels.namespace }}namespace={{ . }},{{- end }}\n        {{- with .CommonLabels.hostname }}hostname={{ . }},{{- end }}\n        {{- with .CommonLabels.name }}name={{ . }},{{- end }}\n        {{- with .CommonLabels.project }}project={{ . }},{{- end }}\n        {{- with .CommonLabels.repo }}repo={{ . }},{{- end }}\n        {{- with .CommonLabels.sync_status }}sync_status={{ . }},{{- end }}\n        {{- with .CommonLabels.health_status }}health_status={{ . }},{{- end }}\n        {{- with .CommonLabels.autosync_enabled }}autosync_enabled={{ . }},{{- end }}\n        {{- with .CommonLabels.severity }}severity={{ . }},{{- end }}\n        {{- with .CommonLabels.team }}team={{ . }},{{- end }}\n        {{- with .CommonLabels.vendor }}vendor={{ . }},{{- end }}\n        {{- with .CommonLabels.app }}app={{ . }}{{- end }}\nroute:\n  group_by:\n  - namespace\n  - alertname\n  - severity\n  group_interval: 5m\n  group_wait: 30s\n  receiver: teams_aspecta\n  repeat_interval: 12h\n  routes:\n  - receiver: atlassian_aspecta\n    continue: true\n    matchers:\n    - severity =~ \"warning|critical\"\n    - alertname != Watchdog\n    - vendor = \"aspecta\"\n    - team = \"platform\"\n  - receiver: healthchecksioUWMthanos\n    matchers:\n    - alertname = WatchdogUWMthanos\n    group_wait: 0s\n    group_interval: 60s\n    repeat_interval: 60s\n  - receiver: \"null\"\n    matchers:\n    - severity =~ \"info|none\"\n  - receiver: \"null\"\n    matchers:\n    - vendor != \"aspecta\"\n"
     type: Opaque
-  15: |
+  13: |
     apiVersion: v1
     kind: Secret
     metadata:
@@ -2126,99 +1956,13 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: alertmanager-main
       namespace: openshift-monitoring
     stringData:
-      alertmanager.yaml: |
-        global:
-          http_config:
-            proxy_url: http://proxy.example.com:8080
-            no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1
-        inhibit_rules:
-        - equal:
-          - namespace
-          - alertname
-          source_matchers:
-          - "severity = critical"
-          target_matchers:
-          - "severity =~ warning|info"
-        - equal:
-          - namespace
-          - alertname
-          source_matchers:
-          - "severity = warning"
-          target_matchers:
-          - "severity = info"
-        receivers:
-        - name: "null"
-        - name: teams_aspecta
-          msteams_configs:
-            - send_resolved: true
-              webhook_url_file: /etc/alertmanager/secrets/alertmanager-receivers/msteams_url
-        - name: healthchecksio
-          webhook_configs:
-            - url_file: /etc/alertmanager/secrets/alertmanager-receivers/healthchecks_url
-              send_resolved: false
-        - name: atlassian_aspecta
-          opsgenie_configs:
-            - send_resolved: true
-              api_key_file: /etc/alertmanager/secrets/alertmanager-receivers/opsgenie_key
-              message: |
-                [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -
-                {{ range .Alerts }}
-                {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}
-                {{ end }}
-              priority: '{{ if eq .CommonLabels.severity "critical" }}P1{{ else if eq .CommonLabels.severity "warning" }}P2{{ else if eq .CommonLabels.severity "info" }}P3{{ else }}P4{{ end }}'
-              tags: |
-                {{ with .CommonLabels.clusterName }}clusterName={{ . }}{{ end }},
-                {{ with .CommonLabels.customerName }}customerName={{ . }}{{ end }},
-                {{ with .CommonLabels.environment }}environment={{ . }}{{ end }},
-                {{ with .CommonLabels.location }}location={{ . }}{{ end }},
-                {{ with .CommonLabels.namespace }}namespace={{ . }}{{ end }},
-                {{ with .CommonLabels.severity }}severity={{ . }}{{ end }},
-                {{ with .CommonLabels.team }}team={{ . }}{{ end }},
-                {{ with .CommonLabels.vendor }}vendor={{ . }}{{ end }},
-                {{ with .CommonLabels.app }}app={{ . }}{{ end }}
-        route:
-          group_by:
-          - namespace
-          - alertname
-          - severity
-          group_interval: 5m
-          group_wait: 30s
-          receiver: teams_aspecta
-          repeat_interval: 12h
-          routes:
-          # fixed in OCP 4.17.6 — remove once cluster is upgraded (https://access.redhat.com/solutions/7103336)
-          - receiver: "null"
-            matchers:
-            - alertname = PrometheusRuleFailures
-            - rule_group =~ ".*ceph\\.rules$"
-          - receiver: "null"
-            matchers:
-            - alertname =~ "CertificateIsAboutToExpire|CertificateApproachingExpiration"
-            - name =~ "kubemacpool-service|result-server-cert-ocp4-cis-1-5|result-client-cert-ocp4-cis-1-5|root-ca-ocp4-cis-1-5"
-          - receiver: atlassian_aspecta
-            continue: true
-            matchers:
-            - severity =~ "warning|critical"
-            - alertname != Watchdog
-            - vendor = "aspecta"
-          - receiver: healthchecksio
-            matchers:
-            - alertname = Watchdog
-            group_wait: 0s
-            group_interval: 60s
-            repeat_interval: 60s
-          - receiver: "null"
-            matchers:
-            - severity =~ "info|none"
-          - receiver: "null"
-            matchers:
-            - vendor != "aspecta"
+      alertmanager.yaml: "global:\n  http_config:\n    proxy_url: http://proxy.example.com:8080\n    no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1\ninhibit_rules:\n- equal:\n  - namespace\n  - alertname\n  source_matchers:\n  - \"severity = critical\"\n  target_matchers:\n  - \"severity =~ warning|info\"\n- equal:\n  - namespace\n  - alertname\n  source_matchers:\n  - \"severity = warning\"\n  target_matchers:\n  - \"severity = info\"\nreceivers:\n- name: \"null\"\n- name: teams_aspecta\n  msteams_configs:\n    - send_resolved: true\n      webhook_url_file: /etc/alertmanager/secrets/alertmanager-receivers/msteams_url\n- name: healthchecksio\n  webhook_configs:\n    - url_file: /etc/alertmanager/secrets/alertmanager-receivers/healthchecks_url\n      send_resolved: false\n- name: atlassian_aspecta\n  opsgenie_configs:\n    - send_resolved: true\n      api_key_file: /etc/alertmanager/secrets/alertmanager-receivers/opsgenie_key\n      message: |\n        [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -\n        {{ range .Alerts }}\n        {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}\n        {{ end }}\n      description: |\n        {{ range $i, $a := .Alerts }}\n        {{ if $i }}\n        ---\n        {{ end }}\n        {{ if $a.Annotations.description }}{{ $a.Annotations.description }}{{ else if $a.Annotations.summary }}{{ $a.Annotations.summary }}{{ else }}{{ $a.Annotations.message }}{{ end }}\n        \n        {{ with $a.Annotations.runbook_url }}Runbook: {{ . }}\n        \n        {{ end }}{{ with $a.GeneratorURL }}Source: {{ reReplaceAll `^(.*)/monitoring/graph\\?g0\\.expr=` \"${1}/monitoring/query-browser?query0=\" . }}{{ end }}\n        {{ end }}\n      priority: '{{ if eq .CommonLabels.severity \"critical\" }}P1{{ else if eq .CommonLabels.severity \"warning\" }}P2{{ else if eq .CommonLabels.severity \"info\" }}P3{{ else }}P4{{ end }}'\n      tags: |\n        {{- with .CommonLabels.alertname }}alertname={{ . }},{{- end }}\n        {{- with .CommonLabels.clusterName }}clusterName={{ . }},{{- end }}\n        {{- with .CommonLabels.customerName }}customerName={{ . }},{{- end }}\n        {{- with .CommonLabels.environment }}environment={{ . }},{{- end }}\n        {{- with .CommonLabels.location }}location={{ . }},{{- end }}\n        {{- with .CommonLabels.namespace }}namespace={{ . }},{{- end }}\n        {{- with .CommonLabels.hostname }}hostname={{ . }},{{- end }}\n        {{- with .CommonLabels.name }}name={{ . }},{{- end }}\n        {{- with .CommonLabels.project }}project={{ . }},{{- end }}\n        {{- with .CommonLabels.repo }}repo={{ . }},{{- end }}\n        {{- with .CommonLabels.sync_status }}sync_status={{ . }},{{- end }}\n        {{- with .CommonLabels.health_status }}health_status={{ . }},{{- end }}\n        {{- with .CommonLabels.autosync_enabled }}autosync_enabled={{ . }},{{- end }}\n        {{- with .CommonLabels.severity }}severity={{ . }},{{- end }}\n        {{- with .CommonLabels.team }}team={{ . }},{{- end }}\n        {{- with .CommonLabels.vendor }}vendor={{ . }},{{- end }}\n        {{- with .CommonLabels.app }}app={{ . }}{{- end }}\nroute:\n  group_by:\n  - namespace\n  - alertname\n  - severity\n  group_interval: 5m\n  group_wait: 30s\n  receiver: teams_aspecta\n  repeat_interval: 12h\n  routes:\n  # fixed in OCP 4.17.6 — remove once cluster is upgraded (https://access.redhat.com/solutions/7103336)\n  - receiver: \"null\"\n    matchers:\n    - alertname = PrometheusRuleFailures\n    - rule_group =~ \".*ceph\\\\.rules$\"\n  - receiver: \"null\"\n    matchers:\n    - alertname =~ \"CertificateIsAboutToExpire|CertificateApproachingExpiration\"\n    - name =~ \"kubemacpool-service|result-server-cert-ocp4-cis-1-5|result-client-cert-ocp4-cis-1-5|root-ca-ocp4-cis-1-5\"\n  - receiver: atlassian_aspecta\n    continue: true\n    matchers:\n    - severity =~ \"warning|critical\"\n    - alertname != Watchdog\n    - vendor = \"aspecta\"\n  - receiver: healthchecksio\n    matchers:\n    - alertname = Watchdog\n    group_wait: 0s\n    group_interval: 60s\n    repeat_interval: 60s\n  - receiver: \"null\"\n    matchers:\n    - severity =~ \"info|none\"\n  - receiver: \"null\"\n    matchers:\n    - vendor != \"aspecta\"\n"
     type: Opaque
-  16: |
+  14: |
     apiVersion: v1
     kind: Service
     metadata:
@@ -2227,7 +1971,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: vault-bastion
       namespace: apc-monitoring-bastion
     spec:
@@ -2237,7 +1981,7 @@ manifests should match snapshot (non-hub cluster):
           port: 8200
           targetPort: 8200
       type: ClusterIP
-  17: |
+  15: |
     apiVersion: monitoring.coreos.com/v1
     kind: ServiceMonitor
     metadata:
@@ -2245,7 +1989,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.1.8
+        helm.sh/chart: monitoring-1.2.0
       name: vault-bastion
       namespace: apc-monitoring-bastion
     spec:

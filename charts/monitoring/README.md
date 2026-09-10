@@ -10,11 +10,9 @@ Helm chart for OpenShift cluster monitoring configuration. Configures the built-
 | `alertmanager-main` | Secret | `openshift-monitoring` |
 | `alertmanager-receivers` | ExternalSecret | `openshift-monitoring` |
 | `cluster-alerting-rules` | AlertingRule | `openshift-monitoring` |
-| `allow-proxy` | NetworkPolicy | `openshift-monitoring` |
 | `user-workload-monitoring-config` | ConfigMap | `openshift-user-workload-monitoring` |
 | `alertmanager-user-workload` | Secret | `openshift-user-workload-monitoring` |
 | `alertmanager-uwm-receivers` | ExternalSecret | `openshift-user-workload-monitoring` |
-| `allow-proxy` | NetworkPolicy | `openshift-user-workload-monitoring` |
 | `user-workload-monitoring-thanos-rules` | PrometheusRule | `apc-observability` |
 | `disk-raid-array-monitoring` | PrometheusRule | `openshift-monitoring` |
 | `ldap-monitoring` | PrometheusRule | `apc-monitoring-bastion` |
@@ -85,7 +83,19 @@ Both alertmanager secrets use `dataFrom.extract` — the entire Vault secret is 
 | `userWorkloadMonitoring.prometheus.remoteWrite.enabled` | `true` | Enable remote write to Red Hat telemetry |
 | `eso.enabled` | `true` | Enable ESO for all alertmanager secrets |
 | `vaultBastionMonitoring.bastionIP` | `""` | Vault bastion IP — enables scraping when set |
-| `networkPolicy.enabled` | `true` | Proxy egress NetworkPolicy |
+
+## Testing Alertmanager opsgenie notification templates
+
+`tests/render-opsgenie-templates.sh` renders the `atlassian_aspecta` receiver's
+`description`/`tags` Go templates through `amtool` (the real Alertmanager templating
+engine) against fixture alerts in `tests/fixtures/`, and asserts on the actual
+notification text. helm-unittest only proves the Helm template emits the expected Go
+template *source* — it never executes that template, so a bug in the template logic
+itself (e.g. a `with` guard not covering its trailing comma) passes helm-unittest while
+still producing a broken Opsgenie notification.
+
+Requires `amtool` (`go install github.com/prometheus/alertmanager/cmd/amtool@latest`),
+`yq` v4, `python3`. Run: `charts/monitoring/tests/render-opsgenie-templates.sh`.
 
 ## Usage example
 
