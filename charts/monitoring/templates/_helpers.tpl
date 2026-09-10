@@ -60,3 +60,45 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Alertmanager opsgenie_configs "description" template: renders each grouped alert's
+description/summary with a Source link back to the firing Prometheus query, separated
+by a rule between alerts. Falls back to Alertmanager's built-in default when the
+PrometheusRule has no curated description.
+*/}}
+{{- define "monitoring.opsgenieDescription" -}}
+{{ "{{" }} range $i, $a := .Alerts {{ "}}" }}
+{{ "{{" }} if $i {{ "}}" }}
+---
+{{ "{{" }} end {{ "}}" }}
+{{ "{{" }} if $a.Annotations.description {{ "}}" }}{{ "{{" }} $a.Annotations.description {{ "}}" }}{{ "{{" }} else if $a.Annotations.summary {{ "}}" }}{{ "{{" }} $a.Annotations.summary {{ "}}" }}{{ "{{" }} else {{ "}}" }}{{ "{{" }} $a.Annotations.message {{ "}}" }}{{ "{{" }} end {{ "}}" }}
+{{ "{{" }} with $a.GeneratorURL {{ "}}" }}Source: {{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }}
+{{ "{{" }} end {{ "}}" }}
+{{- end }}
+
+{{/*
+Alertmanager opsgenie_configs "tags" template: the common label set shown to every
+alert, plus the object-identifying labels (alertname/name/namespace/project/repo and
+the ArgoCD-specific sync/health/autosync labels) when present on the firing alert.
+Missing labels are silently omitted (`with`), safe for every alert type.
+*/}}
+{{- define "monitoring.opsgenieTags" -}}
+{{ "{{" }} with .CommonLabels.alertname {{ "}}" }}alertname={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+{{ "{{" }} with .CommonLabels.clusterName {{ "}}" }}clusterName={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+{{ "{{" }} with .CommonLabels.customerName {{ "}}" }}customerName={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+{{ "{{" }} with .CommonLabels.environment {{ "}}" }}environment={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+{{ "{{" }} with .CommonLabels.location {{ "}}" }}location={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+{{ "{{" }} with .CommonLabels.namespace {{ "}}" }}namespace={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+{{ "{{" }} with .CommonLabels.hostname {{ "}}" }}hostname={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+{{ "{{" }} with .CommonLabels.name {{ "}}" }}name={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+{{ "{{" }} with .CommonLabels.project {{ "}}" }}project={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+{{ "{{" }} with .CommonLabels.repo {{ "}}" }}repo={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+{{ "{{" }} with .CommonLabels.sync_status {{ "}}" }}sync_status={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+{{ "{{" }} with .CommonLabels.health_status {{ "}}" }}health_status={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+{{ "{{" }} with .CommonLabels.autosync_enabled {{ "}}" }}autosync_enabled={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+{{ "{{" }} with .CommonLabels.severity {{ "}}" }}severity={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+{{ "{{" }} with .CommonLabels.team {{ "}}" }}team={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+{{ "{{" }} with .CommonLabels.vendor {{ "}}" }}vendor={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
+{{ "{{" }} with .CommonLabels.app {{ "}}" }}app={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }}
+{{- end }}
