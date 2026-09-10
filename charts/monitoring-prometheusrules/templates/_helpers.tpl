@@ -79,7 +79,8 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Applicatio
     severity: {{ .labels.severity }}
     namespace: "{{`{{request.object.metadata.name}}`}}"
   annotations:
-    description: {{ .annotations.description }}
+    description: |-
+      {{- .annotations.description | nindent 6 }}
     summary: {{ .annotations.summary }}
     {{- with .annotations.runbook_url }}
     runbook_url: {{ . }}
@@ -105,7 +106,8 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Platform (
     severity: {{ .labels.severity }}
     namespace: "{{`{{request.object.metadata.name}}`}}"
   annotations:
-    description: {{ .annotations.description }}
+    description: |-
+      {{- .annotations.description | nindent 6 }}
     summary: {{ .annotations.summary }}
     {{- with .annotations.runbook_url }}
     runbook_url: {{ . }}
@@ -131,7 +133,8 @@ Create the rules list usable for prometheusrule.spec.groups.rules for Cluster Mo
     severity: {{ .labels.severity }}
     namespace: "{{`{{request.object.metadata.name}}`}}"
   annotations:
-    description: {{ .annotations.description }}
+    description: |-
+      {{- .annotations.description | nindent 6 }}
     summary: {{ .annotations.summary }}
     {{- with .annotations.runbook_url }}
     runbook_url: {{ . }}
