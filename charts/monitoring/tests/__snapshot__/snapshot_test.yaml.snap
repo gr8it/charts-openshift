@@ -65,9 +65,7 @@ manifests should match snapshot (hub cluster):
                     rules:
                       - alert: KubePodCrashLooping
                         annotations:
-                          description: |-
-                            pod = \{{ $labels.pod }}
-                            container = \{{ $labels.container }}
+                          description: Pod \{{ $labels.pod }}, container \{{ $labels.container }} in namespace \{{ $labels.namespace }} is in a CrashLoopBackOff state.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodcrashlooping
                           summary: Pod is crash looping
                         expr: |-
@@ -83,7 +81,7 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubePodNotReady
                         annotations:
-                          description: pod = \{{ $labels.pod }}
+                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been in a non-ready state for longer than 15 minutes.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodnotready
                           summary: Pod has been in a non-ready state for more than 15 minutes
                         expr: |-
@@ -105,7 +103,7 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubePodEvicted
                         annotations:
-                          description: pod = \{{ $labels.pod }}
+                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been evicted.
                           summary: Pod has been evicted
                         expr: |-
                           max by (namespace,pod) (
@@ -120,7 +118,7 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeDeploymentGenerationMismatch
                         annotations:
-                          description: deployment = \{{ $labels.deployment }}
+                          description: Deployment generation for \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} does not match, this indicates that the Deployment has failed but has not been rolled back."
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentgenerationmismatch
                           summary: Deployment generation mismatch due to possible roll-back
                         expr: |-
@@ -138,7 +136,7 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeDeploymentReplicasMismatch
                         annotations:
-                          description: deployment = \{{ $labels.deployment }}
+                          description: Deployment \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} has not matched the expected number of replicas for longer than 15 minutes.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentreplicasmismatch
                           summary: Deployment has not matched the expected number of replicas
                         expr: |-
@@ -162,7 +160,7 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeDeploymentRolloutStuck
                         annotations:
-                          description: deployment = \{{ $labels.deployment }}
+                          description: Rollout of deployment \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} is not progressing for longer than 15 minutes.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentrolloutstuck
                           summary: Deployment rollout is not progressing
                         expr: |-
@@ -179,7 +177,7 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeStatefulSetReplicasMismatch
                         annotations:
-                          description: statefulset = \{{ $labels.statefulset }}
+                          description: StatefulSet \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} has not matched the expected number of replicas for longer than 15 minutes.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetreplicasmismatch
                           summary: StatefulSet has not matched the expected number of replicas
                         expr: |-
@@ -203,7 +201,7 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeStatefulSetGenerationMismatch
                         annotations:
-                          description: statefulset = \{{ $labels.statefulset }}
+                          description: StatefulSet generation for \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} does not match, this indicates that the StatefulSet has failed but has not been rolled back.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetgenerationmismatch
                           summary: StatefulSet generation mismatch due to possible roll-back
                         expr: |-
@@ -221,7 +219,7 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeStatefulSetUpdateNotRolledOut
                         annotations:
-                          description: statefulset = \{{ $labels.statefulset }}
+                          description: StatefulSet \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} update has not been rolled out.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetupdatenotrolledout
                           summary: StatefulSet update has not been rolled out
                         expr: |-
@@ -253,7 +251,7 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeDaemonSetRolloutStuck
                         annotations:
-                          description: daemonset = \{{ $labels.daemonset }}
+                          description: DaemonSet \{{ $labels.daemonset }} in namespace \{{ $labels.namespace }} has not finished or progressed for at least 15m.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetrolloutstuck
                           summary: DaemonSet rollout is stuck
                         expr: |-
@@ -291,9 +289,7 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeContainerWaiting
                         annotations:
-                          description: |-
-                            pod = \{{ $labels.pod }}
-                            container = \{{ $labels.container }}
+                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} on container \{{ $labels.container}} has been in waiting state for longer than 1 hour.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubecontainerwaiting
                           summary: Pod container waiting longer than 1 hour
                         expr: |-
@@ -309,9 +305,7 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeDaemonSetNotScheduled
                         annotations:
-                          description: |-
-                            daemonset = \{{ $labels.daemonset }}
-                            pods not scheduled = \{{ $value }}
+                          description: There are \{{ $value }} pods of DaemonSet \{{ $labels.daemonset }} that are not scheduled.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetnotscheduled
                           summary: DaemonSet pods are not scheduled
                         expr: |-
@@ -329,9 +323,7 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeDaemonSetMisScheduled
                         annotations:
-                          description: |-
-                            daemonset = \{{ $labels.daemonset }}
-                            misscheduled pods = \{{ $value }}
+                          description: Found \{{ $value }} mis-scheduled pods for DaemonSet \{{ $labels.daemonset }} in namespace \{{ $labels.namespace }}.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetmisscheduled
                           summary: DaemonSet pods are misscheduled
                         expr: |-
@@ -347,9 +339,7 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeJobNotCompleted
                         annotations:
-                          description: |-
-                            job = \{{ $labels.job_name }}
-                            running for = \{{ humanizeDuration $value }}
+                          description: Job \{{ $labels.job_name }} in namespace \{{ $labels.namespace }} has been running for \{{ humanizeDuration $value }} and has not completed.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobnotcompleted
                           summary: Job did not complete in time
                         expr: |-
@@ -367,9 +357,7 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeJobFailed
                         annotations:
-                          description: |-
-                            job = \{{ $labels.job_name }}
-                            Removing the failed job after investigation clears this alert.
+                          description: Job \{{ $labels.job_name }} in namespace \{{ $labels.namespace }} failed to complete. Removing failed job after investigation should clear this alert.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobfailed
                           summary: Job failed to complete
                         expr: |-
@@ -385,7 +373,7 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeHpaReplicasMismatch
                         annotations:
-                          description: hpa = \{{ $labels.horizontalpodautoscaler }}
+                          description: HPA \{{ $labels.horizontalpodautoscaler  }} has not matched the desired number of replicas for longer than 15 minutes.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubehpareplicasmismatch
                           summary: HPA has not matched desired number of replicas
                         expr: |-
@@ -413,7 +401,7 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubeHpaMaxedOut
                         annotations:
-                          description: hpa = \{{ $labels.horizontalpodautoscaler }}
+                          description: HPA \{{ $labels.horizontalpodautoscaler  }} in namespace \{{ $labels.namespace }} has been running at max replicas for longer than 15 minutes.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubehpamaxedout
                           summary: HPA is running at max replicas
                         expr: |-
@@ -431,9 +419,7 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubePdbNotEnoughHealthyPods
                         annotations:
-                          description: |-
-                            pdb = \{{ $labels.poddisruptionbudget }}
-                            missing healthy pods = \{{ $value }}
+                          description: PDB \{{ $labels.poddisruptionbudget }} expects \{{ $value }} more healthy pods. The desired number of healthy pods has not been met for at least 15m.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepdbnotenoughhealthypods
                           summary: PDB does not have enough healthy pods
                         expr: |-
@@ -454,9 +440,7 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubePersistentVolumeFillingUp
                         annotations:
-                          description: |-
-                            pvc = \{{ $labels.persistentvolumeclaim }}
-                            free space = \{{ $value | humanizePercentage }}
+                          description: The PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is only \{{ $value | humanizePercentage }} free.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumefillingup
                           summary: PersistentVolume is filling up
                         expr: |-
@@ -482,10 +466,7 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubePersistentVolumeFillingUp
                         annotations:
-                          description: |-
-                            pvc = \{{ $labels.persistentvolumeclaim }}
-                            free space = \{{ $value | humanizePercentage }}
-                            expected to fill up within four days
+                          description: Based on recent sampling, the PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is expected to fill up within four days. Currently \{{ $value | humanizePercentage }} is available.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumefillingup
                           summary: PersistentVolume is filling up
                         expr: |-
@@ -513,9 +494,7 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubePersistentVolumeInodesFillingUp
                         annotations:
-                          description: |-
-                            pvc = \{{ $labels.persistentvolumeclaim }}
-                            free inodes = \{{ $value | humanizePercentage }}
+                          description: The PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} has only \{{ $value | humanizePercentage }} free inodes.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumeinodesfillingup
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
@@ -541,10 +520,7 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubePersistentVolumeInodesFillingUp
                         annotations:
-                          description: |-
-                            pvc = \{{ $labels.persistentvolumeclaim }}
-                            free inodes = \{{ $value | humanizePercentage }}
-                            expected to run out within four days
+                          description: Based on recent sampling, the PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is expected to run out of inodes within four days. Currently \{{ $value | humanizePercentage }} of its inodes are free.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumeinodesfillingup
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
@@ -572,9 +548,7 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: KubePersistentVolumeErrors
                         annotations:
-                          description: |-
-                            pv = \{{ $labels.persistentvolume }}
-                            phase = \{{ $labels.phase }}
+                          description: The persistent volume \{{ $labels.persistentvolume }} has status \{{ $labels.phase }}.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumeerrors
                           summary: PersistentVolume is having issues with provisioning
                         expr: |-
@@ -590,9 +564,7 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: HighCPUUtilization
                         annotations:
-                          description: |-
-                            pod = \{{ $labels.pod }}
-                            CPU utilization = \{{ $value | humanizePercentage }}
+                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 95% of its CPU limit for over 15 minutes. Current value is \{{ $value | humanizePercentage }}.
                           summary: CPU utilization is above 95%
                         expr: |-
                           max by (namespace,pod) (
@@ -611,10 +583,7 @@ manifests should match snapshot (hub cluster):
                           vendor: aspecta
                       - alert: HighMemoryUtilization
                         annotations:
-                          description: |-
-                            pod = \{{ $labels.pod }}
-                            container = \{{ $labels.container }}
-                            memory utilization = \{{ $value | humanizePercentage }}
+                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 90% of its memory limit for over 15 minutes. Current utilization is \{{ $value | humanizePercentage }}
                           summary: Memory utilization is above 90%
                         expr: |-
                           max by (namespace,pod,container) (
@@ -1111,9 +1080,7 @@ manifests should match snapshot (non-hub cluster):
                     rules:
                       - alert: KubePodCrashLooping
                         annotations:
-                          description: |-
-                            pod = \{{ $labels.pod }}
-                            container = \{{ $labels.container }}
+                          description: Pod \{{ $labels.pod }}, container \{{ $labels.container }} in namespace \{{ $labels.namespace }} is in a CrashLoopBackOff state.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodcrashlooping
                           summary: Pod is crash looping
                         expr: |-
@@ -1129,7 +1096,7 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubePodNotReady
                         annotations:
-                          description: pod = \{{ $labels.pod }}
+                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been in a non-ready state for longer than 15 minutes.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodnotready
                           summary: Pod has been in a non-ready state for more than 15 minutes
                         expr: |-
@@ -1151,7 +1118,7 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubePodEvicted
                         annotations:
-                          description: pod = \{{ $labels.pod }}
+                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been evicted.
                           summary: Pod has been evicted
                         expr: |-
                           max by (namespace,pod) (
@@ -1166,7 +1133,7 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeDeploymentGenerationMismatch
                         annotations:
-                          description: deployment = \{{ $labels.deployment }}
+                          description: Deployment generation for \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} does not match, this indicates that the Deployment has failed but has not been rolled back."
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentgenerationmismatch
                           summary: Deployment generation mismatch due to possible roll-back
                         expr: |-
@@ -1184,7 +1151,7 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeDeploymentReplicasMismatch
                         annotations:
-                          description: deployment = \{{ $labels.deployment }}
+                          description: Deployment \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} has not matched the expected number of replicas for longer than 15 minutes.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentreplicasmismatch
                           summary: Deployment has not matched the expected number of replicas
                         expr: |-
@@ -1208,7 +1175,7 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeDeploymentRolloutStuck
                         annotations:
-                          description: deployment = \{{ $labels.deployment }}
+                          description: Rollout of deployment \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} is not progressing for longer than 15 minutes.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentrolloutstuck
                           summary: Deployment rollout is not progressing
                         expr: |-
@@ -1225,7 +1192,7 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeStatefulSetReplicasMismatch
                         annotations:
-                          description: statefulset = \{{ $labels.statefulset }}
+                          description: StatefulSet \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} has not matched the expected number of replicas for longer than 15 minutes.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetreplicasmismatch
                           summary: StatefulSet has not matched the expected number of replicas
                         expr: |-
@@ -1249,7 +1216,7 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeStatefulSetGenerationMismatch
                         annotations:
-                          description: statefulset = \{{ $labels.statefulset }}
+                          description: StatefulSet generation for \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} does not match, this indicates that the StatefulSet has failed but has not been rolled back.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetgenerationmismatch
                           summary: StatefulSet generation mismatch due to possible roll-back
                         expr: |-
@@ -1267,7 +1234,7 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeStatefulSetUpdateNotRolledOut
                         annotations:
-                          description: statefulset = \{{ $labels.statefulset }}
+                          description: StatefulSet \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} update has not been rolled out.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetupdatenotrolledout
                           summary: StatefulSet update has not been rolled out
                         expr: |-
@@ -1299,7 +1266,7 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeDaemonSetRolloutStuck
                         annotations:
-                          description: daemonset = \{{ $labels.daemonset }}
+                          description: DaemonSet \{{ $labels.daemonset }} in namespace \{{ $labels.namespace }} has not finished or progressed for at least 15m.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetrolloutstuck
                           summary: DaemonSet rollout is stuck
                         expr: |-
@@ -1337,9 +1304,7 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeContainerWaiting
                         annotations:
-                          description: |-
-                            pod = \{{ $labels.pod }}
-                            container = \{{ $labels.container }}
+                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} on container \{{ $labels.container}} has been in waiting state for longer than 1 hour.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubecontainerwaiting
                           summary: Pod container waiting longer than 1 hour
                         expr: |-
@@ -1355,9 +1320,7 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeDaemonSetNotScheduled
                         annotations:
-                          description: |-
-                            daemonset = \{{ $labels.daemonset }}
-                            pods not scheduled = \{{ $value }}
+                          description: There are \{{ $value }} pods of DaemonSet \{{ $labels.daemonset }} that are not scheduled.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetnotscheduled
                           summary: DaemonSet pods are not scheduled
                         expr: |-
@@ -1375,9 +1338,7 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeDaemonSetMisScheduled
                         annotations:
-                          description: |-
-                            daemonset = \{{ $labels.daemonset }}
-                            misscheduled pods = \{{ $value }}
+                          description: Found \{{ $value }} mis-scheduled pods for DaemonSet \{{ $labels.daemonset }} in namespace \{{ $labels.namespace }}.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetmisscheduled
                           summary: DaemonSet pods are misscheduled
                         expr: |-
@@ -1393,9 +1354,7 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeJobNotCompleted
                         annotations:
-                          description: |-
-                            job = \{{ $labels.job_name }}
-                            running for = \{{ humanizeDuration $value }}
+                          description: Job \{{ $labels.job_name }} in namespace \{{ $labels.namespace }} has been running for \{{ humanizeDuration $value }} and has not completed.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobnotcompleted
                           summary: Job did not complete in time
                         expr: |-
@@ -1413,9 +1372,7 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeJobFailed
                         annotations:
-                          description: |-
-                            job = \{{ $labels.job_name }}
-                            Removing the failed job after investigation clears this alert.
+                          description: Job \{{ $labels.job_name }} in namespace \{{ $labels.namespace }} failed to complete. Removing failed job after investigation should clear this alert.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobfailed
                           summary: Job failed to complete
                         expr: |-
@@ -1431,7 +1388,7 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeHpaReplicasMismatch
                         annotations:
-                          description: hpa = \{{ $labels.horizontalpodautoscaler }}
+                          description: HPA \{{ $labels.horizontalpodautoscaler  }} has not matched the desired number of replicas for longer than 15 minutes.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubehpareplicasmismatch
                           summary: HPA has not matched desired number of replicas
                         expr: |-
@@ -1459,7 +1416,7 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubeHpaMaxedOut
                         annotations:
-                          description: hpa = \{{ $labels.horizontalpodautoscaler }}
+                          description: HPA \{{ $labels.horizontalpodautoscaler  }} in namespace \{{ $labels.namespace }} has been running at max replicas for longer than 15 minutes.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubehpamaxedout
                           summary: HPA is running at max replicas
                         expr: |-
@@ -1477,9 +1434,7 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubePdbNotEnoughHealthyPods
                         annotations:
-                          description: |-
-                            pdb = \{{ $labels.poddisruptionbudget }}
-                            missing healthy pods = \{{ $value }}
+                          description: PDB \{{ $labels.poddisruptionbudget }} expects \{{ $value }} more healthy pods. The desired number of healthy pods has not been met for at least 15m.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepdbnotenoughhealthypods
                           summary: PDB does not have enough healthy pods
                         expr: |-
@@ -1500,9 +1455,7 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubePersistentVolumeFillingUp
                         annotations:
-                          description: |-
-                            pvc = \{{ $labels.persistentvolumeclaim }}
-                            free space = \{{ $value | humanizePercentage }}
+                          description: The PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is only \{{ $value | humanizePercentage }} free.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumefillingup
                           summary: PersistentVolume is filling up
                         expr: |-
@@ -1528,10 +1481,7 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubePersistentVolumeFillingUp
                         annotations:
-                          description: |-
-                            pvc = \{{ $labels.persistentvolumeclaim }}
-                            free space = \{{ $value | humanizePercentage }}
-                            expected to fill up within four days
+                          description: Based on recent sampling, the PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is expected to fill up within four days. Currently \{{ $value | humanizePercentage }} is available.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumefillingup
                           summary: PersistentVolume is filling up
                         expr: |-
@@ -1559,9 +1509,7 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubePersistentVolumeInodesFillingUp
                         annotations:
-                          description: |-
-                            pvc = \{{ $labels.persistentvolumeclaim }}
-                            free inodes = \{{ $value | humanizePercentage }}
+                          description: The PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} has only \{{ $value | humanizePercentage }} free inodes.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumeinodesfillingup
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
@@ -1587,10 +1535,7 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubePersistentVolumeInodesFillingUp
                         annotations:
-                          description: |-
-                            pvc = \{{ $labels.persistentvolumeclaim }}
-                            free inodes = \{{ $value | humanizePercentage }}
-                            expected to run out within four days
+                          description: Based on recent sampling, the PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is expected to run out of inodes within four days. Currently \{{ $value | humanizePercentage }} of its inodes are free.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumeinodesfillingup
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
@@ -1618,9 +1563,7 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: KubePersistentVolumeErrors
                         annotations:
-                          description: |-
-                            pv = \{{ $labels.persistentvolume }}
-                            phase = \{{ $labels.phase }}
+                          description: The persistent volume \{{ $labels.persistentvolume }} has status \{{ $labels.phase }}.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumeerrors
                           summary: PersistentVolume is having issues with provisioning
                         expr: |-
@@ -1636,9 +1579,7 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: HighCPUUtilization
                         annotations:
-                          description: |-
-                            pod = \{{ $labels.pod }}
-                            CPU utilization = \{{ $value | humanizePercentage }}
+                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 95% of its CPU limit for over 15 minutes. Current value is \{{ $value | humanizePercentage }}.
                           summary: CPU utilization is above 95%
                         expr: |-
                           max by (namespace,pod) (
@@ -1657,10 +1598,7 @@ manifests should match snapshot (non-hub cluster):
                           vendor: aspecta
                       - alert: HighMemoryUtilization
                         annotations:
-                          description: |-
-                            pod = \{{ $labels.pod }}
-                            container = \{{ $labels.container }}
-                            memory utilization = \{{ $value | humanizePercentage }}
+                          description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 90% of its memory limit for over 15 minutes. Current utilization is \{{ $value | humanizePercentage }}
                           summary: Memory utilization is above 90%
                         expr: |-
                           max by (namespace,pod,container) (

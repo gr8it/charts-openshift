@@ -3,9 +3,7 @@ rules:
   - alert: KubePodCrashLooping
     alertLabels: [namespace, pod, container]
     annotations:
-      description: |-
-        pod = \{{ $labels.pod }}
-        container = \{{ $labels.container }}
+      description: Pod \{{ $labels.pod }}, container \{{ $labels.container }} in namespace \{{ $labels.namespace }} is in a CrashLoopBackOff state.
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodcrashlooping
       summary: Pod is crash looping
     expr: max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m]) >= 1
@@ -15,8 +13,7 @@ rules:
   - alert: KubePodNotReady
     alertLabels: [namespace, pod]
     annotations:
-      description: |-
-        pod = \{{ $labels.pod }}
+      description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been in a non-ready state for longer than 15 minutes.
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodnotready
       summary: Pod has been in a non-ready state for more than 15 minutes
     expr: |-
@@ -33,8 +30,7 @@ rules:
   - alert: KubePodEvicted
     alertLabels: [namespace, pod]
     annotations:
-      description: |-
-        pod = \{{ $labels.pod }}
+      description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been evicted.
       summary: Pod has been evicted
     expr: kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
     for: 0m
@@ -43,8 +39,7 @@ rules:
   - alert: KubeDeploymentGenerationMismatch
     alertLabels: [namespace, deployment]
     annotations:
-      description: |-
-        deployment = \{{ $labels.deployment }}
+      description: Deployment generation for \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} does not match, this indicates that the Deployment has failed but has not been rolled back."
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentgenerationmismatch
       summary: Deployment generation mismatch due to possible roll-back
     expr: |-
@@ -57,8 +52,7 @@ rules:
   - alert: KubeDeploymentReplicasMismatch
     alertLabels: [namespace, deployment]
     annotations:
-      description: |-
-        deployment = \{{ $labels.deployment }}
+      description: Deployment \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} has not matched the expected number of replicas for longer than 15 minutes.
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentreplicasmismatch
       summary: Deployment has not matched the expected number of replicas
     expr: |-
@@ -77,8 +71,7 @@ rules:
   - alert: KubeDeploymentRolloutStuck
     alertLabels: [namespace, deployment]
     annotations:
-      description: |-
-        deployment = \{{ $labels.deployment }}
+      description: Rollout of deployment \{{ $labels.deployment }} in namespace \{{ $labels.namespace }} is not progressing for longer than 15 minutes.
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentrolloutstuck
       summary: Deployment rollout is not progressing
     expr: |-
@@ -90,8 +83,7 @@ rules:
   - alert: KubeStatefulSetReplicasMismatch
     alertLabels: [namespace, statefulset]
     annotations:
-      description: |-
-        statefulset = \{{ $labels.statefulset }}
+      description: StatefulSet \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} has not matched the expected number of replicas for longer than 15 minutes.
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetreplicasmismatch
       summary: StatefulSet has not matched the expected number of replicas
     expr: |-
@@ -110,8 +102,7 @@ rules:
   - alert: KubeStatefulSetGenerationMismatch
     alertLabels: [namespace, statefulset]
     annotations:
-      description: |-
-        statefulset = \{{ $labels.statefulset }}
+      description: StatefulSet generation for \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} does not match, this indicates that the StatefulSet has failed but has not been rolled back.
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetgenerationmismatch
       summary: StatefulSet generation mismatch due to possible roll-back
     expr: |-
@@ -124,8 +115,7 @@ rules:
   - alert: KubeStatefulSetUpdateNotRolledOut
     alertLabels: [namespace, statefulset]
     annotations:
-      description: |-
-        statefulset = \{{ $labels.statefulset }}
+      description: StatefulSet \{{ $labels.statefulset }} in namespace \{{ $labels.namespace }} update has not been rolled out.
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetupdatenotrolledout
       summary: StatefulSet update has not been rolled out
     expr: |-
@@ -152,8 +142,7 @@ rules:
   - alert: KubeDaemonSetRolloutStuck
     alertLabels: [namespace, daemonset]
     annotations:
-      description: |-
-        daemonset = \{{ $labels.daemonset }}
+      description: DaemonSet \{{ $labels.daemonset }} in namespace \{{ $labels.namespace }} has not finished or progressed for at least 15m.
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetrolloutstuck
       summary: DaemonSet rollout is stuck
     expr: |-
@@ -186,9 +175,7 @@ rules:
   - alert: KubeContainerWaiting
     alertLabels: [namespace, pod, container]
     annotations:
-      description: |-
-        pod = \{{ $labels.pod }}
-        container = \{{ $labels.container }}
+      description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} on container \{{ $labels.container}} has been in waiting state for longer than 1 hour.
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubecontainerwaiting
       summary: Pod container waiting longer than 1 hour
     expr: kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
@@ -198,9 +185,7 @@ rules:
   - alert: KubeDaemonSetNotScheduled
     alertLabels: [namespace, daemonset]
     annotations:
-      description: |-
-        daemonset = \{{ $labels.daemonset }}
-        pods not scheduled = \{{ $value }}
+      description: There are \{{ $value }} pods of DaemonSet \{{ $labels.daemonset }} that are not scheduled.
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetnotscheduled
       summary: DaemonSet pods are not scheduled
     expr: |-
@@ -213,9 +198,7 @@ rules:
   - alert: KubeDaemonSetMisScheduled
     alertLabels: [namespace, daemonset]
     annotations:
-      description: |-
-        daemonset = \{{ $labels.daemonset }}
-        misscheduled pods = \{{ $value }}
+      description: Found \{{ $value }} mis-scheduled pods for DaemonSet \{{ $labels.daemonset }} in namespace \{{ $labels.namespace }}.
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetmisscheduled
       summary: DaemonSet pods are misscheduled
     expr: kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
@@ -225,9 +208,7 @@ rules:
   - alert: KubeJobNotCompleted
     alertLabels: [namespace, job_name]
     annotations:
-      description: |-
-        job = \{{ $labels.job_name }}
-        running for = \{{ humanizeDuration $value }}
+      description: Job \{{ $labels.job_name }} in namespace \{{ $labels.namespace }} has been running for \{{ humanizeDuration $value }} and has not completed.
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobnotcompleted
       summary: Job did not complete in time
     expr: |-
@@ -239,9 +220,7 @@ rules:
   - alert: KubeJobFailed
     alertLabels: [namespace, job_name]
     annotations:
-      description: |-
-        job = \{{ $labels.job_name }}
-        Removing the failed job after investigation clears this alert.
+      description: Job \{{ $labels.job_name }} in namespace \{{ $labels.namespace }} failed to complete. Removing failed job after investigation should clear this alert.
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobfailed
       summary: Job failed to complete
     expr: kube_job_failed{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}  > 0
@@ -251,8 +230,7 @@ rules:
   - alert: KubeHpaReplicasMismatch
     alertLabels: [namespace, horizontalpodautoscaler]
     annotations:
-      description: |-
-        hpa = \{{ $labels.horizontalpodautoscaler }}
+      description: HPA \{{ $labels.horizontalpodautoscaler  }} has not matched the desired number of replicas for longer than 15 minutes.
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubehpareplicasmismatch
       summary: HPA has not matched desired number of replicas
     expr: |-
@@ -275,8 +253,7 @@ rules:
   - alert: KubeHpaMaxedOut
     alertLabels: [namespace, horizontalpodautoscaler]
     annotations:
-      description: |-
-        hpa = \{{ $labels.horizontalpodautoscaler }}
+      description: HPA \{{ $labels.horizontalpodautoscaler  }} in namespace \{{ $labels.namespace }} has been running at max replicas for longer than 15 minutes.
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubehpamaxedout
       summary: HPA is running at max replicas
     expr: |-
@@ -289,9 +266,7 @@ rules:
   - alert: KubePdbNotEnoughHealthyPods
     alertLabels: [namespace, poddisruptionbudget]
     annotations:
-      description: |-
-        pdb = \{{ $labels.poddisruptionbudget }}
-        missing healthy pods = \{{ $value }}
+      description: PDB \{{ $labels.poddisruptionbudget }} expects \{{ $value }} more healthy pods. The desired number of healthy pods has not been met for at least 15m.
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepdbnotenoughhealthypods
       summary: PDB does not have enough healthy pods
     expr: |-
@@ -307,9 +282,7 @@ rules:
   - alert: KubePersistentVolumeFillingUp
     alertLabels: [namespace, persistentvolumeclaim]
     annotations:
-      description: |-
-        pvc = \{{ $labels.persistentvolumeclaim }}
-        free space = \{{ $value | humanizePercentage }}
+      description: The PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is only \{{ $value | humanizePercentage }} free.
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumefillingup
       summary: PersistentVolume is filling up
     expr: |-
@@ -330,10 +303,7 @@ rules:
   - alert: KubePersistentVolumeFillingUp
     alertLabels: [namespace, persistentvolumeclaim]
     annotations:
-      description: |-
-        pvc = \{{ $labels.persistentvolumeclaim }}
-        free space = \{{ $value | humanizePercentage }}
-        expected to fill up within four days
+      description: Based on recent sampling, the PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is expected to fill up within four days. Currently \{{ $value | humanizePercentage }} is available.
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumefillingup
       summary: PersistentVolume is filling up
     expr: |-
@@ -356,9 +326,7 @@ rules:
   - alert: KubePersistentVolumeInodesFillingUp
     alertLabels: [namespace, persistentvolumeclaim]
     annotations:
-      description: |-
-        pvc = \{{ $labels.persistentvolumeclaim }}
-        free inodes = \{{ $value | humanizePercentage }}
+      description: The PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} has only \{{ $value | humanizePercentage }} free inodes.
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumeinodesfillingup
       summary: PersistentVolumeInodes are filling up
     expr: |-
@@ -379,10 +347,7 @@ rules:
   - alert: KubePersistentVolumeInodesFillingUp
     alertLabels: [namespace, persistentvolumeclaim]
     annotations:
-      description: |-
-        pvc = \{{ $labels.persistentvolumeclaim }}
-        free inodes = \{{ $value | humanizePercentage }}
-        expected to run out within four days
+      description: Based on recent sampling, the PersistentVolume claimed by \{{ $labels.persistentvolumeclaim }} in namespace \{{ $labels.namespace }} is expected to run out of inodes within four days. Currently \{{ $value | humanizePercentage }} of its inodes are free.
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumeinodesfillingup
       summary: PersistentVolumeInodes are filling up
     expr: |-
@@ -405,9 +370,7 @@ rules:
   - alert: KubePersistentVolumeErrors
     alertLabels: [persistentvolume, phase]
     annotations:
-      description: |-
-        pv = \{{ $labels.persistentvolume }}
-        phase = \{{ $labels.phase }}
+      description: The persistent volume \{{ $labels.persistentvolume }} has status \{{ $labels.phase }}.
       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumeerrors
       summary: PersistentVolume is having issues with provisioning
     expr: kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"} > 0
@@ -417,9 +380,7 @@ rules:
   - alert: HighCPUUtilization
     alertLabels: [namespace, pod]
     annotations:
-      description: |-
-        pod = \{{ $labels.pod }}
-        CPU utilization = \{{ $value | humanizePercentage }}
+      description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 95% of its CPU limit for over 15 minutes. Current value is \{{ $value | humanizePercentage }}.
       summary: CPU utilization is above 95%
     expr: |-
       (
@@ -433,10 +394,7 @@ rules:
   - alert: HighMemoryUtilization
     alertLabels: [namespace, pod, container]
     annotations:
-      description: |-
-        pod = \{{ $labels.pod }}
-        container = \{{ $labels.container }}
-        memory utilization = \{{ $value | humanizePercentage }}
+      description: Pod \{{ $labels.pod }} in namespace \{{ $labels.namespace }} has been utilizing more than 90% of its memory limit for over 15 minutes. Current utilization is \{{ $value | humanizePercentage }}
       summary: Memory utilization is above 90%
     expr: |-
       (
