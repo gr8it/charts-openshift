@@ -73,8 +73,10 @@ PrometheusRule has no curated description.
 ---
 {{ "{{" }} end {{ "}}" }}
 {{ "{{" }} if $a.Annotations.description {{ "}}" }}{{ "{{" }} $a.Annotations.description {{ "}}" }}{{ "{{" }} else if $a.Annotations.summary {{ "}}" }}{{ "{{" }} $a.Annotations.summary {{ "}}" }}{{ "{{" }} else {{ "}}" }}{{ "{{" }} $a.Annotations.message {{ "}}" }}{{ "{{" }} end {{ "}}" }}
-{{ "{{" }} with $a.Annotations.runbook_url {{ "}}" }}Runbook: {{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }}
-{{ "{{" }} with $a.GeneratorURL {{ "}}" }}Source: {{ "{{" }} reReplaceAll `^(.*)/monitoring/graph\?g0\.expr=` "${1}/monitoring/query-browser?query0=" . {{ "}}" }}{{ "{{" }} end {{ "}}" }}
+
+{{ "{{" }} with $a.Annotations.runbook_url {{ "}}" }}Runbook: {{ "{{" }} . {{ "}}" }}
+
+{{ "{{" }} end {{ "}}" }}{{ "{{" }} with $a.GeneratorURL {{ "}}" }}Source: {{ "{{" }} reReplaceAll `^(.*)/monitoring/graph\?g0\.expr=` "${1}/monitoring/query-browser?query0=" . {{ "}}" }}{{ "{{" }} end {{ "}}" }}
 {{ "{{" }} end {{ "}}" }}
 {{- end }}
 
