@@ -725,7 +725,7 @@ spec:
           remediationAction: enforce
           severity: high
           object-templates:
-            - complianceType: musthave
+            - complianceType: mustonlyhave
               objectDefinition:
                 apiVersion: monitoring.coreos.com/v1
                 kind: PrometheusRule
@@ -762,7 +762,7 @@ spec:
                         description: |
                           {{ "{{ \"{{ $value | humanizePercentage }}\" }}" }} of Argo CD applications have sync status Unknown. Check repository connectivity.
                         summary: Majority of Argo CD applications sync status is Unknown
-            - complianceType: musthave
+            - complianceType: mustonlyhave
               objectDefinition:
                 apiVersion: monitoring.coreos.com/v1
                 kind: PrometheusRule
