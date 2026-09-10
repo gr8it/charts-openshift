@@ -75,7 +75,8 @@ desc=$(render "$WORK_DIR/description.tmpl" "$FIXTURES_DIR/alert-pvc.json")
 tags=$(render_tags_flat "$WORK_DIR/tags.tmpl" "$FIXTURES_DIR/alert-pvc.json")
 assert_contains "pvc description" "$desc" "namespace = logging-loki"
 assert_contains "pvc description" "$desc" "Runbook: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumefillingup"
-assert_contains "pvc description" "$desc" "Source: https://console-openshift-console"
+assert_contains "pvc description" "$desc" "/monitoring/query-browser?query0="
+assert_not_contains "pvc description" "$desc" "/monitoring/graph?g0.expr="
 assert_contains "pvc tags" "$tags" "namespace=logging-loki"
 assert_not_contains "pvc tags" "$tags" ",,"
 

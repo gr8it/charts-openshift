@@ -31,7 +31,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubePodCrashLooping
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             pod = \{{ $labels.pod }}
                             container = \{{ $labels.container }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodcrashlooping
@@ -49,9 +48,7 @@ rendered cluster-policy-cluster-application manifest:
                           vendor: socpoist
                       - alert: KubePodNotReady
                         annotations:
-                          description: |-
-                            namespace = \{{ $labels.namespace }}
-                            pod = \{{ $labels.pod }}
+                          description: pod = \{{ $labels.pod }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodnotready
                           summary: Pod has been in a non-ready state for more than 15 minutes
                         expr: |-
@@ -73,9 +70,7 @@ rendered cluster-policy-cluster-application manifest:
                           vendor: socpoist
                       - alert: KubePodEvicted
                         annotations:
-                          description: |-
-                            namespace = \{{ $labels.namespace }}
-                            pod = \{{ $labels.pod }}
+                          description: pod = \{{ $labels.pod }}
                           summary: Pod has been evicted
                         expr: |-
                           max by (namespace,pod) (
@@ -90,9 +85,7 @@ rendered cluster-policy-cluster-application manifest:
                           vendor: socpoist
                       - alert: KubeDeploymentGenerationMismatch
                         annotations:
-                          description: |-
-                            namespace = \{{ $labels.namespace }}
-                            deployment = \{{ $labels.deployment }}
+                          description: deployment = \{{ $labels.deployment }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentgenerationmismatch
                           summary: Deployment generation mismatch due to possible roll-back
                         expr: |-
@@ -110,9 +103,7 @@ rendered cluster-policy-cluster-application manifest:
                           vendor: socpoist
                       - alert: KubeDeploymentReplicasMismatch
                         annotations:
-                          description: |-
-                            namespace = \{{ $labels.namespace }}
-                            deployment = \{{ $labels.deployment }}
+                          description: deployment = \{{ $labels.deployment }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentreplicasmismatch
                           summary: Deployment has not matched the expected number of replicas
                         expr: |-
@@ -136,9 +127,7 @@ rendered cluster-policy-cluster-application manifest:
                           vendor: socpoist
                       - alert: KubeDeploymentRolloutStuck
                         annotations:
-                          description: |-
-                            namespace = \{{ $labels.namespace }}
-                            deployment = \{{ $labels.deployment }}
+                          description: deployment = \{{ $labels.deployment }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentrolloutstuck
                           summary: Deployment rollout is not progressing
                         expr: |-
@@ -155,9 +144,7 @@ rendered cluster-policy-cluster-application manifest:
                           vendor: socpoist
                       - alert: KubeStatefulSetReplicasMismatch
                         annotations:
-                          description: |-
-                            namespace = \{{ $labels.namespace }}
-                            statefulset = \{{ $labels.statefulset }}
+                          description: statefulset = \{{ $labels.statefulset }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetreplicasmismatch
                           summary: StatefulSet has not matched the expected number of replicas
                         expr: |-
@@ -181,9 +168,7 @@ rendered cluster-policy-cluster-application manifest:
                           vendor: socpoist
                       - alert: KubeStatefulSetGenerationMismatch
                         annotations:
-                          description: |-
-                            namespace = \{{ $labels.namespace }}
-                            statefulset = \{{ $labels.statefulset }}
+                          description: statefulset = \{{ $labels.statefulset }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetgenerationmismatch
                           summary: StatefulSet generation mismatch due to possible roll-back
                         expr: |-
@@ -201,9 +186,7 @@ rendered cluster-policy-cluster-application manifest:
                           vendor: socpoist
                       - alert: KubeStatefulSetUpdateNotRolledOut
                         annotations:
-                          description: |-
-                            namespace = \{{ $labels.namespace }}
-                            statefulset = \{{ $labels.statefulset }}
+                          description: statefulset = \{{ $labels.statefulset }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetupdatenotrolledout
                           summary: StatefulSet update has not been rolled out
                         expr: |-
@@ -235,9 +218,7 @@ rendered cluster-policy-cluster-application manifest:
                           vendor: socpoist
                       - alert: KubeDaemonSetRolloutStuck
                         annotations:
-                          description: |-
-                            namespace = \{{ $labels.namespace }}
-                            daemonset = \{{ $labels.daemonset }}
+                          description: daemonset = \{{ $labels.daemonset }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetrolloutstuck
                           summary: DaemonSet rollout is stuck
                         expr: |-
@@ -276,7 +257,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubeContainerWaiting
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             pod = \{{ $labels.pod }}
                             container = \{{ $labels.container }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubecontainerwaiting
@@ -295,7 +275,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubeDaemonSetNotScheduled
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             daemonset = \{{ $labels.daemonset }}
                             pods not scheduled = \{{ $value }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetnotscheduled
@@ -316,7 +295,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubeDaemonSetMisScheduled
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             daemonset = \{{ $labels.daemonset }}
                             misscheduled pods = \{{ $value }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetmisscheduled
@@ -335,7 +313,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubeJobNotCompleted
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             job = \{{ $labels.job_name }}
                             running for = \{{ humanizeDuration $value }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobnotcompleted
@@ -356,7 +333,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubeJobFailed
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             job = \{{ $labels.job_name }}
                             Removing the failed job after investigation clears this alert.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobfailed
@@ -374,9 +350,7 @@ rendered cluster-policy-cluster-application manifest:
                           vendor: socpoist
                       - alert: KubeHpaReplicasMismatch
                         annotations:
-                          description: |-
-                            namespace = \{{ $labels.namespace }}
-                            hpa = \{{ $labels.horizontalpodautoscaler }}
+                          description: hpa = \{{ $labels.horizontalpodautoscaler }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubehpareplicasmismatch
                           summary: HPA has not matched desired number of replicas
                         expr: |-
@@ -404,9 +378,7 @@ rendered cluster-policy-cluster-application manifest:
                           vendor: socpoist
                       - alert: KubeHpaMaxedOut
                         annotations:
-                          description: |-
-                            namespace = \{{ $labels.namespace }}
-                            hpa = \{{ $labels.horizontalpodautoscaler }}
+                          description: hpa = \{{ $labels.horizontalpodautoscaler }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubehpamaxedout
                           summary: HPA is running at max replicas
                         expr: |-
@@ -425,7 +397,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubePdbNotEnoughHealthyPods
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             pdb = \{{ $labels.poddisruptionbudget }}
                             missing healthy pods = \{{ $value }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepdbnotenoughhealthypods
@@ -449,7 +420,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubePersistentVolumeFillingUp
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             pvc = \{{ $labels.persistentvolumeclaim }}
                             free space = \{{ $value | humanizePercentage }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumefillingup
@@ -478,7 +448,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubePersistentVolumeFillingUp
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             pvc = \{{ $labels.persistentvolumeclaim }}
                             free space = \{{ $value | humanizePercentage }}
                             expected to fill up within four days
@@ -510,7 +479,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubePersistentVolumeInodesFillingUp
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             pvc = \{{ $labels.persistentvolumeclaim }}
                             free inodes = \{{ $value | humanizePercentage }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumeinodesfillingup
@@ -539,7 +507,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubePersistentVolumeInodesFillingUp
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             pvc = \{{ $labels.persistentvolumeclaim }}
                             free inodes = \{{ $value | humanizePercentage }}
                             expected to run out within four days
@@ -589,7 +556,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: HighCPUUtilization
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             pod = \{{ $labels.pod }}
                             CPU utilization = \{{ $value | humanizePercentage }}
                           summary: CPU utilization is above 95%
@@ -611,7 +577,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: HighMemoryUtilization
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             pod = \{{ $labels.pod }}
                             container = \{{ $labels.container }}
                             memory utilization = \{{ $value | humanizePercentage }}
@@ -689,7 +654,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubePodCrashLooping
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             pod = \{{ $labels.pod }}
                             container = \{{ $labels.container }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodcrashlooping
@@ -707,9 +671,7 @@ rendered cluster-policy-cluster-application manifest:
                           vendor: aspecta
                       - alert: KubePodNotReady
                         annotations:
-                          description: |-
-                            namespace = \{{ $labels.namespace }}
-                            pod = \{{ $labels.pod }}
+                          description: pod = \{{ $labels.pod }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodnotready
                           summary: Pod has been in a non-ready state for more than 15 minutes
                         expr: |-
@@ -731,9 +693,7 @@ rendered cluster-policy-cluster-application manifest:
                           vendor: aspecta
                       - alert: KubePodEvicted
                         annotations:
-                          description: |-
-                            namespace = \{{ $labels.namespace }}
-                            pod = \{{ $labels.pod }}
+                          description: pod = \{{ $labels.pod }}
                           summary: Pod has been evicted
                         expr: |-
                           max by (namespace,pod) (
@@ -748,9 +708,7 @@ rendered cluster-policy-cluster-application manifest:
                           vendor: aspecta
                       - alert: KubeDeploymentGenerationMismatch
                         annotations:
-                          description: |-
-                            namespace = \{{ $labels.namespace }}
-                            deployment = \{{ $labels.deployment }}
+                          description: deployment = \{{ $labels.deployment }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentgenerationmismatch
                           summary: Deployment generation mismatch due to possible roll-back
                         expr: |-
@@ -768,9 +726,7 @@ rendered cluster-policy-cluster-application manifest:
                           vendor: aspecta
                       - alert: KubeDeploymentReplicasMismatch
                         annotations:
-                          description: |-
-                            namespace = \{{ $labels.namespace }}
-                            deployment = \{{ $labels.deployment }}
+                          description: deployment = \{{ $labels.deployment }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentreplicasmismatch
                           summary: Deployment has not matched the expected number of replicas
                         expr: |-
@@ -794,9 +750,7 @@ rendered cluster-policy-cluster-application manifest:
                           vendor: aspecta
                       - alert: KubeDeploymentRolloutStuck
                         annotations:
-                          description: |-
-                            namespace = \{{ $labels.namespace }}
-                            deployment = \{{ $labels.deployment }}
+                          description: deployment = \{{ $labels.deployment }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentrolloutstuck
                           summary: Deployment rollout is not progressing
                         expr: |-
@@ -813,9 +767,7 @@ rendered cluster-policy-cluster-application manifest:
                           vendor: aspecta
                       - alert: KubeStatefulSetReplicasMismatch
                         annotations:
-                          description: |-
-                            namespace = \{{ $labels.namespace }}
-                            statefulset = \{{ $labels.statefulset }}
+                          description: statefulset = \{{ $labels.statefulset }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetreplicasmismatch
                           summary: StatefulSet has not matched the expected number of replicas
                         expr: |-
@@ -839,9 +791,7 @@ rendered cluster-policy-cluster-application manifest:
                           vendor: aspecta
                       - alert: KubeStatefulSetGenerationMismatch
                         annotations:
-                          description: |-
-                            namespace = \{{ $labels.namespace }}
-                            statefulset = \{{ $labels.statefulset }}
+                          description: statefulset = \{{ $labels.statefulset }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetgenerationmismatch
                           summary: StatefulSet generation mismatch due to possible roll-back
                         expr: |-
@@ -859,9 +809,7 @@ rendered cluster-policy-cluster-application manifest:
                           vendor: aspecta
                       - alert: KubeStatefulSetUpdateNotRolledOut
                         annotations:
-                          description: |-
-                            namespace = \{{ $labels.namespace }}
-                            statefulset = \{{ $labels.statefulset }}
+                          description: statefulset = \{{ $labels.statefulset }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetupdatenotrolledout
                           summary: StatefulSet update has not been rolled out
                         expr: |-
@@ -893,9 +841,7 @@ rendered cluster-policy-cluster-application manifest:
                           vendor: aspecta
                       - alert: KubeDaemonSetRolloutStuck
                         annotations:
-                          description: |-
-                            namespace = \{{ $labels.namespace }}
-                            daemonset = \{{ $labels.daemonset }}
+                          description: daemonset = \{{ $labels.daemonset }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetrolloutstuck
                           summary: DaemonSet rollout is stuck
                         expr: |-
@@ -934,7 +880,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubeContainerWaiting
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             pod = \{{ $labels.pod }}
                             container = \{{ $labels.container }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubecontainerwaiting
@@ -953,7 +898,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubeDaemonSetNotScheduled
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             daemonset = \{{ $labels.daemonset }}
                             pods not scheduled = \{{ $value }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetnotscheduled
@@ -974,7 +918,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubeDaemonSetMisScheduled
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             daemonset = \{{ $labels.daemonset }}
                             misscheduled pods = \{{ $value }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetmisscheduled
@@ -993,7 +936,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubeJobNotCompleted
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             job = \{{ $labels.job_name }}
                             running for = \{{ humanizeDuration $value }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobnotcompleted
@@ -1014,7 +956,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubeJobFailed
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             job = \{{ $labels.job_name }}
                             Removing the failed job after investigation clears this alert.
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobfailed
@@ -1032,9 +973,7 @@ rendered cluster-policy-cluster-application manifest:
                           vendor: aspecta
                       - alert: KubeHpaReplicasMismatch
                         annotations:
-                          description: |-
-                            namespace = \{{ $labels.namespace }}
-                            hpa = \{{ $labels.horizontalpodautoscaler }}
+                          description: hpa = \{{ $labels.horizontalpodautoscaler }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubehpareplicasmismatch
                           summary: HPA has not matched desired number of replicas
                         expr: |-
@@ -1062,9 +1001,7 @@ rendered cluster-policy-cluster-application manifest:
                           vendor: aspecta
                       - alert: KubeHpaMaxedOut
                         annotations:
-                          description: |-
-                            namespace = \{{ $labels.namespace }}
-                            hpa = \{{ $labels.horizontalpodautoscaler }}
+                          description: hpa = \{{ $labels.horizontalpodautoscaler }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubehpamaxedout
                           summary: HPA is running at max replicas
                         expr: |-
@@ -1083,7 +1020,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubePdbNotEnoughHealthyPods
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             pdb = \{{ $labels.poddisruptionbudget }}
                             missing healthy pods = \{{ $value }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepdbnotenoughhealthypods
@@ -1107,7 +1043,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubePersistentVolumeFillingUp
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             pvc = \{{ $labels.persistentvolumeclaim }}
                             free space = \{{ $value | humanizePercentage }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumefillingup
@@ -1136,7 +1071,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubePersistentVolumeFillingUp
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             pvc = \{{ $labels.persistentvolumeclaim }}
                             free space = \{{ $value | humanizePercentage }}
                             expected to fill up within four days
@@ -1168,7 +1102,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubePersistentVolumeInodesFillingUp
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             pvc = \{{ $labels.persistentvolumeclaim }}
                             free inodes = \{{ $value | humanizePercentage }}
                           runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumeinodesfillingup
@@ -1197,7 +1130,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: KubePersistentVolumeInodesFillingUp
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             pvc = \{{ $labels.persistentvolumeclaim }}
                             free inodes = \{{ $value | humanizePercentage }}
                             expected to run out within four days
@@ -1247,7 +1179,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: HighCPUUtilization
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             pod = \{{ $labels.pod }}
                             CPU utilization = \{{ $value | humanizePercentage }}
                           summary: CPU utilization is above 95%
@@ -1269,7 +1200,6 @@ rendered cluster-policy-cluster-application manifest:
                       - alert: HighMemoryUtilization
                         annotations:
                           description: |-
-                            namespace = \{{ $labels.namespace }}
                             pod = \{{ $labels.pod }}
                             container = \{{ $labels.container }}
                             memory utilization = \{{ $value | humanizePercentage }}
