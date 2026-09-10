@@ -85,21 +85,21 @@ the ArgoCD-specific sync/health/autosync labels) when present on the firing aler
 Missing labels are silently omitted (`with`), safe for every alert type.
 */}}
 {{- define "monitoring.opsgenieTags" -}}
-{{ "{{" }} with .CommonLabels.alertname {{ "}}" }}alertname={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
-{{ "{{" }} with .CommonLabels.clusterName {{ "}}" }}clusterName={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
-{{ "{{" }} with .CommonLabels.customerName {{ "}}" }}customerName={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
-{{ "{{" }} with .CommonLabels.environment {{ "}}" }}environment={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
-{{ "{{" }} with .CommonLabels.location {{ "}}" }}location={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
-{{ "{{" }} with .CommonLabels.namespace {{ "}}" }}namespace={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
-{{ "{{" }} with .CommonLabels.hostname {{ "}}" }}hostname={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
-{{ "{{" }} with .CommonLabels.name {{ "}}" }}name={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
-{{ "{{" }} with .CommonLabels.project {{ "}}" }}project={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
-{{ "{{" }} with .CommonLabels.repo {{ "}}" }}repo={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
-{{ "{{" }} with .CommonLabels.sync_status {{ "}}" }}sync_status={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
-{{ "{{" }} with .CommonLabels.health_status {{ "}}" }}health_status={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
-{{ "{{" }} with .CommonLabels.autosync_enabled {{ "}}" }}autosync_enabled={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
-{{ "{{" }} with .CommonLabels.severity {{ "}}" }}severity={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
-{{ "{{" }} with .CommonLabels.team {{ "}}" }}team={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
-{{ "{{" }} with .CommonLabels.vendor {{ "}}" }}vendor={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }},
-{{ "{{" }} with .CommonLabels.app {{ "}}" }}app={{ "{{" }} . {{ "}}" }}{{ "{{" }} end {{ "}}" }}
+{{ "{{-" }} with .CommonLabels.alertname {{ "}}" }}alertname={{ "{{" }} . {{ "}}" }},{{ "{{-" }} end {{ "}}" }}
+{{ "{{-" }} with .CommonLabels.clusterName {{ "}}" }}clusterName={{ "{{" }} . {{ "}}" }},{{ "{{-" }} end {{ "}}" }}
+{{ "{{-" }} with .CommonLabels.customerName {{ "}}" }}customerName={{ "{{" }} . {{ "}}" }},{{ "{{-" }} end {{ "}}" }}
+{{ "{{-" }} with .CommonLabels.environment {{ "}}" }}environment={{ "{{" }} . {{ "}}" }},{{ "{{-" }} end {{ "}}" }}
+{{ "{{-" }} with .CommonLabels.location {{ "}}" }}location={{ "{{" }} . {{ "}}" }},{{ "{{-" }} end {{ "}}" }}
+{{ "{{-" }} with .CommonLabels.namespace {{ "}}" }}namespace={{ "{{" }} . {{ "}}" }},{{ "{{-" }} end {{ "}}" }}
+{{ "{{-" }} with .CommonLabels.hostname {{ "}}" }}hostname={{ "{{" }} . {{ "}}" }},{{ "{{-" }} end {{ "}}" }}
+{{ "{{-" }} with .CommonLabels.name {{ "}}" }}name={{ "{{" }} . {{ "}}" }},{{ "{{-" }} end {{ "}}" }}
+{{ "{{-" }} with .CommonLabels.project {{ "}}" }}project={{ "{{" }} . {{ "}}" }},{{ "{{-" }} end {{ "}}" }}
+{{ "{{-" }} with .CommonLabels.repo {{ "}}" }}repo={{ "{{" }} . {{ "}}" }},{{ "{{-" }} end {{ "}}" }}
+{{ "{{-" }} with .CommonLabels.sync_status {{ "}}" }}sync_status={{ "{{" }} . {{ "}}" }},{{ "{{-" }} end {{ "}}" }}
+{{ "{{-" }} with .CommonLabels.health_status {{ "}}" }}health_status={{ "{{" }} . {{ "}}" }},{{ "{{-" }} end {{ "}}" }}
+{{ "{{-" }} with .CommonLabels.autosync_enabled {{ "}}" }}autosync_enabled={{ "{{" }} . {{ "}}" }},{{ "{{-" }} end {{ "}}" }}
+{{ "{{-" }} with .CommonLabels.severity {{ "}}" }}severity={{ "{{" }} . {{ "}}" }},{{ "{{-" }} end {{ "}}" }}
+{{ "{{-" }} with .CommonLabels.team {{ "}}" }}team={{ "{{" }} . {{ "}}" }},{{ "{{-" }} end {{ "}}" }}
+{{ "{{-" }} with .CommonLabels.vendor {{ "}}" }}vendor={{ "{{" }} . {{ "}}" }},{{ "{{-" }} end {{ "}}" }}
+{{ "{{-" }} with .CommonLabels.app {{ "}}" }}app={{ "{{" }} . {{ "}}" }}{{ "{{-" }} end {{ "}}" }}
 {{- end }}

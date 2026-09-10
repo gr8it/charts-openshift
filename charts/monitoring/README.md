@@ -84,6 +84,19 @@ Both alertmanager secrets use `dataFrom.extract` — the entire Vault secret is 
 | `eso.enabled` | `true` | Enable ESO for all alertmanager secrets |
 | `vaultBastionMonitoring.bastionIP` | `""` | Vault bastion IP — enables scraping when set |
 
+## Testing Alertmanager opsgenie notification templates
+
+`tests/render-opsgenie-templates.sh` renders the `atlassian_aspecta` receiver's
+`description`/`tags` Go templates through `amtool` (the real Alertmanager templating
+engine) against fixture alerts in `tests/fixtures/`, and asserts on the actual
+notification text. helm-unittest only proves the Helm template emits the expected Go
+template *source* — it never executes that template, so a bug in the template logic
+itself (e.g. a `with` guard not covering its trailing comma) passes helm-unittest while
+still producing a broken Opsgenie notification.
+
+Requires `amtool` (`go install github.com/prometheus/alertmanager/cmd/amtool@latest`),
+`yq` v4, `python3`. Run: `charts/monitoring/tests/render-opsgenie-templates.sh`.
+
 ## Usage example
 
 ```yaml
