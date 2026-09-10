@@ -5,6 +5,12 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.0] - 2026-09-10
+
+### Changed
+
+- Reduce ArgoCD sync/health alert labels to object-identifying ones only (drop scrape metadata)
+
 ## [2.10.0] - 2026-09-02
 
 ### Changed
