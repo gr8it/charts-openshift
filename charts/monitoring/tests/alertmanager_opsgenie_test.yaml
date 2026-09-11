@@ -13,43 +13,43 @@ tests:
     template: templates/secret-alertmanager-uwm.yaml
     asserts:
       - matchRegex:
-          path: stringData["alertmanager.yaml"]
-          pattern: '\{\{ with \$a\.GeneratorURL \}\}Source: \{\{ reReplaceAll'
+          path: spec.target.template.data["alertmanager.yaml"]
+          pattern: 'reReplaceAll `\^\(\.\*\)/monitoring/graph'
       - matchRegex:
-          path: stringData["alertmanager.yaml"]
-          pattern: '\{\{ with \$a\.Annotations\.runbook_url \}\}Runbook: \{\{ \. \}\}'
+          path: spec.target.template.data["alertmanager.yaml"]
+          pattern: 'runbook_url.*Runbook:'
       - matchRegex:
-          path: stringData["alertmanager.yaml"]
-          pattern: '\{\{ if \$i \}\}\n\s*---\n\s*\{\{ end \}\}'
+          path: spec.target.template.data["alertmanager.yaml"]
+          pattern: '\{\{ "\{\{" \}\} if \$i \{\{ "\}\}" \}\}\n\s*---\n\s*\{\{ "\{\{" \}\} end \{\{ "\}\}" \}\}'
 
   - it: UWM Opsgenie tags carry the object-identifying labels alongside the common set
     template: templates/secret-alertmanager-uwm.yaml
     asserts:
       - matchRegex:
-          path: stringData["alertmanager.yaml"]
-          pattern: 'alertname=\{\{ \. \}\}'
+          path: spec.target.template.data["alertmanager.yaml"]
+          pattern: 'alertname='
       - matchRegex:
-          path: stringData["alertmanager.yaml"]
-          pattern: 'sync_status=\{\{ \. \}\}'
+          path: spec.target.template.data["alertmanager.yaml"]
+          pattern: 'sync_status='
       - matchRegex:
-          path: stringData["alertmanager.yaml"]
-          pattern: 'health_status=\{\{ \. \}\}'
+          path: spec.target.template.data["alertmanager.yaml"]
+          pattern: 'health_status='
       - matchRegex:
-          path: stringData["alertmanager.yaml"]
-          pattern: 'autosync_enabled=\{\{ \. \}\}'
+          path: spec.target.template.data["alertmanager.yaml"]
+          pattern: 'autosync_enabled='
       - matchRegex:
-          path: stringData["alertmanager.yaml"]
-          pattern: 'project=\{\{ \. \}\}'
+          path: spec.target.template.data["alertmanager.yaml"]
+          pattern: 'project='
       - matchRegex:
-          path: stringData["alertmanager.yaml"]
-          pattern: 'repo=\{\{ \. \}\}'
+          path: spec.target.template.data["alertmanager.yaml"]
+          pattern: 'repo='
 
   - it: platform Opsgenie description and tags on hub match the UWM receiver
     template: templates/secret-alertmanager.yaml
     asserts:
       - matchRegex:
-          path: stringData["alertmanager.yaml"]
-          pattern: '\{\{ with \$a\.GeneratorURL \}\}Source: \{\{ reReplaceAll'
+          path: spec.target.template.data["alertmanager.yaml"]
+          pattern: 'reReplaceAll `\^\(\.\*\)/monitoring/graph'
       - matchRegex:
-          path: stringData["alertmanager.yaml"]
-          pattern: 'sync_status=\{\{ \. \}\}'
+          path: spec.target.template.data["alertmanager.yaml"]
+          pattern: 'sync_status='

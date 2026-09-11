@@ -1963,21 +1963,6 @@ entries:
     urls:
     - packaged_charts/crossplane-xr-functions-1.0.0.tgz
     version: 1.0.0
-  custom-metrics-autoscaler-operator:
-  - apiVersion: v2
-    appVersion: 2.19.0-3
-    created: "2026-09-10T10:18:54.789384267+02:00"
-    dependencies:
-    - name: acm-operatorpolicy
-      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
-      version: 1.3.0
-    description: A Helm chart to install Custom Metrics Autoscaler Operator using
-      ACM operator policy
-    digest: 6ebfcc5dadf5d45a8c51c120da17e9f388c308711092b65b70eda9efcb3e37e0
-    name: custom-metrics-autoscaler-operator
-    type: application
-    urls:
-    - packaged_charts/custom-metrics-autoscaler-operator-1.0.0.tgz
   custom-metrics-autoscaler-config:
   - apiVersion: v2
     appVersion: 2.19.0-3
@@ -3603,6 +3588,28 @@ entries:
     version: 1.0.0
   monitoring:
   - apiVersion: v2
+    created: "2026-09-11T11:36:31.562025+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.9.0
+    - name: monitoring-prometheusrules
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.1.0
+    - alias: backups
+      condition: backups.enabled
+      name: openshift-adp-backups
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.0
+    description: Helm chart for OpenShift cluster monitoring (ClusterMonitoringConfig,
+      UserWorkloadMonitoringConfig, AlertManager via ESO, Kyverno PrometheusRule generation)
+    digest: e54ce53d19f3dbf4ca55fb4fb324d904c330ebdaddb73abfef960d38e22ad3d3
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.2.1.tgz
+    version: 1.2.1
+  - apiVersion: v2
     created: "2026-09-10T14:31:46.641364+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -5171,4 +5178,4 @@ entries:
     urls:
     - packaged_charts/veeam-exporter-1.0.0.tgz
     version: 1.0.0
-generated: "2026-09-10T14:31:47.402466+02:00"
+generated: "2026-09-11T11:36:31.554021+02:00"

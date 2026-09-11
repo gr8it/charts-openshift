@@ -5,6 +5,12 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-09-11
+
+### Fixed
+
+- Render Microsoft Teams webhook URLs through External Secrets using the supported `webhook_url` field for both cluster and user-workload Alertmanager configurations, while preserving Alertmanager's nested templates through ESO escaping.
+
 ## [1.2.0] - 2026-09-03
 
 _([SPEXAPC-8225](https://aspecta.atlassian.net/browse/SPEXAPC-8225))_

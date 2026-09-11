@@ -7,7 +7,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: cluster-alerting-rules
       namespace: openshift-monitoring
     spec:
@@ -42,7 +42,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: cluster-policy-cluster-monitoring
     spec:
       generateExisting: true
@@ -625,7 +625,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
         rbac.kyverno.io/aggregate-to-admission-controller: "true"
       name: kyverno:admission-controller:monitoring
     rules:
@@ -696,7 +696,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: cluster-monitoring-config
       namespace: openshift-monitoring
   5: |
@@ -759,7 +759,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: user-workload-monitoring-config
       namespace: openshift-user-workload-monitoring
   6: |
@@ -770,7 +770,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: vault-bastion
       namespace: apc-monitoring-bastion
     subsets:
@@ -788,7 +788,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: alertmanager-receivers
       namespace: openshift-monitoring
     spec:
@@ -810,7 +810,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: alertmanager-uwm-receivers
       namespace: openshift-user-workload-monitoring
     spec:
@@ -832,7 +832,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: disk-raid-array-monitoring
       namespace: openshift-monitoring
     spec:
@@ -873,7 +873,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: ldap-monitoring
       namespace: apc-monitoring-bastion
     spec:
@@ -920,7 +920,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: user-workload-monitoring-thanos-rules
       namespace: apc-observability
     spec:
@@ -939,33 +939,69 @@ manifests should match snapshot (hub cluster):
                 namespace: apc-observability
                 severity: none
   12: |
-    apiVersion: v1
-    kind: Secret
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
     metadata:
       labels:
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: alertmanager-user-workload
       namespace: openshift-user-workload-monitoring
-    stringData:
-      alertmanager.yaml: "global:\n  http_config:\n    proxy_url: http://proxy.example.com:8080\n    no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1\ninhibit_rules:\n- equal:\n  - namespace\n  - alertname\n  source_matchers:\n  - \"severity = critical\"\n  target_matchers:\n  - \"severity =~ warning|info\"\n- equal:\n  - namespace\n  - alertname\n  source_matchers:\n  - \"severity = warning\"\n  target_matchers:\n  - \"severity = info\"\nreceivers:\n- name: \"null\"\n- name: teams_aspecta\n  msteams_configs:\n    - send_resolved: true\n      webhook_url_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/msteams_url\n- name: healthchecksioUWMthanos\n  webhook_configs:\n    - url_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/healthchecks_url\n      send_resolved: false\n- name: atlassian_aspecta\n  opsgenie_configs:\n    - send_resolved: true\n      api_key_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/opsgenie_key\n      message: |\n        [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -\n        {{ range .Alerts }}\n        {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}\n        {{ end }}\n      description: |\n        {{ range $i, $a := .Alerts }}\n        {{ if $i }}\n        ---\n        {{ end }}\n        {{ if $a.Annotations.description }}{{ $a.Annotations.description }}{{ else if $a.Annotations.summary }}{{ $a.Annotations.summary }}{{ else }}{{ $a.Annotations.message }}{{ end }}\n        \n        {{ with $a.Annotations.runbook_url }}Runbook: {{ . }}\n        \n        {{ end }}{{ with $a.GeneratorURL }}Source: {{ reReplaceAll `^(.*)/monitoring/graph\\?g0\\.expr=` \"${1}/monitoring/query-browser?query0=\" . }}{{ end }}\n        {{ end }}\n      priority: '{{ if eq .CommonLabels.severity \"critical\" }}P1{{ else if eq .CommonLabels.severity \"warning\" }}P2{{ else if eq .CommonLabels.severity \"info\" }}P3{{ else }}P4{{ end }}'\n      tags: |\n        {{- with .CommonLabels.alertname }}alertname={{ . }},{{- end }}\n        {{- with .CommonLabels.clusterName }}clusterName={{ . }},{{- end }}\n        {{- with .CommonLabels.customerName }}customerName={{ . }},{{- end }}\n        {{- with .CommonLabels.environment }}environment={{ . }},{{- end }}\n        {{- with .CommonLabels.location }}location={{ . }},{{- end }}\n        {{- with .CommonLabels.namespace }}namespace={{ . }},{{- end }}\n        {{- with .CommonLabels.hostname }}hostname={{ . }},{{- end }}\n        {{- with .CommonLabels.name }}name={{ . }},{{- end }}\n        {{- with .CommonLabels.project }}project={{ . }},{{- end }}\n        {{- with .CommonLabels.repo }}repo={{ . }},{{- end }}\n        {{- with .CommonLabels.sync_status }}sync_status={{ . }},{{- end }}\n        {{- with .CommonLabels.health_status }}health_status={{ . }},{{- end }}\n        {{- with .CommonLabels.autosync_enabled }}autosync_enabled={{ . }},{{- end }}\n        {{- with .CommonLabels.severity }}severity={{ . }},{{- end }}\n        {{- with .CommonLabels.team }}team={{ . }},{{- end }}\n        {{- with .CommonLabels.vendor }}vendor={{ . }},{{- end }}\n        {{- with .CommonLabels.app }}app={{ . }}{{- end }}\nroute:\n  group_by:\n  - namespace\n  - alertname\n  - severity\n  group_interval: 5m\n  group_wait: 30s\n  receiver: teams_aspecta\n  repeat_interval: 12h\n  routes:\n  - receiver: atlassian_aspecta\n    continue: true\n    matchers:\n    - severity =~ \"warning|critical\"\n    - alertname != Watchdog\n    - vendor = \"aspecta\"\n    - team = \"platform\"\n  - receiver: healthchecksioUWMthanos\n    matchers:\n    - alertname = WatchdogUWMthanos\n    group_wait: 0s\n    group_interval: 60s\n    repeat_interval: 60s\n  - receiver: \"null\"\n    matchers:\n    - severity =~ \"info|none\"\n  - receiver: \"null\"\n    matchers:\n    - vendor != \"aspecta\"\n"
-    type: Opaque
+    spec:
+      dataFrom:
+        - extract:
+            key: apc-platform/d/monitoring/alertmanager-uwm
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: apc
+      target:
+        creationPolicy: Owner
+        name: alertmanager-user-workload
+        template:
+          data:
+            alertmanager.yaml: "global:\n  http_config:\n    proxy_url: http://proxy.example.com:8080\n    no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1\ninhibit_rules:\n- equal:\n  - namespace\n  - alertname\n  source_matchers:\n  - \"severity = critical\"\n  target_matchers:\n  - \"severity =~ warning|info\"\n- equal:\n  - namespace\n  - alertname\n  source_matchers:\n  - \"severity = warning\"\n  target_matchers:\n  - \"severity = info\"\nreceivers:\n- name: \"null\"\n- name: teams_aspecta\n  msteams_configs:\n    - send_resolved: true\n      webhook_url: \"{{ .msteams_url }}\"\n- name: healthchecksioUWMthanos\n  webhook_configs:\n    - url_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/healthchecks_url\n      send_resolved: false\n- name: atlassian_aspecta\n  opsgenie_configs:\n    - send_resolved: true\n      api_key_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/opsgenie_key\n      message: |\n        [{{ \"{{\" }} .CommonLabels.customerName {{ \"}}\" }}/{{ \"{{\" }} .CommonLabels.clusterName {{ \"}}\" }}/{{ \"{{\" }} .CommonLabels.severity {{ \"}}\" }}] -\n        {{ \"{{\" }} range .Alerts {{ \"}}\" }}\n        {{ \"{{\" }} if .Annotations.summary {{ \"}}\" }}{{ \"{{\" }} .Annotations.summary {{ \"}}\" }}{{ \"{{\" }} else if .Annotations.description {{ \"}}\" }}{{ \"{{\" }} .Annotations.description {{ \"}}\" }}{{ \"{{\" }} else {{ \"}}\" }}{{ \"{{\" }} .Annotations.message {{ \"}}\" }}{{ \"{{\" }} end {{ \"}}\" }}\n        {{ \"{{\" }} end {{ \"}}\" }}\n      description: |\n        {{ \"{{\" }} range $i, $a := .Alerts {{ \"}}\" }}\n        {{ \"{{\" }} if $i {{ \"}}\" }}\n        ---\n        {{ \"{{\" }} end {{ \"}}\" }}\n        {{ \"{{\" }} if $a.Annotations.description {{ \"}}\" }}{{ \"{{\" }} $a.Annotations.description {{ \"}}\" }}{{ \"{{\" }} else if $a.Annotations.summary {{ \"}}\" }}{{ \"{{\" }} $a.Annotations.summary {{ \"}}\" }}{{ \"{{\" }} else {{ \"}}\" }}{{ \"{{\" }} $a.Annotations.message {{ \"}}\" }}{{ \"{{\" }} end {{ \"}}\" }}\n        \n        {{ \"{{\" }} with $a.Annotations.runbook_url {{ \"}}\" }}Runbook: {{ \"{{\" }} . {{ \"}}\" }}\n        \n        {{ \"{{\" }} end {{ \"}}\" }}{{ \"{{\" }} with $a.GeneratorURL {{ \"}}\" }}Source: {{ \"{{\" }} reReplaceAll `^(.*)/monitoring/graph\\?g0\\.expr=` \"${1}/monitoring/query-browser?query0=\" . {{ \"}}\" }}{{ \"{{\" }} end {{ \"}}\" }}\n        {{ \"{{\" }} end {{ \"}}\" }}\n      priority: '{{ \"{{\" }} if eq .CommonLabels.severity \"critical\" {{ \"}}\" }}P1{{ \"{{\" }} else if eq .CommonLabels.severity \"warning\" {{ \"}}\" }}P2{{ \"{{\" }} else if eq .CommonLabels.severity \"info\" {{ \"}}\" }}P3{{ \"{{\" }} else {{ \"}}\" }}P4{{ \"{{\" }} end {{ \"}}\" }}'\n      tags: |\n        {{ \"{{-\" }} with .CommonLabels.alertname {{ \"}}\" }}alertname={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.clusterName {{ \"}}\" }}clusterName={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.customerName {{ \"}}\" }}customerName={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.environment {{ \"}}\" }}environment={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.location {{ \"}}\" }}location={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.namespace {{ \"}}\" }}namespace={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.hostname {{ \"}}\" }}hostname={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.name {{ \"}}\" }}name={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.project {{ \"}}\" }}project={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.repo {{ \"}}\" }}repo={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.sync_status {{ \"}}\" }}sync_status={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.health_status {{ \"}}\" }}health_status={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.autosync_enabled {{ \"}}\" }}autosync_enabled={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.severity {{ \"}}\" }}severity={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.team {{ \"}}\" }}team={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.vendor {{ \"}}\" }}vendor={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.app {{ \"}}\" }}app={{ \"{{\" }} . {{ \"}}\" }}{{ \"{{-\" }} end {{ \"}}\" }}\nroute:\n  group_by:\n  - namespace\n  - alertname\n  - severity\n  group_interval: 5m\n  group_wait: 30s\n  receiver: teams_aspecta\n  repeat_interval: 12h\n  routes:\n  - receiver: atlassian_aspecta\n    continue: true\n    matchers:\n    - severity =~ \"warning|critical\"\n    - alertname != Watchdog\n    - vendor = \"aspecta\"\n    - team = \"platform\"\n  - receiver: healthchecksioUWMthanos\n    matchers:\n    - alertname = WatchdogUWMthanos\n    group_wait: 0s\n    group_interval: 60s\n    repeat_interval: 60s\n  - receiver: \"null\"\n    matchers:\n    - severity =~ \"info|none\"\n  - receiver: \"null\"\n    matchers:\n    - vendor != \"aspecta\"\n"
+          metadata:
+            labels:
+              app.kubernetes.io/instance: monitoring
+              app.kubernetes.io/managed-by: Helm
+              app.kubernetes.io/name: monitoring
+              helm.sh/chart: monitoring-1.2.1
+          type: Opaque
   13: |
-    apiVersion: v1
-    kind: Secret
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
     metadata:
       labels:
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: alertmanager-main
       namespace: openshift-monitoring
-    stringData:
-      alertmanager.yaml: "global:\n  http_config:\n    proxy_url: http://proxy.example.com:8080\n    no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1\ninhibit_rules:\n- equal:\n  - namespace\n  - alertname\n  source_matchers:\n  - \"severity = critical\"\n  target_matchers:\n  - \"severity =~ warning|info\"\n- equal:\n  - namespace\n  - alertname\n  source_matchers:\n  - \"severity = warning\"\n  target_matchers:\n  - \"severity = info\"\nreceivers:\n- name: \"null\"\n- name: teams_aspecta\n  msteams_configs:\n    - send_resolved: true\n      webhook_url_file: /etc/alertmanager/secrets/alertmanager-receivers/msteams_url\n- name: healthchecksio\n  webhook_configs:\n    - url_file: /etc/alertmanager/secrets/alertmanager-receivers/healthchecks_url\n      send_resolved: false\n- name: atlassian_aspecta\n  opsgenie_configs:\n    - send_resolved: true\n      api_key_file: /etc/alertmanager/secrets/alertmanager-receivers/opsgenie_key\n      message: |\n        [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -\n        {{ range .Alerts }}\n        {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}\n        {{ end }}\n      description: |\n        {{ range $i, $a := .Alerts }}\n        {{ if $i }}\n        ---\n        {{ end }}\n        {{ if $a.Annotations.description }}{{ $a.Annotations.description }}{{ else if $a.Annotations.summary }}{{ $a.Annotations.summary }}{{ else }}{{ $a.Annotations.message }}{{ end }}\n        \n        {{ with $a.Annotations.runbook_url }}Runbook: {{ . }}\n        \n        {{ end }}{{ with $a.GeneratorURL }}Source: {{ reReplaceAll `^(.*)/monitoring/graph\\?g0\\.expr=` \"${1}/monitoring/query-browser?query0=\" . }}{{ end }}\n        {{ end }}\n      priority: '{{ if eq .CommonLabels.severity \"critical\" }}P1{{ else if eq .CommonLabels.severity \"warning\" }}P2{{ else if eq .CommonLabels.severity \"info\" }}P3{{ else }}P4{{ end }}'\n      tags: |\n        {{- with .CommonLabels.alertname }}alertname={{ . }},{{- end }}\n        {{- with .CommonLabels.clusterName }}clusterName={{ . }},{{- end }}\n        {{- with .CommonLabels.customerName }}customerName={{ . }},{{- end }}\n        {{- with .CommonLabels.environment }}environment={{ . }},{{- end }}\n        {{- with .CommonLabels.location }}location={{ . }},{{- end }}\n        {{- with .CommonLabels.namespace }}namespace={{ . }},{{- end }}\n        {{- with .CommonLabels.hostname }}hostname={{ . }},{{- end }}\n        {{- with .CommonLabels.name }}name={{ . }},{{- end }}\n        {{- with .CommonLabels.project }}project={{ . }},{{- end }}\n        {{- with .CommonLabels.repo }}repo={{ . }},{{- end }}\n        {{- with .CommonLabels.sync_status }}sync_status={{ . }},{{- end }}\n        {{- with .CommonLabels.health_status }}health_status={{ . }},{{- end }}\n        {{- with .CommonLabels.autosync_enabled }}autosync_enabled={{ . }},{{- end }}\n        {{- with .CommonLabels.severity }}severity={{ . }},{{- end }}\n        {{- with .CommonLabels.team }}team={{ . }},{{- end }}\n        {{- with .CommonLabels.vendor }}vendor={{ . }},{{- end }}\n        {{- with .CommonLabels.app }}app={{ . }}{{- end }}\n- name: atlassian_aspecta_security\n  opsgenie_configs:\n    - send_resolved: false\n      api_key_file: /etc/alertmanager/secrets/alertmanager-receivers/opsgenie_key_acs\n      message: |\n        [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -\n        {{ range .Alerts }}\n        {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}\n        {{ end }}\n      description: |\n        {{ range $i, $a := .Alerts }}\n        {{ if $i }}\n        ---\n        {{ end }}\n        {{ if $a.Annotations.description }}{{ $a.Annotations.description }}{{ else if $a.Annotations.summary }}{{ $a.Annotations.summary }}{{ else }}{{ $a.Annotations.message }}{{ end }}\n        \n        {{ with $a.Annotations.runbook_url }}Runbook: {{ . }}\n        \n        {{ end }}{{ with $a.GeneratorURL }}Source: {{ reReplaceAll `^(.*)/monitoring/graph\\?g0\\.expr=` \"${1}/monitoring/query-browser?query0=\" . }}{{ end }}\n        {{ end }}\n      priority: '{{ if eq .CommonLabels.severity \"critical\" }}P1{{ else if eq .CommonLabels.severity \"warning\" }}P2{{ else if eq .CommonLabels.severity \"info\" }}P3{{ else }}P4{{ end }}'\n      tags: |\n        {{- with .CommonLabels.alertname }}alertname={{ . }},{{- end }}\n        {{- with .CommonLabels.clusterName }}clusterName={{ . }},{{- end }}\n        {{- with .CommonLabels.customerName }}customerName={{ . }},{{- end }}\n        {{- with .CommonLabels.environment }}environment={{ . }},{{- end }}\n        {{- with .CommonLabels.location }}location={{ . }},{{- end }}\n        {{- with .CommonLabels.namespace }}namespace={{ . }},{{- end }}\n        {{- with .CommonLabels.hostname }}hostname={{ . }},{{- end }}\n        {{- with .CommonLabels.name }}name={{ . }},{{- end }}\n        {{- with .CommonLabels.project }}project={{ . }},{{- end }}\n        {{- with .CommonLabels.repo }}repo={{ . }},{{- end }}\n        {{- with .CommonLabels.sync_status }}sync_status={{ . }},{{- end }}\n        {{- with .CommonLabels.health_status }}health_status={{ . }},{{- end }}\n        {{- with .CommonLabels.autosync_enabled }}autosync_enabled={{ . }},{{- end }}\n        {{- with .CommonLabels.severity }}severity={{ . }},{{- end }}\n        {{- with .CommonLabels.team }}team={{ . }},{{- end }}\n        {{- with .CommonLabels.vendor }}vendor={{ . }},{{- end }}\n        {{- with .CommonLabels.app }}app={{ . }}{{- end }}\n- name: atlassian_aspecta_logs\n  opsgenie_configs:\n    - send_resolved: false\n      api_key_file: /etc/alertmanager/secrets/alertmanager-receivers/opsgenie_key_logs\n      message: |\n        [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -\n        {{ range .Alerts }}\n        {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}\n        {{ end }}\n      description: |\n        {{ range $i, $a := .Alerts }}\n        {{ if $i }}\n        ---\n        {{ end }}\n        {{ if $a.Annotations.description }}{{ $a.Annotations.description }}{{ else if $a.Annotations.summary }}{{ $a.Annotations.summary }}{{ else }}{{ $a.Annotations.message }}{{ end }}\n        \n        {{ with $a.Annotations.runbook_url }}Runbook: {{ . }}\n        \n        {{ end }}{{ with $a.GeneratorURL }}Source: {{ reReplaceAll `^(.*)/monitoring/graph\\?g0\\.expr=` \"${1}/monitoring/query-browser?query0=\" . }}{{ end }}\n        {{ end }}\n      priority: '{{ if eq .CommonLabels.severity \"critical\" }}P1{{ else if eq .CommonLabels.severity \"warning\" }}P2{{ else if eq .CommonLabels.severity \"info\" }}P3{{ else }}P4{{ end }}'\n      tags: |\n        {{- with .CommonLabels.alertname }}alertname={{ . }},{{- end }}\n        {{- with .CommonLabels.clusterName }}clusterName={{ . }},{{- end }}\n        {{- with .CommonLabels.customerName }}customerName={{ . }},{{- end }}\n        {{- with .CommonLabels.environment }}environment={{ . }},{{- end }}\n        {{- with .CommonLabels.location }}location={{ . }},{{- end }}\n        {{- with .CommonLabels.namespace }}namespace={{ . }},{{- end }}\n        {{- with .CommonLabels.hostname }}hostname={{ . }},{{- end }}\n        {{- with .CommonLabels.name }}name={{ . }},{{- end }}\n        {{- with .CommonLabels.project }}project={{ . }},{{- end }}\n        {{- with .CommonLabels.repo }}repo={{ . }},{{- end }}\n        {{- with .CommonLabels.sync_status }}sync_status={{ . }},{{- end }}\n        {{- with .CommonLabels.health_status }}health_status={{ . }},{{- end }}\n        {{- with .CommonLabels.autosync_enabled }}autosync_enabled={{ . }},{{- end }}\n        {{- with .CommonLabels.severity }}severity={{ . }},{{- end }}\n        {{- with .CommonLabels.team }}team={{ . }},{{- end }}\n        {{- with .CommonLabels.vendor }}vendor={{ . }},{{- end }}\n        {{- with .CommonLabels.app }}app={{ . }}{{- end }}\nroute:\n  group_by:\n  - namespace\n  - alertname\n  - severity\n  group_interval: 5m\n  group_wait: 30s\n  receiver: teams_aspecta\n  repeat_interval: 12h\n  routes:\n  # fixed in OCP 4.17.6 — remove once cluster is upgraded (https://access.redhat.com/solutions/7103336)\n  - receiver: \"null\"\n    matchers:\n    - alertname = PrometheusRuleFailures\n    - rule_group =~ \".*ceph\\\\.rules$\"\n  - receiver: \"null\"\n    matchers:\n    - alertname =~ \"CertificateIsAboutToExpire|CertificateApproachingExpiration\"\n    - name =~ \"kubemacpool-service|result-server-cert-ocp4-cis-1-5|result-client-cert-ocp4-cis-1-5|root-ca-ocp4-cis-1-5\"\n  - receiver: teams_aspecta\n    continue: true\n    matchers:\n    - severity =~ \"warning|critical\"\n    - alertname != Watchdog\n  - receiver: atlassian_aspecta\n    continue: true\n    matchers:\n    - severity =~ \"warning|critical\"\n    - alertname != Watchdog\n    - team != security\n    - source != logs\n  - receiver: atlassian_aspecta_security\n    continue: true\n    matchers:\n    - severity =~ \"warning|critical\"\n    - alertname != Watchdog\n    - team = security\n    group_by:\n    - namespace\n    - alertname\n    - severity\n    - clusterName\n    - acs_alert_id\n  - receiver: atlassian_aspecta_logs\n    continue: true\n    matchers:\n    - severity =~ \"warning|critical\"\n    - alertname != Watchdog\n    - source = logs\n    group_by:\n    - namespace\n    - alertname\n    - severity\n    - clusterName\n    - hostname\n    - msgid\n  - receiver: healthchecksio\n    matchers:\n    - alertname = Watchdog\n    group_wait: 0s\n    group_interval: 60s\n    repeat_interval: 60s\n  - receiver: \"null\"\n    matchers:\n    - severity =~ \"info|none\"\n  - receiver: \"null\"\n    matchers:\n    - vendor != \"aspecta\"\n"
-    type: Opaque
+    spec:
+      dataFrom:
+        - extract:
+            key: apc-platform/d/monitoring/alertmanager
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: apc
+      target:
+        creationPolicy: Owner
+        name: alertmanager-main
+        template:
+          data:
+            alertmanager.yaml: "global:\n  http_config:\n    proxy_url: http://proxy.example.com:8080\n    no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1\ninhibit_rules:\n- equal:\n  - namespace\n  - alertname\n  source_matchers:\n  - \"severity = critical\"\n  target_matchers:\n  - \"severity =~ warning|info\"\n- equal:\n  - namespace\n  - alertname\n  source_matchers:\n  - \"severity = warning\"\n  target_matchers:\n  - \"severity = info\"\nreceivers:\n- name: \"null\"\n- name: teams_aspecta\n  msteams_configs:\n    - send_resolved: true\n      webhook_url: \"{{ .msteams_url }}\"\n- name: healthchecksio\n  webhook_configs:\n    - url_file: /etc/alertmanager/secrets/alertmanager-receivers/healthchecks_url\n      send_resolved: false\n- name: atlassian_aspecta\n  opsgenie_configs:\n    - send_resolved: true\n      api_key_file: /etc/alertmanager/secrets/alertmanager-receivers/opsgenie_key\n      message: |\n        [{{ \"{{\" }} .CommonLabels.customerName {{ \"}}\" }}/{{ \"{{\" }} .CommonLabels.clusterName {{ \"}}\" }}/{{ \"{{\" }} .CommonLabels.severity {{ \"}}\" }}] -\n        {{ \"{{\" }} range .Alerts {{ \"}}\" }}\n        {{ \"{{\" }} if .Annotations.summary {{ \"}}\" }}{{ \"{{\" }} .Annotations.summary {{ \"}}\" }}{{ \"{{\" }} else if .Annotations.description {{ \"}}\" }}{{ \"{{\" }} .Annotations.description {{ \"}}\" }}{{ \"{{\" }} else {{ \"}}\" }}{{ \"{{\" }} .Annotations.message {{ \"}}\" }}{{ \"{{\" }} end {{ \"}}\" }}\n        {{ \"{{\" }} end {{ \"}}\" }}\n      description: |\n        {{ \"{{\" }} range $i, $a := .Alerts {{ \"}}\" }}\n        {{ \"{{\" }} if $i {{ \"}}\" }}\n        ---\n        {{ \"{{\" }} end {{ \"}}\" }}\n        {{ \"{{\" }} if $a.Annotations.description {{ \"}}\" }}{{ \"{{\" }} $a.Annotations.description {{ \"}}\" }}{{ \"{{\" }} else if $a.Annotations.summary {{ \"}}\" }}{{ \"{{\" }} $a.Annotations.summary {{ \"}}\" }}{{ \"{{\" }} else {{ \"}}\" }}{{ \"{{\" }} $a.Annotations.message {{ \"}}\" }}{{ \"{{\" }} end {{ \"}}\" }}\n        \n        {{ \"{{\" }} with $a.Annotations.runbook_url {{ \"}}\" }}Runbook: {{ \"{{\" }} . {{ \"}}\" }}\n        \n        {{ \"{{\" }} end {{ \"}}\" }}{{ \"{{\" }} with $a.GeneratorURL {{ \"}}\" }}Source: {{ \"{{\" }} reReplaceAll `^(.*)/monitoring/graph\\?g0\\.expr=` \"${1}/monitoring/query-browser?query0=\" . {{ \"}}\" }}{{ \"{{\" }} end {{ \"}}\" }}\n        {{ \"{{\" }} end {{ \"}}\" }}\n      priority: '{{ \"{{\" }} if eq .CommonLabels.severity \"critical\" {{ \"}}\" }}P1{{ \"{{\" }} else if eq .CommonLabels.severity \"warning\" {{ \"}}\" }}P2{{ \"{{\" }} else if eq .CommonLabels.severity \"info\" {{ \"}}\" }}P3{{ \"{{\" }} else {{ \"}}\" }}P4{{ \"{{\" }} end {{ \"}}\" }}'\n      tags: |\n        {{ \"{{-\" }} with .CommonLabels.alertname {{ \"}}\" }}alertname={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.clusterName {{ \"}}\" }}clusterName={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.customerName {{ \"}}\" }}customerName={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.environment {{ \"}}\" }}environment={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.location {{ \"}}\" }}location={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.namespace {{ \"}}\" }}namespace={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.hostname {{ \"}}\" }}hostname={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.name {{ \"}}\" }}name={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.project {{ \"}}\" }}project={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.repo {{ \"}}\" }}repo={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.sync_status {{ \"}}\" }}sync_status={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.health_status {{ \"}}\" }}health_status={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.autosync_enabled {{ \"}}\" }}autosync_enabled={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.severity {{ \"}}\" }}severity={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.team {{ \"}}\" }}team={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.vendor {{ \"}}\" }}vendor={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.app {{ \"}}\" }}app={{ \"{{\" }} . {{ \"}}\" }}{{ \"{{-\" }} end {{ \"}}\" }}\n- name: atlassian_aspecta_security\n  opsgenie_configs:\n    - send_resolved: false\n      api_key_file: /etc/alertmanager/secrets/alertmanager-receivers/opsgenie_key_acs\n      message: |\n        [{{ \"{{\" }} .CommonLabels.customerName {{ \"}}\" }}/{{ \"{{\" }} .CommonLabels.clusterName {{ \"}}\" }}/{{ \"{{\" }} .CommonLabels.severity {{ \"}}\" }}] -\n        {{ \"{{\" }} range .Alerts {{ \"}}\" }}\n        {{ \"{{\" }} if .Annotations.summary {{ \"}}\" }}{{ \"{{\" }} .Annotations.summary {{ \"}}\" }}{{ \"{{\" }} else if .Annotations.description {{ \"}}\" }}{{ \"{{\" }} .Annotations.description {{ \"}}\" }}{{ \"{{\" }} else {{ \"}}\" }}{{ \"{{\" }} .Annotations.message {{ \"}}\" }}{{ \"{{\" }} end {{ \"}}\" }}\n        {{ \"{{\" }} end {{ \"}}\" }}\n      description: |\n        {{ \"{{\" }} range $i, $a := .Alerts {{ \"}}\" }}\n        {{ \"{{\" }} if $i {{ \"}}\" }}\n        ---\n        {{ \"{{\" }} end {{ \"}}\" }}\n        {{ \"{{\" }} if $a.Annotations.description {{ \"}}\" }}{{ \"{{\" }} $a.Annotations.description {{ \"}}\" }}{{ \"{{\" }} else if $a.Annotations.summary {{ \"}}\" }}{{ \"{{\" }} $a.Annotations.summary {{ \"}}\" }}{{ \"{{\" }} else {{ \"}}\" }}{{ \"{{\" }} $a.Annotations.message {{ \"}}\" }}{{ \"{{\" }} end {{ \"}}\" }}\n        \n        {{ \"{{\" }} with $a.Annotations.runbook_url {{ \"}}\" }}Runbook: {{ \"{{\" }} . {{ \"}}\" }}\n        \n        {{ \"{{\" }} end {{ \"}}\" }}{{ \"{{\" }} with $a.GeneratorURL {{ \"}}\" }}Source: {{ \"{{\" }} reReplaceAll `^(.*)/monitoring/graph\\?g0\\.expr=` \"${1}/monitoring/query-browser?query0=\" . {{ \"}}\" }}{{ \"{{\" }} end {{ \"}}\" }}\n        {{ \"{{\" }} end {{ \"}}\" }}\n      priority: '{{ \"{{\" }} if eq .CommonLabels.severity \"critical\" {{ \"}}\" }}P1{{ \"{{\" }} else if eq .CommonLabels.severity \"warning\" {{ \"}}\" }}P2{{ \"{{\" }} else if eq .CommonLabels.severity \"info\" {{ \"}}\" }}P3{{ \"{{\" }} else {{ \"}}\" }}P4{{ \"{{\" }} end {{ \"}}\" }}'\n      tags: |\n        {{ \"{{-\" }} with .CommonLabels.alertname {{ \"}}\" }}alertname={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.clusterName {{ \"}}\" }}clusterName={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.customerName {{ \"}}\" }}customerName={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.environment {{ \"}}\" }}environment={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.location {{ \"}}\" }}location={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.namespace {{ \"}}\" }}namespace={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.hostname {{ \"}}\" }}hostname={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.name {{ \"}}\" }}name={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.project {{ \"}}\" }}project={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.repo {{ \"}}\" }}repo={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.sync_status {{ \"}}\" }}sync_status={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.health_status {{ \"}}\" }}health_status={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.autosync_enabled {{ \"}}\" }}autosync_enabled={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.severity {{ \"}}\" }}severity={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.team {{ \"}}\" }}team={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.vendor {{ \"}}\" }}vendor={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.app {{ \"}}\" }}app={{ \"{{\" }} . {{ \"}}\" }}{{ \"{{-\" }} end {{ \"}}\" }}\n- name: atlassian_aspecta_logs\n  opsgenie_configs:\n    - send_resolved: false\n      api_key_file: /etc/alertmanager/secrets/alertmanager-receivers/opsgenie_key_logs\n      message: |\n        [{{ \"{{\" }} .CommonLabels.customerName {{ \"}}\" }}/{{ \"{{\" }} .CommonLabels.clusterName {{ \"}}\" }}/{{ \"{{\" }} .CommonLabels.severity {{ \"}}\" }}] -\n        {{ \"{{\" }} range .Alerts {{ \"}}\" }}\n        {{ \"{{\" }} if .Annotations.summary {{ \"}}\" }}{{ \"{{\" }} .Annotations.summary {{ \"}}\" }}{{ \"{{\" }} else if .Annotations.description {{ \"}}\" }}{{ \"{{\" }} .Annotations.description {{ \"}}\" }}{{ \"{{\" }} else {{ \"}}\" }}{{ \"{{\" }} .Annotations.message {{ \"}}\" }}{{ \"{{\" }} end {{ \"}}\" }}\n        {{ \"{{\" }} end {{ \"}}\" }}\n      description: |\n        {{ \"{{\" }} range $i, $a := .Alerts {{ \"}}\" }}\n        {{ \"{{\" }} if $i {{ \"}}\" }}\n        ---\n        {{ \"{{\" }} end {{ \"}}\" }}\n        {{ \"{{\" }} if $a.Annotations.description {{ \"}}\" }}{{ \"{{\" }} $a.Annotations.description {{ \"}}\" }}{{ \"{{\" }} else if $a.Annotations.summary {{ \"}}\" }}{{ \"{{\" }} $a.Annotations.summary {{ \"}}\" }}{{ \"{{\" }} else {{ \"}}\" }}{{ \"{{\" }} $a.Annotations.message {{ \"}}\" }}{{ \"{{\" }} end {{ \"}}\" }}\n        \n        {{ \"{{\" }} with $a.Annotations.runbook_url {{ \"}}\" }}Runbook: {{ \"{{\" }} . {{ \"}}\" }}\n        \n        {{ \"{{\" }} end {{ \"}}\" }}{{ \"{{\" }} with $a.GeneratorURL {{ \"}}\" }}Source: {{ \"{{\" }} reReplaceAll `^(.*)/monitoring/graph\\?g0\\.expr=` \"${1}/monitoring/query-browser?query0=\" . {{ \"}}\" }}{{ \"{{\" }} end {{ \"}}\" }}\n        {{ \"{{\" }} end {{ \"}}\" }}\n      priority: '{{ \"{{\" }} if eq .CommonLabels.severity \"critical\" {{ \"}}\" }}P1{{ \"{{\" }} else if eq .CommonLabels.severity \"warning\" {{ \"}}\" }}P2{{ \"{{\" }} else if eq .CommonLabels.severity \"info\" {{ \"}}\" }}P3{{ \"{{\" }} else {{ \"}}\" }}P4{{ \"{{\" }} end {{ \"}}\" }}'\n      tags: |\n        {{ \"{{-\" }} with .CommonLabels.alertname {{ \"}}\" }}alertname={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.clusterName {{ \"}}\" }}clusterName={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.customerName {{ \"}}\" }}customerName={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.environment {{ \"}}\" }}environment={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.location {{ \"}}\" }}location={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.namespace {{ \"}}\" }}namespace={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.hostname {{ \"}}\" }}hostname={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.name {{ \"}}\" }}name={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.project {{ \"}}\" }}project={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.repo {{ \"}}\" }}repo={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.sync_status {{ \"}}\" }}sync_status={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.health_status {{ \"}}\" }}health_status={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.autosync_enabled {{ \"}}\" }}autosync_enabled={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.severity {{ \"}}\" }}severity={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.team {{ \"}}\" }}team={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.vendor {{ \"}}\" }}vendor={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.app {{ \"}}\" }}app={{ \"{{\" }} . {{ \"}}\" }}{{ \"{{-\" }} end {{ \"}}\" }}\nroute:\n  group_by:\n  - namespace\n  - alertname\n  - severity\n  group_interval: 5m\n  group_wait: 30s\n  receiver: teams_aspecta\n  repeat_interval: 12h\n  routes:\n  # fixed in OCP 4.17.6 — remove once cluster is upgraded (https://access.redhat.com/solutions/7103336)\n  - receiver: \"null\"\n    matchers:\n    - alertname = PrometheusRuleFailures\n    - rule_group =~ \".*ceph\\\\.rules$\"\n  - receiver: \"null\"\n    matchers:\n    - alertname =~ \"CertificateIsAboutToExpire|CertificateApproachingExpiration\"\n    - name =~ \"kubemacpool-service|result-server-cert-ocp4-cis-1-5|result-client-cert-ocp4-cis-1-5|root-ca-ocp4-cis-1-5\"\n  - receiver: teams_aspecta\n    continue: true\n    matchers:\n    - severity =~ \"warning|critical\"\n    - alertname != Watchdog\n  - receiver: atlassian_aspecta\n    continue: true\n    matchers:\n    - severity =~ \"warning|critical\"\n    - alertname != Watchdog\n    - team != security\n    - source != logs\n  - receiver: atlassian_aspecta_security\n    continue: true\n    matchers:\n    - severity =~ \"warning|critical\"\n    - alertname != Watchdog\n    - team = security\n    group_by:\n    - namespace\n    - alertname\n    - severity\n    - clusterName\n    - acs_alert_id\n  - receiver: atlassian_aspecta_logs\n    continue: true\n    matchers:\n    - severity =~ \"warning|critical\"\n    - alertname != Watchdog\n    - source = logs\n    group_by:\n    - namespace\n    - alertname\n    - severity\n    - clusterName\n    - hostname\n    - msgid\n  - receiver: healthchecksio\n    matchers:\n    - alertname = Watchdog\n    group_wait: 0s\n    group_interval: 60s\n    repeat_interval: 60s\n  - receiver: \"null\"\n    matchers:\n    - severity =~ \"info|none\"\n  - receiver: \"null\"\n    matchers:\n    - vendor != \"aspecta\"\n"
+          metadata:
+            labels:
+              app.kubernetes.io/instance: monitoring
+              app.kubernetes.io/managed-by: Helm
+              app.kubernetes.io/name: monitoring
+              helm.sh/chart: monitoring-1.2.1
+          type: Opaque
   14: |
     apiVersion: v1
     kind: Service
@@ -975,7 +1011,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: vault-bastion
       namespace: apc-monitoring-bastion
     spec:
@@ -993,7 +1029,7 @@ manifests should match snapshot (hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: vault-bastion
       namespace: apc-monitoring-bastion
     spec:
@@ -1022,7 +1058,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: cluster-alerting-rules
       namespace: openshift-monitoring
     spec:
@@ -1057,7 +1093,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: cluster-policy-cluster-monitoring
     spec:
       generateExisting: true
@@ -1640,7 +1676,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
         rbac.kyverno.io/aggregate-to-admission-controller: "true"
       name: kyverno:admission-controller:monitoring
     rules:
@@ -1711,7 +1747,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: cluster-monitoring-config
       namespace: openshift-monitoring
   5: |
@@ -1755,7 +1791,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: user-workload-monitoring-config
       namespace: openshift-user-workload-monitoring
   6: |
@@ -1766,7 +1802,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: vault-bastion
       namespace: apc-monitoring-bastion
     subsets:
@@ -1784,7 +1820,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: alertmanager-receivers
       namespace: openshift-monitoring
     spec:
@@ -1806,7 +1842,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: alertmanager-uwm-receivers
       namespace: openshift-user-workload-monitoring
     spec:
@@ -1828,7 +1864,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: disk-raid-array-monitoring
       namespace: openshift-monitoring
     spec:
@@ -1869,7 +1905,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: ldap-monitoring
       namespace: apc-monitoring-bastion
     spec:
@@ -1916,7 +1952,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: user-workload-monitoring-thanos-rules
       namespace: apc-observability
     spec:
@@ -1935,33 +1971,69 @@ manifests should match snapshot (non-hub cluster):
                 namespace: apc-observability
                 severity: none
   12: |
-    apiVersion: v1
-    kind: Secret
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
     metadata:
       labels:
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: alertmanager-user-workload
       namespace: openshift-user-workload-monitoring
-    stringData:
-      alertmanager.yaml: "global:\n  http_config:\n    proxy_url: http://proxy.example.com:8080\n    no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1\ninhibit_rules:\n- equal:\n  - namespace\n  - alertname\n  source_matchers:\n  - \"severity = critical\"\n  target_matchers:\n  - \"severity =~ warning|info\"\n- equal:\n  - namespace\n  - alertname\n  source_matchers:\n  - \"severity = warning\"\n  target_matchers:\n  - \"severity = info\"\nreceivers:\n- name: \"null\"\n- name: teams_aspecta\n  msteams_configs:\n    - send_resolved: true\n      webhook_url_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/msteams_url\n- name: healthchecksioUWMthanos\n  webhook_configs:\n    - url_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/healthchecks_url\n      send_resolved: false\n- name: atlassian_aspecta\n  opsgenie_configs:\n    - send_resolved: true\n      api_key_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/opsgenie_key\n      message: |\n        [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -\n        {{ range .Alerts }}\n        {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}\n        {{ end }}\n      description: |\n        {{ range $i, $a := .Alerts }}\n        {{ if $i }}\n        ---\n        {{ end }}\n        {{ if $a.Annotations.description }}{{ $a.Annotations.description }}{{ else if $a.Annotations.summary }}{{ $a.Annotations.summary }}{{ else }}{{ $a.Annotations.message }}{{ end }}\n        \n        {{ with $a.Annotations.runbook_url }}Runbook: {{ . }}\n        \n        {{ end }}{{ with $a.GeneratorURL }}Source: {{ reReplaceAll `^(.*)/monitoring/graph\\?g0\\.expr=` \"${1}/monitoring/query-browser?query0=\" . }}{{ end }}\n        {{ end }}\n      priority: '{{ if eq .CommonLabels.severity \"critical\" }}P1{{ else if eq .CommonLabels.severity \"warning\" }}P2{{ else if eq .CommonLabels.severity \"info\" }}P3{{ else }}P4{{ end }}'\n      tags: |\n        {{- with .CommonLabels.alertname }}alertname={{ . }},{{- end }}\n        {{- with .CommonLabels.clusterName }}clusterName={{ . }},{{- end }}\n        {{- with .CommonLabels.customerName }}customerName={{ . }},{{- end }}\n        {{- with .CommonLabels.environment }}environment={{ . }},{{- end }}\n        {{- with .CommonLabels.location }}location={{ . }},{{- end }}\n        {{- with .CommonLabels.namespace }}namespace={{ . }},{{- end }}\n        {{- with .CommonLabels.hostname }}hostname={{ . }},{{- end }}\n        {{- with .CommonLabels.name }}name={{ . }},{{- end }}\n        {{- with .CommonLabels.project }}project={{ . }},{{- end }}\n        {{- with .CommonLabels.repo }}repo={{ . }},{{- end }}\n        {{- with .CommonLabels.sync_status }}sync_status={{ . }},{{- end }}\n        {{- with .CommonLabels.health_status }}health_status={{ . }},{{- end }}\n        {{- with .CommonLabels.autosync_enabled }}autosync_enabled={{ . }},{{- end }}\n        {{- with .CommonLabels.severity }}severity={{ . }},{{- end }}\n        {{- with .CommonLabels.team }}team={{ . }},{{- end }}\n        {{- with .CommonLabels.vendor }}vendor={{ . }},{{- end }}\n        {{- with .CommonLabels.app }}app={{ . }}{{- end }}\nroute:\n  group_by:\n  - namespace\n  - alertname\n  - severity\n  group_interval: 5m\n  group_wait: 30s\n  receiver: teams_aspecta\n  repeat_interval: 12h\n  routes:\n  - receiver: atlassian_aspecta\n    continue: true\n    matchers:\n    - severity =~ \"warning|critical\"\n    - alertname != Watchdog\n    - vendor = \"aspecta\"\n    - team = \"platform\"\n  - receiver: healthchecksioUWMthanos\n    matchers:\n    - alertname = WatchdogUWMthanos\n    group_wait: 0s\n    group_interval: 60s\n    repeat_interval: 60s\n  - receiver: \"null\"\n    matchers:\n    - severity =~ \"info|none\"\n  - receiver: \"null\"\n    matchers:\n    - vendor != \"aspecta\"\n"
-    type: Opaque
+    spec:
+      dataFrom:
+        - extract:
+            key: apc-platform/d/monitoring/alertmanager-uwm
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: apc
+      target:
+        creationPolicy: Owner
+        name: alertmanager-user-workload
+        template:
+          data:
+            alertmanager.yaml: "global:\n  http_config:\n    proxy_url: http://proxy.example.com:8080\n    no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1\ninhibit_rules:\n- equal:\n  - namespace\n  - alertname\n  source_matchers:\n  - \"severity = critical\"\n  target_matchers:\n  - \"severity =~ warning|info\"\n- equal:\n  - namespace\n  - alertname\n  source_matchers:\n  - \"severity = warning\"\n  target_matchers:\n  - \"severity = info\"\nreceivers:\n- name: \"null\"\n- name: teams_aspecta\n  msteams_configs:\n    - send_resolved: true\n      webhook_url: \"{{ .msteams_url }}\"\n- name: healthchecksioUWMthanos\n  webhook_configs:\n    - url_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/healthchecks_url\n      send_resolved: false\n- name: atlassian_aspecta\n  opsgenie_configs:\n    - send_resolved: true\n      api_key_file: /etc/alertmanager/secrets/alertmanager-uwm-receivers/opsgenie_key\n      message: |\n        [{{ \"{{\" }} .CommonLabels.customerName {{ \"}}\" }}/{{ \"{{\" }} .CommonLabels.clusterName {{ \"}}\" }}/{{ \"{{\" }} .CommonLabels.severity {{ \"}}\" }}] -\n        {{ \"{{\" }} range .Alerts {{ \"}}\" }}\n        {{ \"{{\" }} if .Annotations.summary {{ \"}}\" }}{{ \"{{\" }} .Annotations.summary {{ \"}}\" }}{{ \"{{\" }} else if .Annotations.description {{ \"}}\" }}{{ \"{{\" }} .Annotations.description {{ \"}}\" }}{{ \"{{\" }} else {{ \"}}\" }}{{ \"{{\" }} .Annotations.message {{ \"}}\" }}{{ \"{{\" }} end {{ \"}}\" }}\n        {{ \"{{\" }} end {{ \"}}\" }}\n      description: |\n        {{ \"{{\" }} range $i, $a := .Alerts {{ \"}}\" }}\n        {{ \"{{\" }} if $i {{ \"}}\" }}\n        ---\n        {{ \"{{\" }} end {{ \"}}\" }}\n        {{ \"{{\" }} if $a.Annotations.description {{ \"}}\" }}{{ \"{{\" }} $a.Annotations.description {{ \"}}\" }}{{ \"{{\" }} else if $a.Annotations.summary {{ \"}}\" }}{{ \"{{\" }} $a.Annotations.summary {{ \"}}\" }}{{ \"{{\" }} else {{ \"}}\" }}{{ \"{{\" }} $a.Annotations.message {{ \"}}\" }}{{ \"{{\" }} end {{ \"}}\" }}\n        \n        {{ \"{{\" }} with $a.Annotations.runbook_url {{ \"}}\" }}Runbook: {{ \"{{\" }} . {{ \"}}\" }}\n        \n        {{ \"{{\" }} end {{ \"}}\" }}{{ \"{{\" }} with $a.GeneratorURL {{ \"}}\" }}Source: {{ \"{{\" }} reReplaceAll `^(.*)/monitoring/graph\\?g0\\.expr=` \"${1}/monitoring/query-browser?query0=\" . {{ \"}}\" }}{{ \"{{\" }} end {{ \"}}\" }}\n        {{ \"{{\" }} end {{ \"}}\" }}\n      priority: '{{ \"{{\" }} if eq .CommonLabels.severity \"critical\" {{ \"}}\" }}P1{{ \"{{\" }} else if eq .CommonLabels.severity \"warning\" {{ \"}}\" }}P2{{ \"{{\" }} else if eq .CommonLabels.severity \"info\" {{ \"}}\" }}P3{{ \"{{\" }} else {{ \"}}\" }}P4{{ \"{{\" }} end {{ \"}}\" }}'\n      tags: |\n        {{ \"{{-\" }} with .CommonLabels.alertname {{ \"}}\" }}alertname={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.clusterName {{ \"}}\" }}clusterName={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.customerName {{ \"}}\" }}customerName={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.environment {{ \"}}\" }}environment={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.location {{ \"}}\" }}location={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.namespace {{ \"}}\" }}namespace={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.hostname {{ \"}}\" }}hostname={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.name {{ \"}}\" }}name={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.project {{ \"}}\" }}project={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.repo {{ \"}}\" }}repo={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.sync_status {{ \"}}\" }}sync_status={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.health_status {{ \"}}\" }}health_status={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.autosync_enabled {{ \"}}\" }}autosync_enabled={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.severity {{ \"}}\" }}severity={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.team {{ \"}}\" }}team={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.vendor {{ \"}}\" }}vendor={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.app {{ \"}}\" }}app={{ \"{{\" }} . {{ \"}}\" }}{{ \"{{-\" }} end {{ \"}}\" }}\nroute:\n  group_by:\n  - namespace\n  - alertname\n  - severity\n  group_interval: 5m\n  group_wait: 30s\n  receiver: teams_aspecta\n  repeat_interval: 12h\n  routes:\n  - receiver: atlassian_aspecta\n    continue: true\n    matchers:\n    - severity =~ \"warning|critical\"\n    - alertname != Watchdog\n    - vendor = \"aspecta\"\n    - team = \"platform\"\n  - receiver: healthchecksioUWMthanos\n    matchers:\n    - alertname = WatchdogUWMthanos\n    group_wait: 0s\n    group_interval: 60s\n    repeat_interval: 60s\n  - receiver: \"null\"\n    matchers:\n    - severity =~ \"info|none\"\n  - receiver: \"null\"\n    matchers:\n    - vendor != \"aspecta\"\n"
+          metadata:
+            labels:
+              app.kubernetes.io/instance: monitoring
+              app.kubernetes.io/managed-by: Helm
+              app.kubernetes.io/name: monitoring
+              helm.sh/chart: monitoring-1.2.1
+          type: Opaque
   13: |
-    apiVersion: v1
-    kind: Secret
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
     metadata:
       labels:
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: alertmanager-main
       namespace: openshift-monitoring
-    stringData:
-      alertmanager.yaml: "global:\n  http_config:\n    proxy_url: http://proxy.example.com:8080\n    no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1\ninhibit_rules:\n- equal:\n  - namespace\n  - alertname\n  source_matchers:\n  - \"severity = critical\"\n  target_matchers:\n  - \"severity =~ warning|info\"\n- equal:\n  - namespace\n  - alertname\n  source_matchers:\n  - \"severity = warning\"\n  target_matchers:\n  - \"severity = info\"\nreceivers:\n- name: \"null\"\n- name: teams_aspecta\n  msteams_configs:\n    - send_resolved: true\n      webhook_url_file: /etc/alertmanager/secrets/alertmanager-receivers/msteams_url\n- name: healthchecksio\n  webhook_configs:\n    - url_file: /etc/alertmanager/secrets/alertmanager-receivers/healthchecks_url\n      send_resolved: false\n- name: atlassian_aspecta\n  opsgenie_configs:\n    - send_resolved: true\n      api_key_file: /etc/alertmanager/secrets/alertmanager-receivers/opsgenie_key\n      message: |\n        [{{ .CommonLabels.customerName }}/{{ .CommonLabels.clusterName }}/{{ .CommonLabels.severity }}] -\n        {{ range .Alerts }}\n        {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.description }}{{ .Annotations.description }}{{ else }}{{ .Annotations.message }}{{ end }}\n        {{ end }}\n      description: |\n        {{ range $i, $a := .Alerts }}\n        {{ if $i }}\n        ---\n        {{ end }}\n        {{ if $a.Annotations.description }}{{ $a.Annotations.description }}{{ else if $a.Annotations.summary }}{{ $a.Annotations.summary }}{{ else }}{{ $a.Annotations.message }}{{ end }}\n        \n        {{ with $a.Annotations.runbook_url }}Runbook: {{ . }}\n        \n        {{ end }}{{ with $a.GeneratorURL }}Source: {{ reReplaceAll `^(.*)/monitoring/graph\\?g0\\.expr=` \"${1}/monitoring/query-browser?query0=\" . }}{{ end }}\n        {{ end }}\n      priority: '{{ if eq .CommonLabels.severity \"critical\" }}P1{{ else if eq .CommonLabels.severity \"warning\" }}P2{{ else if eq .CommonLabels.severity \"info\" }}P3{{ else }}P4{{ end }}'\n      tags: |\n        {{- with .CommonLabels.alertname }}alertname={{ . }},{{- end }}\n        {{- with .CommonLabels.clusterName }}clusterName={{ . }},{{- end }}\n        {{- with .CommonLabels.customerName }}customerName={{ . }},{{- end }}\n        {{- with .CommonLabels.environment }}environment={{ . }},{{- end }}\n        {{- with .CommonLabels.location }}location={{ . }},{{- end }}\n        {{- with .CommonLabels.namespace }}namespace={{ . }},{{- end }}\n        {{- with .CommonLabels.hostname }}hostname={{ . }},{{- end }}\n        {{- with .CommonLabels.name }}name={{ . }},{{- end }}\n        {{- with .CommonLabels.project }}project={{ . }},{{- end }}\n        {{- with .CommonLabels.repo }}repo={{ . }},{{- end }}\n        {{- with .CommonLabels.sync_status }}sync_status={{ . }},{{- end }}\n        {{- with .CommonLabels.health_status }}health_status={{ . }},{{- end }}\n        {{- with .CommonLabels.autosync_enabled }}autosync_enabled={{ . }},{{- end }}\n        {{- with .CommonLabels.severity }}severity={{ . }},{{- end }}\n        {{- with .CommonLabels.team }}team={{ . }},{{- end }}\n        {{- with .CommonLabels.vendor }}vendor={{ . }},{{- end }}\n        {{- with .CommonLabels.app }}app={{ . }}{{- end }}\nroute:\n  group_by:\n  - namespace\n  - alertname\n  - severity\n  group_interval: 5m\n  group_wait: 30s\n  receiver: teams_aspecta\n  repeat_interval: 12h\n  routes:\n  # fixed in OCP 4.17.6 — remove once cluster is upgraded (https://access.redhat.com/solutions/7103336)\n  - receiver: \"null\"\n    matchers:\n    - alertname = PrometheusRuleFailures\n    - rule_group =~ \".*ceph\\\\.rules$\"\n  - receiver: \"null\"\n    matchers:\n    - alertname =~ \"CertificateIsAboutToExpire|CertificateApproachingExpiration\"\n    - name =~ \"kubemacpool-service|result-server-cert-ocp4-cis-1-5|result-client-cert-ocp4-cis-1-5|root-ca-ocp4-cis-1-5\"\n  - receiver: atlassian_aspecta\n    continue: true\n    matchers:\n    - severity =~ \"warning|critical\"\n    - alertname != Watchdog\n    - vendor = \"aspecta\"\n  - receiver: healthchecksio\n    matchers:\n    - alertname = Watchdog\n    group_wait: 0s\n    group_interval: 60s\n    repeat_interval: 60s\n  - receiver: \"null\"\n    matchers:\n    - severity =~ \"info|none\"\n  - receiver: \"null\"\n    matchers:\n    - vendor != \"aspecta\"\n"
-    type: Opaque
+    spec:
+      dataFrom:
+        - extract:
+            key: apc-platform/d/monitoring/alertmanager
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: apc
+      target:
+        creationPolicy: Owner
+        name: alertmanager-main
+        template:
+          data:
+            alertmanager.yaml: "global:\n  http_config:\n    proxy_url: http://proxy.example.com:8080\n    no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1\ninhibit_rules:\n- equal:\n  - namespace\n  - alertname\n  source_matchers:\n  - \"severity = critical\"\n  target_matchers:\n  - \"severity =~ warning|info\"\n- equal:\n  - namespace\n  - alertname\n  source_matchers:\n  - \"severity = warning\"\n  target_matchers:\n  - \"severity = info\"\nreceivers:\n- name: \"null\"\n- name: teams_aspecta\n  msteams_configs:\n    - send_resolved: true\n      webhook_url: \"{{ .msteams_url }}\"\n- name: healthchecksio\n  webhook_configs:\n    - url_file: /etc/alertmanager/secrets/alertmanager-receivers/healthchecks_url\n      send_resolved: false\n- name: atlassian_aspecta\n  opsgenie_configs:\n    - send_resolved: true\n      api_key_file: /etc/alertmanager/secrets/alertmanager-receivers/opsgenie_key\n      message: |\n        [{{ \"{{\" }} .CommonLabels.customerName {{ \"}}\" }}/{{ \"{{\" }} .CommonLabels.clusterName {{ \"}}\" }}/{{ \"{{\" }} .CommonLabels.severity {{ \"}}\" }}] -\n        {{ \"{{\" }} range .Alerts {{ \"}}\" }}\n        {{ \"{{\" }} if .Annotations.summary {{ \"}}\" }}{{ \"{{\" }} .Annotations.summary {{ \"}}\" }}{{ \"{{\" }} else if .Annotations.description {{ \"}}\" }}{{ \"{{\" }} .Annotations.description {{ \"}}\" }}{{ \"{{\" }} else {{ \"}}\" }}{{ \"{{\" }} .Annotations.message {{ \"}}\" }}{{ \"{{\" }} end {{ \"}}\" }}\n        {{ \"{{\" }} end {{ \"}}\" }}\n      description: |\n        {{ \"{{\" }} range $i, $a := .Alerts {{ \"}}\" }}\n        {{ \"{{\" }} if $i {{ \"}}\" }}\n        ---\n        {{ \"{{\" }} end {{ \"}}\" }}\n        {{ \"{{\" }} if $a.Annotations.description {{ \"}}\" }}{{ \"{{\" }} $a.Annotations.description {{ \"}}\" }}{{ \"{{\" }} else if $a.Annotations.summary {{ \"}}\" }}{{ \"{{\" }} $a.Annotations.summary {{ \"}}\" }}{{ \"{{\" }} else {{ \"}}\" }}{{ \"{{\" }} $a.Annotations.message {{ \"}}\" }}{{ \"{{\" }} end {{ \"}}\" }}\n        \n        {{ \"{{\" }} with $a.Annotations.runbook_url {{ \"}}\" }}Runbook: {{ \"{{\" }} . {{ \"}}\" }}\n        \n        {{ \"{{\" }} end {{ \"}}\" }}{{ \"{{\" }} with $a.GeneratorURL {{ \"}}\" }}Source: {{ \"{{\" }} reReplaceAll `^(.*)/monitoring/graph\\?g0\\.expr=` \"${1}/monitoring/query-browser?query0=\" . {{ \"}}\" }}{{ \"{{\" }} end {{ \"}}\" }}\n        {{ \"{{\" }} end {{ \"}}\" }}\n      priority: '{{ \"{{\" }} if eq .CommonLabels.severity \"critical\" {{ \"}}\" }}P1{{ \"{{\" }} else if eq .CommonLabels.severity \"warning\" {{ \"}}\" }}P2{{ \"{{\" }} else if eq .CommonLabels.severity \"info\" {{ \"}}\" }}P3{{ \"{{\" }} else {{ \"}}\" }}P4{{ \"{{\" }} end {{ \"}}\" }}'\n      tags: |\n        {{ \"{{-\" }} with .CommonLabels.alertname {{ \"}}\" }}alertname={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.clusterName {{ \"}}\" }}clusterName={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.customerName {{ \"}}\" }}customerName={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.environment {{ \"}}\" }}environment={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.location {{ \"}}\" }}location={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.namespace {{ \"}}\" }}namespace={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.hostname {{ \"}}\" }}hostname={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.name {{ \"}}\" }}name={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.project {{ \"}}\" }}project={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.repo {{ \"}}\" }}repo={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.sync_status {{ \"}}\" }}sync_status={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.health_status {{ \"}}\" }}health_status={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.autosync_enabled {{ \"}}\" }}autosync_enabled={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.severity {{ \"}}\" }}severity={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.team {{ \"}}\" }}team={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.vendor {{ \"}}\" }}vendor={{ \"{{\" }} . {{ \"}}\" }},{{ \"{{-\" }} end {{ \"}}\" }}\n        {{ \"{{-\" }} with .CommonLabels.app {{ \"}}\" }}app={{ \"{{\" }} . {{ \"}}\" }}{{ \"{{-\" }} end {{ \"}}\" }}\nroute:\n  group_by:\n  - namespace\n  - alertname\n  - severity\n  group_interval: 5m\n  group_wait: 30s\n  receiver: teams_aspecta\n  repeat_interval: 12h\n  routes:\n  # fixed in OCP 4.17.6 — remove once cluster is upgraded (https://access.redhat.com/solutions/7103336)\n  - receiver: \"null\"\n    matchers:\n    - alertname = PrometheusRuleFailures\n    - rule_group =~ \".*ceph\\\\.rules$\"\n  - receiver: \"null\"\n    matchers:\n    - alertname =~ \"CertificateIsAboutToExpire|CertificateApproachingExpiration\"\n    - name =~ \"kubemacpool-service|result-server-cert-ocp4-cis-1-5|result-client-cert-ocp4-cis-1-5|root-ca-ocp4-cis-1-5\"\n  - receiver: atlassian_aspecta\n    continue: true\n    matchers:\n    - severity =~ \"warning|critical\"\n    - alertname != Watchdog\n    - vendor = \"aspecta\"\n  - receiver: healthchecksio\n    matchers:\n    - alertname = Watchdog\n    group_wait: 0s\n    group_interval: 60s\n    repeat_interval: 60s\n  - receiver: \"null\"\n    matchers:\n    - severity =~ \"info|none\"\n  - receiver: \"null\"\n    matchers:\n    - vendor != \"aspecta\"\n"
+          metadata:
+            labels:
+              app.kubernetes.io/instance: monitoring
+              app.kubernetes.io/managed-by: Helm
+              app.kubernetes.io/name: monitoring
+              helm.sh/chart: monitoring-1.2.1
+          type: Opaque
   14: |
     apiVersion: v1
     kind: Service
@@ -1971,7 +2043,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: vault-bastion
       namespace: apc-monitoring-bastion
     spec:
@@ -1989,7 +2061,7 @@ manifests should match snapshot (non-hub cluster):
         app.kubernetes.io/instance: monitoring
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: monitoring
-        helm.sh/chart: monitoring-1.2.0
+        helm.sh/chart: monitoring-1.2.1
       name: vault-bastion
       namespace: apc-monitoring-bastion
     spec:
