@@ -1681,49 +1681,6 @@ spec:
     tokenTtl: 900
 
 ---
-# Source: quay-config/templates/clusterpolicy-trigger-argo-sync.yaml
-apiVersion: kyverno.io/v1
-kind: ClusterPolicy
-metadata:
-  name: apc-registry-trigger-argo-sync
-  labels:
-    helm.sh/chart: quay-config-0.1.0
-    app.kubernetes.io/name: apc-registry
-    app.kubernetes.io/instance: apc-quay
-    app.kubernetes.io/managed-by: Helm
-spec:
-  admission: true
-  background: true
-  emitWarning: false
-  rules:
-    - name: trigger-argo-sync
-      match:
-        any:
-          - resources:
-              kinds: ["Secret"]
-              names: ["apc-registry-registry-credentials"]
-              namespaces: ["quay-test"]
-              operations: ["UPDATE"]
-      mutate:
-        targets:
-          - apiVersion: argoproj.io/v1alpha1
-            kind: Application
-            name: quay-config-test
-            namespace: apc-gitops
-        patchStrategicMerge:
-          operation:
-            initiatedBy:
-              username: apc-registry-trigger-argo-sync
-            resources:
-              - group: batch
-                kind: Job
-                name: apc-registry-init-organizations
-                namespace: quay-test
-            sync:
-              syncStrategy:
-                hook: {}
-
----
 # Source: quay-config/templates/externalsecret-registry-credentials.yaml
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
