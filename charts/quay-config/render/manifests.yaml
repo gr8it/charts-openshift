@@ -10,9 +10,6 @@ metadata:
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
-  annotations:
-    argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/sync-wave: "10"
 spec:
   egress:
     - to:
@@ -34,9 +31,6 @@ metadata:
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
-  # annotations:
-  #   argocd.argoproj.io/hook: Sync
-  #   argocd.argoproj.io/sync-wave: "10"
 
 ---
 # Source: quay-config/templates/secret-quay-config.yaml
@@ -50,9 +44,6 @@ metadata:
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
-  # annotations:
-  #   argocd.argoproj.io/hook: Sync
-  #   argocd.argoproj.io/sync-wave: "10"
 type: Opaque
 stringData:
   config.yaml: |
@@ -896,9 +887,6 @@ metadata:
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
-  # annotations:
-  #   argocd.argoproj.io/hook: Sync
-  #   argocd.argoproj.io/sync-wave: "10"
 rules:
   - apiGroups: [""]
     resources: ["secrets","configmaps"]
@@ -945,9 +933,6 @@ metadata:
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
-  # annotations:
-  #   argocd.argoproj.io/hook: Sync
-  #   argocd.argoproj.io/sync-wave: "10"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -1060,7 +1045,7 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: apc-registry-init-admin
+  name: apc-registry-init-admin
   namespace: quay-test
   labels:
     helm.sh/chart: quay-config-0.1.0
@@ -1142,7 +1127,7 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: apc-registry-init-organizations
+  name: apc-registry-init-organizations
   namespace: quay-test
   labels:
     helm.sh/chart: quay-config-0.1.0
@@ -1151,7 +1136,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
   annotations:
     argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded,BeforeHookCreation
     #argocd.argoproj.io/sync-options: Replace=true
     argocd.argoproj.io/sync-wave: "22"
 spec:
@@ -1374,7 +1359,7 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: apc-registry-prune-organizations
+  name: apc-registry-prune-organizations
   namespace: quay-test
   labels:
     helm.sh/chart: quay-config-0.1.0
@@ -1491,7 +1476,7 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: apc-registry-init-robots
+  name: apc-registry-init-robots
   namespace: quay-test
   labels:
     helm.sh/chart: quay-config-0.1.0
@@ -1502,7 +1487,7 @@ metadata:
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded
     #argocd.argoproj.io/sync-options: Replace=true
-    argocd.argoproj.io/sync-wave: "23"
+    argocd.argoproj.io/sync-wave: "24"
 spec:
   ttlSecondsAfterFinished: 1800
   backoffLimit: 2
@@ -1817,7 +1802,6 @@ metadata:
     app.kubernetes.io/managed-by: Helm
   annotations:
     argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/sync-wave: "31"
 spec:
   updatePolicy: Replace
   deletionPolicy: None
@@ -1847,7 +1831,6 @@ metadata:
     app.kubernetes.io/managed-by: Helm
   annotations:
     argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/sync-wave: "31"
 spec:
   updatePolicy: Replace
   deletionPolicy: None
@@ -1875,9 +1858,6 @@ metadata:
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
-  # annotations:
-  #   argocd.argoproj.io/hook: Sync
-  #   argocd.argoproj.io/sync-wave: "11"
 spec:
   configBundleSecret: apc-registry-config
   components:

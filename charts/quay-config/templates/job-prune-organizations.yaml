@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: {{ include "quay-config.name" . }}-prune-organizations
+  name: {{ include "quay-config.name" . }}-prune-organizations
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "quay-config.labels" . | nindent 4 }}
