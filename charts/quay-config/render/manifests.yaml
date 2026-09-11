@@ -1728,15 +1728,15 @@ spec:
         patchStrategicMerge:
           operation:
             initiatedBy:
-              username: apc-registry-trigger-argo-sync
-            resources:
+              username: apc-registry-quay-test-argo-sync
+            sync:
+              syncStrategy:
+                hook: {}
+              resources:
               - group: batch
                 kind: Job
                 name: apc-registry-init-organizations
                 namespace: quay-test
-            sync:
-              syncStrategy:
-                hook: {}
 
 ---
 # Source: quay-config/templates/externalsecret-registry-credentials.yaml

@@ -28,13 +28,13 @@ spec:
         patchStrategicMerge:
           operation:
             initiatedBy:
-              username: {{ include "quay-config.name" . }}-trigger-argo-sync
-            resources:
+              username: {{ printf "%s-%s-argo-sync" (include "quay-config.name" .) .Release.Namespace }}
+            sync:
+              syncStrategy:
+                hook: {}
+              resources:
               - group: batch
                 kind: Job
                 name: {{ include "quay-config.objname.initorg-job" . }}
                 namespace: {{ .Release.Namespace }}
-            sync:
-              syncStrategy:
-                hook: {}
 {{- end }}
