@@ -1,0 +1,1923 @@
+---
+# Source: quay-config/templates/netpol-allow-proxy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: apc-registry-allow-proxy
+  namespace: quay-test
+  labels:
+    helm.sh/chart: quay-config-0.1.0
+    app.kubernetes.io/name: apc-registry
+    app.kubernetes.io/instance: apc-quay
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  egress:
+    - to:
+      - ipBlock:
+          cidr: 10.11.0.10/32
+  podSelector: {}
+  policyTypes:
+    - Egress
+
+---
+# Source: quay-config/templates/sa-postinstall.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: apc-registry-postinstall
+    namespace: quay-test
+    labels:
+    helm.sh/chart: quay-config-0.1.0
+    app.kubernetes.io/name: apc-registry
+    app.kubernetes.io/instance: apc-quay
+    app.kubernetes.io/managed-by: Helm
+    annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/sync-wave: "10"
+
+---
+# Source: quay-config/templates/secret-quay-config.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: apc-registry-config
+  namespace: quay-test
+  labels:
+    helm.sh/chart: quay-config-0.1.0
+    app.kubernetes.io/name: apc-registry
+    app.kubernetes.io/instance: apc-quay
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/sync-wave: "10"
+type: Opaque
+stringData:
+  config.yaml: |
+    ACTION_LOG_ARCHIVE_LOCATION: local_us
+    ACTION_LOG_ARCHIVE_PATH: archive/logs
+    ACTION_LOG_ROTATION_THRESHOLD: 30d
+    ALLOW_PULLS_WITHOUT_STRICT_LOGGING: false
+    AUTHENTICATION_TYPE: Database
+    BOOTSTRAP_TOKEN_OWNER: quayadmin
+    BOOTSTRAP_TOKEN_EXPIRATION: 7200
+    
+    BOOTSTRAP_TOKEN_SCOPE: "org:admin repo:admin repo:create repo:read repo:write super:user user:admin user:read"
+    CREATE_PRIVATE_REPO_ON_PUSH: false
+    DEFAULT_TAG_EXPIRATION: 2w
+    ENTERPRISE_LOGO_URL: /static/img/RH_Logo_Quay_Black_UX-horizontal.svg
+    FEATURE_ACTION_LOG_ROTATION: true
+    FEATURE_BUILD_SUPPORT: false
+    FEATURE_DIRECT_LOGIN: true
+    FEATURE_MAILING: false
+    FEATURE_PROGRAMMATIC_BOOTSTRAP: true
+    FEATURE_PROXY_CACHE: true
+    FEATURE_UI_V2: true
+    FEATURE_USER_CREATION: false
+    FEATURE_USER_INITIALIZE: true
+    REGISTRY_TITLE: APC Quay Registry
+    REGISTRY_TITLE_SHORT: APC Quay
+    SETUP_COMPLETE: true
+    SUPER_USERS: ["quayadmin"]
+    TAG_EXPIRATION_OPTIONS: ["0s","1d","1w","2w"]
+    TEAM_RESYNC_STALE_TIME: 60m
+    TESTING: false
+    
+
+---
+# Source: quay-config/templates/configmap-postinstall-env.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apc-registry-postinstall-env
+  namespace: quay-test
+  labels:
+    helm.sh/chart: quay-config-0.1.0
+    app.kubernetes.io/name: apc-registry
+    app.kubernetes.io/instance: apc-quay
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/sync-wave: "10"
+data:
+  NAMESPACE: quay-test
+  QUAYSERVICE: http://apc-registry-quay-app.quay-test.svc.cluster.local
+  QUAYROUTE: apc-registry-quay-quay-test.apps.huba.qa.sp.gr8it.cloud
+  QUAYNAME: apc-registry
+  QUAYADMINUSER: quayadmin
+  QUAYADMINSECRET: apc-registry-quayadmin
+  BOOTSTRAPTOKENSECRET: apc-registry-bootstrap-token
+  ROBOTACCOUNTSECRET: apc-registry-robot-accounts
+  MANAGEDORGCM: apc-registry-managed-orgs
+  VAULTADDRESS: https://vault.apps.huba.qa.sp.gr8it.cloud
+  UPDATEVAULTSECRETS: "yes"
+  LABELS: |2
+    
+        helm.sh/chart: quay-config-0.1.0
+        app.kubernetes.io/name: apc-registry
+        app.kubernetes.io/instance: apc-quay
+        app.kubernetes.io/managed-by: Helm
+
+---
+# Source: quay-config/templates/configmap-postinstall-scripts.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apc-registry-postinstall-scripts
+  namespace: quay-test
+  labels:
+    helm.sh/chart: quay-config-0.1.0
+    app.kubernetes.io/name: apc-registry
+    app.kubernetes.io/instance: apc-quay
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/sync-wave: "10"
+data:
+  common-functions.sh: |2
+    #!/usr/bin/env bash
+    
+    log_phase() {
+      printf '\n[>>>] %s\n' "$*"
+    }
+    
+    log_info() {
+      printf '[inf] %s\n' "$*"
+    }
+    
+    log_error() {
+      printf '[err] %s\n' "$*"
+    }
+    
+    get_http_code() {
+      curl --insecure --connect-timeout 3 \
+        --silent --output /dev/null \
+        --write-out '%{http_code}'  \
+        "$1"
+    }
+    
+    get_http_code_auth () {
+      curl --insecure --connect-timeout 5 \
+        --silent --output /dev/null \
+        --write-out '%{http_code}' \
+        --header "Authorization: Bearer $1" \
+        "$2"
+    }
+    
+    has_json_key() {
+      printf '%s' "$1" | python3 -c "import json,sys; sys.exit(0 if sys.argv[1] in json.load(sys.stdin) else 1)" "$2" 2>/dev/null
+    }
+    
+    get_json_value() {
+      printf '%s' "$1" | python3 -c "
+    import json,sys;
+    value=json.load(sys.stdin).get(sys.argv[1])
+    if isinstance(value, (dict, list)):
+      print(json.dumps(value))
+    elif value is not None:
+      print(value)
+    " "$2"
+    }
+    
+    urlencode() {
+      printf '%s' "$*" | python3 -c "import sys,urllib.parse; print(urllib.parse.quote(sys.stdin.read(), safe=''), end='')"
+    }
+    
+    validate_pull_secret() {
+      printf '%s' "$*" | python3 -c "
+    import json,sys,base64
+    try:
+        data = json.load(sys.stdin)
+        if 'auths' not in data: raise ValueError('Missing auths key')
+        for reg, body in data['auths'].items():
+            if 'auth' not in body: raise ValueError(f'Missing auth token for {reg}')
+            base64.b64decode(body['auth']).decode('utf-8').split(':', 1)
+        sys.exit(0)
+    except Exception as e:
+        print(f'Invalid config: {e}', file=sys.stderr)
+        sys.exit(1)
+    "
+    }
+    
+  init-admin.sh: |2
+    #!/usr/bin/env bash
+    set -e -u -o pipefail
+    
+    #-- import common functions -------------------------------
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    source "$SCRIPT_DIR/common-functions.sh"
+    
+    #-- functions ---------------------------------------------
+    admin_credentials() {
+      printf '{ "username": "%s", "password": "%s", "mail": "%s@localhost", "access_token": false }' "$1" "$2" "$1"
+    }
+    
+    #-- variables ---------------------------------------------
+    adminPassword="$(openssl rand -base64 32 | tr -d /=+ | cut -c1-20)"
+    adminUser="$QUAYADMINUSER"
+    namespace="$NAMESPACE"
+    quayName="$QUAYNAME"
+    secretName="$QUAYADMINSECRET"
+    pushSecretLabels="$LABELS" #"$PUSHSECRETLABELS"
+    quayService="$QUAYSERVICE"
+    
+    #-- main --------------------------------------------------
+    log_phase "Setting up local admin user ..."
+    adminInitCredentials=$(admin_credentials "$adminUser" "$adminPassword")
+    adminInitResponse=$(curl --silent --show-error --connect-timeout 10 \
+      --request POST --write-out "\n%{http_code}" \
+      --header "Content-Type: application/json" \
+      --data "$adminInitCredentials" \
+      "${quayService}/api/v1/user/initialize")
+    adminInitCode=$(echo "$adminInitResponse" | tail -n1)
+    adminInitMsg=$(echo "$adminInitResponse" | sed '$d')
+    case "$adminInitCode" in
+      200)
+        log_info "Admin user created successfully"
+        ;;
+      400)
+        log_info "Admin user is already initialized. Nothing to do."
+        if oc get secret "$secretName"  >/dev/null 2>&1; then
+          exit 0
+        else
+          log_error "Admin user is initialized but the secret $secretName does not exist."
+          exit 1
+        fi
+        ;;
+      *)
+        log_error "Something went wrong during admin user creation."
+        echo "$adminInitMsg"
+        exit 1
+        ;;
+    esac
+    
+    log_phase "Storing admin credentials in a secret ..."
+    quayUuid=$(oc get QuayRegistry "$quayName" -o jsonpath='{.metadata.uid}')
+    oc apply -f - <<EOT > /dev/null
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: "$secretName"
+      namespace: "$namespace"
+      labels:
+        ${pushSecretLabels}
+      ownerReferences:
+        - apiVersion: quay.redhat.com/v1
+          kind: QuayRegistry
+          name: "$quayName"
+          uid: "$quayUuid"
+    type: Opaque
+    stringData:
+      username: "$adminUser"
+      password: "$adminPassword"
+    EOT
+    log_info "Admin credentials stored in secret/${secretName}"
+    
+    exit 0
+    
+  init-bootstrap-token.sh: |2
+    #!/usr/bin/env bash
+    set -e -u -o pipefail
+    
+    #-- import common functions -------------------------------
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    source "$SCRIPT_DIR/common-functions.sh"
+    
+    #-- variables ---------------------------------------------
+    waitCounter=0
+    waitRetries=20
+    tokenExists=0
+    sleepCycleSeconds=30
+    bootstrapTokenSecret="$BOOTSTRAPTOKENSECRET"
+    quayService="$QUAYSERVICE"
+    
+    #-- main --------------------------------------------------
+    log_phase "Checking if bootstrap token secret exists ..."
+    until [ "$tokenExists" -eq 1 ]; do
+      waitCounter=$((waitCounter+1))
+      if [ $waitCounter -gt $waitRetries ]; then
+        log_error "Giving up. Bootstrap token secret was not provisioned in time."
+        exit 1
+      fi
+      bootstrapTokenJson=$( oc get secret $bootstrapTokenSecret -o go-template='{{ index .data "token.json" | base64decode}}' 2>/dev/null || true )
+    
+      if has_json_key "${bootstrapTokenJson:-}" "access_token"; then
+        bootstrapToken="$(get_json_value "${bootstrapTokenJson:-}" "access_token")"
+      fi
+    
+      if  [ "${bootstrapToken:-}" != "" ] &&
+          [ "${bootstrapToken:-}" != "None" ]; then
+        tokenExists=1
+        continue
+      fi
+    
+      log_info "[${waitCounter}/${waitRetries}] Bootstrap token is not ready yet. Sleeping for $sleepCycleSeconds seconds."
+      sleep "$sleepCycleSeconds"
+    done
+    log_info "Bootstrap token secret exists."
+    
+    log_phase "Checking if bootstrap token is valid ..."
+    checkTokenResponse=$(get_http_code_auth "$bootstrapToken" "${quayService}/api/v1/user/")
+    checkTokenCode=$(echo "$checkTokenResponse" | tail -n1)
+    checkTokenMsg=$(echo "$checkTokenResponse" | sed '$d')
+    
+    if [ "$checkTokenCode" -eq 401 ]; then
+      tokenRotated=0
+      log_info "Bootstrap token is expired and will be rotated."
+      quayAppPod=$( oc get pods -l quay-component=quay-app --field-selector status.phase=Running -o jsonpath='{.items[0].metadata.name}' )
+      renewReply=$(oc exec $quayAppPod -- curl -sS -X POST -H "Authorization: Bearer $bootstrapToken" "http://127.0.0.1:8080/api/v1/bootstrap/renew")
+      if [ "$renewReply" != '{"status": "rotated"}' ]; then
+        log_error "There was a problem with renewing the bootstrap token:"
+        echo "$renewReply"
+        exit 1
+      fi
+      while [ "${newBootstrapToken:-$bootstrapToken}" = "$bootstrapToken"  ]; do
+        if [ $tokenRotated -ge $((waitRetries/2)) ]; then
+          log_error "Giving up. New bootstrap token was not provisioned in time."
+          exit 1
+        fi
+        bootstrapTokenJson=$( oc get secret $bootstrapTokenSecret -o go-template='{{ index .data "token.json" | base64decode}}' 2>/dev/null || true )
+        newBootstrapToken="$(get_json_value "${bootstrapTokenJson:-}" "access_token")"
+        tokenRotated=$((tokenRotated+1))
+        log_info "[${tokenRotated}/$((waitRetries/2))] Waiting for new token secret to be provisioned."
+        sleep 5
+      done
+      bootstrapToken="$newBootstrapToken"
+      log_info "Bootstrap token has been rotated."
+    fi
+    
+    if [ "${tokenRotated:-0}" -gt 0 ]; then
+      log_phase "Checking if new (rotated) bootstrap token is valid ..."
+      checkTokenResponse=$(get_http_code_auth "$bootstrapToken" "${quayService}/api/v1/user/")
+      checkTokenCode=$(echo "$checkTokenResponse" | tail -n1)
+      checkTokenMsg=$(echo "$checkTokenResponse" | sed '$d')
+    fi
+    
+    if [ "$checkTokenCode" -ne 200 ]; then
+      log_error "Bootstrap bearer token is invalid. Unable to proceed (http_code: $checkTokenCode)."
+      echo "$checkTokenMsg"
+      exit 1
+    fi
+    
+    echo "$bootstrapToken" > /var/opt/token/bootstrap
+    
+    log_info "Bootstrap token is valid."
+    
+    exit 0
+    
+  init-manged-registries-cm.sh: |2
+    #!/usr/bin/env bash
+    set -e -u -o pipefail
+    
+    #-- import common functions -------------------------------
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    source "$SCRIPT_DIR/common-functions.sh"
+    
+    #-- variables ---------------------------------------------
+    quayName="$QUAYNAME"
+    managedRegistriesCm="$MANAGEDORGCM"
+    namespace="$NAMESPACE"
+    cmLabels="$LABELS"
+    
+    #-- main (init cm) ----------------------------------------
+    log_phase "Creating $managedRegistriesCm ConfigMap ..."
+    if oc get configmap "$managedRegistriesCm" >/dev/null 2>&1; then
+      log_info "ConfigMap $managedRegistriesCm already exists. Nothing to do."
+      exit 0
+    fi
+    
+    quayUuid=$(oc get QuayRegistry "$quayName" -o jsonpath='{.metadata.uid}')
+    oc apply -f - <<EOT > /dev/null
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: "$managedRegistriesCm"
+      namespace: "$namespace"
+      labels:
+        ${cmLabels}
+      ownerReferences:
+        - apiVersion: quay.redhat.com/v1
+          kind: QuayRegistry
+          name: "$quayName"
+          uid: "$quayUuid"
+    data: {}
+    EOT
+    log_info "ConfigMap $managedRegistriesCm created."
+    
+    exit 0
+    
+  init-organization.sh: |2
+    #!/usr/bin/env bash
+    set -e -u -o pipefail
+    
+    #-- import common functions -------------------------------
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    source "$SCRIPT_DIR/common-functions.sh"
+    
+    #-- functions ---------------------------------------------
+    get_registry_auth() {
+      printf '%s' "$1" | python3 -c "import json,sys; print(json.load(sys.stdin).get('auths', {}).get(sys.argv[1], {}).get('auth', ''))" "$2"
+    }
+    
+    proxycache_data() {
+      printf '{"upstream_registry":"%s","expiration_s":%i}' "$1" "$tagExpirationSeconds"
+    }
+    
+    proxycache_data_auth() {
+      printf '{"upstream_registry":"%s","upstream_registry_username":"%s","upstream_registry_password":"%s","expiration_s":%i}' "$1" "$2" "$3" "$tagExpirationSeconds"
+    }
+    
+    #-- variables ---------------------------------------------
+    bootstrapToken="$(cat /var/opt/token/bootstrap)"
+    managedRegistriesCm="$MANAGEDORGCM"
+    tagExpirationSeconds=604800
+    quayService="$QUAYSERVICE"
+    registryCredentials="$REGISTRYCREDENTIALS"
+    proxyRegistry="$REGISTRY"
+    
+    #-- main (org init) ---------------------------------------
+    log_phase "Creating organization $proxyRegistry ..."
+    createOrgResponse=$(curl --silent --show-error --connect-timeout 10 \
+      --request POST --write-out "\n%{http_code}" \
+      --header "Authorization: Bearer $bootstrapToken" \
+      --header "Content-Type: application/json" \
+      --data '{"name": "'"$proxyRegistry"'"}' \
+      "${quayService}/api/v1/organization/")
+    createOrgCode=$(echo "$createOrgResponse" | tail -n1)
+    createOrgMsg=$(echo "$createOrgResponse" | sed '$d')
+    
+    case "$createOrgCode" in
+      201)
+        log_info "Organization $proxyRegistry created successfully."
+        oc patch configmap "$managedRegistriesCm" --type merge \
+          --patch '{"data":{"'"$proxyRegistry"'":"managed"}}'
+        ;;
+      400)
+        log_info "Organization $proxyRegistry already exists. Nothing to do."
+        ;;
+      *)
+        log_error "Something went wrong during organization creation (http_code: $createOrgCode)."
+        echo "$createOrgMsg"
+        exit 1
+        ;;
+    esac
+    
+    #-- main (proxy cache) ------------------------------------
+    log_phase "Creating/Updating proxy cache configuration for $proxyRegistry ..."
+    repoAuth=$(get_registry_auth "${registryCredentials:-{\}}" "$proxyRegistry" | base64 -d)
+    if [ -z "$repoAuth" ]; then
+      proxycacheData=$(proxycache_data "$proxyRegistry")
+    else
+      repoUser="${repoAuth%%:*}"
+      repoPasswd="${repoAuth#*:}"
+      proxycacheData=$(proxycache_data_auth "$proxyRegistry" "$repoUser" "$repoPasswd")
+    fi
+    
+    proxycacheExists=$(curl --silent --show-error --connect-timeout 10 \
+      --request GET --write-out "\n%{http_code}" \
+      --header "Authorization: Bearer $bootstrapToken" \
+      "${quayService}/api/v1/organization/$(urlencode $proxyRegistry)/proxycache")
+    proxycacheExistsCode=$(echo "$proxycacheExists" | tail -n1)
+    proxycacheExistsMsg=$(echo "$proxycacheExists" | sed '$d')
+    if  [ "$proxycacheExistsCode" -eq 200 ] &&
+        has_json_key "${proxycacheExistsMsg:-}" "upstream_registry" &&
+        [ "$(get_json_value "$proxycacheExistsMsg" "upstream_registry")" ]; then
+      proxycacheDelete=$(curl --silent --show-error --connect-timeout 10 \
+        --request DELETE --write-out "\n%{http_code}" \
+        --header "Authorization: Bearer $bootstrapToken" \
+        "${quayService}/api/v1/organization/$(urlencode $proxyRegistry)/proxycache")
+      proxycacheDeleteCode=$(echo "$proxycacheDelete" | tail -n1)
+      proxycacheDeleteMsg=$(echo "$proxycacheDelete" | sed '$d')
+      if [ "$proxycacheDeleteCode" -ne 201 ]; then
+        log_error "Something went wrong with proxy cache removal (http_code: $proxycacheDeleteCode)."
+        echo "$proxycacheDeleteMsg"
+        exit 1
+      fi
+    fi
+    
+    log_info "Validating proxy cache configuration."
+    proxycacheValidate=$(curl --silent --show-error --connect-timeout 10 \
+      --request POST --write-out "\n%{http_code}" \
+      --header "Content-Type: application/json" \
+      --header "Authorization: Bearer $bootstrapToken" \
+      --data "$proxycacheData" \
+      "${quayService}/api/v1/organization/$(urlencode $proxyRegistry)/validateproxycache")
+    proxycacheValidateCode=$(echo "$proxycacheValidate" | tail -n1)
+    proxycacheValidateMsg=$(echo "$proxycacheValidate" | sed '$d')
+    if [ "$proxycacheValidateCode" -ne 202 ]; then
+      log_error "Something went wrong when validating proxycache configuration (http_code: $proxycacheValidateCode)."
+      echo "$proxycacheValidateMsg"
+      exit 1
+    fi
+    
+    log_info "Applying proxy cache configuration."
+    proxycacheCreate=$(curl --silent --show-error --connect-timeout 10 \
+      --request POST --write-out "\n%{http_code}" \
+      --header "Content-Type: application/json" \
+      --header "Authorization: Bearer $bootstrapToken" \
+      --data "$proxycacheData" \
+      "${quayService}/api/v1/organization/$(urlencode $proxyRegistry)/proxycache")
+    proxycacheCreateCode=$(echo "$proxycacheCreate" | tail -n1)
+    proxycacheCreateMsg=$(echo "$proxycacheCreate" | sed '$d')
+    if [ "$proxycacheCreateCode" -ne 201 ]; then
+      log_error "Something went wrong when applying proxy cache configuration (http_code: $proxycacheCreateCode)."
+      echo "$proxycacheCreateMsg"
+      exit 1
+    fi
+    log_info "Proxy cache configuration for $proxyRegistry has been applied."
+    
+    exit 0
+    
+  init-robots-secret.sh: |2
+    #!/usr/bin/env bash
+    set -e -u -o pipefail
+    
+    #-- import common functions -------------------------------
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    source "$SCRIPT_DIR/common-functions.sh"
+    
+    #-- variables ---------------------------------------------
+    quayName="$QUAYNAME"
+    robotAccountsSecret="$ROBOTACCOUNTSECRET"
+    namespace="$NAMESPACE"
+    secretLabels="$LABELS"
+    
+    #-- main (init cm) ----------------------------------------
+    log_phase "Creating $robotAccountsSecret Secret ..."
+    if oc get secret "$robotAccountsSecret" >/dev/null 2>&1; then
+      log_info "Secret $robotAccountsSecret already exists. Nothing to do."
+      exit 0
+    fi
+    
+    quayUuid=$(oc get QuayRegistry "$quayName" -o jsonpath='{.metadata.uid}')
+    oc apply -f - <<EOT > /dev/null
+    apiVersion: v1
+    kind: Secret
+    type: Opaque
+    metadata:
+      name: "$robotAccountsSecret"
+      namespace: "$namespace"
+      labels:
+        ${secretLabels}
+      ownerReferences:
+        - apiVersion: quay.redhat.com/v1
+          kind: QuayRegistry
+          name: "$quayName"
+          uid: "$quayUuid"
+    data: {}
+    EOT
+    log_info "Secret $robotAccountsSecret created."
+    
+    exit 0
+    
+  init-robots.sh: |2
+    #!/usr/bin/env bash
+    set -e -u -o pipefail
+    
+    #-- import common functions -------------------------------
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    source "$SCRIPT_DIR/common-functions.sh"
+    
+    #-- functions ---------------------------------------------
+    json_get_uuid_by_title() {
+        printf '%s' "$1" | python3 -c "
+    import json,sys
+    data = json.load(sys.stdin)
+    title = sys.argv[1]
+    for t in data.get('tokens',[]):
+      if t.get('title') == title:
+        print(t.get('uuid'))
+        break
+    " "$2" 2>/dev/null
+    }
+    
+    json_equal() {
+      python3 -c "import sys,json; sys.exit(0 if json.loads(sys.argv[1]) == json.loads(sys.argv[2]) else 1)" "$1" "$2"
+    }
+    
+    merge_pull_secret() {
+      printf '%s' "$1" | python3 -c "
+    import json,sys,base64
+    data = json.load(sys.stdin)
+    registry, username, password = sys.argv[1], sys.argv[2], sys.argv[3]
+    auth = base64.b64encode(f'{username}:{password}'.encode()).decode()
+    data['auths'][registry] = {'auth': auth}
+    json.dump(data, sys.stdout)
+    " "$2" "$3" "$4"
+    }
+    
+    #-- variables ---------------------------------------------
+    bootstrapToken="$(cat /var/opt/token/bootstrap)"
+    clusterName="$CLUSTERNAME"
+    authBackendName="$AUTHBACKENDNAME"
+    vaultPath="$CLUSTERVAULTPATH"
+    quayService="$QUAYSERVICE"
+    quayRoute="$QUAYROUTE"
+    robotAccountsSecret="$ROBOTACCOUNTSECRET"
+    vaultAddress="$VAULTADDRESS"
+    vaultRole="$NAMESPACE"
+    vaultUpdateSecrets="$UPDATEVAULTSECRETS"
+    
+    #-- main (robot init) -------------------------------------
+    log_phase "Setup robot account for \"$clusterName\" ..."
+    getAppTokensResponse=$(curl --silent --show-error --connect-timeout 10 \
+      --request GET --write-out "\n%{http_code}" \
+      --header "Authorization: Bearer $bootstrapToken" \
+      "${quayService}/api/v1/user/apptoken")
+    getAppTokensCode=$(echo "$getAppTokensResponse" | tail -n1)
+    getAppTokensMsg=$(echo "$getAppTokensResponse" | sed '$d')
+    if [ "$getAppTokensCode" -ne 200 ]; then
+      log_error "Error when checking if AppToken already exists (http_code: $getAppTokensCode)."
+      echo: "$getAppTokensMsg"
+      exit 1
+    fi
+    
+    appTokenUuid=$(json_get_uuid_by_title "$getAppTokensMsg" "$clusterName")
+    if [ ! "${appTokenUuid}" ]; then
+      log_info "Creating AppToken \"$clusterName\"."
+      createAppTokenResponse=$(curl --silent --show-error --connect-timeout 10 \
+        --request POST --write-out "\n%{http_code}" \
+        --header "Authorization: Bearer $bootstrapToken" \
+        --header "Content-Type: application/json" \
+        --data  '{"title": "'"$clusterName"'"}' \
+        "${quayService}/api/v1/user/apptoken")
+      createAppTokenCode=$(echo "$createAppTokenResponse" | tail -n1)
+      createAppTokenMsg=$(echo "$createAppTokenResponse" | sed '$d')
+      if [ "$createAppTokenCode" -ne 200 ]; then
+        log_error "Error when creating AppToken (http_code: $createAppTokenCode)."
+        echo: "$createAppTokenMsg"
+        exit 1
+      fi
+      appToken="$(get_json_value "$(get_json_value "$createAppTokenMsg" "token")" "token_code")"
+    else
+      log_info "Getting AppToken for \"$clusterName\"."
+      getAppTokenResponse=$(curl --silent --show-error --connect-timeout 10 \
+        --request GET --write-out "\n%{http_code}" \
+        --header "Authorization: Bearer $bootstrapToken" \
+        "${quayService}/api/v1/user/apptoken/${appTokenUuid}")
+      getAppTokenCode=$(echo "$getAppTokenResponse" | tail -n1)
+      getAppTokenMsg=$(echo "$getAppTokenResponse" | sed '$d')
+      if [ "$getAppTokenCode" -ne 200 ]; then
+        log_error "Error when getting AppToken (http_code: $getAppTokenCode)."
+        echo: "$getAppTokenMsg"
+        exit 1
+      fi
+      appToken="$(get_json_value "$(get_json_value "$getAppTokenMsg" "token")" "token_code")"
+    fi
+    
+    log_phase "Update robot accounts Secret ..."
+    if ! errorMsg=$(oc patch secret "$robotAccountsSecret" --type merge --patch '{"stringData":{"'"$clusterName"'":"$app:'"$appToken"'"}}' 2>&1 ); then
+      log_error "Failed to update secret/$robotAccountsSecret"
+      echo "$errorMsg"
+      exit 1
+    fi
+    log_info "Updated secret/$robotAccountsSecret"
+    
+    log_phase "Updating pull-secret in vault ..."
+    
+    if ! (echo 'yes true 1'|grep -wqi "$vaultUpdateSecrets"); then
+      log_info "Updating of pull-secret is disabled. Nothing to do."
+      exit 0
+    fi
+    
+    export VAULT_SKIP_VERIFY=true
+    export VAULT_ADDR="$vaultAddress"
+    
+    if VAULT_TOKEN="$(vault/vault write -field=token "auth/${authBackendName}/login" role="$vaultRole" jwt="$(cat /run/secrets/kubernetes.io/serviceaccount/token)" 2>&1)"; then
+      export VAULT_TOKEN
+    else
+      log_error "Failed to authenticate with vault:"
+      echo "$VAULT_TOKEN"
+      exit 1
+    fi
+    
+    currentPullSecret=$(vault/vault kv get -field=pull-secret "$vaultPath")
+    if ! errorMsg=$(validate_pull_secret "$currentPullSecret" 2>&1); then
+      log_error "Original pull-secret at vault:${vaultPath} is malformed."
+      echo "$errorMsg"
+      exit 1
+    fi
+    
+    mergedPullSecret=$(merge_pull_secret "$currentPullSecret" "$quayRoute" '$app' "$appToken")
+    if ! errorMsg=$(validate_pull_secret "$mergedPullSecret" 2>&1); then
+      log_error "Merged pull-secret is malformed. Vault push aborted."
+      echo "$errorMsg"
+      exit 1
+    fi
+    
+    if json_equal "$currentPullSecret" "$mergedPullSecret"; then
+      log_info "Pull-secret is already up to date. Nothing to do."
+    else
+      echo "$mergedPullSecret" | vault/vault kv patch "$vaultPath" pull-secret=-
+      log_info "Updated pull-secret in \"$vaultPath\"."
+    fi
+    
+    exit 0
+    
+  prune-organizations.sh: |2
+    #!/usr/bin/env bash
+    set -e -u -o pipefail
+    
+    #-- import common functions -------------------------------
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    source "$SCRIPT_DIR/common-functions.sh"
+    
+    #-- functions ---------------------------------------------
+    get_json_keys_by_value() {
+      printf '%s' "${1:-{\}}" | python3 -c "import json,sys; [print(k) for k,v in json.load(sys.stdin).items() if v==sys.argv[1]]" "$2"
+    }
+    
+    #-- variables ---------------------------------------------
+    bootstrapToken="$(cat /var/opt/token/bootstrap)"
+    quayService="$QUAYSERVICE"
+    managedRegistriesCm="$MANAGEDORGCM"
+    requestedRegistriesList="$REGISTRYLIST"
+    errorFlag=0
+    
+    #-- main --------------------------------------------------
+    if ! (oc get configmap "$managedRegistriesCm" -o go-template='{{range $k, $v := .data}}{{$v}}{{"\n"}}{{end}}' 2>/dev/null | grep -qw managed); then
+      log_info "No managed organizations stored in ConfigMap $managedRegistriesCm. Skipping cleanup."
+      exit 0
+    fi
+    
+    managedRegistriesJson=$(oc get configmap "$managedRegistriesCm" -ojsonpath='{.data}')
+    managedRegistries=$(get_json_keys_by_value "$managedRegistriesJson" "managed" | sort -u)
+    requestedRegistries=$(echo "$requestedRegistriesList" | sed 's/,/\n/g' | sort -u)
+    readarray -t deltaRegistries <<< "$(comm -23 <(sed '/^[[:space:]]*$/d' <<< "$managedRegistries") <(sed '/^[[:space:]]*$/d' <<< "$requestedRegistries"))"
+    
+    for proxyRegistry in "${deltaRegistries[@]}"; do
+      if [ -z "${proxyRegistry// /}" ]; then
+        continue
+      fi
+    
+      log_phase "Removing managed organization ${proxyRegistry} ..."
+      deleteOrgResponse=$(curl --silent --show-error --connect-timeout 10 \
+        --request DELETE --write-out "\n%{http_code}" \
+        --header "Authorization: Bearer $bootstrapToken" \
+        "${quayService}/api/v1/superuser/organizations/$(urlencode $proxyRegistry)")
+      deleteOrgCode=$(echo "$deleteOrgResponse" | tail -n1)
+      deleteOrgMsg=$(echo "$deleteOrgResponse" | sed '$d')
+    
+      case "$deleteOrgCode" in
+        204)
+          log_info "Organization $proxyRegistry removed."
+          ;;
+        400)
+          log_info "Organization $proxyRegistry does not exist."
+          ;;
+        *)
+          log_error "Something went wrong during organization removal (http_code: $deleteOrgCode)."
+          echo "$deleteOrgMsg"
+          errorFlag=1
+          continue
+          ;;
+      esac
+    
+      oc patch configmap "$managedRegistriesCm" --type merge \
+        --patch '{"data":{"'"$proxyRegistry"'":"removed"}}'
+      log_info "Updated $proxyRegistry status in ConfigMap/${managedRegistriesCm}."
+    done
+    
+    exit "$errorFlag"
+    
+  wait-init-org.sh: |2
+    #!/usr/bin/env bash
+    set -e -u -o pipefail
+    
+    #-- import common functions -------------------------------
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    source "$SCRIPT_DIR/common-functions.sh"
+    
+    #-- variables ---------------------------------------------
+    intOrgJobName="$INITORGJOB"
+    waitTimeout="600"
+    waitRetries="10"
+    
+    #-- main --------------------------------------------------
+    log_phase "Waiting for $intOrgJobName job to finish ..."
+    if ! oc get job "$intOrgJobName" >/dev/null 2>&1; then
+      log_info "Job $intOrgJobName does not exist. Nothing to do."
+      exit 0
+    fi
+    
+    statusActive="$(oc get job "$intOrgJobName" -o jsonpath='{.status.active}')"
+    if [ "$statusActive" ] && [ "$statusActive" -gt 0 ]; then
+      waitCounter=0
+      until oc wait --for=condition=complete "job/$intOrgJobName" --timeout="$((waitTimeout/waitRetries))s" 2>/dev/null; do
+        waitCounter=$((waitCounter+1))
+        log_info "[${waitCounter}/${waitRetries}] Job ${intOrgJobName} still running. Waiting for $((waitTimeout/waitRetries)) seconds."
+        if test $waitCounter -gt $waitRetries; then
+          log_error "Giving up. Job $intOrgJobName did not complete in time."
+          exit 1
+        fi
+      done
+      log_info "Job $intOrgJobName completed. Ok to continue."
+    else
+      log_info "Job $intOrgJobName exists but is not running. Nothing to do."
+    fi
+    
+    exit 0
+    
+  wait-quay.sh: |2
+    #!/usr/bin/env bash
+    set -e -u -o pipefail
+    
+    #-- import common functions -------------------------------
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    source "$SCRIPT_DIR/common-functions.sh"
+    
+    #-- variables ---------------------------------------------
+    waitCounter=0
+    waitRetries=20
+    sleepCycleSeconds=90
+    quayService="$QUAYSERVICE"
+    
+    #-- main --------------------------------------------------
+    log_phase "Checking if Quay service is up and running ..."
+    until [ "$(get_http_code "${quayService}/health/instance")" -eq 200 ]; do
+      waitCounter=$((waitCounter+1))
+      if test $waitCounter -gt $waitRetries; then
+        log_error "Giving up. Quay did not respond in time"
+        exit 1
+      fi
+      log_info "[${waitCounter}/${waitRetries}] Quay Application is not ready yet. Sleeping for $sleepCycleSeconds seconds."
+      sleep $sleepCycleSeconds
+    done
+    log_info "Quay service is up and running."
+    
+    exit 0
+    
+
+---
+# Source: quay-config/templates/crb-auth-delegator.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: apc-registry-auth-delegator
+  labels:
+    helm.sh/chart: quay-config-0.1.0
+    app.kubernetes.io/name: apc-registry
+    app.kubernetes.io/instance: apc-quay
+    app.kubernetes.io/managed-by: Helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+- kind: ServiceAccount
+  name: apc-registry-postinstall
+  namespace: quay-test
+
+---
+# Source: quay-config/templates/role-postinstall.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: apc-registry-postinstall
+  namespace: quay-test
+  labels:
+    helm.sh/chart: quay-config-0.1.0
+    app.kubernetes.io/name: apc-registry
+    app.kubernetes.io/instance: apc-quay
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/sync-wave: "10"
+rules:
+  - apiGroups: [""]
+    resources: ["secrets","configmaps"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames:
+      - "apc-registry-quayadmin"
+      - "apc-registry-robot-accounts"
+    verbs: ["get","patch","update","delete"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames:
+      - "apc-registry-managed-orgs"
+    verbs: ["get","patch","update","delete"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["apc-registry-bootstrap-token"]
+    verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get","list"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get","list","watch"]
+    resourceNames: ["apc-registry-init-organizations"]
+  - apiGroups: ["quay.redhat.com"]
+    resources: ["quayregistries"]
+    verbs: ["get"]
+    resourceNames: ["apc-registry"]
+
+---
+# Source: quay-config/templates/rolebinding-postinstall.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: apc-registry-postinstall
+  namespace: quay-test
+  labels:
+    helm.sh/chart: quay-config-0.1.0
+    app.kubernetes.io/name: apc-registry
+    app.kubernetes.io/instance: apc-quay
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/sync-wave: "10"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: apc-registry-postinstall
+subjects:
+  - kind: ServiceAccount
+    name: apc-registry-postinstall
+    namespace: quay-test
+
+---
+# Source: quay-config/templates/deploy-debug.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apc-registry-debug
+  namespace: quay-test
+  labels:
+    helm.sh/chart: quay-config-0.1.0
+    app.kubernetes.io/name: apc-registry
+    app.kubernetes.io/instance: apc-quay
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: apc-registry
+      app.kubernetes.io/instance: apc-quay
+  template:
+    metadata:
+      labels:
+        helm.sh/chart: quay-config-0.1.0
+        app.kubernetes.io/name: apc-registry
+        app.kubernetes.io/instance: apc-quay
+        app.kubernetes.io/managed-by: Helm
+    spec:
+      serviceAccountName: apc-registry-postinstall
+      initContainers:
+        - name: vault-cli
+          image: docker.io/hashicorp/vault:1.14.8
+          command: ['cp', '/bin/vault', '/vault']
+          volumeMounts:
+            - name: vault-cli
+              mountPath: /vault
+      containers:
+        - name: debug
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          command: ['/bin/sh', '-c', 'sleep 1d']
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: apc-registry-postinstall-env
+          env:
+            - name: PUSHSECRETLABELS
+              value: |2
+                
+                    helm.sh/chart: quay-config-0.1.0
+                    app.kubernetes.io/name: apc-registry
+                    app.kubernetes.io/instance: apc-quay
+                    app.kubernetes.io/managed-by: Helm
+            - name: CMLABELS
+              value: |2
+                
+                    helm.sh/chart: quay-config-0.1.0
+                    app.kubernetes.io/name: apc-registry
+                    app.kubernetes.io/instance: apc-quay
+                    app.kubernetes.io/managed-by: Helm
+            - name: INITORGJOB
+              value: apc-registry-init-organizations
+            - name: REGISTRYCREDENTIALS
+              valueFrom:
+                secretKeyRef:
+                  name: apc-registry-registry-credentials
+                  key: pull-secret
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+            - name: vault-cli
+              mountPath: /vault
+            - name: bootstrap-token
+              mountPath: /var/opt/token
+      volumes:
+        - name: postinstall-scripts
+          configMap:
+            name: apc-registry-postinstall-scripts
+            defaultMode: 0755
+        - name: vault-cli
+          emptyDir: {}
+        - name: bootstrap-token
+          secret:
+            secretName: apc-registry-bootstrap-token
+            items:
+              - key: token.json
+                path: bootstrap
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+
+---
+# Source: quay-config/templates/job-init-admin.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: apc-registry-init-admin
+  namespace: quay-test
+  labels:
+    helm.sh/chart: quay-config-0.1.0
+    app.kubernetes.io/name: apc-registry
+    app.kubernetes.io/instance: apc-quay
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/sync-options: Replace=true
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  ttlSecondsAfterFinished: 1800
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        helm.sh/chart: quay-config-0.1.0
+        app.kubernetes.io/name: apc-registry
+        app.kubernetes.io/instance: apc-quay
+        app.kubernetes.io/managed-by: Helm
+    spec:
+      serviceAccountName: apc-registry-postinstall
+      initContainers:
+        - name: wait-quay
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/wait-quay.sh"]
+          envFrom:
+            - configMapRef:
+                name: apc-registry-postinstall-env
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+      containers:
+        - name: init-admin
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/init-admin.sh"]
+          envFrom:
+            - configMapRef:
+                name: apc-registry-postinstall-env
+          env:
+            - name: PUSHSECRETLABELS
+              value: |2
+                
+                    helm.sh/chart: quay-config-0.1.0
+                    app.kubernetes.io/name: apc-registry
+                    app.kubernetes.io/instance: apc-quay
+                    app.kubernetes.io/managed-by: Helm
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+      volumes:
+        - name: postinstall-scripts
+          configMap:
+            name: apc-registry-postinstall-scripts
+            defaultMode: 0755
+      restartPolicy: Never
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+
+---
+# Source: quay-config/templates/job-init-organizations.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: apc-registry-init-organizations
+  namespace: quay-test
+  labels:
+    helm.sh/chart: quay-config-0.1.0
+    app.kubernetes.io/name: apc-registry
+    app.kubernetes.io/instance: apc-quay
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/sync-options: Replace=true
+    argocd.argoproj.io/sync-wave: "22"
+spec:
+  ttlSecondsAfterFinished: 1800
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        helm.sh/chart: quay-config-0.1.0
+        app.kubernetes.io/name: apc-registry
+        app.kubernetes.io/instance: apc-quay
+        app.kubernetes.io/managed-by: Helm
+    spec:
+      serviceAccountName: apc-registry-postinstall
+      initContainers:
+        - name: init-mr-cm
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/init-manged-registries-cm.sh"]
+          envFrom:
+            - configMapRef:
+                name: apc-registry-postinstall-env
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+        - name: wait-quay
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/wait-quay.sh"]
+          envFrom:
+            - configMapRef:
+                name: apc-registry-postinstall-env
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+            - name: bootstrap-token
+              mountPath: /var/opt/token
+        - name: init-token
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/init-bootstrap-token.sh"]
+          envFrom:
+            - configMapRef:
+                name: apc-registry-postinstall-env
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+            - name: bootstrap-token
+              mountPath: /var/opt/token
+      containers:
+        - name: setup-docker-io
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/init-organization.sh"]
+          envFrom:
+            - configMapRef:
+                name: apc-registry-postinstall-env
+          env:
+            - name: REGISTRY
+              value: docker.io
+            - name: REGISTRYCREDENTIALS
+              valueFrom:
+                secretKeyRef:
+                  name: apc-registry-registry-credentials
+                  key: pull-secret
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+            - name: bootstrap-token
+              mountPath: /var/opt/token
+        - name: setup-quay-io
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/init-organization.sh"]
+          envFrom:
+            - configMapRef:
+                name: apc-registry-postinstall-env
+          env:
+            - name: REGISTRY
+              value: quay.io
+            - name: REGISTRYCREDENTIALS
+              valueFrom:
+                secretKeyRef:
+                  name: apc-registry-registry-credentials
+                  key: pull-secret
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+            - name: bootstrap-token
+              mountPath: /var/opt/token
+        - name: setup-ghcr-io
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/init-organization.sh"]
+          envFrom:
+            - configMapRef:
+                name: apc-registry-postinstall-env
+          env:
+            - name: REGISTRY
+              value: ghcr.io
+            - name: REGISTRYCREDENTIALS
+              valueFrom:
+                secretKeyRef:
+                  name: apc-registry-registry-credentials
+                  key: pull-secret
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+            - name: bootstrap-token
+              mountPath: /var/opt/token
+        - name: setup-registry-connect-redhat-com
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/init-organization.sh"]
+          envFrom:
+            - configMapRef:
+                name: apc-registry-postinstall-env
+          env:
+            - name: REGISTRY
+              value: registry.connect.redhat.com
+            - name: REGISTRYCREDENTIALS
+              valueFrom:
+                secretKeyRef:
+                  name: apc-registry-registry-credentials
+                  key: pull-secret
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+            - name: bootstrap-token
+              mountPath: /var/opt/token
+        - name: setup-registry-redhat-io
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/init-organization.sh"]
+          envFrom:
+            - configMapRef:
+                name: apc-registry-postinstall-env
+          env:
+            - name: REGISTRY
+              value: registry.redhat.io
+            - name: REGISTRYCREDENTIALS
+              valueFrom:
+                secretKeyRef:
+                  name: apc-registry-registry-credentials
+                  key: pull-secret
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+            - name: bootstrap-token
+              mountPath: /var/opt/token
+      volumes:
+        - name: postinstall-scripts
+          configMap:
+            name: apc-registry-postinstall-scripts
+            defaultMode: 0755
+        - name: bootstrap-token
+          emptyDir: {}
+      restartPolicy: Never
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+
+---
+# Source: quay-config/templates/job-prune-organizations.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: apc-registry-prune-organizations
+  namespace: quay-test
+  labels:
+    helm.sh/chart: quay-config-0.1.0
+    app.kubernetes.io/name: apc-registry
+    app.kubernetes.io/instance: apc-quay
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/sync-options: Replace=true
+    argocd.argoproj.io/sync-wave: "24"
+spec:
+  ttlSecondsAfterFinished: 1800
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        helm.sh/chart: quay-config-0.1.0
+        app.kubernetes.io/name: apc-registry
+        app.kubernetes.io/instance: apc-quay
+        app.kubernetes.io/managed-by: Helm
+    spec:
+      serviceAccountName: apc-registry-postinstall
+      initContainers:
+        - name: wait-quay
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/wait-quay.sh"]
+          envFrom:
+            - configMapRef:
+                name: apc-registry-postinstall-env
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+        - name: wait-init-org
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/wait-init-org.sh"]
+          env:
+            - name: INITORGJOB
+              value: apc-registry-init-organizations
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+        - name: init-token
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/init-bootstrap-token.sh"]
+          envFrom:
+            - configMapRef:
+                name: apc-registry-postinstall-env
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+            - name: bootstrap-token
+              mountPath: /var/opt/token
+      containers:
+        - name: prune-organizations
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/prune-organizations.sh"]
+          envFrom:
+            - configMapRef:
+                name: apc-registry-postinstall-env
+          env:
+            - name: REGISTRYLIST
+              value: docker.io,quay.io,ghcr.io,registry.connect.redhat.com,registry.redhat.io
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+            - name: bootstrap-token
+              mountPath: /var/opt/token
+      volumes:
+        - name: postinstall-scripts
+          configMap:
+            name: apc-registry-postinstall-scripts
+            defaultMode: 0755
+        - name: bootstrap-token
+          emptyDir: {}
+      restartPolicy: Never
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+
+---
+# Source: quay-config/templates/job-robot-accounts.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: apc-registry-init-robots
+  namespace: quay-test
+  labels:
+    helm.sh/chart: quay-config-0.1.0
+    app.kubernetes.io/name: apc-registry
+    app.kubernetes.io/instance: apc-quay
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/sync-options: Replace=true
+    argocd.argoproj.io/sync-wave: "23"
+spec:
+  ttlSecondsAfterFinished: 1800
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        helm.sh/chart: quay-config-0.1.0
+        app.kubernetes.io/name: apc-registry
+        app.kubernetes.io/instance: apc-quay
+        app.kubernetes.io/managed-by: Helm
+    spec:
+      serviceAccountName: apc-registry-postinstall
+      initContainers:
+        - name: init-robot-secret
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/init-robots-secret.sh"]
+          envFrom:
+            - configMapRef:
+                name: apc-registry-postinstall-env
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+        - name: wait-quay
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/wait-quay.sh"]
+          envFrom:
+            - configMapRef:
+                name: apc-registry-postinstall-env
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+        - name: wait-init-org
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/wait-init-org.sh"]
+          env:
+            - name: INITORGJOB
+              value: apc-registry-init-organizations
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+        - name: init-token
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/init-bootstrap-token.sh"]
+          envFrom:
+            - configMapRef:
+                name: apc-registry-postinstall-env
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+            - name: bootstrap-token
+              mountPath: /var/opt/token
+        - name: vault-cli
+          image: docker.io/hashicorp/vault:1.14.8
+          imagePullPolicy: Always
+          command: ['cp', '/bin/vault', '/vault']
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: vault-cli
+              mountPath: /vault
+      containers:
+        - name: init-robot-huba
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/init-robots.sh"]
+          envFrom:
+            - configMapRef:
+                name: apc-registry-postinstall-env
+          env:
+            - name: CLUSTERNAME
+              value: huba
+            - name: CLUSTERVAULTPATH
+              value: apc-platform/h/cluster-config-test
+            - name: AUTHBACKENDNAME
+              value: huba
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+            - name: bootstrap-token
+              mountPath: /var/opt/token
+            - name: vault-cli
+              mountPath: /vault
+        - name: init-robot-spokea1
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/init-robots.sh"]
+          envFrom:
+            - configMapRef:
+                name: apc-registry-postinstall-env
+          env:
+            - name: CLUSTERNAME
+              value: spokea1
+            - name: CLUSTERVAULTPATH
+              value: apc-platform/s/cluster-config-test
+            - name: AUTHBACKENDNAME
+              value: huba
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
+            - name: bootstrap-token
+              mountPath: /var/opt/token
+            - name: vault-cli
+              mountPath: /vault
+      volumes:
+        - name: postinstall-scripts
+          configMap:
+            name: apc-registry-postinstall-scripts
+            defaultMode: 0755
+        - name: bootstrap-token
+          emptyDir: {}
+        - name: vault-cli
+          emptyDir: {}
+      restartPolicy: Never
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+
+---
+# Source: quay-config/templates/authbackendrole-quay.yaml
+apiVersion: kubernetes.vault.upbound.io/v1alpha1
+kind: AuthBackendRole
+metadata:
+  name: huba-quay-test
+  labels:
+    helm.sh/chart: quay-config-0.1.0
+    app.kubernetes.io/name: apc-registry
+    app.kubernetes.io/instance: apc-quay
+    app.kubernetes.io/managed-by: Helm
+spec:
+  deletionPolicy: Delete
+  providerConfigRef:
+    name: vault-hub-provider-config
+  forProvider:
+    backend: huba
+    boundServiceAccountNames: ["apc-registry-postinstall"]
+    boundServiceAccountNamespaces: ["quay-test"]
+    roleName: quay-test
+    tokenPolicies:
+      - default
+      - apc-registry-quay-test
+    tokenTtl: 900
+
+---
+# Source: quay-config/templates/clusterpolicy-trigger-argo-sync.yaml
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: apc-registry-trigger-argo-sync
+  labels:
+    helm.sh/chart: quay-config-0.1.0
+    app.kubernetes.io/name: apc-registry
+    app.kubernetes.io/instance: apc-quay
+    app.kubernetes.io/managed-by: Helm
+spec:
+  admission: true
+  background: true
+  emitWarning: false
+  rules:
+    - name: trigger-argo-sync
+      match:
+        any:
+          - resources:
+              kinds: ["Secret"]
+              names: ["apc-registry-registry-credentials"]
+              namespaces: ["quay-test"]
+              operations: ["UPDATE"]
+      mutate:
+        targets:
+          - apiVersion: argoproj.io/v1alpha1
+            kind: Application
+            name: quay-config-test
+            namespace: apc-gitops
+        patchStrategicMerge:
+          operation:
+            initiatedBy:
+              username: apc-registry-trigger-argo-sync
+            resources:
+              - group: batch
+                kind: Job
+                name: apc-registry-init-organizations
+                namespace: quay-test
+            sync:
+              syncStrategy:
+                hook: {}
+
+---
+# Source: quay-config/templates/externalsecret-registry-credentials.yaml
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: apc-registry-registry-credentials
+  namespace: quay-test
+  labels:
+    helm.sh/chart: quay-config-0.1.0
+    app.kubernetes.io/name: apc-registry
+    app.kubernetes.io/instance: apc-quay
+    app.kubernetes.io/managed-by: Helm
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: vault-hub-secret-store
+  target:
+    name: apc-registry-registry-credentials
+    creationPolicy: Owner
+    deletionPolicy: Delete
+  dataFrom:
+    - extract:
+        key: apc-platform/h/cluster-config-test
+
+---
+# Source: quay-config/templates/vault-policy.yaml
+apiVersion: vault.vault.upbound.io/v1alpha1
+kind: Policy
+metadata:
+  name: apc-registry-quay-test
+  labels:
+    helm.sh/chart: quay-config-0.1.0
+    app.kubernetes.io/name: apc-registry
+    app.kubernetes.io/instance: apc-quay
+    app.kubernetes.io/managed-by: Helm
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    name: apc-registry-quay-test
+    policy: |2
+      path "apc-platform/h/cluster-config-test" {
+        capabilities = ["create", "read", "update", "patch", "list"]
+      }
+      path "apc-platform/data/h/cluster-config-test" {
+        capabilities = ["create", "read", "update", "patch", "list"]
+      }
+      path "apc-platform/metadata/h/cluster-config-test" {
+        capabilities = ["create", "read", "update", "patch", "list"]
+      }
+      path "apc-platform/s/cluster-config-test" {
+        capabilities = ["create", "read", "update", "patch", "list"]
+      }
+      path "apc-platform/data/s/cluster-config-test" {
+        capabilities = ["create", "read", "update", "patch", "list"]
+      }
+      path "apc-platform/metadata/s/cluster-config-test" {
+        capabilities = ["create", "read", "update", "patch", "list"]
+      }
+  initProvider: {}
+  managementPolicies:
+  - '*'
+  providerConfigRef:
+    name: vault-hub-provider-config
+
+---
+# Source: quay-config/templates/pushsecret-admin.yaml
+apiVersion: external-secrets.io/v1alpha1
+kind: PushSecret
+metadata:
+  name: apc-registry-quayadmin
+  namespace: quay-test
+  labels:
+    helm.sh/chart: quay-config-0.1.0
+    app.kubernetes.io/name: apc-registry
+    app.kubernetes.io/instance: apc-quay
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/sync-wave: "31"
+spec:
+  updatePolicy: Replace
+  deletionPolicy: None
+  refreshInterval: 1h
+  secretStoreRefs:
+    - kind: ClusterSecretStore
+      name: vault-hub-secret-store
+  selector:
+    secret:
+      name: apc-registry-quayadmin
+  data:
+    - match:
+        remoteRef:
+          remoteKey: h/quay-test/quayadmin
+
+---
+# Source: quay-config/templates/pushsecret-robots.yaml
+apiVersion: external-secrets.io/v1alpha1
+kind: PushSecret
+metadata:
+  name: apc-registry-robot-accounts
+  namespace: quay-test
+  labels:
+    helm.sh/chart: quay-config-0.1.0
+    app.kubernetes.io/name: apc-registry
+    app.kubernetes.io/instance: apc-quay
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/sync-wave: "31"
+spec:
+  updatePolicy: Replace
+  deletionPolicy: None
+  refreshInterval: 1h
+  secretStoreRefs:
+    - kind: ClusterSecretStore
+      name: vault-hub-secret-store
+  selector:
+    secret:
+      name: apc-registry-robot-accounts
+  data:
+    - match:
+        remoteRef:
+          remoteKey: h/quay-test/robot-accounts
+
+---
+# Source: quay-config/templates/quayregistry.yaml
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: apc-registry
+  namespace: quay-test
+  labels:
+    helm.sh/chart: quay-config-0.1.0
+    app.kubernetes.io/name: apc-registry
+    app.kubernetes.io/instance: apc-quay
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/sync-wave: "11"
+spec:
+  configBundleSecret: apc-registry-config
+  components:
+    - kind: clair
+      managed: false
+    - kind: clairpostgres
+      managed: false
+    - kind: horizontalpodautoscaler
+      managed: true
+    - kind: mirror
+      managed: true
+      overrides:
+        resources:
+          limits:
+            cpu: 1200m
+            memory: 2048Mi
+          requests:
+            cpu: 600m
+            memory: 512Mi
+        env:
+          - name: HTTP_PROXY
+            value: http://10.11.0.10:3128
+          - name: HTTPS_PROXY
+            value: http://10.11.0.10:3128
+          - name: NO_PROXY
+            value: .gr8it.cloud,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1
+    - kind: monitoring
+      managed: true
+    - kind: objectstorage
+      managed: true
+    - kind: postgres
+      managed: true
+      overrides:
+        volumeSize: 50Gi
+    - kind: quay
+      managed: true
+      overrides:
+        resources:
+          limits:
+            cpu: 3000m
+            memory: 10Gi
+          requests:
+            cpu: 2000m
+            memory: 8Gi
+        env:
+          - name: HTTP_PROXY
+            value: http://10.11.0.10:3128
+          - name: HTTPS_PROXY
+            value: http://10.11.0.10:3128
+          - name: NO_PROXY
+            value: .gr8it.cloud,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1
+    - kind: redis
+      managed: true
+    - kind: route
+      managed: true
+    - kind: tls
+      managed: true
