@@ -17,14 +17,14 @@ The chart uses the `acm-operatorpolicy` dependency. The default values install t
 acm-operatorpolicy:
   subscription:
     channel: stable
-    name: custom-metrics-autoscaler-operator
+    name: openshift-custom-metrics-autoscaler-operator
     namespace: openshift-keda
     source: redhat-operators
     sourceNamespace: openshift-marketplace
-    startingCSV: custom-metrics-autoscaler-operator.v2.19.0-3
+    startingCSV: custom-metrics-autoscaler.v2.19.0-3
   upgradeApproval: Automatic
   versions:
-    - custom-metrics-autoscaler-operator.v2.19.0-3
+    - custom-metrics-autoscaler.v2.19.0-3
   operatorGroup:
     name: openshift-keda
     namespace: openshift-keda
