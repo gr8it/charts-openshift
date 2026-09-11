@@ -145,11 +145,16 @@
         },
         "appName": {
           "type": ["string","null"],
-          "$ref": "#/$definitions/k8sObjName"
+          "anyOf": [
+            { "type": "string", "$ref": "#/$definitions/k8sObjName" },
+            { "type": "null" }
+          ]
         },
         "appNamespace": {
-          "type": ["string","null"],
-          "$ref": "#/$definitions/k8sObjName"
+          "anyOf": [
+            { "type": "string", "$ref": "#/$definitions/k8sObjName" },
+            { "type": "null" }
+          ]
         }
       }
     },
