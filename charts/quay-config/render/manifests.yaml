@@ -27,16 +27,16 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-    name: apc-registry-postinstall
-    namespace: quay-test
-    labels:
+  name: apc-registry-postinstall
+  namespace: quay-test
+  labels:
     helm.sh/chart: quay-config-0.1.0
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
-    annotations:
-    argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/sync-wave: "10"
+  # annotations:
+  #   argocd.argoproj.io/hook: Sync
+  #   argocd.argoproj.io/sync-wave: "10"
 
 ---
 # Source: quay-config/templates/secret-quay-config.yaml
@@ -50,9 +50,9 @@ metadata:
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
-  annotations:
-    argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/sync-wave: "10"
+  # annotations:
+  #   argocd.argoproj.io/hook: Sync
+  #   argocd.argoproj.io/sync-wave: "10"
 type: Opaque
 stringData:
   config.yaml: |
@@ -132,9 +132,9 @@ metadata:
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
-  annotations:
-    argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/sync-wave: "10"
+  #annotations:
+  #  argocd.argoproj.io/hook: Sync
+  #  argocd.argoproj.io/sync-wave: "10"
 data:
   common-functions.sh: |2
     #!/usr/bin/env bash
@@ -882,9 +882,9 @@ metadata:
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
-  annotations:
-    argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/sync-wave: "10"
+  # annotations:
+  #   argocd.argoproj.io/hook: Sync
+  #   argocd.argoproj.io/sync-wave: "10"
 rules:
   - apiGroups: [""]
     resources: ["secrets","configmaps"]
@@ -931,9 +931,9 @@ metadata:
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
-  annotations:
-    argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/sync-wave: "10"
+  # annotations:
+  #   argocd.argoproj.io/hook: Sync
+  #   argocd.argoproj.io/sync-wave: "10"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -1818,9 +1818,9 @@ metadata:
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
-  annotations:
-    argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/sync-wave: "11"
+  # annotations:
+  #   argocd.argoproj.io/hook: Sync
+  #   argocd.argoproj.io/sync-wave: "11"
 spec:
   configBundleSecret: apc-registry-config
   components:
