@@ -3,7 +3,7 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: {{ include "quay-config.name" . }}-trigger-argo-sync
+  name: {{ printf "%s-%s-argo-sync" (include "quay-config.name" .) .Release.Namespace }}
   labels:
     {{- include "quay-config.labels" . | nindent 4 }}
 spec:
