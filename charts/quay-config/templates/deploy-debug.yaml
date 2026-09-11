@@ -17,29 +17,31 @@ spec:
       labels:
         {{- include "quay-config.labels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "quay-config.name" . }}-postinstall
+      serviceAccountName: {{ include "quay-config.objname.sa" . }}
+      initContainers:
+        - name: vault-cli
+          image: docker.io/hashicorp/vault:1.14.8
+          command: ['cp', '/bin/vault', '/vault']
+          volumeMounts:
+            - name: vault-cli
+              mountPath: /vault
       containers:
         - name: debug
           image: {{ .Values.ocImage }}
           command: ['/bin/sh', '-c', 'sleep 1d']
           imagePullPolicy: Always
           envFrom:
-            - secretRef:
-                name: {{ printf "%s-%s" (include "quay-config.name" .) .Values.quayConfig.localAdminUser }}
+            - configMapRef:
+                name: {{ include "quay-config.objname.postinst-env" . }}
           env:
-            - name: ADMINUSER
-              value: {{ .Values.quayConfig.localAdminUser }}
-            - name: NAMESPACE
-              value: {{ .Release.Namespace }}
-            - name: ADMINCREDSECRET
-              value: {{ printf "%s-%s" (include "quay-config.name" .) .Values.quayConfig.localAdminUser }}
-            - name: TOKENSECRET
-              value: {{ include "quay-config.name" $ }}-bootstrap-token
             - name: PUSHSECRETLABELS
               value: |2
                 {{ include "quay-config.labels" . | nindent 20 }}
-            - name: QUAYSERVICE
-              value: {{ printf "http://%s-quay-app.%s.svc.cluster.local" (include "quay-config.name" .) .Release.Namespace }}
+            - name: CMLABELS
+              value: |2
+                {{ include "quay-config.labels" . | nindent 20 }}
+            - name: INITORGJOB
+              value: {{ include "quay-config.objname.initorg-job" . }}
             - name: REGISTRYCREDENTIALS
               valueFrom:
                 secretKeyRef:
@@ -50,11 +52,23 @@ spec:
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
+            - name: vault-cli
+              mountPath: /vault
+            - name: bootstrap-token
+              mountPath: /var/opt/token
       volumes:
         - name: postinstall-scripts
           configMap:
-            name: {{ include "quay-config.name" . }}-postinstall-scripts
+            name: {{ include "quay-config.objname.postinst-scripts" . }}
             defaultMode: 0755
+        - name: vault-cli
+          emptyDir: {}
+        - name: bootstrap-token
+          secret:
+            secretName: {{ include "quay-config.objname.bootstraptoken" . }}
+            items:
+              - key: token.json
+                path: bootstrap
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       securityContext: {}

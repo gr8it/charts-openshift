@@ -2,12 +2,21 @@
 # global: # to be overridden by helmfile global meta env
 #   apc:
 #     environmentShort:
+#     cluster:
+#       name:
+#       appsDomain:
+#       isHub:
 #     proxy:
 #     noProxy:
 #     proxyCIDRs:
 #     services:
+#       crossplane:
+#         kubeVaultProviderConfigName:
 #       externalSecretsOperator:
 #         defaultClusterSecretStore:
+#       vault:
+#         url:
+#         kubeAuthMountPath:
 ###########################################################
 
 nameOverride: apc-registry
@@ -16,27 +25,47 @@ dbVolumeSize: 200Gi
 
 quayConfig:
   tagExpiration: 2w
-  tagExpirationOptions: [0s,1d,1w,2w]
   actionLogRetention: 30d
   registryTitle: APC Quay Registry
   registryTitleShort: APC Quay
   localAdminUser: quayadmin
 
-imageProxy:
-  # vault path to the pull-secret containing registry credentials
-  # the key name should be "pull-secret" and the value is a dockerconfig.json format
-  # registry credentials found in here will be used for authenticating to the registries listed below for image proxying
-  pullSecretVaultPath: apc-platform/h/cluster-config
-  # list of registries to be used for image proxying
-  registries:
-    - docker.io
-    - quay.io
-    - ghcr.io
-    - registry.connect.redhat.com
-    - registry.redhat.io
+# list of registries to be used for image proxying
+# TODO: deprecated - use apc-global-overrides.imageProxySources
+imageProxyRegistries:
+  - docker.io
+  - quay.io
+  - ghcr.io
+  - registry.connect.redhat.com
+  - registry.redhat.io
+
+vault:
+  # path to vault secret containing credentials for various registries
+  # the secret key name should be "pull-secret" and the value is a dockerconfig.json format
+  # registry credentials found in here will be used for authenticating to the registries listed in imageProxyRegistries
+  refPullSecretPath: apc-platform/h/cluster-config
+  # destination vault secrets - auth tokens for accessing this quay image proxy from individual ocp clusters will be added here
+  # the secret key name should be "pull-secret" and the value is a dockerconfig.json format
+  # the vault secret must alrady exists - otherwise the update will fail
+  # leave this dictionary empty to skip updating pull-secrets on vault
+  clusterPullSecretPath: ~
+    #cluster-name: vault/path
+    #dev01:  apc-platform/d/cluster-config
+    #test01: apc-platform/t/cluster-config
+    #prod01: apc-platform/p/cluster-config
+    #hub01:  apc-platform/h/cluster-config
+  # whether to update the  cluster pull-secret(s) in vault
+  updateClusterPullSecrets: true
 
 # oc adm release info --image-for=cli
 ocImage: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+
+argocd:
+  # forces argocd sync each time the pull-secret (defined in refPullSecretPath) gets updated
+  # this re-creates init job(s) to update the registry credentials
+  syncOnPullSecretUpdate: true
+  appName: ~      # defaults to Chart.name
+  appNamespace: ~ # defaults to apc-gitops
 
 resourcesOverride:
   mirror:

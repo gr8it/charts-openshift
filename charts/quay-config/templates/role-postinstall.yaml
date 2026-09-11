@@ -16,16 +16,17 @@ rules:
   - apiGroups: [""]
     resources: ["secrets"]
     resourceNames:
-      - "{{ printf "%s-%s" (include "quay-config.name" .) .Values.quayConfig.localAdminUser }}"
+      - "{{ include "quay-config.objname.quayadmin" . }}"
+      - "{{ include "quay-config.objname.robotaccounts" . }}"
     verbs: ["get","patch","update","delete"]
   - apiGroups: [""]
     resources: ["configmaps"]
     resourceNames:
-      - "{{ printf "%s-managed-orgs" (include "quay-config.name" .) }}"
+      - "{{ include "quay-config.objname.managedorgs" . }}"
     verbs: ["get","patch","update","delete"]
   - apiGroups: [""]
     resources: ["secrets"]
-    resourceNames: ["{{ include "quay-config.name" . }}-bootstrap-token"]
+    resourceNames: ["{{ include "quay-config.objname.bootstraptoken" . }}"]
     verbs: ["get"]
   - apiGroups: [""]
     resources: ["pods"]
@@ -36,7 +37,7 @@ rules:
   - apiGroups: ["batch"]
     resources: ["jobs"]
     verbs: ["get","list","watch"]
-    resourceNames: ["{{ include "quay-config.name" . }}-init-organizations"]
+    resourceNames: ["{{ include "quay-config.objname.initorg-job" . }}"]
   - apiGroups: ["quay.redhat.com"]
     resources: ["quayregistries"]
     verbs: ["get"]

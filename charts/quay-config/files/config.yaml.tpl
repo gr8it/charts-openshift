@@ -19,14 +19,10 @@ FEATURE_PROXY_CACHE: true
 FEATURE_UI_V2: true
 FEATURE_USER_CREATION: false
 FEATURE_USER_INITIALIZE: true
-{{/* PROGRAMMATIC_TOKEN_K8S_SECRET: foo */}}
-{{/* PROGRAMMATIC_TOKEN_K8S_KEY: bar */}}
 REGISTRY_TITLE: {{ .Values.quayConfig.registryTitle }}
 REGISTRY_TITLE_SHORT: {{ .Values.quayConfig.registryTitleShort }}
 SETUP_COMPLETE: true
-SUPER_USERS:
-  {{ printf "- %s" .Values.quayConfig.localAdminUser }}
-TAG_EXPIRATION_OPTIONS:
-  {{- .Values.quayConfig.tagExpirationOptions | toYaml | nindent 2 }}
+SUPER_USERS: ["{{ .Values.quayConfig.localAdminUser }}"]
+TAG_EXPIRATION_OPTIONS: ["0s","1d","1w","2w"]
 TEAM_RESYNC_STALE_TIME: 60m
 TESTING: false

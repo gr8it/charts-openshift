@@ -16,7 +16,7 @@ adminUser="$QUAYADMINUSER"
 namespace="$NAMESPACE"
 quayName="$QUAYNAME"
 secretName="$QUAYADMINSECRET"
-pushSecretLabels="$PUSHSECRETLABELS"
+pushSecretLabels="$LABELS" #"$PUSHSECRETLABELS"
 quayService="$QUAYSERVICE"
 
 #-- main --------------------------------------------------
@@ -35,7 +35,12 @@ case "$adminInitCode" in
     ;;
   400)
     log_info "Admin user is already initialized. Nothing to do."
-    exit 0
+    if oc get secret "$secretName"  >/dev/null 2>&1; then
+      exit 0
+    else
+      log_error "Admin user is initialized but the secret $secretName does not exist."
+      exit 1
+    fi
     ;;
   *)
     log_error "Something went wrong during admin user creation."

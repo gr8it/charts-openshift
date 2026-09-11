@@ -1,8 +1,10 @@
+{{- if .Values.vault.clusterPullSecretPath }}
+{{ include "quay-config.validateClusterPullSecretPath" . }}
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "quay-config.name" . }}-prune-organizations
+  name: {{ include "quay-config.name" . }}-init-robots
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "quay-config.labels" . | nindent 4 }}
@@ -10,7 +12,7 @@ metadata:
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded
     argocd.argoproj.io/sync-options: Replace=true
-    argocd.argoproj.io/sync-wave: "24"
+    argocd.argoproj.io/sync-wave: "23"
 spec:
   ttlSecondsAfterFinished: 1800
   backoffLimit: 2
@@ -21,6 +23,18 @@ spec:
     spec:
       serviceAccountName: {{ include "quay-config.objname.sa" . }}
       initContainers:
+        - name: init-robot-secret
+          image: {{ .Values.ocImage }}
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/init-robots-secret.sh"]
+          envFrom:
+            - configMapRef:
+                name: {{ include "quay-config.name" . }}-postinstall-env
+          resources:
+            {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
         - name: wait-quay
           image: {{ .Values.ocImage }}
           imagePullPolicy: Always
@@ -51,7 +65,7 @@ spec:
           command: ["/bin/bash", "/scripts/init-bootstrap-token.sh"]
           envFrom:
             - configMapRef:
-                name: {{ include "quay-config.name" . }}-postinstall-env
+                name: {{ include "quay-config.objname.postinst-env" . }}
           resources:
             {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
           volumeMounts:
@@ -59,31 +73,57 @@ spec:
               mountPath: /scripts
             - name: bootstrap-token
               mountPath: /var/opt/token
-      containers:
-        - name: prune-organizations
-          image: {{ .Values.ocImage }}
+        {{- if .Values.vault.updateClusterPullSecrets }}
+        - name: vault-cli
+          image: docker.io/hashicorp/vault:1.14.8
           imagePullPolicy: Always
-          command: ["/bin/bash", "/scripts/prune-organizations.sh"]
+          command: ['cp', '/bin/vault', '/vault']
+          resources:
+            {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+          volumeMounts:
+            - name: vault-cli
+              mountPath: /vault
+        {{- end }}
+      containers:
+        {{- range $cluster, $path := .Values.vault.clusterPullSecretPath }}
+        - name: {{ printf "init-robot-%s" (regexReplaceAll "[^a-zA-Z0-9]+" $cluster "-" | lower | trunc 63 | trimSuffix "-") }}
+          image: {{ $.Values.ocImage }}
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/init-robots.sh"]
           envFrom:
             - configMapRef:
-                name: {{ include "quay-config.name" . }}-postinstall-env
+                name: {{ include "quay-config.objname.postinst-env" $ }}
           env:
-            - name: REGISTRYLIST
-              value: {{ join "," .Values.imageProxyRegistries }}
+            - name: CLUSTERNAME
+              value: {{ $cluster }}
+            - name: CLUSTERVAULTPATH
+              value: {{ $path }}
+            - name: AUTHBACKENDNAME
+              value: {{ include "apc-global-overrides.require-clusterName" $ }}
           resources:
-            {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+            {{- $.Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
             - name: bootstrap-token
               mountPath: /var/opt/token
+            {{- if $.Values.vault.updateClusterPullSecrets }}
+            - name: vault-cli
+              mountPath: /vault
+            {{- end }}
+        {{- end }}
       volumes:
         - name: postinstall-scripts
           configMap:
-            name: {{ include "quay-config.name" . }}-postinstall-scripts
+            name: {{ include "quay-config.objname.postinst-scripts" . }}
             defaultMode: 0755
         - name: bootstrap-token
           emptyDir: {}
+        {{- if .Values.vault.updateClusterPullSecrets }}
+        - name: vault-cli
+          emptyDir: {}
+        {{- end }}
       restartPolicy: Never
       securityContext: {}
       terminationGracePeriodSeconds: 30
+{{- end }}

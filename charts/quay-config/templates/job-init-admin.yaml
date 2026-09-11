@@ -20,7 +20,7 @@ spec:
       labels:
         {{- include "quay-config.labels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "quay-config.name" . }}-postinstall
+      serviceAccountName: {{ include "quay-config.objname.sa" . }}
       initContainers:
         - name: wait-quay
           image: {{ .Values.ocImage }}
@@ -28,7 +28,7 @@ spec:
           command: ["/bin/bash", "/scripts/wait-quay.sh"]
           envFrom:
             - configMapRef:
-                name: {{ include "quay-config.name" . }}-postinstall-env
+                name: {{ include "quay-config.objname.postinst-env" . }}
           resources:
             {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
           volumeMounts:
@@ -41,7 +41,7 @@ spec:
           command: ["/bin/bash", "/scripts/init-admin.sh"]
           envFrom:
             - configMapRef:
-                name: {{ include "quay-config.name" . }}-postinstall-env
+                name: {{ include "quay-config.objname.postinst-env" . }}
           env:
             - name: PUSHSECRETLABELS
               value: |2
@@ -54,7 +54,7 @@ spec:
       volumes:
         - name: postinstall-scripts
           configMap:
-            name: {{ include "quay-config.name" . }}-postinstall-scripts
+            name: {{ include "quay-config.objname.postinst-scripts" . }}
             defaultMode: 0755
       restartPolicy: Never
       securityContext: {}

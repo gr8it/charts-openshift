@@ -7,26 +7,27 @@ source "$SCRIPT_DIR/common-functions.sh"
 
 #-- variables ---------------------------------------------
 quayName="$QUAYNAME"
-managedRegistriesCm="$MANAGEDORGCM"
+robotAccountsSecret="$ROBOTACCOUNTSECRET"
 namespace="$NAMESPACE"
-cmLabels="$LABELS"
+secretLabels="$LABELS"
 
 #-- main (init cm) ----------------------------------------
-log_phase "Creating $managedRegistriesCm ConfigMap ..."
-if oc get configmap "$managedRegistriesCm" >/dev/null 2>&1; then
-  log_info "ConfigMap $managedRegistriesCm already exists. Nothing to do."
+log_phase "Creating $robotAccountsSecret Secret ..."
+if oc get secret "$robotAccountsSecret" >/dev/null 2>&1; then
+  log_info "Secret $robotAccountsSecret already exists. Nothing to do."
   exit 0
 fi
 
 quayUuid=$(oc get QuayRegistry "$quayName" -o jsonpath='{.metadata.uid}')
 oc apply -f - <<EOT > /dev/null
 apiVersion: v1
-kind: ConfigMap
+kind: Secret
+type: Opaque
 metadata:
-  name: "$managedRegistriesCm"
+  name: "$robotAccountsSecret"
   namespace: "$namespace"
   labels:
-    ${cmLabels}
+    ${secretLabels}
   ownerReferences:
     - apiVersion: quay.redhat.com/v1
       kind: QuayRegistry
@@ -34,6 +35,6 @@ metadata:
       uid: "$quayUuid"
 data: {}
 EOT
-log_info "ConfigMap $managedRegistriesCm created."
+log_info "Secret $robotAccountsSecret created."
 
 exit 0

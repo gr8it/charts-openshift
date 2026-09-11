@@ -1,0 +1,41 @@
+{{- if (include "apc-global-overrides.require-crossplaneKubeVaultProviderConfigName" .) }}
+---
+apiVersion: vault.vault.upbound.io/v1alpha1
+kind: Policy
+metadata:
+  name: {{ include "quay-config.objname.vault-policy" . }}
+  labels:
+    {{- include "quay-config.labels" . | nindent 4 }}
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    name: {{ include "quay-config.objname.vault-policy" . }}
+    policy: |2
+
+      {{- $clusterPullSecretPath := default dict .Values.vault.clusterPullSecretPath }}
+      {{- if not .Values.vault.updateClusterPullSecrets }}
+      {{- $clusterPullSecretPath = dict }}
+      {{- end }}
+
+      {{- $refPullSecretPath := dict }}
+      {{- if not (has .Values.vault.refPullSecretPath (values $clusterPullSecretPath)) }}
+      {{- $refPullSecretPath = dict "_ref" .Values.vault.refPullSecretPath }}
+      {{- end }}
+
+      {{- range $cluster, $path := merge $refPullSecretPath $clusterPullSecretPath }}
+      path "{{ $path }}" {
+        capabilities = ["create", "read", "update", "patch", "list"]
+      }
+      path "{{ include "quay-config.insertPathSegment" (dict "path" $path "insert" "data") }}" {
+        capabilities = ["create", "read", "update", "patch", "list"]
+      }
+      path "{{ include "quay-config.insertPathSegment" (dict "path" $path "insert" "metadata") }}" {
+        capabilities = ["create", "read", "update", "patch", "list"]
+      }
+      {{- end }}
+  initProvider: {}
+  managementPolicies:
+  - '*'
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.require-crossplaneKubeVaultProviderConfigName" . }}
+{{- end }}

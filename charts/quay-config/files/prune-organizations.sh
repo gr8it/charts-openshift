@@ -25,11 +25,11 @@ fi
 
 managedRegistriesJson=$(oc get configmap "$managedRegistriesCm" -ojsonpath='{.data}')
 managedRegistries=$(get_json_keys_by_value "$managedRegistriesJson" "managed" | sort -u)
-requestedRegistries=$(echo $requestedRegistriesList | sed 's/,/\n/g' | sort -u)
-readarray -t deltaRegistries <<< "$(comm -23 <(sed '/^[[:space:]]*$/d' <<<  "$managedRegistries") <(sed '/^[[:space:]]*$/d' <<<  "$requestedRegistries"))"
+requestedRegistries=$(echo "$requestedRegistriesList" | sed 's/,/\n/g' | sort -u)
+readarray -t deltaRegistries <<< "$(comm -23 <(sed '/^[[:space:]]*$/d' <<< "$managedRegistries") <(sed '/^[[:space:]]*$/d' <<< "$requestedRegistries"))"
 
 for proxyRegistry in "${deltaRegistries[@]}"; do
-  if [ -z "${proxyRegistry//}" ]; then
+  if [ -z "${proxyRegistry// /}" ]; then
     continue
   fi
 

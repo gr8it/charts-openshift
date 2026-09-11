@@ -1,0 +1,40 @@
+{{- if .Values.argocd.syncOnPullSecretUpdate }}
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: {{ include "quay-config.name" . }}-trigger-argo-sync
+  labels:
+    {{- include "quay-config.labels" . | nindent 4 }}
+spec:
+  admission: true
+  background: true
+  emitWarning: false
+  rules:
+    - name: trigger-argo-sync
+      match:
+        any:
+          - resources:
+              kinds: ["Secret"]
+              names: ["{{ include "quay-config.objname.registry-credentials" . }}"]
+              namespaces: ["{{ .Release.Namespace }}"]
+              operations: ["UPDATE"]
+      mutate:
+        targets:
+          - apiVersion: argoproj.io/v1alpha1
+            kind: Application
+            name: {{ .Values.argocd.appName | default .Chart.Name }}
+            namespace: {{ .Values.argocd.appNamespace | default "apc-gitops" }}
+        patchStrategicMerge:
+          operation:
+            initiatedBy:
+              username: {{ include "quay-config.name" . }}-trigger-argo-sync
+            resources:
+              - group: batch
+                kind: Job
+                name: {{ include "quay-config.objname.initorg-job" . }}
+                namespace: {{ .Release.Namespace }}
+            sync:
+              syncStrategy:
+                hook: {}
+{{- end }}

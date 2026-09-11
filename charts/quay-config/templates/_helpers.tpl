@@ -60,3 +60,72 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Validate that all values under clusterPullSecretPath are unique.
+*/}}
+{{- define "quay-config.validateClusterPullSecretPath" -}}
+{{- $seen := dict }}
+{{- range $key, $val := .Values.vault.clusterPullSecretPath }}
+{{- if hasKey $seen $val }}
+  {{- fail (printf "clusterPullSecretPath: duplicate value %q used by both %q and %q — values must be distinct" $val (get $seen $val) $key) }}
+  {{- end }}
+  {{- $_ := set $seen $val $key }}
+{{- end }}
+{{- end }}
+
+
+{{/*
+Insert path segment into vault path
+*/}}
+{{- define "quay-config.insertPathSegment" -}}
+{{- $parts := splitList "/" .path }}
+{{- if ge (len $parts) 3 }}
+{{- printf "%s/%s/%s" (first $parts) .insert (join "/" (rest $parts)) }}
+{{- else }}
+{{- fail  (printf "Vault path %q seems to be invalid. Path must consist of 3 or more segments (mount/env/secret)") .path }}
+{{- end }}
+{{- end -}}
+
+{{/*
+Global object name definitions
+*/}}
+{{- define "quay-config.objname.sa" -}}
+{{ printf "%s-postinstall" (include "quay-config.name" .) }}
+{{- end }}
+
+{{- define "quay-config.objname.quayadmin" -}}
+{{ printf "%s-%s" (include "quay-config.name" .) .Values.quayConfig.localAdminUser }}
+{{- end }}
+
+{{- define "quay-config.objname.bootstraptoken" -}}
+{{ printf "%s-bootstrap-token" (include "quay-config.name" .) }}
+{{- end }}
+
+{{- define "quay-config.objname.robotaccounts" -}}
+{{ printf "%s-robot-accounts" (include "quay-config.name" .) }}
+{{- end }}
+
+{{- define "quay-config.objname.managedorgs" -}}
+{{ printf "%s-managed-orgs" (include "quay-config.name" .) }}
+{{- end }}
+
+{{- define "quay-config.objname.postinst-env" -}}
+{{ printf "%s-postinstall-env" (include "quay-config.name" .) }}
+{{- end }}
+
+{{- define "quay-config.objname.postinst-scripts" -}}
+{{ printf "%s-postinstall-scripts" (include "quay-config.name" .) }}
+{{- end }}
+
+{{- define "quay-config.objname.initorg-job" -}}
+{{ printf "%s-init-organizations"  (include "quay-config.name" .) }}
+{{- end }}
+
+{{- define "quay-config.objname.registry-credentials" -}}
+{{ printf "%s-registry-credentials" (include "quay-config.name" .) }}
+{{- end }}
+
+{{- define "quay-config.objname.vault-policy" -}}
+{{ printf "%s-%s" (include "quay-config.name" . ) .Release.Namespace }}
+{{- end }}

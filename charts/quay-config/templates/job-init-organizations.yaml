@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "quay-config.name" . }}-init-organizations
+  name: {{ include "quay-config.objname.initorg-job" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "quay-config.labels" . | nindent 4 }}
@@ -19,15 +19,27 @@ spec:
       labels:
         {{- include "quay-config.labels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "quay-config.name" $ }}-postinstall
+      serviceAccountName: {{ include "quay-config.objname.sa" . }}
       initContainers:
+        - name: init-mr-cm
+          image: {{ .Values.ocImage }}
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/scripts/init-manged-registries-cm.sh"]
+          envFrom:
+            - configMapRef:
+                name: {{ include "quay-config.name" . }}-postinstall-env
+          resources:
+            {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+          volumeMounts:
+            - name: postinstall-scripts
+              mountPath: /scripts
         - name: wait-quay
           image: {{ .Values.ocImage }}
           imagePullPolicy: Always
           command: ["/bin/bash", "/scripts/wait-quay.sh"]
           envFrom:
             - configMapRef:
-                name: {{ include "quay-config.name" . }}-postinstall-env
+                name: {{ include "quay-config.objname.postinst-env" . }}
           resources:
             {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
           volumeMounts:
@@ -49,49 +61,16 @@ spec:
               mountPath: /scripts
             - name: bootstrap-token
               mountPath: /var/opt/token
-        - name: init-mr-cm
-          image: {{ .Values.ocImage }}
-          imagePullPolicy: Always
-          command: ["/bin/bash", "/scripts/init-manged-registries-cm.sh"]
-          envFrom:
-            - configMapRef:
-                name: {{ include "quay-config.name" . }}-postinstall-env
-          env:
-            - name: CMLABELS
-              value: |2
-                {{ include "quay-config.labels" . | nindent 20 }}
-          resources:
-            {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
-          volumeMounts:
-            - name: postinstall-scripts
-              mountPath: /scripts
       containers:
-        {{- range $registry := .Values.imageProxy.registries }}
+        {{- range $registry := .Values.imageProxyRegistries }}
         - name: {{ printf "setup-%s" (regexReplaceAll "[^a-zA-Z0-9]+" $registry "-" | lower | trunc 63 | trimSuffix "-") }}
           image: {{ $.Values.ocImage }}
           imagePullPolicy: Always
           command: ["/bin/bash", "/scripts/init-organization.sh"]
           envFrom:
             - configMapRef:
-                name: {{ include "quay-config.name" $ }}-postinstall-env
+                name: {{ include "quay-config.objname.postinst-env" $ }}
           env:
-            - name: REGISTRY
-              value: {{ $registry }}
-            - name: REGISTRYCREDENTIALS
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "quay-config.name" $ }}-registry-credentials
-                  key: pull-secret
-          resources:
-            {{- $.Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
-          volumeMounts:
-            - name: postinstall-scripts
-              mountPath: /scripts
-            - name: bootstrap-token
-              mountPath: /var/opt/token
-          env:
-            - name: REGISTRYLIST
-              value: {{ join "," ($.Values.imageProxy.registries|default list) }}
             - name: REGISTRY
               value: {{ $registry }}
             - name: REGISTRYCREDENTIALS
@@ -110,7 +89,7 @@ spec:
       volumes:
         - name: postinstall-scripts
           configMap:
-            name: {{ include "quay-config.name" . }}-postinstall-scripts
+            name: {{ include "quay-config.objname.postinst-scripts" . }}
             defaultMode: 0755
         - name: bootstrap-token
           emptyDir: {}

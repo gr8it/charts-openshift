@@ -1,0 +1,187 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Values",
+  "required": ["dbVolumeSize", "vault", "ocImage", "resourcesOverride"],
+  "additionalProperties": false,
+  "$definitions": {
+    "resourceConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cpu": {
+          "oneOf": [
+            { "type": "string", "pattern": "^\\d+m$" },
+            { "type": "integer", "minimum": 0 }
+          ]
+        },
+        "memory": {
+          "type": "string",
+          "pattern": "^\\d+(M|Mi|G|Gi)?$"
+        },
+        "ephemeral-storage": {
+          "type": "string",
+          "pattern": "^\\d+(M|Mi|G|Gi|T|Ti)?$"
+        }
+      }
+    },
+    "stringArray": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true,
+      "default": []
+    },
+    "vaultPath": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._\\-]*(\\/[A-Za-z0-9][A-Za-z0-9._\\-]*)*$",
+      "minLength": 1
+    },
+    "k8sObjName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 63,
+      "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+    }
+  },
+  "properties": {
+    "global": {
+      "type": "object",
+      "description": "Global values to be accessed by all (sub)charts.",
+      "additionalProperties": false,
+      "properties": {
+        "apc": {
+          "type": "object",
+          "description": "APC global overrides values",
+          "additionalProperties": true
+        }
+      }
+    },
+    "apc-global-overrides": {
+      "type": "object",
+      "description": "APC global overrides dependency chart values.",
+      "additionalProperties": true
+    },
+    "nameOverride": {
+      "type": ["string","null"],
+      "description": "Overrides chart name - used for templating resource names",
+      "pattern": "^[a-z0-9\\-]+$",
+      "minLength": 3
+    },
+    "dbVolumeSize": {
+      "type": "string",
+      "description": "PVC size for the database deployment",
+      "pattern": "^[0-9]+(M|Mi|G|Gi|T|Ti)?$",
+      "minLength": 2
+    },
+    "quayConfig": {
+      "tagExpiration": {
+        "type": "string",
+        "description": "Default tag expiration time for time machine",
+        "pattern": "^[0-9]+(w|m|d|h|s)$",
+        "minLength": 2
+      },
+      "actionLogRetention": {
+        "type": "string",
+        "description": "The time interval after which to rotate logs",
+        "pattern": "^[0-9]+(w|m|d)$",
+        "minLength": 2
+      },
+      "registryTitle": {
+        "type": "string",
+        "description": "The long-form title for the registry",
+        "minLength": 1
+      },
+      "registryTitleShort": {
+        "type": "string",
+        "description": "The short-form title for the registry",
+        "minLength": 1
+      },
+      "localAdminUser": {
+        "type": "string",
+        "description": "Superuser name",
+        "pattern": "^[a-z][a-z0-9_\\-]+$",
+        "minLength": 3
+      }
+    },
+    "imageProxyRegistries": {
+      "description": "List of registries to be used for image proxying",
+      "$ref": "#/$definitions/stringArray"
+    },
+    "vault": {
+      "type": "object",
+      "required": ["refPullSecretPath"],
+      "additionalProperties": false,
+      "properties": {
+        "refPullSecretPath": {
+          "description": "Path to vault secret containing credentials for various registries",
+          "$ref": "#/$definitions/vaultPath"
+        },
+        "clusterPullSecretPath": {
+          "type": ["object","null"],
+          "description": "Map of cluster name to its pull-secret path. Uniqueness across values is enforced in _helpers.tpl",
+          "propertyNames": {
+            "pattern": "^[A-Za-z][A-Za-z0-9._\\-]+$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$definitions/vaultPath"
+          }
+        },
+        "updateClusterPullSecrets": {
+          "type": "boolean"
+        }
+      }
+    },
+    "ocImage": {
+      "type": "string",
+      "format": "uri-reference",
+      "minLength": 3
+    },
+    "argocd": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "syncOnPullSecretUpdate": {
+          "type": "boolean"
+        },
+        "appName": {
+          "type": ["string","null"],
+          "$ref": "#/$definitions/k8sObjName"
+        },
+        "appNamespace": {
+          "type": ["string","null"],
+          "$ref": "#/$definitions/k8sObjName"
+        }
+      }
+    },
+    "resourcesOverride": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mirror": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "limits": { "$ref": "#/$definitions/resourceConfig" },
+            "requests": { "$ref": "#/$definitions/resourceConfig" }
+          }
+        },
+        "quay": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "limits": { "$ref": "#/$definitions/resourceConfig" },
+            "requests": { "$ref": "#/$definitions/resourceConfig" }
+          }
+        },
+        "postinstall": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "limits": { "$ref": "#/$definitions/resourceConfig" },
+            "requests": { "$ref": "#/$definitions/resourceConfig" }
+          }
+        }
+      }
+    }
+  }
+}
