@@ -4,14 +4,14 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "quay-config.name" . }}-init-robots
+  generateName: {{ include "quay-config.name" . }}-init-robots
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "quay-config.labels" . | nindent 4 }}
   annotations:
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded
-    argocd.argoproj.io/sync-options: Replace=true
+    #argocd.argoproj.io/sync-options: Replace=true
     argocd.argoproj.io/sync-wave: "23"
 spec:
   ttlSecondsAfterFinished: 1800

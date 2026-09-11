@@ -1060,7 +1060,7 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: apc-registry-init-admin
+  generateName: apc-registry-init-admin
   namespace: quay-test
   labels:
     helm.sh/chart: quay-config-0.1.0
@@ -1070,7 +1070,7 @@ metadata:
   annotations:
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded
-    argocd.argoproj.io/sync-options: Replace=true
+    #argocd.argoproj.io/sync-options: Replace=true
     argocd.argoproj.io/sync-wave: "20"
 spec:
   ttlSecondsAfterFinished: 1800
@@ -1142,7 +1142,7 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: apc-registry-init-organizations
+  generateName: apc-registry-init-organizations
   namespace: quay-test
   labels:
     helm.sh/chart: quay-config-0.1.0
@@ -1152,7 +1152,7 @@ metadata:
   annotations:
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded
-    argocd.argoproj.io/sync-options: Replace=true
+    #argocd.argoproj.io/sync-options: Replace=true
     argocd.argoproj.io/sync-wave: "22"
 spec:
   ttlSecondsAfterFinished: 1800
@@ -1374,7 +1374,7 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: apc-registry-prune-organizations
+  generateName: apc-registry-prune-organizations
   namespace: quay-test
   labels:
     helm.sh/chart: quay-config-0.1.0
@@ -1384,7 +1384,7 @@ metadata:
   annotations:
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded
-    argocd.argoproj.io/sync-options: Replace=true
+    #argocd.argoproj.io/sync-options: Replace=true
     argocd.argoproj.io/sync-wave: "24"
 spec:
   ttlSecondsAfterFinished: 1800
@@ -1491,7 +1491,7 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: apc-registry-init-robots
+  generateName: apc-registry-init-robots
   namespace: quay-test
   labels:
     helm.sh/chart: quay-config-0.1.0
@@ -1501,7 +1501,7 @@ metadata:
   annotations:
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded
-    argocd.argoproj.io/sync-options: Replace=true
+    #argocd.argoproj.io/sync-options: Replace=true
     argocd.argoproj.io/sync-wave: "23"
 spec:
   ttlSecondsAfterFinished: 1800
