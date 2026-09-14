@@ -69,6 +69,12 @@ versions:
   - cert-manager-operator.v1.15.1
 ```
 
+> [!IMPORTANT]
+> When bumping an operator version, keep the currently-installed CSV in the allowed versions list too. An ACM OperatorPolicy
+> reports non-compliant/failed if the CSV currently on the cluster is not in versions. During an upgrade the old CSV is still
+> present until OLM swaps it, so the list must carry both current and target, e.g. versions: [odf-operator.v4.17.5-rhodf,
+> odf-operator.v4.18.24-rhodf]. Drop the old version only in a later PR once every cluster has settled on the target.
+
 #### Static (non-default) namespace
 
 [values.example.namespace.yaml](values.example.namespace.yaml)
