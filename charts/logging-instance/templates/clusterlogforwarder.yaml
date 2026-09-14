@@ -15,6 +15,8 @@ spec:
   filters:
     - name: detect-multiline-exception
       type: detectMultilineException
+    - name: parse-json
+      type: parse
     {{- if .Values.pgaudit.enabled }}
     - name: pgaudit-filter
       type: drop
@@ -26,7 +28,15 @@ spec:
               notMatches: '"command_tag":"authentication"'
             - field: .message
               notMatches: '"command_tag":"startup"'
+    {{- end }}
   inputs:
+    - name: application-json
+      type: application
+      application:
+        selector:
+          matchLabels:
+            apc.logging.format: json
+    {{- if .Values.pgaudit.enabled }}
     - name: pgaudit
       type: application
       application:
@@ -34,7 +44,7 @@ spec:
           matchExpressions:
             - key: cnpg.io/cluster
               operator: Exists
-  {{- end }}
+    {{- end }}
   outputs:
     - name: default-lokistack
       type: lokiStack
@@ -79,6 +89,13 @@ spec:
       inputRefs:
         - infrastructure
         - application
+      outputRefs:
+        - default-lokistack
+    - name: application-json-to-loki
+      inputRefs:
+        - application-json
+      filterRefs:
+        - parse-json
       outputRefs:
         - default-lokistack
     - name: audit-to-loki
