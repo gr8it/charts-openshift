@@ -14,7 +14,7 @@ renders only the currently approved 20 dashboard ConfigMaps for hub:
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
         grafana-custom-dashboard: "true"
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: 00---application-projects-and-managed-services-usage
       namespace: open-cluster-management-observability
   2: |
@@ -32,7 +32,7 @@ renders only the currently approved 20 dashboard ConfigMaps for hub:
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
         grafana-custom-dashboard: "true"
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: 00---application-projects-running-in-apc
       namespace: open-cluster-management-observability
   3: |
@@ -50,7 +50,7 @@ renders only the currently approved 20 dashboard ConfigMaps for hub:
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
         grafana-custom-dashboard: "true"
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: 00---availability-report-for-environment
       namespace: open-cluster-management-observability
   4: |
@@ -68,7 +68,7 @@ renders only the currently approved 20 dashboard ConfigMaps for hub:
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
         grafana-custom-dashboard: "true"
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: 01---openshift-cluster-availability---openshift-api
       namespace: open-cluster-management-observability
   5: |
@@ -86,7 +86,7 @@ renders only the currently approved 20 dashboard ConfigMaps for hub:
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
         grafana-custom-dashboard: "true"
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: 02---idp-service-availability---red-hat-build-of-keycloak
       namespace: open-cluster-management-observability
   6: |
@@ -104,14 +104,14 @@ renders only the currently approved 20 dashboard ConfigMaps for hub:
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
         grafana-custom-dashboard: "true"
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: 03---postgresql-service-availability---relational-db
       namespace: open-cluster-management-observability
   7: |
     apiVersion: v1
     data:
       04---mongodb-service-availability---nosql-db.json: |
-        {"annotations": {"list": [{"builtIn": 1, "datasource": {"type": "grafana", "uid": "-- Grafana --"}, "enable": true, "hide": true, "iconColor": "rgba(0, 211, 255, 1)", "name": "Annotations & Alerts", "type": "dashboard"}]}, "editable": true, "fiscalYearStartMonth": 0, "graphTooltip": 0, "id": 951, "links": [], "panels": [{"datasource": {"type": "prometheus", "uid": "000000001"}, "description": "MongoDB service availability - NoSQL DB", "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "custom": {"align": "auto", "cellOptions": {"type": "auto"}, "filterable": false, "inspect": false}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 80}]}}, "overrides": [{"matcher": {"id": "byName", "options": "Value (mean)"}, "properties": [{"id": "displayName", "value": "Availability"}, {"id": "unit", "value": "percent"}]}]}, "gridPos": {"h": 37, "w": 24, "x": 0, "y": 0}, "id": 1, "options": {"cellHeight": "sm", "footer": {"countRows": false, "enablePagination": true, "fields": "", "reducer": ["mean"], "show": true}, "frameIndex": 0, "showHeader": true, "sortBy": [{"desc": false, "displayName": "Date"}]}, "pluginVersion": "11.1.5", "targets": [{"datasource": {"type": "prometheus", "uid": "000000001"}, "disableTextWrap": false, "editorMode": "code", "exemplar": false, "expr": "(\r\n  count by (job,clusterName)(\r\n  count_over_time(\r\n    (up{job=\"mongodb-kubernetes-operator-monitoring\", clusterName=\"$clusterName\"} == 1)[5m:30s]\r\n  ))\r\n  /\r\n  count by (job,clusterName)(\r\n  count_over_time(\r\n    (up{job=\"mongodb-kubernetes-operator-monitoring\", clusterName=\"$clusterName\"})[5m:30s]\r\n  ))\r\n  * 100\r\n)", "format": "table", "fullMetaSearch": false, "includeNullMetadata": true, "instant": false, "interval": "", "legendFormat": "__auto", "range": true, "refId": "A", "useBackend": false}], "title": "MongoDB service availability - NoSQL DB", "transformations": [{"id": "filterFieldsByName", "options": {"byVariable": false, "include": {"names": ["Value", "Time"]}}}, {"id": "formatTime", "options": {"outputFormat": "YYYY-MM-DD", "timeField": "Time", "timezone": "browser", "useTimezone": true}}, {"id": "groupBy", "options": {"fields": {"Time": {"aggregations": [], "operation": "groupby"}, "Value": {"aggregations": ["mean"], "operation": "aggregate"}, "dev01": {"aggregations": ["mean"], "operation": "aggregate"}}}}, {"id": "sortBy", "options": {"fields": {}, "sort": [{"field": "Time"}]}}], "type": "table"}], "schemaVersion": 39, "tags": ["APC", "SLO", "MONGO"], "templating": {"list": [{"current": {"selected": false, "text": "dev01", "value": "dev01"}, "datasource": {"type": "prometheus", "uid": "000000001"}, "definition": "label_values({clusterName!=\"hub01\"},clusterName)", "hide": 0, "includeAll": false, "label": "cluster name", "multi": false, "name": "clusterName", "options": [], "query": {"qryType": 1, "query": "label_values({clusterName!=\"hub01\"},clusterName)", "refId": "PrometheusVariableQueryEditor-VariableQuery"}, "refresh": 2, "regex": "", "skipUrlSync": false, "sort": 0, "type": "query"}]}, "time": {"from": "now-40d", "to": "now"}, "timepicker": {}, "timezone": "browser", "title": "04 - MongoDB service availability - NoSQL DB", "version": 4, "weekStart": ""}
+        {"annotations": {"list": [{"builtIn": 1, "datasource": {"type": "grafana", "uid": "-- Grafana --"}, "enable": true, "hide": true, "iconColor": "rgba(0, 211, 255, 1)", "name": "Annotations & Alerts", "type": "dashboard"}]}, "editable": true, "fiscalYearStartMonth": 0, "graphTooltip": 0, "id": 951, "links": [], "panels": [{"datasource": {"type": "prometheus", "uid": "000000001"}, "description": "MongoDB service availability - NoSQL DB", "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "custom": {"align": "auto", "cellOptions": {"type": "auto"}, "filterable": false, "inspect": false}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 80}]}}, "overrides": [{"matcher": {"id": "byName", "options": "Value (mean)"}, "properties": [{"id": "displayName", "value": "Availability"}, {"id": "unit", "value": "percent"}]}]}, "gridPos": {"h": 37, "w": 24, "x": 0, "y": 0}, "id": 1, "options": {"cellHeight": "sm", "footer": {"countRows": false, "enablePagination": true, "fields": "", "reducer": ["mean"], "show": true}, "frameIndex": 0, "showHeader": true, "sortBy": [{"desc": false, "displayName": "Date"}]}, "pluginVersion": "11.1.5", "targets": [{"datasource": {"type": "prometheus", "uid": "000000001"}, "disableTextWrap": false, "editorMode": "code", "exemplar": false, "expr": "(\r\n  count by (job,clusterName)(\r\n  count_over_time(\r\n    (up{job=\"mongodb-kubernetes-operator-monitoring\", clusterName=\"$clusterName\"} == 1)[5m:30s]\r\n  ))\r\n  /\r\n  count by (job,clusterName)(\r\n  count_over_time(\r\n    (up{job=\"mongodb-kubernetes-operator-monitoring\", clusterName=\"$clusterName\"})[5m:30s]\r\n  ))\r\n  * 100\r\n)", "format": "table", "fullMetaSearch": false, "includeNullMetadata": true, "instant": false, "interval": "", "legendFormat": "__auto", "range": true, "refId": "A", "useBackend": false}], "title": "MongoDB service availability - NoSQL DB", "transformations": [{"id": "filterFieldsByName", "options": {"byVariable": false, "include": {"names": ["Value", "Time"]}}}, {"id": "formatTime", "options": {"outputFormat": "YYYY-MM-DD", "timeField": "Time", "timezone": "browser", "useTimezone": true}}, {"id": "groupBy", "options": {"fields": {"Time": {"aggregations": [], "operation": "groupby"}, "Value": {"aggregations": ["mean"], "operation": "aggregate"}, "dev01": {"aggregations": ["mean"], "operation": "aggregate"}}}}, {"id": "sortBy", "options": {"fields": {}, "sort": [{"field": "Time"}]}}], "type": "table"}, {"datasource": {"type": "prometheus", "uid": "000000001"}, "description": "MongoDB instances with namespace, phase and version on the selected cluster", "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "custom": {"align": "auto", "cellOptions": {"type": "auto"}, "filterable": true, "inspect": false}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 80}]}}, "overrides": [{"matcher": {"id": "byName", "options": "name"}, "properties": [{"id": "displayName", "value": "Instance"}]}, {"matcher": {"id": "byName", "options": "exported_namespace"}, "properties": [{"id": "displayName", "value": "Namespace"}]}, {"matcher": {"id": "byName", "options": "clusterName"}, "properties": [{"id": "displayName", "value": "Cluster Name"}]}, {"matcher": {"id": "byName", "options": "version"}, "properties": [{"id": "displayName", "value": "Version"}]}, {"matcher": {"id": "byName", "options": "phase"}, "properties": [{"id": "displayName", "value": "Phase"}, {"id": "custom.cellOptions", "value": {"type": "color-background"}}, {"id": "mappings", "value": [{"type": "value", "options": {"Running": {"color": "green", "index": 0}, "Pending": {"color": "orange", "index": 1}, "Failed": {"color": "red", "index": 2}}}]}]}]}, "gridPos": {"h": 16, "w": 24, "x": 0, "y": 37}, "id": 2, "options": {"cellHeight": "sm", "footer": {"countRows": true, "enablePagination": true, "fields": "", "reducer": ["count"], "show": true}, "frameIndex": 0, "showHeader": true, "sortBy": [{"desc": false, "displayName": "Namespace"}]}, "pluginVersion": "11.1.5", "targets": [{"datasource": {"type": "prometheus", "uid": "000000001"}, "disableTextWrap": false, "editorMode": "code", "exemplar": false, "expr": "kube_customresource_mongodbcommunity_info{clusterName=\"$clusterName\"} * on(name, exported_namespace, clusterName) group_left(phase) (kube_customresource_mongodbcommunity_status_phase{clusterName=\"$clusterName\"} == 1)", "format": "table", "fullMetaSearch": false, "includeNullMetadata": true, "instant": true, "interval": "", "legendFormat": "__auto", "range": false, "refId": "A", "useBackend": false}], "title": "MongoDB instances", "transformations": [{"id": "filterFieldsByName", "options": {"byVariable": false, "include": {"names": ["name", "exported_namespace", "clusterName", "version", "phase"]}}}], "type": "table"}], "schemaVersion": 39, "tags": ["APC", "SLO", "MONGO"], "templating": {"list": [{"current": {"selected": false, "text": "dev01", "value": "dev01"}, "datasource": {"type": "prometheus", "uid": "000000001"}, "definition": "label_values({clusterName!=\"hub01\"},clusterName)", "hide": 0, "includeAll": false, "label": "cluster name", "multi": false, "name": "clusterName", "options": [], "query": {"qryType": 1, "query": "label_values({clusterName!=\"hub01\"},clusterName)", "refId": "PrometheusVariableQueryEditor-VariableQuery"}, "refresh": 2, "regex": "", "skipUrlSync": false, "sort": 0, "type": "query"}]}, "time": {"from": "now-40d", "to": "now"}, "timepicker": {}, "timezone": "browser", "title": "04 - MongoDB service availability - NoSQL DB", "version": 9, "weekStart": ""}
     kind: ConfigMap
     metadata:
       annotations:
@@ -122,7 +122,7 @@ renders only the currently approved 20 dashboard ConfigMaps for hub:
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
         grafana-custom-dashboard: "true"
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: 04---mongodb-service-availability---nosql-db
       namespace: open-cluster-management-observability
   8: |
@@ -140,7 +140,7 @@ renders only the currently approved 20 dashboard ConfigMaps for hub:
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
         grafana-custom-dashboard: "true"
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: 05---kafka-service-availability---messaging-service
       namespace: open-cluster-management-observability
   9: |
@@ -158,7 +158,7 @@ renders only the currently approved 20 dashboard ConfigMaps for hub:
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
         grafana-custom-dashboard: "true"
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: 06---vault-service-availability---secret-management-service
       namespace: open-cluster-management-observability
   10: |
@@ -176,7 +176,7 @@ renders only the currently approved 20 dashboard ConfigMaps for hub:
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
         grafana-custom-dashboard: "true"
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: 07---gitlab--cicd-service-availability
       namespace: open-cluster-management-observability
   11: |
@@ -194,7 +194,7 @@ renders only the currently approved 20 dashboard ConfigMaps for hub:
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
         grafana-custom-dashboard: "true"
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: 08---object-storage-service-availability---odf-ceph-rgw
       namespace: open-cluster-management-observability
   12: |
@@ -212,7 +212,7 @@ renders only the currently approved 20 dashboard ConfigMaps for hub:
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
         grafana-custom-dashboard: "true"
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: 09---object-storage-service-availability---odf-noobaa
       namespace: open-cluster-management-observability
   13: |
@@ -230,7 +230,7 @@ renders only the currently approved 20 dashboard ConfigMaps for hub:
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
         grafana-custom-dashboard: "true"
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: 11---file-storage-service-availability---odf-file
       namespace: open-cluster-management-observability
   14: |
@@ -248,7 +248,7 @@ renders only the currently approved 20 dashboard ConfigMaps for hub:
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
         grafana-custom-dashboard: "true"
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: 12---platform-monitoring-availability
       namespace: open-cluster-management-observability
   15: |
@@ -266,7 +266,7 @@ renders only the currently approved 20 dashboard ConfigMaps for hub:
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
         grafana-custom-dashboard: "true"
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: 13---platform-logging-availability
       namespace: open-cluster-management-observability
   16: |
@@ -284,7 +284,7 @@ renders only the currently approved 20 dashboard ConfigMaps for hub:
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
         grafana-custom-dashboard: "true"
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: 14---platform-security-availability---acs
       namespace: open-cluster-management-observability
   17: |
@@ -302,7 +302,7 @@ renders only the currently approved 20 dashboard ConfigMaps for hub:
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
         grafana-custom-dashboard: "true"
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: 15---platform-backup-restore-availability
       namespace: open-cluster-management-observability
   18: |
@@ -320,14 +320,14 @@ renders only the currently approved 20 dashboard ConfigMaps for hub:
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
         grafana-custom-dashboard: "true"
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: 99---availability-status
       namespace: open-cluster-management-observability
   19: |
     apiVersion: v1
     data:
       application-projects-managed-service-usage.json: |
-        {"annotations":{"list":[{"builtIn":1,"datasource":{"type":"grafana","uid":"-- Grafana --"},"enable":true,"hide":true,"iconColor":"rgba(0, 211, 255, 1)","name":"Annotations & Alerts","type":"dashboard"}]},"description":"Application Projects and managed services usage in APC per cluster","editable":true,"fiscalYearStartMonth":0,"graphTooltip":0,"id":713,"links":[],"panels":[{"datasource":{"type":"prometheus","uid":"000000001"},"description":"Application Projects and managed services usage per Cluster","fieldConfig":{"defaults":{"color":{"mode":"thresholds"},"custom":{"align":"left","cellOptions":{"type":"auto"},"filterable":true,"inspect":false},"mappings":[],"thresholds":{"mode":"absolute","steps":[{"color":"green","value":null},{"color":"red","value":80}]}},"overrides":[{"matcher":{"id":"byName","options":"clusterName"},"properties":[{"id":"displayName","value":"Cluster Name"}]},{"matcher":{"id":"byName","options":"namespace"},"properties":[{"id":"displayName","value":"Project / Namespace"}]}]},"gridPos":{"h":28,"w":24,"x":0,"y":0},"id":1,"options":{"cellHeight":"sm","footer":{"countRows":true,"enablePagination":true,"fields":"","reducer":["count"],"show":true},"showHeader":true},"pluginVersion":"11.1.5","targets":[{"datasource":{"type":"prometheus","uid":"000000001"},"editorMode":"code","expr":"count by (namespace, clusterName) (\r\n  (\r\n    kube_pod_labels{label_cnpg_io_cluster=~\".*\"}\r\n    or\r\n    mongodb_info\r\n    or\r\n    kube_secret_owner{owner_kind=\"ObjectBucketClaim\"}\r\n    or\r\n    kube_persistentvolumeclaim_info\r\n    or\r\n    label_replace(strimzi_resources{kind=\"Kafka\"}, \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\")\r\n    or\r\n    label_replace(secretstore_status_condition, \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\")\r\n  )\r\n  * on(namespace, clusterName) group_left(label_apc_namespace_type) kube_namespace_labels{label_apc_namespace_type=\"application\"}\r\n)","format":"table","instant":false,"interval":"","legendFormat":"__auto","range":true,"refId":"A"}],"title":"Application Projects and managed services usage","transformations":[{"id":"filterFieldsByName","options":{"include":{"names":["clusterName","namespace"]}}},{"id":"groupBy","options":{"fields":{"clusterName":{"aggregations":[],"operation":"groupby"},"namespace":{"aggregations":[],"operation":"groupby"}}}}],"type":"table"}],"schemaVersion":39,"tags":["APC","Applications","Managed services"],"templating":{"list":[]},"time":{"from":"now-1M/M","to":"now-1M/M"},"timepicker":{},"timezone":"browser","title":"Application Projects and managed services usage","uid":"del6xe7bfd3wgf","version":4,"weekStart":""}
+        {"annotations":{"list":[{"builtIn":1,"datasource":{"type":"grafana","uid":"-- Grafana --"},"enable":true,"hide":true,"iconColor":"rgba(0, 211, 255, 1)","name":"Annotations & Alerts","type":"dashboard"}]},"description":"Application Projects and managed services usage in APC per cluster","editable":true,"fiscalYearStartMonth":0,"graphTooltip":0,"id":713,"links":[],"panels":[{"datasource":{"type":"prometheus","uid":"000000001"},"description":"Application Projects and managed services usage per Cluster","fieldConfig":{"defaults":{"color":{"mode":"thresholds"},"custom":{"align":"left","cellOptions":{"type":"auto"},"filterable":true,"inspect":false},"mappings":[],"thresholds":{"mode":"absolute","steps":[{"color":"green","value":null},{"color":"red","value":80}]}},"overrides":[{"matcher":{"id":"byName","options":"clusterName"},"properties":[{"id":"displayName","value":"Cluster Name"}]},{"matcher":{"id":"byName","options":"namespace"},"properties":[{"id":"displayName","value":"Project / Namespace"}]}]},"gridPos":{"h":28,"w":24,"x":0,"y":0},"id":1,"options":{"cellHeight":"sm","footer":{"countRows":true,"enablePagination":true,"fields":"","reducer":["count"],"show":true},"showHeader":true},"pluginVersion":"11.1.5","targets":[{"datasource":{"type":"prometheus","uid":"000000001"},"editorMode":"code","expr":"count by (namespace, clusterName) (\r\n  (\r\n    kube_pod_labels{label_cnpg_io_cluster=~\".*\"}\r\n    or\r\n    label_replace(kube_customresource_mongodbcommunity_status_phase == 1, \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\")\r\n    or\r\n    kube_secret_owner{owner_kind=\"ObjectBucketClaim\"}\r\n    or\r\n    kube_persistentvolumeclaim_info\r\n    or\r\n    label_replace(strimzi_resources{kind=\"Kafka\"}, \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\")\r\n    or\r\n    label_replace(secretstore_status_condition, \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\")\r\n  )\r\n  * on(namespace, clusterName) group_left(label_apc_namespace_type) kube_namespace_labels{label_apc_namespace_type=\"application\"}\r\n)","format":"table","instant":false,"interval":"","legendFormat":"__auto","range":true,"refId":"A"}],"title":"Application Projects and managed services usage","transformations":[{"id":"filterFieldsByName","options":{"include":{"names":["clusterName","namespace"]}}},{"id":"groupBy","options":{"fields":{"clusterName":{"aggregations":[],"operation":"groupby"},"namespace":{"aggregations":[],"operation":"groupby"}}}}],"type":"table"}],"schemaVersion":39,"tags":["APC","Applications","Managed services"],"templating":{"list":[]},"time":{"from":"now-1M/M","to":"now-1M/M"},"timepicker":{},"timezone":"browser","title":"Application Projects and managed services usage","uid":"del6xe7bfd3wgf","version":5,"weekStart":""}
     kind: ConfigMap
     metadata:
       annotations:
@@ -338,7 +338,7 @@ renders only the currently approved 20 dashboard ConfigMaps for hub:
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
         grafana-custom-dashboard: "true"
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: application-projects-managed-service-usage
       namespace: open-cluster-management-observability
   20: |
@@ -356,6 +356,6 @@ renders only the currently approved 20 dashboard ConfigMaps for hub:
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
         grafana-custom-dashboard: "true"
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: application-projects-running-in-apc
       namespace: open-cluster-management-observability

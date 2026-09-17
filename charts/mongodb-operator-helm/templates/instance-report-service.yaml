@@ -1,0 +1,22 @@
+{{- if .Values.instanceReport.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ (index .Values "mongodb-kubernetes").operator.name }}-report
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mongodb-operator-helm.labels" . | nindent 4 }}
+    app.kubernetes.io/component: instance-report
+spec:
+  selector:
+    {{- include "mongodb-operator-helm.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: instance-report
+  ports:
+    - name: metrics
+      port: {{ .Values.instanceReport.ports.metrics }}
+      targetPort: {{ .Values.instanceReport.ports.metrics }}
+    - name: telemetry
+      port: {{ .Values.instanceReport.ports.telemetry }}
+      targetPort: {{ .Values.instanceReport.ports.telemetry }}
+{{- end }}
