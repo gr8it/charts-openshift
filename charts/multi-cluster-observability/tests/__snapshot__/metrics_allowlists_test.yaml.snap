@@ -18,7 +18,7 @@ renders hub allowlists without spoke-only Kafka configmap:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: observability-metrics-custom-allowlist
       namespace: open-cluster-management-observability
   2: |
@@ -34,7 +34,7 @@ renders hub allowlists without spoke-only Kafka configmap:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: observability-metrics-custom-allowlist
       namespace: apc-blackbox-exporter
   3: |
@@ -50,10 +50,10 @@ renders hub allowlists without spoke-only Kafka configmap:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: observability-metrics-custom-allowlist
       namespace: apc-vault
-renders spoke allowlists with Kafka and External Secrets configmaps and without hub-only ones:
+renders spoke allowlists with Kafka, ESO and MongoDB report configmaps and without hub-only ones:
   1: |
     apiVersion: v1
     data:
@@ -67,7 +67,7 @@ renders spoke allowlists with Kafka and External Secrets configmaps and without 
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: observability-metrics-custom-allowlist
       namespace: apc-blackbox-exporter
   2: |
@@ -83,7 +83,7 @@ renders spoke allowlists with Kafka and External Secrets configmaps and without 
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: observability-metrics-custom-allowlist
       namespace: openshift-operators
   3: |
@@ -99,6 +99,23 @@ renders spoke allowlists with Kafka and External Secrets configmaps and without 
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: multi-cluster-observability
         app.kubernetes.io/part-of: multi-cluster-observability
-        helm.sh/chart: multi-cluster-observability-1.0.0
+        helm.sh/chart: multi-cluster-observability-1.1.0
       name: observability-metrics-custom-allowlist
       namespace: apc-external-secrets-operator
+  4: |
+    apiVersion: v1
+    data:
+      uwl_metrics_list.yaml: |
+        names:
+          - kube_customresource_mongodbcommunity_status_phase
+          - kube_customresource_mongodbcommunity_info
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/instance: multi-cluster-observability
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: multi-cluster-observability
+        app.kubernetes.io/part-of: multi-cluster-observability
+        helm.sh/chart: multi-cluster-observability-1.1.0
+      name: observability-metrics-custom-allowlist
+      namespace: apc-mongodb-operator
