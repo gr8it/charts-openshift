@@ -36,6 +36,15 @@ spec:
         selector:
           matchLabels:
             apc.logging.format: json
+    - name: application-non-json
+      type: application
+      application:
+        selector:
+          matchExpressions:
+            - key: apc.logging.format
+              operator: NotIn
+              values:
+                - json
     {{- if .Values.pgaudit.enabled }}
     - name: pgaudit
       type: application
@@ -88,7 +97,7 @@ spec:
         - detect-multiline-exception
       inputRefs:
         - infrastructure
-        - application
+        - application-non-json
       outputRefs:
         - default-lokistack
     - name: application-json-to-loki

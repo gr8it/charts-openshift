@@ -81,6 +81,15 @@ manifests should match snapshot:
         - application:
             selector:
               matchExpressions:
+                - key: apc.logging.format
+                  operator: NotIn
+                  values:
+                    - json
+          name: application-non-json
+          type: application
+        - application:
+            selector:
+              matchExpressions:
                 - key: cnpg.io/cluster
                   operator: Exists
           name: pgaudit
@@ -124,7 +133,7 @@ manifests should match snapshot:
             - detect-multiline-exception
           inputRefs:
             - infrastructure
-            - application
+            - application-non-json
           name: containers-to-loki
           outputRefs:
             - default-lokistack

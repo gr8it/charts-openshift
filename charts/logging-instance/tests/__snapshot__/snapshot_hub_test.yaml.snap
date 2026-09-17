@@ -31,6 +31,15 @@ hub manifests should match snapshot:
                 apc.logging.format: json
           name: application-json
           type: application
+        - application:
+            selector:
+              matchExpressions:
+                - key: apc.logging.format
+                  operator: NotIn
+                  values:
+                    - json
+          name: application-non-json
+          type: application
       managementState: Managed
       outputs:
         - lokiStack:
@@ -51,7 +60,7 @@ hub manifests should match snapshot:
             - detect-multiline-exception
           inputRefs:
             - infrastructure
-            - application
+            - application-non-json
           name: containers-to-loki
           outputRefs:
             - default-lokistack
