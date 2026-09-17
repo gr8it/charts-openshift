@@ -6,8 +6,6 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "quay-config.labels" . | nindent 4 }}
-  annotations:
-    argocd.argoproj.io/hook: PreSync
 data:
   NAMESPACE: {{ .Release.Namespace }}
   QUAYSERVICE: {{ printf "http://%s-quay-app.%s.svc.cluster.local" (include "quay-config.name" .) .Release.Namespace }}

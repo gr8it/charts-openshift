@@ -6,8 +6,6 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "quay-config.labels" . | nindent 4 }}
-  annotations:
-    argocd.argoproj.io/hook: PreSync
 data:
   {{- range $path, $_ := .Files.Glob "files/*.sh" }}
   {{ $path | base }}: |2

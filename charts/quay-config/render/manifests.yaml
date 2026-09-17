@@ -89,8 +89,6 @@ metadata:
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
-  annotations:
-    argocd.argoproj.io/hook: PreSync
 data:
   NAMESPACE: quay-test
   QUAYSERVICE: http://apc-registry-quay-app.quay-test.svc.cluster.local
@@ -122,8 +120,6 @@ metadata:
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
-  annotations:
-    argocd.argoproj.io/hook: PreSync
 data:
   common-functions.sh: |2
     #!/usr/bin/env bash
@@ -1052,6 +1048,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
   annotations:
     #argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded,BeforeHookCreation
     #argocd.argoproj.io/sync-wave: "10"
 spec:
@@ -1133,6 +1130,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
   annotations:
     #argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded,BeforeHookCreation
     #argocd.argoproj.io/sync-wave: "20"
 spec:
@@ -1364,8 +1362,9 @@ metadata:
     app.kubernetes.io/managed-by: Helm
   annotations:
     #argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded,BeforeHookCreation
-    #argocd.argoproj.io/sync-wave: "30"
+    #argocd.argoproj.io/sync-wave: "40"
 spec:
   ttlSecondsAfterFinished: 1800
   backoffLimit: 2
@@ -1480,6 +1479,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
   annotations:
     #argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded,BeforeHookCreation
     #argocd.argoproj.io/sync-wave: "30"
 spec:
