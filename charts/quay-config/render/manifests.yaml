@@ -1054,7 +1054,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
   annotations:
     argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded,BeforeHookCreation
     #argocd.argoproj.io/sync-options: Replace=true
     argocd.argoproj.io/sync-wave: "20"
 spec:
@@ -1368,9 +1368,9 @@ metadata:
     app.kubernetes.io/managed-by: Helm
   annotations:
     argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded,BeforeHookCreation
     #argocd.argoproj.io/sync-options: Replace=true
-    argocd.argoproj.io/sync-wave: "24"
+    argocd.argoproj.io/sync-wave: "26"
 spec:
   ttlSecondsAfterFinished: 1800
   backoffLimit: 2
@@ -1485,7 +1485,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
   annotations:
     argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded,BeforeHookCreation
     #argocd.argoproj.io/sync-options: Replace=true
     argocd.argoproj.io/sync-wave: "24"
 spec:
