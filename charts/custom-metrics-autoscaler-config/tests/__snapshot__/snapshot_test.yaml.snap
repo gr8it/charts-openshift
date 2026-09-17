@@ -1,0 +1,91 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: keda.sh/v1alpha1
+    kind: KedaController
+    metadata:
+      labels:
+        app.kubernetes.io/instance: custom-metrics-autoscaler-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: custom-metrics-autoscaler-config
+        app.kubernetes.io/version: 2.19.0-3
+        helm.sh/chart: custom-metrics-autoscaler-config-1.0.0
+      name: keda
+      namespace: keda
+    spec:
+      admissionWebhooks:
+        logEncoder: console
+        logLevel: info
+        resources: {}
+      httpAddon:
+        enabled: true
+        interceptor:
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app.kubernetes.io/component: interceptor
+                      app.kubernetes.io/name: add-on
+                  topologyKey: kubernetes.io/hostname
+          env:
+            - name: OTEL_PROM_EXPORTER_PORT
+              value: "2223"
+            - name: OTEL_PROM_EXPORTER_ENABLED
+              value: "true"
+            - name: KEDA_HTTP_LOG_REQUESTS
+              value: "true"
+          logEncoder: console
+          logLevel: info
+          resources: {}
+        operator:
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app.kubernetes.io/component: operator
+                      app.kubernetes.io/name: http-add-on
+                  topologyKey: kubernetes.io/hostname
+          logEncoder: console
+          logLevel: info
+          replicas: 2
+          resources: {}
+        scaler:
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app.kubernetes.io/component: scaler
+                      app.kubernetes.io/name: http-add-on
+                  topologyKey: kubernetes.io/hostname
+          logEncoder: console
+          logLevel: info
+          replicas: 2
+          resources: {}
+        version: 0.14.0
+      metricsServer:
+        logLevel: "0"
+        resources: {}
+      operator:
+        logEncoder: console
+        logLevel: info
+        resources: {}
+  2: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      labels:
+        app.kubernetes.io/component: interceptor
+        app.kubernetes.io/name: http-add-on
+      name: keda-http-addon-interceptor
+      namespace: keda
+    spec:
+      endpoints:
+        - interval: 30s
+          port: metrics
+          scheme: http
+      selector:
+        matchLabels:
+          app.kubernetes.io/component: interceptor
+          app.kubernetes.io/name: http-add-on

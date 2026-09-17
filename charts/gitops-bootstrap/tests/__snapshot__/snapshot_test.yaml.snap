@@ -8,7 +8,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.9.3
+        helm.sh/chart: gitops-bootstrap-2.11.1
       name: global
       namespace: apc-bootstrap
     spec:
@@ -23,7 +23,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.9.3
+        helm.sh/chart: gitops-bootstrap-2.11.1
       name: apc-bootstrap
   3: |
     apiVersion: cluster.open-cluster-management.io/v1beta1
@@ -34,7 +34,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.9.3
+        helm.sh/chart: gitops-bootstrap-2.11.1
       name: gitops-bootstrap
       namespace: apc-bootstrap
     spec:
@@ -54,7 +54,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.9.3
+        helm.sh/chart: gitops-bootstrap-2.11.1
       name: gitops-bootstrap
       namespace: apc-bootstrap
     placementRef:
@@ -76,7 +76,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.9.3
+        helm.sh/chart: gitops-bootstrap-2.11.1
       name: gitops-bootstrap
       namespace: apc-bootstrap
     spec:
@@ -741,7 +741,7 @@ manifests should match snapshot:
               name: gitops-bootstrap-prometheus-rules
             spec:
               object-templates:
-                - complianceType: musthave
+                - complianceType: mustonlyhave
                   objectDefinition:
                     apiVersion: monitoring.coreos.com/v1
                     kind: PrometheusRule
@@ -754,9 +754,9 @@ manifests should match snapshot:
                           rules:
                             - alert: ArgoCDAppSyncUnknownAlert
                               annotations:
-                                description: Argo CD application {{ "{{ $labels.name }}" }} sync status is Unknown.
+                                description: Argo CD application {{ "{{ $labels.name }}" }} in project {{ "{{ $labels.project }}" }} has sync status Unknown.
                                 summary: Argo CD application sync status is Unknown
-                              expr: argocd_app_info{namespace="apc-gitops",sync_status="Unknown"} > 0
+                              expr: max by (namespace, name, project, repo, dest_namespace, sync_status, health_status, autosync_enabled) (argocd_app_info{namespace="apc-gitops",sync_status="Unknown"}) > 0
                               for: 5m
                               labels:
                                 severity: warning
@@ -765,8 +765,7 @@ manifests should match snapshot:
                             - alert: ArgoCDAppsSyncMajorityUnknownAlert
                               annotations:
                                 description: |
-                                  {{ "{{ $value | humanizePercentage }}" }} of Argo CD applications in namespace "apc-gitops" sync status is Unknown.
-                                  Maybe a problem with connectivity to repo?
+                                  {{ "{{ $value | humanizePercentage }}" }} of Argo CD applications have sync status Unknown. Check repository connectivity.
                                 summary: Majority of Argo CD applications sync status is Unknown
                               expr: |
                                 (
@@ -779,7 +778,7 @@ manifests should match snapshot:
                                 severity: warning
                                 team: platform
                                 vendor: aspecta
-                - complianceType: musthave
+                - complianceType: mustonlyhave
                   objectDefinition:
                     apiVersion: monitoring.coreos.com/v1
                     kind: PrometheusRule
@@ -792,9 +791,9 @@ manifests should match snapshot:
                           rules:
                             - alert: ArgocdServiceUnhealthy
                               annotations:
-                                description: Service {{ "{{ $labels.name }}" }} run by argo is currently not healthy.\n  VALUE = {{ "{{ $value }}" }}\n  LABELS = {{ "{{ $labels }}" }}
-                                summary: ArgoCD service unhealthy (instance {{ "{{ $labels.instance }}" }})
-                              expr: argocd_app_info{health_status!="Healthy"} != 0
+                                description: Argo CD application {{ "{{ $labels.name }}" }} in project {{ "{{ $labels.project }}" }} has health status {{ "{{ $labels.health_status }}" }}.
+                                summary: ArgoCD application is unhealthy
+                              expr: max by (namespace, name, project, repo, dest_namespace, sync_status, health_status, autosync_enabled) (argocd_app_info{health_status!="Healthy"}) != 0
                               for: 1h
                               labels:
                                 severity: warning
@@ -840,7 +839,7 @@ manifests should match snapshot:
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
         argocd.argoproj.io/secret-type: repo-creds
-        helm.sh/chart: gitops-bootstrap-2.9.3
+        helm.sh/chart: gitops-bootstrap-2.11.1
       name: null
       namespace: apc-bootstrap
     stringData:

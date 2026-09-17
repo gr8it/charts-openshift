@@ -1,0 +1,21 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "gatling-operator.fullname" . }}-project-view
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-apc-project-view: "true"
+rules:
+- apiGroups:
+  - gatling-operator.tech.zozo.com
+  resources:
+  - gatlings
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - gatling-operator.tech.zozo.com
+  resources:
+  - gatlings/status
+  verbs:
+  - get

@@ -5,6 +5,13 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-09-07
+
+### Changed
+
+- Enable multi-line exception detection on the `ClusterLogForwarder`. Stack traces spanning several lines are reassembled into a single log record instead of one record per line.
+- Update the `apc-global-overrides` dependency to 1.10.0
+
 ## [1.0.2] - 2026-08-07
 
 ### Fixed

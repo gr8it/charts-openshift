@@ -8,6 +8,11 @@ bootstrap: false
 instanceName: apc-argocd
 namespace: apc-gitops # where to install custom ArgoCD instance
 
+# severity label for the ArgoCD sync/health PrometheusRule alerts (ArgoCDAppSyncUnknownAlert,
+# ArgoCDAppsSyncMajorityUnknownAlert, ArgocdServiceUnhealthy). Override to "critical" to route
+# through the Jira/Opsgenie receiver for testing, revert to "warning" afterwards.
+argocdAlertSeverity: warning
+
 ## uses following global values => do not set here
 # global:
 #   apc:
