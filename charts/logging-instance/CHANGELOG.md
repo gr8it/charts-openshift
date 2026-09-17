@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Enable json parse for application logs, where pods label are ```apc.logging.format: json```
+- Enable JSON parsing for application logs from pods labeled with `apc.logging.format: json`.
 
 
 ## [1.1.0] - 2026-09-07
