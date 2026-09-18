@@ -1048,7 +1048,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
   annotations:
     argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation #HookSucceeded,BeforeHookCreation
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded,BeforeHookCreation
     argocd.argoproj.io/sync-wave: "10"
 spec:
   #ttlSecondsAfterFinished: 1800
@@ -1129,7 +1129,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
   annotations:
     argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation #HookSucceeded,BeforeHookCreation
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded,BeforeHookCreation
     argocd.argoproj.io/sync-wave: "20"
 spec:
   #ttlSecondsAfterFinished: 1800
@@ -1360,7 +1360,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
   annotations:
     argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation #HookSucceeded,BeforeHookCreation
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded,BeforeHookCreation
     argocd.argoproj.io/sync-wave: "40"
 spec:
   #ttlSecondsAfterFinished: 1800
@@ -1476,7 +1476,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
   annotations:
     argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation #HookSucceeded,BeforeHookCreation
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded,BeforeHookCreation
     argocd.argoproj.io/sync-wave: "30"
 spec:
   #ttlSecondsAfterFinished: 1800
@@ -1707,11 +1707,11 @@ spec:
             sync:
               syncStrategy:
                 hook: {}
-              resources:
-              - group: batch
-                kind: Job
-                name: apc-registry-init-organizations
-                namespace: quay-test
+              # resources:
+              # - group: batch
+              #   kind: Job
+              #   name: apc-registry-init-organizations
+              #   namespace: quay-test
 
 ---
 # Source: quay-config/templates/externalsecret-registry-credentials.yaml
