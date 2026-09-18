@@ -8,7 +8,8 @@ metadata:
     {{- include "quay-config.labels" . | nindent 4 }}
   annotations:
     argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded,BeforeHookCreation
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded #,BeforeHookCreation
+    argocd.argoproj.io/sync-options: Replace=true
     argocd.argoproj.io/sync-wave: "20"
 spec:
   #ttlSecondsAfterFinished: 1800
