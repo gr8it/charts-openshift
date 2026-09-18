@@ -32,7 +32,7 @@ spec:
               username: {{ printf "%s-%s-argo-sync" (include "quay-config.name" .) .Release.Namespace }}
             sync:
               syncStrategy:
-                hook: {}
+                hook: { force: false }
               # resources:
               # - group: batch
               #   kind: Job
