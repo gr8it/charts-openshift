@@ -47,3 +47,83 @@ spec:
           annotations:
             summary: Kyverno admission controller is down.
             description: Kyverno admission controller is not running. This controller is responsible for generating resources (e.g. PrometheusRules) when new namespaces are created. New namespaces will not receive monitoring alerts.
+        - alert: KyvernoUpdateRequestBacklogNotDraining
+          expr: increase(kyverno_client_queries_total{client_type="kyverno",resource_kind="UpdateRequest",operation="create"}[30m]) > 0 and increase(kyverno_client_queries_total{client_type="kyverno",resource_kind="UpdateRequest",operation="update_status"}[30m]) == 0
+          for: 30m
+          labels:
+            severity: warning
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: Kyverno background controller is not processing UpdateRequests.
+            description: New UpdateRequests are being created but none have had their status updated in the last 30 minutes. The background controller may be stuck, overloaded, or down; generate/mutate-existing policies will stop syncing until this is resolved.
+        - alert: KyvernoUpdateRequestNotCleanedUp
+          expr: increase(kyverno_client_queries_total{client_type="kyverno",resource_kind="UpdateRequest",operation="create"}[6h]) > 0 and increase(kyverno_client_queries_total{client_type="kyverno",resource_kind="UpdateRequest",operation="delete"}[6h]) == 0
+          for: 1h
+          labels:
+            severity: warning
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: Kyverno UpdateRequests are not being garbage collected.
+            description: UpdateRequests keep being created but none have been deleted in the last 6 hours, so the backlog only grows. Left unchecked this reaches updateRequestThreshold in the Kyverno configmap and blocks all new UpdateRequest creation, silently stopping generate/mutate-existing policies from applying to new triggers.
+        - alert: KyvernoUpdateRequestCreateRateHigh
+          expr: sum(increase(kyverno_client_queries_total{client_type="kyverno",resource_kind="UpdateRequest",operation="create"}[1h])) > 500
+          for: 15m
+          labels:
+            severity: warning
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: Kyverno is creating a high volume of UpdateRequests.
+            description: More than 500 UpdateRequests were created in the last hour, {{ `{{ $value }}` }} in this window. At this rate the cluster risks hitting updateRequestThreshold (default 1000) and blocking new UpdateRequest creation cluster-wide.
+        - alert: KyvernoCleanupControllerDown
+          expr: absent(up{service="kyverno-cleanup-controller-metrics",namespace="apc-kyverno"}) == 1
+          for: 10m
+          labels:
+            severity: warning
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: Kyverno cleanup controller is down.
+            description: Kyverno cleanup controller is not running. This controller retires completed/expired UpdateRequests and cleanup policy targets; while down, stale UpdateRequests will accumulate instead of being garbage collected.
+        - alert: KyvernoReportsControllerDown
+          expr: absent(up{service="kyverno-reports-controller-metrics",namespace="apc-kyverno"}) == 1
+          for: 10m
+          labels:
+            severity: warning
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: Kyverno reports controller is down.
+            description: Kyverno reports controller is not running. This controller aggregates policy/admission results into PolicyReports; while down, kyverno_policy_results_total may go stale and mask real policy failures from KyvernoPolicyResultsError/KyvernoPolicyResultsFail.
+        - alert: KyvernoPolicyRuleSlowExecution
+          expr: histogram_quantile(0.95, sum by (le, policy_name, rule_name) (rate(kyverno_policy_execution_duration_seconds_bucket[15m]))) > 5
+          for: 15m
+          labels:
+            severity: warning
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: Kyverno rule {{ `{{ $labels.policy_name }}` }}/{{ `{{ $labels.rule_name }}` }} is executing slowly.
+            description: The p95 execution time for rule {{ `{{ $labels.rule_name }}` }} in policy {{ `{{ $labels.policy_name }}` }} has exceeded 5s over the last 15 minutes. Slow rules drag down background-scan throughput and can contribute to a growing UpdateRequest backlog.
+        - alert: KyvernoAdmissionReviewLatencyHigh
+          expr: histogram_quantile(0.95, sum by (le) (rate(kyverno_admission_review_duration_seconds_bucket[15m]))) > 5
+          for: 15m
+          labels:
+            severity: warning
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: Kyverno admission review latency is high.
+            description: The p95 admission review duration has exceeded 5s over the last 15 minutes. This risks admission webhook timeouts, which (depending on failurePolicy) can start blocking ordinary resource creates/updates cluster-wide.
+        - alert: KyvernoBackgroundPolicyDeleted
+          expr: increase(kyverno_policy_changes_total{policy_change_type="deleted",policy_background_mode="true"}[15m]) > 0
+          for: 1m
+          labels:
+            severity: warning
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: A background-enabled Kyverno policy was deleted.
+            description: A policy with background scanning enabled was deleted. If this generates or mutates existing resources, downstream resources will silently stop being reconciled/enforced. Verify this was intentional.
