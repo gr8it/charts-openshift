@@ -1,0 +1,19 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: {{ include "kyverno.fullname" . }}-dashboard
+  namespace: {{ .Release.Namespace }}
+  labels:
+    dashboards: {{ .Values.dashboard.instanceSelector.matchLabels.dashboards }}
+    {{- include "kyverno.labels" . | nindent 4 }}
+spec:
+  datasources:
+    - datasourceName: {{ .Values.dashboard.datasource.name }}
+      inputName: {{ .Values.dashboard.datasource.inputName }}
+  instanceSelector:
+    matchLabels:
+      {{- .Values.dashboard.instanceSelector.matchLabels | toYaml | nindent 6 }}
+  allowCrossNamespaceImport: false
+  resyncPeriod: {{ .Values.dashboard.resyncPeriod }}
+  json: |
+    {{- .Files.Get "files/kyverno-dashboard.json" | nindent 4 }}
