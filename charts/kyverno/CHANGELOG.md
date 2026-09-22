@@ -9,12 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added `KyvernoUpdateRequestBacklogNotDraining`, `KyvernoUpdateRequestNotCleanedUp`, `KyvernoUpdateRequestCreateRateHigh`, `KyvernoCleanupControllerDown`, `KyvernoReportsControllerDown`, `KyvernoPolicyRuleSlowExecution`, `KyvernoAdmissionReviewLatencyHigh`, `KyvernoBackgroundPolicyDeleted` alerts — catch UpdateRequest queue growth and slow admission/background processing before they cause a queue fill
-- Added Kyverno Grafana dashboard as a `GrafanaDashboard` resource
+- Added Kyverno Grafana dashboard and PrometheusRule alerts for UpdateRequest backlog
 
 ### Changed
 
-- `backgroundScanInterval` from `5m` to `1h` (kyverno default), suspected contributor to an UpdateRequest queue fill seen in the field
+- `backgroundScanInterval` 5m → 1h
 
 _([SPEXAPC-2578](https://aspecta.atlassian.net/browse/SPEXAPC-2578))_
 
