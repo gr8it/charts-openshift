@@ -6,8 +6,6 @@ metadata:
     {{- include "kyverno-app-project.labels" . | nindent 4 }}
     rbac.kyverno.io/aggregate-to-background-controller: "true"
 rules:
-# patch the labels onto the namespace - the core role of the background
-# controller reads namespaces and configmaps already, but writes neither
 - apiGroups: [""]
   resources: ["namespaces"]
   verbs: ["get", "list", "watch", "update", "patch"]

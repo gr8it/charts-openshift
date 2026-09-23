@@ -14,7 +14,15 @@ spec:
   rules:
     - name: set-namespace-labels
       match:
-        {{- include "kyverno-app-project.matchMetadataConfigMap" . | nindent 8 }}
+        any:
+          - resources:
+              kinds:
+                - ConfigMap
+              names:
+                - project-metadata
+              namespaceSelector:
+                matchLabels:
+                  apc.namespace.type: application
       context:
         - name: labelentries
           variable:
