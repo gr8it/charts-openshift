@@ -409,7 +409,7 @@ manifests should match snapshot:
                     operator: Equals
                     value: ""
             failureAction: Audit
-            message: 'Namespace ''{{ request.object.metadata.name }}'' has no ''project-metadata'' ConfigMap, so the project has no owner and its metrics are still reported under the platform defaults. Create the ConfigMap in the namespace with the keys: team, vendor.'
+            message: 'Namespace ''{{ request.object.metadata.name }}'' has no ''project-metadata'' ConfigMap, so the project has no owner and its metrics are still reported under the platform defaults. Create the ConfigMap in the namespace with the labels: team, vendor.'
   7: |
     apiVersion: kyverno.io/v1
     kind: ClusterPolicy
