@@ -24,16 +24,16 @@ spec:
       context:
         - name: metadataconfigmap
           apiCall:
-            urlPath: "/api/v1/namespaces/{{ `{{ request.object.metadata.name }}` }}/configmaps/project-metadata"
+            urlPath: "/api/v1/namespaces/{{ `{{ request.object.metadata.name }}` }}/configmaps/{{ .Values.projectMetadataConfigMapName }}"
             jmesPath: "metadata.name"
             default: ""
       validate:
         failureAction: Audit
         message: >-
           Namespace '{{ `{{ request.object.metadata.name }}` }}' has no
-          'project-metadata' ConfigMap, so the project has no owner and its
+          '{{ .Values.projectMetadataConfigMapName }}' ConfigMap, so the project has no owner and its
           metrics are still reported under the platform defaults. Create the
-          ConfigMap in the namespace with the labels: team, vendor.
+          ConfigMap in the namespace with proper labels.
         deny:
           conditions:
             all:
