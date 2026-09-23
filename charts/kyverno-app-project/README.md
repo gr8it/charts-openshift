@@ -141,14 +141,23 @@ cluster is able to provide it.
 
 The audit policy looks the ConfigMap up directly - a `GET` on a ConfigMap that
 does not exist is an error, and `apiCall.default` turns that into the empty
-string the rule reports on. Findings land in the PolicyReport of each namespace:
+string the rule reports on.
+
+The policy validates the **Namespace**, which is a cluster-scoped resource, so
+the findings land in a cluster-scoped report - not in the namespaced
+`PolicyReport` of the namespace, which stays empty. Kyverno 1.15 serves both the
+`wgpolicyk8s.io` and the newer `openreports.io` API, so check which one the
+cluster has:
 
 ```bash
-# namespaces with a failing result
-oc get policyreport -A
+oc api-resources | grep -i report
 
-# what exactly failed in one of them
-oc describe policyreport -n <namespace>
+# then, whichever exists
+oc get clusterpolicyreport
+oc get clusterreports.openreports.io
+
+# the failing namespaces
+oc get clusterpolicyreport -o yaml | grep -B5 -A12 require-metadata-configmap
 ```
 
 This needs the Kyverno reports controller to be running on the cluster.
