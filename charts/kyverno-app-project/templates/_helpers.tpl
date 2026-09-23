@@ -72,3 +72,18 @@ Create the name of the service account to use
 {{- $capabilities := get .Values.vaultCapabilitiesOverride (include "apc-global-overrides.environment" . ) | default .Values.defaultVaultCapabilities }}
 {{- $capabilities | toYaml }}
 {{- end }}
+
+{{/*
+Match block selecting the project metadata ConfigMap in application namespaces.
+*/}}
+{{- define "kyverno-app-project.matchMetadataConfigMap" -}}
+any:
+  - resources:
+      kinds:
+        - ConfigMap
+      names:
+        - project-metadata
+      namespaceSelector:
+        matchLabels:
+          apc.namespace.type: application
+{{- end }}

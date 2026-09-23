@@ -10,3 +10,48 @@ tests:
   - it: manifests should match snapshot
     asserts:
       - matchSnapshot: {}
+
+  - it: copies every key of the project metadata ConfigMap onto the namespace
+    template: templates/clusterpolicy-app-project-metadata.yaml
+    asserts:
+      - equal:
+          path: spec.rules[0].match.any[0].resources.names[0]
+          value: project-metadata
+      - equal:
+          path: spec.rules[0].mutate.targets[0].kind
+          value: Namespace
+      # the whole map is rebuilt from the filtered entries, so the policy is not
+      # tied to a fixed set of keys
+      - equal:
+          path: spec.rules[0].mutate.patchStrategicMerge.metadata.labels
+          value: "{{ object_from_lists(labelentries[].key, labelentries[].value) }}"
+      # entries the API server would reject as a label are dropped rather than
+      # failing the whole patch
+      - equal:
+          path: spec.rules[0].context[0].variable.jmesPath
+          value: "items(request.object.data, 'key', 'value')[?regex_match('^[a-zA-Z0-9]([-_.a-zA-Z0-9]{0,61}[a-zA-Z0-9])?$', value) && length(key) <= `63`]"
+      - equal:
+          path: spec.rules[0].context[0].variable.default
+          value: []
+      # nothing is patched when no entry survives the filter
+      - equal:
+          path: spec.rules[0].preconditions.all[0].key
+          value: "{{ length(labelentries) }}"
+
+  - it: only reports, never blocks, a namespace without the project metadata ConfigMap
+    template: templates/clusterpolicy-app-project-require-metadata-cm.yaml
+    asserts:
+      - equal:
+          path: spec.rules[0].validate.failureAction
+          value: Audit
+      # a GET on a missing ConfigMap errors, and `default` turns that into the
+      # empty string the deny condition looks for
+      - equal:
+          path: spec.rules[0].context[0].apiCall.urlPath
+          value: "/api/v1/namespaces/{{ request.object.metadata.name }}/configmaps/project-metadata"
+      - equal:
+          path: spec.rules[0].context[0].apiCall.default
+          value: ""
+      - equal:
+          path: spec.rules[0].validate.deny.conditions.all[0].value
+          value: ""

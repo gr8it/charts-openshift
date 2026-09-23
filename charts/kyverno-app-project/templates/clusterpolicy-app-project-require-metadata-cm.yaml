@@ -1,0 +1,42 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: app-project-require-metadata-configmap
+  labels:
+    {{- include "kyverno-app-project.labels" . | nindent 4 }}
+  annotations:
+    policies.kyverno.io/title: Report application Namespaces without a project metadata ConfigMap
+    policies.kyverno.io/category: Monitoring
+    policies.kyverno.io/subject: Namespace
+    policies.kyverno.io/minversion: 1.13.0
+spec:
+  background: true
+  rules:
+    - name: require-metadata-configmap
+      match:
+        any:
+          - resources:
+              kinds:
+                - Namespace
+              selector:
+                matchLabels:
+                  apc.namespace.type: application
+      context:
+        - name: metadataconfigmap
+          apiCall:
+            urlPath: "/api/v1/namespaces/{{ `{{ request.object.metadata.name }}` }}/configmaps/project-metadata"
+            jmesPath: "metadata.name"
+            default: ""
+      validate:
+        failureAction: Audit
+        message: >-
+          Namespace '{{ `{{ request.object.metadata.name }}` }}' has no
+          'project-metadata' ConfigMap, so the project has no owner and its
+          metrics are still reported under the platform defaults. Create the
+          ConfigMap in the namespace with the keys: team, vendor.
+        deny:
+          conditions:
+            all:
+              - key: {{ `{{ metadataconfigmap }}` | quote }}
+                operator: Equals
+                value: ""
