@@ -72,4 +72,3 @@ Create the name of the service account to use
 {{- $capabilities := get .Values.vaultCapabilitiesOverride (include "apc-global-overrides.environment" . ) | default .Values.defaultVaultCapabilities }}
 {{- $capabilities | toYaml }}
 {{- end }}
-
