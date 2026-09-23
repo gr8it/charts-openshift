@@ -9,8 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `app-project-namespace-metadata` copies every key of the `project-metadata`
-  ConfigMap onto the Namespace as a label, so that metrics can be attributed to the project instead of the `prometheusK8s.externalLabels` platform default. Entries whose value is not a valid Kubernetes label value are skipped instead of failing the patch
+- `app-project-namespace-metadata` copies every key of the `project-metadata` configmap onto the Namespace as a label, so that metrics can be attributed to the project instead of the `prometheusK8s.externalLabels` platform default. Entries whose value is not a valid Kubernetes label value are skipped instead of failing the patch
 - `app-project-require-metadata-configmap` reports, in Audit mode, an application namespace in which no `project-metadata` ConfigMap exists
 - aggregated ClusterRole letting the background controller patch Namespace labels
 
