@@ -13,7 +13,7 @@ spec:
   instanceSelector:
     matchLabels:
       {{- .Values.dashboard.instanceSelector.matchLabels | toYaml | nindent 6 }}
-  allowCrossNamespaceImport: false
+  allowCrossNamespaceImport: true
   resyncPeriod: {{ .Values.dashboard.resyncPeriod }}
   json: |
-    {{- .Files.Get "files/kyverno-dashboard.json" | nindent 4 }}
+    {{- .Files.Get "files/kyverno-dashboard.json" | replace "__KYVERNO_NAMESPACE__" .Release.Namespace | nindent 4 }}

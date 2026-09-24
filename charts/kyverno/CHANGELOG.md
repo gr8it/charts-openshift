@@ -5,6 +5,12 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1] - 2026-09-24
+
+### Fixed
+
+- Corrected Kyverno dashboard queries and alert expressions, and made monitoring resources work across release namespaces.
+
 ## [1.6.0] - 2026-09-22
 
 ### Added

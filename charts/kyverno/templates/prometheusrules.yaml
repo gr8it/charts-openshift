@@ -28,7 +28,7 @@ spec:
             summary: Kyverno policy {{ `{{ $labels.policy_name }}` }} failed.
             description: Kyverno policy {{ `{{ $labels.policy_name }}` }} failed, please investigate kyverno logs for root cause.
         - alert: KyvernoBackgroundControllerDown
-          expr: absent(up{job=~".*kyverno-background-controller.*"}) == 1
+          expr: absent(up{job=~".*kyverno-background-controller.*",namespace="{{ .Release.Namespace }}"}) == 1
           for: 10m
           labels:
             severity: warning
@@ -38,7 +38,7 @@ spec:
             summary: Kyverno background controller is down.
             description: Kyverno background controller is not running. This controller is responsible for generating resources (e.g. PrometheusRules) for existing namespaces. New and existing namespaces may be missing monitoring alerts.
         - alert: KyvernoAdmissionControllerDown
-          expr: absent(up{service="kyverno-svc-metrics",namespace="apc-kyverno"}) == 1
+          expr: absent(up{service="kyverno-svc-metrics",namespace="{{ .Release.Namespace }}"}) == 1
           for: 10m
           labels:
             severity: warning
@@ -48,7 +48,7 @@ spec:
             summary: Kyverno admission controller is down.
             description: Kyverno admission controller is not running. This controller is responsible for generating resources (e.g. PrometheusRules) when new namespaces are created. New namespaces will not receive monitoring alerts.
         - alert: KyvernoUpdateRequestBacklogNotDraining
-          expr: increase(kyverno_client_queries_total{client_type="kyverno",resource_kind="UpdateRequest",operation="create"}[30m]) > 0 and increase(kyverno_client_queries_total{client_type="kyverno",resource_kind="UpdateRequest",operation="update_status"}[30m]) == 0
+          expr: sum(increase(kyverno_client_queries_total{client_type="kyverno",resource_kind="UpdateRequest",operation="create"}[30m])) > 0 unless sum(increase(kyverno_client_queries_total{client_type="kyverno",resource_kind="UpdateRequest",operation="update_status"}[30m])) > 0
           for: 30m
           labels:
             severity: warning
@@ -58,7 +58,7 @@ spec:
             summary: Kyverno background controller is not processing UpdateRequests.
             description: New UpdateRequests are being created but none have had their status updated in the last 30 minutes. The background controller may be stuck, overloaded, or down; generate/mutate-existing policies will stop syncing until this is resolved.
         - alert: KyvernoUpdateRequestNotCleanedUp
-          expr: increase(kyverno_client_queries_total{client_type="kyverno",resource_kind="UpdateRequest",operation="create"}[6h]) > 0 and increase(kyverno_client_queries_total{client_type="kyverno",resource_kind="UpdateRequest",operation="delete"}[6h]) == 0
+          expr: sum(increase(kyverno_client_queries_total{client_type="kyverno",resource_kind="UpdateRequest",operation="create"}[6h])) > 0 unless sum(increase(kyverno_client_queries_total{client_type="kyverno",resource_kind="UpdateRequest",operation="delete"}[6h])) > 0
           for: 1h
           labels:
             severity: warning
@@ -78,7 +78,7 @@ spec:
             summary: Kyverno is creating a high volume of UpdateRequests.
             description: More than 500 UpdateRequests were created in the last hour, {{ `{{ $value }}` }} in this window. At this rate the cluster risks hitting updateRequestThreshold (default 1000) and blocking new UpdateRequest creation cluster-wide.
         - alert: KyvernoCleanupControllerDown
-          expr: absent(up{service="kyverno-cleanup-controller-metrics",namespace="apc-kyverno"}) == 1
+          expr: absent(up{service="kyverno-cleanup-controller-metrics",namespace="{{ .Release.Namespace }}"}) == 1
           for: 10m
           labels:
             severity: warning
@@ -86,9 +86,9 @@ spec:
             team: platform
           annotations:
             summary: Kyverno cleanup controller is down.
-            description: Kyverno cleanup controller is not running. This controller retires completed/expired UpdateRequests and cleanup policy targets; while down, stale UpdateRequests will accumulate instead of being garbage collected.
+            description: Kyverno cleanup controller is not running. CleanupPolicy and TTL cleanup targets will not be removed while it is down.
         - alert: KyvernoReportsControllerDown
-          expr: absent(up{service="kyverno-reports-controller-metrics",namespace="apc-kyverno"}) == 1
+          expr: absent(up{service="kyverno-reports-controller-metrics",namespace="{{ .Release.Namespace }}"}) == 1
           for: 10m
           labels:
             severity: warning

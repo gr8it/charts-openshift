@@ -574,7 +574,7 @@
               },
               {
                 "color": "red",
-                "value": 80
+                "value": 0.8
               }
             ]
           },
@@ -641,7 +641,7 @@
               },
               {
                 "color": "red",
-                "value": 80
+                "value": 0.8
               }
             ]
           },
@@ -708,7 +708,7 @@
               },
               {
                 "color": "red",
-                "value": 80
+                "value": 0.8
               }
             ]
           },
@@ -775,7 +775,7 @@
               },
               {
                 "color": "red",
-                "value": 80
+                "value": 0.8
               }
             ]
           },
@@ -1886,7 +1886,7 @@
           "exemplar": true,
           "expr": "count(count(kyverno_policy_rule_info_total{}==1) by (policy_name, policy_validation_mode)) by (policy_validation_mode)",
           "interval": "",
-          "legendFormat": "audit",
+          "legendFormat": "{{policy_validation_mode}}",
           "refId": "A"
         }
       ],
@@ -2261,7 +2261,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "avg(kyverno_policy_execution_duration_seconds_sum{}) by (rule_type)",
+          "expr": "sum by (rule_type) (rate(kyverno_policy_execution_duration_seconds_sum[5m])) / sum by (rule_type) (rate(kyverno_policy_execution_duration_seconds_count[5m]))",
           "interval": "",
           "legendFormat": "{{rule_type}}",
           "refId": "A"
@@ -2358,7 +2358,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "avg(sum(kyverno_policy_execution_duration_seconds_sum{}) by (policy_name, policy_type)) by (policy_type)",
+          "expr": "sum by (policy_type) (rate(kyverno_policy_execution_duration_seconds_sum[5m])) / sum by (policy_type) (rate(kyverno_policy_execution_duration_seconds_count[5m]))",
           "interval": "",
           "legendFormat": "{{policy_type}}",
           "refId": "A"
@@ -2366,7 +2366,7 @@
       ],
       "thresholds": [],
       "timeRegions": [],
-      "title": "Average Policy Execution Latency",
+      "title": "Average Rule Execution Latency (by policy type)",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -2447,7 +2447,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "avg(kyverno_policy_execution_duration_seconds_sum{})",
+          "expr": "sum(rate(kyverno_policy_execution_duration_seconds_sum[5m])) / sum(rate(kyverno_policy_execution_duration_seconds_count[5m]))",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -2506,13 +2506,13 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "avg(sum(kyverno_policy_execution_duration_seconds_sum{}) by (policy_name, policy_type))",
+          "expr": "avg(sum by (policy_name) (rate(kyverno_policy_execution_duration_seconds_sum[5m])) / sum by (policy_name) (rate(kyverno_policy_execution_duration_seconds_count[5m])))",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         }
       ],
-      "title": "Overall Average Policy Execution Latency",
+      "title": "Average Per-Policy Rule Execution Latency",
       "type": "stat"
     },
     {
@@ -2576,7 +2576,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "avg(kyverno_admission_requests_total{}) by (resource_request_operation)",
+          "expr": "sum by (resource_request_operation) (rate(kyverno_admission_review_duration_seconds_sum[5m])) / sum by (resource_request_operation) (rate(kyverno_admission_review_duration_seconds_count[5m]))",
           "interval": "",
           "legendFormat": "Resource Operation: {{resource_request_operation}}",
           "refId": "A"
@@ -2663,7 +2663,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "sum(kyverno_admission_requests_total{}) by (resource_kind)",
+          "expr": "sum by (resource_kind) (rate(kyverno_admission_review_duration_seconds_sum[5m])) / sum by (resource_kind) (rate(kyverno_admission_review_duration_seconds_count[5m]))",
           "interval": "",
           "legendFormat": "Resource Kind: {{resource_kind}}",
           "refId": "A"
@@ -2811,7 +2811,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "avg(kyverno_admission_review_duration_seconds_sum{})",
+          "expr": "sum(rate(kyverno_admission_review_duration_seconds_sum[5m])) / sum(rate(kyverno_admission_review_duration_seconds_count[5m]))",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -3134,7 +3134,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "sum(rate(kyverno_admission_requests_total{}[5m]))",
+          "expr": "sum(rate(kyverno_policy_changes_total[5m]))",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -3425,7 +3425,7 @@
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
-        "regex": "^apc-kyverno$",
+        "regex": "^__KYVERNO_NAMESPACE__$",
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"

@@ -9,3 +9,31 @@ tests:
   - it: manifests should match snapshot
     asserts:
       - matchSnapshot: {}
+  - it: dashboard uses release namespace
+    release:
+      namespace: alternate-kyverno
+    template: templates/grafanadashboard.yaml
+    asserts:
+      - equal:
+          path: spec.allowCrossNamespaceImport
+          value: true
+      - matchRegex:
+          path: spec.json
+          pattern: '"regex": "\^alternate-kyverno\$"'
+  - it: controller alerts use release namespace
+    release:
+      namespace: alternate-kyverno
+    template: templates/prometheusrules.yaml
+    asserts:
+      - equal:
+          path: spec.groups[0].rules[2].expr
+          value: 'absent(up{job=~".*kyverno-background-controller.*",namespace="alternate-kyverno"}) == 1'
+      - equal:
+          path: spec.groups[0].rules[3].expr
+          value: 'absent(up{service="kyverno-svc-metrics",namespace="alternate-kyverno"}) == 1'
+      - equal:
+          path: spec.groups[0].rules[7].expr
+          value: 'absent(up{service="kyverno-cleanup-controller-metrics",namespace="alternate-kyverno"}) == 1'
+      - equal:
+          path: spec.groups[0].rules[8].expr
+          value: 'absent(up{service="kyverno-reports-controller-metrics",namespace="alternate-kyverno"}) == 1'
