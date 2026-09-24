@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "dashboard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resyncPeriod", "instanceSelector", "datasource"],
+      "properties": {
+        "resyncPeriod": {"type": "string", "pattern": "^[0-9]+(ms|s|m|h)$"},
+        "instanceSelector": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["matchLabels"],
+          "properties": {
+            "matchLabels": {
+              "type": "object",
+              "required": ["dashboards"],
+              "additionalProperties": {"type": "string", "minLength": 1},
+              "properties": {"dashboards": {"type": "string", "minLength": 1}}
+            }
+          }
+        },
+        "datasource": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "inputName"],
+          "properties": {
+            "name": {"type": "string", "minLength": 1},
+            "inputName": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "kyverno": {"type": "object"},
+    "global": {"type": "object"}
+  }
+}

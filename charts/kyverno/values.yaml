@@ -1,8 +1,17 @@
+dashboard:
+  resyncPeriod: 10m
+  instanceSelector:
+    matchLabels:
+      dashboards: apc-grafana
+  datasource:
+    name: prometheus
+    inputName: DS_PROMETHEUS
+
 kyverno:
   features:
     backgroundScan:
       skipResourceFilters: false
-      backgroundScanInterval: 5m
+      backgroundScanInterval: 1h
   backgroundController:
     serviceMonitor:
       enabled: true
