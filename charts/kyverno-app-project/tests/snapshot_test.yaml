@@ -25,10 +25,13 @@ tests:
           value: "{{ object_from_lists(labelentries[].key, labelentries[].value) }}"
       - equal:
           path: spec.rules[0].context[0].variable.jmesPath
-          value: "items(request.object.data, 'key', 'value')[?regex_match('^[a-zA-Z0-9]([-_.a-zA-Z0-9]{0,61}[a-zA-Z0-9])?$', value) && length(key) <= `63` && !starts_with(key, 'apc.') && !contains(key, 'kubernetes') && !contains(key, 'openshift') && !contains(key, 'k8s')]"
+          value: "items(request.object.data, 'key', 'value')[?regex_match('^[a-zA-Z0-9]([-_.a-zA-Z0-9]{0,61}[a-zA-Z0-9])?$', key) && regex_match('^[a-zA-Z0-9]([-_.a-zA-Z0-9]{0,61}[a-zA-Z0-9])?$', value) && !starts_with(key, 'apc.') && !contains(key, 'kubernetes') && !contains(key, 'openshift') && !contains(key, 'k8s')]"
       - matchRegex:
           path: spec.rules[0].context[0].variable.jmesPath
           pattern: "!starts_with\\(key, 'apc\\.'\\)"
+      - matchRegex:
+          path: spec.rules[0].context[0].variable.jmesPath
+          pattern: "regex_match\\('\\^\\[a-zA-Z0-9\\]\\(\\[-_\\.a-zA-Z0-9\\]\\{0,61\\}\\[a-zA-Z0-9\\]\\)\\?\\$', key\\)"
       - equal:
           path: spec.rules[0].context[0].variable.default
           value: []

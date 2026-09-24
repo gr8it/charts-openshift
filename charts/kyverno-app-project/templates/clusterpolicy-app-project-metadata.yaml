@@ -26,7 +26,7 @@ spec:
       context:
         - name: labelentries
           variable:
-            jmesPath: "items(request.object.data, 'key', 'value')[?regex_match('^[a-zA-Z0-9]([-_.a-zA-Z0-9]{0,61}[a-zA-Z0-9])?$', value) && length(key) <= `63` && !starts_with(key, 'apc.') && !contains(key, 'kubernetes') && !contains(key, 'openshift') && !contains(key, 'k8s')]"
+            jmesPath: "items(request.object.data, 'key', 'value')[?regex_match('^[a-zA-Z0-9]([-_.a-zA-Z0-9]{0,61}[a-zA-Z0-9])?$', key) && regex_match('^[a-zA-Z0-9]([-_.a-zA-Z0-9]{0,61}[a-zA-Z0-9])?$', value) && !starts_with(key, 'apc.') && !contains(key, 'kubernetes') && !contains(key, 'openshift') && !contains(key, 'k8s')]"
             default: []
       preconditions:
         all:
