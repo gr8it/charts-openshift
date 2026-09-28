@@ -67,16 +67,16 @@ spec:
           annotations:
             summary: Kyverno UpdateRequests are not being garbage collected.
             description: UpdateRequests keep being created but none have been deleted in the last 6 hours, so the backlog only grows. Left unchecked this reaches updateRequestThreshold in the Kyverno configmap and blocks all new UpdateRequest creation, silently stopping generate/mutate-existing policies from applying to new triggers.
-        - alert: KyvernoUpdateRequestCreateRateHigh
-          expr: sum(increase(kyverno_client_queries_total{client_type="kyverno",resource_kind="UpdateRequest",operation="create"}[1h])) > 500
-          for: 15m
+        - alert: KyvernoUpdateRequestsDropped
+          expr: sum(increase(kyverno_breaker_drops_total[15m])) > 0
+          for: 5m
           labels:
             severity: warning
             vendor: aspecta
             team: platform
           annotations:
-            summary: Kyverno is creating a high volume of UpdateRequests.
-            description: More than 500 UpdateRequests were created in the last hour, {{ `{{ $value }}` }} in this window. At this rate the cluster risks hitting updateRequestThreshold (default 1000) and blocking new UpdateRequest creation cluster-wide.
+            summary: Kyverno is dropping new UpdateRequests.
+            description: The Kyverno circuit breaker is dropping new UpdateRequests because updateRequestThreshold (default 1000) was reached. Generate/mutate-existing policies are not applied to new triggers until the backlog drains.
         - alert: KyvernoCleanupControllerDown
           expr: absent(up{service="kyverno-cleanup-controller-metrics",namespace="{{ .Release.Namespace }}"}) == 1
           for: 10m

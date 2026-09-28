@@ -6532,12 +6532,12 @@ manifests should match snapshot:
                 severity: warning
                 team: platform
                 vendor: aspecta
-            - alert: KyvernoUpdateRequestCreateRateHigh
+            - alert: KyvernoUpdateRequestsDropped
               annotations:
-                description: More than 500 UpdateRequests were created in the last hour, {{ $value }} in this window. At this rate the cluster risks hitting updateRequestThreshold (default 1000) and blocking new UpdateRequest creation cluster-wide.
-                summary: Kyverno is creating a high volume of UpdateRequests.
-              expr: sum(increase(kyverno_client_queries_total{client_type="kyverno",resource_kind="UpdateRequest",operation="create"}[1h])) > 500
-              for: 15m
+                description: The Kyverno circuit breaker is dropping new UpdateRequests because updateRequestThreshold (default 1000) was reached. Generate/mutate-existing policies are not applied to new triggers until the backlog drains.
+                summary: Kyverno is dropping new UpdateRequests.
+              expr: sum(increase(kyverno_breaker_drops_total[15m])) > 0
+              for: 5m
               labels:
                 severity: warning
                 team: platform
