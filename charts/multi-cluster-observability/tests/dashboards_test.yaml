@@ -6,11 +6,11 @@ release:
   namespace: open-cluster-management-observability
 
 tests:
-  - it: renders only the currently approved 20 dashboard ConfigMaps for hub
+  - it: renders only the currently approved 19 dashboard ConfigMaps for hub
     template: templates/dashboards.yaml
     asserts:
       - hasDocuments:
-          count: 20
+          count: 19
       - matchSnapshot: {}
 
   - it: does not render dashboards for non-hub clusters
