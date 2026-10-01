@@ -67,10 +67,12 @@ Validate that all values under clusterPullSecretPath are unique.
 {{- define "quay-config.validateClusterPullSecretPath" -}}
 {{- $seen := dict }}
 {{- range $key, $val := .Values.vault.clusterPullSecretPath }}
-{{- if hasKey $seen $val }}
-  {{- fail (printf "clusterPullSecretPath: duplicate value %q used by both %q and %q — values must be distinct" $val (get $seen $val) $key) }}
+  {{- if $val }}
+  {{- if hasKey $seen $val }}
+    {{- fail (printf "clusterPullSecretPath: duplicate value %q used by both %q and %q — values must be distinct" $val (get $seen $val) $key) }}
   {{- end }}
   {{- $_ := set $seen $val $key }}
+  {{- end }}
 {{- end }}
 {{- end }}
 

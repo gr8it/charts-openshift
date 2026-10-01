@@ -13,9 +13,6 @@ spec:
     policy: |2
 
       {{- $clusterPullSecretPath := default dict .Values.vault.clusterPullSecretPath }}
-      {{- if not .Values.vault.updateClusterPullSecrets }}
-      {{- $clusterPullSecretPath = dict }}
-      {{- end }}
 
       {{- $refPullSecretPath := dict }}
       {{- if not (has .Values.vault.refPullSecretPath (values $clusterPullSecretPath)) }}
@@ -23,6 +20,7 @@ spec:
       {{- end }}
 
       {{- range $cluster, $path := merge $refPullSecretPath $clusterPullSecretPath }}
+      {{- if $path }}
       path "{{ $path }}" {
         capabilities = ["create", "read", "update", "patch", "list"]
       }
@@ -32,6 +30,7 @@ spec:
       path "{{ include "quay-config.insertPathSegment" (dict "path" $path "insert" "metadata") }}" {
         capabilities = ["create", "read", "update", "patch", "list"]
       }
+      {{- end }}
       {{- end }}
   initProvider: {}
   managementPolicies:

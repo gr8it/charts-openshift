@@ -32,8 +32,8 @@
       "default": []
     },
     "vaultPath": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9][A-Za-z0-9._\\-]*(\\/[A-Za-z0-9][A-Za-z0-9._\\-]*)*$",
+      "type": ["string","null"],
+      "pattern": "^[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+){2,}$",
       "minLength": 1
     },
     "k8sObjName": {
@@ -105,7 +105,10 @@
     },
     "imageProxyRegistries": {
       "description": "List of registries to be used for image proxying",
-      "$ref": "#/$definitions/stringArray"
+      "allOf": [
+        { "$ref": "#/$definitions/stringArray" },
+        { "items": { "pattern": "^[^:/]+$" }}
+      ]
     },
     "vault": {
       "type": "object",
@@ -125,9 +128,6 @@
           "additionalProperties": {
             "$ref": "#/$definitions/vaultPath"
           }
-        },
-        "updateClusterPullSecrets": {
-          "type": "boolean"
         }
       }
     },

@@ -17,6 +17,5 @@ data:
   ROBOTACCOUNTSECRET: {{ include "quay-config.objname.robotaccounts" . }}
   MANAGEDORGCM: {{ include "quay-config.objname.managedorgs" . }}
   VAULTADDRESS: {{ include "apc-global-overrides.require-vaultUrl" . }}
-  UPDATEVAULTSECRETS: {{ (ternary "yes" "no" .Values.vault.updateClusterPullSecrets) | quote }}
   LABELS: |2
     {{ include "quay-config.labels" . | nindent 8 }}

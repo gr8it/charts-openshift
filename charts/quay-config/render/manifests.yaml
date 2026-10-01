@@ -100,7 +100,6 @@ data:
   ROBOTACCOUNTSECRET: apc-registry-robot-accounts
   MANAGEDORGCM: apc-registry-managed-orgs
   VAULTADDRESS: https://vault.apps.huba.qa.sp.gr8it.cloud
-  UPDATEVAULTSECRETS: "yes"
   LABELS: |2
     
         helm.sh/chart: quay-config-0.1.0
@@ -1479,7 +1478,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
   annotations:
     argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded #,BeforeHookCreation
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
     argocd.argoproj.io/sync-options: Replace=true
     argocd.argoproj.io/sync-wave: "30"
 spec:
@@ -1590,10 +1589,12 @@ spec:
           env:
             - name: CLUSTERNAME
               value: huba
-            - name: CLUSTERVAULTPATH
-              value: apc-platform/h/cluster-config-test
             - name: AUTHBACKENDNAME
               value: huba
+            - name: CLUSTERVAULTPATH
+              value: apc-platform/h/cluster-config-test
+            - name: UPDATEVAULTSECRETS
+              value: "yes"
           resources:
             limits:
               cpu: 500m
@@ -1618,10 +1619,12 @@ spec:
           env:
             - name: CLUSTERNAME
               value: spokea1
-            - name: CLUSTERVAULTPATH
-              value: apc-platform/s/cluster-config-test
             - name: AUTHBACKENDNAME
               value: huba
+            - name: CLUSTERVAULTPATH
+              value: apc-platform/s/cluster-config-test
+            - name: UPDATEVAULTSECRETS
+              value: "yes"
           resources:
             limits:
               cpu: 500m
@@ -1795,8 +1798,6 @@ metadata:
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
-  annotations:
-    argocd.argoproj.io/hook: PostSync
 spec:
   updatePolicy: Replace
   deletionPolicy: None
@@ -1824,8 +1825,6 @@ metadata:
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
-  annotations:
-    argocd.argoproj.io/hook: PostSync
 spec:
   updatePolicy: Replace
   deletionPolicy: None
