@@ -116,7 +116,7 @@ Usage: include "monitoring.namespaceRules" (dict "root" . "vendor" "aspecta" "te
 - alert: {{ .alert }}
   expr: |-
     max by ({{ join "," .alertLabels }}) (
-{{ .expr | trim | nindent 6 }}
+{{- .expr | trim | nindent 6 }}
     )
   for: {{ .for }}
   labels:

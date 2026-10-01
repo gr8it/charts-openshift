@@ -70,7 +70,6 @@ manifests should match snapshot (hub cluster):
                           summary: Pod is crash looping
                         expr: |-
                           max by (namespace,pod,container) (
-
                             max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m]) >= 1
                           )
                         for: 15m
@@ -86,7 +85,6 @@ manifests should match snapshot (hub cluster):
                           summary: Pod has been in a non-ready state for more than 15 minutes
                         expr: |-
                           max by (namespace,pod) (
-
                             sum by (namespace, pod, cluster) (
                               max by (namespace, pod, cluster) (
                                 kube_pod_status_phase{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", phase=~"Pending|Unknown|Failed"}
@@ -107,7 +105,6 @@ manifests should match snapshot (hub cluster):
                           summary: Pod has been evicted
                         expr: |-
                           max by (namespace,pod) (
-
                             kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
                           )
                         for: 0m
@@ -123,7 +120,6 @@ manifests should match snapshot (hub cluster):
                           summary: Deployment generation mismatch due to possible roll-back
                         expr: |-
                           max by (namespace,deployment) (
-
                             kube_deployment_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               !=
                             kube_deployment_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -141,7 +137,6 @@ manifests should match snapshot (hub cluster):
                           summary: Deployment has not matched the expected number of replicas
                         expr: |-
                           max by (namespace,deployment) (
-
                             (
                               kube_deployment_spec_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                                 >
@@ -165,7 +160,6 @@ manifests should match snapshot (hub cluster):
                           summary: Deployment rollout is not progressing
                         expr: |-
                           max by (namespace,deployment) (
-
                             kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                             != 0
                           )
@@ -182,7 +176,6 @@ manifests should match snapshot (hub cluster):
                           summary: StatefulSet has not matched the expected number of replicas
                         expr: |-
                           max by (namespace,statefulset) (
-
                             (
                               kube_statefulset_status_replicas_ready{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                                 !=
@@ -206,7 +199,6 @@ manifests should match snapshot (hub cluster):
                           summary: StatefulSet generation mismatch due to possible roll-back
                         expr: |-
                           max by (namespace,statefulset) (
-
                             kube_statefulset_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               !=
                             kube_statefulset_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -224,7 +216,6 @@ manifests should match snapshot (hub cluster):
                           summary: StatefulSet update has not been rolled out
                         expr: |-
                           max by (namespace,statefulset) (
-
                             (
                               max by (namespace, statefulset, job, cluster) (
                                 kube_statefulset_status_current_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -256,7 +247,6 @@ manifests should match snapshot (hub cluster):
                           summary: DaemonSet rollout is stuck
                         expr: |-
                           max by (namespace,daemonset) (
-
                             (
                               (
                                 kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -294,7 +284,6 @@ manifests should match snapshot (hub cluster):
                           summary: Pod container waiting longer than 1 hour
                         expr: |-
                           max by (namespace,pod,container) (
-
                             kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
                           )
                         for: 1h
@@ -310,7 +299,6 @@ manifests should match snapshot (hub cluster):
                           summary: DaemonSet pods are not scheduled
                         expr: |-
                           max by (namespace,daemonset) (
-
                             kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               -
                             kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
@@ -328,7 +316,6 @@ manifests should match snapshot (hub cluster):
                           summary: DaemonSet pods are misscheduled
                         expr: |-
                           max by (namespace,daemonset) (
-
                             kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
                           )
                         for: 15m
@@ -344,7 +331,6 @@ manifests should match snapshot (hub cluster):
                           summary: Job did not complete in time
                         expr: |-
                           max by (namespace,job_name) (
-
                             time() - max by (namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               and
                             kube_job_status_active{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0) > 43200
@@ -362,7 +348,6 @@ manifests should match snapshot (hub cluster):
                           summary: Job failed to complete
                         expr: |-
                           max by (namespace,job_name) (
-
                             kube_job_failed{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}  > 0
                           )
                         for: 15m
@@ -378,7 +363,6 @@ manifests should match snapshot (hub cluster):
                           summary: HPA has not matched desired number of replicas
                         expr: |-
                           max by (namespace,horizontalpodautoscaler) (
-
                             (kube_horizontalpodautoscaler_status_desired_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               !=
                             kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
@@ -406,7 +390,6 @@ manifests should match snapshot (hub cluster):
                           summary: HPA is running at max replicas
                         expr: |-
                           max by (namespace,horizontalpodautoscaler) (
-
                             kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               ==
                             kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -424,7 +407,6 @@ manifests should match snapshot (hub cluster):
                           summary: PDB does not have enough healthy pods
                         expr: |-
                           max by (namespace,poddisruptionbudget) (
-
                             (
                               kube_poddisruptionbudget_status_desired_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               -
@@ -445,7 +427,6 @@ manifests should match snapshot (hub cluster):
                           summary: PersistentVolume is filling up
                         expr: |-
                           max by (namespace,persistentvolumeclaim) (
-
                             (
                               kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
                                 /
@@ -471,7 +452,6 @@ manifests should match snapshot (hub cluster):
                           summary: PersistentVolume is filling up
                         expr: |-
                           max by (namespace,persistentvolumeclaim) (
-
                             (
                               kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
                                 /
@@ -499,7 +479,6 @@ manifests should match snapshot (hub cluster):
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
                           max by (namespace,persistentvolumeclaim) (
-
                             (
                               kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
                                 /
@@ -525,7 +504,6 @@ manifests should match snapshot (hub cluster):
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
                           max by (namespace,persistentvolumeclaim) (
-
                             (
                               kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
                                 /
@@ -553,7 +531,6 @@ manifests should match snapshot (hub cluster):
                           summary: PersistentVolume is having issues with provisioning
                         expr: |-
                           max by (persistentvolume,phase) (
-
                             kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"} > 0
                           )
                         for: 5m
@@ -568,7 +545,6 @@ manifests should match snapshot (hub cluster):
                           summary: CPU utilization is above 95%
                         expr: |-
                           max by (namespace,pod) (
-
                             (
                               sum by (namespace, pod) (pod:container_cpu_usage:sum{namespace="{{ request.object.metadata.name }}"})
                               /
@@ -587,7 +563,6 @@ manifests should match snapshot (hub cluster):
                           summary: Memory utilization is above 90%
                         expr: |-
                           max by (namespace,pod,container) (
-
                             (
                               sum by (namespace, pod, container) (container_memory_working_set_bytes{container!="", namespace="{{ request.object.metadata.name }}"})
                               /
@@ -662,7 +637,6 @@ manifests should match snapshot (hub cluster):
                           summary: Pod is crash looping
                         expr: |-
                           max by (namespace,pod,container) (
-
                             max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m]) >= 1
                           )
                         for: 15m
@@ -678,7 +652,6 @@ manifests should match snapshot (hub cluster):
                           summary: Pod has been in a non-ready state for more than 15 minutes
                         expr: |-
                           max by (namespace,pod) (
-
                             sum by (namespace, pod, cluster) (
                               max by (namespace, pod, cluster) (
                                 kube_pod_status_phase{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", phase=~"Pending|Unknown|Failed"}
@@ -699,7 +672,6 @@ manifests should match snapshot (hub cluster):
                           summary: Pod has been evicted
                         expr: |-
                           max by (namespace,pod) (
-
                             kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
                           )
                         for: 0m
@@ -715,7 +687,6 @@ manifests should match snapshot (hub cluster):
                           summary: Deployment generation mismatch due to possible roll-back
                         expr: |-
                           max by (namespace,deployment) (
-
                             kube_deployment_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               !=
                             kube_deployment_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -733,7 +704,6 @@ manifests should match snapshot (hub cluster):
                           summary: Deployment has not matched the expected number of replicas
                         expr: |-
                           max by (namespace,deployment) (
-
                             (
                               kube_deployment_spec_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                                 >
@@ -757,7 +727,6 @@ manifests should match snapshot (hub cluster):
                           summary: Deployment rollout is not progressing
                         expr: |-
                           max by (namespace,deployment) (
-
                             kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                             != 0
                           )
@@ -774,7 +743,6 @@ manifests should match snapshot (hub cluster):
                           summary: StatefulSet has not matched the expected number of replicas
                         expr: |-
                           max by (namespace,statefulset) (
-
                             (
                               kube_statefulset_status_replicas_ready{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                                 !=
@@ -798,7 +766,6 @@ manifests should match snapshot (hub cluster):
                           summary: StatefulSet generation mismatch due to possible roll-back
                         expr: |-
                           max by (namespace,statefulset) (
-
                             kube_statefulset_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               !=
                             kube_statefulset_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -816,7 +783,6 @@ manifests should match snapshot (hub cluster):
                           summary: StatefulSet update has not been rolled out
                         expr: |-
                           max by (namespace,statefulset) (
-
                             (
                               max by (namespace, statefulset, job, cluster) (
                                 kube_statefulset_status_current_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -848,7 +814,6 @@ manifests should match snapshot (hub cluster):
                           summary: DaemonSet rollout is stuck
                         expr: |-
                           max by (namespace,daemonset) (
-
                             (
                               (
                                 kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -886,7 +851,6 @@ manifests should match snapshot (hub cluster):
                           summary: Pod container waiting longer than 1 hour
                         expr: |-
                           max by (namespace,pod,container) (
-
                             kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
                           )
                         for: 1h
@@ -902,7 +866,6 @@ manifests should match snapshot (hub cluster):
                           summary: DaemonSet pods are not scheduled
                         expr: |-
                           max by (namespace,daemonset) (
-
                             kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               -
                             kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
@@ -920,7 +883,6 @@ manifests should match snapshot (hub cluster):
                           summary: DaemonSet pods are misscheduled
                         expr: |-
                           max by (namespace,daemonset) (
-
                             kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
                           )
                         for: 15m
@@ -936,7 +898,6 @@ manifests should match snapshot (hub cluster):
                           summary: Job did not complete in time
                         expr: |-
                           max by (namespace,job_name) (
-
                             time() - max by (namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               and
                             kube_job_status_active{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0) > 43200
@@ -954,7 +915,6 @@ manifests should match snapshot (hub cluster):
                           summary: Job failed to complete
                         expr: |-
                           max by (namespace,job_name) (
-
                             kube_job_failed{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}  > 0
                           )
                         for: 15m
@@ -970,7 +930,6 @@ manifests should match snapshot (hub cluster):
                           summary: HPA has not matched desired number of replicas
                         expr: |-
                           max by (namespace,horizontalpodautoscaler) (
-
                             (kube_horizontalpodautoscaler_status_desired_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               !=
                             kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
@@ -998,7 +957,6 @@ manifests should match snapshot (hub cluster):
                           summary: HPA is running at max replicas
                         expr: |-
                           max by (namespace,horizontalpodautoscaler) (
-
                             kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               ==
                             kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -1016,7 +974,6 @@ manifests should match snapshot (hub cluster):
                           summary: PDB does not have enough healthy pods
                         expr: |-
                           max by (namespace,poddisruptionbudget) (
-
                             (
                               kube_poddisruptionbudget_status_desired_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               -
@@ -1037,7 +994,6 @@ manifests should match snapshot (hub cluster):
                           summary: PersistentVolume is filling up
                         expr: |-
                           max by (namespace,persistentvolumeclaim) (
-
                             (
                               kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
                                 /
@@ -1063,7 +1019,6 @@ manifests should match snapshot (hub cluster):
                           summary: PersistentVolume is filling up
                         expr: |-
                           max by (namespace,persistentvolumeclaim) (
-
                             (
                               kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
                                 /
@@ -1091,7 +1046,6 @@ manifests should match snapshot (hub cluster):
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
                           max by (namespace,persistentvolumeclaim) (
-
                             (
                               kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
                                 /
@@ -1117,7 +1071,6 @@ manifests should match snapshot (hub cluster):
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
                           max by (namespace,persistentvolumeclaim) (
-
                             (
                               kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
                                 /
@@ -1145,7 +1098,6 @@ manifests should match snapshot (hub cluster):
                           summary: PersistentVolume is having issues with provisioning
                         expr: |-
                           max by (persistentvolume,phase) (
-
                             kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"} > 0
                           )
                         for: 5m
@@ -1160,7 +1112,6 @@ manifests should match snapshot (hub cluster):
                           summary: CPU utilization is above 95%
                         expr: |-
                           max by (namespace,pod) (
-
                             (
                               sum by (namespace, pod) (pod:container_cpu_usage:sum{namespace="{{ request.object.metadata.name }}"})
                               /
@@ -1179,7 +1130,6 @@ manifests should match snapshot (hub cluster):
                           summary: Memory utilization is above 90%
                         expr: |-
                           max by (namespace,pod,container) (
-
                             (
                               sum by (namespace, pod, container) (container_memory_working_set_bytes{container!="", namespace="{{ request.object.metadata.name }}"})
                               /
@@ -1245,7 +1195,6 @@ manifests should match snapshot (hub cluster):
                           summary: Pod is crash looping
                         expr: |-
                           max by (namespace,pod,container) (
-
                             max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m]) >= 1
                           )
                         for: 15m
@@ -1261,7 +1210,6 @@ manifests should match snapshot (hub cluster):
                           summary: Pod has been in a non-ready state for more than 15 minutes
                         expr: |-
                           max by (namespace,pod) (
-
                             sum by (namespace, pod, cluster) (
                               max by (namespace, pod, cluster) (
                                 kube_pod_status_phase{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", phase=~"Pending|Unknown|Failed"}
@@ -1282,7 +1230,6 @@ manifests should match snapshot (hub cluster):
                           summary: Pod has been evicted
                         expr: |-
                           max by (namespace,pod) (
-
                             kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
                           )
                         for: 0m
@@ -1298,7 +1245,6 @@ manifests should match snapshot (hub cluster):
                           summary: Deployment generation mismatch due to possible roll-back
                         expr: |-
                           max by (namespace,deployment) (
-
                             kube_deployment_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               !=
                             kube_deployment_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -1316,7 +1262,6 @@ manifests should match snapshot (hub cluster):
                           summary: Deployment has not matched the expected number of replicas
                         expr: |-
                           max by (namespace,deployment) (
-
                             (
                               kube_deployment_spec_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                                 >
@@ -1340,7 +1285,6 @@ manifests should match snapshot (hub cluster):
                           summary: Deployment rollout is not progressing
                         expr: |-
                           max by (namespace,deployment) (
-
                             kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                             != 0
                           )
@@ -1357,7 +1301,6 @@ manifests should match snapshot (hub cluster):
                           summary: StatefulSet has not matched the expected number of replicas
                         expr: |-
                           max by (namespace,statefulset) (
-
                             (
                               kube_statefulset_status_replicas_ready{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                                 !=
@@ -1381,7 +1324,6 @@ manifests should match snapshot (hub cluster):
                           summary: StatefulSet generation mismatch due to possible roll-back
                         expr: |-
                           max by (namespace,statefulset) (
-
                             kube_statefulset_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               !=
                             kube_statefulset_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -1399,7 +1341,6 @@ manifests should match snapshot (hub cluster):
                           summary: StatefulSet update has not been rolled out
                         expr: |-
                           max by (namespace,statefulset) (
-
                             (
                               max by (namespace, statefulset, job, cluster) (
                                 kube_statefulset_status_current_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -1431,7 +1372,6 @@ manifests should match snapshot (hub cluster):
                           summary: DaemonSet rollout is stuck
                         expr: |-
                           max by (namespace,daemonset) (
-
                             (
                               (
                                 kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -1469,7 +1409,6 @@ manifests should match snapshot (hub cluster):
                           summary: Pod container waiting longer than 1 hour
                         expr: |-
                           max by (namespace,pod,container) (
-
                             kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
                           )
                         for: 1h
@@ -1485,7 +1424,6 @@ manifests should match snapshot (hub cluster):
                           summary: DaemonSet pods are not scheduled
                         expr: |-
                           max by (namespace,daemonset) (
-
                             kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               -
                             kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
@@ -1503,7 +1441,6 @@ manifests should match snapshot (hub cluster):
                           summary: DaemonSet pods are misscheduled
                         expr: |-
                           max by (namespace,daemonset) (
-
                             kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
                           )
                         for: 15m
@@ -1519,7 +1456,6 @@ manifests should match snapshot (hub cluster):
                           summary: Job did not complete in time
                         expr: |-
                           max by (namespace,job_name) (
-
                             time() - max by (namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               and
                             kube_job_status_active{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0) > 43200
@@ -1537,7 +1473,6 @@ manifests should match snapshot (hub cluster):
                           summary: Job failed to complete
                         expr: |-
                           max by (namespace,job_name) (
-
                             kube_job_failed{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}  > 0
                           )
                         for: 15m
@@ -1553,7 +1488,6 @@ manifests should match snapshot (hub cluster):
                           summary: HPA has not matched desired number of replicas
                         expr: |-
                           max by (namespace,horizontalpodautoscaler) (
-
                             (kube_horizontalpodautoscaler_status_desired_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               !=
                             kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
@@ -1581,7 +1515,6 @@ manifests should match snapshot (hub cluster):
                           summary: HPA is running at max replicas
                         expr: |-
                           max by (namespace,horizontalpodautoscaler) (
-
                             kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               ==
                             kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -1599,7 +1532,6 @@ manifests should match snapshot (hub cluster):
                           summary: PDB does not have enough healthy pods
                         expr: |-
                           max by (namespace,poddisruptionbudget) (
-
                             (
                               kube_poddisruptionbudget_status_desired_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               -
@@ -1620,7 +1552,6 @@ manifests should match snapshot (hub cluster):
                           summary: PersistentVolume is filling up
                         expr: |-
                           max by (namespace,persistentvolumeclaim) (
-
                             (
                               kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
                                 /
@@ -1646,7 +1577,6 @@ manifests should match snapshot (hub cluster):
                           summary: PersistentVolume is filling up
                         expr: |-
                           max by (namespace,persistentvolumeclaim) (
-
                             (
                               kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
                                 /
@@ -1674,7 +1604,6 @@ manifests should match snapshot (hub cluster):
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
                           max by (namespace,persistentvolumeclaim) (
-
                             (
                               kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
                                 /
@@ -1700,7 +1629,6 @@ manifests should match snapshot (hub cluster):
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
                           max by (namespace,persistentvolumeclaim) (
-
                             (
                               kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
                                 /
@@ -1728,7 +1656,6 @@ manifests should match snapshot (hub cluster):
                           summary: PersistentVolume is having issues with provisioning
                         expr: |-
                           max by (persistentvolume,phase) (
-
                             kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"} > 0
                           )
                         for: 5m
@@ -1743,7 +1670,6 @@ manifests should match snapshot (hub cluster):
                           summary: CPU utilization is above 95%
                         expr: |-
                           max by (namespace,pod) (
-
                             (
                               sum by (namespace, pod) (pod:container_cpu_usage:sum{namespace="{{ request.object.metadata.name }}"})
                               /
@@ -1762,7 +1688,6 @@ manifests should match snapshot (hub cluster):
                           summary: Memory utilization is above 90%
                         expr: |-
                           max by (namespace,pod,container) (
-
                             (
                               sum by (namespace, pod, container) (container_memory_working_set_bytes{container!="", namespace="{{ request.object.metadata.name }}"})
                               /
@@ -2306,7 +2231,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Pod is crash looping
                         expr: |-
                           max by (namespace,pod,container) (
-
                             max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m]) >= 1
                           )
                         for: 15m
@@ -2322,7 +2246,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Pod has been in a non-ready state for more than 15 minutes
                         expr: |-
                           max by (namespace,pod) (
-
                             sum by (namespace, pod, cluster) (
                               max by (namespace, pod, cluster) (
                                 kube_pod_status_phase{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", phase=~"Pending|Unknown|Failed"}
@@ -2343,7 +2266,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Pod has been evicted
                         expr: |-
                           max by (namespace,pod) (
-
                             kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
                           )
                         for: 0m
@@ -2359,7 +2281,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Deployment generation mismatch due to possible roll-back
                         expr: |-
                           max by (namespace,deployment) (
-
                             kube_deployment_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               !=
                             kube_deployment_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -2377,7 +2298,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Deployment has not matched the expected number of replicas
                         expr: |-
                           max by (namespace,deployment) (
-
                             (
                               kube_deployment_spec_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                                 >
@@ -2401,7 +2321,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Deployment rollout is not progressing
                         expr: |-
                           max by (namespace,deployment) (
-
                             kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                             != 0
                           )
@@ -2418,7 +2337,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: StatefulSet has not matched the expected number of replicas
                         expr: |-
                           max by (namespace,statefulset) (
-
                             (
                               kube_statefulset_status_replicas_ready{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                                 !=
@@ -2442,7 +2360,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: StatefulSet generation mismatch due to possible roll-back
                         expr: |-
                           max by (namespace,statefulset) (
-
                             kube_statefulset_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               !=
                             kube_statefulset_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -2460,7 +2377,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: StatefulSet update has not been rolled out
                         expr: |-
                           max by (namespace,statefulset) (
-
                             (
                               max by (namespace, statefulset, job, cluster) (
                                 kube_statefulset_status_current_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -2492,7 +2408,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: DaemonSet rollout is stuck
                         expr: |-
                           max by (namespace,daemonset) (
-
                             (
                               (
                                 kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -2530,7 +2445,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Pod container waiting longer than 1 hour
                         expr: |-
                           max by (namespace,pod,container) (
-
                             kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
                           )
                         for: 1h
@@ -2546,7 +2460,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: DaemonSet pods are not scheduled
                         expr: |-
                           max by (namespace,daemonset) (
-
                             kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               -
                             kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
@@ -2564,7 +2477,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: DaemonSet pods are misscheduled
                         expr: |-
                           max by (namespace,daemonset) (
-
                             kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
                           )
                         for: 15m
@@ -2580,7 +2492,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Job did not complete in time
                         expr: |-
                           max by (namespace,job_name) (
-
                             time() - max by (namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               and
                             kube_job_status_active{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0) > 43200
@@ -2598,7 +2509,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Job failed to complete
                         expr: |-
                           max by (namespace,job_name) (
-
                             kube_job_failed{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}  > 0
                           )
                         for: 15m
@@ -2614,7 +2524,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: HPA has not matched desired number of replicas
                         expr: |-
                           max by (namespace,horizontalpodautoscaler) (
-
                             (kube_horizontalpodautoscaler_status_desired_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               !=
                             kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
@@ -2642,7 +2551,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: HPA is running at max replicas
                         expr: |-
                           max by (namespace,horizontalpodautoscaler) (
-
                             kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               ==
                             kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -2660,7 +2568,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: PDB does not have enough healthy pods
                         expr: |-
                           max by (namespace,poddisruptionbudget) (
-
                             (
                               kube_poddisruptionbudget_status_desired_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               -
@@ -2681,7 +2588,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: PersistentVolume is filling up
                         expr: |-
                           max by (namespace,persistentvolumeclaim) (
-
                             (
                               kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
                                 /
@@ -2707,7 +2613,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: PersistentVolume is filling up
                         expr: |-
                           max by (namespace,persistentvolumeclaim) (
-
                             (
                               kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
                                 /
@@ -2735,7 +2640,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
                           max by (namespace,persistentvolumeclaim) (
-
                             (
                               kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
                                 /
@@ -2761,7 +2665,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
                           max by (namespace,persistentvolumeclaim) (
-
                             (
                               kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
                                 /
@@ -2789,7 +2692,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: PersistentVolume is having issues with provisioning
                         expr: |-
                           max by (persistentvolume,phase) (
-
                             kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"} > 0
                           )
                         for: 5m
@@ -2804,7 +2706,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: CPU utilization is above 95%
                         expr: |-
                           max by (namespace,pod) (
-
                             (
                               sum by (namespace, pod) (pod:container_cpu_usage:sum{namespace="{{ request.object.metadata.name }}"})
                               /
@@ -2823,7 +2724,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Memory utilization is above 90%
                         expr: |-
                           max by (namespace,pod,container) (
-
                             (
                               sum by (namespace, pod, container) (container_memory_working_set_bytes{container!="", namespace="{{ request.object.metadata.name }}"})
                               /
@@ -2898,7 +2798,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Pod is crash looping
                         expr: |-
                           max by (namespace,pod,container) (
-
                             max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m]) >= 1
                           )
                         for: 15m
@@ -2914,7 +2813,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Pod has been in a non-ready state for more than 15 minutes
                         expr: |-
                           max by (namespace,pod) (
-
                             sum by (namespace, pod, cluster) (
                               max by (namespace, pod, cluster) (
                                 kube_pod_status_phase{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", phase=~"Pending|Unknown|Failed"}
@@ -2935,7 +2833,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Pod has been evicted
                         expr: |-
                           max by (namespace,pod) (
-
                             kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
                           )
                         for: 0m
@@ -2951,7 +2848,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Deployment generation mismatch due to possible roll-back
                         expr: |-
                           max by (namespace,deployment) (
-
                             kube_deployment_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               !=
                             kube_deployment_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -2969,7 +2865,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Deployment has not matched the expected number of replicas
                         expr: |-
                           max by (namespace,deployment) (
-
                             (
                               kube_deployment_spec_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                                 >
@@ -2993,7 +2888,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Deployment rollout is not progressing
                         expr: |-
                           max by (namespace,deployment) (
-
                             kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                             != 0
                           )
@@ -3010,7 +2904,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: StatefulSet has not matched the expected number of replicas
                         expr: |-
                           max by (namespace,statefulset) (
-
                             (
                               kube_statefulset_status_replicas_ready{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                                 !=
@@ -3034,7 +2927,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: StatefulSet generation mismatch due to possible roll-back
                         expr: |-
                           max by (namespace,statefulset) (
-
                             kube_statefulset_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               !=
                             kube_statefulset_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -3052,7 +2944,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: StatefulSet update has not been rolled out
                         expr: |-
                           max by (namespace,statefulset) (
-
                             (
                               max by (namespace, statefulset, job, cluster) (
                                 kube_statefulset_status_current_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -3084,7 +2975,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: DaemonSet rollout is stuck
                         expr: |-
                           max by (namespace,daemonset) (
-
                             (
                               (
                                 kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -3122,7 +3012,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Pod container waiting longer than 1 hour
                         expr: |-
                           max by (namespace,pod,container) (
-
                             kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
                           )
                         for: 1h
@@ -3138,7 +3027,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: DaemonSet pods are not scheduled
                         expr: |-
                           max by (namespace,daemonset) (
-
                             kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               -
                             kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
@@ -3156,7 +3044,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: DaemonSet pods are misscheduled
                         expr: |-
                           max by (namespace,daemonset) (
-
                             kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
                           )
                         for: 15m
@@ -3172,7 +3059,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Job did not complete in time
                         expr: |-
                           max by (namespace,job_name) (
-
                             time() - max by (namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               and
                             kube_job_status_active{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0) > 43200
@@ -3190,7 +3076,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Job failed to complete
                         expr: |-
                           max by (namespace,job_name) (
-
                             kube_job_failed{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}  > 0
                           )
                         for: 15m
@@ -3206,7 +3091,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: HPA has not matched desired number of replicas
                         expr: |-
                           max by (namespace,horizontalpodautoscaler) (
-
                             (kube_horizontalpodautoscaler_status_desired_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               !=
                             kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
@@ -3234,7 +3118,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: HPA is running at max replicas
                         expr: |-
                           max by (namespace,horizontalpodautoscaler) (
-
                             kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               ==
                             kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -3252,7 +3135,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: PDB does not have enough healthy pods
                         expr: |-
                           max by (namespace,poddisruptionbudget) (
-
                             (
                               kube_poddisruptionbudget_status_desired_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               -
@@ -3273,7 +3155,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: PersistentVolume is filling up
                         expr: |-
                           max by (namespace,persistentvolumeclaim) (
-
                             (
                               kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
                                 /
@@ -3299,7 +3180,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: PersistentVolume is filling up
                         expr: |-
                           max by (namespace,persistentvolumeclaim) (
-
                             (
                               kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
                                 /
@@ -3327,7 +3207,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
                           max by (namespace,persistentvolumeclaim) (
-
                             (
                               kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
                                 /
@@ -3353,7 +3232,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
                           max by (namespace,persistentvolumeclaim) (
-
                             (
                               kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
                                 /
@@ -3381,7 +3259,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: PersistentVolume is having issues with provisioning
                         expr: |-
                           max by (persistentvolume,phase) (
-
                             kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"} > 0
                           )
                         for: 5m
@@ -3396,7 +3273,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: CPU utilization is above 95%
                         expr: |-
                           max by (namespace,pod) (
-
                             (
                               sum by (namespace, pod) (pod:container_cpu_usage:sum{namespace="{{ request.object.metadata.name }}"})
                               /
@@ -3415,7 +3291,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Memory utilization is above 90%
                         expr: |-
                           max by (namespace,pod,container) (
-
                             (
                               sum by (namespace, pod, container) (container_memory_working_set_bytes{container!="", namespace="{{ request.object.metadata.name }}"})
                               /
@@ -3481,7 +3356,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Pod is crash looping
                         expr: |-
                           max by (namespace,pod,container) (
-
                             max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}[5m]) >= 1
                           )
                         for: 15m
@@ -3497,7 +3371,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Pod has been in a non-ready state for more than 15 minutes
                         expr: |-
                           max by (namespace,pod) (
-
                             sum by (namespace, pod, cluster) (
                               max by (namespace, pod, cluster) (
                                 kube_pod_status_phase{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", phase=~"Pending|Unknown|Failed"}
@@ -3518,7 +3391,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Pod has been evicted
                         expr: |-
                           max by (namespace,pod) (
-
                             kube_pod_status_reason{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}", reason="Evicted"} >= 1
                           )
                         for: 0m
@@ -3534,7 +3406,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Deployment generation mismatch due to possible roll-back
                         expr: |-
                           max by (namespace,deployment) (
-
                             kube_deployment_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               !=
                             kube_deployment_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -3552,7 +3423,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Deployment has not matched the expected number of replicas
                         expr: |-
                           max by (namespace,deployment) (
-
                             (
                               kube_deployment_spec_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                                 >
@@ -3576,7 +3446,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Deployment rollout is not progressing
                         expr: |-
                           max by (namespace,deployment) (
-
                             kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                             != 0
                           )
@@ -3593,7 +3462,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: StatefulSet has not matched the expected number of replicas
                         expr: |-
                           max by (namespace,statefulset) (
-
                             (
                               kube_statefulset_status_replicas_ready{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                                 !=
@@ -3617,7 +3485,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: StatefulSet generation mismatch due to possible roll-back
                         expr: |-
                           max by (namespace,statefulset) (
-
                             kube_statefulset_status_observed_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               !=
                             kube_statefulset_metadata_generation{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -3635,7 +3502,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: StatefulSet update has not been rolled out
                         expr: |-
                           max by (namespace,statefulset) (
-
                             (
                               max by (namespace, statefulset, job, cluster) (
                                 kube_statefulset_status_current_revision{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -3667,7 +3533,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: DaemonSet rollout is stuck
                         expr: |-
                           max by (namespace,daemonset) (
-
                             (
                               (
                                 kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -3705,7 +3570,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Pod container waiting longer than 1 hour
                         expr: |-
                           max by (namespace,pod,container) (
-
                             kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
                           )
                         for: 1h
@@ -3721,7 +3585,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: DaemonSet pods are not scheduled
                         expr: |-
                           max by (namespace,daemonset) (
-
                             kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               -
                             kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
@@ -3739,7 +3602,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: DaemonSet pods are misscheduled
                         expr: |-
                           max by (namespace,daemonset) (
-
                             kube_daemonset_status_number_misscheduled{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0
                           )
                         for: 15m
@@ -3755,7 +3617,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Job did not complete in time
                         expr: |-
                           max by (namespace,job_name) (
-
                             time() - max by (namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               and
                             kube_job_status_active{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"} > 0) > 43200
@@ -3773,7 +3634,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Job failed to complete
                         expr: |-
                           max by (namespace,job_name) (
-
                             kube_job_failed{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}  > 0
                           )
                         for: 15m
@@ -3789,7 +3649,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: HPA has not matched desired number of replicas
                         expr: |-
                           max by (namespace,horizontalpodautoscaler) (
-
                             (kube_horizontalpodautoscaler_status_desired_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               !=
                             kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"})
@@ -3817,7 +3676,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: HPA is running at max replicas
                         expr: |-
                           max by (namespace,horizontalpodautoscaler) (
-
                             kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               ==
                             kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
@@ -3835,7 +3693,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: PDB does not have enough healthy pods
                         expr: |-
                           max by (namespace,poddisruptionbudget) (
-
                             (
                               kube_poddisruptionbudget_status_desired_healthy{job="kube-state-metrics", namespace="{{ request.object.metadata.name }}"}
                               -
@@ -3856,7 +3713,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: PersistentVolume is filling up
                         expr: |-
                           max by (namespace,persistentvolumeclaim) (
-
                             (
                               kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
                                 /
@@ -3882,7 +3738,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: PersistentVolume is filling up
                         expr: |-
                           max by (namespace,persistentvolumeclaim) (
-
                             (
                               kubelet_volume_stats_available_bytes{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
                                 /
@@ -3910,7 +3765,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
                           max by (namespace,persistentvolumeclaim) (
-
                             (
                               kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
                                 /
@@ -3936,7 +3790,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: PersistentVolumeInodes are filling up
                         expr: |-
                           max by (namespace,persistentvolumeclaim) (
-
                             (
                               kubelet_volume_stats_inodes_free{job="kubelet", namespace="{{ request.object.metadata.name }}", metrics_path="/metrics"}
                                 /
@@ -3964,7 +3817,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: PersistentVolume is having issues with provisioning
                         expr: |-
                           max by (persistentvolume,phase) (
-
                             kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"} > 0
                           )
                         for: 5m
@@ -3979,7 +3831,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: CPU utilization is above 95%
                         expr: |-
                           max by (namespace,pod) (
-
                             (
                               sum by (namespace, pod) (pod:container_cpu_usage:sum{namespace="{{ request.object.metadata.name }}"})
                               /
@@ -3998,7 +3849,6 @@ manifests should match snapshot (non-hub cluster):
                           summary: Memory utilization is above 90%
                         expr: |-
                           max by (namespace,pod,container) (
-
                             (
                               sum by (namespace, pod, container) (container_memory_working_set_bytes{container!="", namespace="{{ request.object.metadata.name }}"})
                               /
