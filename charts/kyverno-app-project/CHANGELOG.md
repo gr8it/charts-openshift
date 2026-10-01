@@ -7,8 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.5.1] - 2026-09-28
 
-- added mirroring label to service from namespace
+### Added
 
+- `app-project-namespace-metadata` mirrors the `team` and `vendor` Namespace labels onto Services in application namespaces; labels already set on a Service are kept
+
+### Changed
+
+- `app-project-require-metadata-configmap` is evaluated only by background scans, no longer on Namespace admission
 
 ## [1.5.0] - 2026-09-23
 
