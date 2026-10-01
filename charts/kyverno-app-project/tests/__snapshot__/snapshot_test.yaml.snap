@@ -195,8 +195,8 @@ manifests should match snapshot:
             patchStrategicMerge:
               metadata:
                 labels:
-                  apc.namespace.team: '{{ nslabels.team }}'
-                  apc.namespace.vendor: '{{ nslabels.vendor }}'
+                  +(team): '{{ nslabels.team }}'
+                  +(vendor): '{{ nslabels.vendor }}'
           name: mirror-on-service
           preconditions:
             all:
@@ -219,8 +219,8 @@ manifests should match snapshot:
             patchStrategicMerge:
               metadata:
                 labels:
-                  apc.namespace.team: '{{ request.object.metadata.labels.team }}'
-                  apc.namespace.vendor: '{{ request.object.metadata.labels.vendor }}'
+                  +(team): '{{ request.object.metadata.labels.team }}'
+                  +(vendor): '{{ request.object.metadata.labels.vendor }}'
             targets:
               - apiVersion: v1
                 kind: Service
@@ -441,6 +441,7 @@ manifests should match snapshot:
         helm.sh/chart: kyverno-app-project-1.5.1
       name: app-project-require-metadata-configmap
     spec:
+      admission: false
       background: true
       rules:
         - context:

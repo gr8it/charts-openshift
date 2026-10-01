@@ -70,8 +70,8 @@ spec:
         patchStrategicMerge:
           metadata:
             labels:
-              apc.namespace.team: {{ `{{ nslabels.team }}` | quote }}
-              apc.namespace.vendor: {{ `{{ nslabels.vendor }}` | quote }}
+              +(team): {{ `{{ nslabels.team }}` | quote }}
+              +(vendor): {{ `{{ nslabels.vendor }}` | quote }}
 
     - name: mirror-on-namespace-change
       match:
@@ -99,5 +99,5 @@ spec:
         patchStrategicMerge:
           metadata:
             labels:
-              apc.namespace.team: {{ `{{ request.object.metadata.labels.team }}` | quote }}
-              apc.namespace.vendor: {{ `{{ request.object.metadata.labels.vendor }}` | quote }}
+              +(team): {{ `{{ request.object.metadata.labels.team }}` | quote }}
+              +(vendor): {{ `{{ request.object.metadata.labels.vendor }}` | quote }}
