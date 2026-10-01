@@ -11,7 +11,7 @@ _([JIRA-23311](https://aspecta.atlassian.net/browse/SPEXAPC-23311))_
 
 ### Changed
 
-- Generate rules now trigger only on Application CREATE, not UPDATE
+- Generate rules skip Application UPDATE requests (precondition on `request.operation`), delete cleanup of generated resources is kept
 
 ## [1.5.1] - 2026-03-17
 

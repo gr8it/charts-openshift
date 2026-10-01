@@ -82,14 +82,15 @@ manifests should match snapshot:
                   namespaceSelector:
                     matchLabels:
                       apc.namespace.type: application
-                  operations:
-                    - CREATE
           name: generate-argocd-appproject
           preconditions:
             all:
               - key: '{{ request.object.metadata.name }}'
                 operator: Equals
                 value: '{{ request.object.metadata.namespace }}'
+              - key: '{{ request.operation }}'
+                operator: NotEquals
+                value: UPDATE
         - generate:
             apiVersion: v1
             data:
@@ -113,14 +114,15 @@ manifests should match snapshot:
                   namespaceSelector:
                     matchLabels:
                       apc.namespace.type: application
-                  operations:
-                    - CREATE
           name: generate-argocd-serviceaccount
           preconditions:
             all:
               - key: '{{ request.object.metadata.name }}'
                 operator: Equals
                 value: '{{ request.object.metadata.namespace }}'
+              - key: '{{ request.operation }}'
+                operator: NotEquals
+                value: UPDATE
         - generate:
             apiVersion: rbac.authorization.k8s.io/v1
             data:
@@ -146,14 +148,15 @@ manifests should match snapshot:
                   namespaceSelector:
                     matchLabels:
                       apc.namespace.type: application
-                  operations:
-                    - CREATE
           name: generate-argocd-rolebinding
           preconditions:
             all:
               - key: '{{ request.object.metadata.name }}'
                 operator: Equals
                 value: '{{ request.object.metadata.namespace }}'
+              - key: '{{ request.operation }}'
+                operator: NotEquals
+                value: UPDATE
       validationFailureAction: Audit
   2: |
     apiVersion: rbac.authorization.k8s.io/v1
