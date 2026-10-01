@@ -40,6 +40,22 @@ tests:
           path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
           value: platform
 
+  - it: takes platform vendor/team from platformAlertLabels values
+    templates:
+      - templates/cluster-policy-non-application.yaml
+      - templates/cluster-policy-cluster-monitoring.yaml
+    set:
+      platformAlertLabels:
+        vendor: othervendor
+        team: otherteam
+    asserts:
+      - equal:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
+          value: othervendor
+      - equal:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
+          value: otherteam
+
   - it: renders every rule from files/namespace-rules.yaml
     template: templates/cluster-policy-application.yaml
     asserts:

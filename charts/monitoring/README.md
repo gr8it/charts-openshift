@@ -77,6 +77,8 @@ Both alertmanager secrets use `dataFrom.extract` — the entire Vault secret is 
 | Value | Default | Description |
 |---|---|---|
 | `global.apc.customerName` | - | Required. Full customer name shown in Alertmanager messages/ITSM (from `apc-global-overrides`) |
+| `platformAlertLabels.vendor` | `aspecta` | `vendor` label on Kyverno-generated rules for non-application and cluster-monitoring namespaces |
+| `platformAlertLabels.team` | `platform` | `team` label on Kyverno-generated rules for non-application and cluster-monitoring namespaces |
 | `clusterMonitoring.prometheus.retention` | `14d` | Cluster Prometheus retention |
 | `clusterMonitoring.prometheus.storageSize` | `60Gi` | Cluster Prometheus PVC size |
 | `userWorkloadMonitoring.prometheus.retention` | `14d` | UWM Prometheus retention |

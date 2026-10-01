@@ -50,4 +50,4 @@ spec:
           groups:
           - name: "user-workload-non-app-{{`{{request.object.metadata.name}}`}}"
             rules:
-              {{- include "monitoring.namespaceRules" (dict "root" . "vendor" "aspecta" "team" "platform") | nindent 14 }}
+              {{- include "monitoring.namespaceRules" (dict "root" .) | nindent 14 }}
