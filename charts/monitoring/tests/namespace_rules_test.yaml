@@ -25,20 +25,20 @@ tests:
     asserts:
       - equal:
           path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
-          value: aspecta
+          value: examplevendor
       - equal:
           path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
-          value: platform
+          value: exampleteam
 
   - it: routes cluster monitoring namespace alerts to platform
     template: templates/cluster-policy-cluster-monitoring.yaml
     asserts:
       - equal:
           path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
-          value: aspecta
+          value: examplevendor
       - equal:
           path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
-          value: platform
+          value: exampleteam
 
   - it: takes platform vendor/team from platformAlertLabels values
     templates:
