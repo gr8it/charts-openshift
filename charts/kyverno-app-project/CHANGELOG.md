@@ -5,15 +5,15 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.5.1] - 2026-09-28
+## [1.5.1] - 2026-10-01
 
 ### Added
 
-- `app-project-namespace-metadata` mirrors the `team` and `vendor` Namespace labels onto Services in application namespaces; labels already set on a Service are kept
+- `app-project-namespace-metadata` mirrors the `team` and `vendor` namespace labels onto Services in application namespaces
 
 ### Changed
 
-- `app-project-require-metadata-configmap` is evaluated only by background scans, no longer on Namespace admission
+- `app-project-require-metadata-configmap` is evaluated only by background scans, no longer on namespace admission
 
 ## [1.5.0] - 2026-09-23
 
