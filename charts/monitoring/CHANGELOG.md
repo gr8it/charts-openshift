@@ -5,6 +5,18 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-10-01
+
+_([SPEXAPC-20059](https://aspecta.atlassian.net/browse/SPEXAPC-20059))_
+
+### Added
+
+- Kyverno ClusterPolicies `cluster-policy-application` and `cluster-policy-non-application` generating PrometheusRules for user workload monitoring namespaces (moved from the `user-workload-monitoring-policy` chart)
+
+### Changed
+
+- Alert rules moved from the `monitoring-prometheusrules` library chart into `files/namespace-rules.yaml`; dependency on `monitoring-prometheusrules` removed
+
 ## [1.2.1] - 2026-09-11
 
 ### Fixed

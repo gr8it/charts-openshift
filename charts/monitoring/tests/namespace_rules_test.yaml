@@ -1,0 +1,51 @@
+suite: Kyverno generated namespace rules
+templates:
+  - templates/cluster-policy-application.yaml
+  - templates/cluster-policy-non-application.yaml
+  - templates/cluster-policy-cluster-monitoring.yaml
+values:
+  - ../values.example.yaml
+release:
+  name: monitoring
+  namespace: openshift-monitoring
+
+tests:
+  - it: routes application namespace alerts to developers
+    template: templates/cluster-policy-application.yaml
+    asserts:
+      - equal:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
+          value: socpoist
+      - equal:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
+          value: developers
+
+  - it: routes non-application namespace alerts to platform
+    template: templates/cluster-policy-non-application.yaml
+    asserts:
+      - equal:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
+          value: aspecta
+      - equal:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
+          value: platform
+
+  - it: routes cluster monitoring namespace alerts to platform
+    template: templates/cluster-policy-cluster-monitoring.yaml
+    asserts:
+      - equal:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
+          value: aspecta
+      - equal:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
+          value: platform
+
+  - it: renders every rule from files/namespace-rules.yaml
+    template: templates/cluster-policy-application.yaml
+    asserts:
+      - lengthEqual:
+          path: spec.rules[0].generate.data.spec.groups[0].rules
+          count: 25
+      - matchRegex:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].expr
+          pattern: '^max by \(namespace,pod,container\) \(\s+max_over_time\(kube_pod_container_status_waiting_reason\{reason="CrashLoopBackOff"'
