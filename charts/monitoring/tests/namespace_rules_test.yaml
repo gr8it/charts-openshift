@@ -57,6 +57,22 @@ tests:
           path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
           value: otherteam
 
+  - it: fails schema validation when platformAlertLabels.team is missing
+    template: templates/cluster-policy-application.yaml
+    set:
+      platformAlertLabels.team: null
+    asserts:
+      - failedTemplate:
+          errorPattern: "platformAlertLabels"
+
+  - it: fails schema validation when platformAlertLabels.vendor is not a string
+    template: templates/cluster-policy-application.yaml
+    set:
+      platformAlertLabels.vendor: 123
+    asserts:
+      - failedTemplate:
+          errorPattern: "platformAlertLabels"
+
   - it: renders every rule from files/namespace-rules.yaml
     template: templates/cluster-policy-application.yaml
     asserts:
