@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.6.1] - 2026-09-30
 
+### Changed
+
+- `backgroundScanInterval` back to `5m` (was `1h`)
+
 ### Fixed
 
 - `KyvernoReportsControllerDown` only rendered when `kyverno.reportsController.enabled` is true (false alert on clusters with the reports controller disabled)
