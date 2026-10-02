@@ -79,7 +79,7 @@ spec:
                 secretKeyRef:
                   name: {{ include "quay-config.objname.registry-credentials" $ }}
                   key: pull-secret
-              {{ else }}
+              {{- else }}
               value: "{}"
               {{- end }}
           resources:

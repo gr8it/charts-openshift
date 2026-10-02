@@ -1,4 +1,3 @@
-{{- if (include "apc-global-overrides.require-vaultKubeAuthMountPath" .) }}
 ---
 apiVersion: kubernetes.vault.upbound.io/v1alpha1
 kind: AuthBackendRole
@@ -19,4 +18,3 @@ spec:
       - default
       - {{ include "quay-config.objname.vault-policy" . }}
     tokenTtl: 900
-{{- end }}

@@ -6,7 +6,7 @@ metadata:
   name: apc-registry-allow-proxy
   namespace: quay-test
   labels:
-    helm.sh/chart: quay-config-0.1.0
+    helm.sh/chart: quay-config-1.0.0
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
@@ -27,7 +27,7 @@ metadata:
   name: apc-registry-postinstall
   namespace: quay-test
   labels:
-    helm.sh/chart: quay-config-0.1.0
+    helm.sh/chart: quay-config-1.0.0
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
@@ -40,7 +40,7 @@ metadata:
   name: apc-registry-config
   namespace: quay-test
   labels:
-    helm.sh/chart: quay-config-0.1.0
+    helm.sh/chart: quay-config-1.0.0
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
@@ -85,7 +85,7 @@ metadata:
   name: apc-registry-postinstall-env
   namespace: quay-test
   labels:
-    helm.sh/chart: quay-config-0.1.0
+    helm.sh/chart: quay-config-1.0.0
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
@@ -102,7 +102,7 @@ data:
   VAULTADDRESS: https://vault.apps.huba.qa.sp.gr8it.cloud
   LABELS: |2
     
-        helm.sh/chart: quay-config-0.1.0
+        helm.sh/chart: quay-config-1.0.0
         app.kubernetes.io/name: apc-registry
         app.kubernetes.io/instance: apc-quay
         app.kubernetes.io/managed-by: Helm
@@ -115,7 +115,7 @@ metadata:
   name: apc-registry-postinstall-scripts
   namespace: quay-test
   labels:
-    helm.sh/chart: quay-config-0.1.0
+    helm.sh/chart: quay-config-1.0.0
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
@@ -855,7 +855,7 @@ kind: ClusterRoleBinding
 metadata:
   name: apc-registry-auth-delegator
   labels:
-    helm.sh/chart: quay-config-0.1.0
+    helm.sh/chart: quay-config-1.0.0
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
@@ -876,7 +876,7 @@ metadata:
   name: apc-registry-postinstall
   namespace: quay-test
   labels:
-    helm.sh/chart: quay-config-0.1.0
+    helm.sh/chart: quay-config-1.0.0
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
@@ -889,12 +889,12 @@ rules:
     resourceNames:
       - "apc-registry-quayadmin"
       - "apc-registry-robot-accounts"
-    verbs: ["get","patch","update","delete"]
+    verbs: ["get","patch","update"]
   - apiGroups: [""]
     resources: ["configmaps"]
     resourceNames:
       - "apc-registry-managed-orgs"
-    verbs: ["get","patch","update","delete"]
+    verbs: ["get","patch","update"]
   - apiGroups: [""]
     resources: ["secrets"]
     resourceNames: ["apc-registry-bootstrap-token"]
@@ -922,7 +922,7 @@ metadata:
   name: apc-registry-postinstall
   namespace: quay-test
   labels:
-    helm.sh/chart: quay-config-0.1.0
+    helm.sh/chart: quay-config-1.0.0
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
@@ -943,7 +943,7 @@ metadata:
   name: apc-registry-debug
   namespace: quay-test
   labels:
-    helm.sh/chart: quay-config-0.1.0
+    helm.sh/chart: quay-config-1.0.0
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
@@ -957,7 +957,7 @@ spec:
   template:
     metadata:
       labels:
-        helm.sh/chart: quay-config-0.1.0
+        helm.sh/chart: quay-config-1.0.0
         app.kubernetes.io/name: apc-registry
         app.kubernetes.io/instance: apc-quay
         app.kubernetes.io/managed-by: Helm
@@ -982,14 +982,14 @@ spec:
             - name: PUSHSECRETLABELS
               value: |2
                 
-                    helm.sh/chart: quay-config-0.1.0
+                    helm.sh/chart: quay-config-1.0.0
                     app.kubernetes.io/name: apc-registry
                     app.kubernetes.io/instance: apc-quay
                     app.kubernetes.io/managed-by: Helm
             - name: CMLABELS
               value: |2
                 
-                    helm.sh/chart: quay-config-0.1.0
+                    helm.sh/chart: quay-config-1.0.0
                     app.kubernetes.io/name: apc-registry
                     app.kubernetes.io/instance: apc-quay
                     app.kubernetes.io/managed-by: Helm
@@ -1041,7 +1041,7 @@ metadata:
   name: apc-registry-init-admin
   namespace: quay-test
   labels:
-    helm.sh/chart: quay-config-0.1.0
+    helm.sh/chart: quay-config-1.0.0
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
@@ -1056,7 +1056,7 @@ spec:
   template:
     metadata:
       labels:
-        helm.sh/chart: quay-config-0.1.0
+        helm.sh/chart: quay-config-1.0.0
         app.kubernetes.io/name: apc-registry
         app.kubernetes.io/instance: apc-quay
         app.kubernetes.io/managed-by: Helm
@@ -1092,7 +1092,7 @@ spec:
             - name: PUSHSECRETLABELS
               value: |2
                 
-                    helm.sh/chart: quay-config-0.1.0
+                    helm.sh/chart: quay-config-1.0.0
                     app.kubernetes.io/name: apc-registry
                     app.kubernetes.io/instance: apc-quay
                     app.kubernetes.io/managed-by: Helm
@@ -1123,7 +1123,7 @@ metadata:
   name: apc-registry-init-organizations
   namespace: quay-test
   labels:
-    helm.sh/chart: quay-config-0.1.0
+    helm.sh/chart: quay-config-1.0.0
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
@@ -1138,7 +1138,7 @@ spec:
   template:
     metadata:
       labels:
-        helm.sh/chart: quay-config-0.1.0
+        helm.sh/chart: quay-config-1.0.0
         app.kubernetes.io/name: apc-registry
         app.kubernetes.io/instance: apc-quay
         app.kubernetes.io/managed-by: Helm
@@ -1355,7 +1355,7 @@ metadata:
   name: apc-registry-prune-organizations
   namespace: quay-test
   labels:
-    helm.sh/chart: quay-config-0.1.0
+    helm.sh/chart: quay-config-1.0.0
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
@@ -1370,7 +1370,7 @@ spec:
   template:
     metadata:
       labels:
-        helm.sh/chart: quay-config-0.1.0
+        helm.sh/chart: quay-config-1.0.0
         app.kubernetes.io/name: apc-registry
         app.kubernetes.io/instance: apc-quay
         app.kubernetes.io/managed-by: Helm
@@ -1472,7 +1472,7 @@ metadata:
   name: apc-registry-init-robots
   namespace: quay-test
   labels:
-    helm.sh/chart: quay-config-0.1.0
+    helm.sh/chart: quay-config-1.0.0
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
@@ -1487,7 +1487,7 @@ spec:
   template:
     metadata:
       labels:
-        helm.sh/chart: quay-config-0.1.0
+        helm.sh/chart: quay-config-1.0.0
         app.kubernetes.io/name: apc-registry
         app.kubernetes.io/instance: apc-quay
         app.kubernetes.io/managed-by: Helm
@@ -1659,7 +1659,7 @@ kind: AuthBackendRole
 metadata:
   name: huba-quay-test
   labels:
-    helm.sh/chart: quay-config-0.1.0
+    helm.sh/chart: quay-config-1.0.0
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
@@ -1684,7 +1684,7 @@ kind: ClusterPolicy
 metadata:
   name: apc-registry-quay-test-argo-sync
   labels:
-    helm.sh/chart: quay-config-0.1.0
+    helm.sh/chart: quay-config-1.0.0
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
@@ -1724,7 +1724,7 @@ metadata:
   name: apc-registry-registry-credentials
   namespace: quay-test
   labels:
-    helm.sh/chart: quay-config-0.1.0
+    helm.sh/chart: quay-config-1.0.0
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
@@ -1748,7 +1748,7 @@ kind: Policy
 metadata:
   name: apc-registry-quay-test
   labels:
-    helm.sh/chart: quay-config-0.1.0
+    helm.sh/chart: quay-config-1.0.0
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
@@ -1789,7 +1789,7 @@ metadata:
   name: apc-registry-quayadmin
   namespace: quay-test
   labels:
-    helm.sh/chart: quay-config-0.1.0
+    helm.sh/chart: quay-config-1.0.0
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
@@ -1819,7 +1819,7 @@ metadata:
   name: apc-registry-robot-accounts
   namespace: quay-test
   labels:
-    helm.sh/chart: quay-config-0.1.0
+    helm.sh/chart: quay-config-1.0.0
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
@@ -1849,7 +1849,7 @@ metadata:
   name: apc-registry
   namespace: quay-test
   labels:
-    helm.sh/chart: quay-config-0.1.0
+    helm.sh/chart: quay-config-1.0.0
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm

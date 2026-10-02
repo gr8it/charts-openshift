@@ -15,12 +15,12 @@ rules:
     resourceNames:
       - "{{ include "quay-config.objname.quayadmin" . }}"
       - "{{ include "quay-config.objname.robotaccounts" . }}"
-    verbs: ["get","patch","update","delete"]
+    verbs: ["get","patch","update"]
   - apiGroups: [""]
     resources: ["configmaps"]
     resourceNames:
       - "{{ include "quay-config.objname.managedorgs" . }}"
-    verbs: ["get","patch","update","delete"]
+    verbs: ["get","patch","update"]
   - apiGroups: [""]
     resources: ["secrets"]
     resourceNames: ["{{ include "quay-config.objname.bootstraptoken" . }}"]

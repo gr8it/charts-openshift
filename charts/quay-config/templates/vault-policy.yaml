@@ -1,4 +1,4 @@
-{{- if (include "apc-global-overrides.require-crossplaneKubeVaultProviderConfigName" .) }}
+{{- if or .Values.vault.refPullSecretPath (values (.Values.vault.clusterPullSecretPath | default dict) | compact) }}
 ---
 apiVersion: vault.vault.upbound.io/v1alpha1
 kind: Policy
