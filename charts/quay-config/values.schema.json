@@ -74,33 +74,37 @@
       "minLength": 2
     },
     "quayConfig": {
-      "tagExpiration": {
-        "type": "string",
-        "description": "Default tag expiration time for time machine",
-        "pattern": "^[0-9]+(w|m|d|h|s)$",
-        "minLength": 2
-      },
-      "actionLogRetention": {
-        "type": "string",
-        "description": "The time interval after which to rotate logs",
-        "pattern": "^[0-9]+(w|m|d)$",
-        "minLength": 2
-      },
-      "registryTitle": {
-        "type": "string",
-        "description": "The long-form title for the registry",
-        "minLength": 1
-      },
-      "registryTitleShort": {
-        "type": "string",
-        "description": "The short-form title for the registry",
-        "minLength": 1
-      },
-      "localAdminUser": {
-        "type": "string",
-        "description": "Superuser name",
-        "pattern": "^[a-z][a-z0-9_\\-]+$",
-        "minLength": 3
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tagExpiration": {
+          "type": "string",
+          "description": "Default tag expiration time for time machine",
+          "pattern": "^[0-9]+(w|m|d|h|s)$",
+          "minLength": 2
+        },
+        "actionLogRetention": {
+          "type": "string",
+          "description": "The time interval after which to rotate logs",
+          "pattern": "^[0-9]+(w|m|d)$",
+          "minLength": 2
+        },
+        "registryTitle": {
+          "type": "string",
+          "description": "The long-form title for the registry",
+          "minLength": 1
+        },
+        "registryTitleShort": {
+          "type": "string",
+          "description": "The short-form title for the registry",
+          "minLength": 1
+        },
+        "localAdminUser": {
+          "type": "string",
+          "description": "Superuser name",
+          "pattern": "^[a-z][a-z0-9_\\-]+$",
+          "minLength": 3
+        }
       }
     },
     "imageProxyRegistries": {
