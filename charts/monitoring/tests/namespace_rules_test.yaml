@@ -57,6 +57,20 @@ tests:
           path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
           value: otherteam
 
+  - it: renders platformAlertLabels as strings even when they look like other YAML types
+    template: templates/cluster-policy-application.yaml
+    set:
+      platformAlertLabels:
+        vendor: "true"
+        team: platform ops
+    asserts:
+      - equal:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
+          value: "true"
+      - equal:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
+          value: platform ops
+
   - it: fails schema validation when platformAlertLabels.team is missing
     template: templates/cluster-policy-application.yaml
     set:

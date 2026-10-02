@@ -122,8 +122,8 @@ vendor/team default to .Values.platformAlertLabels when not passed.
     )
   for: {{ .for }}
   labels:
-    vendor: {{ $vendor }}
-    team: {{ $team }}
+    vendor: {{ $vendor | quote }}
+    team: {{ $team | quote }}
     severity: {{ .labels.severity }}
     namespace: "{{`{{request.object.metadata.name}}`}}"
   annotations:
