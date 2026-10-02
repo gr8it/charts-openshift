@@ -4,7 +4,7 @@
 
 ```mermaid
 %%{init: {
-  'theme':'base',
+  "theme":"base",
   "flowchart": {"defaultRenderer": "elk"}
   }
 }%%
@@ -56,13 +56,9 @@ job-org -- create organizations --> quay-registry
 ref-pull-secret -- get registry credentials --> job-org
 job-org -- update registry credentials --> quay-registry
 job-org -- update state --> managed-orgs
-
-
-PULLSECRET ---> KYVERNO ---> ARGOCDSYNC
-
 ```
 
-## Prerequisites:
+## Prerequisites
 
 - Quay operator (min v3.17)
 - ODF Storage with noobaa
@@ -73,6 +69,22 @@ PULLSECRET ---> KYVERNO ---> ARGOCDSYNC
 > [!IMPORTANT]  
 > Due to the way proxy registries are bootstrapped - only "host level" proxy registries is currently supported:  i.e.: `quay.io`.
 > Specifying a port, path or both will break the bootstrap process.
+
+## Features
+
+### Automatic credentials updates of quay proxy registries
+
+If enabled (via `argocd.syncOnPullSecretUpdate`), this deployment will install a kyverno policy that will trigger argocd sync on each update of refSecret (`vault.refPullSecretPath`).  
+If a credential in refSecret is updated or a new one is added, kyverno triggers an argocd sync which will re-run all postinstall jobs and will update the proxy registry configuration/credentials automatically.
+
+### Automatic Vault Secret Updates
+
+If enabled (via `vault.clusterPullSecretPath` dictionary), this deployment will automatically update cluster-config secrets on vault with robot account credentials for accessing this quay registry.
+
+### Quay Credentials store
+
+Quay will always generate new admin account on initial bootsrap. These credentials will be stored in vault under `apc-platform/<env>/<quay-namespace>/<Values.quayConfig.localAdminUser>`.  
+Quay will generate a new robot account for each individual ocp cluster. Credentials for these robot account are stored in vault under `apc-platform/<env>/<quay-namespace>/robot-accounts`.
 
 ## Values
 
