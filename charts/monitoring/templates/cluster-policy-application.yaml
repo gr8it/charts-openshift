@@ -50,4 +50,4 @@ spec:
           groups:
           - name: "user-workload-app{{`{{request.object.metadata.name}}`}}"
             rules:
-              {{- include "monitoring.namespaceRules" (dict "root" . "vendor" "socpoist" "team" "developers") | nindent 14 }}
+              {{- include "monitoring.namespaceRules" (dict "root" .) | nindent 14 }}

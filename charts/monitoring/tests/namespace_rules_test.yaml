@@ -10,15 +10,15 @@ release:
   namespace: openshift-monitoring
 
 tests:
-  - it: routes application namespace alerts to developers
+  - it: routes application namespace alerts to platform
     template: templates/cluster-policy-application.yaml
     asserts:
       - equal:
           path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
-          value: socpoist
+          value: examplevendor
       - equal:
           path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
-          value: developers
+          value: exampleteam
 
   - it: routes non-application namespace alerts to platform
     template: templates/cluster-policy-non-application.yaml
@@ -42,6 +42,7 @@ tests:
 
   - it: takes platform vendor/team from platformAlertLabels values
     templates:
+      - templates/cluster-policy-application.yaml
       - templates/cluster-policy-non-application.yaml
       - templates/cluster-policy-cluster-monitoring.yaml
     set:
