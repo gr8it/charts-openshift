@@ -4,7 +4,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ .Values.machineConfig.configMap.name }}
-  namespace: {{ include "apc-global-overrides.require-clusterName" . }}
+  namespace: {{ .Release.Namespace }}
 data:
   config: |
     apiVersion: machineconfiguration.openshift.io/v1

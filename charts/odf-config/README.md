@@ -10,6 +10,6 @@ This chart renders full ODF cluster configuration that is applied after the ODF 
 
 `Network/cluster.spec.additionalNetworks` is co-owned: this chart only ever sets its own entries via server-side apply (merge-keyed by `name`), so other owners (e.g. `openshift-virtualization-config`'s CNV entries) are left intact. The `StorageCluster` network selector is derived from the first `additionalNetworks` entry's name.
 
-Host network interfaces required by the ODF additional network (e.g. bonds/VLANs via `NodeNetworkConfigurationPolicy`) are out of scope for this chart and must be configured separately.
+Host network interfaces required by the ODF additional network (e.g. bonds/VLANs via `NodeNetworkConfigurationPolicy`) are out of scope for this chart. Configure them manually on the target nodes before installing this chart.
 
 Set cluster-specific values in the conf repo; see [values.example.yaml](values.example.yaml). `nodeCount` and `localVolumeSetCount` must match the actual ODF node/local-volume-set count on the cluster (compare against `oc get storagecluster ocs-storagecluster -oyaml` before rollout).
