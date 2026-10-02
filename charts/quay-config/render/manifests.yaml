@@ -1798,6 +1798,9 @@ metadata:
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/sync-wave: "99"
 spec:
   updatePolicy: Replace
   deletionPolicy: None
@@ -1825,6 +1828,9 @@ metadata:
     app.kubernetes.io/name: apc-registry
     app.kubernetes.io/instance: apc-quay
     app.kubernetes.io/managed-by: Helm
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/sync-wave: "99"
 spec:
   updatePolicy: Replace
   deletionPolicy: None
@@ -1867,7 +1873,7 @@ spec:
         resources:
           limits:
             cpu: 1200m
-            memory: 2048Mi
+            memory: 2Gi
           requests:
             cpu: 600m
             memory: 512Mi
@@ -1891,10 +1897,10 @@ spec:
       overrides:
         resources:
           limits:
-            cpu: 3000m
+            cpu: 3
             memory: 10Gi
           requests:
-            cpu: 2000m
+            cpu: 2
             memory: 8Gi
         env:
           - name: HTTP_PROXY
