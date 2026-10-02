@@ -3,7 +3,7 @@ kind: ClusterPolicy
 metadata:
   name: cluster-policy-non-application
   labels:
-    {{- include "user-workload-monitoring-policy.labels" . | nindent 4 }}
+    {{- include "monitoring.labels" . | nindent 4 }}
 spec:
   generateExisting: true
   rules:
@@ -50,4 +50,4 @@ spec:
           groups:
           - name: "user-workload-non-app-{{`{{request.object.metadata.name}}`}}"
             rules:
-              {{- include "monitoring-prometheusrules.rulesPlatform" . | nindent 14 }}
+              {{- include "monitoring.namespaceRules" (dict "root" .) | nindent 14 }}
