@@ -74,10 +74,14 @@ spec:
             - name: REGISTRY
               value: {{ $registry }}
             - name: REGISTRYCREDENTIALS
+              {{- if $.Values.vault.refPullSecretPath }}
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "quay-config.name" $ }}-registry-credentials
+                  name: {{ include "quay-config.objname.registry-credentials" $ }}
                   key: pull-secret
+              {{ else }}
+              value: "{}"
+              {{- end }}
           resources:
             {{- $.Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
           volumeMounts:
