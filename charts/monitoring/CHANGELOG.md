@@ -17,7 +17,7 @@ _([SPEXAPC-20059](https://aspecta.atlassian.net/browse/SPEXAPC-20059))_
 
 - Alert rules moved from the `monitoring-prometheusrules` library chart into `namespace-rules.yaml` file
 - Dependency on `monitoring-prometheusrules` removed
-- `vendor`/`team` labels of Kyverno-generated rules for non-application and cluster-monitoring namespaces read from `platformAlertLabels` values instead of hardcoded `aspecta`/`platform`
+- `vendor`/`team` labels of all Kyverno-generated namespace rules, including application rules, are now read from `platformAlertLabels` values instead of using separate hardcoded labels
 
 ## [1.2.1] - 2026-09-11
 
