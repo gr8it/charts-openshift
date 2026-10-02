@@ -1,0 +1,11 @@
+monitoring-reminder:
+  reminders:
+    HubSpokeLogforwardTokenExpirySoon:
+      summary: "hub-spoke-logforward Vault token is expiring soon"
+      description: >
+        The bound ServiceAccount token for hub-spoke-logforward (stored in Vault,
+        synced via ExternalSecret) is nearing its expiry. Audit log forwarding to
+        the hub will stop working once it expires. Create a new token on the hub
+        and update the Vault entry (see README).
+      datetime: "01.01.2099"
+      critical: true

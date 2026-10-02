@@ -5,6 +5,18 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-09-22
+
+### Added
+
+- Added Kyverno Grafana dashboard and PrometheusRule alerts for UpdateRequest backlog
+
+### Changed
+
+- `backgroundScanInterval` 5m → 1h
+
+_([SPEXAPC-2578](https://aspecta.atlassian.net/browse/SPEXAPC-2578))_
+
 ## [1.5.1] - 2026-04-21
 
 ### Changed

@@ -5,6 +5,109 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-09-11
+
+### Fixed
+
+- Render Microsoft Teams webhook URLs through External Secrets using the supported `webhook_url` field for both cluster and user-workload Alertmanager configurations, while preserving Alertmanager's nested templates through ESO escaping.
+
+## [1.2.0] - 2026-09-03
+
+_([SPEXAPC-8225](https://aspecta.atlassian.net/browse/SPEXAPC-8225))_
+
+### Removed
+
+- `allow-proxy` NetworkPolicies in `openshift-monitoring` and `openshift-user-workload-monitoring` (added in 1.1.0, not wanted)
+
+### Changed
+
+- Made alerts more readable.
+
+## [1.1.8] - 2026-08-26
+
+_([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
+
+### Added
+
+- `customerNameShort` and `customerName` external labels (via `apc-global-overrides.customerName`/`apc-global-overrides.require-customer` helpers) on ClusterMonitoring and UserWorkloadMonitoring Prometheus, per Labeling Rules decision
+
+### Fixed
+
+- User Workload Monitoring `remoteWrite` was enabled on all clusters regardless of hub/spoke status due to a Go-template truthiness bug in the `clusterIsHub` check; now correctly gated to hub only
+- Remove redundant `managed_cluster` external label (duplicate of `clusterName`)
+
+### Changed
+
+- Bump `apc-global-overrides` dependency to 1.9.0
+
+## [1.1.7] - 2026-08-11
+
+_([SPEXAPC-20772](https://aspecta.atlassian.net/browse/SPEXAPC-20772))_
+
+### Changed
+
+- Bump dependency on `monitoring-prometheusrules` to 1.0.7 (adds `KubePodEvicted` alert)
+
+## [1.1.6] - 2026-04-23
+
+_([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
+
+### Changed
+
+- Add note to ceph.rules silence: fixed in OCP 4.17.6, remove after cluster upgrade
+
+## [1.1.5] - 2026-04-23
+
+_([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
+
+### Changed
+
+- Add KB reference comment to ceph.rules PrometheusRuleFailures silence
+
+## [1.1.4] - 2026-04-23
+
+_([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
+
+### Changed
+
+- Extend certificate expiration silence matcher with `result-client-cert-ocp4-cis-1-5` and `root-ca-ocp4-cis-1-5` to avoid false alerts on periodic cert rotation
+
+## [1.1.3] - 2026-07-29
+
+_([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
+
+### Fixed
+
+- conditional `prometheusrule-ldap-monitoring.yaml` behind `vaultBastionMonitoring.bastionIP`, matching the other vault-bastion templates — was rendering unconditionally into the `apc-monitoring-bastion` namespace, which doesn't exist on clusters without bastion monitoring enabled
+
+## [1.1.2] - 2026-07-29
+
+_([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
+
+### Fixed
+
+- `clusterMonitoring.prometheus.retention` default corrected from `7d` to `14d`, matching the actual standard on spoke clusters (dev01, test01) — mirrors the same fix already applied to `userWorkloadMonitoring.prometheus.retention`
+
+## [1.1.1] - 2026-07-29
+
+_([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
+
+### Fixed
+
+- Restored `PrometheusRuleFailures`/`ceph.rules` silence route in Alertmanager config, dropped during the raw-manifest-to-chart migration
+
+## [1.1.0] - 2026-05-05
+
+_([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
+
+### Changed
+
+- Merged `cluster-monitoring` and `user-workload-monitoring` charts into this chart
+- Added `ClusterMonitoringConfig`, `UserWorkloadMonitoringConfig`, AlertManager secrets and ExternalSecrets, AlertingRule, PrometheusRule, and NetworkPolicy templates
+- Added `openshift-adp-backups` subchart dependency for Velero backup schedules
+- Updated `apc-global-overrides` dependency to 1.8.0
+- Hub detection via `global.apc.cluster.isHub` (replaces manual `hub.enabled` flag)
+
 ## [1.0.9] - 2026-02-27
 
 _([ASPELAB-87](https://aspecta.atlassian.net/browse/ASPELAB-87))_

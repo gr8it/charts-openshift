@@ -1,0 +1,47 @@
+{{- if .Values.vaultBastionMonitoring.bastionIP }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: ldap-monitoring
+  namespace: apc-monitoring-bastion
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+spec:
+  groups:
+    - name: ldap-monitor
+      rules:
+        - alert: LdapServiceUp
+          expr: max by (host) (openldap_service_up != 1)
+          for: 1m
+          labels:
+            severity: critical
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: "LDAP service {{ `{{ $labels.host }}` }} is down."
+            description: |-
+              host = {{ `{{ $labels.host }}` }}
+        - alert: LdapReplicationTimestamp
+          expr: max by (replica_id) (openldap_replication_sync_timestamp) != min by (replica_id) (openldap_replication_sync_timestamp)
+          for: 1m
+          labels:
+            severity: critical
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: "Inconsistent sync timestamp for {{ `{{ $labels.replica_id }}` }}"
+            description: |-
+              LDAP instances are not synchronized.
+              replica_id = {{ `{{ $labels.replica_id }}` }}
+        - alert: LdapSingleReplica
+          expr: count by (replica_id) (openldap_replication_sync_timestamp) == 1
+          for: 5m
+          labels:
+            severity: warning
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: "Only single instance found for replica id {{ `{{ $labels.replica_id }}` }}"
+            description: |-
+              replica_id = {{ `{{ $labels.replica_id }}` }}
+{{- end }}

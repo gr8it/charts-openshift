@@ -1,0 +1,56 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: Use cases
+templates:
+  - templates/alertingrule.yaml
+release:
+  name: hw-monitoring
+  namespace: openshift-logging
+
+tests:
+
+  - it: renders AlertingRule with 3 severity rules on the hub
+    set:
+      global:
+        apc:
+          customer: acme
+          cluster:
+            isHub: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - lengthEqual:
+          path: spec.groups[0].rules
+          count: 3
+      - equal:
+          path: spec.groups[0].rules[0].labels.customerName
+          value: acme
+
+  - it: no AlertingRule is created on non-hub clusters
+    set:
+      global:
+        apc:
+          customer: acme
+          cluster:
+            isHub: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: no AlertingRule is created when isHub is unset (defaults to false)
+    set:
+      global:
+        apc:
+          customer: acme
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: fails when customer is not set on the hub
+    set:
+      global:
+        apc:
+          cluster:
+            isHub: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "APC customer is required"

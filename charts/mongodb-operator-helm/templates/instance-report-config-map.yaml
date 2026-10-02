@@ -1,0 +1,42 @@
+{{- if .Values.instanceReport.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ (index .Values "mongodb-kubernetes").operator.name }}-report
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mongodb-operator-helm.labels" . | nindent 4 }}
+    app.kubernetes.io/component: instance-report
+data:
+  crs-config.yaml: |
+    kind: CustomResourceStateMetrics
+    spec:
+      resources:
+        - groupVersionKind:
+            group: mongodbcommunity.mongodb.com
+            version: v1
+            kind: MongoDBCommunity
+          labelsFromPath:
+            name: [metadata, name]
+            namespace: [metadata, namespace]
+          metrics:
+            - name: mongodbcommunity_info
+              help: "Info metric for MongoDBCommunity custom resources (inventory)"
+              each:
+                type: Info
+                info:
+                  labelsFromPath:
+                    version: [spec, version]
+                    type: [spec, type]
+            # Assumes the operator's CRD exposes status.phase as one of these strings;
+            # re-check against `oc get mongodbcommunity <name> -o yaml` if the operator version changes.
+            - name: mongodbcommunity_status_phase
+              help: "Current status.phase of a MongoDBCommunity resource"
+              each:
+                type: StateSet
+                stateSet:
+                  labelName: phase
+                  path: [status, phase]
+                  list: ["Running", "Pending", "Failed"]
+{{- end }}

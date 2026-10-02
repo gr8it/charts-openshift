@@ -3,12 +3,13 @@ manifests should match snapshot:
     apiVersion: policy.open-cluster-management.io/v1beta1
     kind: OperatorPolicy
     metadata:
+      annotations: {}
       labels:
         app.kubernetes.io/instance: quay-operator
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: acm-operatorpolicy
         app.kubernetes.io/version: v1beta1
-        helm.sh/chart: acm-operatorpolicy-1.1.0
+        helm.sh/chart: acm-operatorpolicy-1.3.0
       name: quay-operator-acm-operatorpolicy
       namespace: open-cluster-management-policies
     spec:
@@ -25,12 +26,14 @@ manifests should match snapshot:
         subscriptions: Delete
       severity: medium
       subscription:
-        channel: stable-3.15
+        channel: stable-3.18
         name: quay-operator
         namespace: quay-operator
         source: redhat-operators
         sourceNamespace: openshift-marketplace
-        startingCSV: quay-operator.v3.15.1
+        startingCSV: quay-operator.v3.18.0
       upgradeApproval: Automatic
       versions:
         - quay-operator.v3.15.1
+        - quay-operator.v3.15.7
+        - quay-operator.v3.18.0

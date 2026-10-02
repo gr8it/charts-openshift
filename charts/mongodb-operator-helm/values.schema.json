@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "mongodb-operator-helm values",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "global": {
+      "type": "object",
+      "description": "Global values to be accessed by all (sub)charts.",
+      "additionalProperties": true
+    },
+    "nameOverride": {
+      "type": "string",
+      "description": "Overrides chart name used for app.kubernetes.io/name."
+    },
+    "fullnameOverride": {
+      "type": "string",
+      "description": "Overrides the full resource name."
+    },
+    "mongodb-kubernetes": {
+      "type": "object",
+      "description": "Values passed through to the upstream mongodb-kubernetes subchart (MongoDB Community Operator). See https://github.com/mongodb/helm-charts for the full list.",
+      "additionalProperties": true
+    },
+    "instanceReport": {
+      "type": "object",
+      "description": "Optional kube-state-metrics deployment reporting inventory and status.phase for MongoDBCommunity custom resources cluster-wide.",
+      "additionalProperties": false,
+      "required": ["enabled", "image", "ports", "scrapeInterval", "resources"],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether to deploy the MongoDB instance report."
+        },
+        "image": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["repository", "tag"],
+          "properties": {
+            "repository": {
+              "type": "string",
+              "description": "FQDN of the kube-state-metrics image repository."
+            },
+            "tag": {
+              "type": "string",
+              "description": "kube-state-metrics image tag."
+            }
+          }
+        },
+        "ports": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["metrics", "telemetry"],
+          "properties": {
+            "metrics": {
+              "type": "integer",
+              "description": "Port serving the custom-resource-state metrics.",
+              "minimum": 1,
+              "maximum": 65535
+            },
+            "telemetry": {
+              "type": "integer",
+              "description": "Port serving kube-state-metrics' own self-monitoring telemetry.",
+              "minimum": 1,
+              "maximum": 65535
+            }
+          }
+        },
+        "scrapeInterval": {
+          "type": "string",
+          "description": "ServiceMonitor scrape interval for the metrics endpoint (e.g. 30s).",
+          "pattern": "^[0-9]+(ms|s|m|h)$"
+        },
+        "resources": {
+          "type": "object",
+          "description": "Resource requests/limits for the kube-state-metrics container.",
+          "additionalProperties": true
+        }
+      }
+    }
+  }
+}

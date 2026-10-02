@@ -1,0 +1,32 @@
+{
+  "receiver": "atlassian_aspecta",
+  "status": "firing",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "KubePersistentVolumeFillingUp",
+        "namespace": "logging-loki",
+        "persistentvolumeclaim": "wal-logging-loki-ingester-0",
+        "severity": "warning",
+        "clusterName": "huba",
+        "customerName": "socpoist"
+      },
+      "annotations": {
+        "description": "namespace = logging-loki\npvc = wal-logging-loki-ingester-0\nfree space = 8%",
+        "runbook_url": "https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumefillingup"
+      },
+      "generatorURL": "https://console-openshift-console.apps.huba.qa.sp.gr8it.cloud/monitoring/graph?g0.expr=..."
+    }
+  ],
+  "groupLabels": {"alertname": "KubePersistentVolumeFillingUp"},
+  "commonLabels": {
+    "alertname": "KubePersistentVolumeFillingUp",
+    "namespace": "logging-loki",
+    "severity": "warning",
+    "clusterName": "huba",
+    "customerName": "socpoist"
+  },
+  "commonAnnotations": {},
+  "externalURL": "https://alertmanager.example.com"
+}

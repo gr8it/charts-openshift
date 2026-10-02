@@ -5,6 +5,12 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-09-16
+
+## Fixed
+
+- Compliance Operator package name
+
 ## [1.1.0] - 2026-01-22
 
 ## Changed 

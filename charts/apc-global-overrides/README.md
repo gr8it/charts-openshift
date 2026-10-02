@@ -73,6 +73,8 @@ Helper functions prefixed with `require-` execute previous logic, but expect at 
 
 Local override boolean is used when defined, otherwise global boolean is used.
 
+#### Internal implementation
+
 Standard default function would use global value, if local override value is set and set to false.
 
 To workaround this issue a boolDefaults helper function is available, which corrects the behaviour as expected.
@@ -120,6 +122,13 @@ global:
     proxy: ~
     noProxy: ~
     proxyCIDRs: []
+    ntpServers: []
+    sshAuthorizedKeys: []
+    imageProxy:
+      host: ~
+      sources: []
+    adIntegration: {}
+    ldapIntegration: {}
     services:
       certManager:
         defaultClusterIssuer: ~
@@ -154,6 +163,8 @@ global:
 |apc-global-overrides.boolDefaults|-|-|boolean|-|see [booleans](#booleans) do not use directly|
 |apc-global-overrides.customer|customer|global.apc.customer|string|-|customer name, used as prefix|
 |apc-global-overrides.require-customer|customer|global.apc.customer|string|-||
+|apc-global-overrides.customerName|customerName|global.apc.customerName|string|-|full customer name, e.g. shown in Alertmanager messages/ITSM|
+|apc-global-overrides.require-customerName|customerName|global.apc.customerName|string|-||
 |apc-global-overrides.repoURL|repoURL|global.apc.repoURL|string|-|repo URL, used for GitOps|
 |apc-global-overrides.require-repoURL|repoURL|global.apc.repoURL|string|-||
 |apc-global-overrides.repoShort|repoShort|global.apc.repoShort|string|-|extracts organization and project name from repoURL and concatenates them using '-', e.g. gr8it-charts-openshift|
@@ -189,11 +200,72 @@ global:
 |apc-global-overrides.require-noProxy|noProxy|global.apc.noProxy|string|-||
 |apc-global-overrides.proxyCIDRs|proxyCIDRs|global.apc.proxyCIDRs|list|-||
 |apc-global-overrides.require-proxyCIDRs|proxyCIDRs|global.apc.proxyCIDRs|list|-||
+|apc-global-overrides.ntpServers|ntpServers|global.apc.ntpServers|list|-| NTP servers to use in e.g. infraEnv, HCP / standalone |
+|apc-global-overrides.require-ntpServers|ntpServers|global.apc.ntpServers|list|-||
+|apc-global-overrides.chronyConfig|ntpServers|global.apc.ntpServers|list|-| Chrony config from ntpServers |
+|apc-global-overrides.sshAuthorizedKeys|sshAuthorizedKeys|global.apc.sshAuthorizedKeys|list|-| SSH public key(s) to add to authorized_keys. Array |
+|apc-global-overrides.require-sshAuthorizedKeys|sshAuthorizedKeys|global.apc.sshAuthorizedKeys|list|-||
+|apc-global-overrides.imageProxyHost|imageProxy.host|global.apc.imageProxy.host|string|-|Mirror registry hostname|
+|apc-global-overrides.require-imageProxyHost|imageProxy.host|global.apc.imageProxy.host|string|-||
+|apc-global-overrides.imageProxySources|imageProxy.sources|global.apc.imageProxy.sources|list|[]|Source registries to mirror through the image proxy|
 |apc-global-overrides.services|services|global.apc.services|dictionary|-|global services. Used to share values between helm charts|
 |apc-global-overrides.merge-services|services|global.apc.services|dictionary|-||
 |apc-global-overrides.caCertificates|caCertificates|global.apc.caCertificates|dictionary|-|Custom CA certificates to trust, keys contain name of the CA with suffix .crt, and values contains one or more PEM encoded certificate(s)|
 |apc-global-overrides.merge-caCertificates|caCertificates|global.apc.caCertificates|dictionary|-||
 |apc-global-overrides.caCertificatesBundle|caCertificates|global.apc.caCertificates|string|-|flattened caCertificates to be used as a bundle|
+
+### Integration dict helpers
+
+`apc-global-overrides.adIntegration` and `apc-global-overrides.ldapIntegration` return a merged configuration dictionary using a three-way merge: local values override global values, which override built-in defaults.
+
+The dictionary object is equivalent to the Openshift OAUTH list item structure for ldap / ad protocol.
+
+|Name|Local override|Global|Output type|Note|
+|---|---|---|---|---|
+|apc-global-overrides.adIntegration|adIntegration|global.apc.adIntegration|dict|Active Directory IDP configuration with default LDAP attribute mappings|
+|apc-global-overrides.ldapIntegration|ldapIntegration|global.apc.ldapIntegration|dict|LDAP IDP configuration with default attribute mappings|
+
+Built-in defaults (applied when not overridden at global or local level):
+
+**adIntegration:**
+```yaml
+name: ~
+type: LDAP
+mappingMethod: claim
+ldap:
+  attributes:
+    email:
+      - mail
+    id:
+      - sAMAccountName
+    name:
+      - cn
+    preferredUsername:
+      - sAMAccountName
+  bindDN: ~
+  insecure: false
+  url: ~
+```
+
+**ldapIntegration:**
+```yaml
+name: ~
+type: LDAP
+mappingMethod: claim
+ldap:
+  attributes:
+    email:
+      - mail
+    id:
+      - dn
+    name:
+      - cn
+    preferredUsername:
+      - uid
+  bindDN: ~
+  insecure: false
+  url: ~
+```
 
 ### Service specific helpers
 

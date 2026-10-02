@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "custom-metrics-autoscaler-config",
+  "type": "object",
+  "required": ["operator", "metricsServer", "admissionWebhooks", "httpAddon"],
+  "properties": {
+    "nameOverride": { "type": "string" },
+    "fullnameOverride": { "type": "string" },
+    "operator": {
+      "type": "object",
+      "properties": {
+        "logLevel": { "type": "string" },
+        "logEncoder": { "type": "string" },
+        "resources": { "type": "object" }
+      }
+    },
+    "metricsServer": {
+      "type": "object",
+      "properties": {
+        "logLevel": { "type": "string" },
+        "resources": { "type": "object" }
+      }
+    },
+    "admissionWebhooks": {
+      "type": "object",
+      "properties": {
+        "logLevel": { "type": "string" },
+        "logEncoder": { "type": "string" },
+        "resources": { "type": "object" }
+      }
+    },
+    "httpAddon": {
+      "type": "object",
+      "required": ["enabled"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "version": { "type": "string" },
+        "operator": { "type": "object" },
+        "interceptor": { "type": "object" },
+        "scaler": { "type": "object" }
+      }
+    }
+  }
+}
