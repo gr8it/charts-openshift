@@ -1,0 +1,33 @@
+global: # to be overridden by helmfile global meta env
+  apc:
+    environmentShort: x
+    cluster:
+      name: cluster
+      appsDomain: "apps.cluster.example.com"
+      isHub: true
+    proxy: "http://proxy.example.com:8080"
+    noProxy: ".example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+    proxyCIDRs: [1.2.3.4/32, 5.6.7.8/32]
+    services:
+      crossplane:
+        kubeVaultProviderConfigName: vault-cluster-provider-config
+      externalSecretsOperator:
+        defaultClusterSecretStore: vault-cluster-secret-store
+      vault:
+        url: https://vault.apps.cluster.example.com
+        kubeAuthMountPath: cluster
+
+###########################################################
+
+nameOverride: apc-registry
+dbVolumeSize: 50Gi
+
+vault:
+  refPullSecretPath: apc-platform/x/cluster-config
+  clusterPullSecretPath:
+    huba:    apc-platform/x/cluster-config
+    spokea1: apc-platform/y/cluster-config
+
+argocd:
+  syncOnPullSecretUpdate: true
+  appName: quay-config-test
