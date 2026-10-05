@@ -3099,6 +3099,20 @@ entries:
   kyverno:
   - apiVersion: v2
     appVersion: 3.5.2
+    created: "2026-10-02T11:26:41.17476+02:00"
+    dependencies:
+    - name: kyverno
+      repository: https://kyverno.github.io/kyverno
+      version: 3.5.2
+    description: A Helm chart to install kyverno
+    digest: 1646360ccfbabe01f912d7103805d9c97aaf56f3ee3e16472661f9b15bba821a
+    name: kyverno
+    type: application
+    urls:
+    - packaged_charts/kyverno-1.6.1.tgz
+    version: 1.6.1
+  - apiVersion: v2
+    appVersion: 3.5.2
     created: "2026-09-28T08:23:13.849096+02:00"
     dependencies:
     - name: kyverno
@@ -3720,6 +3734,26 @@ entries:
     - packaged_charts/mongodb-operator-helm-1.0.0.tgz
     version: 1.0.0
   monitoring:
+  - apiVersion: v2
+    created: "2026-10-02T10:56:42.229059806+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.9.0
+    - alias: backups
+      condition: backups.enabled
+      name: openshift-adp-backups
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.0
+    description: Helm chart for OpenShift cluster monitoring (ClusterMonitoringConfig,
+      UserWorkloadMonitoringConfig, AlertManager via ESO, Kyverno PrometheusRule generation
+      for cluster and user workload monitoring namespaces)
+    digest: db506c97df8962a90ac8d3e212ca34abf3834666491f47cad3741d1aad913e76
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.3.0.tgz
+    version: 1.3.0
   - apiVersion: v2
     created: "2026-09-11T11:36:31.562025+02:00"
     dependencies:
@@ -5351,4 +5385,4 @@ entries:
     urls:
     - packaged_charts/veeam-exporter-1.0.0.tgz
     version: 1.0.0
-generated: "2026-10-01T15:36:14.469807451+02:00"
+generated: "2026-10-02T11:26:41.164133+02:00"
