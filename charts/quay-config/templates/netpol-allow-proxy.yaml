@@ -1,0 +1,21 @@
+{{- $CIDRs := ( include "apc-global-overrides.proxyCIDRs" . | fromYamlArray) }}
+{{- if gt (len $CIDRs) 0 }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "quay-config.name" . }}-allow-proxy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "quay-config.labels" . | nindent 4 }}
+spec:
+  egress:
+    - to:
+      {{- range $CIDRs }}
+      - ipBlock:
+          cidr: {{ . }}
+      {{- end }}
+  podSelector: {}
+  policyTypes:
+    - Egress
+{{- end }}

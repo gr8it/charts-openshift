@@ -1,0 +1,88 @@
+## uses following global values => do not set here ########
+# global: # to be overridden by helmfile global meta env
+#   apc:
+#     environmentShort:
+#     cluster:
+#       name:
+#       appsDomain:
+#       isHub:
+#     proxy:
+#     noProxy:
+#     proxyCIDRs:
+#     services:
+#       crossplane:
+#         kubeVaultProviderConfigName:
+#       externalSecretsOperator:
+#         defaultClusterSecretStore:
+#       vault:
+#         url:
+#         kubeAuthMountPath:
+###########################################################
+
+nameOverride: apc-registry
+
+dbVolumeSize: 200Gi
+
+quayConfig:
+  tagExpiration: 2w
+  actionLogRetention: 30d
+  registryTitle: APC Quay Registry
+  registryTitleShort: APC Quay
+  localAdminUser: quayadmin
+
+# list of registries to be used for image proxying
+# TODO: deprecated - use apc-global-overrides.imageProxySources
+imageProxyRegistries:
+  - docker.io
+  - quay.io
+  - ghcr.io
+  - registry.connect.redhat.com
+  - registry.redhat.io
+
+vault:
+  # path to vault secret containing credentials for various registries
+  # the secret key name should be "pull-secret" and the value is a dockerconfig.json format
+  # registry credentials found in here will be used for authenticating to the registries listed in imageProxyRegistries
+  refPullSecretPath: ~
+  # dictionary of key:value pairs where "key" is the cluster name and "value" is the vault path to this clusters pull-secret
+  # the secret must already exist on the vault side
+  # if the whole dictionary is set to null, no robot account for clusters are created.# if only the "value" is set to null, rubot account for that cluster (key) is created but the pull-secret will not be auto-updated with credentials for accessing this quay proxy.
+  clusterPullSecretPath: ~
+    #cluster-name: vault/env/path
+    #dev01:  apc-platform/d/cluster-config
+    #test01: apc-platform/t/cluster-config
+    #prod01: apc-platform/p/cluster-config
+    #hub01:  apc-platform/h/cluster-config
+
+# oc adm release info --image-for=cli
+ocImage: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+
+argocd:
+  # forces argocd sync each time the pull-secret (defined in refPullSecretPath) gets updated
+  # this re-creates init job(s) to update the registry credentials
+  syncOnPullSecretUpdate: true
+  appName: ~      # defaults to Chart.name
+  appNamespace: ~ # defaults to apc-gitops
+
+resourcesOverride:
+  mirror:
+    limits:
+      cpu: 1200m
+      memory: 2Gi
+    requests:
+      cpu: 600m
+      memory: 512Mi
+  quay:
+    limits:
+      cpu: 3
+      memory: 10Gi
+    requests:
+      cpu: 2
+      memory: 8Gi
+  postinstall:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 512Mi
