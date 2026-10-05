@@ -38,7 +38,12 @@ manifests should match snapshot:
         matchNames:
           - apc-crossplane-system
       podMetricsEndpoints:
-        - port: metrics
+        - metricRelabelings:
+            - action: keep
+              regex: crossplane_managed_resource_(exists|synced)
+              sourceLabels:
+                - __name__
+          port: metrics
       selector:
         matchExpressions:
           - key: pkg.crossplane.io/provider

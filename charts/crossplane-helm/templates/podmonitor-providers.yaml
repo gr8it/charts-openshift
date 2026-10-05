@@ -12,6 +12,10 @@ spec:
         operator: Exists
   podMetricsEndpoints:
     - port: metrics
+      metricRelabelings:
+        - sourceLabels: [__name__]
+          regex: crossplane_managed_resource_(exists|synced)
+          action: keep
   namespaceSelector:
     matchNames:
       - {{ .Release.Namespace }}
