@@ -1,0 +1,98 @@
+suite: Kyverno generated namespace rules
+templates:
+  - templates/cluster-policy-application.yaml
+  - templates/cluster-policy-non-application.yaml
+  - templates/cluster-policy-cluster-monitoring.yaml
+values:
+  - ../values.example.yaml
+release:
+  name: monitoring
+  namespace: openshift-monitoring
+
+tests:
+  - it: routes application namespace alerts to platform
+    template: templates/cluster-policy-application.yaml
+    asserts:
+      - equal:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
+          value: examplevendor
+      - equal:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
+          value: exampleteam
+
+  - it: routes non-application namespace alerts to platform
+    template: templates/cluster-policy-non-application.yaml
+    asserts:
+      - equal:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
+          value: examplevendor
+      - equal:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
+          value: exampleteam
+
+  - it: routes cluster monitoring namespace alerts to platform
+    template: templates/cluster-policy-cluster-monitoring.yaml
+    asserts:
+      - equal:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
+          value: examplevendor
+      - equal:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
+          value: exampleteam
+
+  - it: takes platform vendor/team from platformAlertLabels values
+    templates:
+      - templates/cluster-policy-application.yaml
+      - templates/cluster-policy-non-application.yaml
+      - templates/cluster-policy-cluster-monitoring.yaml
+    set:
+      platformAlertLabels:
+        vendor: othervendor
+        team: otherteam
+    asserts:
+      - equal:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
+          value: othervendor
+      - equal:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
+          value: otherteam
+
+  - it: renders platformAlertLabels as strings even when they look like other YAML types
+    template: templates/cluster-policy-application.yaml
+    set:
+      platformAlertLabels:
+        vendor: "true"
+        team: platform ops
+    asserts:
+      - equal:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
+          value: "true"
+      - equal:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
+          value: platform ops
+
+  - it: fails schema validation when platformAlertLabels.team is missing
+    template: templates/cluster-policy-application.yaml
+    set:
+      platformAlertLabels.team: null
+    asserts:
+      - failedTemplate:
+          errorPattern: "platformAlertLabels"
+
+  - it: fails schema validation when platformAlertLabels.vendor is not a string
+    template: templates/cluster-policy-application.yaml
+    set:
+      platformAlertLabels.vendor: 123
+    asserts:
+      - failedTemplate:
+          errorPattern: "platformAlertLabels"
+
+  - it: renders every rule from files/namespace-rules.yaml
+    template: templates/cluster-policy-application.yaml
+    asserts:
+      - lengthEqual:
+          path: spec.rules[0].generate.data.spec.groups[0].rules
+          count: 25
+      - matchRegex:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].expr
+          pattern: '^max by \(namespace,pod,container\) \(\s+max_over_time\(kube_pod_container_status_waiting_reason\{reason="CrashLoopBackOff"'
