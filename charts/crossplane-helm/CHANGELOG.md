@@ -15,11 +15,15 @@ _([SPEXAPC-26333](https://aspecta.atlassian.net/browse/SPEXAPC-26333))_
 
 - Added `monitoring-reminder` dependency with `CrossplaneVaultTokenExpirySoon` reminder for the static Vault token used by the Crossplane vault provider
 - Added PodMonitor for Crossplane provider pods
-- Added `CrossplaneProviderDown` and `CrossplaneManagedResourcesNotSynced` alerts
+- Added `CrossplaneProviderDown`, `CrossplaneProviderMetricsDown`, `CrossplaneManagedResourcesNotSynced` and `CrossplaneManagedResourcesNotReady` alerts
 
 ### Changed
 
 - Bumped `apc-global-overrides` to 1.10.0
+
+### Fixed
+
+- `CrossplaneControllerDown` and `CrossplaneRBACManagerDown` alerts fire also when the pod is running but its metrics cannot be scraped
 
 ## [2.2.2] - 2026-08-03
 

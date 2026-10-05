@@ -40,7 +40,7 @@ manifests should match snapshot:
       podMetricsEndpoints:
         - metricRelabelings:
             - action: keep
-              regex: crossplane_managed_resource_(exists|synced)
+              regex: crossplane_managed_resource_(exists|synced|ready)
               sourceLabels:
                 - __name__
           port: metrics
@@ -111,7 +111,7 @@ manifests should match snapshot:
                 description: Crossplane controller pod has been down for more than 10 minutes
                 summary: Crossplane controller is not running
               expr: |
-                absent(up{job="apc-crossplane-system/crossplane-helm-podmonitor"}) == 1
+                absent(up{job="apc-crossplane-system/crossplane-helm-podmonitor"} == 1)
               for: 10m
               labels:
                 severity: warning
@@ -133,7 +133,7 @@ manifests should match snapshot:
                 description: Crossplane RBAC manager pod has been down for more than 10 minutes
                 summary: Crossplane RBAC manager is not running
               expr: |
-                absent(up{job="apc-crossplane-system/crossplane-helm-rbac-manager"}) == 1
+                absent(up{job="apc-crossplane-system/crossplane-helm-rbac-manager"} == 1)
               for: 10m
               labels:
                 severity: warning
@@ -150,6 +150,17 @@ manifests should match snapshot:
                 severity: warning
                 team: platform
                 vendor: aspecta
+            - alert: CrossplaneProviderMetricsDown
+              annotations:
+                description: Metrics of Crossplane provider pod {{ $labels.pod }} cannot be scraped for more than 10 minutes. Managed resources alerts do not work for this provider.
+                summary: Crossplane provider metrics are not available
+              expr: |
+                up{job="apc-crossplane-system/crossplane-helm-providers"} == 0
+              for: 10m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
             - alert: CrossplaneManagedResourcesNotSynced
               annotations:
                 description: '{{ $value }} managed resources of {{ $labels.gvk }} are not synced for more than 30 minutes. Check status.conditions of the resources and the provider credentials (ProviderConfig).'
@@ -158,6 +169,18 @@ manifests should match snapshot:
                 max by (gvk) (crossplane_managed_resource_exists{job="apc-crossplane-system/crossplane-helm-providers"})
                   - max by (gvk) (crossplane_managed_resource_synced{job="apc-crossplane-system/crossplane-helm-providers"}) > 0
               for: 30m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: CrossplaneManagedResourcesNotReady
+              annotations:
+                description: '{{ $value }} managed resources of {{ $labels.gvk }} are not ready for more than 1 hour. Check status.conditions of the resources and the state of the external resources.'
+                summary: Crossplane managed resources are not ready
+              expr: |
+                max by (gvk) (crossplane_managed_resource_exists{job="apc-crossplane-system/crossplane-helm-providers"})
+                  - max by (gvk) (crossplane_managed_resource_ready{job="apc-crossplane-system/crossplane-helm-providers"}) > 0
+              for: 1h
               labels:
                 severity: warning
                 team: platform
