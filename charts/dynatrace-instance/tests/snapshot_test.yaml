@@ -1,0 +1,19 @@
+suite: Snapshot test
+templates:
+  - templates/*
+values:
+  - ../values.example.yaml
+release:
+  name: apc-dynatrace
+  namespace: apc-dynatrace
+
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}
+  - it: renders enabled metadata enrichment
+    set:
+      metadataEnrichment:
+        enabled: true
+    asserts:
+      - matchSnapshot: {}

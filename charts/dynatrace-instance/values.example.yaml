@@ -1,0 +1,33 @@
+global:
+  apc:
+    environmentShort: test
+    services:
+      vault:
+        KVmountPlatform: apc-platform
+      externalSecretsOperator:
+        defaultClusterSecretStore: vault-example
+apiUrl: https://abc12345.live.dynatrace.com/api
+oneAgent:
+  hostGroup: apc-test
+  applicationMonitoring:
+    namespaceSelector:
+      matchExpressions:
+      - key: kubernetes.io/metadata.name
+        operator: In
+        values: [example-namespace-name]
+    codeModulesImage: "public.ecr.aws/dynatrace/dynatrace-codemodules:1.331.47.20260223-124211"
+activeGate:
+  capabilities:
+    - routing
+    - kubernetes-monitoring
+    - metrics-ingest
+    - dynatrace-api
+  image: public.ecr.aws/dynatrace/dynatrace-activegate:1.331.24.20260210-044521
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1.5Gi
+              

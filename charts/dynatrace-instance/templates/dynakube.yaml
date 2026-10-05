@@ -1,0 +1,29 @@
+apiVersion: dynatrace.com/v1beta6
+kind: DynaKube
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "dynatrace-instance.labels" . | nindent 4 }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  apiUrl: {{ required "apiUrl is required" .Values.apiUrl | quote }}
+  skipCertCheck: {{ .Values.skipCertCheck }}
+  trustedCAs: {{ .Release.Name }}-trusted-ca
+  tokens: {{ .Release.Name }}
+  {{- with .Values.metadataEnrichment }}
+  metadataEnrichment:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.oneAgent }}
+  oneAgent:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+
+  {{- with .Values.activeGate }}
+  activeGate:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}

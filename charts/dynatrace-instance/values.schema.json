@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "dynatrace-instance values",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "apiUrl": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 0
+        },
+        {
+          "type": "string",
+          "format": "uri",
+          "minLength": 1
+        }
+      ],
+      "description": "Dynatrace environment API URL."
+    },
+    "apc-global-overrides": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Values for the apc-global-overrides chart dependency."
+    },
+    "global": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Global values supplied by the configuration repository."
+    },
+    "annotations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Annotations applied to the DynaKube resource."
+    },
+    "skipCertCheck": {
+      "type": "boolean",
+      "description": "Whether to skip TLS certificate validation for the Dynatrace API connection."
+    },
+    "trustedCAs": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Name of the ConfigMap containing trusted CA certificates."
+    },
+    "metadataEnrichment": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "DynaKube metadata enrichment configuration."
+    },
+    "externalSecret": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "refreshInterval": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Interval for refreshing Dynatrace tokens from the external secret store."
+        }
+      }
+    },
+    "oneAgent": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "DynaKube oneAgent configuration."
+    },
+    "activeGate": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "capabilities": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": [
+              "routing",
+              "kubernetes-monitoring",
+              "metrics-ingest",
+              "dynatrace-api"
+            ]
+          },
+          "uniqueItems": true
+        }
+      },
+      "description": "DynaKube ActiveGate configuration."
+    }
+  }
+}
