@@ -42,3 +42,26 @@ spec:
         severity: warning
         vendor: aspecta
         team: platform
+    - alert: CrossplaneProviderDown
+      annotations:
+        description: "Crossplane provider deployment {{ `{{ $labels.deployment }}` }} has no available replicas for more than 10 minutes"
+        summary: "Crossplane provider is not running"
+      expr: |
+        kube_deployment_status_replicas_available{namespace="{{ .Release.Namespace }}", deployment=~".+-provider-.+"} == 0
+      for: 10m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform
+    - alert: CrossplaneManagedResourcesNotSynced
+      annotations:
+        description: "{{ `{{ $value }}` }} managed resources of {{ `{{ $labels.gvk }}` }} are not synced for more than 30 minutes. Check status.conditions of the resources and the provider credentials (ProviderConfig)."
+        summary: "Crossplane managed resources are not synced"
+      expr: |
+        max by (gvk) (crossplane_managed_resource_exists{job="{{ .Release.Namespace }}/{{ include "crossplane-helm.fullname" . }}-providers"})
+          - max by (gvk) (crossplane_managed_resource_synced{job="{{ .Release.Namespace }}/{{ include "crossplane-helm.fullname" . }}-providers"}) > 0
+      for: 30m
+      labels:
+        severity: warning
+        vendor: aspecta
+        team: platform

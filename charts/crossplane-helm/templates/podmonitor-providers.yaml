@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: {{ include "crossplane-helm.fullname" . }}-providers
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "crossplane-helm.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchExpressions:
+      - key: pkg.crossplane.io/provider
+        operator: Exists
+  podMetricsEndpoints:
+    - port: metrics
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
