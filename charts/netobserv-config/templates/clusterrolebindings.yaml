@@ -1,0 +1,66 @@
+# Operator 1.12.2+ no longer holds cluster-wide permissions, bindings for a non-default namespace are created here
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: netobserv-informers-custom
+  labels:
+    {{- include "netobserv-config.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: netobserv-informers
+subjects:
+  - kind: ServiceAccount
+    name: flowlogs-pipeline
+    namespace: {{ .Release.Namespace }}
+  - kind: ServiceAccount
+    name: flowlogs-pipeline-transformer
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: netobserv-lokiwriter-custom
+  labels:
+    {{- include "netobserv-config.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: netobserv-loki-writer
+subjects:
+  - kind: ServiceAccount
+    name: flowlogs-pipeline
+    namespace: {{ .Release.Namespace }}
+  - kind: ServiceAccount
+    name: flowlogs-pipeline-transformer
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: netobserv-hostnetwork-custom
+  labels:
+    {{- include "netobserv-config.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: netobserv-hostnetwork
+subjects:
+  - kind: ServiceAccount
+    name: flowlogs-pipeline
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: netobserv-tokenreview-custom
+  labels:
+    {{- include "netobserv-config.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: netobserv-token-review
+subjects:
+  - kind: ServiceAccount
+    name: netobserv-plugin
+    namespace: {{ .Release.Namespace }}
