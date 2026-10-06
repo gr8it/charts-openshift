@@ -17,7 +17,7 @@ The namespace is managed by ArgoCD, not by this chart. Configure `managedNamespa
 netobserv-config:
   render:
     chart: gr8it-openshift/netobserv-config
-    chartVersion: "1.3.0"
+    chartVersion: "1.1.0"
   destination:
     namespace: apc-netobserv
   managedNamespaceMetadata:
