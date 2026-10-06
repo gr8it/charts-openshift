@@ -66,6 +66,48 @@ tests:
     template: templates/flowcollector.yaml
     set:
       flowCollector.processor.healthRules: []
+      prometheusRule.enabled: false
     asserts:
       - notExists:
           path: spec.processor.metrics
+
+  - it: alerts carry severity, vendor and team labels
+    template: templates/prometheusrule.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.groups[0].rules[0].labels
+          value:
+            severity: warning
+            vendor: aspecta
+            team: platform
+      - equal:
+          path: spec.groups[0].rules[3].labels
+          value:
+            severity: warning
+            vendor: aspecta
+            team: platform
+      - lengthEqual:
+          path: spec.groups[0].rules
+          count: 4
+
+  - it: operator copies of the self-health alerts are disabled when the rule is on
+    template: templates/flowcollector.yaml
+    asserts:
+      - equal:
+          path: spec.processor.metrics.disableAlerts
+          value:
+            - NetObservNoFlows
+            - NetObservLokiError
+
+  - it: no rule and no disableAlerts when the rule is off
+    set:
+      prometheusRule.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: templates/prometheusrule.yaml
+      - notExists:
+          path: spec.processor.metrics.disableAlerts
+        template: templates/flowcollector.yaml
