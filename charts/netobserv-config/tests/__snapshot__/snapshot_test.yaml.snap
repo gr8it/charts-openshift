@@ -117,9 +117,6 @@ manifests should match snapshot:
       namespace: netobserv
       processor:
         metrics:
-          disableAlerts:
-            - NetObservNoFlows
-            - NetObservLokiError
           healthRules:
             - mode: Recording
               template: PacketDropsByDevice
@@ -251,69 +248,6 @@ manifests should match snapshot:
       bucketName: apc-netobserv-config-rgw
       storageClassName: ocs-storagecluster-ceph-rgw
   10: |
-    apiVersion: monitoring.coreos.com/v1
-    kind: PrometheusRule
-    metadata:
-      labels:
-        app.kubernetes.io/instance: netobserv-config
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: netobserv-config
-        helm.sh/chart: netobserv-config-1.1.0
-      name: netobserv-alerts
-      namespace: netobserv
-    spec:
-      groups:
-        - name: netobserv.rules
-          rules:
-            - alert: NetObservNoFlows
-              annotations:
-                description: The flowlogs-pipeline has not received any flow for 10 minutes. Either the eBPF agent cannot reach it or the agent itself is failing.
-                runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/network-observability-operator/NetObservNoFlows.md
-                summary: NetObserv receives no flows
-              expr: |
-                sum(rate(netobserv_ingest_flows_processed[1m])) == 0
-              for: 10m
-              labels:
-                severity: warning
-                team: platform
-                vendor: aspecta
-            - alert: NetObservLokiError
-              annotations:
-                description: The flowlogs-pipeline drops flows because writing to Loki fails. Check the LokiStack and the flowlogs-pipeline logs.
-                runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/network-observability-operator/NetObservLokiError.md
-                summary: NetObserv drops flows on Loki errors
-              expr: |
-                sum(rate(netobserv_loki_dropped_entries_total[1m])) > 0
-              for: 10m
-              labels:
-                severity: warning
-                team: platform
-                vendor: aspecta
-            - alert: NetObservPacketDropsKernel
-              annotations:
-                description: More than 10% of the packets seen by the eBPF agent on a node are dropped by the kernel. Open Observe > Network Traffic > Network Health to find the affected node.
-                runbook_url: https://github.com/netobserv/netobserv-operator/blob/main/docs/HealthRules.md
-                summary: High kernel packet drop rate on a node
-              expr: |
-                max by (node) ({__name__=~"netobserv:health:packet_drops_kernel:node:(src|dst):rate2m"}) > 10
-              for: 15m
-              labels:
-                severity: warning
-                team: platform
-                vendor: aspecta
-            - alert: NetObservPacketDropsDevice
-              annotations:
-                description: More than 10% of the packets on a node network interface are dropped by the device. Open Observe > Network Traffic > Network Health to find the affected node.
-                runbook_url: https://github.com/netobserv/netobserv-operator/blob/main/docs/HealthRules.md
-                summary: High network device packet drop rate on a node
-              expr: |
-                max by (instance) (netobserv:health:packet_drops_device:node:rate2m) > 10
-              for: 15m
-              labels:
-                severity: warning
-                team: platform
-                vendor: aspecta
-  11: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
@@ -332,7 +266,7 @@ manifests should match snapshot:
       - kind: ServiceAccount
         name: netobserv-controller-manager
         namespace: openshift-netobserv-operator
-  12: |
+  11: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:

@@ -23,17 +23,10 @@ spec:
   processor:
     resources:
       {{- toYaml .Values.flowCollector.processor.resources | nindent 6 }}
-    {{- if or .Values.flowCollector.processor.healthRules .Values.prometheusRule.enabled }}
+    {{- with .Values.flowCollector.processor.healthRules }}
     metrics:
-      {{- with .Values.flowCollector.processor.healthRules }}
       healthRules:
         {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- if .Values.prometheusRule.enabled }}
-      disableAlerts:
-        - NetObservNoFlows
-        - NetObservLokiError
-      {{- end }}
     {{- end }}
   loki:
     enable: true
