@@ -7,7 +7,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: netobserv-config
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: netobserv-config
-        helm.sh/chart: netobserv-config-1.1.0
+        helm.sh/chart: netobserv-config-1.2.0
       name: netobserv-informers-custom
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -28,7 +28,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: netobserv-config
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: netobserv-config
-        helm.sh/chart: netobserv-config-1.1.0
+        helm.sh/chart: netobserv-config-1.2.0
       name: netobserv-lokiwriter-custom
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -49,7 +49,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: netobserv-config
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: netobserv-config
-        helm.sh/chart: netobserv-config-1.1.0
+        helm.sh/chart: netobserv-config-1.2.0
       name: netobserv-hostnetwork-custom
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -67,7 +67,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: netobserv-config
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: netobserv-config
-        helm.sh/chart: netobserv-config-1.1.0
+        helm.sh/chart: netobserv-config-1.2.0
       name: netobserv-tokenreview-custom
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -85,7 +85,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: netobserv-config
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: netobserv-config
-        helm.sh/chart: netobserv-config-1.1.0
+        helm.sh/chart: netobserv-config-1.2.0
       name: cluster
     spec:
       agent:
@@ -94,6 +94,8 @@ manifests should match snapshot:
             - DNSTracking
             - FlowRTT
             - TLSTracking
+            - PacketDrop
+          privileged: true
           resources:
             limits:
               cpu: "2"
@@ -114,6 +116,15 @@ manifests should match snapshot:
         mode: LokiStack
       namespace: netobserv
       processor:
+        metrics:
+          healthRules:
+            - mode: Recording
+              template: PacketDropsByDevice
+              variants:
+                - groupBy: Node
+                  thresholds:
+                    info: "5"
+                    warning: "10"
         resources:
           limits:
             cpu: "2"
@@ -129,7 +140,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: netobserv-config
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: netobserv-config
-        helm.sh/chart: netobserv-config-1.1.0
+        helm.sh/chart: netobserv-config-1.2.0
       name: netobserv-config
       namespace: netobserv
     spec:
@@ -173,7 +184,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: netobserv-config
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: netobserv-config
-        helm.sh/chart: netobserv-config-1.1.0
+        helm.sh/chart: netobserv-config-1.2.0
       name: apc-flowlogs-pipeline-network-policy
       namespace: netobserv
     spec:
@@ -201,7 +212,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: netobserv-config
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: netobserv-config
-        helm.sh/chart: netobserv-config-1.1.0
+        helm.sh/chart: netobserv-config-1.2.0
       name: apc-netobserv-plugin-network-policy
       namespace: netobserv
     spec:
@@ -230,7 +241,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: netobserv-config
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: netobserv-config
-        helm.sh/chart: netobserv-config-1.1.0
+        helm.sh/chart: netobserv-config-1.2.0
       name: netobserv-config-rgw
       namespace: netobserv
     spec:
@@ -244,7 +255,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: netobserv-config
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: netobserv-config
-        helm.sh/chart: netobserv-config-1.1.0
+        helm.sh/chart: netobserv-config-1.2.0
       name: secret-watcher
       namespace: netobserv
     roleRef:
@@ -263,7 +274,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: netobserv-config
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: netobserv-config
-        helm.sh/chart: netobserv-config-1.1.0
+        helm.sh/chart: netobserv-config-1.2.0
       name: secret-creator
       namespace: netobserv
     roleRef:

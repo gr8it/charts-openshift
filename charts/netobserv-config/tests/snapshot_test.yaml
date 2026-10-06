@@ -21,6 +21,7 @@ tests:
             - DNSTracking
             - FlowRTT
             - TLSTracking
+            - PacketDrop
 
   - it: eBPF features are omitted when empty
     template: templates/flowcollector.yaml
@@ -29,3 +30,42 @@ tests:
     asserts:
       - notExists:
           path: spec.agent.ebpf.features
+
+  - it: privileged agent and PacketDrop are rendered when set
+    template: templates/flowcollector.yaml
+    asserts:
+      - equal:
+          path: spec.agent.ebpf.privileged
+          value: true
+      - contains:
+          path: spec.agent.ebpf.features
+          content: PacketDrop
+
+  - it: privileged is omitted by default
+    template: templates/flowcollector.yaml
+    set:
+      flowCollector.agent.ebpf.privileged: false
+    asserts:
+      - notExists:
+          path: spec.agent.ebpf.privileged
+
+  - it: health rules are rendered under processor metrics
+    template: templates/flowcollector.yaml
+    asserts:
+      - equal:
+          path: spec.processor.metrics.healthRules[0].template
+          value: PacketDropsByDevice
+      - equal:
+          path: spec.processor.metrics.healthRules[0].mode
+          value: Recording
+      - equal:
+          path: spec.processor.metrics.healthRules[0].variants[0].groupBy
+          value: Node
+
+  - it: processor metrics are omitted when no health rules are set
+    template: templates/flowcollector.yaml
+    set:
+      flowCollector.processor.healthRules: []
+    asserts:
+      - notExists:
+          path: spec.processor.metrics

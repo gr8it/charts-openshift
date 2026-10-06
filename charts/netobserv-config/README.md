@@ -17,7 +17,7 @@ The namespace is managed by ArgoCD, not by this chart. Configure `managedNamespa
 netobserv-config:
   render:
     chart: gr8it-openshift/netobserv-config
-    chartVersion: "1.1.0"
+    chartVersion: "1.2.0"
   destination:
     namespace: apc-netobserv
   managedNamespaceMetadata:
@@ -38,4 +38,6 @@ netobserv-config:
 | `lokistack.existingSecret` | Override S3 credentials secret name | `<fullname>-rgw-allinfo` |
 | `lokistack.storageClassName` | StorageClass for LokiStack | `ocs-storagecluster-ceph-rbd` |
 | `flowCollector.agent.ebpf.sampling` | eBPF sampling rate | `50` |
-| `flowCollector.agent.ebpf.features` | eBPF agent features: `DNSTracking`, `FlowRTT`, `TLSTracking`, `IPSec`, `PacketTranslation` (`PacketDrop`, `NetworkEvents`, `UDNMapping` also need `privileged`, not supported by this chart) | `[]` |
+| `flowCollector.agent.ebpf.features` | eBPF agent features: `DNSTracking`, `FlowRTT`, `TLSTracking`, `IPSec`, `PacketTranslation`, plus `PacketDrop`, `NetworkEvents`, `UDNMapping` which also need `privileged` | `[]` |
+| `flowCollector.agent.ebpf.privileged` | Run the eBPF agent privileged, required by `PacketDrop`, `NetworkEvents` and `UDNMapping` | `false` |
+| `flowCollector.processor.healthRules` | Network Health rules passed to `spec.processor.metrics.healthRules`: `template`, `mode` (`Alert` or `Recording`), `variants`. A template set here replaces its operator defaults, so restate the variants and thresholds you want | `[]` |

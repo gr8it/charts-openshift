@@ -28,6 +28,8 @@ flowCollector:
         - DNSTracking
         - FlowRTT
         - TLSTracking
+        - PacketDrop
+      privileged: true
       resources:
         requests:
           memory: 50Mi
@@ -36,6 +38,14 @@ flowCollector:
           memory: 1Gi
           cpu: "2"
   processor:
+    healthRules:
+      - template: PacketDropsByDevice
+        mode: Recording
+        variants:
+          - groupBy: Node
+            thresholds:
+              warning: "10"
+              info: "5"
     resources:
       requests:
         memory: 100Mi
