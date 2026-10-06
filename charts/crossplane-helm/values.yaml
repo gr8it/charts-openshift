@@ -50,18 +50,3 @@ crossplane:
   #   HTTP_PROXY: ~
   #   HTTPS_PROXY: ~
   #   NO_PROXY: ~
-
-monitoring-reminder:
-  reminders:
-    CrossplaneVaultTokenExpirySoon:
-      summary: Vault token used by Crossplane vault provider expires soon
-      description: >
-        Static Vault token used by the Crossplane vault provider (secret vault-hub-token in the
-        crossplane namespace) expires soon. The provider does not renew the token itself. After
-        expiry all Vault managed resources stop reconciling with 403 on auth/token/lookup-self.
-        Renew the token (vault token renew) or issue a new periodic one and update the secret,
-        then update datetime of this reminder.
-      runbookUrl: https://github.com/gr8it/privatecloud/tree/main/docs/openshift/crossplane
-      datetime: "06.10.2027 08:00" 
-      daysBeforeExpiry: 30
-      critical: true
