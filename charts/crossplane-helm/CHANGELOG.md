@@ -13,7 +13,7 @@ _([SPEXAPC-26333](https://aspecta.atlassian.net/browse/SPEXAPC-26333))_
 
 ### Added
 
-- Added `monitoring-reminder` dependency with `CrossplaneVaultTokenExpirySoon` reminder for the static Vault token used by the Crossplane vault provider
+- Added `monitoring-reminder` dependency to support configuring a `CrossplaneVaultTokenExpirySoon` reminder for the static Vault token used by the Crossplane vault provider
 - Added PodMonitor for Crossplane provider pods
 - Added `CrossplaneProviderDown`, `CrossplaneProviderMetricsDown`, `CrossplaneManagedResourcesNotSynced` and `CrossplaneManagedResourcesNotReady` alerts
 
