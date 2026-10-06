@@ -11,3 +11,21 @@ tests:
   - it: manifests should match snapshot
     asserts:
       - matchSnapshot: {}
+
+  - it: eBPF features are rendered when set
+    template: templates/flowcollector.yaml
+    asserts:
+      - equal:
+          path: spec.agent.ebpf.features
+          value:
+            - DNSTracking
+            - FlowRTT
+            - TLSTracking
+
+  - it: eBPF features are omitted when empty
+    template: templates/flowcollector.yaml
+    set:
+      flowCollector.agent.ebpf.features: []
+    asserts:
+      - notExists:
+          path: spec.agent.ebpf.features

@@ -11,6 +11,10 @@ spec:
     type: eBPF
     ebpf:
       sampling: {{ .Values.flowCollector.agent.ebpf.sampling }}
+      {{- with .Values.flowCollector.agent.ebpf.features }}
+      features:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       resources:
         {{- toYaml .Values.flowCollector.agent.ebpf.resources | nindent 8 }}
   processor:
