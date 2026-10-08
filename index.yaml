@@ -246,6 +246,21 @@ entries:
     version: 1.0.0
   acs-operator:
   - apiVersion: v2
+    appVersion: v4.11.4
+    created: "2026-10-01T13:03:28.03431788+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install Red Hat Advanced Cluster Security (RHACS)
+      Operator
+    digest: 3028396a1ef95faa964074d98e900c7063bc139e3ecf716eb605896b4c5a17c8
+    name: acs-operator
+    type: application
+    urls:
+    - packaged_charts/acs-operator-1.0.2.tgz
+    version: 1.0.2
+  - apiVersion: v2
     appVersion: v4.8.7
     created: "2026-01-20T22:00:29.108726+01:00"
     dependencies:
@@ -1584,6 +1599,26 @@ entries:
   crossplane-helm:
   - apiVersion: v2
     appVersion: 2.1.3
+    created: "2026-10-06T11:20:49.43183163+02:00"
+    dependencies:
+    - name: crossplane
+      repository: https://charts.crossplane.io/stable
+      version: 2.1.3
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.10.0
+    - name: monitoring-reminder
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 2.0.2
+    description: A Helm chart to install Crossplane
+    digest: 8be74ab43b78dd7ba3b7f0130fb62a663bf7739fb8a7414ac98edcdca0dfe185
+    name: crossplane-helm
+    type: application
+    urls:
+    - packaged_charts/crossplane-helm-2.3.0.tgz
+    version: 2.3.0
+  - apiVersion: v2
+    appVersion: 2.1.3
     created: "2026-08-04T12:22:13.251236334+02:00"
     dependencies:
     - name: crossplane
@@ -2127,6 +2162,36 @@ entries:
     type: application
     urls:
     - packaged_charts/default-network-policies-1.0.0.tgz
+    version: 1.0.0
+  dynatrace-instance:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2026-10-02T11:53:21.423825079+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.10.0
+    description: Deploys a Dynatrace DynaKube instance and its token ExternalSecret
+    digest: fc4c2271e84ab4786bbd7975d02a7798d81d146c080b606f405331ac81d4a8ec
+    name: dynatrace-instance
+    type: application
+    urls:
+    - packaged_charts/dynatrace-instance-1.0.0.tgz
+    version: 1.0.0
+  dynatrace-operator-helm:
+  - apiVersion: v2
+    appVersion: v1.10.2
+    created: "2026-09-29T13:54:01.196460143+02:00"
+    dependencies:
+    - name: dynatrace-operator
+      repository: oci://public.ecr.aws/dynatrace
+      version: 1.10.2
+    description: A Helm chart to install Dynatrace Operator
+    digest: 9633976202f7ced7028d232068bbdfa3f2825f7ea2cdd71017bed227b12642cf
+    name: dynatrace-operator-helm
+    type: application
+    urls:
+    - packaged_charts/dynatrace-operator-helm-1.0.0.tgz
     version: 1.0.0
   eck-instance:
   - apiVersion: v2
@@ -3097,6 +3162,20 @@ entries:
   kyverno:
   - apiVersion: v2
     appVersion: 3.5.2
+    created: "2026-10-02T11:26:41.17476+02:00"
+    dependencies:
+    - name: kyverno
+      repository: https://kyverno.github.io/kyverno
+      version: 3.5.2
+    description: A Helm chart to install kyverno
+    digest: 1646360ccfbabe01f912d7103805d9c97aaf56f3ee3e16472661f9b15bba821a
+    name: kyverno
+    type: application
+    urls:
+    - packaged_charts/kyverno-1.6.1.tgz
+    version: 1.6.1
+  - apiVersion: v2
+    appVersion: 3.5.2
     created: "2026-09-28T08:23:13.849096+02:00"
     dependencies:
     - name: kyverno
@@ -3260,6 +3339,20 @@ entries:
     - packaged_charts/kyverno-app-grafana-1.0.0.tgz
     version: 1.0.0
   kyverno-app-project:
+  - apiVersion: v2
+    created: "2026-10-01T15:36:14.471267982+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.10.0
+    description: A Helm chart to create kyverno policies to set specific limits, quotas,
+      proxy and ownership metadata for projects.
+    digest: 594ea55585fefc8643d694c35d3f80c9ef4323e4602551bca1e7417b14251b68
+    name: kyverno-app-project
+    type: application
+    urls:
+    - packaged_charts/kyverno-app-project-1.5.1.tgz
+    version: 1.5.1
   - apiVersion: v2
     created: "2026-09-24T16:13:33.689760605+02:00"
     dependencies:
@@ -3704,6 +3797,26 @@ entries:
     - packaged_charts/mongodb-operator-helm-1.0.0.tgz
     version: 1.0.0
   monitoring:
+  - apiVersion: v2
+    created: "2026-10-02T10:56:42.229059806+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.9.0
+    - alias: backups
+      condition: backups.enabled
+      name: openshift-adp-backups
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.0
+    description: Helm chart for OpenShift cluster monitoring (ClusterMonitoringConfig,
+      UserWorkloadMonitoringConfig, AlertManager via ESO, Kyverno PrometheusRule generation
+      for cluster and user workload monitoring namespaces)
+    digest: db506c97df8962a90ac8d3e212ca34abf3834666491f47cad3741d1aad913e76
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.3.0.tgz
+    version: 1.3.0
   - apiVersion: v2
     created: "2026-09-11T11:36:31.562025+02:00"
     dependencies:
@@ -4331,6 +4444,20 @@ entries:
     version: 1.0.0
   netobserv-config:
   - apiVersion: v2
+    created: "2026-10-06T16:18:14.514768+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    description: A Helm chart to configure OpenShift Network Observability (Namespace,
+      NetworkPolicies, LokiStack, FlowCollector)
+    digest: 0d65169501382cee036f33afee9b13156b303f266cf676d3fc232df2f54aa632
+    name: netobserv-config
+    type: application
+    urls:
+    - packaged_charts/netobserv-config-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
     created: "2026-07-10T07:26:30.835112+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -4345,6 +4472,21 @@ entries:
     - packaged_charts/netobserv-config-1.0.0.tgz
     version: 1.0.0
   netobserv-operators:
+  - apiVersion: v2
+    appVersion: v1.12.3
+    created: "2026-10-06T08:46:05.873265+02:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install Network Observability Operator using ACM
+      OperatorPolicy
+    digest: 61d458c388bbd11d4bd7546ef1c19f3b001bd7ac5f5ccdc601483b454eaebeb1
+    name: netobserv-operators
+    type: application
+    urls:
+    - packaged_charts/netobserv-operators-1.3.0.tgz
+    version: 1.3.0
   - apiVersion: v2
     appVersion: v1.8.0
     created: "2026-07-10T07:23:41.839221+02:00"
@@ -5335,4 +5477,4 @@ entries:
     urls:
     - packaged_charts/veeam-exporter-1.0.0.tgz
     version: 1.0.0
-generated: "2026-10-01T13:59:26.760295+02:00"
+generated: "2026-10-06T16:18:14.513503+02:00"

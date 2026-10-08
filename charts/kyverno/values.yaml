@@ -11,7 +11,7 @@ kyverno:
   features:
     backgroundScan:
       skipResourceFilters: false
-      backgroundScanInterval: 1h
+      backgroundScanInterval: 5m
   backgroundController:
     serviceMonitor:
       enabled: true
@@ -227,6 +227,7 @@ kyverno:
         cpu: 10m
         memory: 64Mi
   reportsController:
+    enabled: true
     replicas: 2
     serviceMonitor:
       enabled: true

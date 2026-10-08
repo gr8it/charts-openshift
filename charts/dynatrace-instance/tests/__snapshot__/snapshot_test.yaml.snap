@@ -1,0 +1,146 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: dynatrace.com/v1beta6
+    kind: DynaKube
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-dynatrace
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: dynatrace-instance
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: dynatrace-instance-1.0.0
+      name: apc-dynatrace
+      namespace: apc-dynatrace
+    spec:
+      activeGate:
+        capabilities:
+          - routing
+          - kubernetes-monitoring
+          - metrics-ingest
+          - dynatrace-api
+        image: public.ecr.aws/dynatrace/dynatrace-activegate:1.331.24.20260210-044521
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1.5Gi
+          requests:
+            cpu: 500m
+            memory: 512Mi
+      apiUrl: https://abc12345.live.dynatrace.com/api
+      metadataEnrichment:
+        enabled: false
+      oneAgent:
+        applicationMonitoring:
+          codeModulesImage: public.ecr.aws/dynatrace/dynatrace-codemodules:1.331.47.20260223-124211
+          namespaceSelector:
+            matchExpressions:
+              - key: kubernetes.io/metadata.name
+                operator: In
+                values:
+                  - example-namespace-name
+        hostGroup: apc-test
+      skipCertCheck: false
+      tokens: apc-dynatrace
+      trustedCAs: apc-dynatrace-trusted-ca
+  2: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-dynatrace
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: dynatrace-instance
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: dynatrace-instance-1.0.0
+      name: apc-dynatrace
+      namespace: apc-dynatrace
+    spec:
+      data:
+        - remoteRef:
+            key: apc-platform/test/apc-dynatrace/token
+            property: apiToken
+          secretKey: apiToken
+        - remoteRef:
+            key: apc-platform/test/apc-dynatrace/token
+            property: dataIngestToken
+          secretKey: dataIngestToken
+      refreshInterval: 1h
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: vault-example
+      target:
+        creationPolicy: Owner
+        name: apc-dynatrace
+renders enabled metadata enrichment:
+  1: |
+    apiVersion: dynatrace.com/v1beta6
+    kind: DynaKube
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-dynatrace
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: dynatrace-instance
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: dynatrace-instance-1.0.0
+      name: apc-dynatrace
+      namespace: apc-dynatrace
+    spec:
+      activeGate:
+        capabilities:
+          - routing
+          - kubernetes-monitoring
+          - metrics-ingest
+          - dynatrace-api
+        image: public.ecr.aws/dynatrace/dynatrace-activegate:1.331.24.20260210-044521
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1.5Gi
+          requests:
+            cpu: 500m
+            memory: 512Mi
+      apiUrl: https://abc12345.live.dynatrace.com/api
+      metadataEnrichment:
+        enabled: true
+      oneAgent:
+        applicationMonitoring:
+          codeModulesImage: public.ecr.aws/dynatrace/dynatrace-codemodules:1.331.47.20260223-124211
+          namespaceSelector:
+            matchExpressions:
+              - key: kubernetes.io/metadata.name
+                operator: In
+                values:
+                  - example-namespace-name
+        hostGroup: apc-test
+      skipCertCheck: false
+      tokens: apc-dynatrace
+      trustedCAs: apc-dynatrace-trusted-ca
+  2: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-dynatrace
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: dynatrace-instance
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: dynatrace-instance-1.0.0
+      name: apc-dynatrace
+      namespace: apc-dynatrace
+    spec:
+      data:
+        - remoteRef:
+            key: apc-platform/test/apc-dynatrace/token
+            property: apiToken
+          secretKey: apiToken
+        - remoteRef:
+            key: apc-platform/test/apc-dynatrace/token
+            property: dataIngestToken
+          secretKey: dataIngestToken
+      refreshInterval: 1h
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: vault-example
+      target:
+        creationPolicy: Owner
+        name: apc-dynatrace

@@ -1,6 +1,6 @@
 # monitoring
 
-Helm chart for OpenShift cluster monitoring configuration. Configures the built-in OpenShift monitoring stack (cluster and user workload), AlertManager with ESO-backed secrets, Velero backup schedules, and Kyverno-based PrometheusRule generation for application namespaces.
+Helm chart for OpenShift cluster monitoring configuration. Configures the built-in OpenShift monitoring stack (cluster and user workload), AlertManager with ESO-backed secrets, Velero backup schedules, and Kyverno-based PrometheusRule generation for cluster monitoring and user workload (application / non-application) namespaces. Alert rules are defined in `files/namespace-rules.yaml`.
 
 ## Deployed resources
 
@@ -18,6 +18,7 @@ Helm chart for OpenShift cluster monitoring configuration. Configures the built-
 | `ldap-monitoring` | PrometheusRule | `apc-monitoring-bastion` |
 | `vault-bastion` | Service + Endpoints + ServiceMonitor | `apc-monitoring-bastion` |
 | `cluster-policy-cluster-monitoring` | ClusterPolicy | cluster-scoped |
+| `cluster-policy-application`, `cluster-policy-non-application` | ClusterPolicy | cluster-scoped |
 | `monitoring-daily`, `uwm-daily` | Schedule (Velero) | `openshift-adp` |
 
 ## Dependencies
@@ -25,7 +26,6 @@ Helm chart for OpenShift cluster monitoring configuration. Configures the built-
 | Chart | Version | Purpose |
 |---|---|---|
 | `apc-global-overrides` | 1.8.0 | Global helpers (proxy, cluster name, isHub) |
-| `monitoring-prometheusrules` | 1.0.6 | Alert rule library for app namespaces |
 | `openshift-adp-backups` | 1.0.0 | Velero backup schedules |
 
 ## Hub vs non-hub clusters
@@ -77,6 +77,8 @@ Both alertmanager secrets use `dataFrom.extract` — the entire Vault secret is 
 | Value | Default | Description |
 |---|---|---|
 | `global.apc.customerName` | - | Required. Full customer name shown in Alertmanager messages/ITSM (from `apc-global-overrides`) |
+| `platformAlertLabels.vendor` | `aspecta` | `vendor` label on all Kyverno-generated namespace rules |
+| `platformAlertLabels.team` | `platform` | `team` label on all Kyverno-generated namespace rules |
 | `clusterMonitoring.prometheus.retention` | `14d` | Cluster Prometheus retention |
 | `clusterMonitoring.prometheus.storageSize` | `60Gi` | Cluster Prometheus PVC size |
 | `userWorkloadMonitoring.prometheus.retention` | `14d` | UWM Prometheus retention |

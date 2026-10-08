@@ -1,5 +1,83 @@
 manifests should match snapshot:
   1: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: netobserv-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: netobserv-config
+        helm.sh/chart: netobserv-config-1.1.0
+      name: netobserv-informers-custom
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: netobserv-informers
+    subjects:
+      - kind: ServiceAccount
+        name: flowlogs-pipeline
+        namespace: netobserv
+      - kind: ServiceAccount
+        name: flowlogs-pipeline-transformer
+        namespace: netobserv
+  2: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: netobserv-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: netobserv-config
+        helm.sh/chart: netobserv-config-1.1.0
+      name: netobserv-lokiwriter-custom
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: netobserv-loki-writer
+    subjects:
+      - kind: ServiceAccount
+        name: flowlogs-pipeline
+        namespace: netobserv
+      - kind: ServiceAccount
+        name: flowlogs-pipeline-transformer
+        namespace: netobserv
+  3: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: netobserv-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: netobserv-config
+        helm.sh/chart: netobserv-config-1.1.0
+      name: netobserv-hostnetwork-custom
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: netobserv-hostnetwork
+    subjects:
+      - kind: ServiceAccount
+        name: flowlogs-pipeline
+        namespace: netobserv
+  4: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: netobserv-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: netobserv-config
+        helm.sh/chart: netobserv-config-1.1.0
+      name: netobserv-tokenreview-custom
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: netobserv-token-review
+    subjects:
+      - kind: ServiceAccount
+        name: netobserv-plugin
+        namespace: netobserv
+  5: |
     apiVersion: flows.netobserv.io/v1beta2
     kind: FlowCollector
     metadata:
@@ -7,11 +85,17 @@ manifests should match snapshot:
         app.kubernetes.io/instance: netobserv-config
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: netobserv-config
-        helm.sh/chart: netobserv-config-1.0.0
+        helm.sh/chart: netobserv-config-1.1.0
       name: cluster
     spec:
       agent:
         ebpf:
+          features:
+            - DNSTracking
+            - FlowRTT
+            - TLSTracking
+            - PacketDrop
+          privileged: true
           resources:
             limits:
               cpu: "2"
@@ -32,6 +116,15 @@ manifests should match snapshot:
         mode: LokiStack
       namespace: netobserv
       processor:
+        metrics:
+          healthRules:
+            - mode: Recording
+              template: PacketDropsByDevice
+              variants:
+                - groupBy: Node
+                  thresholds:
+                    info: "5"
+                    warning: "10"
         resources:
           limits:
             cpu: "2"
@@ -39,7 +132,7 @@ manifests should match snapshot:
           requests:
             cpu: 100m
             memory: 100Mi
-  2: |
+  6: |
     apiVersion: loki.grafana.com/v1
     kind: LokiStack
     metadata:
@@ -47,7 +140,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: netobserv-config
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: netobserv-config
-        helm.sh/chart: netobserv-config-1.0.0
+        helm.sh/chart: netobserv-config-1.1.0
       name: netobserv-config
       namespace: netobserv
     spec:
@@ -83,7 +176,7 @@ manifests should match snapshot:
       storageClassName: ocs-storagecluster-ceph-rbd
       tenants:
         mode: openshift-network
-  3: |
+  7: |
     apiVersion: networking.k8s.io/v1
     kind: NetworkPolicy
     metadata:
@@ -91,7 +184,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: netobserv-config
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: netobserv-config
-        helm.sh/chart: netobserv-config-1.0.0
+        helm.sh/chart: netobserv-config-1.1.0
       name: apc-flowlogs-pipeline-network-policy
       namespace: netobserv
     spec:
@@ -111,7 +204,7 @@ manifests should match snapshot:
           app: flowlogs-pipeline
       policyTypes:
         - Ingress
-  4: |
+  8: |
     apiVersion: networking.k8s.io/v1
     kind: NetworkPolicy
     metadata:
@@ -119,7 +212,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: netobserv-config
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: netobserv-config
-        helm.sh/chart: netobserv-config-1.0.0
+        helm.sh/chart: netobserv-config-1.1.0
       name: apc-netobserv-plugin-network-policy
       namespace: netobserv
     spec:
@@ -140,7 +233,7 @@ manifests should match snapshot:
           app: netobserv-plugin
       policyTypes:
         - Ingress
-  5: |
+  9: |
     apiVersion: objectbucket.io/v1alpha1
     kind: ObjectBucketClaim
     metadata:
@@ -148,9 +241,47 @@ manifests should match snapshot:
         app.kubernetes.io/instance: netobserv-config
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: netobserv-config
-        helm.sh/chart: netobserv-config-1.0.0
+        helm.sh/chart: netobserv-config-1.1.0
       name: netobserv-config-rgw
       namespace: netobserv
     spec:
       bucketName: apc-netobserv-config-rgw
       storageClassName: ocs-storagecluster-ceph-rgw
+  10: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: netobserv-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: netobserv-config
+        helm.sh/chart: netobserv-config-1.1.0
+      name: secret-watcher
+      namespace: netobserv
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: netobserv-secret-watcher
+    subjects:
+      - kind: ServiceAccount
+        name: netobserv-controller-manager
+        namespace: openshift-netobserv-operator
+  11: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: netobserv-config
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: netobserv-config
+        helm.sh/chart: netobserv-config-1.1.0
+      name: secret-creator
+      namespace: netobserv
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: netobserv-secret-creator
+    subjects:
+      - kind: ServiceAccount
+        name: netobserv-controller-manager
+        namespace: openshift-netobserv-operator
