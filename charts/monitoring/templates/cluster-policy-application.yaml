@@ -9,7 +9,7 @@ spec:
   generateExisting: true
   rules:
   - name: generate-prometheus-rules-application
-    skipBackgroundRequests: true
+    skipBackgroundRequests: false
     match:
       any:
       - resources:
@@ -50,4 +50,6 @@ spec:
           groups:
           - name: "user-workload-app{{`{{request.object.metadata.name}}`}}"
             rules:
-              {{- include "monitoring.namespaceRules" (dict "root" .) | nindent 14 }}
+              {{- $vendor := printf "{{request.object.metadata.labels.vendor || '%s'}}" .Values.platformAlertLabels.vendor }}
+              {{- $team := printf "{{request.object.metadata.labels.team || '%s'}}" .Values.platformAlertLabels.team }}
+              {{- include "monitoring.namespaceRules" (dict "root" . "vendor" $vendor "team" $team) | nindent 14 }}
