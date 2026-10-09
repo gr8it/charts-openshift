@@ -5,6 +5,15 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2026-10-08
+
+_([SPEXAPC-20059](https://aspecta.atlassian.net/browse/SPEXAPC-20059))_
+
+### Changed
+
+- `vendor`/`team` labels of application namespace rules are taken from the `vendor`/`team` labels of the namespace, falling back to `platformAlertLabels`
+- `cluster-policy-application` processes namespace updates made by the Kyverno background controller (`skipBackgroundRequests: false`), so labels set from the `project-metadata` ConfigMap reach the generated PrometheusRule
+
 ## [1.3.0] - 2026-10-01
 
 _([SPEXAPC-20059](https://aspecta.atlassian.net/browse/SPEXAPC-20059))_

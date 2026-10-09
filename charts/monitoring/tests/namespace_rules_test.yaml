@@ -10,15 +10,48 @@ release:
   namespace: openshift-monitoring
 
 tests:
-  - it: routes application namespace alerts to platform
+  - it: takes application vendor/team from namespace labels, falling back to platformAlertLabels
     template: templates/cluster-policy-application.yaml
     asserts:
       - equal:
           path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
-          value: examplevendor
+          value: "{{request.object.metadata.labels.vendor || platformVendor}}"
       - equal:
           path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
-          value: exampleteam
+          value: "{{request.object.metadata.labels.team || platformTeam}}"
+      - equal:
+          path: spec.rules[0].context
+          value:
+            - name: platformVendor
+              variable:
+                value: examplevendor
+            - name: platformTeam
+              variable:
+                value: exampleteam
+
+  - it: passes application fallbacks with spaces and apostrophes as plain context values
+    template: templates/cluster-policy-application.yaml
+    set:
+      platformAlertLabels:
+        vendor: O'Reilly
+        team: platform ops
+    asserts:
+      - equal:
+          path: spec.rules[0].context[0].variable.value
+          value: O'Reilly
+      - equal:
+          path: spec.rules[0].context[1].variable.value
+          value: platform ops
+      - equal:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
+          value: "{{request.object.metadata.labels.vendor || platformVendor}}"
+
+  - it: processes namespace label updates made by Kyverno background controller
+    template: templates/cluster-policy-application.yaml
+    asserts:
+      - equal:
+          path: spec.rules[0].skipBackgroundRequests
+          value: false
 
   - it: routes non-application namespace alerts to platform
     template: templates/cluster-policy-non-application.yaml
@@ -42,7 +75,6 @@ tests:
 
   - it: takes platform vendor/team from platformAlertLabels values
     templates:
-      - templates/cluster-policy-application.yaml
       - templates/cluster-policy-non-application.yaml
       - templates/cluster-policy-cluster-monitoring.yaml
     set:
@@ -58,7 +90,7 @@ tests:
           value: otherteam
 
   - it: renders platformAlertLabels as strings even when they look like other YAML types
-    template: templates/cluster-policy-application.yaml
+    template: templates/cluster-policy-non-application.yaml
     set:
       platformAlertLabels:
         vendor: "true"
