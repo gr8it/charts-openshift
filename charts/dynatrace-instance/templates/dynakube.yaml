@@ -1,14 +1,13 @@
 apiVersion: dynatrace.com/v1beta6
 kind: DynaKube
 metadata:
-  name: {{ .Release.Name }}
+  name: {{ include "apc-global-overrides.clusterName" . | default .Release.Name }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "dynatrace-instance.labels" . | nindent 4 }}
-  {{- with .Values.annotations }}
   annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- $annotations := merge (deepCopy (.Values.annotations | default dict)) (dict "feature.dynatrace.com/automatic-kubernetes-api-monitoring-cluster-name" (include "apc-global-overrides.clusterName" $ | default $.Release.Name)) }}
+    {{- toYaml $annotations | nindent 4 }}
 spec:
   apiUrl: {{ required "apiUrl is required" .Values.apiUrl | quote }}
   skipCertCheck: {{ .Values.skipCertCheck }}

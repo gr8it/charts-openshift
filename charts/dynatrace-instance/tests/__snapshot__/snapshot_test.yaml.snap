@@ -3,13 +3,15 @@ manifests should match snapshot:
     apiVersion: dynatrace.com/v1beta6
     kind: DynaKube
     metadata:
+      annotations:
+        feature.dynatrace.com/automatic-kubernetes-api-monitoring-cluster-name: test-cluster
       labels:
         app.kubernetes.io/instance: apc-dynatrace
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: dynatrace-instance
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: dynatrace-instance-1.0.0
-      name: apc-dynatrace
+        helm.sh/chart: dynatrace-instance-1.0.1
+      name: test-cluster
       namespace: apc-dynatrace
     spec:
       activeGate:
@@ -51,7 +53,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: dynatrace-instance
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: dynatrace-instance-1.0.0
+        helm.sh/chart: dynatrace-instance-1.0.1
       name: apc-dynatrace
       namespace: apc-dynatrace
     spec:
@@ -76,13 +78,15 @@ renders enabled metadata enrichment:
     apiVersion: dynatrace.com/v1beta6
     kind: DynaKube
     metadata:
+      annotations:
+        feature.dynatrace.com/automatic-kubernetes-api-monitoring-cluster-name: test-cluster
       labels:
         app.kubernetes.io/instance: apc-dynatrace
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: dynatrace-instance
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: dynatrace-instance-1.0.0
-      name: apc-dynatrace
+        helm.sh/chart: dynatrace-instance-1.0.1
+      name: test-cluster
       namespace: apc-dynatrace
     spec:
       activeGate:
@@ -124,7 +128,7 @@ renders enabled metadata enrichment:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: dynatrace-instance
         app.kubernetes.io/version: 1.0.0
-        helm.sh/chart: dynatrace-instance-1.0.0
+        helm.sh/chart: dynatrace-instance-1.0.1
       name: apc-dynatrace
       namespace: apc-dynatrace
     spec:
