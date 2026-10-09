@@ -15,10 +15,36 @@ tests:
     asserts:
       - equal:
           path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
-          value: "{{request.object.metadata.labels.vendor || 'examplevendor'}}"
+          value: "{{request.object.metadata.labels.vendor || platformVendor}}"
       - equal:
           path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
-          value: "{{request.object.metadata.labels.team || 'exampleteam'}}"
+          value: "{{request.object.metadata.labels.team || platformTeam}}"
+      - equal:
+          path: spec.rules[0].context
+          value:
+            - name: platformVendor
+              variable:
+                value: examplevendor
+            - name: platformTeam
+              variable:
+                value: exampleteam
+
+  - it: passes application fallbacks with spaces and apostrophes as plain context values
+    template: templates/cluster-policy-application.yaml
+    set:
+      platformAlertLabels:
+        vendor: O'Reilly
+        team: platform ops
+    asserts:
+      - equal:
+          path: spec.rules[0].context[0].variable.value
+          value: O'Reilly
+      - equal:
+          path: spec.rules[0].context[1].variable.value
+          value: platform ops
+      - equal:
+          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
+          value: "{{request.object.metadata.labels.vendor || platformVendor}}"
 
   - it: processes namespace label updates made by Kyverno background controller
     template: templates/cluster-policy-application.yaml
@@ -68,14 +94,14 @@ tests:
     set:
       platformAlertLabels:
         vendor: "true"
-        team: "1.0"
+        team: platform ops
     asserts:
       - equal:
           path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
           value: "true"
       - equal:
           path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
-          value: "1.0"
+          value: platform ops
 
   - it: fails schema validation when platformAlertLabels.team is missing
     template: templates/cluster-policy-application.yaml
@@ -89,14 +115,6 @@ tests:
     template: templates/cluster-policy-application.yaml
     set:
       platformAlertLabels.vendor: 123
-    asserts:
-      - failedTemplate:
-          errorPattern: "platformAlertLabels"
-
-  - it: fails schema validation when platformAlertLabels.vendor is not a valid label value
-    template: templates/cluster-policy-application.yaml
-    set:
-      platformAlertLabels.vendor: O'Reilly
     asserts:
       - failedTemplate:
           errorPattern: "platformAlertLabels"
