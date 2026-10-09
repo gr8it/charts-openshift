@@ -68,14 +68,14 @@ tests:
     set:
       platformAlertLabels:
         vendor: "true"
-        team: platform ops
+        team: "1.0"
     asserts:
       - equal:
           path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
           value: "true"
       - equal:
           path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
-          value: platform ops
+          value: "1.0"
 
   - it: fails schema validation when platformAlertLabels.team is missing
     template: templates/cluster-policy-application.yaml
@@ -89,6 +89,14 @@ tests:
     template: templates/cluster-policy-application.yaml
     set:
       platformAlertLabels.vendor: 123
+    asserts:
+      - failedTemplate:
+          errorPattern: "platformAlertLabels"
+
+  - it: fails schema validation when platformAlertLabels.vendor is not a valid label value
+    template: templates/cluster-policy-application.yaml
+    set:
+      platformAlertLabels.vendor: O'Reilly
     asserts:
       - failedTemplate:
           errorPattern: "platformAlertLabels"
