@@ -5,6 +5,14 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-09-30
+
+_([JIRA-23311](https://aspecta.atlassian.net/browse/SPEXAPC-23311))_
+
+### Changed
+
+- Generate rules skip Application UPDATE requests (precondition on `request.operation`), delete cleanup of generated resources is kept
+
 ## [1.5.1] - 2026-03-17
 
 ### Changed
