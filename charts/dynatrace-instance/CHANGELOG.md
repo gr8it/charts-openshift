@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Cluster Name in Dynatrace
+- namespace label
 
 ## [1.0.0] - 2026-09-17
 
