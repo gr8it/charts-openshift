@@ -2539,7 +2539,7 @@ manifests should match snapshot:
                 - --mutatingAdmissionPolicyReports=false
                 - --backgroundScan=true
                 - --backgroundScanWorkers=2
-                - --backgroundScanInterval=1h
+                - --backgroundScanInterval=5m
                 - --skipResourceFilters=false
                 - --enableConfigMapCaching=true
                 - --enableDeferredLoading=true
@@ -2985,7 +2985,7 @@ manifests should match snapshot:
         app.kubernetes.io/name: kyverno
         app.kubernetes.io/version: 3.5.2
         dashboards: apc-grafana
-        helm.sh/chart: kyverno-1.6.0
+        helm.sh/chart: kyverno-1.6.1
       name: kyverno-dashboard
       namespace: apc-kyverno
     spec:
@@ -6532,11 +6532,11 @@ manifests should match snapshot:
                 severity: warning
                 team: platform
                 vendor: aspecta
-            - alert: KyvernoUpdateRequestsDropped
+            - alert: KyvernoBreakerDroppingEntries
               annotations:
-                description: The Kyverno circuit breaker is dropping new UpdateRequests because updateRequestThreshold (default 1000) was reached. Generate/mutate-existing policies are not applied to new triggers until the backlog drains.
-                summary: Kyverno is dropping new UpdateRequests.
-              expr: sum(increase(kyverno_breaker_drops_total[15m])) > 0
+                description: The Kyverno circuit breaker "{{ $labels.circuit_name }}" dropped new entries in the last 15 minutes because its limit was reached. For "background-scan reports" this means background scan results are being discarded until the backlog of ephemeral reports drains.
+                summary: Kyverno circuit breaker {{ $labels.circuit_name }} is dropping entries.
+              expr: sum by (circuit_name) (increase(kyverno_breaker_drops_total[15m])) > 0
               for: 5m
               labels:
                 severity: warning

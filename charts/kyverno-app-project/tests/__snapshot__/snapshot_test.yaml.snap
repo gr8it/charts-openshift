@@ -12,7 +12,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno-app-project
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.5.0
+        helm.sh/chart: kyverno-app-project-1.5.1
       name: app-project-vault-groups-cleanup
     spec:
       conditions:
@@ -50,7 +50,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno-app-project
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.5.0
+        helm.sh/chart: kyverno-app-project-1.5.1
       name: app-project-internetproxy-cm
     spec:
       background: false
@@ -96,7 +96,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno-app-project
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.5.0
+        helm.sh/chart: kyverno-app-project-1.5.1
       name: app-project-limitrange
     spec:
       background: true
@@ -142,7 +142,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno-app-project
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.5.0
+        helm.sh/chart: kyverno-app-project-1.5.1
       name: app-project-namespace-metadata
     spec:
       background: true
@@ -177,6 +177,63 @@ manifests should match snapshot:
               - key: '{{ length(labelentries) }}'
                 operator: GreaterThan
                 value: 0
+        - context:
+            - apiCall:
+                default: {}
+                jmesPath: metadata.labels
+                urlPath: /api/v1/namespaces/{{ request.namespace }}
+              name: nslabels
+          match:
+            any:
+              - resources:
+                  kinds:
+                    - Service
+                  namespaceSelector:
+                    matchLabels:
+                      apc.namespace.type: application
+          mutate:
+            patchStrategicMerge:
+              metadata:
+                labels:
+                  +(team): '{{ nslabels.team }}'
+                  +(vendor): '{{ nslabels.vendor }}'
+          name: mirror-on-service
+          preconditions:
+            all:
+              - key: '{{ nslabels.team || '''' }}'
+                operator: NotEquals
+                value: ""
+              - key: '{{ nslabels.vendor || '''' }}'
+                operator: NotEquals
+                value: ""
+        - match:
+            any:
+              - resources:
+                  kinds:
+                    - Namespace
+                  selector:
+                    matchLabels:
+                      apc.namespace.type: application
+          mutate:
+            mutateExistingOnPolicyUpdate: true
+            patchStrategicMerge:
+              metadata:
+                labels:
+                  +(team): '{{ request.object.metadata.labels.team }}'
+                  +(vendor): '{{ request.object.metadata.labels.vendor }}'
+            targets:
+              - apiVersion: v1
+                kind: Service
+                namespace: '{{ request.object.metadata.name }}'
+          name: mirror-on-namespace-change
+          preconditions:
+            all:
+              - key: '{{ request.object.metadata.labels.team || '''' }}'
+                operator: NotEquals
+                value: ""
+              - key: '{{ request.object.metadata.labels.vendor || '''' }}'
+                operator: NotEquals
+                value: ""
   5: |
     apiVersion: kyverno.io/v1
     kind: ClusterPolicy
@@ -190,7 +247,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno-app-project
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.5.0
+        helm.sh/chart: kyverno-app-project-1.5.1
       name: app-project-quotas
     spec:
       background: true
@@ -381,9 +438,10 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno-app-project
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.5.0
+        helm.sh/chart: kyverno-app-project-1.5.1
       name: app-project-require-metadata-configmap
     spec:
+      admission: false
       background: true
       rules:
         - context:
@@ -423,7 +481,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno-app-project
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.5.0
+        helm.sh/chart: kyverno-app-project-1.5.1
       name: app-project-vault-groups
     spec:
       background: true
@@ -570,7 +628,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno-app-project
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.5.0
+        helm.sh/chart: kyverno-app-project-1.5.1
         rbac.kyverno.io/aggregate-to-background-controller: "true"
       name: kyverno:background-controller:project-metadata
     rules:
@@ -578,6 +636,7 @@ manifests should match snapshot:
           - ""
         resources:
           - namespaces
+          - services
         verbs:
           - get
           - list
@@ -592,7 +651,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno-app-project
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.5.0
+        helm.sh/chart: kyverno-app-project-1.5.1
         rbac.kyverno.io/aggregate-to-background-controller: "true"
       name: kyverno:background-controller:project-vault-groups
     rules:
@@ -618,7 +677,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno-app-project
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.5.0
+        helm.sh/chart: kyverno-app-project-1.5.1
         rbac.kyverno.io/aggregate-to-cleanup-controller: "true"
       name: kyverno:cleanup-controller:project-vault-groups
     rules:
