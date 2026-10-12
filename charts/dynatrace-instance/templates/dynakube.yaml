@@ -6,7 +6,7 @@ metadata:
   labels:
     {{- include "dynatrace-instance.labels" . | nindent 4 }}
   annotations:
-    {{- $annotations := merge (deepCopy (.Values.annotations | default dict)) (dict "feature.dynatrace.com/automatic-kubernetes-api-monitoring-cluster-name" (include "apc-global-overrides.clusterName" $ | default $.Release.Name)) }}
+    {{- $annotations := merge (deepCopy (.Values.annotations | default dict)) (dict "feature.dynatrace.com/automatic-kubernetes-api-monitoring-cluster-name" (include "apc-global-overrides.clusterName" $ | default $.Release.Name )) }}
     {{- toYaml $annotations | nindent 4 }}
 spec:
   apiUrl: {{ required "apiUrl is required" .Values.apiUrl | quote }}
@@ -17,11 +17,12 @@ spec:
   metadataEnrichment:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with .Values.oneAgent }}
   oneAgent:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-
+    hostGroup:  {{ include "apc-global-overrides.clusterName" . | default .Release.Name }}
+    applicationMonitoring:
+      namespaceSelector:
+        matchLabels:
+          apc.namespace.telemetry: external-dynatrace
   {{- with .Values.activeGate }}
   activeGate:
     {{- toYaml . | nindent 4 }}

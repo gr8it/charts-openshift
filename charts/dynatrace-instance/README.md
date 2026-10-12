@@ -26,4 +26,10 @@ helm uninstall dynatrace-instance --namespace dynatrace
 
 Set `apiUrl` to the Dynatrace environment API URL. The token Secret is created by the chart's `ExternalSecret` and is always named after the Helm release.
 
-Configure `oneAgent`, `activeGate`, and `metadataEnrichment` only when their defaults need to change. Cluster and environment values are supplied through `global.apc` by the configuration repository.
+To include an application's namespace in Dynatrace application monitoring, label the namespace with `apc.namespace.telemetry=external-dynatrace`:
+
+```bash
+oc label namespace <namespace> apc.namespace.telemetry=external-dynatrace
+```
+
+Configure `activeGate` and `metadataEnrichment` only when their defaults need to change. Cluster and environment values are supplied through `global.apc` by the configuration repository.

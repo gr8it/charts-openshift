@@ -33,14 +33,10 @@ manifests should match snapshot:
         enabled: false
       oneAgent:
         applicationMonitoring:
-          codeModulesImage: public.ecr.aws/dynatrace/dynatrace-codemodules:1.331.47.20260223-124211
           namespaceSelector:
-            matchExpressions:
-              - key: kubernetes.io/metadata.name
-                operator: In
-                values:
-                  - example-namespace-name
-        hostGroup: apc-test
+            matchLabels:
+              apc.namespace.telemetry: external-dynatrace
+        hostGroup: test-cluster
       skipCertCheck: false
       tokens: apc-dynatrace
       trustedCAs: apc-dynatrace-trusted-ca
@@ -108,14 +104,10 @@ renders enabled metadata enrichment:
         enabled: true
       oneAgent:
         applicationMonitoring:
-          codeModulesImage: public.ecr.aws/dynatrace/dynatrace-codemodules:1.331.47.20260223-124211
           namespaceSelector:
-            matchExpressions:
-              - key: kubernetes.io/metadata.name
-                operator: In
-                values:
-                  - example-namespace-name
-        hostGroup: apc-test
+            matchLabels:
+              apc.namespace.telemetry: external-dynatrace
+        hostGroup: test-cluster
       skipCertCheck: false
       tokens: apc-dynatrace
       trustedCAs: apc-dynatrace-trusted-ca
