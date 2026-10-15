@@ -6,6 +6,10 @@ metadata:
   labels:
     {{- include "crossplane-vault-provider.labels" . | nindent 4 }}
 spec:
+  # stable service account name across provider revisions => Vault kubernetes auth role can be bound to it
+  serviceAccountTemplate:
+    metadata:
+      name: {{ include "crossplane-vault-provider.fullname" . }}
   deploymentTemplate:
     spec:
       replicas: 2

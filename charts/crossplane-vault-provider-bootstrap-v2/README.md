@@ -123,6 +123,8 @@ The chart is implemented as an ACM policy and does following:
 |services.crossplane.kubeVaultProviderConfigName|`.global.apc.services.crossplane.kubeVaultProviderConfigName`|Name of the Vault provider config to create|
 |vaultKubeAuthMountPath|-|For testing only as it only support 1 cluster only !!! normally filled in by hub ACM templating => Kube auth mount path in Vault|
 |vaultKubernetesRole|crossplane|Kubernetes role in Vault for Crossplane to use|
+|vaultKubernetesRoleExtraPolicies|`[]`|Additional Vault policies assigned to the Kubernetes role, e.g. `[admin]` until the role policy covers all paths managed by the provider|
+|vaultProviderServiceAccount|crossplane-vault-provider|Service account of the Crossplane Vault provider allowed to log in with the Kubernetes role (requires `crossplane-vault-provider` chart >= 1.6.0)|
 |crossplaneNamespace|apc-crossplane-system|Namespace where Crossplane is installed, and configurations are created|
 
 ## Removal

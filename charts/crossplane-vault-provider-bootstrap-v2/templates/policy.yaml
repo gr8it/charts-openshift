@@ -223,10 +223,6 @@ spec:
                         capabilities = ["create", "update"]
                       }
 
-                      path "sys/mounts/auth/kubernetes" {
-                        capabilities = ["read"]
-                      }
-
                       path "sys/auth/{{"{{"}}hub "{{ .Values.vaultKubeAuthMountPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}" {
                         capabilities = ["create", "read", "update", "patch", "delete", "list", "sudo"]
                       }
@@ -258,13 +254,16 @@ spec:
                     audience: https://kubernetes.default.svc
                     backend: '{{"{{"}}hub "{{ .Values.vaultKubeAuthMountPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}'
                     boundServiceAccountNames:
-                      - '*'
+                      - {{ .Values.vaultProviderServiceAccount }}
                     boundServiceAccountNamespaces:
                       - {{ .Values.crossplaneNamespace }}
                     roleName: {{ .Values.vaultKubernetesRole }}
                     tokenPolicies:
                       - default
                       - '{{"{{"}}hub .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}--{{ .Values.vaultKubernetesRole }}'
+                      {{- range .Values.vaultKubernetesRoleExtraPolicies }}
+                      - {{ . }}
+                      {{- end }}
                     tokenTtl: 900
                   providerConfigRef:
                     name: {{ $vaultProviderConfigName }}
@@ -308,6 +307,7 @@ spec:
                 spec:
                   address: {{ $vaultUrl }}
                   role: {{ .Values.vaultKubernetesRole }}
+                  mountPath: '{{"{{"}}hub "{{ .Values.vaultKubeAuthMountPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}'
                   credentials:
                     source: Kubernetes
                   max_lease_ttl_seconds: 1199

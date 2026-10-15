@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: Values
+templates:
+  - templates/policy.yaml
+values:
+  - ../values.lint.yaml
+release:
+  name: crossplane-vault-provider-bootstrap
+  namespace: apc-crossplane-system
+
+tests:
+  - it: role is bound to the provider service account and has no extra policies by default
+    asserts:
+      - equal:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.forProvider.boundServiceAccountNames
+          value:
+            - crossplane-vault-provider
+      - lengthEqual:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.forProvider.tokenPolicies
+          count: 2
+
+  - it: custom service account and extra policies are set on the role
+    set:
+      vaultProviderServiceAccount: my-provider
+      vaultKubernetesRoleExtraPolicies:
+        - admin
+        - extra
+    asserts:
+      - equal:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.forProvider.boundServiceAccountNames
+          value:
+            - my-provider
+      - equal:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.forProvider.tokenPolicies[2]
+          value: admin
+      - equal:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.forProvider.tokenPolicies[3]
+          value: extra
+
+  - it: kubernetes auth ProviderConfig uses the cluster auth mount by default
+    asserts:
+      - equal:
+          path: spec.policy-templates[5].objectDefinition.spec.object-templates[0].objectDefinition.spec.mountPath
+          value: '{{hub "" | default .ManagedClusterName | replace "local-cluster" "" hub}}'
+
+  - it: kubernetes auth ProviderConfig mount path follows vaultKubeAuthMountPath
+    set:
+      vaultKubeAuthMountPath: kubernetes
+    asserts:
+      - equal:
+          path: spec.policy-templates[5].objectDefinition.spec.object-templates[0].objectDefinition.spec.mountPath
+          value: '{{hub "kubernetes" | default .ManagedClusterName | replace "local-cluster" "" hub}}'
+      - equal:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[0].objectDefinition.spec.forProvider.path
+          value: '{{hub "kubernetes" | default .ManagedClusterName | replace "local-cluster" "" hub}}'

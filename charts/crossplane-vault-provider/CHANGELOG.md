@@ -5,6 +5,14 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-10-15
+
+_([SPEXAPC-26776](https://aspecta.atlassian.net/browse/SPEXAPC-26776))_
+
+### Changed
+
+- Provider runs under a stable service account `crossplane-vault-provider` instead of a per-revision one, so the Vault kubernetes auth role can be bound to it
+
 ## [1.5.1] - 2026-02-26
 
 ### Changed

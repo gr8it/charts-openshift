@@ -16,7 +16,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: crossplane-vault-provider
         app.kubernetes.io/version: v2.2.2
-        helm.sh/chart: crossplane-vault-provider-1.5.1
+        helm.sh/chart: crossplane-vault-provider-1.6.0
       name: crossplane-vault-provider-ca-certificates
       namespace: apc-crossplane-system
   2: |
@@ -28,7 +28,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: crossplane-vault-provider
         app.kubernetes.io/version: v2.2.2
-        helm.sh/chart: crossplane-vault-provider-1.5.1
+        helm.sh/chart: crossplane-vault-provider-1.6.0
       name: crossplane-vault-provider-config
       namespace: apc-crossplane-system
     spec:
@@ -65,6 +65,9 @@ manifests should match snapshot:
                 - configMap:
                     name: crossplane-vault-provider-ca-certificates
                   name: custom-ca-certs
+      serviceAccountTemplate:
+        metadata:
+          name: crossplane-vault-provider
   3: |
     apiVersion: pkg.crossplane.io/v1
     kind: Provider
@@ -74,7 +77,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: crossplane-vault-provider
         app.kubernetes.io/version: v2.2.2
-        helm.sh/chart: crossplane-vault-provider-1.5.1
+        helm.sh/chart: crossplane-vault-provider-1.6.0
       name: crossplane-vault-provider
       namespace: apc-crossplane-system
     spec:
