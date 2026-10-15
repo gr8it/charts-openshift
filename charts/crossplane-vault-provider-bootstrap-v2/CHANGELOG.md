@@ -17,6 +17,7 @@ _([SPEXAPC-26776](https://aspecta.atlassian.net/browse/SPEXAPC-26776))_
 ### Changed
 
 - Kubernetes role is bound to the provider service account (`vaultProviderServiceAccount`) instead of any service account in the Crossplane namespace
+- Bumped `apc-global-overrides` to 1.10.0
 
 ### Removed
 
