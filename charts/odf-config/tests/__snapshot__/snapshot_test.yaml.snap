@@ -1,0 +1,248 @@
+renders MachineConfig as a hosted-cluster ConfigMap on a hub cluster:
+  1: |
+    apiVersion: v1
+    data:
+      config: |
+        apiVersion: machineconfiguration.openshift.io/v1
+        kind: MachineConfig
+        metadata:
+          labels:
+            machineconfiguration.openshift.io/role: worker
+          name: 99-bond1-promisc
+        spec:
+          config:
+            ignition:
+              version: 3.4.0
+            storage:
+              files:
+                - path: /usr/local/bin/bond1-promisc.sh
+                  mode: 0755
+                  contents:
+                    source: data:text/plain;charset=utf-8;base64,IyEvdXNyL2Jpbi9iYXNoCmlwIGxpbmsgc2V0IGJvbmQxIHByb21pc2Mgb24K
+            systemd:
+              units:
+                - name: bond1-promisc.service
+                  enabled: true
+                  contents: |
+                    [Unit]
+                    Description=Enable promisc mode on bond1
+
+                    [Service]
+                    Type=oneshot
+                    ExecStart=/usr/local/bin/bond1-promisc.sh
+
+                    [Install]
+                    WantedBy=multi-user.target
+    kind: ConfigMap
+    metadata:
+      name: machineconfig-99-bond1-promisc
+      namespace: NAMESPACE
+renders ODF config on a standalone cluster:
+  1: |
+    apiVersion: local.storage.openshift.io/v1alpha1
+    kind: LocalVolumeDiscovery
+    metadata:
+      name: auto-discover-devices
+      namespace: openshift-local-storage
+    spec:
+      nodeSelector:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: cluster.ocs.openshift.io/openshift-storage
+                operator: Exists
+  2: |
+    apiVersion: local.storage.openshift.io/v1alpha1
+    kind: LocalVolumeSet
+    metadata:
+      name: local-volumeset-1
+      namespace: openshift-local-storage
+    spec:
+      deviceInclusionSpec:
+        deviceTypes:
+          - disk
+        minSize: 6000Gi
+      maxDeviceCount: 1
+      nodeSelector:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: cluster.ocs.openshift.io/openshift-storage
+                operator: Exists
+      storageClassName: local-volumeset-1
+      volumeMode: Block
+  3: |
+    apiVersion: local.storage.openshift.io/v1alpha1
+    kind: LocalVolumeSet
+    metadata:
+      name: local-volumeset-2
+      namespace: openshift-local-storage
+    spec:
+      deviceInclusionSpec:
+        deviceTypes:
+          - disk
+        minSize: 6000Gi
+      maxDeviceCount: 1
+      nodeSelector:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: cluster.ocs.openshift.io/openshift-storage
+                operator: Exists
+      storageClassName: local-volumeset-2
+      volumeMode: Block
+  4: |
+    apiVersion: machineconfiguration.openshift.io/v1
+    kind: MachineConfig
+    metadata:
+      labels:
+        machineconfiguration.openshift.io/role: worker
+      name: 99-bond1-promisc
+    spec:
+      config:
+        ignition:
+          version: 3.4.0
+        storage:
+          files:
+            - contents:
+                source: data:text/plain;charset=utf-8;base64,IyEvdXNyL2Jpbi9iYXNoCmlwIGxpbmsgc2V0IGJvbmQxIHByb21pc2Mgb24K
+              mode: 493
+              path: /usr/local/bin/bond1-promisc.sh
+        systemd:
+          units:
+            - contents: |
+                [Unit]
+                Description=Enable promisc mode on bond1
+
+                [Service]
+                Type=oneshot
+                ExecStart=/usr/local/bin/bond1-promisc.sh
+
+                [Install]
+                WantedBy=multi-user.target
+              enabled: true
+              name: bond1-promisc.service
+  5: |
+    apiVersion: operator.openshift.io/v1
+    kind: Network
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-options: ServerSideApply=true
+      name: cluster
+    spec:
+      additionalNetworks:
+        - name: odf
+          namespace: openshift-storage
+          rawCNIConfig: |-
+            {
+              "cniVersion": "0.3.1",
+              "name": "odf",
+              "type": "macvlan",
+              "master": "bond1.100",
+              "mode": "bridge",
+              "ipam": {
+                "type": "whereabouts",
+                "range": "192.0.2.0/25",
+                "range_start": "192.0.2.10",
+                "range_end": "192.0.2.126"
+              }
+            }
+          type: Raw
+  6: |
+    apiVersion: nmstate.io/v1
+    kind: NodeNetworkConfigurationPolicy
+    metadata:
+      name: odf-network
+    spec:
+      desiredState:
+        interfaces:
+          - name: bond1
+            state: up
+            type: bond
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
+  7: |
+    apiVersion: ocs.openshift.io/v1
+    kind: StorageCluster
+    metadata:
+      annotations:
+        cluster.ocs.openshift.io/local-devices: "true"
+        uninstall.ocs.openshift.io/cleanup-policy: delete
+        uninstall.ocs.openshift.io/mode: graceful
+      name: ocs-storagecluster
+      namespace: openshift-storage
+    spec:
+      arbiter: {}
+      enableCephTools: true
+      encryption:
+        keyRotation:
+          schedule: '@weekly'
+        kms: {}
+      externalStorage: {}
+      flexibleScaling: true
+      managedResources:
+        cephBlockPools:
+          defaultStorageClass: true
+        cephCluster: {}
+        cephConfig: {}
+        cephDashboard: {}
+        cephFilesystems: {}
+        cephNonResilientPools: {}
+        cephObjectStoreUsers: {}
+        cephObjectStores: {}
+        cephRBDMirror: {}
+        cephToolbox: {}
+      mirroring: {}
+      monDataDirHostPath: /var/lib/rook
+      multiCloudGateway:
+        disableLoadBalancerService: true
+      network:
+        connections:
+          encryption: {}
+        provider: multus
+        selectors:
+          cluster: openshift-storage/odf
+      nodeTopologies: {}
+      resourceProfile: balanced
+      resources:
+        mds:
+          limits:
+            memory: 20Gi
+          requests:
+            memory: 20Gi
+      storageDeviceSets:
+        - count: 3
+          dataPVCTemplate:
+            spec:
+              accessModes:
+                - ReadWriteOnce
+              resources:
+                requests:
+                  storage: "1"
+              storageClassName: local-volumeset-1
+              volumeMode: Block
+          name: ocs-deviceset-local-volumeset-1
+          placement: {}
+          replica: 1
+          resources: {}
+        - count: 3
+          dataPVCTemplate:
+            spec:
+              accessModes:
+                - ReadWriteOnce
+              resources:
+                requests:
+                  storage: "1"
+              storageClassName: local-volumeset-2
+              volumeMode: Block
+          name: ocs-deviceset-local-volumeset-2
+          placement: {}
+          replica: 1
+          resources: {}
+  8: |
+    apiVersion: odf.openshift.io/v1alpha1
+    kind: StorageSystem
+    metadata:
+      name: ocs-storagecluster-storagesystem
+      namespace: openshift-storage
+    spec:
+      kind: storagecluster.ocs.openshift.io/v1
+      name: ocs-storagecluster
+      namespace: openshift-storage
