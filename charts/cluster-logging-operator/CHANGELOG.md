@@ -5,6 +5,12 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-09-07
+
+### Changed
+
+- Upgrade the Red Hat OpenShift Logging Operator to `stable-6.4` / `cluster-logging.v6.4.6`.
+
 ## [1.1.0] - 2026-08-10
 
 Bump to `stable-6.2` / `cluster-logging.v6.2.12`.

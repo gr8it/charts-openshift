@@ -37,7 +37,7 @@ spec:
           spec:
             config:
               exporters:
-                "otlp/{{`{{ request.object.metadata.name }}`}}":
+                "otlp_grpc/{{`{{ request.object.metadata.name }}`}}":
                   endpoint: {{ .Values.tracesEndpoint | required "Traces endpoint is required!" }}
                   auth:
                     authenticator: bearertokenauth
@@ -50,7 +50,7 @@ spec:
                 pipelines:
                   "traces/{{`{{ request.object.metadata.name }}`}}":
                     receivers: [routing]
-                    exporters: ["otlp/{{`{{ request.object.metadata.name }}`}}"]
+                    exporters: ["otlp_grpc/{{`{{ request.object.metadata.name }}`}}"]
     # The routing table is a YAML list. patchStrategicMerge would replace it, so
     # JSON6902 is used to append with `/-`. Kyverno forbids variables in a JSON6902
     # `path`, hence the path is static and the namespace name only appears in `value`.

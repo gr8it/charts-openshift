@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "acm-operatorpolicy": {
+      "type": "object",
+      "properties": {
+        "subscription": {
+          "type": "object",
+          "properties": {
+            "channel": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "namespace": {
+              "type": "string"
+            },
+            "source": {
+              "type": "string"
+            },
+            "sourceNamespace": {
+              "type": "string"
+            },
+            "startingCSV": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "channel",
+            "name",
+            "namespace",
+            "source",
+            "sourceNamespace",
+            "startingCSV"
+          ]
+        },
+        "upgradeApproval": {
+          "type": "string",
+          "enum": [
+            "Automatic",
+            "None"
+          ]
+        },
+        "versions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "operatorGroup": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "namespace": {
+              "type": "string"
+            },
+            "targetNamespaces": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "name",
+            "namespace",
+            "targetNamespaces"
+          ]
+        }
+      },
+      "required": [
+        "subscription",
+        "upgradeApproval",
+        "versions",
+        "operatorGroup"
+      ]
+    }
+  },
+  "required": [
+    "acm-operatorpolicy"
+  ]
+}

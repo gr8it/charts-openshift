@@ -5,6 +5,72 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2026-10-08
+
+_([SPEXAPC-20059](https://aspecta.atlassian.net/browse/SPEXAPC-20059))_
+
+### Changed
+
+- `vendor`/`team` labels of application namespace rules are taken from the `vendor`/`team` labels of the namespace, falling back to `platformAlertLabels`
+- `cluster-policy-application` processes namespace updates made by the Kyverno background controller (`skipBackgroundRequests: false`), so labels set from the `project-metadata` ConfigMap reach the generated PrometheusRule
+
+## [1.3.0] - 2026-10-01
+
+_([SPEXAPC-20059](https://aspecta.atlassian.net/browse/SPEXAPC-20059))_
+
+### Added
+
+- Kyverno ClusterPolicies `cluster-policy-application` and `cluster-policy-non-application` generating PrometheusRules for user workload monitoring namespaces were moved from the `user-workload-monitoring-policy` chart
+
+### Changed
+
+- Alert rules moved from the `monitoring-prometheusrules` library chart into `namespace-rules.yaml` file
+- Dependency on `monitoring-prometheusrules` removed
+- `vendor`/`team` labels of all Kyverno-generated namespace rules, including application rules, are now read from `platformAlertLabels` values instead of using separate hardcoded labels
+
+## [1.2.1] - 2026-09-11
+
+### Fixed
+
+- Render Microsoft Teams webhook URLs through External Secrets using the supported `webhook_url` field for both cluster and user-workload Alertmanager configurations, while preserving Alertmanager's nested templates through ESO escaping.
+
+## [1.2.0] - 2026-09-03
+
+_([SPEXAPC-8225](https://aspecta.atlassian.net/browse/SPEXAPC-8225))_
+
+### Removed
+
+- `allow-proxy` NetworkPolicies in `openshift-monitoring` and `openshift-user-workload-monitoring` (added in 1.1.0, not wanted)
+
+### Changed
+
+- Made alerts more readable.
+
+## [1.1.8] - 2026-08-26
+
+_([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_
+
+### Added
+
+- `customerNameShort` and `customerName` external labels (via `apc-global-overrides.customerName`/`apc-global-overrides.require-customer` helpers) on ClusterMonitoring and UserWorkloadMonitoring Prometheus, per Labeling Rules decision
+
+### Fixed
+
+- User Workload Monitoring `remoteWrite` was enabled on all clusters regardless of hub/spoke status due to a Go-template truthiness bug in the `clusterIsHub` check; now correctly gated to hub only
+- Remove redundant `managed_cluster` external label (duplicate of `clusterName`)
+
+### Changed
+
+- Bump `apc-global-overrides` dependency to 1.9.0
+
+## [1.1.7] - 2026-08-11
+
+_([SPEXAPC-20772](https://aspecta.atlassian.net/browse/SPEXAPC-20772))_
+
+### Changed
+
+- Bump dependency on `monitoring-prometheusrules` to 1.0.7 (adds `KubePodEvicted` alert)
+
 ## [1.1.6] - 2026-04-23
 
 _([SPEXAPC-7744](https://aspecta.atlassian.net/browse/SPEXAPC-7744))_

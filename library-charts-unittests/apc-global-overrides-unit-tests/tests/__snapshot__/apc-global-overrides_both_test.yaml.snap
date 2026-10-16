@@ -1,6 +1,23 @@
 manifest should match snapshot:
   1: |
     data:
+      adIntegration:
+        ldap:
+          attributes:
+            email:
+              - mail-local
+            id:
+              - sAMAccountName-local
+            name:
+              - cn-local
+            preferredUsername:
+              - sAMAccountName-local
+          bindDN: cn=svc-local,dc=local,dc=com
+          insecure: true
+          url: ldaps://ad-local.example.com/dc=local,dc=com
+        mappingMethod: claim
+        name: AD Login local
+        type: LDAP
       caCertificates:
         local.crt: |
           -----BEGIN CERTIFICATE-----
@@ -33,6 +50,14 @@ manifest should match snapshot:
           -----BEGIN CERTIFICATE-----
           local
           -----END CERTIFICATE-----
+      chronyConfig: |-
+        server ntp-local1 iburst
+        server ntp-local2 iburst
+        driftfile /var/lib/chrony/drift
+        makestep 1.0 3
+        rtcsync
+        logdir /var/log/chrony
+      chronyConfigBase64: c2VydmVyIG50cC1sb2NhbDEgaWJ1cnN0CnNlcnZlciBudHAtbG9jYWwyIGlidXJzdApkcmlmdGZpbGUgL3Zhci9saWIvY2hyb255L2RyaWZ0Cm1ha2VzdGVwIDEuMCAzCnJ0Y3N5bmMKbG9nZGlyIC92YXIvbG9nL2Nocm9ueQo=
       clusterAcmName: clusterAcmName-local
       clusterApiURL: clusterApiURL-local
       clusterApiVersions:
@@ -59,9 +84,36 @@ manifest should match snapshot:
           url: clusterServicesOverrideUrl-local
       clusterType: clusterType-local
       customer: customer-local
+      customerName: customerName-local
       environment: environment-local
       environmentShort: environmentShort-local
+      imageProxyHost: local.example.com
+      imageProxySources:
+        - quay.io-local
+      ldapIntegration:
+        ldap:
+          attributes:
+            email:
+              - mail-local
+            id:
+              - dn-local
+            name:
+              - cn-local
+            preferredUsername:
+              - uid-local
+          bindDN: cn=svc-local,dc=local,dc=com
+          insecure: true
+          url: ldaps://ldap-local.example.com/dc=local,dc=com
+        mappingMethod: claim
+        name: LDAP Login local
+        type: LDAP
       noProxy: noProxy-local
+      ntpServers:
+        - ntp-local1
+        - ntp-local2
+      ntpServersArray:
+        - ntp-local1
+        - ntp-local2
       proxy: proxy-local
       proxyCIDRs:
         - proxyIP-local1
@@ -140,3 +192,12 @@ manifest should match snapshot:
           kubeAuthMountPath: vaultKubeAuthMountPath-local
           name: vaultName-local
           url: vaultUrl-local
+      sshAuthorizedKeys:
+        - ssh-ed25519 AAAA local1-key
+        - ssh-ed25519 AAAA local2-key
+      sshAuthorizedKeysArray:
+        - ssh-ed25519 AAAA local1-key
+        - ssh-ed25519 AAAA local2-key
+      sshAuthorizedKeysBundle: |
+        ssh-ed25519 AAAA local1-key
+        ssh-ed25519 AAAA local2-key

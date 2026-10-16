@@ -1,6 +1,16 @@
 nameOverride: ""
 fullnameOverride: ""
 
+## uses following global value => do not set here
+# global:
+#   apc:
+#     customerName:
+
+# vendor/team labels on Kyverno-generated namespace rules (non-application, cluster-monitoring)
+platformAlertLabels:
+  vendor: aspecta
+  team: platform
+
 # --- ClusterMonitoringConfig (openshift-monitoring) ---
 clusterMonitoring:
   location: primary
@@ -41,12 +51,6 @@ userWorkloadMonitoring:
   thanosRuler:
     storageSize: "1Gi"
     storageClassName: ocs-storagecluster-ceph-rbd
-
-
-# --- NetworkPolicy (proxy egress for openshift-monitoring and openshift-user-workload-monitoring) ---
-# proxyCIDRs are read from global.apc.proxyCIDRs via apc-global-overrides
-networkPolicy:
-  enabled: true
 
 # --- Vault bastion monitoring (Service + Endpoints + ServiceMonitor in apc-monitoring-bastion) ---
 # Set bastionIP to enable vault bastion scraping

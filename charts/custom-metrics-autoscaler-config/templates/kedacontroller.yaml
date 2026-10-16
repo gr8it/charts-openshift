@@ -1,0 +1,19 @@
+---
+apiVersion: keda.sh/v1alpha1
+kind: KedaController
+metadata:
+  name: keda
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "custom-metrics-autoscaler-config.labels" . | nindent 4 }}
+spec:
+  operator:
+    {{- toYaml .Values.operator | nindent 4 }}
+  metricsServer:
+    {{- toYaml .Values.metricsServer | nindent 4 }}
+  admissionWebhooks:
+    {{- toYaml .Values.admissionWebhooks | nindent 4 }}
+  {{- if .Values.httpAddon.enabled }}
+  httpAddon:
+    {{- toYaml .Values.httpAddon | nindent 4 }}
+  {{- end }}

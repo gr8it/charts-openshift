@@ -17,7 +17,7 @@ This chart creates:
 acm-operatorpolicy:
   subscription:
     channel: stable
-    name: compliance-operator-sub
+    name: compliance-operator
     config:
       nodeSelector:
         node-role.kubernetes.io/worker: ""

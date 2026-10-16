@@ -1,0 +1,35 @@
+{{- if .Values.httpAddon }}
+{{- if .Values.httpAddon.enabled }}
+{{- if .Values.httpAddon.interceptor.env }}
+{{- $otelPromExporterEnabled := false }}
+{{- $otelPromExporterPort := "" }}
+{{- range .Values.httpAddon.interceptor.env }}
+{{- if eq .name "OTEL_PROM_EXPORTER_ENABLED" }}
+{{- if eq .value "true" }}
+{{- $otelPromExporterEnabled = true }}
+{{- end }}
+{{- end }}
+{{- if eq .name "OTEL_PROM_EXPORTER_PORT" }}
+{{- $otelPromExporterPort = .value }}
+{{- end }}
+{{- end }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: keda-http-addon-interceptor
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/component: interceptor
+    app.kubernetes.io/name: http-add-on
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: interceptor
+      app.kubernetes.io/name: http-add-on
+  endpoints:
+  - port: metrics
+    interval: 30s
+    scheme: http
+{{- end }}
+{{- end }}
+{{- end }}
