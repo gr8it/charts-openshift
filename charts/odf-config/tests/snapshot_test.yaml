@@ -39,6 +39,13 @@ tests:
             requests:
               memory: 20Gi
         cephCluster: {}
+      nodeNetworkConfigurationPolicy:
+        nodeSelector:
+          node-role.kubernetes.io/worker: ""
+        interfaces:
+          - name: bond1
+            type: bond
+            state: up
       machineConfig:
         enabled: true
         configMap:
@@ -138,6 +145,34 @@ tests:
         configMap:
           name: machineconfig-99-bond1-promisc
       global.apc.cluster.isHub: true
-      global.apc.cluster.name: example-spoke
     asserts:
       - matchSnapshot: {}
+
+  - it: renders a dedicated NodeNetworkConfigurationPolicy only when interfaces are set
+    template: templates/nodenetworkconfigurationpolicy.yaml
+    set:
+      nodeNetworkConfigurationPolicy:
+        nodeSelector:
+          node-role.kubernetes.io/worker: ""
+        interfaces:
+          - name: bond1
+            type: bond
+            state: up
+    asserts:
+      - isKind:
+          of: NodeNetworkConfigurationPolicy
+      - equal:
+          path: metadata.name
+          value: odf-network
+      - equal:
+          path: spec.desiredState.interfaces
+          value:
+            - name: bond1
+              type: bond
+              state: up
+
+  - it: does not render NodeNetworkConfigurationPolicy by default
+    template: templates/nodenetworkconfigurationpolicy.yaml
+    asserts:
+      - hasDocuments:
+          count: 0

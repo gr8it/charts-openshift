@@ -16,6 +16,25 @@ additionalNetworks:
         }
       }
 
+nodeNetworkConfigurationPolicy:
+  nodeSelector:
+    node-role.kubernetes.io/worker: ""
+  interfaces:
+    - name: bond1
+      type: bond
+      state: up
+      link-aggregation:
+        mode: 802.3ad
+        port:
+          - eno1
+          - eno2
+    - name: bond1.100
+      type: vlan
+      state: up
+      vlan:
+        base-iface: bond1
+        id: 100
+
 storageCluster:
   name: ocs-storagecluster
   nodeCount: 3

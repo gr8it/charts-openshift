@@ -146,6 +146,19 @@ renders ODF config on a standalone cluster:
             }
           type: Raw
   6: |
+    apiVersion: nmstate.io/v1
+    kind: NodeNetworkConfigurationPolicy
+    metadata:
+      name: odf-network
+    spec:
+      desiredState:
+        interfaces:
+          - name: bond1
+            state: up
+            type: bond
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
+  7: |
     apiVersion: ocs.openshift.io/v1
     kind: StorageCluster
     metadata:
@@ -223,7 +236,7 @@ renders ODF config on a standalone cluster:
           placement: {}
           replica: 1
           resources: {}
-  7: |
+  8: |
     apiVersion: odf.openshift.io/v1alpha1
     kind: StorageSystem
     metadata:

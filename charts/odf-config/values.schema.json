@@ -26,6 +26,28 @@
         ]
       }
     },
+    "nodeNetworkConfigurationPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "nodeSelector": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "interfaces": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "required": [
+        "nodeSelector",
+        "interfaces"
+      ]
+    },
     "storageCluster": {
       "type": "object",
       "additionalProperties": false,
@@ -102,6 +124,7 @@
   },
   "required": [
     "additionalNetworks",
+    "nodeNetworkConfigurationPolicy",
     "storageCluster",
     "machineConfig"
   ]
