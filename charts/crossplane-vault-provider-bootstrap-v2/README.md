@@ -9,7 +9,6 @@ flowchart TD
     VPKAPC[Vault Provider Kubernetes Auth CRs Provisioned Check]
     VPKAPCP[are provisioned]
     TAC[Token Auth Check]
-    TR[Remove Token Secret]
     KAS[Kubernetes Auth Setup]
     KAB[Kubernetes Auth Backend CR]
     KABC[Kubernetes Auth Backend Config CR]
@@ -22,7 +21,7 @@ flowchart TD
     S --> KAS
 
     VPKAC -- checks if Vault provider auth method is set to Kubernetes --> VPKAC
-    VPKAPC -.->|checks if Kubernetes Auth Setup CRs are provisioned in Vault = status Synced and Ready| KAS
+    VPKAPC -.->|checks if Kubernetes Auth Setup CRs are provisioned in Vault = status Synced and Ready + role has target policies and service account| KAS
     KAS -.->VPKAPC
     TAC -- checks if token auth secret exists and gives clue to the user in the GUI how to fix --> TAC
 
@@ -38,7 +37,6 @@ flowchart TD
     
     VPKAPC ----> VPKAPCP
     VPKAPCP --> VPKA
-    VPKAPCP --> TR
 ```
 
 > [!NOTE]  
@@ -55,16 +53,25 @@ The chart is implemented as an ACM policy and does following:
 - Checks if Vault ProviderConfig is using Kubernetes auth method
   - If yes => the target status
   - If not
-    - Sets Vault Provider to use Token auth for bootstrap
+    - Sets Vault Provider to use Token auth for bootstrap (only until the Kubernetes Auth CRs are provisioned)
     - Starts a helper policy to inform user in the GUI where to create the Token secret
 - Starts Kubernetes Auth Setup
   - Waits for the Token secret to be created - see [Token Secret generation](#token-secret-generation)
   - Provisions the Vault CRs (Auth Backend, AuthBackendConfig, AuthBackendRole, Policy) required for Kubernetes Auth
 - Checks if Kubernetes Auth CRs provisioned
   - All CRs created in the Kubernetes Auth Setup must by in Sync & Ready status
+  - The AuthBackendRole in Vault (`status.atProvider`) must already contain the target token policies and bound service account
   - If Kube Auth CRs are provisioned
     - Sets Vault Provider to use Kubernetes auth
-    - Removes the Token secret
+
+> [!IMPORTANT]  
+> The Token secret is NOT removed automatically. After the switch, verify all Vault managed resources are `Synced` (`kubectl get managed`), then remove the secret and revoke the token manually:
+>
+> ```bash
+> kubectl -n apc-crossplane-system get secret <vault-name>-token -o jsonpath='{.data.credentials}' | base64 -d | jq -r .token  # token to revoke
+> vault token revoke <token>
+> kubectl -n apc-crossplane-system delete secret <vault-name>-token
+> ```
 
 ## Token Secret generation
 

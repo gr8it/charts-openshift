@@ -92,6 +92,15 @@ spec:
                 metadata:
                   name: '{{"{{"}}hub .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}-{{ .Values.vaultKubernetesRole }}'
                 status:
+                  atProvider:
+                    boundServiceAccountNames:
+                      - {{ .Values.vaultProviderServiceAccount }}
+                    tokenPolicies:
+                      - default
+                      - '{{"{{"}}hub .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}--{{ .Values.vaultKubernetesRole }}'
+                      {{- range .Values.vaultKubernetesRoleExtraPolicies }}
+                      - {{ . }}
+                      {{- end }}
                   conditions:
                     - type: Synced
                       status: "True"
@@ -128,6 +137,10 @@ spec:
           apiVersion: policy.open-cluster-management.io/v1
           kind: ConfigurationPolicy
           compliance: NonCompliant
+        - name: {{ include "crossplane-vault-provider-bootstrap.fullname" . }}-kubernetes-auth-provisioned-check
+          apiVersion: policy.open-cluster-management.io/v1
+          kind: ConfigurationPolicy
+          compliance: NonCompliant
       ignorePending: true
       objectDefinition:
         apiVersion: policy.open-cluster-management.io/v1
@@ -152,6 +165,11 @@ spec:
                       key: credentials
                       name: {{ $vaultName }}-token
                       namespace: {{ .Values.crossplaneNamespace }}
+                  skip_child_token: true
+                  max_lease_ttl_seconds: 1199
+                  headers:
+                    name: ""
+                    value: ""
 
     - objectDefinition:
         apiVersion: policy.open-cluster-management.io/v1
@@ -264,7 +282,7 @@ spec:
                       {{- range .Values.vaultKubernetesRoleExtraPolicies }}
                       - {{ . }}
                       {{- end }}
-                    tokenTtl: 900
+                    tokenTtl: 1800
                   providerConfigRef:
                     name: {{ $vaultProviderConfigName }}
 
@@ -310,30 +328,8 @@ spec:
                   mountPath: '{{"{{"}}hub "{{ .Values.vaultKubeAuthMountPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}'
                   credentials:
                     source: Kubernetes
+                  skip_child_token: true
                   max_lease_ttl_seconds: 1199
                   headers:
                     name: ""
                     value: ""
-
-    - extraDependencies:
-        - name: {{ include "crossplane-vault-provider-bootstrap.fullname" . }}-kubernetes-auth-provisioned-check
-          apiVersion: policy.open-cluster-management.io/v1
-          kind: ConfigurationPolicy
-          compliance: Compliant
-      ignorePending: true
-      objectDefinition:
-        apiVersion: policy.open-cluster-management.io/v1
-        kind: ConfigurationPolicy
-        metadata:
-          name: {{ include "crossplane-vault-provider-bootstrap.fullname" . }}-token-removal
-        spec:
-          remediationAction: enforce
-          severity: medium
-          object-templates:
-            - complianceType: mustnothave
-              objectDefinition:
-                apiVersion: v1
-                kind: Secret
-                metadata:
-                  name: {{ $vaultName }}-token
-                  namespace: {{ .Values.crossplaneNamespace }}

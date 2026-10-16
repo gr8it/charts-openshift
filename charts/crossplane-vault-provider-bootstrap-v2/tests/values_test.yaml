@@ -53,3 +53,41 @@ tests:
       - equal:
           path: spec.policy-templates[4].objectDefinition.spec.object-templates[0].objectDefinition.spec.forProvider.path
           value: '{{hub "kubernetes" | default .ManagedClusterName | replace "local-cluster" "" hub}}'
+
+  - it: provisioned check waits for the role in Vault to have the target service account and policies
+    set:
+      vaultKubernetesRoleExtraPolicies:
+        - admin
+    asserts:
+      - equal:
+          path: spec.policy-templates[1].objectDefinition.spec.object-templates[3].objectDefinition.status.atProvider.boundServiceAccountNames
+          value:
+            - crossplane-vault-provider
+      - contains:
+          path: spec.policy-templates[1].objectDefinition.spec.object-templates[3].objectDefinition.status.atProvider.tokenPolicies
+          content: admin
+
+  - it: token auth ProviderConfig is enforced only until kubernetes auth is provisioned
+    asserts:
+      - lengthEqual:
+          path: spec.policy-templates[3].extraDependencies
+          count: 2
+      - equal:
+          path: spec.policy-templates[3].extraDependencies[1].name
+          value: crossplane-vault-provider-bootstrap-kubernetes-auth-provisioned-check
+      - equal:
+          path: spec.policy-templates[3].objectDefinition.spec.object-templates[0].objectDefinition.spec.skip_child_token
+          value: true
+
+  - it: token secret is not removed automatically
+    asserts:
+      - lengthEqual:
+          path: spec.policy-templates
+          count: 6
+      - notContains:
+          path: spec.policy-templates
+          any: true
+          content:
+            objectDefinition:
+              metadata:
+                name: crossplane-vault-provider-bootstrap-token-removal
