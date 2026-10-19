@@ -25,3 +25,11 @@ tests:
       - equal:
           path: spec.oneAgent.hostGroup
           value: custom-host-group
+  - it: uses configured ActiveGate group
+    template: templates/dynakube.yaml
+    set:
+      activeGate.group: custom-activegate-group
+    asserts:
+      - equal:
+          path: spec.activeGate.group
+          value: custom-activegate-group
