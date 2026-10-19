@@ -308,17 +308,24 @@ Create the ntpServers and require it
 {{- end }}
 
 {{/*
-Create the sshAuthorizedKeys (string, one key per line)
+Create the sshAuthorizedKeys (list of public keys)
 */}}
 {{- define "apc-global-overrides.sshAuthorizedKeys" -}}
-{{- .Values.sshAuthorizedKeys | default ((.Values.global).apc).sshAuthorizedKeys | default "" }}
+{{- .Values.sshAuthorizedKeys | default ((.Values.global).apc).sshAuthorizedKeys | default list | toYaml }}
 {{- end }}
 
 {{/*
-Create the sshAuthorizedKeys and require it
+Create the sshAuthorizedKeys bundle (one key per line)
 */}}
-{{- define "apc-global-overrides.require-sshAuthorizedKeys" -}}
-{{- include "apc-global-overrides.sshAuthorizedKeys" . | required "APC sshAuthorizedKeys is required" }}
+{{- define "apc-global-overrides.sshAuthorizedKeysBundle" -}}
+{{- include "apc-global-overrides.sshAuthorizedKeys" . | fromYamlArray | join "\n" }}
+{{- end }}
+
+{{/*
+Create the sshAuthorizedKeys bundle and require it
+*/}}
+{{- define "apc-global-overrides.require-sshAuthorizedKeysBundle" -}}
+{{- include "apc-global-overrides.sshAuthorizedKeysBundle" . | required "APC sshAuthorizedKeys is required" }}
 {{- end }}
 
 {{/*
