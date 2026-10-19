@@ -37,9 +37,9 @@
 - DONE parametrize the kubeletconfig-worker = kubeletConfig should be configurable as a dictionary, and used as a whole
 
 - DONE make all required values (e.g. clusterName) from the manifests required in the schema and mark in the README values list
-- merge bindPassword secret name (from external secret) as ldap.attributes.bindPassword.name to the adIntegration / ldapIntegration dictionary, and move to an helper
+- DONE merge bindPassword secret name (from external secret) as ldap.attributes.bindPassword.name to the adIntegration / ldapIntegration dictionary, and move to an helper
   - Implementation: use the `cluster-instance-hcp.identityProvider` helper for each `global.apc.identityProviders` entry, with `bindPassword.name` matching the generated ExternalSecret target name.
-- merge ca name (from relevant config map) as ldap.attributes.ca.name to the adIntegration / ldapIntegration dictionary, and move to an helper
+- DONE merge ca name (from relevant config map) as ldap.attributes.ca.name to the adIntegration / ldapIntegration dictionary, and move to an helper
   - Implementation: keep the CA reference at `ldap.ca.name` in each provider and generate/reference the matching ConfigMap from `identityProviders`, rather than the deprecated integration values.
 
 - DONE make the apc-global-overrides.sshAuthorizedKeys an list. Add a new helpers sshAuthorizedKeysBundle and require-sshAuthorizedKeysBundle, similar to caCertificatesBundle. Update documentation, unittest (at the library-charts-unittests/apc-global-overrides-unit-tests) and its usage

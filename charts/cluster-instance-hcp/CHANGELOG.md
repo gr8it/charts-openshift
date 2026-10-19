@@ -5,6 +5,7 @@ The format is based on [Common Changelog](https://common-changelog.org/), and th
 
 ### Changed
 
+- Make the HostedCluster update channel configurable.
 - Configure HostedCluster OAuth identity providers from `global.apc.identityProviders`.
 - Create ExternalSecrets for configured identity-provider secret references.
 - Create a shared OAuth identity-provider CA bundle ConfigMap for configured providers.

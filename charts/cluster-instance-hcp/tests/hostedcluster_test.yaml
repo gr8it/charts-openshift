@@ -27,6 +27,23 @@ tests:
       - equal:
           path: spec.dns.baseDomain
           value: cloud.example.com
+      - equal:
+          path: spec.channel
+          value: eus-4.18
+
+  - it: should use a custom update channel when set
+    set:
+      clusterName: mycluster
+      channel: stable-4.18
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+    asserts:
+      - equal:
+          path: spec.channel
+          value: stable-4.18
 
   - it: should set infrastructure namespace to infrastructure-<clusterName> by default
     set:
