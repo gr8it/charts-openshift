@@ -26,6 +26,17 @@ helm uninstall dynatrace-instance --namespace dynatrace
 
 Set `apiUrl` to the Dynatrace environment API URL. The token Secret is created by the chart's `ExternalSecret` and is always named after the Helm release.
 
+| Value | Default | Description |
+|---|---|---|
+| `apiUrl` | `""` | Dynatrace environment API URL. Must be set. |
+| `hostGroup` | `""` | Dynatrace host group. When empty, defaults to `os-` followed by the cluster name, or the Helm release name if no cluster name is configured. |
+| `annotations` | `{}` | Additional annotations applied to the DynaKube resource. |
+| `skipCertCheck` | `false` | Whether to skip TLS certificate validation for the Dynatrace API connection. |
+| `trustedCAs` | `ca-cert-bundle` | Name of the ConfigMap containing trusted CA certificates. |
+| `metadataEnrichment.enabled` | `false` | Enables DynaKube metadata enrichment. |
+| `activeGate` | See [`values.yaml`](./values.yaml) | ActiveGate configuration, including capabilities, image, and resource requests and limits. |
+| `externalSecret.refreshInterval` | `1h` | Interval for refreshing Dynatrace tokens from the external secret store. |
+
 To include an application's namespace in Dynatrace application monitoring, label the namespace with `apc.namespace.telemetry=external-dynatrace`:
 
 ```bash
