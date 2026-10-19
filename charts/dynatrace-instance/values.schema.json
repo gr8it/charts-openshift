@@ -18,6 +18,10 @@
       ],
       "description": "Dynatrace environment API URL."
     },
+    "hostGroup": {
+      "type": "string",
+      "description": "Dynatrace host group. Defaults to os- followed by the cluster name."
+    },
     "apc-global-overrides": {
       "type": "object",
       "additionalProperties": true,
@@ -38,11 +42,6 @@
     "skipCertCheck": {
       "type": "boolean",
       "description": "Whether to skip TLS certificate validation for the Dynatrace API connection."
-    },
-    "trustedCAs": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Name of the ConfigMap containing trusted CA certificates."
     },
     "metadataEnrichment": {
       "type": "object",

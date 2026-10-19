@@ -17,3 +17,11 @@ tests:
         enabled: true
     asserts:
       - matchSnapshot: {}
+  - it: uses configured hostGroup
+    template: templates/dynakube.yaml
+    set:
+      hostGroup: custom-host-group
+    asserts:
+      - equal:
+          path: spec.oneAgent.hostGroup
+          value: custom-host-group

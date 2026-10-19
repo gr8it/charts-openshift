@@ -18,7 +18,7 @@ spec:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   oneAgent:
-    hostGroup: {{ include "apc-global-overrides.clusterName" . | default .Release.Name }}
+    hostGroup: {{ .Values.hostGroup | default (printf "os-%s" (include "apc-global-overrides.clusterName" . | default .Release.Name)) | quote }}
     applicationMonitoring:
       namespaceSelector:
         matchLabels:
