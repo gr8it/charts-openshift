@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Allow configuring the Dynatrace host group, defaulting to the cluster name prefixed with `os-`.
+- removed input trustedCAs
 
 ## [1.0.1] - 2026-09-29
 
