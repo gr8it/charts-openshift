@@ -91,7 +91,16 @@ tests:
 
   - it: sshAuthorizedKeys prefer local over global
     asserts:
-      - equal: { path: data.sshAuthorizedKeys, value: "ssh-ed25519 AAAA local-key" }
+      - equal:
+          path: data.sshAuthorizedKeys
+          value:
+            - "ssh-ed25519 AAAA local-key"
+            - "ssh-ed25519 BBBB local-key"
+      - equal:
+          path: data.sshAuthorizedKeysBundle
+          value: |-
+            ssh-ed25519 AAAA local-key
+            ssh-ed25519 BBBB local-key
 
   - it: imageProxy prefer local over global
     asserts:

@@ -57,7 +57,9 @@ data:
   chronyConfig: |-
   {{- include "apc-global-overrides.chronyConfig" . | nindent 4 }}
   chronyConfigBase64: {{ include "apc-global-overrides.chronyConfig" . | b64enc }}
-  sshAuthorizedKeys: {{ include "apc-global-overrides.sshAuthorizedKeys" . }}
+  sshAuthorizedKeys:
+    {{- include "apc-global-overrides.sshAuthorizedKeys" . | nindent 4 }}
+  sshAuthorizedKeysBundle: {{ include "apc-global-overrides.sshAuthorizedKeysBundle" . | quote }}
   services:
     {{- (include "apc-global-overrides.services" .) | nindent 4 }}
   {{- /* local and global services merged into a common dictionary*/}}

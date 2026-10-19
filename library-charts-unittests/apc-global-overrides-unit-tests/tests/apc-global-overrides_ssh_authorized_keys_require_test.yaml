@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: APC global overrides - require SSH authorized keys
+templates:
+  - templates/apc-global-overrides-require-ssh-authorized-keys-bundle.yaml
+tests:
+  - it: fail due to missing required SSH authorized keys
+    template: templates/apc-global-overrides-require-ssh-authorized-keys-bundle.yaml
+    asserts:
+      - failedTemplate: {}
+
+  - it: render required SSH authorized keys
+    template: templates/apc-global-overrides-require-ssh-authorized-keys-bundle.yaml
+    set:
+      sshAuthorizedKeys:
+        - "ssh-ed25519 AAAA test-key"
+    asserts:
+      - equal:
+          path: data.sshAuthorizedKeysBundle
+          value: "ssh-ed25519 AAAA test-key"

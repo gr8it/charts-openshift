@@ -85,7 +85,16 @@ tests:
 
   - it: sshAuthorizedKeys from global
     asserts:
-      - equal: { path: data.sshAuthorizedKeys, value: "ssh-ed25519 AAAA global-key" }
+      - equal:
+          path: data.sshAuthorizedKeys
+          value:
+            - "ssh-ed25519 AAAA global-key"
+            - "ssh-ed25519 BBBB global-key"
+      - equal:
+          path: data.sshAuthorizedKeysBundle
+          value: |-
+            ssh-ed25519 AAAA global-key
+            ssh-ed25519 BBBB global-key
 
   - it: imageProxy from global
     asserts:
