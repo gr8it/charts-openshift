@@ -5,12 +5,20 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2026-10-19
+
+### Changed
+
+- Validate ActiveGate resource requests, limits, and group values against the chart schema.
+- Use the cluster name as the default OneAgent host group.
+- Configure the ActiveGate group, defaulting to the cluster name prefixed with `os-`.
+
 ## [1.0.2] - 2026-10-19
 
 ### Changed
 
 - Allow configuring the Dynatrace host group, defaulting to the cluster name prefixed with `os-`.
-- removed input trustedCAs
+- Remove the unused `trustedCAs` value.
 
 ## [1.0.1] - 2026-09-29
 

@@ -29,11 +29,13 @@ Set `apiUrl` to the Dynatrace environment API URL. The token Secret is created b
 | Value | Default | Description |
 |---|---|---|
 | `apiUrl` | `""` | Dynatrace environment API URL. Must be set. |
-| `hostGroup` | `""` | Dynatrace host group. When empty, defaults to `os-` followed by the cluster name, or the Helm release name if no cluster name is configured. |
+| `hostGroup` | `""` | OneAgent host group. When empty, defaults to the cluster name, or the Helm release name if no cluster name is configured. |
 | `annotations` | `{}` | Additional annotations applied to the DynaKube resource. |
 | `skipCertCheck` | `false` | Whether to skip TLS certificate validation for the Dynatrace API connection. |
 | `metadataEnrichment.enabled` | `false` | Enables DynaKube metadata enrichment. |
-| `activeGate` | See [`values.yaml`](./values.yaml) | ActiveGate configuration, including capabilities, image, and resource requests and limits. |
+| `activeGate.group` | `""` | ActiveGate group. When empty, defaults to `os-` followed by the cluster name, or the Helm release name if no cluster name is configured. |
+| `activeGate.capabilities` | See [`values.yaml`](./values.yaml) | ActiveGate capabilities. |
+| `activeGate.resources` | See [`values.yaml`](./values.yaml) | ActiveGate CPU and memory requests and limits. |
 | `externalSecret.refreshInterval` | `1h` | Interval for refreshing Dynatrace tokens from the external secret store. |
 
 Configure trusted CA certificates with `global.apc.caCertificates`. The chart stores them in a release-named ConfigMap and references that ConfigMap from the DynaKube; the `trustedCAs` value is not configurable.
