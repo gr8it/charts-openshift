@@ -30,7 +30,7 @@ Deploys an `InfraEnv` and related resources for a Hosted Control Plane (HCP) clu
 | `global.apc.noProxy` | noProxy list injected into InfraEnv |
 | `global.apc.environmentShort` | Environment short name used in Vault paths |
 | `global.apc.ntpServers` | NTP servers to be used |
-| `global.apc.sshAuthorizedKeys` | SSH public key(s) to be added to authorized_keys. One per line |
+| `global.apc.sshAuthorizedKeys` | List of SSH public keys to be added to authorized_keys |
 | `global.apc.services.externalSecretsOperator.defaultClusterSecretStore` | ClusterSecretStore for ExternalSecret |
 | `global.apc.services.vault.KVmountPlatform` | Vault KV mount path prefix |
 

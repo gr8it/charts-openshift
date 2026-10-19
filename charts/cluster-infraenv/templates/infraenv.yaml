@@ -30,6 +30,7 @@ spec:
   {{- end }}
   pullSecretRef:
     name: pullsecret-{{ include "cluster-infraenv.infraEnvName" . }}
-  {{- if include "apc-global-overrides.sshAuthorizedKeys" . }}
-  sshAuthorizedKey: {{ include "apc-global-overrides.sshAuthorizedKeys" . }}
+  {{- $sshAuthorizedKeysBundle := include "apc-global-overrides.sshAuthorizedKeysBundle" . }}
+  {{- if $sshAuthorizedKeysBundle }}
+  sshAuthorizedKey: {{ $sshAuthorizedKeysBundle | quote }}
   {{- end }}

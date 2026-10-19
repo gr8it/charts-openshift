@@ -10,7 +10,7 @@ tests:
   - it: should use envName for name and namespace
     set:
       envName: mycluster
-      global.apc.sshAuthorizedKeys: "ssh-ed25519 AAAA test"
+      global.apc.sshAuthorizedKeys[0]: "ssh-ed25519 AAAA test"
       global.apc.ntpServers[0]: 10.0.0.1
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
@@ -33,7 +33,7 @@ tests:
     set:
       envName: mycluster
       infraEnvName: infrastructure-mycluster
-      global.apc.sshAuthorizedKeys: "ssh-ed25519 AAAA test"
+      global.apc.sshAuthorizedKeys[0]: "ssh-ed25519 AAAA test"
       global.apc.ntpServers[0]: 10.0.0.1
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
@@ -56,7 +56,7 @@ tests:
     set:
       envName: mycluster
       infraEnvName: infrastructure-mycluster
-      global.apc.sshAuthorizedKeys: "ssh-ed25519 AAAA test"
+      global.apc.sshAuthorizedKeys[0]: "ssh-ed25519 AAAA test"
       global.apc.ntpServers[0]: 10.0.0.1
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
@@ -76,7 +76,7 @@ tests:
     set:
       envName: mycluster
       infraEnvName: infrastructure-mycluster
-      global.apc.sshAuthorizedKeys: "ssh-ed25519 AAAA test"
+      global.apc.sshAuthorizedKeys[0]: "ssh-ed25519 AAAA test"
       global.apc.ntpServers[0]: 10.0.0.1
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
@@ -97,7 +97,7 @@ tests:
       envName: mycluster
       agentEnvironment: custom-env
       infraEnvName: infrastructure-mycluster
-      global.apc.sshAuthorizedKeys: "ssh-ed25519 AAAA test"
+      global.apc.sshAuthorizedKeys[0]: "ssh-ed25519 AAAA test"
       global.apc.ntpServers[0]: 10.0.0.1
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
@@ -119,7 +119,8 @@ tests:
       infraEnvName: infrastructure-mycluster
       global:
         apc:
-          sshAuthorizedKeys: "ssh-ed25519 AAAA test"
+          sshAuthorizedKeys:
+            - "ssh-ed25519 AAAA test"
           environmentShort: p
           ntpServers:
             - 10.1.2.3
@@ -147,7 +148,7 @@ tests:
     set:
       envName: mycluster
       infraEnvName: infrastructure-mycluster
-      global.apc.sshAuthorizedKeys: "ssh-ed25519 AAAA test"
+      global.apc.sshAuthorizedKeys[0]: "ssh-ed25519 AAAA test"
       global.apc.ntpServers[0]: 10.0.0.1
       global.apc.proxy: http://proxy.example.com:8080
       global.apc.noProxy: .example.com,.svc
@@ -175,7 +176,7 @@ tests:
     set:
       envName: mycluster
       infraEnvName: infrastructure-mycluster
-      global.apc.sshAuthorizedKeys: "ssh-ed25519 AAAA test"
+      global.apc.sshAuthorizedKeys[0]: "ssh-ed25519 AAAA test"
       global.apc.ntpServers[0]: 10.0.0.1
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
@@ -194,7 +195,7 @@ tests:
     set:
       envName: mycluster
       infraEnvName: infrastructure-mycluster
-      global.apc.sshAuthorizedKeys: "ssh-ed25519 AAAA test"
+      global.apc.sshAuthorizedKeys[0]: "ssh-ed25519 AAAA test"
       global.apc.ntpServers[0]: 10.0.0.1
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
@@ -214,7 +215,7 @@ tests:
     set:
       envName: mycluster
       infraEnvName: infrastructure-mycluster
-      global.apc.sshAuthorizedKeys: "ssh-ed25519 AAAA test-key ops@example.com"
+      global.apc.sshAuthorizedKeys: ["ssh-ed25519 AAAA test-key ops@example.com", "ssh-ed25519 BBBB second-key ops@example.com"]
       global.apc.ntpServers[0]: 10.0.0.1
       global.apc.environmentShort: p
       global.apc.services.externalSecretsOperator.defaultClusterSecretStore: vault
@@ -228,4 +229,6 @@ tests:
     asserts:
       - equal:
           path: spec.sshAuthorizedKey
-          value: "ssh-ed25519 AAAA test-key ops@example.com"
+          value: |-
+            ssh-ed25519 AAAA test-key ops@example.com
+            ssh-ed25519 BBBB second-key ops@example.com

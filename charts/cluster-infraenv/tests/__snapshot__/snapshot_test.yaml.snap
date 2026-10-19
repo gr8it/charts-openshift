@@ -9,7 +9,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-infraenv
         cluster.open-cluster-management.io/backup: "true"
-        helm.sh/chart: cluster-infraenv-1.0.0
+        helm.sh/chart: cluster-infraenv-2.0.0
       name: pullsecret-infrastructure-prod01
       namespace: infrastructure-prod01
     spec:
@@ -38,7 +38,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-infraenv-prod01
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-infraenv
-        helm.sh/chart: cluster-infraenv-1.0.0
+        helm.sh/chart: cluster-infraenv-2.0.0
         networkType: static
       name: infrastructure-prod01
       namespace: infrastructure-prod01
@@ -60,7 +60,9 @@ manifests should match snapshot:
         noProxy: .example.com,.svc,.cluster.local,localhost
       pullSecretRef:
         name: pullsecret-infrastructure-prod01
-      sshAuthorizedKey: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN45Yki8PhtTZ7NFk9xST9LHvrPgmHuSTHXI2CdXLxzF ops@example.com
+      sshAuthorizedKey: |-
+        ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN45Yki8PhtTZ7NFk9xST9LHvrPgmHuSTHXI2CdXLxzF ops@example.com
+        ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyTwo admin@example.com
   3: |
     apiVersion: v1
     kind: Namespace
@@ -69,7 +71,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-infraenv-prod01
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-infraenv
-        helm.sh/chart: cluster-infraenv-1.0.0
+        helm.sh/chart: cluster-infraenv-2.0.0
       name: infrastructure-prod01
   4: |
     apiVersion: agent-install.openshift.io/v1beta1
@@ -79,7 +81,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-infraenv-prod01
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-infraenv
-        helm.sh/chart: cluster-infraenv-1.0.0
+        helm.sh/chart: cluster-infraenv-2.0.0
         infraenvs.agent-install.openshift.io: infrastructure-prod01
       name: node-01
       namespace: infrastructure-prod01
@@ -126,7 +128,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-infraenv-prod01
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-infraenv
-        helm.sh/chart: cluster-infraenv-1.0.0
+        helm.sh/chart: cluster-infraenv-2.0.0
         infraenvs.agent-install.openshift.io: infrastructure-prod01
       name: node-02
       namespace: infrastructure-prod01
@@ -173,7 +175,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-infraenv-prod01
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-infraenv
-        helm.sh/chart: cluster-infraenv-1.0.0
+        helm.sh/chart: cluster-infraenv-2.0.0
       name: capi-provider-role
       namespace: infrastructure-prod01
     rules:
