@@ -125,6 +125,7 @@ global:
     imageProxy:
       host: ~
       sources: []
+    identityProviders: []
     adIntegration: {}
     ldapIntegration: {}
     services:
@@ -205,22 +206,92 @@ global:
 |apc-global-overrides.imageProxyHost|imageProxy.host|global.apc.imageProxy.host|string|-|Mirror registry hostname|
 |apc-global-overrides.require-imageProxyHost|imageProxy.host|global.apc.imageProxy.host|string|-||
 |apc-global-overrides.imageProxySources|imageProxy.sources|global.apc.imageProxy.sources|list|[]|Source registries to mirror through the image proxy|
+|apc-global-overrides.identityProviders|identityProviders|global.apc.identityProviders|list|[]|OpenShift OAuth identity providers|
 |apc-global-overrides.services|services|global.apc.services|dictionary|-|global services. Used to share values between helm charts|
 |apc-global-overrides.merge-services|services|global.apc.services|dictionary|-||
 |apc-global-overrides.caCertificates|caCertificates|global.apc.caCertificates|dictionary|-|Custom CA certificates to trust, keys contain name of the CA with suffix .crt, and values contains one or more PEM encoded certificate(s)|
 |apc-global-overrides.merge-caCertificates|caCertificates|global.apc.caCertificates|dictionary|-||
 |apc-global-overrides.caCertificatesBundle|caCertificates|global.apc.caCertificates|string|-|flattened caCertificates to be used as a bundle|
 
-### Integration dict helpers
+### Deprecated integration dictionary helpers
 
-`apc-global-overrides.adIntegration` and `apc-global-overrides.ldapIntegration` return a merged configuration dictionary using a three-way merge: local values override global values, which override built-in defaults.
+`adIntegration` and `ldapIntegration` are deprecated. Use `identityProviders` to configure OAuth identity providers.
+
+`apc-global-overrides.adIntegration` and `apc-global-overrides.ldapIntegration` remain available for backward compatibility. They return a merged configuration dictionary using a three-way merge: local values override global values, which override built-in defaults.
 
 The dictionary object is equivalent to the Openshift OAUTH list item structure for ldap / ad protocol.
 
 |Name|Local override|Global|Output type|Note|
 |---|---|---|---|---|
-|apc-global-overrides.adIntegration|adIntegration|global.apc.adIntegration|dict|Active Directory IDP configuration with default LDAP attribute mappings|
-|apc-global-overrides.ldapIntegration|ldapIntegration|global.apc.ldapIntegration|dict|LDAP IDP configuration with default attribute mappings|
+|apc-global-overrides.adIntegration|adIntegration|global.apc.adIntegration|dict|Deprecated. Active Directory IDP configuration with default LDAP attribute mappings|
+|apc-global-overrides.ldapIntegration|ldapIntegration|global.apc.ldapIntegration|dict|Deprecated. LDAP IDP configuration with default attribute mappings|
+
+Configure providers as complete OpenShift OAuth identity-provider entries:
+
+```yaml
+global:
+  apc:
+    identityProviders:
+      - name: Example LDAP
+        type: LDAP
+        mappingMethod: claim
+        ldap:
+          attributes:
+            id:
+              - dn
+            email:
+              - mail
+            name:
+              - cn
+            preferredUsername:
+              - uid
+          bindDN: cn=service,dc=example,dc=com
+          bindPassword:
+            name: ldap-bind-secret
+          insecure: false
+          url: ldaps://ldap.example.com/dc=example,dc=com?uid
+      - name: Example Active Directory
+        type: LDAP
+        mappingMethod: claim
+        ldap:
+          attributes:
+            id:
+              - sAMAccountName
+            email:
+              - mail
+            name:
+              - cn
+            preferredUsername:
+              - sAMAccountName
+          bindDN: cn=ad-service,dc=example,dc=com
+          bindPassword:
+            name: ad-bind-secret
+          insecure: false
+          url: ldaps://ad.example.com/dc=example,dc=com?sAMAccountName
+      - name: Example Microsoft Entra ID
+        type: OpenID
+        mappingMethod: claim
+        openID:
+          clientID: example-client-id
+          clientSecret:
+            name: entra-id-client-secret
+          issuer: https://login.microsoftonline.com/example-tenant-id/v2.0
+          extraScopes:
+            - email
+            - profile
+          claims:
+            preferredUsername:
+              - preferred_username
+              - email
+            name:
+              - name
+            email:
+              - email
+            groups:
+              - groups
+```
+
+Use the top-level `identityProviders` value for a chart-specific list override. When set, it replaces the global list, including when set to an empty list.
 
 Built-in defaults (applied when not overridden at global or local level):
 

@@ -11,6 +11,12 @@ tests:
     asserts:
       - matchSnapshot: {}
 
+  - it: identityProviders defaults to an empty list
+    asserts:
+      - equal:
+          path: data.identityProviders
+          value: []
+
   - it: customer from default values
     asserts:
       - equal: { path: data.customer, value: ~ }

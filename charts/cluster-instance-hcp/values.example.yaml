@@ -36,6 +36,68 @@ global:
         attributes:
           url: "ldaps://ldap.example.com/OU=Users,dc=example,dc=com?uid"
           bindDN: "cn=svc-ocp,ou=Technical-Accounts,ou=prod,ou=Users,dc=example,dc=com"
+    identityProviders:
+      - name: Example LDAP
+        type: LDAP
+        mappingMethod: claim
+        ldap:
+          attributes:
+            id:
+              - dn
+            email:
+              - mail
+            name:
+              - cn
+            preferredUsername:
+              - uid
+          bindDN: cn=svc-ocp,ou=Technical-Accounts,dc=example,dc=com
+          bindPassword:
+            name: bastion-ldap-bind-secret
+          ca:
+            name: oauth-idp-ca-bundle
+          insecure: false
+          url: "ldaps://ldap.example.com/OU=Users,dc=example,dc=com?uid"
+      - name: Example Active Directory
+        type: LDAP
+        mappingMethod: claim
+        ldap:
+          attributes:
+            id:
+              - sAMAccountName
+            email:
+              - mail
+            name:
+              - cn
+            preferredUsername:
+              - sAMAccountName
+          bindDN: CN=svc-ocp,OU=Service Accounts,DC=example,DC=com
+          bindPassword:
+            name: ad-ldap-bind-secret
+          ca:
+            name: oauth-idp-ca-bundle
+          insecure: false
+          url: "ldaps://ad.example.com/DC=example,DC=com?sAMAccountName"
+      - name: Example Microsoft Entra ID
+        type: OpenID
+        mappingMethod: claim
+        openID:
+          clientID: example-client-id
+          clientSecret:
+            name: entra-id-client-secret
+          issuer: "https://login.microsoftonline.com/example-tenant-id/v2.0"
+          extraScopes:
+            - email
+            - profile
+          claims:
+            preferredUsername:
+              - preferred_username
+              - email
+            name:
+              - name
+            email:
+              - email
+            groups:
+              - groups
     services:
       externalSecretsOperator:
         defaultClusterSecretStore: vault

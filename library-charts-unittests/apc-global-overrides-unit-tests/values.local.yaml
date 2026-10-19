@@ -40,6 +40,14 @@ imageProxy:
   host: local.example.com
   sources:
     - quay.io-local
+identityProviders:
+  - name: Local LDAP
+    type: LDAP
+    mappingMethod: claim
+    ldap:
+      url: ldaps://ldap-local.example.com/dc=local,dc=com?uid
+      bindPassword:
+        name: local-ldap-bind-secret
 adIntegration:
   name: AD Login local
   ldap:

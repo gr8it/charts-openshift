@@ -86,6 +86,14 @@ manifest should match snapshot:
       customer: customer-local
       environment: environment-local
       environmentShort: environmentShort-local
+      identityProviders:
+        - ldap:
+            bindPassword:
+              name: local-ldap-bind-secret
+            url: ldaps://ldap-local.example.com/dc=local,dc=com?uid
+          mappingMethod: claim
+          name: Local LDAP
+          type: LDAP
       imageProxyHost: local.example.com
       imageProxySources:
         - quay.io-local

@@ -41,6 +41,36 @@ global:
       sources:
         - quay.io-global
         - docker.io-global
+    identityProviders:
+      - name: Global LDAP
+        type: LDAP
+        mappingMethod: claim
+        ldap:
+          url: ldaps://ldap-global.example.com/dc=global,dc=com?uid
+          bindPassword:
+            name: global-ldap-bind-secret
+      - name: Global Active Directory
+        type: LDAP
+        mappingMethod: claim
+        ldap:
+          url: ldaps://ad-global.example.com/dc=global,dc=com?sAMAccountName
+          bindPassword:
+            name: global-ad-bind-secret
+      - name: Global Microsoft Entra ID
+        type: OpenID
+        mappingMethod: claim
+        openID:
+          clientID: global-entra-client-id
+          clientSecret:
+            name: global-entra-client-secret
+          issuer: https://login.microsoftonline.com/global-tenant-id/v2.0
+          extraScopes:
+            - email
+            - profile
+          claims:
+            preferredUsername:
+              - preferred_username
+              - email
     adIntegration:
       name: AD Login global
       ldap:

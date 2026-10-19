@@ -109,6 +109,15 @@ tests:
           value:
             - quay.io-local
 
+  - it: identityProviders from local
+    asserts:
+      - equal:
+          path: data.identityProviders[0].name
+          value: "Local LDAP"
+      - equal:
+          path: data.identityProviders[0].ldap.bindPassword.name
+          value: local-ldap-bind-secret
+
   - it: adIntegration from local with attribute defaults applied
     asserts:
       - equal: { path: data.adIntegration.name, value: "AD Login local" }

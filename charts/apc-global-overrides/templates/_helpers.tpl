@@ -528,6 +528,17 @@ Create the image proxy sources (list)
 {{- end }}
 
 {{/*
+Create the identity providers list
+*/}}
+{{- define "apc-global-overrides.identityProviders" -}}
+{{- if hasKey .Values "identityProviders" -}}
+{{- .Values.identityProviders | default list | toYaml }}
+{{- else -}}
+{{- (((.Values.global).apc).identityProviders) | default list | toYaml }}
+{{- end }}
+{{- end }}
+
+{{/*
 Return the adIntegration dictionary merged from: defaults < global < local.
 Defaults: standard AD attributes.
 */}}

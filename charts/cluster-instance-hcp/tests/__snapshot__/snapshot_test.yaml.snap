@@ -21,38 +21,6 @@ manifests should match snapshot:
   2: |
     apiVersion: v1
     data:
-      ca.crt: |
-        -----BEGIN CERTIFICATE-----
-        MIIBxTCCAW+gAwIBAgIJAExample
-        -----END CERTIFICATE-----
-    kind: ConfigMap
-    metadata:
-      labels:
-        app.kubernetes.io/instance: cluster-instance-hcp
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.0
-      name: ad-ldap-ca
-      namespace: example01
-  3: |
-    apiVersion: v1
-    data:
-      ca.crt: |
-        -----BEGIN CERTIFICATE-----
-        MIIBxTCCAW+gAwIBAgIJAExample
-        -----END CERTIFICATE-----
-    kind: ConfigMap
-    metadata:
-      labels:
-        app.kubernetes.io/instance: cluster-instance-hcp
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.0
-      name: bastion-ldap-ca
-      namespace: example01
-  4: |
-    apiVersion: v1
-    data:
       config: |
         apiVersion: machineconfiguration.openshift.io/v1
         kind: KubeletConfig
@@ -79,7 +47,7 @@ manifests should match snapshot:
         helm.sh/chart: cluster-instance-hcp-2.0.0
       name: kubeletconfig-worker
       namespace: example01
-  5: |
+  3: |
     apiVersion: v1
     data:
       config: |
@@ -110,7 +78,7 @@ manifests should match snapshot:
         helm.sh/chart: cluster-instance-hcp-2.0.0
       name: machineconfig-chrony
       namespace: example01
-  6: |
+  4: |
     apiVersion: v1
     data:
       config: |
@@ -141,7 +109,7 @@ manifests should match snapshot:
         helm.sh/chart: cluster-instance-hcp-2.0.0
       name: machineconfig-logind
       namespace: example01
-  7: |
+  5: |
     apiVersion: v1
     data:
       config: |
@@ -171,7 +139,23 @@ manifests should match snapshot:
         helm.sh/chart: cluster-instance-hcp-2.0.0
       name: machineconfig-mirror-registries
       namespace: example01
-  8: |
+  6: |
+    apiVersion: v1
+    data:
+      ca.crt: |
+        -----BEGIN CERTIFICATE-----
+        MIIBxTCCAW+gAwIBAgIJAExample
+        -----END CERTIFICATE-----
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.0
+      name: oauth-idp-ca-bundle
+      namespace: example01
+  7: |
     apiVersion: v1
     data:
       my-registry.example.com..443: |
@@ -187,7 +171,7 @@ manifests should match snapshot:
         helm.sh/chart: cluster-instance-hcp-2.0.0
       name: registry-ca-bundle
       namespace: example01
-  9: |
+  8: |
     apiVersion: v1
     data:
       ca-bundle.crt: |
@@ -203,6 +187,31 @@ manifests should match snapshot:
         helm.sh/chart: cluster-instance-hcp-2.0.0
       name: user-ca-bundle
       namespace: example01
+  9: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.0
+      name: bastion-ldap-bind-secret
+      namespace: example01
+    spec:
+      data:
+        - remoteRef:
+            key: apc-platform/p/hcp/example01/identityProvider/bastion-ldap-bind-secret
+            property: bindPassword
+          secretKey: bindPassword
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: vault
+      target:
+        creationPolicy: Orphan
+        deletionPolicy: Retain
+        name: bastion-ldap-bind-secret
   10: |
     apiVersion: external-secrets.io/v1beta1
     kind: ExternalSecret
@@ -217,15 +226,16 @@ manifests should match snapshot:
     spec:
       data:
         - remoteRef:
-            key: apc-platform/p/hcp/example01/adIntegration
+            key: apc-platform/p/hcp/example01/identityProvider/ad-ldap-bind-secret
             property: bindPassword
           secretKey: bindPassword
-      refreshInterval: 1h
+      refreshInterval: 15m
       secretStoreRef:
         kind: ClusterSecretStore
         name: vault
       target:
-        creationPolicy: Owner
+        creationPolicy: Orphan
+        deletionPolicy: Retain
         name: ad-ldap-bind-secret
   11: |
     apiVersion: external-secrets.io/v1beta1
@@ -236,21 +246,22 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
         helm.sh/chart: cluster-instance-hcp-2.0.0
-      name: bastion-ldap-bind-secret
+      name: entra-id-client-secret
       namespace: example01
     spec:
       data:
         - remoteRef:
-            key: apc-platform/p/hcp/example01/ldapIntegration
-            property: bindPassword
-          secretKey: bindPassword
-      refreshInterval: 1h
+            key: apc-platform/p/hcp/example01/identityProvider/entra-id-client-secret
+            property: clientSecret
+          secretKey: clientSecret
+      refreshInterval: 15m
       secretStoreRef:
         kind: ClusterSecretStore
         name: vault
       target:
-        creationPolicy: Owner
-        name: bastion-ldap-bind-secret
+        creationPolicy: Orphan
+        deletionPolicy: Retain
+        name: entra-id-client-secret
   12: |
     apiVersion: external-secrets.io/v1beta1
     kind: ExternalSecret
@@ -313,36 +324,67 @@ manifests should match snapshot:
           identityProviders:
             - ldap:
                 attributes:
-                  bindDN: CN=svc-ocp,OU=Service Accounts,DC=example,DC=com
-                  email:
-                    - mail
-                  id:
-                    - sAMAccountName
-                  insecure: false
-                  name:
-                    - cn
-                  preferredUsername:
-                    - sAMAccountName
-                  url: ldaps://ad.example.com/DC=example,DC=com?sAMAccountName?sub?(objectClass=person)
-              mappingMethod: claim
-              name: AD Login
-              type: LDAP
-            - ldap:
-                attributes:
-                  bindDN: cn=svc-ocp,ou=Technical-Accounts,ou=prod,ou=Users,dc=example,dc=com
                   email:
                     - mail
                   id:
                     - dn
-                  insecure: false
                   name:
                     - cn
                   preferredUsername:
                     - uid
-                  url: ldaps://ldap.example.com/OU=Users,dc=example,dc=com?uid
+                bindDN: cn=svc-ocp,ou=Technical-Accounts,dc=example,dc=com
+                bindPassword:
+                  name: bastion-ldap-bind-secret
+                ca:
+                  name: oauth-idp-ca-bundle
+                insecure: false
+                url: ldaps://ldap.example.com/OU=Users,dc=example,dc=com?uid
               mappingMethod: claim
-              name: LDAP Login
+              name: Example LDAP
               type: LDAP
+            - ldap:
+                attributes:
+                  email:
+                    - mail
+                  id:
+                    - sAMAccountName
+                  name:
+                    - cn
+                  preferredUsername:
+                    - sAMAccountName
+                bindDN: CN=svc-ocp,OU=Service Accounts,DC=example,DC=com
+                bindPassword:
+                  name: ad-ldap-bind-secret
+                ca:
+                  name: oauth-idp-ca-bundle
+                insecure: false
+                url: ldaps://ad.example.com/DC=example,DC=com?sAMAccountName
+              mappingMethod: claim
+              name: Example Active Directory
+              type: LDAP
+            - mappingMethod: claim
+              name: Example Microsoft Entra ID
+              openID:
+                ca:
+                  name: oauth-idp-ca-bundle
+                claims:
+                  email:
+                    - email
+                  groups:
+                    - groups
+                  name:
+                    - name
+                  preferredUsername:
+                    - preferred_username
+                    - email
+                clientID: example-client-id
+                clientSecret:
+                  name: entra-id-client-secret
+                extraScopes:
+                  - email
+                  - profile
+                issuer: https://login.microsoftonline.com/example-tenant-id/v2.0
+              type: OpenID
         proxy:
           httpProxy: http://proxy.example.com:8080
           httpsProxy: http://proxy.example.com:8080

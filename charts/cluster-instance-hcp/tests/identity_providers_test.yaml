@@ -1,0 +1,87 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: cluster-instance-hcp identity providers
+templates:
+  - templates/hostedcluster.yaml
+values:
+  - ../values.lint.yaml
+  - ./values.identity-providers.yaml
+release:
+  name: cluster-instance-hcp
+  namespace: mycluster
+
+tests:
+  - it: should render LDAP, AD, and OpenID providers from global values
+    set:
+      clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+    asserts:
+      - equal:
+          path: spec.configuration.oauth.identityProviders[0].name
+          value: Example LDAP
+      - equal:
+          path: spec.configuration.oauth.identityProviders[0].ldap.attributes.id
+          value:
+            - dn
+      - equal:
+          path: spec.configuration.oauth.identityProviders[0].ldap.attributes.email
+          value:
+            - mail
+      - equal:
+          path: spec.configuration.oauth.identityProviders[0].ldap.attributes.name
+          value:
+            - cn
+      - equal:
+          path: spec.configuration.oauth.identityProviders[0].ldap.attributes.preferredUsername
+          value:
+            - uid
+      - equal:
+          path: spec.configuration.oauth.identityProviders[0].ldap.bindPassword.name
+          value: ldap-bind-secret
+      - equal:
+          path: spec.configuration.oauth.identityProviders[0].ldap.ca.name
+          value: oauth-idp-ca-bundle
+      - equal:
+          path: spec.configuration.oauth.identityProviders[1].ldap.ca.name
+          value: oauth-idp-ca-bundle
+      - equal:
+          path: spec.configuration.oauth.identityProviders[1].name
+          value: Example Active Directory
+      - equal:
+          path: spec.configuration.oauth.identityProviders[1].ldap.attributes.id
+          value:
+            - sAMAccountName
+      - equal:
+          path: spec.configuration.oauth.identityProviders[1].ldap.attributes.email
+          value:
+            - mail
+      - equal:
+          path: spec.configuration.oauth.identityProviders[1].ldap.insecure
+          value: false
+      - equal:
+          path: spec.configuration.oauth.identityProviders[2].name
+          value: Example Microsoft Entra ID
+      - equal:
+          path: spec.configuration.oauth.identityProviders[2].openID.clientID
+          value: example-client-id
+      - equal:
+          path: spec.configuration.oauth.identityProviders[2].openID.clientSecret.name
+          value: entra-id-secret
+      - equal:
+          path: spec.configuration.oauth.identityProviders[2].openID.issuer
+          value: https://login.microsoftonline.com/example-tenant-id/v2.0
+      - equal:
+          path: spec.configuration.oauth.identityProviders[2].openID.ca.name
+          value: oauth-idp-ca-bundle
+      - equal:
+          path: spec.configuration.oauth.identityProviders[2].openID.extraScopes
+          value:
+            - email
+            - profile
+      - equal:
+          path: spec.configuration.oauth.identityProviders[2].openID.claims.preferredUsername
+          value:
+            - preferred_username

@@ -48,3 +48,36 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- printf "infrastructure-%s" (include "cluster-instance-hcp.clusterName" .) }}
 {{- end }}
 {{- end }}
+
+{{/*
+Returns an OAuth identity provider in the OpenShift API format.
+*/}}
+{{- define "cluster-instance-hcp.identityProvider" -}}
+{{- $provider := . -}}
+{{- if eq $provider.type "LDAP" -}}
+{{- $ldap := $provider.ldap -}}
+{{- $attributes := $ldap.attributes | default dict -}}
+{{- $ldapConfig := dict
+  "attributes" (dict
+    "id" ($attributes.id | default (list "dn"))
+    "email" ($attributes.email | default (list "mail"))
+    "name" ($attributes.name | default (list "cn"))
+    "preferredUsername" ($attributes.preferredUsername | default (list "uid")))
+  "bindDN" $ldap.bindDN
+  "insecure" ($ldap.insecure | default false)
+  "url" $ldap.url
+  "ca" (dict "name" "oauth-idp-ca-bundle")
+-}}
+{{- with $ldap.bindPassword -}}
+{{- $_ := set $ldapConfig "bindPassword" . -}}
+{{- end -}}
+{{- dict "name" $provider.name "type" $provider.type "mappingMethod" $provider.mappingMethod "ldap" $ldapConfig | toYaml -}}
+{{- else if eq $provider.type "OpenID" -}}
+{{- $openID := deepCopy ($provider.openID | default dict) -}}
+{{- $_ := set $openID "ca" (dict "name" "oauth-idp-ca-bundle") -}}
+{{- $_ := set $provider "openID" $openID -}}
+{{- toYaml $provider -}}
+{{- else -}}
+{{- toYaml $provider -}}
+{{- end -}}
+{{- end -}}

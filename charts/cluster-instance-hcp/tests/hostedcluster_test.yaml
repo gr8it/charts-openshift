@@ -208,29 +208,7 @@ tests:
       - notExists:
           path: spec.configuration.image
 
-  - it: should include AD IDP when adIntegration.enabled is true
-    set:
-      clusterName: mycluster
-      services:
-        oauthPort: 30102
-        konnectivityPort: 30103
-        ignitionPort: 30104
-        oidcPort: 30101
-      global.apc.adIntegration.name: "AD Login"
-      global.apc.adIntegration.ldap.attributes.url: "ldaps://ad.example.com/DC=example,DC=com?sAMAccountName"
-      global.apc.adIntegration.ldap.attributes.bindDN: "CN=svc,DC=example,DC=com"
-    asserts:
-      - equal:
-          path: spec.configuration.oauth.identityProviders[0].name
-          value: "AD Login"
-      - equal:
-          path: spec.configuration.oauth.identityProviders[0].type
-          value: LDAP
-      - equal:
-          path: spec.configuration.oauth.identityProviders[0].ldap.attributes.url
-          value: "ldaps://ad.example.com/DC=example,DC=com?sAMAccountName"
-
-  - it: should omit oauth configuration when adIntegration nor ldapIntegration is set
+  - it: should omit oauth configuration when identityProviders is empty
     set:
       clusterName: mycluster
       services:

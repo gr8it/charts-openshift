@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: cluster-instance-hcp identity provider CA bundle
+templates:
+  - templates/configmap-oauth-ca-idp.yaml
+values:
+  - ../values.lint.yaml
+release:
+  name: cluster-instance-hcp
+  namespace: mycluster
+
+tests:
+  - it: should create a shared CA bundle when identity providers are configured
+    set:
+      global.apc.identityProviders:
+        - name: Example LDAP
+          type: LDAP
+      global.apc.caCertificates:
+        root-ca.crt: |
+          -----BEGIN CERTIFICATE-----
+          example
+          -----END CERTIFICATE-----
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.name
+          value: oauth-idp-ca-bundle
+      - equal:
+          path: data["ca.crt"]
+          value: |
+            -----BEGIN CERTIFICATE-----
+            example
+            -----END CERTIFICATE-----
+
+  - it: should omit the shared CA bundle when identity providers are not configured
+    asserts:
+      - hasDocuments:
+          count: 0

@@ -93,6 +93,8 @@ data:
   imageProxySources:
     {{- (include "apc-global-overrides.imageProxySources" .) | nindent 4 }}
   {{- end }}
+  identityProviders:
+    {{- include "apc-global-overrides.identityProviders" . | nindent 4 }}
   {{- if ((((include "apc-global-overrides.adIntegration" .) | fromYaml).ldap).attributes).url }}
   adIntegration:
     {{- (include "apc-global-overrides.adIntegration" .) | nindent 4 }}

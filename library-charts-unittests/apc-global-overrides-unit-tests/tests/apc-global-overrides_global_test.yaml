@@ -105,6 +105,57 @@ tests:
             - quay.io-global
             - docker.io-global
 
+  - it: identityProviders from global
+    asserts:
+      - equal:
+          path: data.identityProviders[0].name
+          value: "Global LDAP"
+      - equal:
+          path: data.identityProviders[0].ldap.bindPassword.name
+          value: global-ldap-bind-secret
+      - equal:
+          path: data.identityProviders[1].name
+          value: "Global Active Directory"
+      - equal:
+          path: data.identityProviders[1].type
+          value: LDAP
+      - equal:
+          path: data.identityProviders[1].ldap.bindPassword.name
+          value: global-ad-bind-secret
+      - equal:
+          path: data.identityProviders[2].name
+          value: "Global Microsoft Entra ID"
+      - equal:
+          path: data.identityProviders[2].type
+          value: OpenID
+      - equal:
+          path: data.identityProviders[2].openID.clientID
+          value: global-entra-client-id
+      - equal:
+          path: data.identityProviders[2].openID.clientSecret.name
+          value: global-entra-client-secret
+      - equal:
+          path: data.identityProviders[2].openID.issuer
+          value: https://login.microsoftonline.com/global-tenant-id/v2.0
+      - equal:
+          path: data.identityProviders[2].openID.extraScopes
+          value:
+            - email
+            - profile
+      - equal:
+          path: data.identityProviders[2].openID.claims.preferredUsername
+          value:
+            - preferred_username
+            - email
+
+  - it: empty local identityProviders explicitly overrides global
+    set:
+      identityProviders: []
+    asserts:
+      - equal:
+          path: data.identityProviders
+          value: []
+
   - it: adIntegration from global with attribute defaults applied
     asserts:
       - equal: { path: data.adIntegration.name, value: "AD Login global" }

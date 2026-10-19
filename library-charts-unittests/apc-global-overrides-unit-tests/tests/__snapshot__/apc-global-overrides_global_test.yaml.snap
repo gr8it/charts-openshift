@@ -79,6 +79,36 @@ manifest should match snapshot:
       customer: customer-global
       environment: environment-global
       environmentShort: environmentShort-global
+      identityProviders:
+        - ldap:
+            bindPassword:
+              name: global-ldap-bind-secret
+            url: ldaps://ldap-global.example.com/dc=global,dc=com?uid
+          mappingMethod: claim
+          name: Global LDAP
+          type: LDAP
+        - ldap:
+            bindPassword:
+              name: global-ad-bind-secret
+            url: ldaps://ad-global.example.com/dc=global,dc=com?sAMAccountName
+          mappingMethod: claim
+          name: Global Active Directory
+          type: LDAP
+        - mappingMethod: claim
+          name: Global Microsoft Entra ID
+          openID:
+            claims:
+              preferredUsername:
+                - preferred_username
+                - email
+            clientID: global-entra-client-id
+            clientSecret:
+              name: global-entra-client-secret
+            extraScopes:
+              - email
+              - profile
+            issuer: https://login.microsoftonline.com/global-tenant-id/v2.0
+          type: OpenID
       imageProxyHost: global.example.com
       imageProxySources:
         - quay.io-global

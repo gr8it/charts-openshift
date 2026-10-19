@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Change `sshAuthorizedKeys` from a string to a list and add bundle helpers
+- Add the `identityProviders` helper and deprecate `adIntegration` and `ldapIntegration`
 
 ## [1.9.0] - 2026-08-03
 

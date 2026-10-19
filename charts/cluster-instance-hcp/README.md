@@ -8,12 +8,8 @@ Deploys a HyperShift Hosted Control Plane (HCP) cluster on an ACM hub cluster. C
 - External Secrets Operator with a ClusterSecretStore pointing to Vault
 - cert-manager with a ClusterIssuer configured
 - `cluster-infraenv` chart deployed for the matching InfraEnv
-- Secret provisioned in Vault 
-  - `<KVmountPlatform>/<environmentShort>/hcp/<clusterName>/pullSecret` with property `.dockerconfigjson`
-  - `<KVmountPlatform>/<environmentShort>/hcp/<clusterName>/adIntegration` with property `bindPassword`
-  - `<KVmountPlatform>/<environmentShort>/hcp/<clusterName>/ldapIntegration ` with property `.bindPassword`
-
-pridat cesty do Vaultu ????????????????????????????
+- Pull secret provisioned in Vault at `<KVmountPlatform>/<environmentShort>/hcp/<clusterName>/pullSecret` with property `.dockerconfigjson`
+- Identity provider secrets provisioned in Vault at `<KVmountPlatform>/<environmentShort>/hcp/<clusterName>/identityProvider/<secretName>`. The property is `bindPassword` for LDAP and `clientSecret` for OpenID.
 
 ## Values
 
@@ -47,11 +43,17 @@ Creates a cert-manager `Certificate` for the API server TLS, with SANs `api.<clu
 
 ### `adIntegration`
 
-Adds an Active Directory LDAP identity provider to the HostedCluster OAuth. Creates `ad-ldap-ca` ConfigMap (from CA bundle) and `ad-ldap-bind-secret` ExternalSecret. Configuration from `global.apc.adIntegration`. Enabled, when adIntegration.ldap.attributes.url is set
+Deprecated. Legacy Active Directory configuration is no longer used by the HostedCluster OAuth. Configure providers with `global.apc.identityProviders`.
 
 ### `ldapIntegration`
 
-Adds a bastion LDAP identity provider to the HostedCluster OAuth. Creates `bastion-ldap-ca` ConfigMap (from CA bundle) and `bastion-ldap-bind-secret` ExternalSecret. Configuration from `global.apc.ldapIntegration`. Enabled, when ldapIntegration.ldap.attributes.url is set
+Deprecated. Legacy LDAP configuration is no longer used by the HostedCluster OAuth. Configure providers with `global.apc.identityProviders`.
+
+### `identityProviders`
+
+Configures the HostedCluster OAuth identity providers using OpenShift OAuth provider entries. LDAP entries receive the same default attribute mappings as the `cluster-config-standalone` OAuth template. When identity providers are configured, the chart creates an `oauth-idp-ca-bundle` ConfigMap from `global.apc.caCertificates`; LDAP and OpenID providers reference this shared bundle.
+
+Creates an ExternalSecret for each identity-provider secret reference supported by `cluster-config-standalone`. Secrets are retained when the ExternalSecret is removed.
 
 ### Image registry mirroring
 
@@ -75,8 +77,9 @@ pridat required flag ku vsetkemu, co je naozaj required ????????????????????????
 | `global.apc.caCertificates` | CA certificates bundle |
 | `global.apc.imageProxy.host` | Mirror registry hostname (enables image mirroring) |
 | `global.apc.imageProxy.sources` | Source registries to mirror |
-| `global.apc.adIntegration` | Active Directory IDP config |
-| `global.apc.ldapIntegration` | Bastion LDAP IDP config |
+| `global.apc.adIntegration` | Deprecated Active Directory IDP config |
+| `global.apc.ldapIntegration` | Deprecated Bastion LDAP IDP config |
+| `global.apc.identityProviders` | OpenShift OAuth identity provider list |
 | `global.apc.services.externalSecretsOperator.defaultClusterSecretStore` | ClusterSecretStore for ExternalSecrets |
 | `global.apc.services.vault.KVmountPlatform` | Vault KV mount path prefix |
 | `global.apc.services.certManager.defaultClusterIssuer` | ClusterIssuer for API server certificate |
