@@ -44,8 +44,6 @@ spec:
         - {{ $adIntegration | toYaml | indent 10 | trim }}
         {{- end }}
         {{- if $ldapIntegration }}
-        {{- end }}
-        {{- if $ldapIntegration }}
         - {{ $ldapIntegration | toYaml | indent 10 | trim}}
         {{- end }}
     {{- end }}
@@ -85,7 +83,7 @@ spec:
     image: {{ .Values.releaseImage }}
   pullSecret:
     name: pullsecret-cluster-{{ $clusterName }}
-  {{- if include "apc-global-overrides.sshAuthorizedKeys" . }}
+  {{- if include "apc-global-overrides.sshAuthorizedKeysBundle" . }}
   sshKey:
     name: sshkey-cluster-{{ $clusterName }}
   {{- end }}

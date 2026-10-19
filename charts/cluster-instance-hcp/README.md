@@ -8,7 +8,10 @@ Deploys a HyperShift Hosted Control Plane (HCP) cluster on an ACM hub cluster. C
 - External Secrets Operator with a ClusterSecretStore pointing to Vault
 - cert-manager with a ClusterIssuer configured
 - `cluster-infraenv` chart deployed for the matching InfraEnv
-- Pull secret provisioned in Vault at `<KVmountPlatform>/<environmentShort>/hcp/<clusterName>` with property `.dockerconfigjson`
+- Secret provisioned in Vault 
+  - `<KVmountPlatform>/<environmentShort>/hcp/<clusterName>/pullSecret` with property `.dockerconfigjson`
+  - `<KVmountPlatform>/<environmentShort>/hcp/<clusterName>/adIntegration` with property `bindPassword`
+  - `<KVmountPlatform>/<environmentShort>/hcp/<clusterName>/ldapIntegration ` with property `.bindPassword`
 
 pridat cesty do Vaultu ????????????????????????????
 
@@ -65,7 +68,7 @@ pridat required flag ku vsetkemu, co je naozaj required ????????????????????????
 | Global value | Description |
 |---|---|
 | `global.apc.cluster.rootDomain` | Base domain for the HCP cluster (e.g. `cloud.example.com`) |
-| `global.apc.sshAuthorizedKeys` | SSH authorized keys for worker nodes **required** |
+| `global.apc.sshAuthorizedKeys` | List of SSH public keys for worker nodes **required** |
 | `global.apc.ntpServers` | NTP server list for worker chrony config |
 | `global.apc.proxy` | HTTP/HTTPS proxy URL |
 | `global.apc.noProxy` | noProxy list |
