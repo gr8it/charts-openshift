@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.0] - 2026-10-20
+
+### Added
+
+- Optional `thanos-tls-ca` Secret (`thanosTlsCa.caBundle`) on hub clusters
+
 ## [1.1.1] - 2026-09-23
 
 ### Removed
