@@ -262,6 +262,16 @@ entries:
     version: 1.0.0
   apc-global-overrides:
   - apiVersion: v2
+    created: "2026-10-20T09:54:30.471424329+02:00"
+    description: A Helm chart containing helm helper functions to override global
+      APC values by local values
+    digest: f728ccc09c748c47abb203409d127bd3910ea8a6ee7fe932f8f15fbf4097ca12
+    name: apc-global-overrides
+    type: library
+    urls:
+    - packaged_charts/apc-global-overrides-2.0.0.tgz
+    version: 2.0.0
+  - apiVersion: v2
     created: "2026-08-27T14:13:44.732858745+02:00"
     description: A Helm chart containing helm helper functions to override global
       APC values by local values
@@ -1299,6 +1309,19 @@ entries:
     - packaged_charts/cluster-infraenv-1.0.0.tgz
     version: 1.0.0
   cluster-instance-hcp:
+  - apiVersion: v2
+    created: "2026-10-20T11:17:09.764048802+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: file://../../charts/apc-global-overrides
+      version: 2.0.0
+    description: Deploys a HyperShift Hosted Control Plane cluster on an ACM hub cluster
+    digest: fba787eb2ab9fdfbcf23766459df08de1cb14594617578875749b70cc36787ef
+    name: cluster-instance-hcp
+    type: application
+    urls:
+    - packaged_charts/cluster-instance-hcp-2.0.0.tgz
+    version: 2.0.0
   - apiVersion: v2
     created: "2026-08-20T09:43:21.345407242+02:00"
     dependencies:
@@ -4260,4 +4283,4 @@ entries:
     urls:
     - packaged_charts/veeam-exporter-1.0.0.tgz
     version: 1.0.0
-generated: "2026-08-27T14:13:44.732476022+02:00"
+generated: "2026-10-20T11:17:09.761880825+02:00"
