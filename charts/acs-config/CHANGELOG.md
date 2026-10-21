@@ -5,6 +5,12 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-10-21
+
+### Added
+
+- Optional ObjectBucketClaim (`objectBucketClaim.create`, disabled by default).
+
 ## [1.2.0] - 2026-06-23
 
 ### Changed
