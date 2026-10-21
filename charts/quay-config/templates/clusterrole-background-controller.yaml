@@ -1,0 +1,14 @@
+{{- if .Values.argocd.syncOnPullSecretUpdate }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    rbac.kyverno.io/aggregate-to-background-controller: "true"
+  name: {{ printf "kyverno:background-controller:%s:%s" .Release.Namespace (include "quay-config.name" .) }}
+rules:
+- apiGroups: ["argoproj.io"]
+  resources: ["applications"]
+  verbs: ["update"]
+  resourceNames: ["{{ .Values.argocd.appName | default .Chart.Name }}"]
+{{- end }}
