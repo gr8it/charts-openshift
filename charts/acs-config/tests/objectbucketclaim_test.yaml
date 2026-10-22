@@ -1,0 +1,41 @@
+suite: ObjectBucketClaim for acs-config
+templates:
+  - templates/objectbucketclaim.yaml
+release:
+  name: acs-config
+  namespace: backup-ns
+
+tests:
+  - it: should not render by default
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should render the claim in the release namespace when enabled
+    set:
+      objectBucketClaim:
+        enabled: true
+        name: app-backup
+    asserts:
+      - isKind:
+          of: ObjectBucketClaim
+      - equal:
+          path: metadata.name
+          value: app-backup
+      - equal:
+          path: metadata.namespace
+          value: backup-ns
+      - equal:
+          path: spec.generateBucketName
+          value: app-backup
+      - equal:
+          path: spec.storageClassName
+          value: ocs-storagecluster-ceph-rgw
+
+  - it: should fail without a name
+    set:
+      objectBucketClaim:
+        enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: objectBucketClaim.name is required
