@@ -3,6 +3,7 @@ templates:
   - templates/objectbucketclaim.yaml
 release:
   name: acs-config
+  namespace: backup-ns
 
 tests:
   - it: should not render by default
@@ -10,12 +11,11 @@ tests:
       - hasDocuments:
           count: 0
 
-  - it: should render the claim when enabled
+  - it: should render the claim in the release namespace when enabled
     set:
       objectBucketClaim:
-        create: true
+        enabled: true
         name: app-backup
-        namespace: backup-ns
     asserts:
       - isKind:
           of: ObjectBucketClaim
@@ -35,8 +35,7 @@ tests:
   - it: should fail without a name
     set:
       objectBucketClaim:
-        create: true
-        namespace: backup-ns
+        enabled: true
     asserts:
       - failedTemplate:
           errorMessage: objectBucketClaim.name is required

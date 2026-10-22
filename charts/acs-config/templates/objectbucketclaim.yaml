@@ -1,10 +1,10 @@
-{{- if .Values.objectBucketClaim.create }}
+{{- if .Values.objectBucketClaim.enabled }}
 ---
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
   name: {{ required "objectBucketClaim.name is required" .Values.objectBucketClaim.name }}
-  namespace: {{ required "objectBucketClaim.namespace is required" .Values.objectBucketClaim.namespace }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "acs-config.labels" . | nindent 4 }}
 spec:
