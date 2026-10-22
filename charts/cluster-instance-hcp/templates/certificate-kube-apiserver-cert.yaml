@@ -9,6 +9,8 @@ metadata:
     {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
 spec:
   secretName: kube-apiserver-cert
+  commonName: api.{{ $clusterName }}.{{ $rootDomain }}
+  isCA: false
   issuerRef:
     name: {{ include "apc-global-overrides.require-certManagerDefaultClusterIssuer" . }}
     kind: ClusterIssuer

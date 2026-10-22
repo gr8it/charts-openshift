@@ -45,6 +45,33 @@ tests:
           path: spec.channel
           value: stable-4.18
 
+  - it: should omit the update channel when it is empty
+    set:
+      clusterName: mycluster
+      channel: ""
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+    asserts:
+      - notExists:
+          path: spec.channel
+
+  - it: should use a custom API server audit profile when set
+    set:
+      clusterName: mycluster
+      apiServerAuditProfile: WriteRequestBodies
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+    asserts:
+      - equal:
+          path: spec.configuration.apiServer.audit.profile
+          value: WriteRequestBodies
+
   - it: should set infrastructure namespace to infrastructure-<clusterName> by default
     set:
       clusterName: mycluster
@@ -104,7 +131,7 @@ tests:
           path: spec.networking.networkType
           value: OVNKubernetes
 
-  - it: should default clusterSet to clusterName with trailing digits removed
+  - it: should use the default clusterSet when not set
     set:
       clusterName: prod01
       services:
@@ -115,7 +142,7 @@ tests:
     asserts:
       - equal:
           path: metadata.labels["cluster.open-cluster-management.io/clusterset"]
-          value: prod
+          value: default
 
   - it: should use explicit clusterSet when set
     set:

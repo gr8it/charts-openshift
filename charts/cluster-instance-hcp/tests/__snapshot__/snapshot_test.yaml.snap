@@ -7,13 +7,15 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.0
+        helm.sh/chart: cluster-instance-hcp-2.0.1
       name: kube-apiserver-cert
       namespace: example01
     spec:
+      commonName: api.example01.cloud.example.com
       dnsNames:
         - api.example01.cloud.example.com
         - oauth.example01.cloud.example.com
+      isCA: false
       issuerRef:
         kind: ClusterIssuer
         name: vault-issuer
@@ -31,7 +33,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.0
+        helm.sh/chart: cluster-instance-hcp-2.0.1
       name: oauth-idp-ca-bundle
       namespace: example01
   3: |
@@ -46,6 +48,7 @@ manifests should match snapshot:
           name: kubeletconfig-worker
         spec:
           kubeletConfig:
+            autoSizingReserved: false
             containerLogMaxFiles: 5
             containerLogMaxSize: 20Mi
             maxPods: 350
@@ -60,7 +63,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.0
+        helm.sh/chart: cluster-instance-hcp-2.0.1
       name: kubeletconfig-worker
       namespace: example01
   4: |
@@ -91,7 +94,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.0
+        helm.sh/chart: cluster-instance-hcp-2.0.1
       name: machineconfig-chrony
       namespace: example01
   5: |
@@ -114,7 +117,6 @@ manifests should match snapshot:
                   mode: 0644
                   overwrite: true
                   contents:
-                    # source: "data:text/plain;charset=utf-8;base64,W0xvZ2luXQpTdG9wSWRsZVNlc3Npb25TZWM9OTAwCg=="
                     source: "data:text/plain;charset=utf-8;base64,W0xvZ2luXQojIFNTSCBoYXJkZW5pbmcKU3RvcElkbGVTZXNzaW9uU2VjPTkwMAo="
     kind: ConfigMap
     metadata:
@@ -122,7 +124,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.0
+        helm.sh/chart: cluster-instance-hcp-2.0.1
       name: machineconfig-logind
       namespace: example01
   6: |
@@ -152,7 +154,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.0
+        helm.sh/chart: cluster-instance-hcp-2.0.1
       name: machineconfig-mirror-registries
       namespace: example01
   7: |
@@ -168,7 +170,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.0
+        helm.sh/chart: cluster-instance-hcp-2.0.1
       name: registry-ca-bundle
       namespace: example01
   8: |
@@ -184,7 +186,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.0
+        helm.sh/chart: cluster-instance-hcp-2.0.1
       name: user-ca-bundle
       namespace: example01
   9: |
@@ -195,7 +197,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.0
+        helm.sh/chart: cluster-instance-hcp-2.0.1
       name: bastion-ldap-bind-secret
       namespace: example01
     spec:
@@ -220,7 +222,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.0
+        helm.sh/chart: cluster-instance-hcp-2.0.1
       name: ad-ldap-bind-secret
       namespace: example01
     spec:
@@ -245,7 +247,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.0
+        helm.sh/chart: cluster-instance-hcp-2.0.1
       name: entra-id-client-secret
       namespace: example01
     spec:
@@ -270,7 +272,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.0
+        helm.sh/chart: cluster-instance-hcp-2.0.1
       name: pullsecret-cluster-example01
       namespace: example01
     spec:
@@ -298,8 +300,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        cluster.open-cluster-management.io/clusterset: example
-        helm.sh/chart: cluster-instance-hcp-2.0.0
+        cluster.open-cluster-management.io/clusterset: default
+        helm.sh/chart: cluster-instance-hcp-2.0.1
       name: example01
       namespace: example01
     spec:
@@ -480,7 +482,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.0
+        helm.sh/chart: cluster-instance-hcp-2.0.1
       name: example01
       namespace: example01
     spec:
@@ -510,8 +512,8 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
         cloud: BareMetal
-        cluster.open-cluster-management.io/clusterset: example
-        helm.sh/chart: cluster-instance-hcp-2.0.0
+        cluster.open-cluster-management.io/clusterset: default
+        helm.sh/chart: cluster-instance-hcp-2.0.1
         name: example01
         vendor: OpenShift
       name: example01
@@ -525,7 +527,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.0
+        helm.sh/chart: cluster-instance-hcp-2.0.1
       name: nodepool-example01-1
       namespace: example01
     spec:
@@ -556,7 +558,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.0
+        helm.sh/chart: cluster-instance-hcp-2.0.1
       name: sshkey-cluster-example01
       namespace: example01
     stringData:

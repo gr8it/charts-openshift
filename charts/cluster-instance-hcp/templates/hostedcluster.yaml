@@ -1,5 +1,4 @@
 {{- $clusterName := include "cluster-instance-hcp.clusterName" . }}
-{{- $clusterSet := include "cluster-instance-hcp.clusterSet" . }}
 {{- $rootDomain := include "apc-global-overrides.require-clusterRootDomain" . }}
 {{- $proxy := include "apc-global-overrides.proxy" . }}
 {{- $caCertificatesBundle := include "apc-global-overrides.caCertificatesBundle" . }}
@@ -13,17 +12,19 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
-    cluster.open-cluster-management.io/clusterset: {{ $clusterSet | quote }}
+    cluster.open-cluster-management.io/clusterset: {{ .Values.clusterSet | quote }}
 spec:
   {{- if $caCertificatesBundle }}
   additionalTrustBundle:
     name: user-ca-bundle
   {{- end }}
-  channel: {{ .Values.channel }}
+  {{- with .Values.channel }}
+  channel: {{ . }}
+  {{- end }}
   configuration:
     apiServer:
       audit:
-        profile: Default
+        profile: {{ .Values.apiServerAuditProfile }}
       servingCerts:
         namedCertificates:
           - names:

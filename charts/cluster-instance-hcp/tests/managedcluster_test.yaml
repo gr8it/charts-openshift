@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: cluster-instance-hcp ManagedCluster
+templates:
+  - templates/managedcluster.yaml
+values:
+  - ../values.lint.yaml
+release:
+  name: cluster-instance-hcp
+  namespace: mycluster
+
+tests:
+  - it: should use clusterSet value for the ManagedCluster label
+    set:
+      clusterName: mycluster
+      clusterSet: custom-set
+    asserts:
+      - equal:
+          path: metadata.labels["cluster.open-cluster-management.io/clusterset"]
+          value: custom-set
+
+  - it: should default the ManagedCluster label to default
+    set:
+      clusterName: mycluster
+    asserts:
+      - equal:
+          path: metadata.labels["cluster.open-cluster-management.io/clusterset"]
+          value: default

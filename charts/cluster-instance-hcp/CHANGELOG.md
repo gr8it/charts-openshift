@@ -1,6 +1,14 @@
 All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-10-20
+
+### Changed
+
+- Omit the HostedCluster update channel when `channel` is empty.
+- Set the default HostedCluster and ManagedCluster cluster set label to `default`.
+- Make the HostedCluster API server audit profile configurable.
+
 ## [2.0.0] - 2026-10-15
 
 ### Changed

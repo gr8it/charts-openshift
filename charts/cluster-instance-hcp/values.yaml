@@ -27,17 +27,20 @@ fullnameOverride: ""
 # HCP cluster name — also used as: namespace, infraID, ManagedCluster name
 clusterName: ""
 
-# ACM cluster set label; defaults to clusterName with trailing numbers removed (e.g. prod01 => prod)
-clusterSet: ""
+# ACM cluster set label
+clusterSet: default
 
 # Infrastructure namespace — defaults to infrastructure-<clusterName>
 infrastructureNamespace: ""
 
 # OCP release image (full FQDN with tag)
-releaseImage: "quay.io/openshift-release-dev/ocp-release:4.17.11-multi"
+releaseImage: "quay.io/openshift-release-dev/ocp-release:4.18.41-multi"
 
 # OCP update channel
 channel: eus-4.18
+
+# API server audit profile
+apiServerAuditProfile: Default
 
 etcd:
   storageClassName: lvms-vg1
@@ -80,6 +83,7 @@ kubeletConfig:
     cpu: 800m
     memory: 4Gi
     ephemeral-storage: 3Gi
+  autoSizingReserved: false
 
 logindConfig: |
   [Login]

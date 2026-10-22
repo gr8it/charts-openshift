@@ -8,9 +8,13 @@
     "global": { "type": "object" },
     "apc-global-overrides": { "type": "object" },
     "clusterName": { "type": "string", "minLength": 1 },
-    "clusterSet": { "type": "string" },
+    "clusterSet": { "type": "string", "minLength": 1 },
     "releaseImage": { "type": "string" },
     "channel": { "type": "string" },
+    "apiServerAuditProfile": {
+      "type": "string",
+      "enum": ["None", "Default", "WriteRequestBodies", "AllRequestBodies"]
+    },
     "infrastructureNamespace": { "type": "string" },
     "kubeletConfig": { "type": "object" },
     "logindConfig": { "type": "string" },

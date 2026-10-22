@@ -8,17 +8,28 @@ Deploys a HyperShift Hosted Control Plane (HCP) cluster on an ACM hub cluster. C
 - External Secrets Operator with a ClusterSecretStore pointing to Vault
 - cert-manager with a ClusterIssuer configured
 - `cluster-infraenv` chart deployed for the matching InfraEnv
-- Pull secret provisioned in Vault at `<KVmountPlatform>/<environmentShort>/hcp/<clusterName>/pullSecret` with property `.dockerconfigjson`
-- Identity provider secrets provisioned in Vault at `<KVmountPlatform>/<environmentShort>/hcp/<clusterName>/identityProvider/<secretName>`. The property is `bindPassword` for LDAP and `clientSecret` for OpenID.
+- Configure `global.apc.services.externalSecretsOperator.defaultClusterSecretStore`, `global.apc.services.vault.KVmountPlatform`, and `global.apc.environmentShort` for the Vault ExternalSecrets.
+- Provision the pull secret in Vault at `<KVmountPlatform>/<environmentShort>/hcp/<clusterName>/pullSecret` with the `.dockerconfigjson` property. This secret is required for every cluster.
+- For each configured identity provider that references a credential secret, provision a Vault secret at `<KVmountPlatform>/<environmentShort>/hcp/<clusterName>/identityProvider/<secretName>`. The `<secretName>` must match the name in the identity provider configuration. Required Vault properties by provider type:
+
+  | Identity provider type | Vault properties |
+  |---|---|
+  | LDAP | `bindPassword` |
+  | HTPasswd | `fileData` |
+  | Keystone | `tlsClientCert` and `tlsClientKey` |
+  | BasicAuth, GitHub, GitLab, Google, OpenID | `clientSecret` |
+
+  These identity-provider secrets are required only when the corresponding provider credential reference is configured.
 
 ## Values
 
 | Parameter | Description | Default |
 |---|---|---|
 | `clusterName` | HCP cluster name (namespace, infraID, ManagedCluster name). **Required.** | — |
-| `clusterSet` | ACM ManagedClusterSet label; defaults to `clusterName` with trailing digits removed | `""` |
+| `clusterSet` | ACM ManagedClusterSet label | `default` |
 | `releaseImage` | OCP release image FQDN with tag | `quay.io/openshift-release-dev/ocp-release:4.17.11-multi` |
-| `channel` | OCP update channel | `eus-4.18` |
+| `channel` | OCP update channel; omitted from the HostedCluster when empty | `eus-4.18` |
+| `apiServerAuditProfile` | HostedCluster API server audit profile (`None`, `Default`, `WriteRequestBodies`, or `AllRequestBodies`) | `Default` |
 | `infrastructureNamespace` | Infra namespace override; defaults to `infrastructure-<clusterName>` | `""` |
 | `etcd.storageClassName` | StorageClass for ETCD PV | `lvms-vg1` |
 | `etcd.storageSize` | ETCD PV size | `8Gi` |
@@ -63,31 +74,30 @@ Enabled when `global.apc.imageProxy.host` is set. Creates `registry-ca-bundle` C
 
 Enabled when `global.apc.proxy` is set. Creates `user-ca-bundle` ConfigMap from `global.apc.caCertificates`. Configures proxy settings in the HostedCluster.
 
-## Global values used
+### `kubeletConfig`
 
-pridat required flag ku vsetkemu, co je naozaj required ????????????????????????
+Applies the configured Kubelet settings to worker nodes. Set `kubeletConfig.autoSizingReserved: true` to have system resource reservations calculated automatically from each node's capacity. This is useful when worker nodes have different sizes or you want to avoid maintaining fixed `systemReserved` values; use manual reservations when workloads need more specific amounts. This chart explicitly defaults `autoSizingReserved` to `false`, so automatic reservation must be enabled here even though OpenShift 4.21 enables it by default on newly installed clusters. Clusters upgraded from earlier OpenShift versions may also have automatic reservation disabled.
+
+See the [OpenShift node resource configuration documentation](https://docs.redhat.com/en/documentation/openshift_container_platform/4.21/html/nodes/working-with-nodes#nodes-nodes-resources-configuring-setting_nodes-nodes-resources-configuring) and Red Hat's [recommended system reservation values](https://access.redhat.com/solutions/5843241).
+
+## Global values used
 
 | Global value | Description |
 |---|---|
-| `global.apc.cluster.rootDomain` | Base domain for the HCP cluster (e.g. `cloud.example.com`) |
-| `global.apc.sshAuthorizedKeys` | List of SSH public keys for worker nodes **required** |
+| `global.apc.cluster.rootDomain` | **Required.** Base domain for the HCP cluster (e.g. `cloud.example.com`) |
+| `global.apc.sshAuthorizedKeys` | Optional list of SSH public keys for worker nodes |
 | `global.apc.ntpServers` | NTP server list for worker chrony config |
 | `global.apc.proxy` | HTTP/HTTPS proxy URL |
 | `global.apc.noProxy` | noProxy list |
 | `global.apc.caCertificates` | CA certificates bundle |
 | `global.apc.imageProxy.host` | Mirror registry hostname (enables image mirroring) |
 | `global.apc.imageProxy.sources` | Source registries to mirror |
-| `global.apc.adIntegration` | Deprecated Active Directory IDP config |
-| `global.apc.ldapIntegration` | Deprecated Bastion LDAP IDP config |
 | `global.apc.identityProviders` | OpenShift OAuth identity provider list |
-| `global.apc.services.externalSecretsOperator.defaultClusterSecretStore` | ClusterSecretStore for ExternalSecrets |
-| `global.apc.services.vault.KVmountPlatform` | Vault KV mount path prefix |
-| `global.apc.services.certManager.defaultClusterIssuer` | ClusterIssuer for API server certificate |
-| `global.apc.environmentShort` | Environment short name used in Vault paths |
+| `global.apc.services.externalSecretsOperator.defaultClusterSecretStore` | **Required.** ClusterSecretStore for ExternalSecrets |
+| `global.apc.services.vault.KVmountPlatform` | **Required.** Vault KV mount path prefix |
+| `global.apc.services.certManager.defaultClusterIssuer` | **Required.** ClusterIssuer for API server certificate |
+| `global.apc.environmentShort` | **Required.** Environment short name used in Vault paths |
 
 ## Services
 
-popisat: ?????????????????????????
-
-- API = LB, zvysok NodePort
-- kvoli bezpecnosti, t.j. aby prod, test, dev, nehovorili na rovnake endpointy = dev nemohol dotazovat prod!
+The API server is published through a LoadBalancer. OAuthServer, Konnectivity, Ignition, and OIDC use NodePort with addresses based on `<service>.<clusterName>.<rootDomain>` and the configured ports. Ensure DNS and network/firewall rules route these endpoints to the intended cluster; NodePort ports must be unique for clusters sharing the hub.
