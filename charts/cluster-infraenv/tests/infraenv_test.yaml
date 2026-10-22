@@ -10,6 +10,7 @@ tests:
   - it: should use envName for name and namespace
     set:
       envName: mycluster
+      osImageVersion: "4.15"
       global.apc.sshAuthorizedKeys[0]: "ssh-ed25519 AAAA test"
       global.apc.ntpServers[0]: 10.0.0.1
       global.apc.environmentShort: p
@@ -28,11 +29,21 @@ tests:
       - equal:
           path: metadata.namespace
           value: infrastructure-mycluster
+      - equal:
+          path: spec.osImageVersion
+          value: "4.15"
+
+  - it: should fail when osImageVersion is missing
+    set:
+      envName: mycluster
+    asserts:
+      - failedTemplate: {}
 
   - it: should use infraEnvName for name and namespace
     set:
       envName: mycluster
       infraEnvName: infrastructure-mycluster
+      osImageVersion: "4.15"
       global.apc.sshAuthorizedKeys[0]: "ssh-ed25519 AAAA test"
       global.apc.ntpServers[0]: 10.0.0.1
       global.apc.environmentShort: p
@@ -51,11 +62,15 @@ tests:
       - equal:
           path: metadata.namespace
           value: infrastructure-mycluster
+      - equal:
+          path: spec.osImageVersion
+          value: "4.15"
 
   - it: should set NMStateConfig label selector from infraEnvName
     set:
       envName: mycluster
       infraEnvName: infrastructure-mycluster
+      osImageVersion: "4.15"
       global.apc.sshAuthorizedKeys[0]: "ssh-ed25519 AAAA test"
       global.apc.ntpServers[0]: 10.0.0.1
       global.apc.environmentShort: p
@@ -76,6 +91,7 @@ tests:
     set:
       envName: mycluster
       infraEnvName: infrastructure-mycluster
+      osImageVersion: "4.15"
       global.apc.sshAuthorizedKeys[0]: "ssh-ed25519 AAAA test"
       global.apc.ntpServers[0]: 10.0.0.1
       global.apc.environmentShort: p
@@ -97,6 +113,7 @@ tests:
       envName: mycluster
       agentEnvironment: custom-env
       infraEnvName: infrastructure-mycluster
+      osImageVersion: "4.15"
       global.apc.sshAuthorizedKeys[0]: "ssh-ed25519 AAAA test"
       global.apc.ntpServers[0]: 10.0.0.1
       global.apc.environmentShort: p
@@ -117,6 +134,7 @@ tests:
     set:
       envName: mycluster
       infraEnvName: infrastructure-mycluster
+      osImageVersion: "4.15"
       global:
         apc:
           sshAuthorizedKeys:
@@ -148,6 +166,7 @@ tests:
     set:
       envName: mycluster
       infraEnvName: infrastructure-mycluster
+      osImageVersion: "4.15"
       global.apc.sshAuthorizedKeys[0]: "ssh-ed25519 AAAA test"
       global.apc.ntpServers[0]: 10.0.0.1
       global.apc.proxy: http://proxy.example.com:8080
@@ -176,6 +195,7 @@ tests:
     set:
       envName: mycluster
       infraEnvName: infrastructure-mycluster
+      osImageVersion: "4.15"
       global.apc.sshAuthorizedKeys[0]: "ssh-ed25519 AAAA test"
       global.apc.ntpServers[0]: 10.0.0.1
       global.apc.environmentShort: p
@@ -195,6 +215,7 @@ tests:
     set:
       envName: mycluster
       infraEnvName: infrastructure-mycluster
+      osImageVersion: "4.15"
       global.apc.sshAuthorizedKeys[0]: "ssh-ed25519 AAAA test"
       global.apc.ntpServers[0]: 10.0.0.1
       global.apc.environmentShort: p
@@ -215,6 +236,7 @@ tests:
     set:
       envName: mycluster
       infraEnvName: infrastructure-mycluster
+      osImageVersion: "4.15"
       global.apc.sshAuthorizedKeys: ["ssh-ed25519 AAAA test-key ops@example.com", "ssh-ed25519 BBBB second-key ops@example.com"]
       global.apc.ntpServers[0]: 10.0.0.1
       global.apc.environmentShort: p

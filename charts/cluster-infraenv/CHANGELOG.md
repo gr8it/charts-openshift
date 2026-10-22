@@ -5,6 +5,7 @@ The format is based on [Common Changelog](https://common-changelog.org/), and th
 
 ### Changed
 
+- Require `osImageVersion` for the InfraEnv OS image
 - Read SSH public keys from the `global.apc.sshAuthorizedKeys` list
 
 ## [1.0.0] - 2026-08-03

@@ -12,6 +12,7 @@ spec:
     environment: {{ .Values.agentEnvironment | default .Values.envName }}
     agentclusterinstalls.extensions.hive.openshift.io/location: {{ .Values.location }}
   cpuArchitecture: {{ .Values.cpuArchitecture }}
+  osImageVersion: {{ required "osImageVersion is required" .Values.osImageVersion | quote }}
   ipxeScriptType: {{ .Values.ipxeScriptType }}
   nmStateConfigLabelSelector:
     matchLabels:
