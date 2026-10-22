@@ -20,7 +20,7 @@
     },
     "hostGroup": {
       "type": "string",
-      "description": "Dynatrace host group. Defaults to os- followed by the cluster name."
+      "description": "OneAgent host group. Defaults to the cluster name, or the Helm release name if no cluster name is configured."
     },
     "apc-global-overrides": {
       "type": "object",
@@ -61,7 +61,7 @@
     },
     "activeGate": {
       "type": "object",
-      "additionalProperties": true,
+      "additionalProperties": false,
       "properties": {
         "capabilities": {
           "type": "array",
@@ -76,9 +76,42 @@
             ]
           },
           "uniqueItems": true
+        },
+        "group": {
+          "type": "string",
+          "description": "ActiveGate group. Defaults to os- followed by the cluster name, or the Helm release name if no cluster name is configured."
+        },
+        "resources": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "requests": {
+              "$ref": "#/definitions/resourceRequirements"
+            },
+            "limits": {
+              "$ref": "#/definitions/resourceRequirements"
+            }
+          },
+          "description": "ActiveGate CPU and memory requests and limits."
         }
       },
       "description": "DynaKube ActiveGate configuration."
+    }
+  },
+  "definitions": {
+    "resourceRequirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cpu": {
+          "type": "string",
+          "minLength": 1
+        },
+        "memory": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
     }
   }
 }
