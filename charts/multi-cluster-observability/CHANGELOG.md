@@ -4,7 +4,7 @@
 
 ### Added
 
-- Optional `thanos-tls-ca` Secret (`thanosTlsCa.caBundle`) on hub clusters
+- Kyverno `Policy` generating the `thanos-tls-ca` Secret from the `openshift-service-ca.crt` ConfigMap on hub clusters
 
 ## [1.1.1] - 2026-09-23
 
