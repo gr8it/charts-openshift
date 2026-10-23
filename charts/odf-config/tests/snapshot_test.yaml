@@ -1,0 +1,178 @@
+suite: Snapshot test
+templates:
+  - templates/*
+release:
+  name: odf-config
+
+tests:
+  - it: manifests should match snapshot (defaults, no config)
+    asserts:
+      - matchSnapshot: {}
+
+  - it: renders ODF config on a standalone cluster
+    set:
+      additionalNetworks:
+        - name: odf
+          type: Raw
+          rawCNIConfig: |-
+            {
+              "cniVersion": "0.3.1",
+              "name": "odf",
+              "type": "macvlan",
+              "master": "bond1.100",
+              "mode": "bridge",
+              "ipam": {
+                "type": "whereabouts",
+                "range": "192.0.2.0/25",
+                "range_start": "192.0.2.10",
+                "range_end": "192.0.2.126"
+              }
+            }
+      storageCluster:
+        name: ocs-storagecluster
+        nodeCount: 3
+        localVolumeSetCount: 2
+        resources:
+          mds:
+            limits:
+              memory: 20Gi
+            requests:
+              memory: 20Gi
+        cephCluster: {}
+      nodeNetworkConfigurationPolicy:
+        nodeSelector:
+          node-role.kubernetes.io/worker: ""
+        interfaces:
+          - name: bond1
+            type: bond
+            state: up
+      machineConfig:
+        enabled: true
+        configMap:
+          name: machineconfig-99-bond1-promisc
+    asserts:
+      - matchSnapshot: {}
+
+  - it: renders exactly one StorageCluster with a device set per local volume set, sized to nodeCount
+    template: templates/storagecluster.yaml
+    set:
+      additionalNetworks:
+        - name: odf
+          type: Raw
+          rawCNIConfig: "{}"
+      storageCluster:
+        name: ocs-storagecluster
+        nodeCount: 4
+        localVolumeSetCount: 2
+        resources:
+          mds:
+            limits:
+              memory: 20Gi
+            requests:
+              memory: 20Gi
+        cephCluster: {}
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: StorageCluster
+      - equal:
+          path: spec.resources
+          value:
+            mds:
+              limits:
+                memory: 20Gi
+              requests:
+                memory: 20Gi
+      - equal:
+          path: spec.storageDeviceSets
+          value:
+            - count: 4
+              dataPVCTemplate:
+                spec:
+                  accessModes:
+                    - ReadWriteOnce
+                  resources:
+                    requests:
+                      storage: "1"
+                  storageClassName: local-volumeset-1
+                  volumeMode: Block
+              name: ocs-deviceset-local-volumeset-1
+              placement: {}
+              replica: 1
+              resources: {}
+            - count: 4
+              dataPVCTemplate:
+                spec:
+                  accessModes:
+                    - ReadWriteOnce
+                  resources:
+                    requests:
+                      storage: "1"
+                  storageClassName: local-volumeset-2
+                  volumeMode: Block
+              name: ocs-deviceset-local-volumeset-2
+              placement: {}
+              replica: 1
+              resources: {}
+
+  - it: does not render StorageCluster, StorageSystem, LocalVolumeDiscovery or LocalVolumeSet when nodeCount is 0
+    set:
+      storageCluster:
+        name: ocs-storagecluster
+        nodeCount: 0
+        localVolumeSetCount: 0
+        resources: {}
+        cephCluster: {}
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: templates/storagecluster.yaml
+      - hasDocuments:
+          count: 0
+        template: templates/storagesystem.yaml
+      - hasDocuments:
+          count: 0
+        template: templates/localvolumediscovery.yaml
+      - hasDocuments:
+          count: 0
+        template: templates/localvolumeset.yaml
+
+  - it: renders MachineConfig as a hosted-cluster ConfigMap on a hub cluster
+    set:
+      machineConfig:
+        enabled: true
+        configMap:
+          name: machineconfig-99-bond1-promisc
+      global.apc.cluster.isHub: true
+    asserts:
+      - matchSnapshot: {}
+
+  - it: renders a dedicated NodeNetworkConfigurationPolicy only when interfaces are set
+    template: templates/nodenetworkconfigurationpolicy.yaml
+    set:
+      nodeNetworkConfigurationPolicy:
+        nodeSelector:
+          node-role.kubernetes.io/worker: ""
+        interfaces:
+          - name: bond1
+            type: bond
+            state: up
+    asserts:
+      - isKind:
+          of: NodeNetworkConfigurationPolicy
+      - equal:
+          path: metadata.name
+          value: odf-network
+      - equal:
+          path: spec.desiredState.interfaces
+          value:
+            - name: bond1
+              type: bond
+              state: up
+
+  - it: does not render NodeNetworkConfigurationPolicy by default
+    template: templates/nodenetworkconfigurationpolicy.yaml
+    asserts:
+      - hasDocuments:
+          count: 0

@@ -1,0 +1,20 @@
+additionalNetworks: []
+
+nodeNetworkConfigurationPolicy:
+  nodeSelector:
+    node-role.kubernetes.io/worker: ""
+  interfaces: []
+
+storageCluster:
+  name: ocs-storagecluster
+  nodeCount: 0
+  localVolumeSetCount: 0
+  deviceMinSize: 6000Gi
+  resourceProfile: balanced
+  resources: {}
+  cephCluster: {}
+
+machineConfig:
+  enabled: false
+  configMap:
+    name: machineconfig-99-bond1-promisc
