@@ -48,6 +48,10 @@ flowchart TD
 > [!WARNING]  
 > As the chart is implemented as an ACM policy, meaning the component has to be installed on the hub cluster only!
 
+> [!IMPORTANT]  
+> Requires provider-vault >= v4.0.0 (`crossplane-vault-provider` chart >= 1.6.0), whose ProviderConfig CRD supports `spec.mountPath`.
+> Roll out the provider upgrade first and wait for the Provider to be Healthy before deploying this chart >= 2.1.0.
+
 The chart is implemented as an ACM policy and does following:
 
 - Checks if Vault ProviderConfig is using Kubernetes auth method
