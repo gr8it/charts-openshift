@@ -32,6 +32,20 @@ tests:
           path: spec.storageClassName
           value: ocs-storagecluster-ceph-rgw
 
+  - it: should render the claim in objectBucketClaim.namespace when set
+    set:
+      objectBucketClaim:
+        enabled: true
+        name: app-backup
+        namespace: apc-backup
+    asserts:
+      - equal:
+          path: metadata.namespace
+          value: apc-backup
+      - equal:
+          path: metadata.annotations["argocd.argoproj.io/sync-options"]
+          value: Prune=false
+
   - it: should fail without a name
     set:
       objectBucketClaim:

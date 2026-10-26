@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.0] - 2026-10-20
+
+### Added
+
+- Kyverno `Policy` generating the `thanos-tls-ca` Secret from the `openshift-service-ca.crt` ConfigMap on hub clusters
+
 ## [1.1.1] - 2026-09-23
 
 ### Removed

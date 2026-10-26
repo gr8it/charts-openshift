@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Optional ObjectBucketClaim (`objectBucketClaim.enabled`, disabled by default).
+- Optional ObjectBucketClaim (`objectBucketClaim.enabled`, disabled by default). `objectBucketClaim.namespace` overrides the release namespace; the claim is annotated `argocd.argoproj.io/sync-options: Prune=false`.
 
 ## [1.2.0] - 2026-06-23
 
