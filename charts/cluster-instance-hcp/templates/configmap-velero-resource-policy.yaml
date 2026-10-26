@@ -1,0 +1,24 @@
+{{- if .Values.backup.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "velero-resource-policy-%s" (include "cluster-instance-hcp.clusterName" .) | quote }}
+  namespace: openshift-adp
+  labels:
+    {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
+data:
+  policies.yaml: |
+    version: v1
+    policies:
+      - name: exclude-specific-secrets
+        action: skip
+        target:
+          - groupResource: secrets
+            names:
+              - bootstrap-hub-kubeconfig
+              - hub-kubeconfig-secret
+              - {{ printf "%s-import" (include "cluster-instance-hcp.clusterName" .) | quote }}
+            namespaces:
+              - {{ printf "klusterlet-%s" (include "cluster-instance-hcp.clusterName" .) | quote }}
+              - {{ printf "%s-%s" (include "cluster-instance-hcp.clusterName" .) (include "cluster-instance-hcp.clusterName" .) | quote }}
+{{- end }}

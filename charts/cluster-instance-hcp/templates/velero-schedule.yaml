@@ -1,0 +1,30 @@
+{{- if .Values.backup.enabled }}
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: {{ include "cluster-instance-hcp.clusterName" . }}
+  namespace: openshift-adp
+  labels:
+    {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
+spec:
+  schedule: {{ required "backup.schedule is required when backup is enabled" .Values.backup.schedule | quote }}
+  paused: {{ .Values.backup.paused }}
+  template:
+    includedNamespaces:
+      - {{ .Release.Namespace | quote }}
+      - {{ printf "%s-%s" (include "cluster-instance-hcp.clusterName" .) (include "cluster-instance-hcp.clusterName" .) | quote }}
+      - {{ printf "klusterlet-%s" (include "cluster-instance-hcp.clusterName" .) | quote }}
+    includedNamespaceScopedResources:
+      - '*'
+    resourcePolicy:
+      kind: configmap
+      name: {{ printf "velero-resource-policy-%s" (include "cluster-instance-hcp.clusterName" .) }}
+    excludedNamespaceScopedResources:
+      - events
+      - events.events.k8s.io
+      - pods
+      - replicasets.apps
+    snapshotMoveData: false
+    defaultVolumesToFSBackup: false
+    ttl: {{ .Values.backup.ttl | quote }}
+{{- end }}

@@ -45,8 +45,16 @@ Deploys a HyperShift Hosted Control Plane (HCP) cluster on an ACM hub cluster. C
 | `services.konnectivityPort` | NodePort for Konnectivity. **Required.** | — |
 | `services.ignitionPort` | NodePort for Ignition. **Required.** | — |
 | `services.oidcPort` | NodePort for OIDC. **Required.** | — |
+| `backup.enabled` | Create a Velero Schedule for the HostedCluster namespace | `false` |
+| `backup.schedule` | Cron schedule for the Velero backup | `"0 0 * * *"` |
+| `backup.paused` | Pause the Velero Schedule | `false` |
+| `backup.ttl` | Backup retention duration as a Go duration, e.g. `168h0m0s` for seven days | `"336h0m0s"` |
 
 ## Features
+
+### Velero backup
+
+When `backup.enabled` is true, creates a Velero Schedule and resource-policy ConfigMap in the `openshift-adp` namespace. The schedule backs up the HostedCluster's namespace and its related `<clusterName>-<clusterName>` and `klusterlet-<clusterName>` namespaces. The resource policy skips selected bootstrap kubeconfig Secrets. Velero/OADP must be installed.
 
 ### `apiServerCert`
 

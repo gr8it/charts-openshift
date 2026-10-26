@@ -1,6 +1,36 @@
 All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.6] - 2026-10-26
+
+### Added
+
+- Restore the Velero resource-policy ConfigMap and reference it from the Schedule
+
+## [2.0.5] - 2026-10-26
+
+### Changed
+
+- Remove the Velero resource-policy ConfigMap and its Schedule reference
+
+## [2.0.4] - 2026-10-26
+
+### Added
+
+- Add a Velero resource policy to exclude selected secrets from HostedCluster backups
+
+## [2.0.3] - 2026-10-26
+
+### Added
+
+- Exclude the import ConfigMap from Velero backups using Argo CD server-side apply
+
+## [2.0.2] - 2026-10-26
+
+### Added
+
+- Add an optional Velero Schedule for the HostedCluster namespace
+
 ## [2.0.1] - 2026-10-20
 
 ### Changed
