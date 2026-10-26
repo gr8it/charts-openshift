@@ -267,6 +267,14 @@ manifests should match snapshot:
                             capabilities = ["create", "read", "update", "patch", "delete", "list", "sudo"]
                           }
 
+                          path "sys/mounts/auth/{{hub "" | default .ManagedClusterName | replace "local-cluster" "dev01" hub}}" {
+                            capabilities = ["read"]
+                          }
+
+                          path "sys/mounts/auth/{{hub "" | default .ManagedClusterName | replace "local-cluster" "dev01" hub}}/tune" {
+                            capabilities = ["read", "update"]
+                          }
+
                           path "auth/{{hub "" | default .ManagedClusterName | replace "local-cluster" "dev01" hub}}/config" {
                             capabilities = ["create", "read", "update", "patch", "delete", "list"]
                           }
@@ -280,7 +288,7 @@ manifests should match snapshot:
                           }
                       providerConfigRef:
                         name: vault-url
-                - complianceType: musthave
+                - complianceType: mustonlyhave
                   objectDefinition:
                     apiVersion: kubernetes.vault.upbound.io/v1alpha1
                     kind: AuthBackendRole
@@ -289,6 +297,7 @@ manifests should match snapshot:
                     spec:
                       deletionPolicy: Orphan
                       forProvider:
+                        aliasNameSource: serviceaccount_uid
                         audience: https://kubernetes.default.svc
                         backend: '{{hub "" | default .ManagedClusterName | replace "local-cluster" "dev01" hub}}'
                         boundServiceAccountNames:
@@ -301,6 +310,10 @@ manifests should match snapshot:
                           - '{{hub .ManagedClusterName | replace "local-cluster" "dev01" hub}}--crossplane'
                           - admin
                         tokenTtl: 1800
+                        tokenType: default
+                      initProvider: {}
+                      managementPolicies:
+                        - '*'
                       providerConfigRef:
                         name: vault-url
                 - complianceType: musthave

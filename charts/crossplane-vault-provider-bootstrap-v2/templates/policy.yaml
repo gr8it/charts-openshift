@@ -245,6 +245,14 @@ spec:
                         capabilities = ["create", "read", "update", "patch", "delete", "list", "sudo"]
                       }
 
+                      path "sys/mounts/auth/{{"{{"}}hub "{{ .Values.vaultKubeAuthMountPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}" {
+                        capabilities = ["read"]
+                      }
+
+                      path "sys/mounts/auth/{{"{{"}}hub "{{ .Values.vaultKubeAuthMountPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}/tune" {
+                        capabilities = ["read", "update"]
+                      }
+
                       path "auth/{{"{{"}}hub "{{ .Values.vaultKubeAuthMountPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}/config" {
                         capabilities = ["create", "read", "update", "patch", "delete", "list"]
                       }
@@ -259,7 +267,8 @@ spec:
                   providerConfigRef:
                     name: {{ $vaultProviderConfigName }}
 
-            - complianceType: musthave
+            # mustonlyhave => stale list entries (e.g. wildcard SA, removed extra policies) are dropped from the Vault role
+            - complianceType: mustonlyhave
               objectDefinition:
                 apiVersion: kubernetes.vault.upbound.io/v1alpha1
                 kind: AuthBackendRole
@@ -268,7 +277,12 @@ spec:
                 spec:
                   # can't be deleted by itself, as all the objects are required for the removal to work => orphan
                   deletionPolicy: Orphan
+                  # crossplane defaulted / late-initialized fields must be listed explicitly to avoid a reconcile fight with mustonlyhave
+                  managementPolicies:
+                    - '*'
+                  initProvider: {}
                   forProvider:
+                    aliasNameSource: serviceaccount_uid
                     audience: https://kubernetes.default.svc
                     backend: '{{"{{"}}hub "{{ .Values.vaultKubeAuthMountPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}'
                     boundServiceAccountNames:
@@ -283,6 +297,7 @@ spec:
                       - {{ . }}
                       {{- end }}
                     tokenTtl: 1800
+                    tokenType: default
                   providerConfigRef:
                     name: {{ $vaultProviderConfigName }}
 

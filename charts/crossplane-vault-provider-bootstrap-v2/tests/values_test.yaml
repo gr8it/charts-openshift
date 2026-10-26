@@ -37,6 +37,47 @@ tests:
           path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.forProvider.tokenPolicies[3]
           value: extra
 
+  - it: role is enforced with mustonlyhave including crossplane defaulted fields to avoid a reconcile fight
+    asserts:
+      - equal:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].complianceType
+          value: mustonlyhave
+      - equal:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.managementPolicies
+          value:
+            - '*'
+      - equal:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.initProvider
+          value: {}
+      - equal:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.forProvider.aliasNameSource
+          value: serviceaccount_uid
+      - equal:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.forProvider.tokenType
+          value: default
+
+  - it: role has only the base policies when extra policies are removed
+    set:
+      vaultKubernetesRoleExtraPolicies: []
+    asserts:
+      - lengthEqual:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.forProvider.tokenPolicies
+          count: 2
+      - notContains:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.forProvider.tokenPolicies
+          content: admin
+
+  - it: role policy allows reading and tuning the auth mount of the configured mount path
+    set:
+      vaultKubeAuthMountPath: kubernetes
+    asserts:
+      - matchRegex:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[2].objectDefinition.spec.forProvider.policy
+          pattern: 'path "sys/mounts/auth/\{\{hub "kubernetes" \| default \.ManagedClusterName \| replace "local-cluster" "" hub\}\}" \{\n  capabilities = \["read"\]'
+      - matchRegex:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[2].objectDefinition.spec.forProvider.policy
+          pattern: 'path "sys/mounts/auth/\{\{hub "kubernetes" \| default \.ManagedClusterName \| replace "local-cluster" "" hub\}\}/tune" \{\n  capabilities = \["read", "update"\]'
+
   - it: kubernetes auth ProviderConfig uses the cluster auth mount by default
     asserts:
       - equal:
