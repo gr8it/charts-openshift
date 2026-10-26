@@ -94,12 +94,12 @@ spec:
                 status:
                   atProvider:
                     boundServiceAccountNames:
-                      - {{ .Values.vaultProviderServiceAccount }}
+                      - {{ .Values.vaultProviderServiceAccount | quote }}
                     tokenPolicies:
                       - default
                       - '{{"{{"}}hub .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}--{{ .Values.vaultKubernetesRole }}'
                       {{- range .Values.vaultKubernetesRoleExtraPolicies }}
-                      - {{ . }}
+                      - {{ . | quote }}
                       {{- end }}
                   conditions:
                     - type: Synced
@@ -286,7 +286,7 @@ spec:
                     audience: https://kubernetes.default.svc
                     backend: '{{"{{"}}hub "{{ .Values.vaultKubeAuthMountPath }}" | default .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}'
                     boundServiceAccountNames:
-                      - {{ .Values.vaultProviderServiceAccount }}
+                      - {{ .Values.vaultProviderServiceAccount | quote }}
                     boundServiceAccountNamespaces:
                       - {{ .Values.crossplaneNamespace }}
                     roleName: {{ .Values.vaultKubernetesRole }}
@@ -294,7 +294,7 @@ spec:
                       - default
                       - '{{"{{"}}hub .ManagedClusterName | replace "local-cluster" "{{ $localClusterName }}" hub{{"}}"}}--{{ .Values.vaultKubernetesRole }}'
                       {{- range .Values.vaultKubernetesRoleExtraPolicies }}
-                      - {{ . }}
+                      - {{ . | quote }}
                       {{- end }}
                     tokenTtl: 1800
                     tokenType: default

@@ -56,6 +56,25 @@ tests:
           path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.forProvider.tokenType
           value: default
 
+  - it: service account and extra policies are rendered as strings in the role and the status check
+    set:
+      vaultProviderServiceAccount: "123"
+      vaultKubernetesRoleExtraPolicies:
+        - "true"
+    asserts:
+      - equal:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.forProvider.boundServiceAccountNames[0]
+          value: "123"
+      - equal:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.forProvider.tokenPolicies[2]
+          value: "true"
+      - equal:
+          path: spec.policy-templates[1].objectDefinition.spec.object-templates[3].objectDefinition.status.atProvider.boundServiceAccountNames[0]
+          value: "123"
+      - equal:
+          path: spec.policy-templates[1].objectDefinition.spec.object-templates[3].objectDefinition.status.atProvider.tokenPolicies[2]
+          value: "true"
+
   - it: role has only the base policies when extra policies are removed
     set:
       vaultKubernetesRoleExtraPolicies: []
