@@ -1,0 +1,53 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: cluster-infraenv Velero Schedule
+templates:
+  - templates/velero-schedule.yaml
+values:
+  - ../values.example.yaml
+release:
+  name: cluster-infraenv-prod01
+  namespace: infrastructure-prod01
+
+tests:
+  - it: should create a Velero Schedule when backup is enabled
+    set:
+      envName: prod01
+      backup:
+        enabled: true
+        schedule: "0 0 * * *"
+        ttl: "168h0m0s"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: apiVersion
+          value: velero.io/v1
+      - equal:
+          path: kind
+          value: Schedule
+      - equal:
+          path: metadata.name
+          value: infrastructure-prod01
+      - equal:
+          path: metadata.namespace
+          value: infrastructure-prod01
+      - equal:
+          path: spec.schedule
+          value: "0 0 * * *"
+      - equal:
+          path: spec.paused
+          value: false
+      - contains:
+          path: spec.template.includedNamespaces
+          content: infrastructure-prod01
+      - equal:
+          path: spec.template.ttl
+          value: 168h0m0s
+
+  - it: should not create a Velero Schedule when backup is disabled
+    set:
+      envName: prod01
+      backup.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0

@@ -44,6 +44,9 @@
 
 - DONE make the apc-global-overrides.sshAuthorizedKeys an list. Add a new helpers sshAuthorizedKeysBundle and require-sshAuthorizedKeysBundle, similar to caCertificatesBundle. Update documentation, unittest (at the library-charts-unittests/apc-global-overrides-unit-tests) and its usage
 
+- HCP 
+  - clusterset ?
+
 # apc-global-overrides
 
 - NA add schema file
@@ -56,12 +59,12 @@
 # conf repo TODO
 
 - add new apc-global-overrides to conf-socpoist, conf-qa-sp
-  - ntp, sshAuthorizedKeys, imageProxy.registryHost, imageProxy.sources
+  - ntp, sshAuthorizedKeys, imageProxy.registryHost, imageProxy.sources - done for conf-qa-sp
 
 -----------
 
 - skontrolovat vault linky
   - standardizovat nepriec chartami
 - aktualizovat dokumentaciu (README)
-  - hlavne external secret sources
+  - hlavne external secret sources - done
 - ma byt oauth .name, .ldap.attributes.url, a .ldap.attributes.bindDN povinne ???

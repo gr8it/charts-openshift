@@ -22,6 +22,10 @@ Deploys an `InfraEnv` and related resources for a Hosted Control Plane (HCP) clu
 | `nmStateConfigs.name` | nmstateconfig.metadata.name **Required.**| `""` |
 | `nmStateConfigs.config` | nmstateconfig.spec.config **Required.**| `{}` |
 | `nmStateConfigs.interfaces` | nmstateconfig.spec.interfaces **Required.**| `[]` |
+| `backup.enabled` | Create a Velero Schedule for the InfraEnv namespace | `false` |
+| `backup.schedule` | Cron schedule for the Velero backup | `"0 0 * * *"` |
+| `backup.paused` | Pause the Velero Schedule | `false` |
+| `backup.ttl` | Backup retention duration as a Go duration, e.g. `168h0m0s` for seven days | `"336h0m0s"` |
 
 ## Global values used
 

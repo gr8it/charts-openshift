@@ -1,0 +1,25 @@
+{{- if .Values.backup.enabled }}
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: {{ include "cluster-infraenv.infraEnvName" . }}
+  namespace: {{ include "cluster-infraenv.infraEnvName" . }}
+  labels:
+    {{- include "cluster-infraenv.labels" . | nindent 4 }}
+spec:
+  schedule: {{ required "backup.schedule is required when backup is enabled" .Values.backup.schedule | quote }}
+  paused: {{ .Values.backup.paused }}
+  template:
+    includedNamespaces:
+      - {{ include "cluster-infraenv.infraEnvName" . | quote }}
+    includedNamespaceScopedResources:
+      - '*'
+    excludedNamespaceScopedResources:
+      - events
+      - events.events.k8s.io
+      - pods
+      - replicasets.apps
+    snapshotMoveData: false
+    defaultVolumesToFSBackup: false
+    ttl: {{ .Values.backup.ttl | quote }}
+{{- end }}

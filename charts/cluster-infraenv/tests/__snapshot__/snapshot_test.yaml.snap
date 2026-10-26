@@ -9,7 +9,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-infraenv
         cluster.open-cluster-management.io/backup: "true"
-        helm.sh/chart: cluster-infraenv-2.0.0
+        helm.sh/chart: cluster-infraenv-2.1.0
       name: pullsecret-infrastructure-prod01
       namespace: infrastructure-prod01
     spec:
@@ -38,7 +38,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-infraenv-prod01
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-infraenv
-        helm.sh/chart: cluster-infraenv-2.0.0
+        helm.sh/chart: cluster-infraenv-2.1.0
         networkType: static
       name: infrastructure-prod01
       namespace: infrastructure-prod01
@@ -72,7 +72,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-infraenv-prod01
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-infraenv
-        helm.sh/chart: cluster-infraenv-2.0.0
+        helm.sh/chart: cluster-infraenv-2.1.0
         infraenvs.agent-install.openshift.io: infrastructure-prod01
       name: node-01
       namespace: infrastructure-prod01
@@ -119,7 +119,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-infraenv-prod01
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-infraenv
-        helm.sh/chart: cluster-infraenv-2.0.0
+        helm.sh/chart: cluster-infraenv-2.1.0
         infraenvs.agent-install.openshift.io: infrastructure-prod01
       name: node-02
       namespace: infrastructure-prod01
@@ -166,7 +166,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-infraenv-prod01
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-infraenv
-        helm.sh/chart: cluster-infraenv-2.0.0
+        helm.sh/chart: cluster-infraenv-2.1.0
       name: capi-provider-role
       namespace: infrastructure-prod01
     rules:
@@ -176,3 +176,30 @@ manifests should match snapshot:
           - agents
         verbs:
           - '*'
+  6: |
+    apiVersion: velero.io/v1
+    kind: Schedule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-infraenv-prod01
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-infraenv
+        helm.sh/chart: cluster-infraenv-2.1.0
+      name: infrastructure-prod01
+      namespace: infrastructure-prod01
+    spec:
+      paused: false
+      schedule: 0 0 * * *
+      template:
+        defaultVolumesToFSBackup: false
+        excludedNamespaceScopedResources:
+          - events
+          - events.events.k8s.io
+          - pods
+          - replicasets.apps
+        includedNamespaceScopedResources:
+          - '*'
+        includedNamespaces:
+          - infrastructure-prod01
+        snapshotMoveData: false
+        ttl: 168h0m0s
