@@ -11,8 +11,9 @@ _([SPEXAPC-26776](https://aspecta.atlassian.net/browse/SPEXAPC-26776))_
 
 ### Changed
 
-- Provider runs under a stable service account `crossplane-vault-provider` instead of a per-revision one, so the Vault kubernetes auth role can be bound to it
+- Provider runs under a stable service account name `crossplane-vault-provider` instead of a per-revision one, so the Vault kubernetes auth role can be bound to it
 - Bumped `apc-global-overrides` to 1.10.0 (Chart.lock was still at 1.5.0)
+- Default provider-vault bumped to v4.0.0 (required by crossplane-vault-provider-bootstrap >= 2.1.0 mountPath)
 
 ## [1.5.1] - 2026-02-26
 
