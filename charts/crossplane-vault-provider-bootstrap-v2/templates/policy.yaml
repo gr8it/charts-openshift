@@ -267,7 +267,6 @@ spec:
                   providerConfigRef:
                     name: {{ $vaultProviderConfigName }}
 
-            # mustonlyhave => stale list entries (e.g. wildcard SA, removed extra policies) are dropped from the Vault role
             - complianceType: mustonlyhave
               objectDefinition:
                 apiVersion: kubernetes.vault.upbound.io/v1alpha1
@@ -277,7 +276,7 @@ spec:
                 spec:
                   # can't be deleted by itself, as all the objects are required for the removal to work => orphan
                   deletionPolicy: Orphan
-                  # crossplane defaulted / late-initialized fields must be listed explicitly to avoid a reconcile fight with mustonlyhave
+                  # late-initialized fields must be listed explicitly to avoid a reconcile fight with mustonlyhave
                   managementPolicies:
                     - '*'
                   initProvider: {}

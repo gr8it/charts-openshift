@@ -17,7 +17,7 @@ _([SPEXAPC-26776](https://aspecta.atlassian.net/browse/SPEXAPC-26776))_
 ### Changed
 
 - Kubernetes role is bound to the provider service account (`vaultProviderServiceAccount`) instead of any service account in the Crossplane namespace
-- Kubernetes role is enforced with `mustonlyhave`, so stale list entries (wildcard service account, removed extra policies) are dropped from the Vault role
+- Kubernetes role is enforced with `mustonlyhave`, so entries removed from values (e.g. a temporary `admin` extra policy) are actually dropped from the Vault role — `musthave` kept them and still reported Compliant
 - Kubernetes role policy grants `sys/mounts/auth/<mount>` (read) and its `tune` endpoint instead of the hardcoded `sys/mounts/auth/kubernetes` path, so the auth Backend can be observed without the `admin` policy
 - Bumped `apc-global-overrides` to 1.10.0
 
