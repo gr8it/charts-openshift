@@ -5,18 +5,20 @@ A Helm chart to setup Blackbox exporter in APC
 ## Overview
 
 This Helm chart deploys Blackbox exporter in following configuration:
-- blackbox exporter with 
+- blackbox exporter with
   - modules:
     - icmp
     - tcp_probe
     - tcp_probe_tls
     - http_2xx
-      http_openshift_api
+    - http_openshift_api
     - http_openshift_console
   - serviceMonitor:
-    - defaults:
-      - openshift-console
-      - openshift-api
+    - selfMonitor (metrics of the exporter itself)
+- probes (`monitoring.coreos.com/v1` Probe):
+  - `openshift-api` - OpenShift API `/readyz` of the cluster where Blackbox exporter is deployed
+  - `openshift-console` - OpenShift console `/health` of the cluster where Blackbox exporter is deployed
+  - `hw-xca` - Lenovo XClarity Administrator, only when `hwXcaUrl` is set
 - prometheus rules for APC platform team
 - cluster roles:
    - blackbox-exporter-probe-edit
@@ -33,36 +35,22 @@ This Helm chart deploys Blackbox exporter in following configuration:
 
 ## Configuration
 
+### Probes
+
+The `openshift-api` and `openshift-console` probes are always deployed. Their targets are built from the cluster global values via `apc-global-overrides` helpers, so no configuration is needed:
+
+- `openshift-api`: `<global.apc.cluster.apiURL>/readyz`, module `http_openshift_api`
+- `openshift-console`: `https://console-openshift-console.<global.apc.cluster.appsDomain>/health`, module `http_openshift_console`
+
+> [!NOTE]
+> `prometheus-blackbox-exporter.serviceMonitor.targets` is intentionally empty. Platform targets are monitored with Probes, not ServiceMonitors.
+
 ### Key Parameters
 
-- `prometheus-blackbox-exporter.serviceMonitor.targets`: list OCP console and API to monitor from cluster where Blackbox exporter is deployed
+- `hwXcaUrl`: URL of the Lenovo XClarity Administrator to probe. Empty by default; when set, Probe `hw-xca` (module `http_2xx`) is rendered. Set it only for the cluster that should probe XCA (usually the hub), e.g.:
 
-Examples:
-  - cluster:
-    ```yaml
-    serviceMonitor:
-      enabled: true
-      targets:
-        - name: openshift-console
-          url: https://console-openshift-console.apps.cluster.example.com/health
-          labels:
-            vendor: aspecta
-            team: platform
-            module: http_openshift_console
-            component: "openshift-console"
-          interval: 30s
-          scrapeTimeout: 30s
-          module: http_openshift_console
-        - name: openshift-api
-          url: https://api.cluster.example.com:6443/readyz
-          labels:
-            vendor: aspecta
-            team: platform
-            module: http_openshift_api
-            component: "openshift-api"
-          interval: 10s
-          scrapeTimeout: 10s
-          module: http_openshift_api
-    ```
+  ```yaml
+  hwXcaUrl: https://xca.example.com
+  ```
 
-
+- `proxy`, `noProxy`, `proxyCIDRs`: local overrides of `global.apc.proxy`, `global.apc.noProxy` and `global.apc.proxyCIDRs`; when unset, the global values are used
