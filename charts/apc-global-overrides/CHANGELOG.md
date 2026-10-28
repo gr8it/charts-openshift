@@ -12,17 +12,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change `sshAuthorizedKeys` from a string to a list and add bundle helpers
 - Add the `identityProviders` helper and deprecate `adIntegration` and `ldapIntegration`
 
-## [1.9.0] - 2026-08-03
-
-### Added
-
-- `apc-global-overrides.imageProxyHost` and `apc-global-overrides.require-imageProxyHost` helpers
-- `apc-global-overrides.imageProxySources` helper
-- `apc-global-overrides.adIntegration` helper
-- `apc-global-overrides.ldapIntegration` helper
-- `apc-global-overrides.ntpServers`, `apc-global-overrides.require-ntpServers` and `apc-global-overrides.chronyConfig` which uses the ntpServers helper functions
-- `apc-global-overrides.sshAuthorizedKeys` and `apc-global-overrides.require-sshAuthorizedKeys` helpers for SSH authorized keys
-
 ## [1.10.0] - 2026-08-03
 
 ### Added
