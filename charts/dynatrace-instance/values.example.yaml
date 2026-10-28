@@ -1,0 +1,26 @@
+global:
+  apc:
+    cluster:
+      name: test-cluster
+    environmentShort: test
+    services:
+      vault:
+        KVmountPlatform: apc-platform
+      externalSecretsOperator:
+        defaultClusterSecretStore: vault-example
+apiUrl: https://abc12345.live.dynatrace.com/api
+activeGate:
+  capabilities:
+    - routing
+    - kubernetes-monitoring
+    - metrics-ingest
+    - dynatrace-api
+  image: public.ecr.aws/dynatrace/dynatrace-activegate:1.331.24.20260210-044521
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1.5Gi
+              

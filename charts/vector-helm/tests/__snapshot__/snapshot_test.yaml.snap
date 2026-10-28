@@ -1,0 +1,633 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata:
+      labels:
+        app.kubernetes.io/instance: vector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: vector-helm
+        app.kubernetes.io/version: 0.43.1-distroless-libc
+        helm.sh/chart: vector-helm-1.0.0
+      name: vector-service
+      namespace: apc-logging
+    spec:
+      commonName: vector.cluster.example.com
+      dnsNames:
+        - vector.apc-logging.svc
+        - vector.apc-logging.svc.cluster.local
+        - vector.cluster.example.com
+      issuerRef:
+        kind: ClusterIssuer
+        name: vault-hub-issuer
+      secretName: vector-service
+  2: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: vector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: vector-helm
+        app.kubernetes.io/version: 0.43.1-distroless-libc
+        helm.sh/chart: vector-helm-1.0.0
+      name: apc-logging-collector-logs-writers
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: logging-collector-logs-writer
+    subjects:
+      - kind: ServiceAccount
+        name: vector
+        namespace: apc-logging
+  3: |
+    apiVersion: v1
+    data:
+      vector.yaml: |
+        api:
+          address: 0.0.0.0:8686
+          enabled: true
+          playground: false
+        secret:
+          kubernetes_jiraops:
+            path: /var/run/ocp-collector/secrets/jira-ops
+            type: directory
+          kubernetes_secret:
+            path: /var/run/ocp-collector/secrets/vector-token
+            type: directory
+          kubernetes_siemtoken:
+            path: /var/run/ocp-collector/secrets/siem-token
+            type: directory
+        sinks:
+          acs_loki_audit:
+            auth:
+              strategy: bearer
+              token: SECRET[kubernetes_secret.token]
+            buffer:
+              type: memory
+              when_full: block
+            encoding:
+              codec: json
+              except_fields:
+              - _internal
+            endpoint: https://logging-loki-gateway-http.openshift-logging.svc:8080/api/logs/v1/audit
+            healthcheck:
+              enabled: false
+            inputs:
+            - webhook_parse
+            labels:
+              '*': '{{ additionalLabel }}'
+              log_type: audit
+            out_of_order_action: accept
+            request:
+              retry_attempts: 10
+            tenant_id: audit
+            tls:
+              ca_file: /var/run/ocp-collector/secrets/vector-token/service-ca.crt
+              verify_certificate: true
+            type: loki
+          default_loki_audit:
+            auth:
+              strategy: bearer
+              token: SECRET[kubernetes_secret.token]
+            buffer:
+              type: memory
+              when_full: block
+            encoding:
+              codec: json
+              except_fields:
+              - _internal
+            endpoint: https://logging-loki-gateway-http.openshift-logging.svc:8080/api/logs/v1/audit
+            healthcheck:
+              enabled: false
+            inputs:
+            - udp_syslog_labels
+            - tcp_syslog_parse
+            - remap_ldap_auth
+            labels:
+              '*': '{{ additionalLabel }}'
+              log_type: audit
+            out_of_order_action: accept
+            request:
+              retry_attempts: 10
+            tenant_id: audit
+            tls:
+              ca_file: /var/run/ocp-collector/secrets/vector-token/service-ca.crt
+              verify_certificate: true
+            type: loki
+          example_siem_splunk:
+            acknowledgements:
+              enabled: true
+              indexer_acknowledgements_enabled: true
+            default_token: SECRET[kubernetes_siemtoken.token]
+            encoding:
+              codec: json
+              except_fields:
+              - _internal
+            endpoint: https://siem.example.com:8088/
+            endpoint_target: event
+            healthcheck:
+              enabled: false
+            inputs:
+            - remap_ldap_auth
+            timestamp_key: timestamp
+            tls:
+              verify_certificate: false
+              verify_hostname: false
+            type: splunk_hec_logs
+          jira_ops_alerts:
+            batch:
+              max_events: 1
+              timeout_secs: 1
+            buffer:
+              type: memory
+              when_full: block
+            encoding:
+              codec: raw_message
+            framing:
+              method: bytes
+            healthcheck:
+              enabled: false
+            inputs:
+            - acs_to_jira_ops
+            method: post
+            request:
+              concurrency: none
+              headers:
+                Accept: application/json
+                Authorization: SECRET[kubernetes_jiraops.authorization]
+                Content-Type: application/json
+              retry_attempts: 10
+              timeout_secs: 30
+            type: http
+            uri: https://api.atlassian.com/jsm/ops/integration/v2/alerts
+          prom_exporter:
+            address: 0.0.0.0:9090
+            inputs:
+            - internal_metrics
+            type: prometheus_exporter
+        sources:
+          internal_metrics:
+            type: internal_metrics
+          tcp_syslog:
+            address: 0.0.0.0:9442
+            mode: tcp
+            type: syslog
+          udp_syslog:
+            address: 0.0.0.0:9441
+            mode: udp
+            type: syslog
+          webhook:
+            address: 0.0.0.0:9444
+            encoding: json
+            tls:
+              crt_file: /var/run/ocp-collector/secrets/vector-service/tls.crt
+              enabled: true
+              key_file: /var/run/ocp-collector/secrets/vector-service/tls.key
+            type: http_server
+        transforms:
+          acs_to_jira_ops:
+            drop_on_abort: true
+            drop_on_error: true
+            inputs:
+            - webhook_labels
+            source: |
+              if !exists(.alert) {
+                abort
+              }
+
+              if exists(.gr8it) && .gr8it != "acs-audit-log" {
+                abort
+              }
+
+              alert_id = to_string(.alert.id) ?? "unknown-alert"
+              cluster = to_string(.alert.clusterName) ?? "unknown-cluster"
+              namespace = to_string(.alert.namespace) ?? "unknown-namespace"
+              deployment = to_string(.alert.deployment.name) ?? "unknown-deployment"
+              lifecycle_stage = to_string(.alert.lifecycleStage) ?? ""
+              if lifecycle_stage == "" {
+                lifecycle_stage = to_string(.alert.policy.SORTLifecycleStage) ?? ""
+              }
+              if lifecycle_stage == "" {
+                lifecycle_stage = to_string(.alert.policy.lifecycleStages[0]) ?? ""
+              }
+              if lifecycle_stage == "" {
+                lifecycle_stage = "DEPLOY"
+              }
+              policy_name = to_string(.alert.policy.name) ?? to_string(.alert.policy.SORTName) ?? "RHACS policy violation"
+              policy_description = to_string(.alert.policy.description) ?? "RHACS policy violation detected."
+              policy_rationale = to_string(.alert.policy.rationale) ?? ""
+              policy_remediation = to_string(.alert.policy.remediation) ?? ""
+              severity = upcase(to_string(.alert.policy.severity) ?? "LOW_SEVERITY")
+              central_base_url = to_string(.central_base_url) ?? ""
+              image_full_name = to_string(.alert.deployment.containers[0].image.name.fullName) ?? ""
+              if image_full_name == "" {
+                image_registry = to_string(.alert.deployment.containers[0].image.name.registry) ?? ""
+                image_remote = to_string(.alert.deployment.containers[0].image.name.remote) ?? ""
+                image_tag = to_string(.alert.deployment.containers[0].image.name.tag) ?? ""
+                if image_registry != "" && image_remote != "" && image_tag != "" {
+                  image_full_name = image_registry + "/" + image_remote + ":" + image_tag
+                }
+              }
+              image_id = to_string(.alert.deployment.containers[0].image.id) ?? ""
+              deployment_type = to_string(.alert.deployment.type) ?? to_string(.alert.deployment.deploymentType) ?? ""
+
+              priority = "P5"
+              severity_label = "low"
+              if severity == "CRITICAL_SEVERITY" {
+                priority = "P1"
+                severity_label = "critical"
+              } else if severity == "HIGH_SEVERITY" {
+                priority = "P2"
+                severity_label = "high"
+              } else if severity == "MEDIUM_SEVERITY" {
+                priority = "P3"
+                severity_label = "medium"
+              } else if severity == "LOW_SEVERITY" {
+                priority = "P4"
+                severity_label = "low"
+              }
+
+              central_url = ""
+              if central_base_url != "" {
+                central_url = central_base_url + "/main/violations/" + alert_id
+              }
+
+              description = "Policy: " + policy_name + "\n"
+              description = description + "Cluster: " + cluster + "\n"
+              description = description + "Namespace: " + namespace + "\n"
+              description = description + "Deployment: " + deployment + "\n"
+              if deployment_type != "" {
+                description = description + "Deployment type: " + deployment_type + "\n"
+              }
+              if image_full_name != "" {
+                description = description + "Image: " + image_full_name + "\n"
+              } else if image_id != "" {
+                description = description + "Image: " + image_id + "\n"
+              }
+              description = description + "Lifecycle stage: " + lifecycle_stage + "\n"
+              description = description + "Severity: " + severity_label + "\n"
+              description = description + "Summary: " + policy_description
+              if policy_rationale != "" {
+                description = description + "\nRationale: " + policy_rationale
+              }
+              if policy_remediation != "" {
+                description = description + "\nRemediation: " + policy_remediation
+              }
+              if central_url != "" {
+                description = description + "\n\nCentral: " + central_url
+              }
+
+              payload = {
+                "message": "[RHACS]: [example-customer/" + cluster + "/" + severity_label + "] - " + policy_name,
+                "alias": "rhacs-" + alert_id,
+                "description": description,
+                "entity": cluster + "/" + namespace + "/" + deployment,
+                "source": "rhacs-vector-bridge",
+                "priority": priority,
+                "tags": [
+                  "rhacs",
+                  "security",
+                  "example-customer",
+                  cluster,
+                  namespace,
+                  deployment,
+                  severity_label
+                ],
+                "details": {
+                  "cluster": cluster,
+                  "namespace": namespace,
+                  "deployment": deployment,
+                  "deployment_type": deployment_type,
+                  "image": image_full_name,
+                  "image_id": image_id,
+                  "lifecycle_stage": lifecycle_stage,
+                  "policy_name": policy_name,
+                  "policy_rationale": policy_rationale,
+                  "policy_remediation": policy_remediation,
+                  "severity": severity_label,
+                  "alert_id": alert_id,
+                  "central_url": central_url
+                }
+              }
+
+              . = { "message": encode_json(payload) }
+            type: remap
+          filter_ldap_reduce:
+            condition: .has_relevant_data == "true"
+            inputs:
+            - reduce_ldap_auth
+            type: filter
+          ldap_auth:
+            inputs:
+            - udp_syslog_labels
+            source: |
+              str = to_string(.message) ?? "default"
+
+              if .appname == "slapd" {
+                if contains(str, "ACCEPT") {
+                  .start_ldap_auth = "true"
+                  .has_relevant_data = "true"
+                  . |= parse_regex!(str, r'(?P<connid>conn=(\d+))')
+                } else if contains(str, "conn=") && contains(str, "op=1 SRCH ") && contains(str, "uid=") {
+                  .has_relevant_data = "true"
+                  . |= parse_regex!(str, r'(?P<connid>conn=(\d+))')
+                } else if contains(str, "conn=") && contains(str, "op=2 RESULT tag=") {
+                  .has_relevant_data = "true"
+                  . |= parse_regex!(str, r'(?P<connid>conn=(\d+))')
+                } else if contains(str, "conn=") && contains(str, "op=0 BIND") && contains(str, "mech=SIMPLE bind_ssf=0 ssf=128") {
+                  .has_relevant_data = "true"
+                  . |= parse_regex!(str, r'(?P<connid>conn=(\d+))')
+                }
+              }
+            type: remap
+          reduce_ldap_auth:
+            ends_when: contains(string!(.message), "closed")
+            group_by:
+            - has_relevant_data
+            - connid
+            - appname
+            inputs:
+            - ldap_auth
+            merge_strategies:
+              message: concat
+            type: reduce
+          remap_ldap_auth:
+            inputs:
+            - filter_ldap_reduce
+            source: "del(.has_relevant_data)\ndel(.connid)\ndel(.start_ldap_auth)\n\nstr =
+              to_string(.message) ?? \"default\"\nuser = r'(?P<user>uid=([^\\)\\n]+))'\nsource
+              = r'(?P<source>\\b(\\d{1,3}\\.){3}\\d{1,3}:\\d{1,5}\\b)'\ncluster = r'(?P<env>cn=[^,]+)'\n\nif
+              !(contains(str, \"uid=\")) {\n  del(.)\n} else {\n\n  if !(contains(str, \"op=2
+              RESULT tag=97\")) || !(contains(str, \"op=2 RESULT tag=97 err=49\")) {\n    .message
+              = parse_regex!(str, user)\n    .message |= parse_regex!(str, cluster)\n    .message
+              |= parse_regex!(str, source)\n    .message |= {\"auth\": \"unsuccessful\"}\n
+              \   .message |= {\"reason\": \"user does not exist\"}\n  }\n  \n  if contains(str,
+              \"ACCEPT\") && contains(str, \"uid=\") && contains(str, \"op=2 RESULT tag=97\")
+              {\n    .message = parse_regex!(str, user)\n    .message |= parse_regex!(str,
+              cluster)\n    .message |= parse_regex!(str, source)\n    .message |= {\"auth\":
+              \"successful\"}\n  } \n  \n  if contains(str, \"ACCEPT\") && contains(str, \"uid=\")
+              && contains(str, \"op=2 RESULT tag=97 err=49\") {\n    .message = parse_regex!(str,
+              user)\n    .message |= parse_regex!(str, cluster)\n    .message |= parse_regex!(str,
+              source)\n    .message |= {\"auth\": \"unsuccessful\"}\n    .message |= {\"reason\":
+              \"wrong password\"}\n  }\n\n}\nif is_empty(.) {\n  abort\n}        \n"
+            type: remap
+          tcp_syslog_labels:
+            inputs:
+            - tcp_syslog
+            source: |
+              .additionalLabel={}
+              .additionalLabel.kubernetes_container_name="vector"
+              .additionalLabel.kubernetes_namespace_name="apc-logging"
+              .additionalLabel.kubernetes_pod_name="vector"
+            type: remap
+          tcp_syslog_parse:
+            inputs:
+            - tcp_syslog_labels
+            source: "if exists(.hostname) {\n  .additionalLabel.hostname = to_string(.hostname)
+              ?? \"undefined\"\n}\nif exists(.appname) {\n  .additionalLabel.appname = to_string(.appname)
+              ?? \"undefined\"\n}\nif exists(.message) {\n  .additionalLabel.message = to_string(.message)
+              ?? \"undefined\"\n}\nif exists(.msgid) {\n  .additionalLabel.msgid = to_string(.msgid)
+              ?? \"undefined\"\n}else{\n  .additionalLabel.msgid = \"undefined\"\n}        \nif
+              exists(.severity) {\n  .additionalLabel.severity = to_string(.severity) ?? \"undefined\"\n}\nif
+              exists(.source_ip) {\n  .additionalLabel.source_ip = to_string(.source_ip) ??
+              \"undefined\"\n}\n\n\n.additionalLabel.hostname = string!(.additionalLabel.hostname)\n.additionalLabel.appname
+              = string!(.additionalLabel.appname)\nif match(.additionalLabel.hostname, r'(?i)pdu.*')
+              {\n  .additionalLabel.hw_type = \"pdu\"\n} else if match(.additionalLabel.hostname,
+              r'(?i)ups.*') {\n  .additionalLabel.hw_type = \"ups\"\n} else if match(.additionalLabel.appname,
+              r'(?i)xca') {\n  .additionalLabel.hw_type = \"xca\"\n}else{\n  .additionalLabel.hw_type
+              = \"other\"\n}\n"
+            type: remap
+          udp_syslog_labels:
+            inputs:
+            - udp_syslog
+            source: |
+              .additionalLabel={}
+              .additionalLabel.kubernetes_container_name="vector"
+              .additionalLabel.kubernetes_namespace_name="apc-logging"
+              .additionalLabel.kubernetes_pod_name="vector"
+            type: remap
+          webhook_labels:
+            inputs:
+            - webhook
+            source: |
+              .additionalLabel={}
+              .additionalLabel.kubernetes_container_name="vector"
+              .additionalLabel.kubernetes_namespace_name="apc-logging"
+              .additionalLabel.kubernetes_pod_name="vector"
+            type: remap
+          webhook_parse:
+            inputs:
+            - webhook_labels
+            source: |
+              if exists(.gr8it) && exists(.alert) {
+                if .gr8it == "acs-audit-log" {
+                  .additionalLabel.acs_alert_clusterName = .alert.clusterName
+                  .additionalLabel.acs_alert_policy_name = .alert.policy.SORTName
+                  .additionalLabel.acs_alert_id = .alert.id
+                  .additionalLabel.acs_alert_policy_description = .alert.policy.description
+                  .additionalLabel.acs_alert_policy_severity = .alert.policy.severity
+                  if exists(.alert.namespace) {
+                    .additionalLabel.acs_alert_namespace = .alert.namespace
+                  }
+                }
+              }
+            type: remap
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/component: Agent
+        app.kubernetes.io/instance: vector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: vector
+        app.kubernetes.io/version: 0.43.1-distroless-libc
+        helm.sh/chart: vector-0.38.1
+      name: vector
+      namespace: apc-logging
+  4: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: vector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: vector-helm
+        app.kubernetes.io/version: 0.43.1-distroless-libc
+        helm.sh/chart: vector-helm-1.0.0
+      name: jira-ops
+      namespace: apc-logging
+    spec:
+      data:
+        - remoteRef:
+            key: apc-platform/h/vector/jira-ops
+            property: authorization
+          secretKey: authorization
+      refreshInterval: 1h
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: vault-hub-secret-store
+      target:
+        creationPolicy: Owner
+        name: jira-ops
+  5: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: vector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: vector-helm
+        app.kubernetes.io/version: 0.43.1-distroless-libc
+        helm.sh/chart: vector-helm-1.0.0
+      name: siem-token
+      namespace: apc-logging
+    spec:
+      data:
+        - remoteRef:
+            key: apc-platform/h/vector/siem-token
+            property: token
+          secretKey: token
+      refreshInterval: 1h
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: vault-hub-secret-store
+      target:
+        creationPolicy: Merge
+        name: siem-token
+  6: |
+    apiVersion: metallb.io/v1beta1
+    kind: IPAddressPool
+    metadata:
+      labels:
+        app.kubernetes.io/instance: vector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: vector-helm
+        app.kubernetes.io/version: 0.43.1-distroless-libc
+        helm.sh/chart: vector-helm-1.0.0
+      name: vector-reserved
+      namespace: metallb-system
+    spec:
+      addresses:
+        - 10.111.76.100/32
+      autoAssign: true
+      serviceAllocation:
+        namespaces:
+          - apc-logging
+        serviceSelectors:
+          - matchLabels:
+              app.kubernetes.io/name: vector
+  7: |
+    apiVersion: metallb.io/v1beta1
+    kind: L2Advertisement
+    metadata:
+      labels:
+        app.kubernetes.io/instance: vector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: vector-helm
+        app.kubernetes.io/version: 0.43.1-distroless-libc
+        helm.sh/chart: vector-helm-1.0.0
+      name: vector
+      namespace: metallb-system
+    spec:
+      ipAddressPools:
+        - vector-reserved
+      nodeSelectors:
+        - matchLabels:
+            node-role.kubernetes.io/worker: ""
+  8: |
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      labels:
+        app.kubernetes.io/instance: vector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: vector-helm
+        app.kubernetes.io/version: 0.43.1-distroless-libc
+        helm.sh/chart: vector-helm-1.0.0
+      name: allow-logging-to-vector
+      namespace: apc-logging
+    spec:
+      ingress:
+        - from:
+            - ipBlock:
+                cidr: 10.111.126.0/26
+          ports:
+            - port: 9441
+              protocol: UDP
+        - from:
+            - ipBlock:
+                cidr: 10.111.26.0/25
+          ports:
+            - port: 9441
+              protocol: UDP
+        - from:
+            - ipBlock:
+                cidr: 10.111.126.0/26
+          ports:
+            - port: 9442
+              protocol: TCP
+        - from:
+            - ipBlock:
+                cidr: 10.111.26.0/25
+          ports:
+            - port: 9442
+              protocol: TCP
+        - from:
+            - ipBlock:
+                cidr: 10.11.76.0/23
+          ports:
+            - port: 9444
+              protocol: TCP
+        - from:
+            - ipBlock:
+                cidr: 10.13.76.0/23
+          ports:
+            - port: 9444
+              protocol: TCP
+        - from:
+            - ipBlock:
+                cidr: 10.14.76.0/23
+          ports:
+            - port: 9444
+              protocol: TCP
+        - from:
+            - namespaceSelector:
+                matchLabels:
+                  kubernetes.io/metadata.name: stackrox
+          ports:
+            - port: 9444
+              protocol: TCP
+        - from:
+            - namespaceSelector:
+                matchLabels:
+                  kubernetes.io/metadata.name: openshift-logging
+          ports:
+            - port: 9444
+              protocol: TCP
+        - from:
+            - namespaceSelector:
+                matchLabels:
+                  kubernetes.io/metadata.name: openshift-user-workload-monitoring
+          ports:
+            - port: 9090
+              protocol: TCP
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: vector
+      policyTypes:
+        - Ingress
+  9: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      annotations:
+        kubernetes.io/service-account.name: vector
+      labels:
+        app.kubernetes.io/instance: vector
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: vector-helm
+        app.kubernetes.io/version: 0.43.1-distroless-libc
+        helm.sh/chart: vector-helm-1.0.0
+      name: vector-token
+      namespace: apc-logging
+    type: kubernetes.io/service-account-token

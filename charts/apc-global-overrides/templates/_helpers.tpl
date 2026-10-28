@@ -38,6 +38,20 @@ Create the customer and require it
 {{- end }}
 
 {{/*
+Create the customer full name
+*/}}
+{{- define "apc-global-overrides.customerName" -}}
+{{- .Values.customerName | default (((.Values.global).apc).customerName) | default "" }}
+{{- end }}
+
+{{/*
+Create the customer full name and require it
+*/}}
+{{- define "apc-global-overrides.require-customerName" -}}
+{{- include "apc-global-overrides.customerName" . | required "APC customerName is required" }}
+{{- end }}
+
+{{/*
 Create the repoURL
 */}}
 {{- define "apc-global-overrides.repoURL" -}}
@@ -377,6 +391,7 @@ Create the cert-manager cluster issuer name
 */}}
 {{- define "apc-global-overrides.certManagerDefaultClusterIssuer" -}}
 {{- (((include "apc-global-overrides.merge-services" .) | fromYaml).certManager).defaultClusterIssuer | default "" }}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).certManager).defaultClusterIssuer | default "" }}
 {{- end }}
 
 {{- define "apc-global-overrides.require-certManagerDefaultClusterIssuer" -}}
@@ -387,6 +402,7 @@ Create the cert-manager cluster issuer name
 Create the Crossplane Vault provider config name
 */}}
 {{- define "apc-global-overrides.crossplaneKubeVaultProviderConfigName" -}}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).crossplane).kubeVaultProviderConfigName | default "" }}
 {{- (((include "apc-global-overrides.merge-services" .) | fromYaml).crossplane).kubeVaultProviderConfigName | default "" }}
 {{- end }}
 
@@ -399,6 +415,7 @@ Create the Crossplane Keycloak provider config name
 */}}
 {{- define "apc-global-overrides.crossplaneKubeKeycloakProviderConfigName" -}}
 {{- (((include "apc-global-overrides.merge-services" .) | fromYaml).crossplane).kubeKeycloakProviderConfigName | default "" }}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).crossplane).kubeKeycloakProviderConfigName | default "" }}
 {{- end }}
 
 {{- define "apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName" -}}
@@ -409,6 +426,7 @@ Create the Crossplane Keycloak provider config name
 Create the eso default cluster secret store
 */}}
 {{- define "apc-global-overrides.ESODefaultClusterSecretStore" -}}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).externalSecretsOperator).defaultClusterSecretStore | default "" }}
 {{- (((include "apc-global-overrides.merge-services" .) | fromYaml).externalSecretsOperator).defaultClusterSecretStore | default "" }}
 {{- end }}
 
@@ -421,6 +439,7 @@ Create the Keycloak Admin API URL
 */}}
 {{- define "apc-global-overrides.keycloakUrl" -}}
 {{- (((include "apc-global-overrides.merge-services" .) | fromYaml).keycloak).url | default "" }}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).keycloak).url | default "" }}
 {{- end }}
 
 {{- define "apc-global-overrides.require-keycloakUrl" -}}
@@ -431,6 +450,7 @@ Create the Keycloak Admin API URL
 Create the Keycloak Realm
 */}}
 {{- define "apc-global-overrides.keycloakRealm" -}}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).keycloak).realm | default "" }}
 {{- (((include "apc-global-overrides.merge-services" .) | fromYaml).keycloak).realm | default "" }}
 {{- end }}
 
@@ -443,6 +463,7 @@ Create the MetalLB namespace
 */}}
 {{- define "apc-global-overrides.metallbNamespace" -}}
 {{- (((include "apc-global-overrides.merge-services" .) | fromYaml).metallb).namespace | default "metallb-system" }}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).metallb).namespace | default "metallb-system" }}
 {{- end }}
 
 {{/*
@@ -450,12 +471,14 @@ Create the MetalLB L2interface
 */}}
 {{- define "apc-global-overrides.metallbL2Interface" -}}
 {{- (((include "apc-global-overrides.merge-services" .) | fromYaml).metallb).l2interface | default "br-ex" }}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).metallb).l2interface | default "br-ex" }}
 {{- end }}
 
 {{/*
 Create the Quay host
 */}}
 {{- define "apc-global-overrides.quayHost" -}}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).quay).host | default "" }}
 {{- (((include "apc-global-overrides.merge-services" .) | fromYaml).quay).host | default "" }}
 {{- end }}
 
@@ -467,6 +490,7 @@ Create the Quay host
 Create the Vault kube auth mount path
 */}}
 {{- define "apc-global-overrides.vaultKubeAuthMountPath" -}}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).vault).kubeAuthMountPath | default "" }}
 {{- (((include "apc-global-overrides.merge-services" .) | fromYaml).vault).kubeAuthMountPath | default "" }}
 {{- end }}
 
@@ -481,6 +505,7 @@ From VaultURL = hostname, or override if specified
 {{- define "apc-global-overrides.vaultName" -}}
 {{/* https://github.com/helm/helm/issues/13487 */}}
 {{- (((include "apc-global-overrides.merge-services" .) | fromYaml).vault).name | default "" }}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).vault).name | default "" }}
 {{- end }}
 
 {{- define "apc-global-overrides.require-vaultName" -}}
@@ -492,6 +517,7 @@ Create the Vault URL
 */}}
 {{- define "apc-global-overrides.vaultUrl" -}}
 {{- (((include "apc-global-overrides.merge-services" .) | fromYaml).vault).url | default "" }}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).vault).url | default "" }}
 {{- end }}
 
 {{- define "apc-global-overrides.require-vaultUrl" -}}
@@ -502,6 +528,7 @@ Create the Vault URL
 Create the Vault KV mount for platform
 */}}
 {{- define "apc-global-overrides.vaultKVmountPlatform" -}}
+{{- (((include "apc-global-overrides.merge-services" .) | fromYaml).vault).KVmountPlatform | default "apc-platform" }}
 {{- (((include "apc-global-overrides.merge-services" .) | fromYaml).vault).KVmountPlatform | default "apc-platform" }}
 {{- end }}
 

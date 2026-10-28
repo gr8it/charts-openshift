@@ -1,11 +1,19 @@
-suite: Rendering prometheus rules
+suite: Snapshot test
 templates:
-  - "*.yaml"
+  - templates/*
+values:
+  - ../values.example.yaml
 release:
   name: monitoring
   namespace: openshift-monitoring
 
 tests:
-  - it: rendered cluster-policy-cluster-monitoring manifest
+  - it: manifests should match snapshot (hub cluster)
+    asserts:
+      - matchSnapshot: {}
+
+  - it: manifests should match snapshot (non-hub cluster)
+    set:
+      global.apc.cluster.isHub: false
     asserts:
       - matchSnapshot: {}

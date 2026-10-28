@@ -1,0 +1,59 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-logging-to-vector
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "vector-helm.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vector
+  policyTypes:
+    - Ingress
+  ingress:
+    {{- range .Values.vectorNetworkPolicy.syslogUdpCidrs }}
+    - from:
+        - ipBlock:
+            cidr: {{ . }}
+      ports:
+        - port: {{ include "vector-helm.port.udpSyslog" . }}
+          protocol: UDP
+    {{- end }}
+    {{- range .Values.vectorNetworkPolicy.syslogTcpCidrs }}
+    - from:
+        - ipBlock:
+            cidr: {{ . }}
+      ports:
+        - port: {{ include "vector-helm.port.tcpSyslog" . }}
+          protocol: TCP
+    {{- end }}
+    {{- range .Values.vectorNetworkPolicy.webhookCidrs }}
+    - from:
+        - ipBlock:
+            cidr: {{ . }}
+      ports:
+        - port: {{ include "vector-helm.port.webhook" . }}
+          protocol: TCP
+    {{- end }}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: stackrox
+      ports:
+        - port: {{ include "vector-helm.port.webhook" . }}
+          protocol: TCP
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-logging
+      ports:
+        - port: {{ include "vector-helm.port.webhook" . }}
+          protocol: TCP
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-user-workload-monitoring
+      ports:
+        - port: {{ include "vector-helm.port.promExporter" . }}
+          protocol: TCP

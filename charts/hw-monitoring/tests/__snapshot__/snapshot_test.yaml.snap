@@ -1,0 +1,70 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: loki.grafana.com/v1
+    kind: AlertingRule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: hw-monitoring
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: hw-monitoring
+        helm.sh/chart: hw-monitoring-1.0.1
+        openshift.io/log-alerting: "true"
+      name: apc-hw-events-alerts
+      namespace: openshift-logging
+    spec:
+      groups:
+        - interval: 1m
+          name: apc-hw-events-alerts.rules
+          rules:
+            - alert: HW-Events-Notification-Critical
+              annotations:
+                description: 'HW Event - Source: https://{{ $labels.source_ip }}'
+                message: '{{ $labels.message }}'
+                summary: HW Event - hostname:{{ $labels.hostname }}
+              expr: sum by (hostname,source_ip,message) (count_over_time({log_type="audit",hw_type=~"ups|pdu|xca",severity="critical"}[15m]) > 0)
+              for: 5m
+              labels:
+                customerName: acme
+                environment: infrastructure
+                hostname: '{{ $labels.hostname }}'
+                message: '{{ $labels.message }}'
+                severity: critical
+                source: logs
+                source_ip: '{{ $labels.source_ip }}'
+                team: platform
+                vendor: aspecta
+            - alert: HW-Events-Notification-Warning
+              annotations:
+                description: 'HW Event - Source: https://{{ $labels.source_ip }}'
+                message: '{{ $labels.message }}'
+                summary: HW Event - hostname:{{ $labels.hostname }}
+              expr: sum by (hostname,source_ip,message) (count_over_time({log_type="audit",hw_type=~"ups|pdu|xca",severity="warning"}[15m]) > 0)
+              for: 5m
+              labels:
+                customerName: acme
+                environment: infrastructure
+                hostname: '{{ $labels.hostname }}'
+                message: '{{ $labels.message }}'
+                severity: warning
+                source: logs
+                source_ip: '{{ $labels.source_ip }}'
+                team: platform
+                vendor: aspecta
+            - alert: HW-Events-Notification-Info
+              annotations:
+                description: 'HW Event - Source: https://{{ $labels.source_ip }}'
+                message: '{{ $labels.message }}'
+                summary: HW Event - hostname:{{ $labels.hostname }}
+              expr: sum by (hostname,source_ip,message) (count_over_time({log_type="audit",hw_type=~"ups|pdu|xca",severity="info"}[15m]) > 0)
+              for: 5m
+              labels:
+                customerName: acme
+                environment: infrastructure
+                hostname: '{{ $labels.hostname }}'
+                message: '{{ $labels.message }}'
+                severity: info
+                source: logs
+                source_ip: '{{ $labels.source_ip }}'
+                team: platform
+                vendor: aspecta
+      tenantID: audit
