@@ -5,6 +5,18 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.2] - 2026-10-28
+
+_([SPEXAPC-28123](https://aspecta.atlassian.net/browse/SPEXAPC-28123))_
+
+### Changed
+
+- disable backup creation to avoid duplication with OADP backup definition
+
+### Added
+
+- unit tests asserting Velero backup Schedules are not rendered by default and are rendered when `backups.enabled=true`
+
 ## [1.3.1] - 2026-10-08
 
 _([SPEXAPC-20059](https://aspecta.atlassian.net/browse/SPEXAPC-20059))_
