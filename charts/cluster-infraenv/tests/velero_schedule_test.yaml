@@ -6,7 +6,7 @@ values:
   - ../values.example.yaml
 release:
   name: cluster-infraenv-prod01
-  namespace: infrastructure-prod01
+  namespace: openshift-adp
 
 tests:
   - it: should create a Velero Schedule when backup is enabled
@@ -30,7 +30,7 @@ tests:
           value: infrastructure-prod01
       - equal:
           path: metadata.namespace
-          value: infrastructure-prod01
+          value: openshift-adp
       - equal:
           path: spec.schedule
           value: "0 0 * * *"

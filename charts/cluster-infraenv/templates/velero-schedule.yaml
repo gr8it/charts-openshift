@@ -3,7 +3,7 @@ apiVersion: velero.io/v1
 kind: Schedule
 metadata:
   name: {{ include "cluster-infraenv.infraEnvName" . }}
-  namespace: {{ include "cluster-infraenv.infraEnvName" . }}
+  namespace: openshift-adp
   labels:
     {{- include "cluster-infraenv.labels" . | nindent 4 }}
 spec:
@@ -20,6 +20,5 @@ spec:
       - pods
       - replicasets.apps
     snapshotMoveData: false
-    defaultVolumesToFSBackup: false
     ttl: {{ .Values.backup.ttl | quote }}
 {{- end }}

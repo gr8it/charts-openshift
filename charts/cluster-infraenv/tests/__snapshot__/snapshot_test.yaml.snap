@@ -186,12 +186,11 @@ manifests should match snapshot:
         app.kubernetes.io/name: cluster-infraenv
         helm.sh/chart: cluster-infraenv-2.1.0
       name: infrastructure-prod01
-      namespace: infrastructure-prod01
+      namespace: openshift-adp
     spec:
       paused: false
       schedule: 0 0 * * *
       template:
-        defaultVolumesToFSBackup: false
         excludedNamespaceScopedResources:
           - events
           - events.events.k8s.io

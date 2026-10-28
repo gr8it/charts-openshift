@@ -1,0 +1,11 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        exclude: ^packaged_charts/
+      - id: detect-private-key
+        exclude: ^charts/.*/values\.example\.yaml$|^charts/gitops-bootstrap/tests/__snapshot__/snapshot_test\.yaml\.snap$

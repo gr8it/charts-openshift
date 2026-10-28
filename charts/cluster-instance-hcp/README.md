@@ -96,7 +96,7 @@ See the [OpenShift node resource configuration documentation](https://docs.redha
 | `global.apc.sshAuthorizedKeys` | Optional list of SSH public keys for worker nodes |
 | `global.apc.ntpServers` | NTP server list for worker chrony config |
 | `global.apc.proxy` | HTTP/HTTPS proxy URL |
-| `global.apc.noProxy` | noProxy list |
+| `global.apc.noProxy` | noProxy list injected into InfraEnv, ensure to list all primary internal and node-level subnets,127.0.0.1 and localhost,169.254.169.254 - for Cloud Provider IaaS,.svc and .cluster.local,Internal API Server URL,CNI Service CIDR,CNI Pod CIDR, 172.20.0.1- [KB 7127777](https://access.redhat.com/solutions/7127777) |
 | `global.apc.caCertificates` | CA certificates bundle |
 | `global.apc.imageProxy.host` | Mirror registry hostname (enables image mirroring) |
 | `global.apc.imageProxy.sources` | Source registries to mirror |

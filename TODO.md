@@ -16,7 +16,7 @@
 - DONE add a default etcd.storageClassName = lvms-vg1
 - DONE make clusterSet default to clusterName with trailing numbers removed, e.g. clusterName prod01 => clusterSet prod
 - DONE hardcode networkType OVNKubernetes, don't make it configurable
-- DONE rename nodePorts to services 
+- DONE rename nodePorts to services
 - DONE use apc-global-overrides.clusterRootDomain instead of baseDomain
 - DONE use sshAuthorizedKeys from apc-global-overrides
 - DONE use NTP from apc-global-overrides
@@ -26,7 +26,7 @@
 - DONE remove imageProxy.caCert in favor of apc-global-overrides.caCertificatesBundle only
 - DONE adIntegration
   - remove adIntegration.caCert in favor of apc-global-overrides.caCertificatesBundle only
-  - move to apc-global-overrides as .global.apc.services.adIntegration 
+  - move to apc-global-overrides as .global.apc.services.adIntegration
     - create one helper returing the whole dictionary
     - keep defaults for attributes
 - DONE do similar to the adIntegration
@@ -44,7 +44,7 @@
 
 - DONE make the apc-global-overrides.sshAuthorizedKeys an list. Add a new helpers sshAuthorizedKeysBundle and require-sshAuthorizedKeysBundle, similar to caCertificatesBundle. Update documentation, unittest (at the library-charts-unittests/apc-global-overrides-unit-tests) and its usage
 
-- HCP 
+- HCP
   - clusterset ?
 
 # apc-global-overrides

@@ -61,32 +61,9 @@ data:
   sshAuthorizedKeys:
     {{- include "apc-global-overrides.sshAuthorizedKeys" . | nindent 4 }}
   sshAuthorizedKeysBundle: {{ include "apc-global-overrides.sshAuthorizedKeysBundle" . | quote }}
-  {{- /* ntpServers as a list */}}
-  ntpServers:
-    {{- (include "apc-global-overrides.ntpServers" .) | nindent 4 }}
-  {{- /* it is not sufficient to test without fromYamlArray !!! */}}
-  {{- if (include "apc-global-overrides.ntpServers" .) | fromYamlArray }}
-  {{- /* ntpServers parsed and rendered as needed */}}
-  ntpServersArray:
-    {{- range (include "apc-global-overrides.ntpServers" . | fromYamlArray ) }}
-    - {{ . }}
-    {{- end }}
-  {{- end }}
-  {{- if (include "apc-global-overrides.chronyConfig" .) }}
-  chronyConfig: |-
-  {{- include "apc-global-overrides.chronyConfig" . | nindent 4 }}
-  chronyConfigBase64: {{ include "apc-global-overrides.chronyConfig" . | b64enc }}
-  {{- end }}
-  sshAuthorizedKeys:
-    {{- include "apc-global-overrides.sshAuthorizedKeys" . | nindent 4 }}
-  {{- if (include "apc-global-overrides.sshAuthorizedKeys" .) | fromYamlArray }}
   sshAuthorizedKeysArray:
     {{- range (include "apc-global-overrides.sshAuthorizedKeys" . | fromYamlArray ) }}
     - {{ . }}
-    {{- end }}
-  sshAuthorizedKeysBundle: |
-    {{- range (include "apc-global-overrides.sshAuthorizedKeys" . | fromYamlArray ) }}
-    {{ . }}
     {{- end }}
   {{- end }}
   services:
