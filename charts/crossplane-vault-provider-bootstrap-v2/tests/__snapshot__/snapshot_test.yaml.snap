@@ -32,7 +32,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: crossplane-vault-provider-bootstrap
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: crossplane-vault-provider-bootstrap
-        helm.sh/chart: crossplane-vault-provider-bootstrap-2.0.0
+        helm.sh/chart: crossplane-vault-provider-bootstrap-2.1.0
       name: crossplane-vault-provider-bootstrap
       namespace: apc-crossplane-system
     spec:
@@ -113,6 +113,13 @@ manifests should match snapshot:
                     metadata:
                       name: '{{hub .ManagedClusterName | replace "local-cluster" "dev01" hub}}-crossplane'
                     status:
+                      atProvider:
+                        boundServiceAccountNames:
+                          - crossplane-vault-provider
+                        tokenPolicies:
+                          - default
+                          - '{{hub .ManagedClusterName | replace "local-cluster" "dev01" hub}}--crossplane'
+                          - admin
                       conditions:
                         - status: "True"
                           type: Synced
@@ -149,6 +156,10 @@ manifests should match snapshot:
               compliance: NonCompliant
               kind: ConfigurationPolicy
               name: crossplane-vault-provider-bootstrap-kubernetes-auth-check
+            - apiVersion: policy.open-cluster-management.io/v1
+              compliance: NonCompliant
+              kind: ConfigurationPolicy
+              name: crossplane-vault-provider-bootstrap-kubernetes-auth-provisioned-check
           ignorePending: true
           objectDefinition:
             apiVersion: policy.open-cluster-management.io/v1
@@ -171,6 +182,11 @@ manifests should match snapshot:
                           name: vault.url-token
                           namespace: apc-crossplane-system
                         source: Secret
+                      headers:
+                        name: ""
+                        value: ""
+                      max_lease_ttl_seconds: 1199
+                      skip_child_token: true
               remediationAction: enforce
               severity: medium
         - objectDefinition:
@@ -247,12 +263,16 @@ manifests should match snapshot:
                             capabilities = ["create", "update"]
                           }
 
-                          path "sys/mounts/auth/kubernetes" {
+                          path "sys/auth/{{hub "" | default .ManagedClusterName | replace "local-cluster" "dev01" hub}}" {
+                            capabilities = ["create", "read", "update", "patch", "delete", "list", "sudo"]
+                          }
+
+                          path "sys/mounts/auth/{{hub "" | default .ManagedClusterName | replace "local-cluster" "dev01" hub}}" {
                             capabilities = ["read"]
                           }
 
-                          path "sys/auth/{{hub "" | default .ManagedClusterName | replace "local-cluster" "dev01" hub}}" {
-                            capabilities = ["create", "read", "update", "patch", "delete", "list", "sudo"]
+                          path "sys/mounts/auth/{{hub "" | default .ManagedClusterName | replace "local-cluster" "dev01" hub}}/tune" {
+                            capabilities = ["read", "update"]
                           }
 
                           path "auth/{{hub "" | default .ManagedClusterName | replace "local-cluster" "dev01" hub}}/config" {
@@ -268,7 +288,7 @@ manifests should match snapshot:
                           }
                       providerConfigRef:
                         name: vault-url
-                - complianceType: musthave
+                - complianceType: mustonlyhave
                   objectDefinition:
                     apiVersion: kubernetes.vault.upbound.io/v1alpha1
                     kind: AuthBackendRole
@@ -277,17 +297,23 @@ manifests should match snapshot:
                     spec:
                       deletionPolicy: Orphan
                       forProvider:
+                        aliasNameSource: serviceaccount_uid
                         audience: https://kubernetes.default.svc
                         backend: '{{hub "" | default .ManagedClusterName | replace "local-cluster" "dev01" hub}}'
                         boundServiceAccountNames:
-                          - '*'
+                          - crossplane-vault-provider
                         boundServiceAccountNamespaces:
                           - apc-crossplane-system
                         roleName: crossplane
                         tokenPolicies:
                           - default
                           - '{{hub .ManagedClusterName | replace "local-cluster" "dev01" hub}}--crossplane'
-                        tokenTtl: 900
+                          - admin
+                        tokenTtl: 1800
+                        tokenType: default
+                      initProvider: {}
+                      managementPolicies:
+                        - '*'
                       providerConfigRef:
                         name: vault-url
                 - complianceType: musthave
@@ -333,28 +359,8 @@ manifests should match snapshot:
                         name: ""
                         value: ""
                       max_lease_ttl_seconds: 1199
+                      mountPath: '{{hub "" | default .ManagedClusterName | replace "local-cluster" "dev01" hub}}'
                       role: crossplane
-              remediationAction: enforce
-              severity: medium
-        - extraDependencies:
-            - apiVersion: policy.open-cluster-management.io/v1
-              compliance: Compliant
-              kind: ConfigurationPolicy
-              name: crossplane-vault-provider-bootstrap-kubernetes-auth-provisioned-check
-          ignorePending: true
-          objectDefinition:
-            apiVersion: policy.open-cluster-management.io/v1
-            kind: ConfigurationPolicy
-            metadata:
-              name: crossplane-vault-provider-bootstrap-token-removal
-            spec:
-              object-templates:
-                - complianceType: mustnothave
-                  objectDefinition:
-                    apiVersion: v1
-                    kind: Secret
-                    metadata:
-                      name: vault.url-token
-                      namespace: apc-crossplane-system
+                      skip_child_token: true
               remediationAction: enforce
               severity: medium
