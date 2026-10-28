@@ -13,6 +13,10 @@ _([SPEXAPC-28123](https://aspecta.atlassian.net/browse/SPEXAPC-28123))_
 
 - disable backup creation to avoid duplication with OADP backup definition
 
+### Added
+
+- unit tests asserting Velero backup Schedules are not rendered by default and are rendered when `backups.enabled=true`
+
 ## [1.3.1] - 2026-10-08
 
 _([SPEXAPC-20059](https://aspecta.atlassian.net/browse/SPEXAPC-20059))_
