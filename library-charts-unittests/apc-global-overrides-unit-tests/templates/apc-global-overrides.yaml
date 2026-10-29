@@ -61,6 +61,7 @@ data:
   sshAuthorizedKeys:
     {{- include "apc-global-overrides.sshAuthorizedKeys" . | nindent 4 }}
   sshAuthorizedKeysBundle: {{ include "apc-global-overrides.sshAuthorizedKeysBundle" . | quote }}
+  {{- if (include "apc-global-overrides.sshAuthorizedKeys" .) | fromYamlArray }}
   sshAuthorizedKeysArray:
     {{- range (include "apc-global-overrides.sshAuthorizedKeys" . | fromYamlArray ) }}
     - {{ . }}
