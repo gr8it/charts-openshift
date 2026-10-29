@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "additionalNetworks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "rawCNIConfig": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "rawCNIConfig"
+        ]
+      }
+    },
+    "nodeNetworkConfigurationPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "nodeSelector": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "interfaces": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "required": [
+        "nodeSelector",
+        "interfaces"
+      ]
+    },
+    "storageCluster": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "nodeCount": {
+          "type": "integer"
+        },
+        "localVolumeSetCount": {
+          "type": "integer"
+        },
+        "deviceMinSize": {
+          "type": "string"
+        },
+        "resourceProfile": {
+          "type": "string"
+        },
+        "resources": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "cephCluster": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "name",
+        "nodeCount",
+        "localVolumeSetCount",
+        "deviceMinSize",
+        "resourceProfile",
+        "resources",
+        "cephCluster"
+      ]
+    },
+    "machineConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "configMap": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        }
+      },
+      "required": [
+        "enabled",
+        "configMap"
+      ]
+    },
+    "global": {
+      "type": "object",
+      "description": "Global values to be accessed by all (sub)charts.",
+      "additionalProperties": true
+    },
+    "apc-global-overrides": {
+      "type": "object",
+      "description": "Values for the apc-global-overrides dependency chart.",
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "additionalNetworks",
+    "nodeNetworkConfigurationPolicy",
+    "storageCluster",
+    "machineConfig"
+  ]
+}
