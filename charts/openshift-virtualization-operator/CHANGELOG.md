@@ -5,6 +5,10 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2026-10-29
+
+- `kubevirt-hyperconverged-operator.v4.18.45` → `kubevirt-hyperconverged-operator.v4.19.33`, added to `versions`; matches huba and spokea1
+
 ## [1.0.2] - 2026-08-28
 
 - `kubevirt-hyperconverged-operator.v4.18.0` → `kubevirt-hyperconverged-operator.v4.18.45`
