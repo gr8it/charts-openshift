@@ -1,0 +1,160 @@
+{{- if .Values.etcd.backup.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "cluster-instance-hcp.etcdBackup.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cluster-instance-hcp.etcdBackup.labels" . | nindent 4 }}
+spec:
+  schedule: {{ required "etcd.backup.schedule is required when etcd backup is enabled" .Values.etcd.backup.schedule | quote }}
+  concurrencyPolicy: Forbid
+  suspend: {{ .Values.etcd.backup.paused }}
+  successfulJobsHistoryLimit: 7
+  failedJobsHistoryLimit: 7
+  jobTemplate:
+    metadata:
+      labels:
+        {{- include "cluster-instance-hcp.etcdBackup.labels" . | nindent 8 }}
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "cluster-instance-hcp.etcdBackup.labels" . | nindent 12 }}
+        spec:
+          serviceAccountName: {{ include "cluster-instance-hcp.etcdBackup.fullname" . }}
+          restartPolicy: Never
+          initContainers:
+            - name: init
+              image: registry.redhat.io/openshift4/ose-cli:v4.15
+              command: ["/bin/bash", "/usr/local/bin/init.sh"]
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+              resources:
+                requests:
+                  memory: "512Mi"
+                  cpu: "100m"
+                limits:
+                  memory: "512Mi"
+                  cpu: "100m"
+              volumeMounts:
+                - name: workdir
+                  mountPath: /backup
+                - name: scripts
+                  mountPath: /usr/local/bin/init.sh
+                  subPath: init.sh
+                  readOnly: true
+              env:
+                - name: STATEFULSET
+                  valueFrom:
+                    configMapKeyRef:
+                      name: {{ include "cluster-instance-hcp.etcdBackup.fullname" . }}-scripts
+                      key: env.etcdsts
+                - name: HCPNS
+                  valueFrom:
+                    configMapKeyRef:
+                      name: {{ include "cluster-instance-hcp.etcdBackup.fullname" . }}-scripts
+                      key: env.hcpns
+            - name: snapshot
+              image: registry.redhat.io/openshift4/ose-etcd:v4.12
+              command: ["/bin/bash", "/usr/local/bin/etcdsnap.sh"]
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+              resources:
+                requests:
+                  memory: "512Mi"
+                  cpu: "300m"
+                limits:
+                  memory: "512Mi"
+                  cpu: "300m"
+              volumeMounts:
+                - name: workdir
+                  mountPath: /backup
+                - name: scripts
+                  mountPath: /usr/local/bin/etcdsnap.sh
+                  subPath: etcdsnap.sh
+                  readOnly: true
+              env:
+                - name: HCPNS
+                  valueFrom:
+                    configMapKeyRef:
+                      name: {{ include "cluster-instance-hcp.etcdBackup.fullname" . }}-scripts
+                      key: env.hcpns
+                - name: FILEPREFIX
+                  valueFrom:
+                    configMapKeyRef:
+                      name: {{ include "cluster-instance-hcp.etcdBackup.fullname" . }}-scripts
+                      key: env.fileprefix
+                - name: COMPRESS
+                  valueFrom:
+                    configMapKeyRef:
+                      name: {{ include "cluster-instance-hcp.etcdBackup.fullname" . }}-scripts
+                      key: env.compress
+          containers:
+            - name: s3backup
+              image: docker.io/amazon/aws-cli:2.35.8
+              command: ["/bin/bash", "/usr/local/bin/s3upload.sh"]
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop:
+                    - ALL
+              volumeMounts:
+                - name: workdir
+                  mountPath: /backup
+                - name: scripts
+                  mountPath: /usr/local/bin/s3upload.sh
+                  subPath: s3upload.sh
+                  readOnly: true
+                - name: s3ca
+                  mountPath: /etc/ssl/certs/s3ca.crt
+                  subPath: service-ca.crt
+                  readOnly: true
+                - name: tmp
+                  mountPath: /tmp
+              env:
+                - name: RETENTION
+                  valueFrom:
+                    configMapKeyRef:
+                      name: {{ include "cluster-instance-hcp.etcdBackup.fullname" . }}-scripts
+                      key: env.retention
+                - name: FILEPREFIX
+                  valueFrom:
+                    configMapKeyRef:
+                      name: {{ include "cluster-instance-hcp.etcdBackup.fullname" . }}-scripts
+                      key: env.fileprefix
+                - name: AWS_CA_BUNDLE
+                  value: /etc/ssl/certs/s3ca.crt
+              envFrom:
+                - secretRef:
+                    name: {{ include "cluster-instance-hcp.etcdBackup.objectBucketClaimName" . }}
+                - configMapRef:
+                    name: {{ include "cluster-instance-hcp.etcdBackup.objectBucketClaimName" . }}
+              resources:
+                requests:
+                  memory: "512Mi"
+                  cpu: "500m"
+                limits:
+                  memory: "512Mi"
+                  cpu: "500m"
+          volumes:
+            - name: workdir
+              emptyDir:
+                sizeLimit: 10Gi
+            - name: scripts
+              configMap:
+                name: {{ include "cluster-instance-hcp.etcdBackup.fullname" . }}-scripts
+                defaultMode: 0555
+            - name: s3ca
+              configMap:
+                name: openshift-service-ca.crt
+            - name: tmp
+              emptyDir: {}
+{{- end }}

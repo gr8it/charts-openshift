@@ -44,6 +44,36 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 {{- end }}
 
+{{- define "cluster-instance-hcp.etcdBackup.fullname" -}}
+{{- printf "etcd-hcp-backup-%s" (include "cluster-instance-hcp.clusterName" .) | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
+{{- end }}
+
+{{- define "cluster-instance-hcp.etcdBackup.namespace" -}}
+{{- $clusterName := include "cluster-instance-hcp.clusterName" . -}}
+{{- printf "%s-%s" $clusterName $clusterName | trimSuffix "-" -}}
+{{- end }}
+
+{{- define "cluster-instance-hcp.etcdBackup.objectBucketClaimName" -}}
+{{- if .Values.etcd.backup.objectBucketClaim.name -}}
+{{- .Values.etcd.backup.objectBucketClaim.name | required "etcd.backup.objectBucketClaim.name is invalid" -}}
+{{- else -}}
+{{- printf "etcd-hcp-%s-backup" (include "cluster-instance-hcp.clusterName" .) | trunc 40 | trimSuffix "-" -}}
+{{- end -}}
+{{- end }}
+
+{{- define "cluster-instance-hcp.etcdBackup.etcdStatefulSetName" -}}
+{{- .Values.etcd.backup.etcdStatefulSetName | default "etcd" -}}
+{{- end }}
+
+{{- define "cluster-instance-hcp.etcdBackup.labels" -}}
+app.kubernetes.io/name: etcd-hcp-backup
+app.kubernetes.io/instance: {{ include "cluster-instance-hcp.etcdBackup.fullname" . }}
+app.kubernetes.io/component: etcd-backup
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/version: {{ .Chart.Version | quote }}
+helm.sh/chart: {{ include "cluster-instance-hcp.chart" . }}
+{{- end }}
+
 {{/*
 Returns an OAuth identity provider in the OpenShift API format.
 */}}

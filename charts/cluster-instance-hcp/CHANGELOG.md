@@ -1,6 +1,12 @@
 All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.7] - 2026-10-29
+
+### Added
+
+- Add optional Hosted Control Plane etcd snapshot backups to S3
+
 ## [2.0.6] - 2026-10-26
 
 ### Added

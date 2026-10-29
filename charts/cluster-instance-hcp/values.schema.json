@@ -25,7 +25,28 @@
       "additionalProperties": false,
       "properties": {
         "storageClassName": { "type": "string" },
-        "storageSize": { "type": "string" }
+        "storageSize": { "type": "string" },
+        "backup": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "schedule": { "type": "string", "minLength": 1 },
+            "paused": { "type": "boolean" },
+            "retentionDays": { "type": "integer", "minimum": 0 },
+            "etcdStatefulSetName": { "type": "string", "minLength": 1 },
+            "compressSnapshot": { "type": "boolean" },
+            "objectBucketClaim": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "create": { "type": "boolean" },
+                "name": { "type": "string" },
+                "storageClass": { "type": "string" }
+              }
+            }
+          }
+        }
       }
     },
     "nodePool": {

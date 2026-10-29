@@ -33,6 +33,15 @@ Deploys a HyperShift Hosted Control Plane (HCP) cluster on an ACM hub cluster. C
 | `infrastructureNamespace` | Infra namespace override; defaults to `infrastructure-<clusterName>` | `""` |
 | `etcd.storageClassName` | StorageClass for ETCD PV | `lvms-vg1` |
 | `etcd.storageSize` | ETCD PV size | `8Gi` |
+| `etcd.backup.enabled` | Create resources for scheduled Hosted Control Plane etcd backups | `false` |
+| `etcd.backup.schedule` | Cron schedule for etcd backups | `"0 0 * * *"` |
+| `etcd.backup.paused` | Suspend the etcd backup CronJob | `false` |
+| `etcd.backup.retentionDays` | Number of days to retain snapshots in object storage | `3` |
+| `etcd.backup.etcdStatefulSetName` | Hosted Control Plane etcd StatefulSet name | `etcd` |
+| `etcd.backup.compressSnapshot` | Compress etcd snapshots before upload | `false` |
+| `etcd.backup.objectBucketClaim.create` | Create an ObjectBucketClaim for storing etcd backups | `false` |
+| `etcd.backup.objectBucketClaim.name` | ObjectBucketClaim name; defaults to `etcd-hcp-<clusterName>-backup` | `""` |
+| `etcd.backup.objectBucketClaim.storageClass` | StorageClass used when creating the ObjectBucketClaim | `ocs-storagecluster-ceph-rgw` |
 | `nodePool.replicas` | Number of worker nodes | `2` |
 | `nodePool.upgradeType` | Upgrade strategy (`InPlace` or `Replace`) | `InPlace` |
 | `nodePool.autoRepair` | Enable automatic node repair | `false` |
@@ -55,6 +64,10 @@ Deploys a HyperShift Hosted Control Plane (HCP) cluster on an ACM hub cluster. C
 ### Velero backup
 
 When `backup.enabled` is true, creates a Velero Schedule and resource-policy ConfigMap in the `openshift-adp` namespace. The schedule backs up the HostedCluster's namespace and its related `<clusterName>-<clusterName>` and `klusterlet-<clusterName>` namespaces. The resource policy skips selected bootstrap kubeconfig Secrets. Velero/OADP must be installed.
+
+### Hosted Control Plane etcd backup
+
+When `etcd.backup.enabled` is true, creates a CronJob and the required scripts ConfigMap, ServiceAccount, Role, RoleBinding, NetworkPolicy, and PrometheusRule for etcd snapshots. Backups are uploaded to an S3-compatible ObjectBucketClaim in the release namespace; by default the claim must already exist and be named `etcd-hcp-<clusterName>-backup`. Set `etcd.backup.objectBucketClaim.create: true` to have the chart create it. The CronJob accesses the Hosted Control Plane etcd StatefulSet in the conventional `<clusterName>-<clusterName>` namespace. The `etcd.backup` settings are independent of the Velero `backup` settings.
 
 ### `apiServerCert`
 

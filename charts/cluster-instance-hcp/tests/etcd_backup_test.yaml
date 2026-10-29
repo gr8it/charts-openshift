@@ -1,0 +1,133 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: cluster-instance-hcp etcd backup
+templates:
+  - templates/etcd-backup-cronjob.yaml
+  - templates/etcd-backup-scripts-configmap.yaml
+  - templates/etcd-backup-objectbucketclaim.yaml
+  - templates/etcd-backup-role.yaml
+  - templates/etcd-backup-rolebinding.yaml
+  - templates/etcd-backup-serviceaccount.yaml
+  - templates/etcd-backup-networkpolicy.yaml
+  - templates/etcd-backup-prometheusrule.yaml
+values:
+  - ../values.lint.yaml
+release:
+  name: cluster-instance-hcp
+  namespace: mycluster
+
+tests:
+  - it: should create the CronJob when enabled
+    template: templates/etcd-backup-cronjob.yaml
+    set:
+      clusterName: mycluster
+      etcd.backup.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+
+  - it: should use the configured schedule and pause state
+    template: templates/etcd-backup-cronjob.yaml
+    set:
+      clusterName: mycluster
+      etcd.backup.enabled: true
+      etcd.backup.schedule: "15 2 * * *"
+      etcd.backup.paused: true
+    asserts:
+      - equal:
+          path: metadata.name
+          value: etcd-hcp-backup-mycluster
+      - equal:
+          path: metadata.namespace
+          value: mycluster
+      - equal:
+          path: spec.schedule
+          value: "15 2 * * *"
+      - equal:
+          path: spec.suspend
+          value: true
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.serviceAccountName
+          value: etcd-hcp-backup-mycluster
+
+  - it: should create the scripts ConfigMap when enabled
+    template: templates/etcd-backup-scripts-configmap.yaml
+    set:
+      clusterName: mycluster
+      etcd.backup.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+
+  - it: should create the Role when enabled
+    template: templates/etcd-backup-role.yaml
+    set:
+      clusterName: mycluster
+      etcd.backup.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+
+  - it: should create the RoleBinding when enabled
+    template: templates/etcd-backup-rolebinding.yaml
+    set:
+      clusterName: mycluster
+      etcd.backup.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+
+  - it: should create the ServiceAccount when enabled
+    template: templates/etcd-backup-serviceaccount.yaml
+    set:
+      clusterName: mycluster
+      etcd.backup.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+
+  - it: should create the NetworkPolicy when enabled
+    template: templates/etcd-backup-networkpolicy.yaml
+    set:
+      clusterName: mycluster
+      etcd.backup.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+
+  - it: should create the PrometheusRule when enabled
+    template: templates/etcd-backup-prometheusrule.yaml
+    set:
+      clusterName: mycluster
+      etcd.backup.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+
+  - it: should not create etcd backup resources when disabled
+    template: templates/etcd-backup-cronjob.yaml
+    set:
+      clusterName: mycluster
+      etcd.backup.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should create an ObjectBucketClaim when requested
+    template: templates/etcd-backup-objectbucketclaim.yaml
+    set:
+      clusterName: mycluster
+      etcd.backup.enabled: true
+      etcd.backup.objectBucketClaim.create: true
+    asserts:
+      - equal:
+          path: apiVersion
+          value: objectbucket.io/v1alpha1
+      - equal:
+          path: kind
+          value: ObjectBucketClaim
+      - equal:
+          path: metadata.name
+          value: etcd-hcp-mycluster-backup
+      - equal:
+          path: spec.storageClassName
+          value: ocs-storagecluster-ceph-rgw

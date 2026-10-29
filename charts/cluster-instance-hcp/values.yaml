@@ -45,6 +45,17 @@ apiServerAuditProfile: Default
 etcd:
   storageClassName: lvms-vg1
   storageSize: 8Gi
+  backup:
+    enabled: false
+    schedule: "0 0 * * *"
+    paused: false
+    retentionDays: 3
+    etcdStatefulSetName: etcd
+    compressSnapshot: false
+    objectBucketClaim:
+      create: false
+      name: ""
+      storageClass: ocs-storagecluster-ceph-rgw
 
 # Scheduling of HCP control plane pods on hub
 tolerations:

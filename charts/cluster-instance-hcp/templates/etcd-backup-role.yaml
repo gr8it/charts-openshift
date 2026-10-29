@@ -1,0 +1,31 @@
+{{- if .Values.etcd.backup.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "cluster-instance-hcp.etcdBackup.fullname" . }}
+  namespace: {{ include "cluster-instance-hcp.etcdBackup.namespace" . }}
+  labels:
+    {{- include "cluster-instance-hcp.etcdBackup.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["list"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get"]
+    resourceNames:
+      {{- range $idx := untilStep 0 5 1 }}
+      - {{ include "cluster-instance-hcp.etcdBackup.etcdStatefulSetName" $ }}-{{ $idx }}
+      {{- end }}
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+    resourceNames:
+      {{- range $idx := untilStep 0 5 1 }}
+      - {{ include "cluster-instance-hcp.etcdBackup.etcdStatefulSetName" $ }}-{{ $idx }}
+      {{- end }}
+  - apiGroups: ["apps"]
+    resources: ["statefulsets"]
+    verbs: ["get"]
+    resourceNames: ["{{ include "cluster-instance-hcp.etcdBackup.etcdStatefulSetName" . }}"]
+{{- end }}
