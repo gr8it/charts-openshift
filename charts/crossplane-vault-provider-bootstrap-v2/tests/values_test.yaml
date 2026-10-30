@@ -1,0 +1,153 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: Values
+templates:
+  - templates/policy.yaml
+values:
+  - ../values.lint.yaml
+release:
+  name: crossplane-vault-provider-bootstrap
+  namespace: apc-crossplane-system
+
+tests:
+  - it: role is bound to the provider service account and has no extra policies by default
+    asserts:
+      - equal:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.forProvider.boundServiceAccountNames
+          value:
+            - crossplane-vault-provider
+      - lengthEqual:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.forProvider.tokenPolicies
+          count: 2
+
+  - it: custom service account and extra policies are set on the role
+    set:
+      vaultProviderServiceAccount: my-provider
+      vaultKubernetesRoleExtraPolicies:
+        - admin
+        - extra
+    asserts:
+      - equal:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.forProvider.boundServiceAccountNames
+          value:
+            - my-provider
+      - equal:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.forProvider.tokenPolicies[2]
+          value: admin
+      - equal:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.forProvider.tokenPolicies[3]
+          value: extra
+
+  - it: role is enforced with mustonlyhave including crossplane defaulted fields to avoid a reconcile fight
+    asserts:
+      - equal:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].complianceType
+          value: mustonlyhave
+      - equal:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.managementPolicies
+          value:
+            - '*'
+      - equal:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.initProvider
+          value: {}
+      - equal:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.forProvider.aliasNameSource
+          value: serviceaccount_uid
+      - equal:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.forProvider.tokenType
+          value: default
+
+  - it: service account and extra policies are rendered as strings in the role and the status check
+    set:
+      vaultProviderServiceAccount: "123"
+      vaultKubernetesRoleExtraPolicies:
+        - "true"
+    asserts:
+      - equal:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.forProvider.boundServiceAccountNames[0]
+          value: "123"
+      - equal:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.forProvider.tokenPolicies[2]
+          value: "true"
+      - equal:
+          path: spec.policy-templates[1].objectDefinition.spec.object-templates[3].objectDefinition.status.atProvider.boundServiceAccountNames[0]
+          value: "123"
+      - equal:
+          path: spec.policy-templates[1].objectDefinition.spec.object-templates[3].objectDefinition.status.atProvider.tokenPolicies[2]
+          value: "true"
+
+  - it: role has only the base policies when extra policies are removed
+    set:
+      vaultKubernetesRoleExtraPolicies: []
+    asserts:
+      - lengthEqual:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.forProvider.tokenPolicies
+          count: 2
+      - notContains:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[3].objectDefinition.spec.forProvider.tokenPolicies
+          content: admin
+
+  - it: role policy allows reading and tuning the auth mount of the configured mount path
+    set:
+      vaultKubeAuthMountPath: kubernetes
+    asserts:
+      - matchRegex:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[2].objectDefinition.spec.forProvider.policy
+          pattern: 'path "sys/mounts/auth/\{\{hub "kubernetes" \| default \.ManagedClusterName \| replace "local-cluster" "" hub\}\}" \{\n  capabilities = \["read"\]'
+      - matchRegex:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[2].objectDefinition.spec.forProvider.policy
+          pattern: 'path "sys/mounts/auth/\{\{hub "kubernetes" \| default \.ManagedClusterName \| replace "local-cluster" "" hub\}\}/tune" \{\n  capabilities = \["read", "update"\]'
+
+  - it: kubernetes auth ProviderConfig uses the cluster auth mount by default
+    asserts:
+      - equal:
+          path: spec.policy-templates[5].objectDefinition.spec.object-templates[0].objectDefinition.spec.mountPath
+          value: '{{hub "" | default .ManagedClusterName | replace "local-cluster" "" hub}}'
+
+  - it: kubernetes auth ProviderConfig mount path follows vaultKubeAuthMountPath
+    set:
+      vaultKubeAuthMountPath: kubernetes
+    asserts:
+      - equal:
+          path: spec.policy-templates[5].objectDefinition.spec.object-templates[0].objectDefinition.spec.mountPath
+          value: '{{hub "kubernetes" | default .ManagedClusterName | replace "local-cluster" "" hub}}'
+      - equal:
+          path: spec.policy-templates[4].objectDefinition.spec.object-templates[0].objectDefinition.spec.forProvider.path
+          value: '{{hub "kubernetes" | default .ManagedClusterName | replace "local-cluster" "" hub}}'
+
+  - it: provisioned check waits for the role in Vault to have the target service account and policies
+    set:
+      vaultKubernetesRoleExtraPolicies:
+        - admin
+    asserts:
+      - equal:
+          path: spec.policy-templates[1].objectDefinition.spec.object-templates[3].objectDefinition.status.atProvider.boundServiceAccountNames
+          value:
+            - crossplane-vault-provider
+      - contains:
+          path: spec.policy-templates[1].objectDefinition.spec.object-templates[3].objectDefinition.status.atProvider.tokenPolicies
+          content: admin
+
+  - it: token auth ProviderConfig is enforced only until kubernetes auth is provisioned
+    asserts:
+      - lengthEqual:
+          path: spec.policy-templates[3].extraDependencies
+          count: 2
+      - equal:
+          path: spec.policy-templates[3].extraDependencies[1].name
+          value: crossplane-vault-provider-bootstrap-kubernetes-auth-provisioned-check
+      - equal:
+          path: spec.policy-templates[3].objectDefinition.spec.object-templates[0].objectDefinition.spec.skip_child_token
+          value: true
+
+  - it: token secret is not removed automatically
+    asserts:
+      - lengthEqual:
+          path: spec.policy-templates
+          count: 6
+      - notContains:
+          path: spec.policy-templates
+          any: true
+          content:
+            objectDefinition:
+              metadata:
+                name: crossplane-vault-provider-bootstrap-token-removal

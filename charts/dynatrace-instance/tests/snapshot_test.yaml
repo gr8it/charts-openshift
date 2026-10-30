@@ -1,0 +1,35 @@
+suite: Snapshot test
+templates:
+  - templates/*
+values:
+  - ../values.example.yaml
+release:
+  name: apc-dynatrace
+  namespace: apc-dynatrace
+
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}
+  - it: renders enabled metadata enrichment
+    set:
+      metadataEnrichment:
+        enabled: true
+    asserts:
+      - matchSnapshot: {}
+  - it: uses configured hostGroup
+    template: templates/dynakube.yaml
+    set:
+      hostGroup: custom-host-group
+    asserts:
+      - equal:
+          path: spec.oneAgent.hostGroup
+          value: custom-host-group
+  - it: uses configured ActiveGate group
+    template: templates/dynakube.yaml
+    set:
+      activeGate.group: custom-activegate-group
+    asserts:
+      - equal:
+          path: spec.activeGate.group
+          value: custom-activegate-group
