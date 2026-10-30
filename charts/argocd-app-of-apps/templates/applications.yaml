@@ -73,7 +73,11 @@ spec:
   {{- $defaultSyncPolicyRetry := ((($.Values.default).application).syncPolicyRetry) | default dict }}
   {{- $syncPolicyRetry := merge $applicationSyncPolicyRetry $defaultSyncPolicyRetry }}
 
-  {{- if or $autoSyncEnabled $autoPruneEnabled ($application.managedNamespaceMetadata) $syncPolicyRetry (hasKey $application "syncOptions") }}
+  {{- $applicationSyncOptions := ($application.syncOptions) | default list }}
+  {{- $defaultSyncOptions := ((($.Values.default).application).syncOptions) | default list }}
+  {{- $syncOptions := uniq (concat $applicationSyncOptions $defaultSyncOptions ) }}
+
+  {{- if or $autoSyncEnabled $autoPruneEnabled ($application.managedNamespaceMetadata) $syncPolicyRetry $syncOptions }}
   syncPolicy:
 
     {{- if or $autoSyncEnabled $autoPruneEnabled }}
@@ -98,11 +102,9 @@ spec:
       {{- toYaml . | nindent 6 }}
     {{- end }}
 
-    {{- if hasKey $application "syncOptions" }}
+    {{- if $syncOptions }}
     syncOptions:
-      {{- with $application.syncOptions }}
-      {{- toYaml . | nindent 6 }}
-      {{- end }}
+      {{- toYaml $syncOptions | nindent 6 }}
     {{- end }}
   {{- end }}
   source:

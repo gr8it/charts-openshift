@@ -1,0 +1,670 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      annotations:
+        annotation: test
+        argocd.argoproj.io/compare-options: IgnoreExtraneous
+        argocd.argoproj.io/sync-wave: "21"
+      labels:
+        label: overwrite-test
+      name: config-acs
+      namespace: apc-gitops
+    spec:
+      destination:
+        namespace: openshift-gitops
+        server: https://kubernetes.default.svc
+      project: cluster-config
+      source:
+        directory:
+          recurse: true
+        path: components/apps/acs-operator/overlays/oauth
+        repoURL: https://github.com/gnunn-gitops/cluster-config.git
+        targetRevision: HEAD
+      syncPolicy:
+        retry:
+          backoff:
+            duration: 15s
+            factor: 2
+            maxDuration: 5m
+          limit: 3
+        syncOptions:
+          - ApplyOutOfSyncOnly=true
+  2: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      annotations:
+        annotation: test
+        argocd.argoproj.io/compare-options: IgnoreExtraneous
+        argocd.argoproj.io/sync-wave: "11"
+      labels:
+        label: overwrite-test
+        newLabelTest: new-label-test
+      name: config-alertmanager
+      namespace: apc-gitops
+    spec:
+      destination:
+        name: in-cluster
+        namespace: openshift-monitoring
+      project: cluster-config
+      source:
+        directory:
+          recurse: true
+        path: components/configs/alertmanager/base
+        repoURL: https://github.com/gnunn-gitops/cluster-config.git
+        targetRevision: HEAD
+      syncPolicy:
+        retry:
+          backoff:
+            duration: 15s
+            factor: 2
+            maxDuration: 5m
+          limit: 3
+        syncOptions:
+          - ApplyOutOfSyncOnly=true
+  3: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      annotations:
+        annotation: test
+        argocd.argoproj.io/compare-options: IgnoreExtraneous
+        argocd.argoproj.io/sync-wave: "4"
+      labels:
+        label: test
+      name: config-authentication
+      namespace: apc-gitops
+    spec:
+      destination:
+        namespace: openshift-config
+        server: https://kubernetes.default.svc
+      project: cluster-config
+      source:
+        directory:
+          recurse: true
+        path: components/configs/oauth/overlays/google-with-matrix
+        repoURL: https://github.com/gnunn-gitops/cluster-config.git
+        targetRevision: HEAD
+      syncPolicy:
+        retry:
+          backoff:
+            duration: 15s
+            factor: 2
+            maxDuration: 5m
+          limit: 3
+        syncOptions:
+          - ApplyOutOfSyncOnly=true
+  4: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      annotations:
+        annotation: test
+        argocd.argoproj.io/sync-wave: "21"
+      labels:
+        label: test
+      name: config-camel-k-operator
+      namespace: apc-gitops
+    spec:
+      destination:
+        namespace: openshift-operators
+        server: https://kubernetes.default.svc
+      project: cluster-config
+      source:
+        directory:
+          recurse: true
+        path: components/apps/camel-k-operator/base
+        repoURL: https://github.com/gnunn-gitops/cluster-config.git
+        targetRevision: HEAD
+      syncPolicy:
+        retry:
+          backoff:
+            duration: 15s
+            factor: 2
+            maxDuration: 5m
+          limit: 3
+        syncOptions:
+          - ApplyOutOfSyncOnly=true
+  5: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      annotations:
+        annotation: test
+        argocd.argoproj.io/sync-wave: "2"
+      labels:
+        label: test
+      name: config-cert-manager-operator
+      namespace: apc-gitops
+    spec:
+      destination:
+        namespace: openshift-cert-manager-operator
+        server: https://kubernetes.default.svc
+      project: cluster-config
+      source:
+        directory:
+          recurse: true
+        path: components/apps/cert-manager-operator/overlays/letsencrypt
+        repoURL: https://github.com/gnunn-gitops/cluster-config.git
+        targetRevision: HEAD
+      syncPolicy:
+        retry:
+          backoff:
+            duration: 15s
+            factor: 2
+            maxDuration: 5m
+          limit: 3
+        syncOptions:
+          - ApplyOutOfSyncOnly=true
+  6: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      annotations:
+        annotation: test
+        argocd.argoproj.io/compare-options: IgnoreExtraneous
+        argocd.argoproj.io/sync-wave: "21"
+      labels:
+        label: test
+      name: config-compliance-operator
+      namespace: apc-gitops
+    spec:
+      destination:
+        namespace: openshift-compliance
+        server: https://kubernetes.default.svc
+      project: cluster-config
+      source:
+        directory:
+          recurse: true
+        path: compliance-operator/aggregate/scheduled
+        repoURL: https://github.com/gnunn-gitops/cluster-config.git
+        targetRevision: HEAD
+      syncPolicy:
+        retry:
+          backoff:
+            duration: 15s
+            factor: 2
+            maxDuration: 5m
+          limit: 3
+        syncOptions:
+          - ApplyOutOfSyncOnly=true
+  7: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      annotations:
+        annotation: test
+        argocd.argoproj.io/compare-options: IgnoreExtraneous
+        argocd.argoproj.io/sync-wave: "11"
+      labels:
+        label: test
+      name: config-console-links
+      namespace: apc-gitops
+    spec:
+      destination:
+        namespace: openshift-gitops
+        server: https://kubernetes.default.svc
+      project: cluster-config
+      source:
+        directory:
+          recurse: true
+        path: components/configs/consolelinks/base
+        repoURL: https://github.com/gnunn-gitops/cluster-config.git
+        targetRevision: HEAD
+      syncPolicy:
+        retry:
+          backoff:
+            duration: 15s
+            factor: 2
+            maxDuration: 5m
+          limit: 3
+        syncOptions:
+          - ApplyOutOfSyncOnly=true
+  8: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      annotations:
+        annotation: test
+        argocd.argoproj.io/compare-options: IgnoreExtraneous
+        argocd.argoproj.io/sync-wave: "21"
+      labels:
+        label: test
+      name: config-container-security
+      namespace: apc-gitops
+    spec:
+      destination:
+        namespace: openshift-operators
+        server: https://kubernetes.default.svc
+      project: cluster-config
+      source:
+        directory:
+          recurse: true
+        path: container-security-operator/overlays/stable-3.6
+        repoURL: https://github.com/gnunn-gitops/cluster-config.git
+        targetRevision: HEAD
+      syncPolicy:
+        retry:
+          backoff:
+            duration: 15s
+            factor: 2
+            maxDuration: 5m
+          limit: 3
+        syncOptions:
+          - ApplyOutOfSyncOnly=true
+  9: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      annotations:
+        annotation: test
+        argocd.argoproj.io/compare-options: IgnoreExtraneous
+        argocd.argoproj.io/sync-wave: "21"
+      labels:
+        label: test
+      name: config-cost-management
+      namespace: apc-gitops
+    spec:
+      destination:
+        namespace: openshift-gitops
+        server: https://kubernetes.default.svc
+      project: cluster-config
+      source:
+        directory:
+          recurse: true
+        path: clusters/home/apps/cost-management-operator/overlays/default
+        repoURL: https://github.com/gnunn-gitops/cluster-config.git
+        targetRevision: HEAD
+      syncPolicy:
+        retry:
+          backoff:
+            duration: 15s
+            factor: 2
+            maxDuration: 5m
+          limit: 3
+        syncOptions:
+          - ApplyOutOfSyncOnly=true
+  10: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      annotations:
+        annotation: test
+        argocd.argoproj.io/compare-options: IgnoreExtraneous
+        argocd.argoproj.io/sync-wave: "31"
+      labels:
+        label: test
+      name: config-dev-tools
+      namespace: apc-gitops
+    spec:
+      destination:
+        namespace: dev-tools
+        server: https://kubernetes.default.svc
+      project: cluster-config
+      source:
+        directory:
+          recurse: true
+        path: components/apps/dev-tools/overlays/default
+        repoURL: https://github.com/gnunn-gitops/cluster-config.git
+        targetRevision: HEAD
+      syncPolicy:
+        retry:
+          backoff:
+            duration: 15s
+            factor: 2
+            maxDuration: 5m
+          limit: 3
+        syncOptions:
+          - ApplyOutOfSyncOnly=true
+  11: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      annotations:
+        annotation: test
+        argocd.argoproj.io/compare-options: IgnoreExtraneous
+        argocd.argoproj.io/sync-wave: "11"
+      labels:
+        label: test
+      name: config-groups-and-membership
+      namespace: apc-gitops
+    spec:
+      destination:
+        namespace: openshift-gitops
+        server: https://kubernetes.default.svc
+      project: cluster-config
+      source:
+        directory:
+          recurse: true
+        path: components/configs/groups-and-membership/overlays/default
+        repoURL: https://github.com/gnunn-gitops/cluster-config.git
+        targetRevision: HEAD
+      syncPolicy:
+        retry:
+          backoff:
+            duration: 15s
+            factor: 2
+            maxDuration: 5m
+          limit: 3
+        syncOptions:
+          - ApplyOutOfSyncOnly=true
+  12: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      annotations:
+        annotation: test
+        argocd.argoproj.io/compare-options: IgnoreExtraneous
+        argocd.argoproj.io/sync-wave: "11"
+      labels:
+        label: test
+      name: config-helm-repos
+      namespace: apc-gitops
+    spec:
+      destination:
+        namespace: openshift-gitops
+        server: https://kubernetes.default.svc
+      project: cluster-config
+      source:
+        directory:
+          recurse: true
+        path: components/configs/helm-repos/base
+        repoURL: https://github.com/gnunn-gitops/cluster-config.git
+        targetRevision: HEAD
+      syncPolicy:
+        retry:
+          backoff:
+            duration: 15s
+            factor: 2
+            maxDuration: 5m
+          limit: 3
+        syncOptions:
+          - ApplyOutOfSyncOnly=true
+  13: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      annotations:
+        annotation: test
+        argocd.argoproj.io/compare-options: IgnoreExtraneous
+        argocd.argoproj.io/sync-wave: "21"
+      labels:
+        label: test
+      name: config-kyverno
+      namespace: apc-gitops
+    spec:
+      destination:
+        namespace: kyverno
+        server: https://kubernetes.default.svc
+      ignoreDifferences:
+        - group: kyverno.io
+          jsonPointers:
+            - /spec/rules
+          kind: ClusterPolicy
+        - group: kyverno.io
+          jsonPointers:
+            - /spec/rules
+          kind: Policy
+      project: cluster-config
+      source:
+        directory:
+          recurse: true
+        path: components/apps/kyverno/overlays/policies
+        repoURL: https://github.com/gnunn-gitops/cluster-config.git
+        targetRevision: HEAD
+      syncPolicy:
+        retry:
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
+          limit: 5
+        syncOptions:
+          - Replace=true
+          - ApplyOutOfSyncOnly=true
+  14: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      annotations:
+        annotation: test
+        argocd.argoproj.io/sync-wave: "21"
+      labels:
+        label: test
+      name: config-pipeline-operator
+      namespace: apc-gitops
+    spec:
+      destination:
+        namespace: openshift-operators
+        server: https://kubernetes.default.svc
+      project: cluster-config
+      source:
+        directory:
+          recurse: true
+        path: components/apps/pipelines-operator/overlays/patch-config-parameters
+        repoURL: https://github.com/gnunn-gitops/cluster-config.git
+        targetRevision: HEAD
+      syncPolicy:
+        retry:
+          backoff:
+            duration: 15s
+            factor: 2
+            maxDuration: 5m
+          limit: 3
+        syncOptions:
+          - ApplyOutOfSyncOnly=true
+  15: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      annotations:
+        annotation: test
+        argocd.argoproj.io/compare-options: IgnoreExtraneous
+        argocd.argoproj.io/sync-wave: "1"
+      labels:
+        label: test
+      name: config-sealed-secrets
+      namespace: apc-gitops
+    spec:
+      destination:
+        namespace: sealed-secrets
+        server: https://kubernetes.default.svc
+      project: cluster-config
+      source:
+        directory:
+          recurse: true
+        path: components/apps/sealed-secrets-operator/overlays/default
+        repoURL: https://github.com/gnunn-gitops/cluster-config.git
+        targetRevision: HEAD
+      syncPolicy:
+        retry:
+          backoff:
+            duration: 15s
+            factor: 2
+            maxDuration: 5m
+          limit: 3
+        syncOptions:
+          - ApplyOutOfSyncOnly=true
+  16: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      annotations:
+        annotation: test
+      labels:
+        label: test
+      name: namespace-labels
+      namespace: apc-gitops
+    spec:
+      destination:
+        namespace: openshift-gitops
+        server: https://kubernetes.default.svc
+      project: cluster-config
+      source:
+        directory:
+          recurse: true
+        path: components/apps/namespace-labels
+        repoURL: https://github.com/gnunn-gitops/cluster-config.git
+        targetRevision: HEAD
+      syncPolicy:
+        automated:
+          selfHeal: true
+        managedNamespaceMetadata:
+          foo: bar
+        retry:
+          backoff:
+            duration: 15s
+            factor: 2
+            maxDuration: 5m
+          limit: 3
+        syncOptions:
+          - CreateNamespace=true
+          - ApplyOutOfSyncOnly=true
+  17: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      annotations:
+        annotation: test
+      labels:
+        label: test
+      name: namespace-labels-autosync-disabled
+      namespace: apc-gitops
+    spec:
+      destination:
+        namespace: openshift-gitops
+        server: https://kubernetes.default.svc
+      project: cluster-config
+      source:
+        directory:
+          recurse: true
+        path: components/apps/namespace-labels
+        repoURL: https://github.com/gnunn-gitops/cluster-config.git
+        targetRevision: HEAD
+      syncPolicy:
+        managedNamespaceMetadata:
+          labels:
+            foo: bar
+        retry:
+          backoff:
+            duration: 15s
+            factor: 2
+            maxDuration: 5m
+          limit: 3
+        syncOptions:
+          - CreateNamespace=true
+          - ApplyOutOfSyncOnly=true
+  18: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      annotations:
+        annotation: test
+        argocd.argoproj.io/compare-options: IgnoreExtraneous
+        argocd.argoproj.io/sync-wave: "41"
+      labels:
+        label: test
+      name: tekton-cluster-tasks
+      namespace: apc-gitops
+    spec:
+      destination:
+        namespace: openshift-gitops
+        server: https://kubernetes.default.svc
+      project: cluster-config
+      source:
+        directory:
+          recurse: true
+        path: components/apps/tekton-cluster-tasks/base
+        repoURL: https://github.com/gnunn-gitops/cluster-config.git
+        targetRevision: HEAD
+      syncPolicy:
+        retry:
+          backoff:
+            duration: 15s
+            factor: 2
+            maxDuration: 5m
+          limit: 3
+        syncOptions:
+          - ApplyOutOfSyncOnly=true
+  19: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      annotations:
+        annotation: test
+        argocd.argoproj.io/compare-options: IgnoreExtraneous
+        argocd.argoproj.io/sync-wave: "51"
+      labels:
+        label: test
+      name: tenant-product-catalog
+      namespace: apc-gitops
+    spec:
+      destination:
+        namespace: openshift-gitops
+        server: https://kubernetes.default.svc
+      project: cluster-config
+      source:
+        directory:
+          recurse: true
+        path: tenants/product-catalog/argocd/applicationset/base
+        repoURL: https://github.com/gnunn-gitops/cluster-config.git
+        targetRevision: HEAD
+      syncPolicy:
+        retry:
+          backoff:
+            duration: 15s
+            factor: 2
+            maxDuration: 5m
+          limit: 3
+        syncOptions:
+          - ApplyOutOfSyncOnly=true
+  20: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: AppProject
+    metadata:
+      annotations:
+        project: test
+      labels:
+        project: test
+      name: cluster-config
+      namespace: openshift-gitops
+    spec:
+      clusterResourceWhitelist:
+        - group: '*'
+          kind: '*'
+      description: Project for overall cluster configuration
+      destinations:
+        - namespace: '*'
+          server: https://kubernetes.default.svc
+      orphanedResources:
+        warn: false
+      sourceRepos:
+        - https://github.com/gnunn-gitops/cluster-config
+  21: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: AppProject
+    metadata:
+      name: tenants
+      namespace: openshift-gitops
+    spec:
+      clusterResourceWhitelist:
+        - group: '*'
+          kind: '*'
+      description: Project for individual tenant configuration (namespaces, quotas, etc)
+      destinations:
+        - namespace: '*'
+          server: https://kubernetes.default.svc
+      orphanedResources:
+        warn: false
+      roles:
+        - description: Tenat Admins
+          groups:
+            - tenants-admins
+          name: user
+          policies:
+            - p, proj:tenants:user, applications, get, tenants/*, allow
+            - p, proj:tenants:user, applications, sync, tenants/*, allow
+      sourceRepos:
+        - https://github.com/gnunn-gitops/cluster-config
