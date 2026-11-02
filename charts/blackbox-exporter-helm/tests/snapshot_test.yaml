@@ -39,3 +39,17 @@ tests:
       - equal:
           path: spec.targets.staticConfig.labels.target
           value: hw-xca
+ 
+  - it: openshift-api probe has target label for dashboards
+    template: templates/probe-api.yaml
+    asserts:
+      - equal:
+          path: spec.targets.staticConfig.labels.target
+          value: openshift-api
+
+  - it: openshift-console probe has target label for dashboards
+    template: templates/probe-console.yaml
+    asserts:
+      - equal:
+          path: spec.targets.staticConfig.labels.target
+          value: openshift-console
