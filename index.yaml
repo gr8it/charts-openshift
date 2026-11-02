@@ -1853,6 +1853,20 @@ entries:
     version: 1.0.0
   crossplane-vault-provider:
   - apiVersion: v2
+    appVersion: v4.0.0
+    created: "2026-10-26T10:12:06.035209284+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.10.0
+    description: A Helm chart to deploy Crossplane Vault provider
+    digest: 7c6b3a19fee866073d534d1931b4178e198804a3efb626013911f28e2d3d4685
+    name: crossplane-vault-provider
+    type: application
+    urls:
+    - packaged_charts/crossplane-vault-provider-1.6.0.tgz
+    version: 1.6.0
+  - apiVersion: v2
     appVersion: v2.2.2
     created: "2026-02-26T23:30:03.038471+01:00"
     dependencies:
@@ -1921,6 +1935,19 @@ entries:
     - packaged_charts/crossplane-vault-provider-1.1.0.tgz
     version: 1.1.0
   crossplane-vault-provider-bootstrap:
+  - apiVersion: v2
+    created: "2026-10-26T11:03:39.524215164+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.10.0
+    description: A Helm chart for Kubernetes
+    digest: c8244bf920f80ace63824ffa1a697adf5f7a102cd42e191a85c88ecf93fe581c
+    name: crossplane-vault-provider-bootstrap
+    type: application
+    urls:
+    - packaged_charts/crossplane-vault-provider-bootstrap-2.1.0.tgz
+    version: 2.1.0
   - apiVersion: v2
     created: "2025-10-14T14:43:36.543370961+02:00"
     dependencies:
@@ -3080,21 +3107,6 @@ entries:
     urls:
     - packaged_charts/ingress-configuration-1.0.0.tgz
     version: 1.0.0
-  kafka-backup-operator:
-  - apiVersion: v2
-    appVersion: 0.2.6
-    created: "2026-01-28T10:07:24.324372715+01:00"
-    dependencies:
-    - name: kafka-backup-operator
-      repository: https://osodevops.github.io/helm-charts/
-      version: 0.2.6
-    description: A Helm chart to install OSO Kafka Backup Operator
-    digest: bcf3f73a89ab89d01402d8cb38fd086d0e1dfa5954486037fb662b7b3b9c30f8
-    name: kafka-backup-operator
-    type: application
-    urls:
-    - packaged_charts/kafka-backup-operator-0.1.0.tgz
-    version: 0.1.0
   keycloak:
   - apiVersion: v2
     appVersion: v26.0
@@ -3885,6 +3897,26 @@ entries:
     - packaged_charts/mongodb-operator-helm-1.0.0.tgz
     version: 1.0.0
   monitoring:
+  - apiVersion: v2
+    created: "2026-10-28T13:43:42.663333153+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.9.0
+    - alias: backups
+      condition: backups.enabled
+      name: openshift-adp-backups
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.0
+    description: Helm chart for OpenShift cluster monitoring (ClusterMonitoringConfig,
+      UserWorkloadMonitoringConfig, AlertManager via ESO, Kyverno PrometheusRule generation
+      for cluster and user workload monitoring namespaces)
+    digest: 68b07e03b26948df012201925d5a34469c7c232231b59ca0fa3383006f4227cd
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.3.2.tgz
+    version: 1.3.2
   - apiVersion: v2
     created: "2026-10-09T10:47:54.5418373+02:00"
     dependencies:
