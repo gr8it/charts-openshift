@@ -27,4 +27,6 @@ fullnameOverride: ""
 
 vaultKubeAuthMountPath: ~ # for testing only as it only support 1 cluster only !!! => Kube auth path in Vault
 vaultKubernetesRole: crossplane # Kubernetes role in Vault for Crossplane to use
+vaultKubernetesRoleExtraPolicies: [] # additional Vault policies assigned to the Kubernetes role, e.g. [admin] until the role policy covers all paths managed by the provider
+vaultProviderServiceAccount: crossplane-vault-provider # Service account of the Crossplane Vault provider allowed to log in with the Kubernetes role
 crossplaneNamespace: apc-crossplane-system # Namespace where Crossplane is installed, and configurations are created
