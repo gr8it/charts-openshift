@@ -5,6 +5,6 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.0] - 2026-01-28
+## [1.0.0] - 2026-10-29
 
-_WIP_
+_Initial release._
