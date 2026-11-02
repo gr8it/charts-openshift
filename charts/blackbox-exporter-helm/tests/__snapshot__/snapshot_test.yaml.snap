@@ -8,7 +8,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: blackbox-exporter-helm
         app.kubernetes.io/version: 11.6.1
-        helm.sh/chart: blackbox-exporter-helm-1.1.0
+        helm.sh/chart: blackbox-exporter-helm-1.1.1
       name: blackbox-exporter-blackbox-exporter-helm-allow-proxy
       namespace: apc-blackbox-exporter
     spec:
@@ -41,6 +41,7 @@ manifests should match snapshot:
           labels:
             component: openshift-api
             module: http_openshift_api
+            target: openshift-api
             team: platform
             vendor: aspecta
           static:
@@ -65,6 +66,7 @@ manifests should match snapshot:
           labels:
             component: openshift-console
             module: http_openshift_console
+            target: openshift-console
             team: platform
             vendor: aspecta
           static:
