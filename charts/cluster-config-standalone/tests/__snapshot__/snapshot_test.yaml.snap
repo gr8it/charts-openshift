@@ -12,7 +12,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.2
+        helm.sh/chart: cluster-config-standalone-1.2.0
       name: registry-ca-bundle
       namespace: openshift-config
   2: |
@@ -25,7 +25,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.2
+        helm.sh/chart: cluster-config-standalone-1.2.0
       name: oauth-idp-ca-bundle
       namespace: openshift-config
   3: |
@@ -36,7 +36,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.2
+        helm.sh/chart: cluster-config-standalone-1.2.0
       name: pull-secret
       namespace: openshift-config
     spec:
@@ -64,7 +64,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.2
+        helm.sh/chart: cluster-config-standalone-1.2.0
       name: ad-ldap-bind-secret
       namespace: openshift-config
     spec:
@@ -89,7 +89,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.2
+        helm.sh/chart: cluster-config-standalone-1.2.0
       name: comm-ldap-bind-secret
       namespace: openshift-config
     spec:
@@ -114,7 +114,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.2
+        helm.sh/chart: cluster-config-standalone-1.2.0
       name: oidcidp-secret
       namespace: openshift-config
     spec:
@@ -139,7 +139,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.2
+        helm.sh/chart: cluster-config-standalone-1.2.0
       name: htpass-secret
       namespace: openshift-config
     spec:
@@ -174,7 +174,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.2
+        helm.sh/chart: cluster-config-standalone-1.2.0
       name: quay.apps.example.com
     spec:
       imageDigestMirrors:
@@ -201,7 +201,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-config-standalone
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-config-standalone
-        helm.sh/chart: cluster-config-standalone-1.1.2
+        helm.sh/chart: cluster-config-standalone-1.2.0
       name: quay.apps.example.com
     spec:
       imageTagMirrors:
@@ -221,6 +221,133 @@ manifests should match snapshot:
             - quay.apps.example.com/ghcr.io
           source: ghcr.io
   11: |
+    apiVersion: machineconfiguration.openshift.io/v1
+    kind: MachineConfig
+    metadata:
+      labels:
+        machineconfiguration.openshift.io/role: master
+      name: 99-master-chrony
+    spec:
+      config:
+        ignition:
+          version: 3.4.0
+        storage:
+          files:
+            - contents:
+                compression: ""
+                source: data:text/plain;charset=utf-8;base64,
+              mode: 420
+              overwrite: true
+              path: /etc/chrony.conf
+  12: |
+    apiVersion: machineconfiguration.openshift.io/v1
+    kind: MachineConfig
+    metadata:
+      labels:
+        machineconfiguration.openshift.io/role: master
+      name: 98-var-lib-etcd
+    spec:
+      config:
+        ignition:
+          version: 3.1.0
+        storage:
+          files:
+            - contents:
+                source: data:text/plain;charset=utf-8;base64,IyEvYmluL2Jhc2gKc2V0IC11byBwaXBlZmFpbAoKZGV2aWNlcz0iL2Rldi92ZzEvMSBcCiAgICAgICAgIC9kZXYvdmcxLzIgXAogICAgICAgICAvZGV2L3ZnMS8zIgoKZm9yIGRldmljZSBpbiAkZGV2aWNlczsgZG8KICAvdXNyL2Jpbi90ZXN0IC1iICIkZGV2aWNlIiB8fCBjb250aW51ZQogIC91c3Ivc2Jpbi9ibGtpZCAiJGRldmljZSIgJj4gL2Rldi9udWxsCiAgaWYgWyAkPyA9PSAyIF07IHRoZW4KICAgIGVjaG8gIlNlY29uZGFyeSBibG9jayBkZXZpY2UgZm91bmQ6ICRkZXZpY2UiCiAgICBlY2hvICJDcmVhdGluZyBmaWxlc3lzdGVtIGZvciBldGNkIG1vdW50IgogICAgL3Vzci9zYmluL21rZnMueGZzIC1MIHZhci1saWItZXRjZCAtZiAiJGRldmljZSIgJj4gL2Rldi9udWxsCiAgICAvdXNyL3NiaW4vdWRldmFkbSBzZXR0bGUKICAgIC91c3IvYmluL3RvdWNoIC9ldGMvdmFyLWxpYi1ldGNkLW1vdW50CiAgICBleGl0IDAKICBmaQpkb25lCmVjaG8gIkNvdWxkbid0IGZpbmQgc2Vjb25kYXJ5IGJsb2NrIGRldmljZSEiID4mMgpleGl0IDc3
+              mode: 493
+              path: /etc/find-secondary-device
+        systemd:
+          units:
+            - contents: |
+                [Unit]
+                Description=Find secondary device
+                DefaultDependencies=false
+                After=systemd-udev-settle.service
+                Before=local-fs-pre.target
+                ConditionPathExists=!/etc/var-lib-etcd-mount
+
+                [Service]
+                RemainAfterExit=yes
+                ExecStart=/etc/find-secondary-device
+
+                RestartForceExitStatus=77
+
+                [Install]
+                WantedBy=multi-user.target
+              enabled: true
+              name: find-secondary-device.service
+            - contents: |
+                [Unit]
+                Before=local-fs.target
+
+                [Mount]
+                What=/dev/disk/by-label/var-lib-etcd
+                Where=/var/lib/etcd
+                Type=xfs
+                TimeoutSec=120s
+
+                [Install]
+                RequiredBy=local-fs.target
+              enabled: true
+              name: var-lib-etcd.mount
+            - contents: |
+                [Unit]
+                Description=Sync etcd data if new mount is empty
+                DefaultDependencies=no
+                After=var-lib-etcd.mount var.mount
+                Before=crio.service
+
+                [Service]
+                Type=oneshot
+                RemainAfterExit=yes
+                ExecCondition=/usr/bin/test ! -d /var/lib/etcd/member
+                ExecStart=/usr/sbin/setsebool -P rsync_full_access 1
+                ExecStart=/bin/rsync -ar /sysroot/ostree/deploy/rhcos/var/lib/etcd/ /var/lib/etcd/
+                ExecStart=/usr/sbin/semanage fcontext -a -t container_var_lib_t '/var/lib/etcd(/.*)?'
+                ExecStart=/usr/sbin/setsebool -P rsync_full_access 0
+                TimeoutSec=0
+
+                [Install]
+                WantedBy=multi-user.target graphical.target
+              enabled: true
+              name: sync-var-lib-etcd-to-etcd.service
+            - contents: |
+                [Unit]
+                Description=Restore recursive SELinux security contexts
+                DefaultDependencies=no
+                After=var-lib-etcd.mount
+                Before=crio.service
+
+                [Service]
+                Type=oneshot
+                RemainAfterExit=yes
+                ExecStart=/sbin/restorecon -R /var/lib/etcd/
+                TimeoutSec=0
+
+                [Install]
+                WantedBy=multi-user.target graphical.target
+              enabled: true
+              name: restorecon-var-lib-etcd.service
+  13: |
+    apiVersion: machineconfiguration.openshift.io/v1
+    kind: MachineConfig
+    metadata:
+      labels:
+        machineconfiguration.openshift.io/role: worker
+      name: 99-worker-chrony
+    spec:
+      config:
+        ignition:
+          version: 3.4.0
+        storage:
+          files:
+            - contents:
+                compression: ""
+                source: data:text/plain;charset=utf-8;base64,
+              mode: 420
+              overwrite: true
+              path: /etc/chrony.conf
+  14: |
     apiVersion: config.openshift.io/v1
     kind: OAuth
     metadata:

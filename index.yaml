@@ -67,6 +67,21 @@ entries:
     version: 1.0.0
   acm-operator:
   - apiVersion: v2
+    appVersion: v2.15.5
+    created: "2026-10-29T11:12:22.721586+01:00"
+    dependencies:
+    - name: operators-installer
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/main/
+      version: 3.2.4
+    description: A Helm chart to install ACM operator using operators-installer helm
+      chart
+    digest: ad314a9809e8b6395250c9287bc330fe392d737d87d1decb898c119c37f8098c
+    name: acm-operator
+    type: application
+    urls:
+    - packaged_charts/acm-operator-1.3.1.tgz
+    version: 1.3.1
+  - apiVersion: v2
     appVersion: v2.15.4
     created: "2026-08-13T12:13:13.853344+02:00"
     dependencies:
@@ -982,6 +997,38 @@ entries:
   blackbox-exporter-helm:
   - apiVersion: v2
     appVersion: 11.6.1
+    created: "2026-10-28T16:06:08.092719+01:00"
+    dependencies:
+    - name: prometheus-blackbox-exporter
+      repository: https://prometheus-community.github.io/helm-charts/
+      version: 11.6.1
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart to install Blackbox exporter
+    digest: 9483ea5d4c8f13b9085d4739a73c94b9a49e5c103147f6384ef854eb87176ca6
+    name: blackbox-exporter-helm
+    urls:
+    - packaged_charts/blackbox-exporter-helm-1.1.1.tgz
+    version: 1.1.1
+  - apiVersion: v2
+    appVersion: 11.6.1
+    created: "2026-10-26T08:28:28.400267463Z"
+    dependencies:
+    - name: prometheus-blackbox-exporter
+      repository: https://prometheus-community.github.io/helm-charts/
+      version: 11.6.1
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.5.0
+    description: A Helm chart to install Blackbox exporter
+    digest: 04aec11cfdd91c6e93e88f789bb3b932ee7585b87b00d2de04fc1268125bf0c8
+    name: blackbox-exporter-helm
+    urls:
+    - packaged_charts/blackbox-exporter-helm-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
+    appVersion: 11.6.1
     created: "2026-01-22T21:13:29.221917135+01:00"
     dependencies:
     - name: prometheus-blackbox-exporter
@@ -1272,6 +1319,19 @@ entries:
     version: 1.0.0
   cluster-config-standalone:
   - apiVersion: v2
+    created: "2026-11-02T12:28:24.888415101+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.10.0
+    description: A Helm chart to configure standalone cluster settings
+    digest: 5a18768b4693545409de7cdb09bf985874cac4ff6054db51263092d48c4dca32
+    name: cluster-config-standalone
+    type: application
+    urls:
+    - packaged_charts/cluster-config-standalone-1.2.0.tgz
+    version: 1.2.0
+  - apiVersion: v2
     created: "2026-01-30T11:53:23.970872216+01:00"
     dependencies:
     - name: apc-global-overrides
@@ -1378,6 +1438,22 @@ entries:
     type: application
     urls:
     - packaged_charts/cluster-logging-operator-1.0.0.tgz
+    version: 1.0.0
+  cluster-observability-operator:
+  - apiVersion: v2
+    appVersion: v1.5.2
+    created: "2026-11-02T15:19:30.514937+01:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install the Red Hat Cluster Observability Operator
+      using ACM OperatorPolicy
+    digest: 5926400a3586bd6d37c4e0344accfae8f4189329ed6abe09d7ec506aa5da48b4
+    name: cluster-observability-operator
+    type: application
+    urls:
+    - packaged_charts/cluster-observability-operator-1.0.0.tgz
     version: 1.0.0
   cnpg-operator:
   - apiVersion: v2
@@ -1540,6 +1616,20 @@ entries:
     - packaged_charts/compliance-config-1.0.0.tgz
     version: 1.0.0
   compliance-operator:
+  - apiVersion: v2
+    appVersion: stable
+    created: "2026-10-29T11:12:15.665754+01:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install OpenShift Compliance Operator
+    digest: 974f85967f9f8123f9d1cc3d99dae52178958c092a5e7a76fe9d2117c040ccda
+    name: compliance-operator
+    type: application
+    urls:
+    - packaged_charts/compliance-operator-1.1.2.tgz
+    version: 1.1.2
   - apiVersion: v2
     appVersion: stable
     created: "2026-09-16T11:14:06.495063+02:00"
@@ -1821,6 +1911,20 @@ entries:
     version: 1.0.0
   crossplane-vault-provider:
   - apiVersion: v2
+    appVersion: v4.0.0
+    created: "2026-10-26T10:12:06.035209284+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.10.0
+    description: A Helm chart to deploy Crossplane Vault provider
+    digest: 7c6b3a19fee866073d534d1931b4178e198804a3efb626013911f28e2d3d4685
+    name: crossplane-vault-provider
+    type: application
+    urls:
+    - packaged_charts/crossplane-vault-provider-1.6.0.tgz
+    version: 1.6.0
+  - apiVersion: v2
     appVersion: v2.2.2
     created: "2026-02-26T23:30:03.038471+01:00"
     dependencies:
@@ -1889,6 +1993,19 @@ entries:
     - packaged_charts/crossplane-vault-provider-1.1.0.tgz
     version: 1.1.0
   crossplane-vault-provider-bootstrap:
+  - apiVersion: v2
+    created: "2026-10-26T11:03:39.524215164+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.10.0
+    description: A Helm chart for Kubernetes
+    digest: c8244bf920f80ace63824ffa1a697adf5f7a102cd42e191a85c88ecf93fe581c
+    name: crossplane-vault-provider-bootstrap
+    type: application
+    urls:
+    - packaged_charts/crossplane-vault-provider-bootstrap-2.1.0.tgz
+    version: 2.1.0
   - apiVersion: v2
     created: "2025-10-14T14:43:36.543370961+02:00"
     dependencies:
@@ -3063,21 +3180,6 @@ entries:
     urls:
     - packaged_charts/ingress-configuration-1.0.0.tgz
     version: 1.0.0
-  kafka-backup-operator:
-  - apiVersion: v2
-    appVersion: 0.2.6
-    created: "2026-01-28T10:07:24.324372715+01:00"
-    dependencies:
-    - name: kafka-backup-operator
-      repository: https://osodevops.github.io/helm-charts/
-      version: 0.2.6
-    description: A Helm chart to install OSO Kafka Backup Operator
-    digest: bcf3f73a89ab89d01402d8cb38fd086d0e1dfa5954486037fb662b7b3b9c30f8
-    name: kafka-backup-operator
-    type: application
-    urls:
-    - packaged_charts/kafka-backup-operator-0.1.0.tgz
-    version: 0.1.0
   keycloak:
   - apiVersion: v2
     appVersion: v26.0
@@ -3869,6 +3971,26 @@ entries:
     version: 1.0.0
   monitoring:
   - apiVersion: v2
+    created: "2026-10-28T13:43:42.663333153+01:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.9.0
+    - alias: backups
+      condition: backups.enabled
+      name: openshift-adp-backups
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.0.0
+    description: Helm chart for OpenShift cluster monitoring (ClusterMonitoringConfig,
+      UserWorkloadMonitoringConfig, AlertManager via ESO, Kyverno PrometheusRule generation
+      for cluster and user workload monitoring namespaces)
+    digest: 68b07e03b26948df012201925d5a34469c7c232231b59ca0fa3383006f4227cd
+    name: monitoring
+    type: application
+    urls:
+    - packaged_charts/monitoring-1.3.2.tgz
+    version: 1.3.2
+  - apiVersion: v2
     created: "2026-10-09T10:47:54.5418373+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -4492,6 +4614,20 @@ entries:
     version: 2.0.0
   multi-cluster-observability:
   - apiVersion: v2
+    created: "2026-10-22T11:18:00.52219+02:00"
+    dependencies:
+    - name: apc-global-overrides
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.8.0
+    description: A Helm chart for ACM MultiClusterObservability and related observability
+      resources
+    digest: 2a03d76ae03a885a0a0b808f5d56ed0a4836d63ec98ad9685e815afa00571937
+    name: multi-cluster-observability
+    type: application
+    urls:
+    - packaged_charts/multi-cluster-observability-1.2.0.tgz
+    version: 1.2.0
+  - apiVersion: v2
     created: "2026-09-23T21:08:34.115844+02:00"
     dependencies:
     - name: apc-global-overrides
@@ -4595,6 +4731,21 @@ entries:
     version: 1.2.0
   nmstate-operator:
   - apiVersion: v2
+    appVersion: 4.19.0-202607311600
+    created: "2026-10-29T22:37:57.461465+01:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install the Kubernetes NMState Operator using ACM
+      OperatorPolicy
+    digest: e5d2d6a9f19b664f53022b3e70a83c62e900dd52a199807813cb716b4624d093
+    name: nmstate-operator
+    type: application
+    urls:
+    - packaged_charts/nmstate-operator-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
     appVersion: 4.17.0-202502250404
     created: "2026-08-20T08:15:42.916008+02:00"
     dependencies:
@@ -4610,6 +4761,21 @@ entries:
     - packaged_charts/nmstate-operator-1.0.0.tgz
     version: 1.0.0
   odf-operator:
+  - apiVersion: v2
+    appVersion: "4.19"
+    created: "2026-10-29T22:37:54.978343+01:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install the Red Hat OpenShift Data Foundation Operator
+      using ACM OperatorPolicy
+    digest: a9cff454a701fe408612e7e723c774c2ddda127f8783b95d97d0b2fa518d57ff
+    name: odf-operator
+    type: application
+    urls:
+    - packaged_charts/odf-operator-1.3.0.tgz
+    version: 1.3.0
   - apiVersion: v2
     appVersion: "4.19"
     created: "2026-08-10T21:36:27.556389+02:00"
@@ -4858,6 +5024,21 @@ entries:
     - packaged_charts/openshift-virtualization-config-1.0.0.tgz
     version: 1.0.0
   openshift-virtualization-operator:
+  - apiVersion: v2
+    appVersion: v4.19.33
+    created: "2026-10-29T22:37:56.233956+01:00"
+    dependencies:
+    - name: acm-operatorpolicy
+      repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
+      version: 1.3.0
+    description: A Helm chart to install the OpenShift Virtualization (KubeVirt HyperConverged)
+      Operator using ACM OperatorPolicy
+    digest: 53caa9f3b964a8125381e0b15fa22618cf9599adae0736f5f9851e687b9a0d6c
+    name: openshift-virtualization-operator
+    type: application
+    urls:
+    - packaged_charts/openshift-virtualization-operator-1.0.3.tgz
+    version: 1.0.3
   - apiVersion: v2
     appVersion: v4.18.45
     created: "2026-08-28T15:10:16.768551+02:00"
@@ -5568,4 +5749,4 @@ entries:
     urls:
     - packaged_charts/veeam-exporter-1.0.0.tgz
     version: 1.0.0
-generated: "2026-10-22T11:18:49.097273+02:00"
+generated: "2026-11-02T15:19:30.514218+01:00"
