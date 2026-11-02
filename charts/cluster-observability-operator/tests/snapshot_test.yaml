@@ -1,0 +1,28 @@
+suite: Snapshot test
+templates:
+  - charts/*/templates/*
+release:
+  name: cluster-observability-operator
+  namespace: open-cluster-management-policies
+
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}
+
+  - it: should use operator namespace and allow both CSVs
+    asserts:
+      - equal:
+          path: spec.subscription.namespace
+          value: openshift-cluster-observability-operator
+      - equal:
+          path: spec.operatorGroup.namespace
+          value: openshift-cluster-observability-operator
+      - equal:
+          path: spec.subscription.startingCSV
+          value: cluster-observability-operator.v1.5.2
+      - equal:
+          path: spec.versions
+          value:
+            - cluster-observability-operator.v1.3.1
+            - cluster-observability-operator.v1.5.2
