@@ -1,0 +1,38 @@
+suite: Velero backup Schedules (openshift-adp-backups subchart)
+templates:
+  - templates/*
+  - charts/backups/templates/schedules.yaml
+values:
+  - ../values.example.yaml
+release:
+  name: monitoring
+  namespace: openshift-monitoring
+
+tests:
+  - it: should not render Velero Schedules by default
+    asserts:
+      # charts/backups is excluded by its condition, so assert across all
+      # rendered templates that no document carries a Velero schedule spec
+      - notExists:
+          path: spec.schedule
+
+  - it: should render monitoring-daily and uwm-daily Schedules when backups.enabled=true
+    set:
+      backups.enabled: true
+    template: charts/backups/templates/schedules.yaml
+    asserts:
+      - hasDocuments:
+          count: 2
+      - isKind:
+          of: Schedule
+      - equal:
+          path: metadata.name
+          value: monitoring-daily
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: uwm-daily
+        documentIndex: 1
+      - equal:
+          path: metadata.namespace
+          value: openshift-adp

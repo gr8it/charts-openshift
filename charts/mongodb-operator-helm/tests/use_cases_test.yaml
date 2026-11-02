@@ -1,0 +1,308 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: Instance report use cases
+release:
+  name: mongodb-operator-helm
+  namespace: mongodb-operator
+
+tests:
+
+  # ── enabled toggle ───────────────────────────────────────────────────────────
+
+  - it: no resources are rendered when instanceReport.enabled is false
+    templates:
+      - templates/instance-report-service-account.yaml
+      - templates/instance-report-cluster-role.yaml
+      - templates/instance-report-cluster-role-binding.yaml
+      - templates/instance-report-config-map.yaml
+      - templates/instance-report-deployment.yaml
+      - templates/instance-report-service.yaml
+      - templates/instance-report-service-monitor.yaml
+      - templates/instance-report-prometheus-rules.yaml
+    set:
+      instanceReport.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: all resources are rendered when instanceReport.enabled is true (default)
+    templates:
+      - templates/instance-report-service-account.yaml
+      - templates/instance-report-cluster-role.yaml
+      - templates/instance-report-cluster-role-binding.yaml
+      - templates/instance-report-config-map.yaml
+      - templates/instance-report-deployment.yaml
+      - templates/instance-report-service.yaml
+      - templates/instance-report-service-monitor.yaml
+      - templates/instance-report-prometheus-rules.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+
+  # ── naming ───────────────────────────────────────────────────────────────────
+
+  - it: ServiceAccount name is derived from the operator name
+    template: templates/instance-report-service-account.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: mongodb-kubernetes-operator-report
+      - equal:
+          path: metadata.namespace
+          value: mongodb-operator
+
+  - it: ClusterRole name is derived from the operator name
+    template: templates/instance-report-cluster-role.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: mongodb-kubernetes-operator-report
+
+  # ── labels ───────────────────────────────────────────────────────────────────
+
+  - it: ServiceAccount carries common labels and the instance-report component label
+    template: templates/instance-report-service-account.yaml
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/component"]
+          value: instance-report
+      - equal:
+          path: metadata.labels["app.kubernetes.io/name"]
+          value: mongodb-operator-helm
+      - equal:
+          path: metadata.labels["app.kubernetes.io/managed-by"]
+          value: Helm
+
+  # ── RBAC ─────────────────────────────────────────────────────────────────────
+
+  - it: ClusterRole grants read-only access to CRDs and MongoDBCommunity resources
+    template: templates/instance-report-cluster-role.yaml
+    asserts:
+      - equal:
+          path: rules[0]
+          value:
+            apiGroups: ["apiextensions.k8s.io"]
+            resources: ["customresourcedefinitions"]
+            verbs: ["list", "watch"]
+      - equal:
+          path: rules[1]
+          value:
+            apiGroups: ["mongodbcommunity.mongodb.com"]
+            resources: ["mongodbcommunity"]
+            verbs: ["get", "list", "watch"]
+
+  - it: ClusterRoleBinding binds the ClusterRole to the ServiceAccount in the release namespace
+    template: templates/instance-report-cluster-role-binding.yaml
+    asserts:
+      - equal:
+          path: roleRef
+          value:
+            apiGroup: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: mongodb-kubernetes-operator-report
+      - equal:
+          path: subjects[0]
+          value:
+            kind: ServiceAccount
+            name: mongodb-kubernetes-operator-report
+            namespace: mongodb-operator
+
+  # ── ConfigMap ────────────────────────────────────────────────────────────────
+
+  - it: ConfigMap contains a CustomResourceStateMetrics config for MongoDBCommunity
+    template: templates/instance-report-config-map.yaml
+    asserts:
+      - matchRegex:
+          path: data["crs-config.yaml"]
+          pattern: "kind: MongoDBCommunity"
+      - matchRegex:
+          path: data["crs-config.yaml"]
+          pattern: "mongodbcommunity_status_phase"
+
+  - it: ConfigMap Info metric declares labelsFromPath so it actually emits samples
+    template: templates/instance-report-config-map.yaml
+    asserts:
+      - matchRegex:
+          path: data["crs-config.yaml"]
+          pattern: "labelsFromPath:\\s*\\n\\s*version: \\[spec, version\\]\\s*\\n\\s*type: \\[spec, type\\]"
+
+  # ── Deployment: values wiring ────────────────────────────────────────────────
+
+  - it: Deployment uses the configured image, ports, resources and ServiceAccount by default
+    template: templates/instance-report-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: mongodb-kubernetes-operator-report
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.13.0
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].containerPort
+          value: 8080
+      - equal:
+          path: spec.template.spec.containers[0].ports[1].containerPort
+          value: 8081
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 100m
+      - equal:
+          path: spec.template.spec.volumes[0].configMap.name
+          value: mongodb-kubernetes-operator-report
+
+  - it: Deployment reflects a custom image repository and tag
+    template: templates/instance-report-deployment.yaml
+    set:
+      instanceReport.image.repository: quay.io/example/kube-state-metrics
+      instanceReport.image.tag: v2.14.0
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: quay.io/example/kube-state-metrics:v2.14.0
+
+  - it: Deployment reflects custom ports in both args and containerPorts
+    template: templates/instance-report-deployment.yaml
+    set:
+      instanceReport.ports.metrics: 9090
+      instanceReport.ports.telemetry: 9091
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].containerPort
+          value: 9090
+      - equal:
+          path: spec.template.spec.containers[0].ports[1].containerPort
+          value: 9091
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --port=9090
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --telemetry-port=9091
+
+  - it: Deployment reflects custom resources
+    template: templates/instance-report-deployment.yaml
+    set:
+      instanceReport.resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 50m
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.memory
+          value: 256Mi
+
+  - it: Deployment container runs with least-privilege securityContext
+    template: templates/instance-report-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation
+          value: false
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.capabilities.drop[0]
+          value: ALL
+
+  # ── Service ──────────────────────────────────────────────────────────────────
+
+  - it: Service exposes the configured metrics and telemetry ports
+    template: templates/instance-report-service.yaml
+    asserts:
+      - equal:
+          path: spec.ports[0]
+          value:
+            name: metrics
+            port: 8080
+            targetPort: 8080
+      - equal:
+          path: spec.ports[1]
+          value:
+            name: telemetry
+            port: 8081
+            targetPort: 8081
+
+  - it: Service reflects custom ports
+    template: templates/instance-report-service.yaml
+    set:
+      instanceReport.ports.metrics: 9090
+      instanceReport.ports.telemetry: 9091
+    asserts:
+      - equal:
+          path: spec.ports[0].port
+          value: 9090
+      - equal:
+          path: spec.ports[1].port
+          value: 9091
+
+  # ── ServiceMonitor ───────────────────────────────────────────────────────────
+
+  - it: ServiceMonitor scrapes the metrics port at the configured interval
+    template: templates/instance-report-service-monitor.yaml
+    asserts:
+      - equal:
+          path: spec.endpoints[0].port
+          value: metrics
+      - equal:
+          path: spec.endpoints[0].interval
+          value: 30s
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/component"]
+          value: instance-report
+
+  - it: ServiceMonitor reflects a custom scrape interval
+    template: templates/instance-report-service-monitor.yaml
+    set:
+      instanceReport.scrapeInterval: 1m
+    asserts:
+      - equal:
+          path: spec.endpoints[0].interval
+          value: 1m
+
+  # ── PrometheusRule ───────────────────────────────────────────────────────────
+
+  - it: PrometheusRule alerts on the instance report deployment being down
+    template: templates/instance-report-prometheus-rules.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: mongodb-kubernetes-operator-report
+      - equal:
+          path: spec.groups[0].rules[0].alert
+          value: MongodbInstanceReportDown
+      - matchRegex:
+          path: spec.groups[0].rules[0].expr
+          pattern: 'deployment="mongodb-kubernetes-operator-report"'
+      - equal:
+          path: spec.groups[0].rules[0].for
+          value: 5m
+      - equal:
+          path: spec.groups[0].rules[0].labels
+          value:
+            severity: warning
+            vendor: aspecta
+            team: platform
+
+  - it: PrometheusRule alerts on the instance report pod crash looping
+    template: templates/instance-report-prometheus-rules.yaml
+    asserts:
+      - equal:
+          path: spec.groups[0].rules[1].alert
+          value: MongodbInstanceReportPodCrashLooping
+      - matchRegex:
+          path: spec.groups[0].rules[1].expr
+          pattern: 'pod=~"mongodb-kubernetes-operator-report-\.\*",reason="CrashLoopBackOff"'
+      - equal:
+          path: spec.groups[0].rules[1].for
+          value: 5m
+      - equal:
+          path: spec.groups[0].rules[1].labels
+          value:
+            severity: warning
+            vendor: aspecta
+            team: platform

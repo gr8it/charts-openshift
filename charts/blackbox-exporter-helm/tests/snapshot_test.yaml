@@ -10,3 +10,32 @@ tests:
   - it: manifests should match snapshot
     asserts:
       - matchSnapshot: {}
+
+  - it: does not render hw-xca probe when hwXcaUrl is not set
+    template: templates/probe-xca.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders hw-xca probe when hwXcaUrl is set
+    template: templates/probe-xca.yaml
+    set:
+      hwXcaUrl: https://xca.example.com
+    asserts:
+      - isKind:
+          of: Probe
+      - equal:
+          path: metadata.name
+          value: hw-xca
+      - equal:
+          path: metadata.namespace
+          value: apc-blackbox-exporter
+      - equal:
+          path: spec.module
+          value: http_2xx
+      - equal:
+          path: spec.targets.staticConfig.static[0]
+          value: https://xca.example.com
+      - equal:
+          path: spec.targets.staticConfig.labels.target
+          value: hw-xca

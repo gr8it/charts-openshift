@@ -13,7 +13,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: application-gitops
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: application-gitops
-        helm.sh/chart: application-gitops-1.5.1
+        helm.sh/chart: application-gitops-1.6.0
       name: application-gitops
     spec:
       background: true
@@ -88,6 +88,9 @@ manifests should match snapshot:
               - key: '{{ request.object.metadata.name }}'
                 operator: Equals
                 value: '{{ request.object.metadata.namespace }}'
+              - key: '{{ request.operation }}'
+                operator: NotEquals
+                value: UPDATE
         - generate:
             apiVersion: v1
             data:
@@ -117,6 +120,9 @@ manifests should match snapshot:
               - key: '{{ request.object.metadata.name }}'
                 operator: Equals
                 value: '{{ request.object.metadata.namespace }}'
+              - key: '{{ request.operation }}'
+                operator: NotEquals
+                value: UPDATE
         - generate:
             apiVersion: rbac.authorization.k8s.io/v1
             data:
@@ -148,6 +154,9 @@ manifests should match snapshot:
               - key: '{{ request.object.metadata.name }}'
                 operator: Equals
                 value: '{{ request.object.metadata.namespace }}'
+              - key: '{{ request.operation }}'
+                operator: NotEquals
+                value: UPDATE
       validationFailureAction: Audit
   2: |
     apiVersion: rbac.authorization.k8s.io/v1

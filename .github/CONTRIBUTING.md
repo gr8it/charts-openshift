@@ -27,6 +27,7 @@ Original generic contributing rules located at <https://github.com/gr8it/private
 - Branch / Pull request name shall include the Jira ticket ID, e.g. SPEXAPC-3288, so Jira can map the PR to a ticket automatically
 - Creator of the comment should resolve the conversation, as he opened it
 - Creator of the PR should merge the PR, so all required parties gave their review
+- When implementing GitOps for an already deployed application, ArgoCD Application(s) in relevant environments with **automated sync disabled** must be included in the PR. Ensure that the diffs are minimal, usually consisting of resource label changes only
 - Keep git history
   <details>
   <summary>Click for explanation</summary>
@@ -38,7 +39,7 @@ Original generic contributing rules located at <https://github.com/gr8it/private
   - Explicit approval is optional for changes to dev environment
   - Approval (= review) should be given for merges of whole (nontrivial) tasks to dev environment
   - Explicit approval is required for changes to non dev environments
-- After required changes are applied, re-request review from the particular reviewer 
+- After required changes are applied, re-request review from the particular reviewer
 - Delete branch, after PR is merged
 
 ## Documentation

@@ -1,0 +1,70 @@
+{{- if .Values.instanceReport.enabled }}
+---
+{{- $name := printf "%s-report" (index .Values "mongodb-kubernetes").operator.name }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mongodb-operator-helm.labels" . | nindent 4 }}
+    app.kubernetes.io/component: instance-report
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "mongodb-operator-helm.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: instance-report
+  template:
+    metadata:
+      annotations:
+        checksum/instance-report-config: {{ include (print $.Template.BasePath "/instance-report-config-map.yaml") . | sha256sum }}
+      labels:
+        {{- include "mongodb-operator-helm.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: instance-report
+    spec:
+      serviceAccountName: {{ $name }}
+      containers:
+        - name: kube-state-metrics
+          image: {{ .Values.instanceReport.image.repository }}:{{ .Values.instanceReport.image.tag }}
+          imagePullPolicy: IfNotPresent
+          args:
+            - --custom-resource-state-config-file=/etc/kube-state-metrics/crs-config.yaml
+            - --custom-resource-state-only=true
+            - --port={{ .Values.instanceReport.ports.metrics }}
+            - --telemetry-port={{ .Values.instanceReport.ports.telemetry }}
+          ports:
+            - name: metrics
+              containerPort: {{ .Values.instanceReport.ports.metrics }}
+            - name: telemetry
+              containerPort: {{ .Values.instanceReport.ports.telemetry }}
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: metrics
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: telemetry
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            {{- toYaml .Values.instanceReport.resources | nindent 12 }}
+          volumeMounts:
+            - name: crs-config
+              mountPath: /etc/kube-state-metrics
+      volumes:
+        - name: crs-config
+          configMap:
+            name: {{ $name }}
+{{- end }}

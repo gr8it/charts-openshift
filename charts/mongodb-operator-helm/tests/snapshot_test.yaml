@@ -1,0 +1,12 @@
+suite: Snapshot test
+templates:
+  - templates/instance-report-*.yaml
+values:
+  - ../values.example.yaml
+release:
+  name: mongodb-operator-helm
+
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}

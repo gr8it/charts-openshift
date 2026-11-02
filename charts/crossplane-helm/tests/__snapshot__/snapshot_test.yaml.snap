@@ -8,7 +8,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: crossplane-helm
         app.kubernetes.io/version: 2.1.3
-        helm.sh/chart: crossplane-helm-2.2.2
+        helm.sh/chart: crossplane-helm-2.3.0
       name: crossplane-helm-allow-proxy
       namespace: apc-crossplane-system
     spec:
@@ -30,7 +30,34 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: crossplane-helm
         app.kubernetes.io/version: 2.1.3
-        helm.sh/chart: crossplane-helm-2.2.2
+        helm.sh/chart: crossplane-helm-2.3.0
+      name: crossplane-helm-providers
+      namespace: apc-crossplane-system
+    spec:
+      namespaceSelector:
+        matchNames:
+          - apc-crossplane-system
+      podMetricsEndpoints:
+        - metricRelabelings:
+            - action: keep
+              regex: crossplane_managed_resource_(exists|synced|ready)
+              sourceLabels:
+                - __name__
+          port: metrics
+      selector:
+        matchExpressions:
+          - key: pkg.crossplane.io/provider
+            operator: Exists
+  3: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PodMonitor
+    metadata:
+      labels:
+        app.kubernetes.io/instance: crossplane-helm
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: crossplane-helm
+        app.kubernetes.io/version: 2.1.3
+        helm.sh/chart: crossplane-helm-2.3.0
       name: crossplane-helm-rbac-manager
       namespace: apc-crossplane-system
     spec:
@@ -42,7 +69,7 @@ manifests should match snapshot:
       selector:
         matchLabels:
           app: crossplane-rbac-manager
-  3: |
+  4: |
     apiVersion: monitoring.coreos.com/v1
     kind: PodMonitor
     metadata:
@@ -51,8 +78,8 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: crossplane-helm
         app.kubernetes.io/version: 2.1.3
-        helm.sh/chart: crossplane-helm-2.2.2
-      name: crossplane-helm
+        helm.sh/chart: crossplane-helm-2.3.0
+      name: crossplane-helm-podmonitor
       namespace: apc-crossplane-system
     spec:
       namespaceSelector:
@@ -63,7 +90,7 @@ manifests should match snapshot:
       selector:
         matchLabels:
           app: crossplane
-  4: |
+  5: |
     apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule
     metadata:
@@ -72,8 +99,8 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: crossplane-helm
         app.kubernetes.io/version: 2.1.3
-        helm.sh/chart: crossplane-helm-2.2.2
-      name: crossplane-helm
+        helm.sh/chart: crossplane-helm-2.3.0
+      name: crossplane-helm-rules
       namespace: apc-crossplane-system
     spec:
       groups:
@@ -84,7 +111,7 @@ manifests should match snapshot:
                 description: Crossplane controller pod has been down for more than 10 minutes
                 summary: Crossplane controller is not running
               expr: |
-                absent(up{job="apc-crossplane-system/crossplane-helm"}) == 1
+                absent(up{job="apc-crossplane-system/crossplane-helm-podmonitor"} == 1)
               for: 10m
               labels:
                 severity: warning
@@ -95,7 +122,7 @@ manifests should match snapshot:
                 description: Crossplane controller has reconciliation errors for controller {{ $labels.controller }}
                 summary: Crossplane reconciliation errors detected
               expr: |
-                increase(controller_runtime_reconcile_errors_total{job="apc-crossplane-system/crossplane-helm"}[15m]) > 0
+                increase(controller_runtime_reconcile_errors_total{job="apc-crossplane-system/crossplane-helm-podmonitor"}[15m]) > 0
               for: 10m
               labels:
                 severity: warning
@@ -106,8 +133,54 @@ manifests should match snapshot:
                 description: Crossplane RBAC manager pod has been down for more than 10 minutes
                 summary: Crossplane RBAC manager is not running
               expr: |
-                absent(up{job="apc-crossplane-system/crossplane-helm-rbac-manager"}) == 1
+                absent(up{job="apc-crossplane-system/crossplane-helm-rbac-manager"} == 1)
               for: 10m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: CrossplaneProviderDown
+              annotations:
+                description: Crossplane provider deployment {{ $labels.deployment }} has no available replicas for more than 10 minutes
+                summary: Crossplane provider is not running
+              expr: |
+                kube_deployment_status_replicas_available{namespace="apc-crossplane-system", deployment=~".+-provider-.+"} == 0
+              for: 10m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: CrossplaneProviderMetricsDown
+              annotations:
+                description: Metrics of Crossplane provider pod {{ $labels.pod }} cannot be scraped for more than 10 minutes. Managed resources alerts do not work for this provider.
+                summary: Crossplane provider metrics are not available
+              expr: |
+                up{job="apc-crossplane-system/crossplane-helm-providers"} == 0
+              for: 10m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: CrossplaneManagedResourcesNotSynced
+              annotations:
+                description: '{{ $value }} managed resources of {{ $labels.gvk }} are not synced for more than 30 minutes. Check status.conditions of the resources and the provider credentials (ProviderConfig).'
+                summary: Crossplane managed resources are not synced
+              expr: |
+                max by (gvk) (crossplane_managed_resource_exists{job="apc-crossplane-system/crossplane-helm-providers"})
+                  - max by (gvk) (crossplane_managed_resource_synced{job="apc-crossplane-system/crossplane-helm-providers"}) > 0
+              for: 30m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: CrossplaneManagedResourcesNotReady
+              annotations:
+                description: '{{ $value }} managed resources of {{ $labels.gvk }} are not ready for more than 1 hour. Check status.conditions of the resources and the state of the external resources.'
+                summary: Crossplane managed resources are not ready
+              expr: |
+                max by (gvk) (crossplane_managed_resource_exists{job="apc-crossplane-system/crossplane-helm-providers"})
+                  - max by (gvk) (crossplane_managed_resource_ready{job="apc-crossplane-system/crossplane-helm-providers"}) > 0
+              for: 1h
               labels:
                 severity: warning
                 team: platform

@@ -1,0 +1,33 @@
+apiVersion: dynatrace.com/v1beta6
+kind: DynaKube
+metadata:
+  name: {{ include "apc-global-overrides.clusterName" . | default .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "dynatrace-instance.labels" . | nindent 4 }}
+  annotations:
+    {{- $annotations := merge (deepCopy (.Values.annotations | default dict)) (dict "feature.dynatrace.com/automatic-kubernetes-api-monitoring-cluster-name" (include "apc-global-overrides.clusterName" $ | default $.Release.Name )) }}
+    {{- toYaml $annotations | nindent 4 }}
+spec:
+  apiUrl: {{ required "apiUrl is required" .Values.apiUrl | quote }}
+  skipCertCheck: {{ .Values.skipCertCheck }}
+  trustedCAs: {{ .Release.Name }}-trusted-ca
+  tokens: {{ .Release.Name }}
+  {{- with .Values.metadataEnrichment }}
+  metadataEnrichment:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  oneAgent:
+    hostGroup: {{ .Values.hostGroup | default (include "apc-global-overrides.clusterName" . | default .Release.Name) | quote }}
+    applicationMonitoring:
+      namespaceSelector:
+        matchLabels:
+          apc.namespace.telemetry: external-dynatrace
+  {{- with .Values.activeGate }}
+  activeGate:
+    capabilities:
+      {{- toYaml .capabilities | nindent 6 }}
+    resources:
+      {{- toYaml .resources | nindent 6 }}
+    group: {{ .group | default (printf "os-%s" (include "apc-global-overrides.clusterName" $ | default $.Release.Name)) | quote }}
+  {{- end }}

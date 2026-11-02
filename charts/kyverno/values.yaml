@@ -1,3 +1,12 @@
+dashboard:
+  resyncPeriod: 10m
+  instanceSelector:
+    matchLabels:
+      dashboards: apc-grafana
+  datasource:
+    name: prometheus
+    inputName: DS_PROMETHEUS
+
 kyverno:
   features:
     backgroundScan:
@@ -218,6 +227,7 @@ kyverno:
         cpu: 10m
         memory: 64Mi
   reportsController:
+    enabled: true
     replicas: 2
     serviceMonitor:
       enabled: true

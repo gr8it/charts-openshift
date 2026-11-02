@@ -1,0 +1,36 @@
+{{- if .Values.instanceReport.enabled }}
+---
+{{- $name := printf "%s-report" (index .Values "mongodb-kubernetes").operator.name }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ $name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mongodb-operator-helm.labels" . | nindent 4 }}
+    app.kubernetes.io/component: instance-report
+spec:
+  groups:
+    - name: {{ $name }}.rules
+      rules:
+        - alert: MongodbInstanceReportDown
+          expr: kube_deployment_status_replicas_available{namespace="{{ .Release.Namespace }}",deployment="{{ $name }}"} == 0 or absent(kube_deployment_status_replicas_available{namespace="{{ .Release.Namespace }}",deployment="{{ $name }}"})
+          for: 5m
+          labels:
+            severity: warning
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: "MongoDB instance report is down"
+            description: "The MongoDB instance report deployment in namespace {{`{{ $labels.namespace }}`}} has no available replicas for more than 5 minutes."
+        - alert: MongodbInstanceReportPodCrashLooping
+          expr: max_over_time(kube_pod_container_status_waiting_reason{namespace="{{ .Release.Namespace }}",pod=~"{{ $name }}-.*",reason="CrashLoopBackOff"}[5m]) > 0
+          for: 5m
+          labels:
+            severity: warning
+            vendor: aspecta
+            team: platform
+          annotations:
+            summary: "MongoDB instance report pod is crash looping"
+            description: "Pod {{`{{ $labels.pod }}`}} in namespace {{`{{ $labels.namespace }}`}} is crash looping."
+{{- end }}
