@@ -1,0 +1,132 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "operator-readiness values",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "global": {
+      "type": "object",
+      "description": "Global values to be accessed by all (sub)charts.",
+      "additionalProperties": true
+    },
+    "nameOverride": {
+      "type": "string",
+      "description": "Overrides chart name used for resource names and app.kubernetes.io/name."
+    },
+    "image": {
+      "type": "string",
+      "description": "readiness-engine container image.",
+      "minLength": 1
+    },
+    "interval": {
+      "type": "string",
+      "description": "Collector interval as Go duration (e.g. 30m, 1h).",
+      "pattern": "^([0-9]+(s|m|h))+$"
+    },
+    "policy": {
+      "type": "object",
+      "description": "Readiness policy passed to the engine unchanged. Only strategy is validated here.",
+      "additionalProperties": true,
+      "properties": {
+        "strategy": {
+          "type": "string",
+          "enum": [
+            "eus",
+            "next-minor",
+            "pinned"
+          ]
+        },
+        "minVersions": {
+          "type": "object",
+          "description": "Package -> minimum installed version (major.minor.patch); below it = BELOW-MIN.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "drift": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "maxDaysBehind": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "A newer version in the channel for longer than this = BEHIND (default 90)."
+            },
+            "supportWarnDays": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Vendor support ends within this many days = SUPPORT-ENDING (default 180)."
+            }
+          }
+        }
+      }
+    },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "repository": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Optional OCI repository in hub Quay for the snapshot; empty = no push."
+        },
+        "pushSecret": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Existing dockerconfigjson Secret with Quay push credentials; required when repository is set."
+        }
+      }
+    },
+    "grafanaDashboard": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "instanceName": {
+          "type": "string",
+          "description": "Value of the dashboards label on the Grafana instance.",
+          "minLength": 1
+        }
+      }
+    },
+    "imagePullSecrets": {
+      "type": "array",
+      "description": "Names of existing dockerconfigjson Secrets used to pull the image.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "nodeSelector": {
+      "type": "object",
+      "description": "Optional pod nodeSelector.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "proxy": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Local override of global.apc.proxy."
+    },
+    "noProxy": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Local override of global.apc.noProxy."
+    },
+    "apc-global-overrides": {
+      "type": "object",
+      "description": "Values of the apc-global-overrides library dependency."
+    }
+  }
+}

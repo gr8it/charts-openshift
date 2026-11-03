@@ -1,0 +1,34 @@
+global:
+  apc:
+    proxy: http://proxy.example.com:3128
+    noProxy: .example.com
+
+image: quay-registry.apps.hub01.example.com/apc/readiness-engine:0.6.0  # mirror of ghcr.io/gr8it/readiness-engine
+interval: 1h
+
+policy:
+  strategy: eus
+  lockstep: [kubevirt-hyperconverged, odf-operator]
+  graph:
+    conditionalRisks: block
+  unsupportedWindow:
+    allow: [redhat-oadp-operator]
+  # drift checks (all optional): minimum versions the platform needs, thresholds for BEHIND / SUPPORT-ENDING
+  minVersions:
+    openshift-gitops-operator: "1.21.0"
+  drift:
+    maxDaysBehind: 90
+    supportWarnDays: 180
+  exceptions:
+    - package: external-secrets
+      reason: upstream, no OCP support matrix
+      owner: platform-team
+      expires: "2027-03-31"
+
+snapshot:
+  repository: quay-registry.apps.hub01.example.com/apc/operator-readiness-snapshot
+  pushSecret: operator-readiness-quay-push
+
+grafanaDashboard:
+  enabled: true
+  instanceName: apc-grafana

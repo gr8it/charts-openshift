@@ -1,0 +1,38 @@
+## uses following global values => do not set here
+# global:
+#   apc:
+#     proxy:    # egress proxy for access.redhat.com, api.openshift.com and catalog.redhat.com (HTTPS_PROXY, HTTP_PROXY)
+#     noProxy:  # NO_PROXY; .svc, .cluster.local and the API service IP are appended (urllib ignores CIDRs)
+## and their local overrides
+# proxy: ~
+# noProxy: ~
+
+# image: <string> - readiness-engine container image (ghcr.io is private: mirror it to a registry the cluster can pull from)
+image: ghcr.io/gr8it/readiness-engine:0.6.0
+# imagePullSecrets: <list> - names of existing kubernetes.io/dockerconfigjson Secrets used to pull the image
+imagePullSecrets: []
+# nodeSelector: <object> - optional pod nodeSelector (e.g. to pin the pod to a node that already holds the image)
+nodeSelector: {}
+# interval: <duration> - how often the collector gathers inventory, graph, catalogs and Lifecycle API data
+interval: 1h
+
+# policy: <object> - mandatory, readiness policy rendered as-is into ConfigMap (see https://github.com/gr8it/apc-operators-guard/blob/main/docs/02-design.md, "Policy")
+#   strategy (required) eus | next-minor | pinned
+#   lockstep, graph.conditionalRisks, unsupportedWindow.allow, exceptions, lifecycleProducts, catalogSources,
+#   helmOperators are used by the engine
+#   minVersions (package -> minimum installed version), drift.maxDaysBehind / drift.supportWarnDays
+#   (see https://github.com/gr8it/apc-operators-guard/blob/main/engine/README.md); other keys are passed unchanged
+policy: {}
+
+snapshot:
+  # repository: <string> - optional, OCI repository in hub Quay where the snapshot is pushed (consumed by conf repo CI);
+  #   without it nothing is pushed and the snapshot stays in the pod cache
+  repository: ~
+  # pushSecret: <string> - mandatory when repository is set, existing kubernetes.io/dockerconfigjson Secret with Quay robot push credentials
+  pushSecret: ~
+
+grafanaDashboard:
+  # enabled: <bool> - creates GrafanaDashboard CR for grafana-operator
+  enabled: true
+  # instanceName: <string> - value of the `dashboards` label on the Grafana instance
+  instanceName: apc-grafana
