@@ -1,0 +1,778 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      labels:
+        app.kubernetes.io/instance: operator-readiness
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: operator-readiness
+        app.kubernetes.io/version: 0.6.0
+        helm.sh/chart: operator-readiness-1.0.0
+      name: operator-readiness
+    rules:
+      - apiGroups:
+          - config.openshift.io
+        resourceNames:
+          - version
+        resources:
+          - clusterversions
+        verbs:
+          - get
+      - apiGroups:
+          - apiserver.openshift.io
+        resources:
+          - apirequestcounts
+        verbs:
+          - list
+      - apiGroups:
+          - cluster.open-cluster-management.io
+        resources:
+          - managedclusters
+        verbs:
+          - list
+      - apiGroups:
+          - operators.coreos.com
+        resources:
+          - subscriptions
+          - clusterserviceversions
+        verbs:
+          - list
+      - apiGroups:
+          - apps
+        resources:
+          - deployments
+        verbs:
+          - list
+      - apiGroups:
+          - policy.open-cluster-management.io
+        resources:
+          - operatorpolicies
+        verbs:
+          - list
+      - apiGroups:
+          - view.open-cluster-management.io
+        resources:
+          - managedclusterviews
+        verbs:
+          - get
+          - create
+          - delete
+  2: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: operator-readiness
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: operator-readiness
+        app.kubernetes.io/version: 0.6.0
+        helm.sh/chart: operator-readiness-1.0.0
+      name: operator-readiness
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: operator-readiness
+    subjects:
+      - kind: ServiceAccount
+        name: operator-readiness
+        namespace: apc-operator-readiness
+  3: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app.kubernetes.io/instance: operator-readiness
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: operator-readiness
+        app.kubernetes.io/version: 0.6.0
+        helm.sh/chart: operator-readiness-1.0.0
+      name: operator-readiness
+      namespace: apc-operator-readiness
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app.kubernetes.io/instance: operator-readiness
+          app.kubernetes.io/name: operator-readiness
+      strategy:
+        type: Recreate
+      template:
+        metadata:
+          annotations:
+            checksum/policy: 212d9deaf34ba45f3102f70fb681b804b922aceacd9607d5beed3a8d0d304a05
+          labels:
+            app.kubernetes.io/instance: operator-readiness
+            app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/name: operator-readiness
+            app.kubernetes.io/version: 0.6.0
+            helm.sh/chart: operator-readiness-1.0.0
+        spec:
+          containers:
+            - args:
+                - collect
+                - --loop
+                - --interval=1h
+                - --policy=/etc/readiness/policy.yaml
+                - --snapshot-repository=quay-registry.apps.hub01.example.com/apc/operator-readiness-snapshot
+                - --cache-dir=/var/cache/readiness
+                - --listen=:8080
+              env:
+                - name: HTTPS_PROXY
+                  value: http://proxy.example.com:3128
+                - name: HTTP_PROXY
+                  value: http://proxy.example.com:3128
+                - name: NO_PROXY
+                  value: .example.com,.svc,.cluster.local,$(KUBERNETES_SERVICE_HOST)
+                - name: SNAPSHOT_AUTH_FILE
+                  value: /run/secrets/snapshot-push/.dockerconfigjson
+                - name: SEARCH_API_URL
+                  value: https://search-search-api.open-cluster-management.svc:4010/searchapi/graphql
+                - name: SEARCH_API_CA_FILE
+                  value: /etc/pki/service-ca/service-ca.crt
+              image: quay-registry.apps.hub01.example.com/apc/readiness-engine:0.6.0
+              livenessProbe:
+                httpGet:
+                  path: /healthz
+                  port: metrics
+                periodSeconds: 30
+              name: collector
+              ports:
+                - containerPort: 8080
+                  name: metrics
+                  protocol: TCP
+              readinessProbe:
+                httpGet:
+                  path: /readyz
+                  port: metrics
+              resources:
+                limits:
+                  cpu: "1"
+                  memory: 2Gi
+                requests:
+                  cpu: 200m
+                  memory: 1Gi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                readOnlyRootFilesystem: true
+              volumeMounts:
+                - mountPath: /etc/readiness
+                  name: policy
+                  readOnly: true
+                - mountPath: /run/secrets/snapshot-push
+                  name: snapshot-push
+                  readOnly: true
+                - mountPath: /etc/pki/service-ca
+                  name: service-ca
+                  readOnly: true
+                - mountPath: /var/cache/readiness
+                  name: cache
+                - mountPath: /tmp
+                  name: tmp
+          securityContext:
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+          serviceAccountName: operator-readiness
+          volumes:
+            - configMap:
+                name: operator-readiness-policy
+              name: policy
+            - name: snapshot-push
+              secret:
+                secretName: operator-readiness-quay-push
+            - configMap:
+                name: openshift-service-ca.crt
+              name: service-ca
+            - emptyDir:
+                sizeLimit: 5Gi
+              name: cache
+            - emptyDir: {}
+              name: tmp
+  4: |
+    apiVersion: grafana.integreatly.org/v1beta1
+    kind: GrafanaDashboard
+    metadata:
+      labels:
+        app.kubernetes.io/instance: operator-readiness
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: operator-readiness
+        app.kubernetes.io/version: 0.6.0
+        helm.sh/chart: operator-readiness-1.0.0
+      name: operator-readiness
+      namespace: apc-operator-readiness
+    spec:
+      allowCrossNamespaceImport: true
+      instanceSelector:
+        matchLabels:
+          dashboards: apc-grafana
+      json: |
+        {
+          "title": "Operator upgrade readiness",
+          "uid": "operator-readiness",
+          "schemaVersion": 39,
+          "refresh": "5m",
+          "time": {
+            "from": "now-7d",
+            "to": "now"
+          },
+          "templating": {
+            "list": [
+              {
+                "name": "datasource",
+                "type": "datasource",
+                "query": "prometheus"
+              },
+              {
+                "name": "cluster",
+                "type": "query",
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "${datasource}"
+                },
+                "query": "label_values(operator_upgrade_readiness, cluster)",
+                "multi": true,
+                "includeAll": true
+              },
+              {
+                "name": "package",
+                "type": "query",
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "${datasource}"
+                },
+                "query": "label_values(operator_upgrade_readiness{cluster=~\"$cluster\"}, package)",
+                "refresh": 2,
+                "sort": 1,
+                "multi": true,
+                "includeAll": true,
+                "allValue": ".*"
+              },
+              {
+                "name": "status",
+                "type": "query",
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "${datasource}"
+                },
+                "query": "label_values(operator_upgrade_readiness{cluster=~\"$cluster\", package=~\"$package\"}, status)",
+                "refresh": 2,
+                "sort": 1,
+                "multi": true,
+                "includeAll": true,
+                "allValue": ".*"
+              }
+            ]
+          },
+          "panels": [
+            {
+              "type": "stat",
+              "title": "Blockers (target)",
+              "gridPos": {
+                "x": 0,
+                "y": 0,
+                "w": 6,
+                "h": 4
+              },
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "targets": [
+                {
+                  "expr": "count(operator_upgrade_readiness{cluster=~\"$cluster\", package=~\"$package\", scope=\"target\", status=\"BLOCKER\"}) or vector(0)"
+                }
+              ],
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": 1
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "type": "stat",
+              "title": "Actions (target)",
+              "gridPos": {
+                "x": 6,
+                "y": 0,
+                "w": 6,
+                "h": 4
+              },
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "targets": [
+                {
+                  "expr": "count(operator_upgrade_readiness{cluster=~\"$cluster\", package=~\"$package\", scope=\"target\", status=~\"ACTION.*\"}) or vector(0)"
+                }
+              ]
+            },
+            {
+              "type": "stat",
+              "title": "Warn / Unknown (target)",
+              "gridPos": {
+                "x": 12,
+                "y": 0,
+                "w": 6,
+                "h": 4
+              },
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "targets": [
+                {
+                  "expr": "count(operator_upgrade_readiness{cluster=~\"$cluster\", package=~\"$package\", scope=\"target\", status=~\"WARN|UNKNOWN\"}) or vector(0)"
+                }
+              ],
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "orange",
+                        "value": 1
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "type": "stat",
+              "title": "Data age",
+              "gridPos": {
+                "x": 18,
+                "y": 0,
+                "w": 6,
+                "h": 4
+              },
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "targets": [
+                {
+                  "expr": "time() - max(readiness_engine_last_success_timestamp_seconds)"
+                }
+              ],
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "s",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": 10800
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "type": "table",
+              "title": "Operators",
+              "gridPos": {
+                "x": 0,
+                "y": 4,
+                "w": 24,
+                "h": 16
+              },
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "targets": [
+                {
+                  "expr": "operator_upgrade_readiness{cluster=~\"$cluster\", package=~\"$package\", status=~\"$status\"}",
+                  "format": "table",
+                  "instant": true
+                }
+              ],
+              "transformations": [
+                {
+                  "id": "organize",
+                  "options": {
+                    "excludeByName": {
+                      "Time": true,
+                      "Value": true,
+                      "__name__": true,
+                      "container": true,
+                      "endpoint": true,
+                      "instance": true,
+                      "job": true,
+                      "pod": true,
+                      "service": true,
+                      "prometheus": true
+                    },
+                    "indexByName": {
+                      "cluster": 0,
+                      "package": 1,
+                      "installed": 2,
+                      "channel": 3,
+                      "scope": 4,
+                      "target_ocp": 5,
+                      "status": 6,
+                      "evidence": 7
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "table",
+              "title": "Operator drift (BEHIND, CATALOG-LAG, PIN-STALE, SUPPORT-*, BELOW-MIN)",
+              "gridPos": {
+                "x": 0,
+                "y": 20,
+                "w": 24,
+                "h": 12
+              },
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "targets": [
+                {
+                  "expr": "operator_drift_status{cluster=~\"$cluster\", package=~\"$package\", status!~\"OK|UNKNOWN\"}",
+                  "format": "table",
+                  "instant": true
+                }
+              ],
+              "transformations": [
+                {
+                  "id": "organize",
+                  "options": {
+                    "excludeByName": {
+                      "Time": true,
+                      "Value": true,
+                      "__name__": true,
+                      "container": true,
+                      "endpoint": true,
+                      "instance": true,
+                      "job": true,
+                      "pod": true,
+                      "service": true,
+                      "prometheus": true
+                    },
+                    "indexByName": {
+                      "cluster": 0,
+                      "package": 1,
+                      "installed": 2,
+                      "channel": 3,
+                      "status": 4
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "table",
+              "title": "Same operator, different versions per cluster",
+              "gridPos": {
+                "x": 0,
+                "y": 32,
+                "w": 24,
+                "h": 10
+              },
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "targets": [
+                {
+                  "expr": "max by (package, cluster, installed) (operator_drift_status{cluster=~\"$cluster\", package=~\"$package\", installed!=\"\"} * on(package) group_left() (operator_version_spread > 1))",
+                  "format": "table",
+                  "instant": true
+                }
+              ],
+              "transformations": [
+                {
+                  "id": "organize",
+                  "options": {
+                    "excludeByName": {
+                      "Time": true,
+                      "Value": true,
+                      "__name__": true
+                    },
+                    "indexByName": {
+                      "package": 0,
+                      "cluster": 1,
+                      "installed": 2
+                    }
+                  }
+                },
+                {
+                  "id": "sortBy",
+                  "options": {
+                    "sort": [
+                      {
+                        "field": "package"
+                      },
+                      {
+                        "field": "cluster"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+  5: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      labels:
+        app.kubernetes.io/instance: operator-readiness
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: operator-readiness
+        app.kubernetes.io/version: 0.6.0
+        helm.sh/chart: operator-readiness-1.0.0
+      name: operator-readiness-packagemanifests
+      namespace: openshift-marketplace
+    rules:
+      - apiGroups:
+          - packages.operators.coreos.com
+        resources:
+          - packagemanifests
+        verbs:
+          - get
+  6: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: operator-readiness
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: operator-readiness
+        app.kubernetes.io/version: 0.6.0
+        helm.sh/chart: operator-readiness-1.0.0
+      name: operator-readiness-packagemanifests
+      namespace: openshift-marketplace
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: operator-readiness-packagemanifests
+    subjects:
+      - kind: ServiceAccount
+        name: operator-readiness
+        namespace: apc-operator-readiness
+  7: |
+    apiVersion: v1
+    data:
+      policy.yaml: |
+        drift:
+          maxDaysBehind: 90
+          supportWarnDays: 180
+        exceptions:
+        - expires: "2027-03-31"
+          owner: platform-team
+          package: external-secrets
+          reason: upstream, no OCP support matrix
+        graph:
+          conditionalRisks: block
+        lockstep:
+        - kubevirt-hyperconverged
+        - odf-operator
+        minVersions:
+          openshift-gitops-operator: 1.21.0
+        strategy: eus
+        unsupportedWindow:
+          allow:
+          - redhat-oadp-operator
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/instance: operator-readiness
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: operator-readiness
+        app.kubernetes.io/version: 0.6.0
+        helm.sh/chart: operator-readiness-1.0.0
+      name: operator-readiness-policy
+      namespace: apc-operator-readiness
+  8: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: operator-readiness
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: operator-readiness
+        app.kubernetes.io/version: 0.6.0
+        helm.sh/chart: operator-readiness-1.0.0
+      name: operator-readiness-rules
+      namespace: apc-operator-readiness
+    spec:
+      groups:
+        - name: operator-readiness.rules
+          rules:
+            - alert: OperatorUnsupportedNow
+              annotations:
+                description: '{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }} is not supported on the current OCP minor (evidence: {{ $labels.evidence }}).'
+                summary: Operator is not supported on the running OpenShift version
+              expr: operator_upgrade_readiness{scope="current", status="BLOCKER"} == 1
+              for: 1h
+              labels:
+                severity: critical
+                team: platform
+                vendor: aspecta
+            - alert: OperatorUpgradeBlocker
+              annotations:
+                description: '{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }} blocks upgrade to OCP {{ $labels.target_ocp }} (evidence: {{ $labels.evidence }}).'
+                summary: Operator blocks the OpenShift upgrade
+              expr: operator_upgrade_readiness{scope="target", status="BLOCKER"} == 1
+              for: 1h
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: OperatorSupportEnded
+              annotations:
+                description: '{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }}: vendor support of this version line has ended.'
+                summary: Vendor support of the installed operator version has ended
+              expr: operator_drift_status{status="SUPPORT-ENDED"} == 1
+              for: 24h
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: OperatorBelowMinVersion
+              annotations:
+                description: '{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }} is below policy.minVersions.'
+                summary: Installed operator is below the version the platform requires
+              expr: operator_below_min_version == 1
+              for: 1h
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: OperatorPinStale
+              annotations:
+                description: The OperatorPolicy of {{ $labels.package }} on cluster {{ $labels.cluster }} (installed {{ $labels.installed }}) lacks the channel head or the pending InstallPlan CSV in versions[].
+                summary: OperatorPolicy versions[] does not cover the newest catalog version
+              expr: operator_pin_stale == 1
+              for: 7d
+              labels:
+                severity: info
+                team: platform
+                vendor: aspecta
+            - alert: OperatorVersionBehind
+              annotations:
+                description: '{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }} is behind its channel.'
+                summary: Newer operator version has been available for longer than policy.drift.maxDaysBehind
+              expr: operator_drift_status{status="BEHIND"} == 1
+              for: 7d
+              labels:
+                severity: info
+                team: platform
+                vendor: aspecta
+            - alert: OperatorReadinessCollectStale
+              annotations:
+                description: readiness-engine in apc-operator-readiness has not completed a successful collect for more than 3 hours; readiness results and the CI snapshot are outdated.
+                summary: Operator readiness data is stale
+              expr: time() - readiness_engine_last_success_timestamp_seconds{namespace="apc-operator-readiness"} > 3 * 3600
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: OperatorReadinessNoData
+              annotations:
+                description: readiness-engine in apc-operator-readiness has not completed any successful collect for 30 minutes (pod not ready or not scraped). Check the pod logs.
+                summary: Operator readiness collector has no data
+              expr: absent(readiness_engine_last_success_timestamp_seconds{namespace="apc-operator-readiness"})
+              for: 30m
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: OperatorReadinessSourceDown
+              annotations:
+                description: Source {{ $labels.source }} has been unavailable for 6 hours; affected results are reported as UNKNOWN.
+                summary: Operator readiness data source is unavailable
+              expr: readiness_engine_source_up{namespace="apc-operator-readiness"} == 0
+              for: 6h
+              labels:
+                severity: warning
+                team: platform
+                vendor: aspecta
+  9: |
+    apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app.kubernetes.io/instance: operator-readiness
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: operator-readiness
+        app.kubernetes.io/version: 0.6.0
+        helm.sh/chart: operator-readiness-1.0.0
+      name: operator-readiness
+      namespace: apc-operator-readiness
+    spec:
+      ports:
+        - name: metrics
+          port: 8080
+          protocol: TCP
+          targetPort: metrics
+      selector:
+        app.kubernetes.io/instance: operator-readiness
+        app.kubernetes.io/name: operator-readiness
+  10: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      labels:
+        app.kubernetes.io/instance: operator-readiness
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: operator-readiness
+        app.kubernetes.io/version: 0.6.0
+        helm.sh/chart: operator-readiness-1.0.0
+      name: operator-readiness
+      namespace: apc-operator-readiness
+    spec:
+      endpoints:
+        - interval: 5m
+          port: metrics
+      selector:
+        matchLabels:
+          app.kubernetes.io/instance: operator-readiness
+          app.kubernetes.io/name: operator-readiness
+  11: |
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      labels:
+        app.kubernetes.io/instance: operator-readiness
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: operator-readiness
+        app.kubernetes.io/version: 0.6.0
+        helm.sh/chart: operator-readiness-1.0.0
+      name: operator-readiness
+      namespace: apc-operator-readiness

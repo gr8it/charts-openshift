@@ -1,0 +1,138 @@
+suite: Use cases
+values:
+  - ../values.example.yaml
+release:
+  name: operator-readiness
+  namespace: apc-operator-readiness
+
+tests:
+  - it: does not render GrafanaDashboard when disabled
+    template: templates/grafanaDashboard.yaml
+    set:
+      grafanaDashboard.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: selects the Grafana instance by dashboards label
+    template: templates/grafanaDashboard.yaml
+    set:
+      grafanaDashboard.instanceName: grafana-custom
+    asserts:
+      - equal:
+          path: spec.instanceSelector.matchLabels.dashboards
+          value: grafana-custom
+
+  - it: fails without policy.strategy
+    template: templates/policyCm.yaml
+    set:
+      policy: null
+    asserts:
+      - failedTemplate:
+          errorMessage: policy.strategy is required
+
+  - it: pushes no snapshot without a repository
+    template: templates/deployment.yaml
+    set:
+      snapshot.repository: null
+      snapshot.pushSecret: null
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].args
+          content: --snapshot-repository=quay-registry.apps.hub01.example.com/apc/operator-readiness-snapshot
+      - notExists:
+          path: spec.template.spec.volumes[?(@.name == "snapshot-push")]
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SNAPSHOT_AUTH_FILE
+            value: /run/secrets/snapshot-push/.dockerconfigjson
+
+  - it: fails with a snapshot repository but no push secret
+    template: templates/deployment.yaml
+    set:
+      snapshot.pushSecret: null
+    asserts:
+      - failedTemplate:
+          errorMessage: snapshot.pushSecret is required when snapshot.repository is set
+
+  - it: sets proxy environment variables from the global proxy
+    template: templates/deployment.yaml
+    set:
+      global.apc.proxy: http://proxy.example.com:3128
+      global.apc.noProxy: .example.com
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPS_PROXY
+            value: http://proxy.example.com:3128
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: NO_PROXY
+            value: .example.com,.svc,.cluster.local,$(KUBERNETES_SERVICE_HOST)
+
+  - it: appends in-cluster hosts when global noProxy is empty
+    template: templates/deployment.yaml
+    set:
+      global.apc.proxy: http://proxy.example.com:3128
+      global.apc.noProxy: ""
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: NO_PROXY
+            value: .svc,.cluster.local,$(KUBERNETES_SERVICE_HOST)
+
+  - it: sets no proxy variables without a proxy
+    template: templates/deployment.yaml
+    set:
+      global.apc.proxy: ""
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPS_PROXY
+            value: http://proxy.example.com:3128
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: NO_PROXY
+            value: .example.com,.svc,.cluster.local,$(KUBERNETES_SERVICE_HOST)
+
+  - it: sets the node selector
+    template: templates/deployment.yaml
+    set:
+      nodeSelector:
+        kubernetes.io/hostname: node-a
+    asserts:
+      - equal:
+          path: spec.template.spec.nodeSelector["kubernetes.io/hostname"]
+          value: node-a
+
+  - it: passes image pull secrets
+    template: templates/deployment.yaml
+    set:
+      imagePullSecrets: [quay-pull]
+    asserts:
+      - equal:
+          path: spec.template.spec.imagePullSecrets[0].name
+          value: quay-pull
+
+  - it: restarts the collector when policy changes
+    template: templates/deployment.yaml
+    set:
+      policy.strategy: next-minor
+    asserts:
+      - exists:
+          path: spec.template.metadata.annotations["checksum/policy"]
+
+  - it: passes the interval to the collector
+    template: templates/deployment.yaml
+    set:
+      interval: 30m
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --interval=30m

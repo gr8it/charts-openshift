@@ -1,0 +1,134 @@
+---
+# Long-running collector instead of a CronJob: it keeps the last result in memory and serves
+# /metrics between runs, so Prometheus can scrape it without a Pushgateway.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "operator-readiness.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "operator-readiness.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "operator-readiness.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "operator-readiness.labels" . | nindent 8 }}
+      annotations:
+        checksum/policy: {{ include (print $.Template.BasePath "/policyCm.yaml") . | sha256sum }}
+    spec:
+      serviceAccountName: {{ include "operator-readiness.name" . }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- range . }}
+      - name: {{ . }}
+        {{- end }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: collector
+        image: {{ .Values.image }}
+        args:
+        - collect
+        - --loop
+        - --interval={{ .Values.interval }}
+        - --policy=/etc/readiness/policy.yaml
+        {{- if .Values.snapshot.repository }}
+        - --snapshot-repository={{ .Values.snapshot.repository }}
+        {{- end }}
+        - --cache-dir=/var/cache/readiness
+        - --listen=:8080
+        env:
+        {{- with include "apc-global-overrides.proxy" . }}
+        - name: HTTPS_PROXY
+          value: {{ . | quote }}
+        - name: HTTP_PROXY
+          value: {{ . | quote }}
+        # Python urllib matches host names and domain suffixes only (no CIDRs): the in-cluster
+        # Search API and the API service IP must be listed explicitly
+        - name: NO_PROXY
+          value: {{ list (include "apc-global-overrides.noProxy" $) ".svc" ".cluster.local" "$(KUBERNETES_SERVICE_HOST)" | compact | join "," | quote }}
+        {{- end }}
+        {{- if .Values.snapshot.repository }}
+        - name: SNAPSHOT_AUTH_FILE
+          value: /run/secrets/snapshot-push/.dockerconfigjson
+        {{- end }}
+        - name: SEARCH_API_URL
+          value: https://search-search-api.open-cluster-management.svc:4010/searchapi/graphql
+        # CA only for the in-cluster Search API; external endpoints use the system trust store
+        - name: SEARCH_API_CA_FILE
+          value: /etc/pki/service-ca/service-ca.crt
+        ports:
+        - name: metrics
+          containerPort: 8080
+          protocol: TCP
+        # ready only after the first successful collect
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: metrics
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: metrics
+          periodSeconds: 30
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        # Pyxis catalog records of every installed package are held in memory (~100 MB seen); headroom for larger fleets
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "200m"
+          limits:
+            memory: "2Gi"
+            cpu: "1"
+        volumeMounts:
+        - name: policy
+          mountPath: /etc/readiness
+          readOnly: true
+        {{- if .Values.snapshot.repository }}
+        - name: snapshot-push
+          mountPath: /run/secrets/snapshot-push
+          readOnly: true
+        {{- end }}
+        - name: service-ca
+          mountPath: /etc/pki/service-ca
+          readOnly: true
+        - name: cache
+          mountPath: /var/cache/readiness
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: policy
+        configMap:
+          name: {{ include "operator-readiness.name" . }}-policy
+      {{- if .Values.snapshot.repository }}
+      - name: snapshot-push
+        secret:
+          secretName: {{ required "snapshot.pushSecret is required when snapshot.repository is set" .Values.snapshot.pushSecret }}
+      {{- end }}
+      - name: service-ca
+        configMap:
+          name: openshift-service-ca.crt
+      # Lifecycle API (24 h) and FBC extracts (per index digest); lost on restart, rebuilt on next run
+      - name: cache
+        emptyDir:
+          sizeLimit: 5Gi
+      - name: tmp
+        emptyDir: {}

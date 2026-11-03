@@ -1,0 +1,52 @@
+---
+# Only what readiness-engine calls: ManagedCluster versions, hub ClusterVersion (Upgradeable),
+# APIRequestCounts, hub OperatorPolicies (version pins) and ManagedClusterViews. Operators come from the ACM Search API (authorized with
+# this ServiceAccount token); Search returns managed cluster objects only for namespaces where the
+# caller can create managedclusterviews, so that verb is required for the inventory itself. Objects of the
+# hub itself (local-cluster) are authorized against the caller's own RBAC, hence the list rules for
+# Subscriptions, CSVs and Deployments (Helm operators). PackageManifests of the hub are read with a Role in
+# openshift-marketplace (templates/packageManifestRole.yaml); managed clusters are read through ManagedClusterViews.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "operator-readiness.name" . }}
+  labels:
+    {{- include "operator-readiness.labels" . | nindent 4 }}
+rules:
+- apiGroups: ["config.openshift.io"]
+  resources: ["clusterversions"]
+  verbs:     ["get"]
+  resourceNames: ["version"]
+- apiGroups: ["apiserver.openshift.io"]
+  resources: ["apirequestcounts"]
+  verbs:     ["list"]
+- apiGroups: ["cluster.open-cluster-management.io"]
+  resources: ["managedclusters"]
+  verbs:     ["list"]
+- apiGroups: ["operators.coreos.com"]
+  resources: ["subscriptions", "clusterserviceversions"]
+  verbs:     ["list"]
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs:     ["list"]
+- apiGroups: ["policy.open-cluster-management.io"]
+  resources: ["operatorpolicies"]
+  verbs:     ["list"]
+- apiGroups: ["view.open-cluster-management.io"]
+  resources: ["managedclusterviews"]
+  verbs:     ["get", "create", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "operator-readiness.name" . }}
+  labels:
+    {{- include "operator-readiness.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "operator-readiness.name" . }}
+subjects:
+- kind: ServiceAccount
+  name: {{ include "operator-readiness.name" . }}
+  namespace: {{ .Release.Namespace }}

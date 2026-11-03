@@ -1,0 +1,30 @@
+---
+# Head each catalog serves for an installed package: the hub's PackageManifests are read directly, only in the
+# namespace of the default catalogs. Managed clusters are read through ManagedClusterViews (ClusterRole).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "operator-readiness.name" . }}-packagemanifests
+  namespace: openshift-marketplace
+  labels:
+    {{- include "operator-readiness.labels" . | nindent 4 }}
+rules:
+- apiGroups: ["packages.operators.coreos.com"]
+  resources: ["packagemanifests"]
+  verbs:     ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "operator-readiness.name" . }}-packagemanifests
+  namespace: openshift-marketplace
+  labels:
+    {{- include "operator-readiness.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "operator-readiness.name" . }}-packagemanifests
+subjects:
+- kind: ServiceAccount
+  name: {{ include "operator-readiness.name" . }}
+  namespace: {{ .Release.Namespace }}
