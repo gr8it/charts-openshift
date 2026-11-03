@@ -46,4 +46,6 @@ To include an application's namespace in Dynatrace application monitoring, label
 oc label namespace <namespace> apc.namespace.telemetry=external-dynatrace
 ```
 
+The chart also allows ingress to the ActiveGate HTTP and HTTPS ports from namespaces labeled `apc.namespace.type=application`.
+
 Configure `activeGate` and `metadataEnrichment` only when their defaults need to change. Cluster and environment values are supplied through `global.apc` by the configuration repository.
