@@ -112,3 +112,35 @@ The oauth.identityProviders  allows you to define and deploy identity provider s
 | `vaultKVmountPlatform` | mount point for platform secrets in vault apc-platform | apc-platform  | apc-platform  |
 | `caCertificates.caCrt` | CA bundle to trust identity provider, see also [apc-global-overrides](https://github.com/gr8it/charts-openshift/tree/main/charts/apc-global-overrides) | ~ | ~ |
 
+## Kubelet configuration
+
+Creates `KubeletConfig` CRs for machine config pools.
+
+|parameter|default|type|description|
+|---|---|---|---|
+|.kubeletConfigs|[]|list|list of KubeletConfigs to create|
+|.kubeletConfigs[].name|-|string|name of the KubeletConfig|
+|.kubeletConfigs[].pool|-|string|machine config pool, `master` or `worker`|
+|.kubeletConfigs[].kubeletConfig|-|map|`spec.kubeletConfig`, see [KubeletConfig](https://docs.redhat.com/en/documentation/openshift_container_platform/4.19/html/machine_configuration/machine-configs-custom#create-a-kubeletconfig-crd-to-edit-kubelet-parameters_machine-configs-custom)|
+
+```yaml
+kubeletConfigs:
+  - name: max-pods-worker
+    pool: worker
+    kubeletConfig:
+      podsPerCore: 0
+      maxPods: 350
+```
+
+> [!WARNING]
+> MCO does not merge KubeletConfigs of the same pool. Each one renders the full `/etc/kubernetes/kubelet.conf` into its own MachineConfig (`99-<pool>-generated-kubelet[-<n>]`) and the one with the highest suffix wins. Prefer one KubeletConfig per pool for new clusters.
+
+## Container runtime
+
+Creates MachineConfigs `99-crun-default-runtime-master` and `99-crun-default-runtime-worker` with the CRI-O drop-in `/etc/crio/crio.conf.d/99-crun-runtime.conf` setting `[crio.runtime] default_runtime`.
+
+|parameter|default|type|description|
+|---|---|---|---|
+|.defaultContainerRuntime|crun|string|`crun` or `runc`. Set to `""` to leave the runtime unmanaged (OpenShift default applies)|
+
+> [!WARNING] Any change of kubelet or container runtime configuration drains and reboots all nodes of the affected pool. Consider pausing the MachineConfigPool (`spec.paused: true`) and unpausing it in a maintenance window.

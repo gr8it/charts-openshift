@@ -109,3 +109,17 @@ dedicatedEtcdStorageDevices:
   - /dev/vg1/1
   - /dev/vg1/2
   - /dev/vg1/3
+
+kubeletConfigs:
+  - name: system-reserved-master
+    pool: master
+    kubeletConfig:
+      systemReserved:
+        cpu: 1000m
+        ephemeral-storage: 5Gi
+        memory: 4Gi
+  - name: log-max-master
+    pool: master
+    kubeletConfig:
+      containerLogMaxFiles: 5
+      containerLogMaxSize: 50Mi

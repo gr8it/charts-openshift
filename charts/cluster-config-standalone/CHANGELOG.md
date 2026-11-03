@@ -5,6 +5,13 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-11-03
+
+### Added
+
+- Added `kubeletConfigs` to render KubeletConfig CRs for master and worker pools; changing them rolls the affected machine pools.
+- Added master and worker MachineConfigs `99-crun-default-runtime-<pool>` setting the CRI-O default runtime, **enabled by default** with `defaultContainerRuntime: crun`; upgrading rolls master and worker pools on clusters without these MachineConfigs. Set `defaultContainerRuntime: ""` to keep the previous behaviour.
+
 ## [1.2.1] - 2026-11-03
 
 ### Fixed

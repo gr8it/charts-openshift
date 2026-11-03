@@ -1,0 +1,13 @@
+{{- range .Values.kubeletConfigs }}
+---
+apiVersion: machineconfiguration.openshift.io/v1
+kind: KubeletConfig
+metadata:
+  name: {{ .name }}
+spec:
+  machineConfigPoolSelector:
+    matchLabels:
+      pools.operator.machineconfiguration.openshift.io/{{ .pool }}: ""
+  kubeletConfig:
+    {{- toYaml .kubeletConfig | nindent 4 }}
+{{- end }}
