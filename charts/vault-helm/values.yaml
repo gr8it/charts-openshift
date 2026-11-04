@@ -97,7 +97,7 @@ vault:
       - envName: VAULT_TOKEN
         secretName: vault-autounseal-token
         secretKey: VAULT_TOKEN
-    dataStorage: { size: 1Gi }
+    dataStorage: { size: 5Gi }
     volumeMounts:
       - name: vault-tls-cert
         mountPath: /vault/userconfig/certs
@@ -115,7 +115,7 @@ vault:
     resources:
       limits:
         cpu: 1000m
-        memory: 1Gi
+        memory: 2Gi
       requests:
         cpu: 1000m
         memory: 1Gi
