@@ -11,7 +11,7 @@ _([SPEXAPC-29763](https://aspecta.atlassian.net/browse/SPEXAPC-29763))_
 
 ### Fixed
 
-- Bumped provider-vault to v4.0.6 which respect parameter `skip_child_token` and other boolean ProviderConfig fields
+- Bumped provider-vault to v4.0.6, which respects the `skip_child_token` parameter and other boolean ProviderConfig fields
 
 ## [1.6.0] - 2026-10-15
 
