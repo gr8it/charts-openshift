@@ -5,6 +5,9 @@ kind: KubeletConfig
 metadata:
   name: {{ .name }}
 spec:
+  {{- if hasKey . "autoSizingReserved" }}
+  autoSizingReserved: {{ .autoSizingReserved }}
+  {{- end }}
   machineConfigPoolSelector:
     matchLabels:
       pools.operator.machineconfiguration.openshift.io/{{ .pool }}: ""
