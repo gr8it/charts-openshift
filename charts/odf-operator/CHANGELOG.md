@@ -5,6 +5,10 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2026-11-02
+
+- `odf-operator.v4.19.21-rhodf` → `odf-operator.v4.19.26-rhodf` (current `stable-4.19` channel head); added to `versions`
+
 ## [1.3.0] - 2026-10-29
 
 ### Changed
