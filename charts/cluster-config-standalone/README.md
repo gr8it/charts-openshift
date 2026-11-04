@@ -114,14 +114,20 @@ The oauth.identityProviders  allows you to define and deploy identity provider s
 
 ## Kubelet configuration
 
-Creates `KubeletConfig` CRs for machine config pools.
+Creates one `KubeletConfig` per list entry for the given machine config pool (`master` or `worker`). Each entry sets the KubeletConfig `name`, the `pool`, optionally `autoSizingReserved` (`spec.autoSizingReserved`) and optionally `kubeletConfig` (`spec.kubeletConfig`, passed as-is).
 
-|parameter|default|type|description|
+Set `autoSizingReserved: true` to have system resource reservations calculated automatically from each node's capacity. This is useful when nodes in a pool have different sizes or you want to avoid maintaining fixed `systemReserved` values; use manual reservations (`autoSizingReserved: false` with `kubeletConfig.systemReserved`) when workloads need more specific amounts. OpenShift 4.21 enables automatic reservation by default on newly installed clusters, while clusters upgraded from earlier OpenShift versions may have it disabled, so set `autoSizingReserved` explicitly.
+
+See the [OpenShift node resource configuration documentation](https://docs.redhat.com/en/documentation/openshift_container_platform/4.21/html/nodes/working-with-nodes#nodes-nodes-resources-configuring-setting_nodes-nodes-resources-configuring) and Red Hat's [recommended system reservation values](https://access.redhat.com/solutions/5843241).
+
+|parameter|description|default|type|
 |---|---|---|---|
-|.kubeletConfigs|[]|list|list of KubeletConfigs to create|
-|.kubeletConfigs[].name|-|string|name of the KubeletConfig|
-|.kubeletConfigs[].pool|-|string|machine config pool, `master` or `worker`|
-|.kubeletConfigs[].kubeletConfig|-|map|`spec.kubeletConfig`, see [KubeletConfig](https://docs.redhat.com/en/documentation/openshift_container_platform/4.19/html/machine_configuration/machine-configs-custom#create-a-kubeletconfig-crd-to-edit-kubelet-parameters_machine-configs-custom)|
+|.kubeletConfigs|KubeletConfigs to create|[]|list|
+|.kubeletConfigs[].name|**Required.** KubeletConfig name|-|string|
+|.kubeletConfigs[].pool|**Required.** machine config pool, `master` or `worker`|-|string|
+|.kubeletConfigs[].autoSizingReserved|automatic system reservation, not rendered if omitted|-|boolean|
+|.kubeletConfigs[].kubeletConfig|`spec.kubeletConfig`, see [KubeletConfig](https://docs.redhat.com/en/documentation/openshift_container_platform/4.21/html/machine_configuration/machine-configs-custom)|-|map|
+
 
 ```yaml
 kubeletConfigs:
