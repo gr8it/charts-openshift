@@ -95,4 +95,4 @@ for device in $devices; do
 done
 echo "Couldn't find secondary block device!" >&2
 exit 77
-{{- end }}
+{{ end }}
