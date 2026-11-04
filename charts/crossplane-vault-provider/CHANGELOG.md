@@ -5,6 +5,14 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1] - 2026-11-04
+
+_([SPEXAPC-29763](https://aspecta.atlassian.net/browse/SPEXAPC-29763))_
+
+### Fixed
+
+- Bumped provider-vault to v4.0.6 which respect parameter `skip_child_token` and other boolean ProviderConfig fields
+
 ## [1.6.0] - 2026-10-15
 
 _([SPEXAPC-26776](https://aspecta.atlassian.net/browse/SPEXAPC-26776))_
