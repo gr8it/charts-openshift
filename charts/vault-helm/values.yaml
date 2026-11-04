@@ -177,16 +177,16 @@ vault:
           annotations:
             summary: Vault raft cluster cannot tolerate a node failure or has no active node
             description: "Vault autopilot failure tolerance is {{ $value }} (no value = no active node reports metrics)."
-        - alert: VaultPkiRoleUpdateLoop
-          expr: sum(rate(vault_route_update_pki__count{job="vault-active"}[30m])) > 0.1
+        - alert: VaultPkiWriteRateHigh
+          expr: sum(rate(vault_route_update_pki__count{job="vault-active"}[30m])) > 1
           for: 30m
           labels:
             severity: warning
             team: platform
             vendor: aspecta
           annotations:
-            summary: Vault PKI config is rewritten continuously - likely a Crossplane drift loop
-            description: "Vault PKI endpoints receive {{ $value | humanize }} writes/s. PKI roles should change only on Git changes."
+            summary: Sustained high write rate to Vault PKI
+            description: "Vault PKI receives {{ $value | humanize }} writes/s for 30m (role updates or certificate issuance)."
         - alert: VaultHighResponseTime
           expr: vault_core_handle_request{quantile="0.5"} > 1000
           for: 5m

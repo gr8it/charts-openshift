@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `vendor` and `team` labels to Vault alerts
 - Raise token count/rate alert thresholds to fit kubernetes auth baseline
 - Replace `VaultClusterHealth` with `VaultRaftUnhealthy`
-- Add `VaultPkiRoleUpdateLoop` alert detecting continuous PKI writes
+- Add `VaultPkiWriteRateHigh` alert detecting sustained PKI writes
 
 ## [1.0.2] - 2026-07-02
 
