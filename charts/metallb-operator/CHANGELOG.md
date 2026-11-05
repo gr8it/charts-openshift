@@ -5,6 +5,12 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-11-02
+
+### Changed
+
+- MetalLB `metallb-operator.v4.19.0-202607200644` → `metallb-operator.v4.19.0-202610241354` (channel `stable` catalog head). Previous 4.19 build stays in the OperatorPolicy allowed `versions`.
+
 ## [1.1.0] - 2026-08-11
 
 ### Changed

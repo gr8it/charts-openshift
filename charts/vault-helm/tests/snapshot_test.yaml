@@ -1,11 +1,47 @@
 suite: Snapshot test
 templates:
   - templates/*
+  - charts/*/templates/*
 release:
   name: vault
   namespace: apc-vault
+set:
+  global.vault.transit.address: https://vault.example.com:8200
+capabilities:
+  apiVersions:
+    - monitoring.coreos.com/v1
 
 tests:
   - it: manifests should match snapshot
     asserts:
       - matchSnapshot: {}
+
+  - it: vault server should have increased storage and memory
+    template: charts/vault/templates/server-statefulset.yaml
+    asserts:
+      - equal:
+          path: spec.volumeClaimTemplates[0].spec.resources.requests.storage
+          value: 5Gi
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.memory
+          value: 2Gi
+
+  - it: vault alerts should have routing labels
+    template: charts/vault/templates/prometheus-prometheusrules.yaml
+    asserts:
+      - isKind:
+          of: PrometheusRule
+      - isSubset:
+          path: spec.groups[0].rules[*].labels
+          content:
+            team: platform
+            vendor: aspecta
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "VaultRaftUnhealthy")].labels
+          value:
+            severity: critical
+            team: platform
+            vendor: aspecta
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "VaultPkiWriteRateHigh")].expr
+          value: sum(rate(vault_route_update_pki__count{job="vault-active"}[30m])) > 1
