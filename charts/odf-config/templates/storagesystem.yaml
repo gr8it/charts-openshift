@@ -1,0 +1,11 @@
+{{- if .Values.storageCluster.nodeCount }}
+apiVersion: odf.openshift.io/v1alpha1
+kind: StorageSystem
+metadata:
+  name: {{ .Values.storageCluster.name }}-storagesystem
+  namespace: openshift-storage
+spec:
+  kind: storagecluster.ocs.openshift.io/v1
+  name: {{ .Values.storageCluster.name }}
+  namespace: openshift-storage
+{{- end }}

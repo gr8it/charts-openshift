@@ -1,0 +1,15 @@
+{{- if .Values.nodeNetworkConfigurationPolicy.interfaces }}
+# Host interfaces for the ODF additional network, one NNCP per use case.
+# Removing an interface from values does NOT remove it from the nodes: set its
+# `state: absent`, let it sync, then drop the entry (see README).
+apiVersion: nmstate.io/v1
+kind: NodeNetworkConfigurationPolicy
+metadata:
+  name: odf-network
+spec:
+  nodeSelector:
+    {{- .Values.nodeNetworkConfigurationPolicy.nodeSelector | toYaml | nindent 4 }}
+  desiredState:
+    interfaces:
+      {{- .Values.nodeNetworkConfigurationPolicy.interfaces | toYaml | nindent 6 }}
+{{- end }}
