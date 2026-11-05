@@ -9,6 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Initial release._
 
-- `additionalNetworks`, `StorageCluster`, `StorageSystem`, `LocalVolumeDiscovery` and `LocalVolumeSet` rendering.
+- `NetworkAttachmentDefinition`, `StorageCluster`, `StorageSystem`, `LocalVolumeDiscovery` and `LocalVolumeSet` rendering.
 - Dedicated `odf-network` `NodeNetworkConfigurationPolicy` for ODF host interfaces.
 - Optional promiscuous-mode `MachineConfig`; on hub clusters (`apc-global-overrides.clusterIsHub`) it is rendered as a ConfigMap for hosted clusters.

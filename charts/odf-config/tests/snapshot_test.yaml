@@ -13,7 +13,6 @@ tests:
     set:
       additionalNetworks:
         - name: odf
-          type: Raw
           rawCNIConfig: |-
             {
               "cniVersion": "0.3.1",
@@ -58,7 +57,6 @@ tests:
     set:
       additionalNetworks:
         - name: odf
-          type: Raw
           rawCNIConfig: "{}"
       storageCluster:
         name: ocs-storagecluster
@@ -173,6 +171,33 @@ tests:
 
   - it: does not render NodeNetworkConfigurationPolicy by default
     template: templates/nodenetworkconfigurationpolicy.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders a NetworkAttachmentDefinition in openshift-storage and no Network/cluster
+    set:
+      additionalNetworks:
+        - name: odf
+          rawCNIConfig: '{"cniVersion": "0.3.1", "name": "odf", "type": "macvlan"}'
+    asserts:
+      - hasDocuments:
+          count: 1
+        template: templates/networkattachmentdefinition.yaml
+      - isKind:
+          of: NetworkAttachmentDefinition
+        template: templates/networkattachmentdefinition.yaml
+      - equal:
+          path: metadata.namespace
+          value: openshift-storage
+        template: templates/networkattachmentdefinition.yaml
+      - equal:
+          path: spec.config
+          value: '{"cniVersion": "0.3.1", "name": "odf", "type": "macvlan"}'
+        template: templates/networkattachmentdefinition.yaml
+
+  - it: does not render a NetworkAttachmentDefinition by default
+    template: templates/networkattachmentdefinition.yaml
     asserts:
       - hasDocuments:
           count: 0
