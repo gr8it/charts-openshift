@@ -1,0 +1,90 @@
+suite: KubeletConfig and container runtime MachineConfig
+templates:
+  - templates/kubeletconfig.yaml
+  - templates/machineconfig-master-container-runtime.yaml
+  - templates/machineconfig-worker-container-runtime.yaml
+values:
+  - ../values.lint.yaml
+release:
+  name: cluster-config-standalone
+  namespace: openshift-config
+
+tests:
+  - it: renders no KubeletConfig by default
+    template: templates/kubeletconfig.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders one KubeletConfig per list entry
+    template: templates/kubeletconfig.yaml
+    set:
+      kubeletConfigs:
+        - name: max-pods-master
+          pool: master
+          kubeletConfig:
+            maxPods: 300
+        - name: max-pods-worker
+          pool: worker
+          kubeletConfig:
+            maxPods: 350
+    asserts:
+      - hasDocuments:
+          count: 2
+      - equal:
+          path: metadata.name
+          value: max-pods-worker
+        documentIndex: 1
+      - equal:
+          path: spec.machineConfigPoolSelector.matchLabels
+          value:
+            pools.operator.machineconfiguration.openshift.io/worker: ""
+        documentIndex: 1
+      - equal:
+          path: spec.kubeletConfig
+          value:
+            maxPods: 350
+        documentIndex: 1
+
+  - it: renders crun MachineConfig for both pools by default
+    asserts:
+      - equal:
+          path: metadata.name
+          value: 99-crun-default-runtime-master
+        template: templates/machineconfig-master-container-runtime.yaml
+      - equal:
+          path: metadata.labels["machineconfiguration.openshift.io/role"]
+          value: worker
+        template: templates/machineconfig-worker-container-runtime.yaml
+      - equal:
+          path: spec.config.storage.files[0].contents.source
+          value: data:text/plain;charset=utf-8;base64,W2NyaW8ucnVudGltZV0KZGVmYXVsdF9ydW50aW1lID0gImNydW4iCg==
+        template: templates/machineconfig-worker-container-runtime.yaml
+
+  - it: allows overriding the runtime to runc
+    template: templates/machineconfig-master-container-runtime.yaml
+    set:
+      defaultContainerRuntime: runc
+    asserts:
+      - equal:
+          path: spec.config.storage.files[0].contents.source
+          value: data:text/plain;charset=utf-8;base64,W2NyaW8ucnVudGltZV0KZGVmYXVsdF9ydW50aW1lID0gInJ1bmMiCg==
+
+  - it: renders no runtime MachineConfig when disabled
+    set:
+      defaultContainerRuntime: ""
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: templates/machineconfig-master-container-runtime.yaml
+      - hasDocuments:
+          count: 0
+        template: templates/machineconfig-worker-container-runtime.yaml
+
+  - it: fails on unsupported runtime
+    template: templates/machineconfig-worker-container-runtime.yaml
+    set:
+      defaultContainerRuntime: kata
+    asserts:
+      - failedTemplate:
+          errorMessage: defaultContainerRuntime must be crun or runc, got "kata"
