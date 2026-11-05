@@ -1,8 +1,13 @@
 # OperatorPolicy Values
 acm-operatorpolicy:
-  # operatorGroup intentionally unset: openshift-cnv already has exactly one
-  # OperatorGroup on every cluster (name differs per env), so OperatorPolicy
-  # adopts the existing one instead of creating a second (OLM error) OG.
+  # Fresh clusters need an own-namespace OperatorGroup. Existing clusters may
+  # have generated names; check those before applying this policy. The template
+  # renders this name and does not select an existing group by namespace.
+  operatorGroup:
+    name: kubevirt-hyperconverged-group
+    namespace: openshift-cnv
+    targetNamespaces:
+      - openshift-cnv
   subscription:
     channel: stable
     name: kubevirt-hyperconverged

@@ -5,6 +5,10 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2026-11-05
+
+- Set an own-namespace OperatorGroup for fresh OpenShift 4.19 installations. Check existing OperatorGroups with different names before rollout.
+
 ## [1.0.4] - 2026-11-02
 
 - `kubevirt-hyperconverged-operator.v4.19.33` → `kubevirt-hyperconverged-operator.v4.19.37` (current `stable` channel head); added to `versions`
