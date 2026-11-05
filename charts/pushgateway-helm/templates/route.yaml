@@ -8,7 +8,7 @@ metadata:
     {{- include "pushgateway-helm.labels" . | nindent 4 }}
 spec:
   tls:
-    termination: Reencrypt
+    termination: reencrypt
   to:
     kind: Service
     name: {{ include "pushgateway-helm.oauthProxyServiceName" . }}

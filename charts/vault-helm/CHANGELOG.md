@@ -5,6 +5,16 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2026-11-04
+
+### Fixed
+
+- Increasing storage size and memory limits
+- Add `vendor` and `team` labels to Vault alerts
+- Raise token count/rate alert thresholds to fit kubernetes auth baseline
+- Replace `VaultClusterHealth` with `VaultRaftUnhealthy`
+- Add `VaultPkiWriteRateHigh` alert detecting sustained PKI writes
+
 ## [1.0.2] - 2026-07-02
 
 ### Fixed
