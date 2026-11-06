@@ -51,41 +51,56 @@ The chart is implemented as an ACM policy and does following:
 
 ## Token Secret generation
 
-1) Extend the maximum validity of a token temporarily (BAD PRACTICE)
-
-```bash
-vault write sys/auth/token/tune max_lease_ttl=9000h
+Hints for Vault CLI:
+``` bash
+export VAULT_SKIP_VERIFY=true
+export VAULT_ADDR=https://your-vault.example.com/
+vault login #grep token from UI
 ```
 
-1) create a token using `vault token create -ttl=365d -explicit-max-ttl=365d --renewable=false`
+0) Extend the maximum validity of a token temporarily (BAD PRACTICE), required in special cases
 
-   ```bash
-   Key                  Value
-   ---                  -----
-   token                hvs.CAESFrBiuq2OJ4J1Vcr6-tiEyY0kZVeDQzTXh9fpiBVt1BBmnxEFWGh4KHGh2cy42R2IGmpsTXBOZ0xJYkZuQ25kemg
-   token_accessor       wpVWsKklJhRTIEE374JbeyF7
-   token_duration       8760h
-   token_renewable      false
-   token_policies       ["admin" "default"]
-   identity_policies    []
-   policies             ["admin" "default"]
-   ```
+    ```bash
+    vault write sys/auth/token/tune max_lease_ttl=9000h
+    ```
 
-> [!NOTE]  
-> Policies of the creating (admin) user will be reused by default. Or specify policy to be used using `-policy <policy-name>, e.g. admin`
+1) If cluster is re-installed and authentification method was already created, disable existing method for cluster
 
-> [!WARNING]  
-> Do not create using root token, as it would create a long lived root token copy!!!
+    ```bash
+    vault auth list
+    vault auth disable auth<clustername>
+    ```
 
-1) Change the maximum validity of a token back
 
-```bash
-vault write sys/auth/token/tune max_lease_ttl=768h
-```
+2) create a token using `vault token create -ttl=365d -explicit-max-ttl=365d --renewable=false`
 
-1) Copy the token from the `token` parameter
+    ```bash
+    Key                  Value
+    ---                  -----
+    token                hvs.CAESFrBiuq2OJ4J1Vcr6-tiEyY0kZVeDQzTXh9fpiBVt1BBmnxEFWGh4KHGh2cy42R2IGmpsTXBOZ0xJYkZuQ25kemg
+    token_accessor       wpVWsKklJhRTIEE374JbeyF7
+    token_duration       8760h
+    token_renewable      false
+    token_policies       ["admin" "default"]
+    identity_policies    []
+    policies             ["admin" "default"]
+    ```
 
-1) Store the token to a file:
+    > [!NOTE]  
+    > Policies of the creating (admin) user will be reused by default. Or specify policy to be used using `-policy <policy-name>, e.g. admin`
+
+    > [!WARNING]  
+    > Do not create using root token, as it would create a long lived root token copy!!!
+
+3) Change the maximum validity of a token back
+
+    ```bash
+    vault write sys/auth/token/tune max_lease_ttl=768h
+    ```
+
+4) Copy the token from the `token` parameter
+
+5) Store the token to a file:
 
    ```bash
    cat <<EOF > /tmp/vault-credentials
@@ -96,7 +111,7 @@ vault write sys/auth/token/tune max_lease_ttl=768h
    EOF
    ```
 
-1) Create the Token secret on MANAGED CLUSTER(s)
+6) Create the Token secret on MANAGED CLUSTER(s)
 
    ```bash
    kubectl create secret generic <secret-name> -n apc-crossplane-system --from-file=credentials=/tmp/vault-credentials
@@ -109,6 +124,17 @@ vault write sys/auth/token/tune max_lease_ttl=768h
 > The Token secret to be used hint is available in the ACM GUI -> Governance -> Policies -> crossplane-vault-provider-bootstrap -> Results -> *-providerconfig-token-auth policy Message:
 >
 > ![Token Auth Check hint](images/token-secret-policy.png)
+
+### Bootstrap
+
+
+7) restart bootstrap process again
+
+- to run the bootstrap process again, set the particular Provider Config credentials source to `Secret`, e.g.
+
+```bash
+kubectl patch providerconfigs.vault.upbound.io <vault provider config> --type="merge" -p '{"spec": {"credentials":{"source": "Secret"}}}'
+```
 
 ### Helm Chart Parameters
 
@@ -128,13 +154,7 @@ vault write sys/auth/token/tune max_lease_ttl=768h
 - remove the policy.policy.open-cluster-management.io
 - remove the kube auth from Vault
 
-### Bootstrap
 
-- to run the bootstrap process again, set the particular Provider Config credentials source to `Secret`, e.g.
-
-```bash
-kubectl patch providerconfig vault.lab.gr8it.cloud --type="merge" -p '{"spec": {"credentials":{"source": "Secret"}}}'
-```
 
 ## TODO
 
