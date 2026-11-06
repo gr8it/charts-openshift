@@ -32,6 +32,10 @@ spec:
                 name: {{ include "quay-config.name" . }}-postinstall-env
           resources:
             {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -44,6 +48,10 @@ spec:
                 name: {{ include "quay-config.objname.postinst-env" . }}
           resources:
             {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -56,6 +64,10 @@ spec:
               value: {{ include "quay-config.objname.initorg-job" . }}
           resources:
             {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -68,6 +80,10 @@ spec:
                 name: {{ include "quay-config.objname.postinst-env" . }}
           resources:
             {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -79,6 +95,10 @@ spec:
           command: ['cp', '/bin/vault', '/vault']
           resources:
             {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: vault-cli
               mountPath: /vault
@@ -107,6 +127,10 @@ spec:
             {{- end }}
           resources:
             {{- $.Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -133,6 +157,9 @@ spec:
         - name: vault-cli
           emptyDir: {}
       restartPolicy: Never
-      securityContext: {}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       terminationGracePeriodSeconds: 30
 {{- end }}

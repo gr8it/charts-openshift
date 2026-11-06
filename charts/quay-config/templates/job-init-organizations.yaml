@@ -30,6 +30,10 @@ spec:
                 name: {{ include "quay-config.name" . }}-postinstall-env
           resources:
             {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -42,6 +46,10 @@ spec:
                 name: {{ include "quay-config.objname.postinst-env" . }}
           resources:
             {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -56,6 +64,10 @@ spec:
                 name: {{ include "quay-config.name" . }}-postinstall-env
           resources:
             {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -84,6 +96,10 @@ spec:
               {{- end }}
           resources:
             {{- $.Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -98,5 +114,8 @@ spec:
         - name: bootstrap-token
           emptyDir: {}
       restartPolicy: Never
-      securityContext: {}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       terminationGracePeriodSeconds: 30

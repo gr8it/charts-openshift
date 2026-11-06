@@ -30,6 +30,10 @@ spec:
                 name: {{ include "quay-config.objname.postinst-env" . }}
           resources:
             {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -47,6 +51,10 @@ spec:
                 {{ include "quay-config.labels" . | nindent 20 }}
           resources:
             {{- .Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -56,5 +64,8 @@ spec:
             name: {{ include "quay-config.objname.postinst-scripts" . }}
             defaultMode: 0755
       restartPolicy: Never
-      securityContext: {}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       terminationGracePeriodSeconds: 30
