@@ -19,8 +19,8 @@ FEATURE_PROXY_CACHE: true
 FEATURE_UI_V2: true
 FEATURE_USER_CREATION: false
 FEATURE_USER_INITIALIZE: true
-REGISTRY_TITLE: {{ .Values.quayConfig.registryTitle }}
-REGISTRY_TITLE_SHORT: {{ .Values.quayConfig.registryTitleShort }}
+REGISTRY_TITLE: {{ .Values.quayConfig.registryTitle | quote }}
+REGISTRY_TITLE_SHORT: {{ .Values.quayConfig.registryTitleShort | quote }}
 SETUP_COMPLETE: true
 SUPER_USERS: ["{{ .Values.quayConfig.localAdminUser }}"]
 TAG_EXPIRATION_OPTIONS: ["0s","1d","1w","2w"]

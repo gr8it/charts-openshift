@@ -15,7 +15,7 @@ proxycache_data() {
 }
 
 proxycache_data_auth() {
-  printf '{"upstream_registry":"%s","upstream_registry_username":"%s","upstream_registry_password":"%s","expiration_s":%i}' "$1" "$2" "$3" "$tagExpirationSeconds"
+  python3 -c 'import json,sys; print(json.dumps({"upstream_registry": sys.argv[1], "upstream_registry_username": sys.argv[2], "upstream_registry_password": sys.argv[3], "expiration_s": int(sys.argv[4])}))' "$1" "$2" "$3" "$tagExpirationSeconds"
 }
 
 #-- variables ---------------------------------------------
