@@ -68,8 +68,8 @@ stringData:
     FEATURE_UI_V2: true
     FEATURE_USER_CREATION: false
     FEATURE_USER_INITIALIZE: true
-    REGISTRY_TITLE: APC Quay Registry
-    REGISTRY_TITLE_SHORT: APC Quay
+    REGISTRY_TITLE: "APC Quay Registry"
+    REGISTRY_TITLE_SHORT: "APC Quay"
     SETUP_COMPLETE: true
     SUPER_USERS: ["quayadmin"]
     TAG_EXPIRATION_OPTIONS: ["0s","1d","1w","2w"]
@@ -410,7 +410,7 @@ data:
     }
     
     proxycache_data_auth() {
-      printf '{"upstream_registry":"%s","upstream_registry_username":"%s","upstream_registry_password":"%s","expiration_s":%i}' "$1" "$2" "$3" "$tagExpirationSeconds"
+      python3 -c 'import json,sys; print(json.dumps({"upstream_registry": sys.argv[1], "upstream_registry_username": sys.argv[2], "upstream_registry_password": sys.argv[3], "expiration_s": int(sys.argv[4])}))' "$1" "$2" "$3" "$tagExpirationSeconds"
     }
     
     #-- variables ---------------------------------------------
@@ -596,7 +596,7 @@ data:
     bootstrapToken="$(cat /var/opt/token/bootstrap)"
     clusterName="$CLUSTERNAME"
     authBackendName="$AUTHBACKENDNAME"
-    vaultPath="$CLUSTERVAULTPATH"
+    vaultPath="${CLUSTERVAULTPATH:-}"
     quayService="$QUAYSERVICE"
     quayRoute="$QUAYROUTE"
     robotAccountsSecret="$ROBOTACCOUNTSECRET"
@@ -845,7 +845,7 @@ metadata:
 rules:
 - apiGroups: ["argoproj.io"]
   resources: ["applications"]
-  verbs: ["update"]
+  verbs: ["get", "update", "patch"]
   resourceNames: ["quay-config-test"]
 
 ---
@@ -979,6 +979,10 @@ spec:
             requests:
               cpu: 200m
               memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -1005,6 +1009,10 @@ spec:
             requests:
               cpu: 200m
               memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -1014,7 +1022,10 @@ spec:
             name: apc-registry-postinstall-scripts
             defaultMode: 0755
       restartPolicy: Never
-      securityContext: {}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       terminationGracePeriodSeconds: 30
 
 ---
@@ -1061,6 +1072,10 @@ spec:
             requests:
               cpu: 200m
               memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -1078,6 +1093,10 @@ spec:
             requests:
               cpu: 200m
               memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -1097,6 +1116,10 @@ spec:
             requests:
               cpu: 200m
               memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -1125,6 +1148,10 @@ spec:
             requests:
               cpu: 200m
               memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -1152,6 +1179,10 @@ spec:
             requests:
               cpu: 200m
               memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -1179,6 +1210,10 @@ spec:
             requests:
               cpu: 200m
               memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -1206,6 +1241,10 @@ spec:
             requests:
               cpu: 200m
               memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -1233,6 +1272,10 @@ spec:
             requests:
               cpu: 200m
               memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -1246,7 +1289,10 @@ spec:
         - name: bootstrap-token
           emptyDir: {}
       restartPolicy: Never
-      securityContext: {}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       terminationGracePeriodSeconds: 30
 
 ---
@@ -1293,6 +1339,10 @@ spec:
             requests:
               cpu: 200m
               memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -1310,6 +1360,10 @@ spec:
             requests:
               cpu: 200m
               memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -1327,6 +1381,10 @@ spec:
             requests:
               cpu: 200m
               memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -1350,6 +1408,10 @@ spec:
             requests:
               cpu: 200m
               memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -1363,7 +1425,10 @@ spec:
         - name: bootstrap-token
           emptyDir: {}
       restartPolicy: Never
-      securityContext: {}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       terminationGracePeriodSeconds: 30
 
 ---
@@ -1410,6 +1475,10 @@ spec:
             requests:
               cpu: 200m
               memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -1427,6 +1496,10 @@ spec:
             requests:
               cpu: 200m
               memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -1444,6 +1517,10 @@ spec:
             requests:
               cpu: 200m
               memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -1461,6 +1538,10 @@ spec:
             requests:
               cpu: 200m
               memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -1477,6 +1558,10 @@ spec:
             requests:
               cpu: 200m
               memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: vault-cli
               mountPath: /vault
@@ -1504,6 +1589,10 @@ spec:
             requests:
               cpu: 200m
               memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -1536,6 +1625,10 @@ spec:
             requests:
               cpu: 200m
               memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
@@ -1559,7 +1652,10 @@ spec:
         - name: vault-cli
           emptyDir: {}
       restartPolicy: Never
-      securityContext: {}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       terminationGracePeriodSeconds: 30
 
 ---
