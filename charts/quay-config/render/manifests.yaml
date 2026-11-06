@@ -666,7 +666,7 @@ data:
       exit 0
     fi
     
-    export VAULT_SKIP_VERIFY=true
+    export VAULT_CACERT="/var/opt/ca/ca-bundle.crt"
     export VAULT_ADDR="$vaultAddress"
     
     if VAULT_TOKEN="$(vault/vault write -field=token "auth/${authBackendName}/login" role="$vaultRole" jwt="$(cat /run/secrets/kubernetes.io/serviceaccount/token)" 2>&1)"; then
@@ -853,7 +853,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: apc-registry-auth-delegator
+  name: apc-registry-quay-test-auth-delegator
   labels:
     helm.sh/chart: quay-config-1.0.0
     app.kubernetes.io/name: apc-registry
@@ -972,7 +972,7 @@ spec:
               mountPath: /vault
       containers:
         - name: debug
-          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8bda2b4d186c34f5cc0794037d2704b37731dab71a3a2363511831ec635e3f60
           command: ['/bin/sh', '-c', 'sleep 1d']
           imagePullPolicy: Always
           envFrom:
@@ -1064,7 +1064,7 @@ spec:
       serviceAccountName: apc-registry-postinstall
       initContainers:
         - name: wait-quay
-          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8bda2b4d186c34f5cc0794037d2704b37731dab71a3a2363511831ec635e3f60
           imagePullPolicy: Always
           command: ["/bin/bash", "/scripts/wait-quay.sh"]
           envFrom:
@@ -1082,7 +1082,7 @@ spec:
               mountPath: /scripts
       containers:
         - name: init-admin
-          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8bda2b4d186c34f5cc0794037d2704b37731dab71a3a2363511831ec635e3f60
           imagePullPolicy: Always
           command: ["/bin/bash", "/scripts/init-admin.sh"]
           envFrom:
@@ -1146,7 +1146,7 @@ spec:
       serviceAccountName: apc-registry-postinstall
       initContainers:
         - name: init-mr-cm
-          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8bda2b4d186c34f5cc0794037d2704b37731dab71a3a2363511831ec635e3f60
           imagePullPolicy: Always
           command: ["/bin/bash", "/scripts/init-manged-registries-cm.sh"]
           envFrom:
@@ -1163,7 +1163,7 @@ spec:
             - name: postinstall-scripts
               mountPath: /scripts
         - name: wait-quay
-          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8bda2b4d186c34f5cc0794037d2704b37731dab71a3a2363511831ec635e3f60
           imagePullPolicy: Always
           command: ["/bin/bash", "/scripts/wait-quay.sh"]
           envFrom:
@@ -1182,7 +1182,7 @@ spec:
             - name: bootstrap-token
               mountPath: /var/opt/token
         - name: init-token
-          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8bda2b4d186c34f5cc0794037d2704b37731dab71a3a2363511831ec635e3f60
           imagePullPolicy: Always
           command: ["/bin/bash", "/scripts/init-bootstrap-token.sh"]
           envFrom:
@@ -1202,7 +1202,7 @@ spec:
               mountPath: /var/opt/token
       containers:
         - name: setup-docker-io
-          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8bda2b4d186c34f5cc0794037d2704b37731dab71a3a2363511831ec635e3f60
           imagePullPolicy: Always
           command: ["/bin/bash", "/scripts/init-organization.sh"]
           envFrom:
@@ -1229,7 +1229,7 @@ spec:
             - name: bootstrap-token
               mountPath: /var/opt/token
         - name: setup-quay-io
-          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8bda2b4d186c34f5cc0794037d2704b37731dab71a3a2363511831ec635e3f60
           imagePullPolicy: Always
           command: ["/bin/bash", "/scripts/init-organization.sh"]
           envFrom:
@@ -1256,7 +1256,7 @@ spec:
             - name: bootstrap-token
               mountPath: /var/opt/token
         - name: setup-ghcr-io
-          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8bda2b4d186c34f5cc0794037d2704b37731dab71a3a2363511831ec635e3f60
           imagePullPolicy: Always
           command: ["/bin/bash", "/scripts/init-organization.sh"]
           envFrom:
@@ -1283,7 +1283,7 @@ spec:
             - name: bootstrap-token
               mountPath: /var/opt/token
         - name: setup-registry-connect-redhat-com
-          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8bda2b4d186c34f5cc0794037d2704b37731dab71a3a2363511831ec635e3f60
           imagePullPolicy: Always
           command: ["/bin/bash", "/scripts/init-organization.sh"]
           envFrom:
@@ -1310,7 +1310,7 @@ spec:
             - name: bootstrap-token
               mountPath: /var/opt/token
         - name: setup-registry-redhat-io
-          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8bda2b4d186c34f5cc0794037d2704b37731dab71a3a2363511831ec635e3f60
           imagePullPolicy: Always
           command: ["/bin/bash", "/scripts/init-organization.sh"]
           envFrom:
@@ -1378,7 +1378,7 @@ spec:
       serviceAccountName: apc-registry-postinstall
       initContainers:
         - name: wait-quay
-          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8bda2b4d186c34f5cc0794037d2704b37731dab71a3a2363511831ec635e3f60
           imagePullPolicy: Always
           command: ["/bin/bash", "/scripts/wait-quay.sh"]
           envFrom:
@@ -1395,7 +1395,7 @@ spec:
             - name: postinstall-scripts
               mountPath: /scripts
         - name: wait-init-org
-          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8bda2b4d186c34f5cc0794037d2704b37731dab71a3a2363511831ec635e3f60
           imagePullPolicy: Always
           command: ["/bin/bash", "/scripts/wait-init-org.sh"]
           env:
@@ -1412,7 +1412,7 @@ spec:
             - name: postinstall-scripts
               mountPath: /scripts
         - name: init-token
-          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8bda2b4d186c34f5cc0794037d2704b37731dab71a3a2363511831ec635e3f60
           imagePullPolicy: Always
           command: ["/bin/bash", "/scripts/init-bootstrap-token.sh"]
           envFrom:
@@ -1432,7 +1432,7 @@ spec:
               mountPath: /var/opt/token
       containers:
         - name: prune-organizations
-          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8bda2b4d186c34f5cc0794037d2704b37731dab71a3a2363511831ec635e3f60
           imagePullPolicy: Always
           command: ["/bin/bash", "/scripts/prune-organizations.sh"]
           envFrom:
@@ -1495,7 +1495,7 @@ spec:
       serviceAccountName: apc-registry-postinstall
       initContainers:
         - name: init-robot-secret
-          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8bda2b4d186c34f5cc0794037d2704b37731dab71a3a2363511831ec635e3f60
           imagePullPolicy: Always
           command: ["/bin/bash", "/scripts/init-robots-secret.sh"]
           envFrom:
@@ -1512,7 +1512,7 @@ spec:
             - name: postinstall-scripts
               mountPath: /scripts
         - name: wait-quay
-          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8bda2b4d186c34f5cc0794037d2704b37731dab71a3a2363511831ec635e3f60
           imagePullPolicy: Always
           command: ["/bin/bash", "/scripts/wait-quay.sh"]
           envFrom:
@@ -1529,7 +1529,7 @@ spec:
             - name: postinstall-scripts
               mountPath: /scripts
         - name: wait-init-org
-          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8bda2b4d186c34f5cc0794037d2704b37731dab71a3a2363511831ec635e3f60
           imagePullPolicy: Always
           command: ["/bin/bash", "/scripts/wait-init-org.sh"]
           env:
@@ -1546,7 +1546,7 @@ spec:
             - name: postinstall-scripts
               mountPath: /scripts
         - name: init-token
-          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8bda2b4d186c34f5cc0794037d2704b37731dab71a3a2363511831ec635e3f60
           imagePullPolicy: Always
           command: ["/bin/bash", "/scripts/init-bootstrap-token.sh"]
           envFrom:
@@ -1580,7 +1580,7 @@ spec:
               mountPath: /vault
       containers:
         - name: init-robot-huba
-          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8bda2b4d186c34f5cc0794037d2704b37731dab71a3a2363511831ec635e3f60
           imagePullPolicy: Always
           command: ["/bin/bash", "/scripts/init-robots.sh"]
           envFrom:
@@ -1605,12 +1605,14 @@ spec:
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
+            - name: ca-bundle
+              mountPath: /var/opt/ca
             - name: bootstrap-token
               mountPath: /var/opt/token
             - name: vault-cli
               mountPath: /vault
         - name: init-robot-spokea1
-          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae8d6f288aa9b4dc6812d572c1d2acc6cd4d85b17bf9d73fb723b2104f8708f
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8bda2b4d186c34f5cc0794037d2704b37731dab71a3a2363511831ec635e3f60
           imagePullPolicy: Always
           command: ["/bin/bash", "/scripts/init-robots.sh"]
           envFrom:
@@ -1635,6 +1637,8 @@ spec:
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
+            - name: ca-bundle
+              mountPath: /var/opt/ca
             - name: bootstrap-token
               mountPath: /var/opt/token
             - name: vault-cli
@@ -1644,6 +1648,10 @@ spec:
           configMap:
             name: apc-registry-postinstall-scripts
             defaultMode: 0755
+        - name: ca-bundle
+          configMap:
+            name: ca-cert-bundle
+            defaultMode: 0444
         - name: bootstrap-token
           emptyDir: {}
         - name: vault-cli
