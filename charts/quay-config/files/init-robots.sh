@@ -37,7 +37,7 @@ json.dump(data, sys.stdout)
 bootstrapToken="$(cat /var/opt/token/bootstrap)"
 clusterName="$CLUSTERNAME"
 authBackendName="$AUTHBACKENDNAME"
-vaultPath="$CLUSTERVAULTPATH"
+vaultPath="${CLUSTERVAULTPATH:-}"
 quayService="$QUAYSERVICE"
 quayRoute="$QUAYROUTE"
 robotAccountsSecret="$ROBOTACCOUNTSECRET"
