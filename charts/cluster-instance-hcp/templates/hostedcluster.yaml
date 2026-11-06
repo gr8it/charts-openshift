@@ -10,6 +10,9 @@ kind: HostedCluster
 metadata:
   name: {{ $clusterName }}
   namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+    hypershift.openshift.io/force-upgrade-to: {{ .Values.releaseImage }}
   labels:
     {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
     cluster.open-cluster-management.io/clusterset: {{ .Values.clusterSet | quote }}

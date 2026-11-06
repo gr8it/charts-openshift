@@ -20,6 +20,14 @@ tests:
           path: spec.clusterName
           value: mycluster
 
+  - it: should sync after ManagedCluster
+    set:
+      clusterName: mycluster
+    asserts:
+      - equal:
+          path: metadata.annotations["argocd.argoproj.io/sync-wave"]
+          value: "10"
+
   - it: should include base machineconfig refs
     set:
       clusterName: mycluster

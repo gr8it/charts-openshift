@@ -12,52 +12,119 @@ Deploys a HyperShift Hosted Control Plane (HCP) cluster on an ACM hub cluster. C
 - Provision the pull secret in Vault at `<KVmountPlatform>/<environmentShort>/hcp/<clusterName>/pullSecret` with the `.dockerconfigjson` property. This secret is required for every cluster.
 - For each configured identity provider that references a credential secret, provision a Vault secret at `<KVmountPlatform>/<environmentShort>/hcp/<clusterName>/identityProvider/<secretName>`. The `<secretName>` must match the name in the identity provider configuration. Required Vault properties by provider type:
 
-  | Identity provider type | Vault properties |
-  |---|---|
-  | LDAP | `bindPassword` |
-  | HTPasswd | `fileData` |
-  | Keystone | `tlsClientCert` and `tlsClientKey` |
-  | BasicAuth, GitHub, GitLab, Google, OpenID | `clientSecret` |
+  | Identity provider type                    | Vault properties                   |
+  | ----------------------------------------- | ---------------------------------- |
+  | LDAP                                      | `bindPassword`                     |
+  | HTPasswd                                  | `fileData`                         |
+  | Keystone                                  | `tlsClientCert` and `tlsClientKey` |
+  | BasicAuth, GitHub, GitLab, Google, OpenID | `clientSecret`                     |
 
   These identity-provider secrets are required only when the corresponding provider credential reference is configured.
 
+## Argo CD HostedCluster health check
+
+To make Argo CD wait for a HostedCluster upgrade before syncing later waves, configure a custom health check in the `argocd-cm` ConfigMap for the Argo CD instance managing this chart:
+
+Use the namespace where that Argo CD instance stores its `argocd-cm`; the example uses `openshift-gitops`.
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+  namespace: openshift-gitops
+data:
+  resource.customizations.health.hypershift.openshift.io_HostedCluster: |
+    hs = { status = "Progressing", message = "Waiting for HostedCluster status" }
+
+    if obj.status == nil then
+      return hs
+    end
+
+    for _, condition in ipairs(obj.status.conditions or {}) do
+      if condition.type == "Degraded" and condition.status == "True" then
+        hs.status = "Degraded"
+        hs.message = condition.message or "HostedCluster is degraded"
+        return hs
+      end
+      if condition.type == "ClusterVersionFailing" and condition.status == "True" then
+        hs.status = "Degraded"
+        hs.message = condition.message or "HostedCluster version update is failing"
+        return hs
+      end
+    end
+
+    local version = obj.status.version
+    if version == nil then
+      hs.message = "Waiting for HostedCluster version status"
+      return hs
+    end
+
+    if version.observedGeneration ~= obj.metadata.generation then
+      hs.message = "Waiting for current HostedCluster generation to be observed"
+      return hs
+    end
+
+    local history = version.history or {}
+    local latest = history[1]
+    if latest == nil or latest.state ~= "Completed" or latest.image ~= (version.desired or {}).image then
+      hs.message = "Waiting for desired HostedCluster release to complete"
+      return hs
+    end
+
+    for _, condition in ipairs(obj.status.conditions or {}) do
+      if condition.type == "Available" and condition.status == "True" then
+        hs.status = "Healthy"
+        hs.message = "HostedCluster is available at its desired completed release"
+        return hs
+      end
+    end
+
+    hs.message = "Waiting for HostedCluster to become available"
+    return hs
+```
+
+The check reports `Healthy` only when the current generation has been observed, the desired release is the latest `Completed` entry in `status.version.history`, and the `Available` condition is `True`. An incomplete or failing upgrade therefore keeps the HostedCluster unhealthy, preventing Argo CD from advancing to a later sync wave. Apply this customization to the Argo CD instance's own configuration; it is not a chart value.
+
+HyperShift documents the [HostedCluster version status and upgrade history](https://github.com/openshift/hypershift/blob/main/api/hypershift/v1beta1/hostedcluster_types.go).
+
 ## Values
 
-| Parameter | Description | Default |
-|---|---|---|
-| `clusterName` | HCP cluster name (namespace, infraID, ManagedCluster name). **Required.** | — |
-| `clusterSet` | ACM ManagedClusterSet label | `default` |
-| `releaseImage` | OCP release image FQDN with tag | `quay.io/openshift-release-dev/ocp-release:4.17.11-multi` |
-| `channel` | OCP update channel; omitted from the HostedCluster when empty | `eus-4.18` |
-| `apiServerAuditProfile` | HostedCluster API server audit profile (`None`, `Default`, `WriteRequestBodies`, or `AllRequestBodies`) | `Default` |
-| `infrastructureNamespace` | Infra namespace override; defaults to `infrastructure-<clusterName>` | `""` |
-| `etcd.storageClassName` | StorageClass for ETCD PV | `lvms-vg1` |
-| `etcd.storageSize` | ETCD PV size | `8Gi` |
-| `etcd.backup.enabled` | Create resources for scheduled Hosted Control Plane etcd backups | `false` |
-| `etcd.backup.schedule` | Cron schedule for etcd backups | `"0 0 * * *"` |
-| `etcd.backup.paused` | Suspend the etcd backup CronJob | `false` |
-| `etcd.backup.retentionDays` | Number of days to retain snapshots in object storage | `3` |
-| `etcd.backup.etcdStatefulSetName` | Hosted Control Plane etcd StatefulSet name | `etcd` |
-| `etcd.backup.compressSnapshot` | Compress etcd snapshots before upload | `false` |
-| `etcd.backup.objectBucketClaim.create` | Create an ObjectBucketClaim for storing etcd backups | `false` |
-| `etcd.backup.objectBucketClaim.name` | ObjectBucketClaim name; defaults to `etcd-hcp-<clusterName>-backup` | `""` |
-| `etcd.backup.objectBucketClaim.storageClass` | StorageClass used when creating the ObjectBucketClaim | `ocs-storagecluster-ceph-rgw` |
-| `nodePool.replicas` | Number of worker nodes | `2` |
-| `nodePool.upgradeType` | Upgrade strategy (`InPlace` or `Replace`) | `InPlace` |
-| `nodePool.autoRepair` | Enable automatic node repair | `false` |
-| `nodePool.nodeLabels` | Labels applied to worker nodes | `{}` |
-| `kubeletConfig` | KubeletConfig settings applied to worker nodes | see `values.yaml` |
-| `networking.clusterCIDR` | Pod network CIDR | `172.26.0.0/16` |
-| `networking.clusterHostPrefix` | Host prefix for pod network | `21` |
-| `networking.serviceCIDR` | Service network CIDR | `172.25.64.0/18` |
-| `services.oauthPort` | NodePort for OAuthServer. **Required.** | — |
-| `services.konnectivityPort` | NodePort for Konnectivity. **Required.** | — |
-| `services.ignitionPort` | NodePort for Ignition. **Required.** | — |
-| `services.oidcPort` | NodePort for OIDC. **Required.** | — |
-| `backup.enabled` | Create a Velero Schedule for the HostedCluster namespace | `false` |
-| `backup.schedule` | Cron schedule for the Velero backup | `"0 0 * * *"` |
-| `backup.paused` | Pause the Velero Schedule | `false` |
-| `backup.ttl` | Backup retention duration as a Go duration, e.g. `168h0m0s` for seven days | `"336h0m0s"` |
+| Parameter                                    | Description                                                                                             | Default                                                   |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `clusterName`                                | HCP cluster name (namespace, infraID, ManagedCluster name). **Required.**                               | —                                                         |
+| `clusterSet`                                 | ACM ManagedClusterSet label                                                                             | `default`                                                 |
+| `releaseImage`                               | OCP release image FQDN with tag                                                                         | `quay.io/openshift-release-dev/ocp-release:4.17.11-multi` |
+| `channel`                                    | OCP update channel; omitted from the HostedCluster when empty                                           | `eus-4.18`                                                |
+| `apiServerAuditProfile`                      | HostedCluster API server audit profile (`None`, `Default`, `WriteRequestBodies`, or `AllRequestBodies`) | `Default`                                                 |
+| `infrastructureNamespace`                    | Infra namespace override; defaults to `infrastructure-<clusterName>`                                    | `""`                                                      |
+| `etcd.storageClassName`                      | StorageClass for ETCD PV                                                                                | `lvms-vg1`                                                |
+| `etcd.storageSize`                           | ETCD PV size                                                                                            | `8Gi`                                                     |
+| `etcd.backup.enabled`                        | Create resources for scheduled Hosted Control Plane etcd backups                                        | `false`                                                   |
+| `etcd.backup.schedule`                       | Cron schedule for etcd backups                                                                          | `"0 0 * * *"`                                             |
+| `etcd.backup.paused`                         | Suspend the etcd backup CronJob                                                                         | `false`                                                   |
+| `etcd.backup.retentionDays`                  | Number of days to retain snapshots in object storage                                                    | `3`                                                       |
+| `etcd.backup.etcdStatefulSetName`            | Hosted Control Plane etcd StatefulSet name                                                              | `etcd`                                                    |
+| `etcd.backup.compressSnapshot`               | Compress etcd snapshots before upload                                                                   | `false`                                                   |
+| `etcd.backup.objectBucketClaim.create`       | Create an ObjectBucketClaim for storing etcd backups                                                    | `false`                                                   |
+| `etcd.backup.objectBucketClaim.name`         | ObjectBucketClaim name; defaults to `etcd-hcp-<clusterName>-backup`                                     | `""`                                                      |
+| `etcd.backup.objectBucketClaim.storageClass` | StorageClass used when creating the ObjectBucketClaim                                                   | `ocs-storagecluster-ceph-rgw`                             |
+| `nodePool.replicas`                          | Number of worker nodes                                                                                  | `2`                                                       |
+| `nodePool.upgradeType`                       | Upgrade strategy (`InPlace` or `Replace`)                                                               | `InPlace`                                                 |
+| `nodePool.autoRepair`                        | Enable automatic node repair                                                                            | `false`                                                   |
+| `nodePool.nodeLabels`                        | Labels applied to worker nodes                                                                          | `{}`                                                      |
+| `kubeletConfig`                              | KubeletConfig settings applied to worker nodes                                                          | see `values.yaml`                                         |
+| `networking.clusterCIDR`                     | Pod network CIDR                                                                                        | `172.26.0.0/16`                                           |
+| `networking.clusterHostPrefix`               | Host prefix for pod network                                                                             | `21`                                                      |
+| `networking.serviceCIDR`                     | Service network CIDR                                                                                    | `172.25.64.0/18`                                          |
+| `services.oauthPort`                         | NodePort for OAuthServer. **Required.**                                                                 | —                                                         |
+| `services.konnectivityPort`                  | NodePort for Konnectivity. **Required.**                                                                | —                                                         |
+| `services.ignitionPort`                      | NodePort for Ignition. **Required.**                                                                    | —                                                         |
+| `services.oidcPort`                          | NodePort for OIDC. **Required.**                                                                        | —                                                         |
+| `backup.enabled`                             | Create a Velero Schedule for the HostedCluster namespace                                                | `false`                                                   |
+| `backup.schedule`                            | Cron schedule for the Velero backup                                                                     | `"0 0 * * *"`                                             |
+| `backup.paused`                              | Pause the Velero Schedule                                                                               | `false`                                                   |
+| `backup.ttl`                                 | Backup retention duration as a Go duration, e.g. `168h0m0s` for seven days                              | `"336h0m0s"`                                              |
 
 ## Features
 
@@ -103,21 +170,21 @@ See the [OpenShift node resource configuration documentation](https://docs.redha
 
 ## Global values used
 
-| Global value | Description |
-|---|---|
-| `global.apc.cluster.rootDomain` | **Required.** Base domain for the HCP cluster (e.g. `cloud.example.com`) |
-| `global.apc.sshAuthorizedKeys` | Optional list of SSH public keys for worker nodes |
-| `global.apc.ntpServers` | NTP server list for worker chrony config |
-| `global.apc.proxy` | HTTP/HTTPS proxy URL |
-| `global.apc.noProxy` | noProxy list injected into InfraEnv, ensure to list all primary internal and node-level subnets,127.0.0.1 and localhost,169.254.169.254 - for Cloud Provider IaaS,.svc and .cluster.local,Internal API Server URL,CNI Service CIDR,CNI Pod CIDR, 172.20.0.1- [KB 7127777](https://access.redhat.com/solutions/7127777) |
-| `global.apc.caCertificates` | CA certificates bundle |
-| `global.apc.imageProxy.host` | Mirror registry hostname (enables image mirroring) |
-| `global.apc.imageProxy.sources` | Source registries to mirror |
-| `global.apc.identityProviders` | OpenShift OAuth identity provider list |
-| `global.apc.services.externalSecretsOperator.defaultClusterSecretStore` | **Required.** ClusterSecretStore for ExternalSecrets |
-| `global.apc.services.vault.KVmountPlatform` | **Required.** Vault KV mount path prefix |
-| `global.apc.services.certManager.defaultClusterIssuer` | **Required.** ClusterIssuer for API server certificate |
-| `global.apc.environmentShort` | **Required.** Environment short name used in Vault paths |
+| Global value                                                            | Description                                                                                                                                                                                                                                                                                                            |
+| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `global.apc.cluster.rootDomain`                                         | **Required.** Base domain for the HCP cluster (e.g. `cloud.example.com`)                                                                                                                                                                                                                                               |
+| `global.apc.sshAuthorizedKeys`                                          | Optional list of SSH public keys for worker nodes                                                                                                                                                                                                                                                                      |
+| `global.apc.ntpServers`                                                 | NTP server list for worker chrony config                                                                                                                                                                                                                                                                               |
+| `global.apc.proxy`                                                      | HTTP/HTTPS proxy URL                                                                                                                                                                                                                                                                                                   |
+| `global.apc.noProxy`                                                    | noProxy list injected into InfraEnv, ensure to list all primary internal and node-level subnets,127.0.0.1 and localhost,169.254.169.254 - for Cloud Provider IaaS,.svc and .cluster.local,Internal API Server URL,CNI Service CIDR,CNI Pod CIDR, 172.20.0.1- [KB 7127777](https://access.redhat.com/solutions/7127777) |
+| `global.apc.caCertificates`                                             | CA certificates bundle                                                                                                                                                                                                                                                                                                 |
+| `global.apc.imageProxy.host`                                            | Mirror registry hostname (enables image mirroring)                                                                                                                                                                                                                                                                     |
+| `global.apc.imageProxy.sources`                                         | Source registries to mirror                                                                                                                                                                                                                                                                                            |
+| `global.apc.identityProviders`                                          | OpenShift OAuth identity provider list                                                                                                                                                                                                                                                                                 |
+| `global.apc.services.externalSecretsOperator.defaultClusterSecretStore` | **Required.** ClusterSecretStore for ExternalSecrets                                                                                                                                                                                                                                                                   |
+| `global.apc.services.vault.KVmountPlatform`                             | **Required.** Vault KV mount path prefix                                                                                                                                                                                                                                                                               |
+| `global.apc.services.certManager.defaultClusterIssuer`                  | **Required.** ClusterIssuer for API server certificate                                                                                                                                                                                                                                                                 |
+| `global.apc.environmentShort`                                           | **Required.** Environment short name used in Vault paths                                                                                                                                                                                                                                                               |
 
 ## Services
 

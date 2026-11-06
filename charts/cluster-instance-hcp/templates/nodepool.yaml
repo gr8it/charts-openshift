@@ -5,6 +5,8 @@ kind: NodePool
 metadata:
   name: nodepool-{{ $clusterName }}-1
   namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
   labels:
     {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
 spec:

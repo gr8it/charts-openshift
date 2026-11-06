@@ -4,6 +4,7 @@ kind: ManagedCluster
 metadata:
   name: {{ $clusterName }}
   annotations:
+    argocd.argoproj.io/sync-wave: "0"
     import.open-cluster-management.io/hosting-cluster-name: local-cluster
     import.open-cluster-management.io/klusterlet-deploy-mode: Hosted
     open-cluster-management/created-via: hypershift

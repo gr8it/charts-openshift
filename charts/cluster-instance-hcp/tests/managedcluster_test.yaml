@@ -25,3 +25,11 @@ tests:
       - equal:
           path: metadata.labels["cluster.open-cluster-management.io/clusterset"]
           value: default
+
+  - it: should sync before NodePool
+    set:
+      clusterName: mycluster
+    asserts:
+      - equal:
+          path: metadata.annotations["argocd.argoproj.io/sync-wave"]
+          value: "0"

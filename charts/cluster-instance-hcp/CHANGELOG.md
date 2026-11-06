@@ -1,6 +1,14 @@
 All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.8] - 2026-11-06
+
+### Changed
+
+- annotation hypershift.openshift.io/force-upgrade-to
+- Sync the HostedCluster and ManagedCluster before the NodePool in Argo CD.
+- Document the Argo CD HostedCluster health check needed to gate later sync waves on upgrade completion.
+
 ## [2.0.7] - 2026-10-29
 
 ### Added
