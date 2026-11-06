@@ -1,4 +1,4 @@
-{{- if .Values.argocd.syncOnPullSecretUpdate }}
+{{- if and .Values.argocd.syncOnPullSecretUpdate .Values.vault.refPullSecretPath }}
 ---
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy

@@ -43,6 +43,30 @@
       "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "argocd": {
+            "properties": {
+              "syncOnPullSecretUpdate": { "const": true }
+            },
+            "required": ["syncOnPullSecretUpdate"]
+          }
+        },
+        "required": ["argocd"]
+      },
+      "then": {
+        "properties": {
+          "vault": {
+            "properties": {
+              "refPullSecretPath": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  ],
   "properties": {
     "global": {
       "type": "object",
