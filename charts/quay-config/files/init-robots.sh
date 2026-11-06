@@ -107,7 +107,7 @@ if ! (echo 'yes true 1'|grep -wqi "$vaultUpdateSecrets"); then
   exit 0
 fi
 
-export VAULT_SKIP_VERIFY=true
+export VAULT_CACERT="/var/opt/ca/ca-bundle.crt"
 export VAULT_ADDR="$vaultAddress"
 
 if VAULT_TOKEN="$(vault/vault write -field=token "auth/${authBackendName}/login" role="$vaultRole" jwt="$(cat /run/secrets/kubernetes.io/serviceaccount/token)" 2>&1)"; then

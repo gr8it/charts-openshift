@@ -110,6 +110,8 @@ spec:
           volumeMounts:
             - name: postinstall-scripts
               mountPath: /scripts
+            - name: ca-bundle
+              mountPath: /var/opt/ca
             - name: bootstrap-token
               mountPath: /var/opt/token
             {{- if $path }}
@@ -122,6 +124,10 @@ spec:
           configMap:
             name: {{ include "quay-config.objname.postinst-scripts" . }}
             defaultMode: 0755
+        - name: ca-bundle
+          configMap:
+            name: ca-cert-bundle
+            defaultMode: 0444
         - name: bootstrap-token
           emptyDir: {}
         - name: vault-cli
