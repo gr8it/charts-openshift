@@ -3,7 +3,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ include "quay-config.name" . }}-auth-delegator
+  name: {{ printf "%s-%s-auth-delegator" (include "quay-config.name" .) .Release.Namespace }}
   labels:
     {{- include "quay-config.labels" . | nindent 4 }}
 roleRef:
