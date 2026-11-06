@@ -14,12 +14,20 @@ spec:
 
       {{- $clusterPullSecretPath := default dict .Values.vault.clusterPullSecretPath }}
 
-      {{- $refPullSecretPath := dict }}
-      {{- if not (has .Values.vault.refPullSecretPath (values $clusterPullSecretPath)) }}
-      {{- $refPullSecretPath = dict "_ref" .Values.vault.refPullSecretPath }}
+      {{- if and .Values.vault.refPullSecretPath (not (has .Values.vault.refPullSecretPath (values $clusterPullSecretPath))) }}
+      {{- $refPullSecretPath := .Values.vault.refPullSecretPath }}
+      path "{{ $refPullSecretPath }}" {
+        capabilities = ["read", "list"]
+      }
+      path "{{ include "quay-config.insertPathSegment" (dict "path" $refPullSecretPath "insert" "data") }}" {
+        capabilities = ["read", "list"]
+      }
+      path "{{ include "quay-config.insertPathSegment" (dict "path" $refPullSecretPath "insert" "metadata") }}" {
+        capabilities = ["read", "list"]
+      }
       {{- end }}
 
-      {{- range $cluster, $path := merge $refPullSecretPath $clusterPullSecretPath }}
+      {{- range $cluster, $path := $clusterPullSecretPath }}
       {{- if $path }}
       path "{{ $path }}" {
         capabilities = ["create", "read", "update", "patch", "list"]
