@@ -9,6 +9,6 @@ metadata:
 rules:
 - apiGroups: ["argoproj.io"]
   resources: ["applications"]
-  verbs: ["update"]
+  verbs: ["get", "update", "patch"]
   resourceNames: ["{{ .Values.argocd.appName | default .Chart.Name }}"]
 {{- end }}
