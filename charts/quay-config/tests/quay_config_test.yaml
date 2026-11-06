@@ -1,0 +1,94 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: Quay config use cases
+release:
+  name: quay-config
+  namespace: quay
+values:
+  - ../values.lint.yaml
+
+tests:
+  - it: QuayRegistry uses the configured release namespace and database volume size
+    template: templates/quayregistry.yaml
+    set:
+      dbVolumeSize: 64Gi
+    asserts:
+      - equal:
+          path: metadata.name
+          value: apc-registry
+      - equal:
+          path: metadata.namespace
+          value: quay
+      - equal:
+          path: spec.components[6].overrides.volumeSize
+          value: 64Gi
+
+  - it: ClusterRole grants update access to the configured Argo CD application
+    template: templates/clusterrole-background-controller.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: "kyverno:background-controller:quay:apc-registry"
+      - equal:
+          path: rules[0].apiGroups
+          value:
+            - argoproj.io
+      - equal:
+          path: rules[0].resources
+          value:
+            - applications
+      - equal:
+          path: rules[0].verbs
+          value:
+            - update
+      - equal:
+          path: rules[0].resourceNames
+          value:
+            - quay-config-test
+
+  - it: ClusterRole is omitted when pull-secret synchronization is disabled
+    template: templates/clusterrole-background-controller.yaml
+    set:
+      argocd.syncOnPullSecretUpdate: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: ExternalSecret reads credentials from the configured Vault path
+    template: templates/externalsecret-registry-credentials.yaml
+    set:
+      vault.refPullSecretPath: apc-platform/x/registry-credentials
+    asserts:
+      - equal:
+          path: metadata.name
+          value: apc-registry-registry-credentials
+      - equal:
+          path: spec.dataFrom[0].extract.key
+          value: apc-platform/x/registry-credentials
+
+  - it: robot account Job renders one container for each configured cluster
+    template: templates/job-robot-accounts.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: apc-registry-init-robots
+      - equal:
+          path: spec.template.spec.containers[0].name
+          value: init-robot-hub
+      - equal:
+          path: spec.template.spec.containers[1].name
+          value: init-robot-spoke1
+      - equal:
+          path: spec.template.spec.containers[2].name
+          value: init-robot-spoke2
+
+  - it: robot account Job disables Vault updates when a cluster path is unset
+    template: templates/job-robot-accounts.yaml
+    set:
+      vault.clusterPullSecretPath.spoke2: null
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[2].env[2].name
+          value: UPDATEVAULTSECRETS
+      - equal:
+          path: spec.template.spec.containers[2].env[2].value
+          value: "no"
