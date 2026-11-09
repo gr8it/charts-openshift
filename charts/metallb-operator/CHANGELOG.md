@@ -5,6 +5,10 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-11-09
+
+- Bump to metallb-operator.v4.19.0-202611050700 (catalog head 2026-11-09)
+
 ## [1.2.0] - 2026-11-02
 
 ### Changed
