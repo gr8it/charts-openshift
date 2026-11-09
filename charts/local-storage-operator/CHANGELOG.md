@@ -5,6 +5,10 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2026-11-09
+
+- Bump to local-storage-operator.v4.19.0-202611040602 (catalog head 2026-11-09)
+
 ## [1.0.2] - 2026-11-02
 
 - Local Storage Operator `v4.19.0-202607311600` → `v4.19.0-202610241354` (channel `stable` catalog head). Previous 4.19 build stays in the OperatorPolicy allowed `versions`.
