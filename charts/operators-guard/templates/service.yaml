@@ -2,13 +2,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "operator-readiness.name" . }}
+  name: {{ include "operators-guard.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "operator-readiness.labels" . | nindent 4 }}
+    {{- include "operators-guard.labels" . | nindent 4 }}
 spec:
   selector:
-    {{- include "operator-readiness.selectorLabels" . | nindent 4 }}
+    {{- include "operators-guard.selectorLabels" . | nindent 4 }}
   ports:
   - name: metrics
     port: 8080
@@ -18,14 +18,14 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ include "operator-readiness.name" . }}
+  name: {{ include "operators-guard.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "operator-readiness.labels" . | nindent 4 }}
+    {{- include "operators-guard.labels" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      {{- include "operator-readiness.selectorLabels" . | nindent 6 }}
+      {{- include "operators-guard.selectorLabels" . | nindent 6 }}
   endpoints:
   - port: metrics
     interval: 5m

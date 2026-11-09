@@ -4,12 +4,12 @@ manifests should match snapshot:
     kind: ClusterRole
     metadata:
       labels:
-        app.kubernetes.io/instance: operator-readiness
+        app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: operator-readiness
-        app.kubernetes.io/version: 0.6.0
-        helm.sh/chart: operator-readiness-1.0.0
-      name: operator-readiness
+        app.kubernetes.io/name: operators-guard
+        app.kubernetes.io/version: 0.7.4
+        helm.sh/chart: operators-guard-0.7.1
+      name: operators-guard
     rules:
       - apiGroups:
           - config.openshift.io
@@ -39,6 +39,12 @@ manifests should match snapshot:
         verbs:
           - list
       - apiGroups:
+          - operators.coreos.com
+        resources:
+          - installplans
+        verbs:
+          - get
+      - apiGroups:
           - apps
         resources:
           - deployments
@@ -63,50 +69,50 @@ manifests should match snapshot:
     kind: ClusterRoleBinding
     metadata:
       labels:
-        app.kubernetes.io/instance: operator-readiness
+        app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: operator-readiness
-        app.kubernetes.io/version: 0.6.0
-        helm.sh/chart: operator-readiness-1.0.0
-      name: operator-readiness
+        app.kubernetes.io/name: operators-guard
+        app.kubernetes.io/version: 0.7.4
+        helm.sh/chart: operators-guard-0.7.1
+      name: operators-guard
     roleRef:
       apiGroup: rbac.authorization.k8s.io
       kind: ClusterRole
-      name: operator-readiness
+      name: operators-guard
     subjects:
       - kind: ServiceAccount
-        name: operator-readiness
-        namespace: apc-operator-readiness
+        name: operators-guard
+        namespace: apc-operators-guard
   3: |
     apiVersion: apps/v1
     kind: Deployment
     metadata:
       labels:
-        app.kubernetes.io/instance: operator-readiness
+        app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: operator-readiness
-        app.kubernetes.io/version: 0.6.0
-        helm.sh/chart: operator-readiness-1.0.0
-      name: operator-readiness
-      namespace: apc-operator-readiness
+        app.kubernetes.io/name: operators-guard
+        app.kubernetes.io/version: 0.7.4
+        helm.sh/chart: operators-guard-0.7.1
+      name: operators-guard
+      namespace: apc-operators-guard
     spec:
       replicas: 1
       selector:
         matchLabels:
-          app.kubernetes.io/instance: operator-readiness
-          app.kubernetes.io/name: operator-readiness
+          app.kubernetes.io/instance: operators-guard
+          app.kubernetes.io/name: operators-guard
       strategy:
         type: Recreate
       template:
         metadata:
           annotations:
-            checksum/policy: 212d9deaf34ba45f3102f70fb681b804b922aceacd9607d5beed3a8d0d304a05
+            checksum/policy: 3139de18bc5b7bfadb9661f4cfb876bf65b5f140c6c6f332228e408a5cc8eb7f
           labels:
-            app.kubernetes.io/instance: operator-readiness
+            app.kubernetes.io/instance: operators-guard
             app.kubernetes.io/managed-by: Helm
-            app.kubernetes.io/name: operator-readiness
-            app.kubernetes.io/version: 0.6.0
-            helm.sh/chart: operator-readiness-1.0.0
+            app.kubernetes.io/name: operators-guard
+            app.kubernetes.io/version: 0.7.4
+            helm.sh/chart: operators-guard-0.7.1
         spec:
           containers:
             - args:
@@ -114,8 +120,9 @@ manifests should match snapshot:
                 - --loop
                 - --interval=1h
                 - --policy=/etc/readiness/policy.yaml
-                - --snapshot-repository=quay-registry.apps.hub01.example.com/apc/operator-readiness-snapshot
+                - --snapshot-repository=quay-registry.apps.hub01.example.com/apc/operators-guard-snapshot
                 - --cache-dir=/var/cache/readiness
+                - --history-keep=24
                 - --listen=:8080
               env:
                 - name: HTTPS_PROXY
@@ -130,7 +137,7 @@ manifests should match snapshot:
                   value: https://search-search-api.open-cluster-management.svc:4010/searchapi/graphql
                 - name: SEARCH_API_CA_FILE
                   value: /etc/pki/service-ca/service-ca.crt
-              image: quay-registry.apps.hub01.example.com/apc/readiness-engine:0.6.0
+              image: ghcr.io/gr8it/operators-guard:0.7.4
               livenessProbe:
                 httpGet:
                   path: /healthz
@@ -176,14 +183,14 @@ manifests should match snapshot:
             runAsNonRoot: true
             seccompProfile:
               type: RuntimeDefault
-          serviceAccountName: operator-readiness
+          serviceAccountName: operators-guard
           volumes:
             - configMap:
-                name: operator-readiness-policy
+                name: operators-guard-policy
               name: policy
             - name: snapshot-push
               secret:
-                secretName: operator-readiness-quay-push
+                secretName: operators-guard-quay-push
             - configMap:
                 name: openshift-service-ca.crt
               name: service-ca
@@ -197,13 +204,13 @@ manifests should match snapshot:
     kind: GrafanaDashboard
     metadata:
       labels:
-        app.kubernetes.io/instance: operator-readiness
+        app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: operator-readiness
-        app.kubernetes.io/version: 0.6.0
-        helm.sh/chart: operator-readiness-1.0.0
-      name: operator-readiness
-      namespace: apc-operator-readiness
+        app.kubernetes.io/name: operators-guard
+        app.kubernetes.io/version: 0.7.4
+        helm.sh/chart: operators-guard-0.7.1
+      name: operators-guard
+      namespace: apc-operators-guard
     spec:
       allowCrossNamespaceImport: true
       instanceSelector:
@@ -212,7 +219,7 @@ manifests should match snapshot:
       json: |
         {
           "title": "Operator upgrade readiness",
-          "uid": "operator-readiness",
+          "uid": "operators-guard",
           "schemaVersion": 39,
           "refresh": "5m",
           "time": {
@@ -252,13 +259,27 @@ manifests should match snapshot:
                 "allValue": ".*"
               },
               {
+                "name": "owner",
+                "type": "query",
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "${datasource}"
+                },
+                "query": "label_values(operator_upgrade_readiness{cluster=~\"$cluster\", package=~\"$package\"}, owner)",
+                "refresh": 2,
+                "sort": 1,
+                "multi": true,
+                "includeAll": true,
+                "allValue": ".*"
+              },
+              {
                 "name": "status",
                 "type": "query",
                 "datasource": {
                   "type": "prometheus",
                   "uid": "${datasource}"
                 },
-                "query": "label_values(operator_upgrade_readiness{cluster=~\"$cluster\", package=~\"$package\"}, status)",
+                "query": "label_values(operator_upgrade_readiness{cluster=~\"$cluster\", package=~\"$package\", owner=~\"$owner\"}, status)",
                 "refresh": 2,
                 "sort": 1,
                 "multi": true,
@@ -283,7 +304,7 @@ manifests should match snapshot:
               },
               "targets": [
                 {
-                  "expr": "count(operator_upgrade_readiness{cluster=~\"$cluster\", package=~\"$package\", scope=\"target\", status=\"BLOCKER\"}) or vector(0)"
+                  "expr": "count(operator_upgrade_readiness{cluster=~\"$cluster\", package=~\"$package\", owner=~\"$owner\", scope=\"target\", status=\"BLOCKER\"}) or vector(0)"
                 }
               ],
               "fieldConfig": {
@@ -319,7 +340,7 @@ manifests should match snapshot:
               },
               "targets": [
                 {
-                  "expr": "count(operator_upgrade_readiness{cluster=~\"$cluster\", package=~\"$package\", scope=\"target\", status=~\"ACTION.*\"}) or vector(0)"
+                  "expr": "count(operator_upgrade_readiness{cluster=~\"$cluster\", package=~\"$package\", owner=~\"$owner\", scope=\"target\", status=~\"ACTION.*\"}) or vector(0)"
                 }
               ]
             },
@@ -338,7 +359,7 @@ manifests should match snapshot:
               },
               "targets": [
                 {
-                  "expr": "count(operator_upgrade_readiness{cluster=~\"$cluster\", package=~\"$package\", scope=\"target\", status=~\"WARN|UNKNOWN\"}) or vector(0)"
+                  "expr": "count(operator_upgrade_readiness{cluster=~\"$cluster\", package=~\"$package\", owner=~\"$owner\", scope=\"target\", status=~\"WARN|UNKNOWN\"}) or vector(0)"
                 }
               ],
               "fieldConfig": {
@@ -401,7 +422,7 @@ manifests should match snapshot:
               "title": "Operators",
               "gridPos": {
                 "x": 0,
-                "y": 4,
+                "y": 8,
                 "w": 24,
                 "h": 16
               },
@@ -411,7 +432,7 @@ manifests should match snapshot:
               },
               "targets": [
                 {
-                  "expr": "operator_upgrade_readiness{cluster=~\"$cluster\", package=~\"$package\", status=~\"$status\"}",
+                  "expr": "operator_upgrade_readiness{cluster=~\"$cluster\", package=~\"$package\", owner=~\"$owner\", status=~\"$status\"}",
                   "format": "table",
                   "instant": true
                 }
@@ -451,7 +472,7 @@ manifests should match snapshot:
               "title": "Operator drift (BEHIND, CATALOG-LAG, PIN-STALE, SUPPORT-*, BELOW-MIN)",
               "gridPos": {
                 "x": 0,
-                "y": 20,
+                "y": 24,
                 "w": 24,
                 "h": 12
               },
@@ -461,7 +482,7 @@ manifests should match snapshot:
               },
               "targets": [
                 {
-                  "expr": "operator_drift_status{cluster=~\"$cluster\", package=~\"$package\", status!~\"OK|UNKNOWN\"}",
+                  "expr": "operator_drift_status{cluster=~\"$cluster\", package=~\"$package\", owner=~\"$owner\", status!~\"OK|UNKNOWN\"}",
                   "format": "table",
                   "instant": true
                 }
@@ -498,7 +519,7 @@ manifests should match snapshot:
               "title": "Same operator, different versions per cluster",
               "gridPos": {
                 "x": 0,
-                "y": 32,
+                "y": 36,
                 "w": 24,
                 "h": 10
               },
@@ -508,7 +529,7 @@ manifests should match snapshot:
               },
               "targets": [
                 {
-                  "expr": "max by (package, cluster, installed) (operator_drift_status{cluster=~\"$cluster\", package=~\"$package\", installed!=\"\"} * on(package) group_left() (operator_version_spread > 1))",
+                  "expr": "max by (package, cluster, installed) (operator_drift_status{cluster=~\"$cluster\", package=~\"$package\", owner=~\"$owner\", installed!=\"\"} * on(package) group_left() (operator_version_spread > 1))",
                   "format": "table",
                   "instant": true
                 }
@@ -543,6 +564,440 @@ manifests should match snapshot:
                   }
                 }
               ]
+            },
+            {
+              "type": "stat",
+              "title": "Prediction mismatches",
+              "gridPos": {
+                "x": 0,
+                "y": 4,
+                "w": 6,
+                "h": 4
+              },
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "targets": [
+                {
+                  "expr": "count(operator_prediction_mismatch{cluster=~\"$cluster\", package=~\"$package\", owner=~\"$owner\"} == 1) or vector(0)"
+                }
+              ],
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": 1
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "type": "stat",
+              "title": "Stale pending InstallPlans",
+              "gridPos": {
+                "x": 6,
+                "y": 4,
+                "w": 6,
+                "h": 4
+              },
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "targets": [
+                {
+                  "expr": "count(operator_prediction_stale_plan{cluster=~\"$cluster\", package=~\"$package\", owner=~\"$owner\"} == 1) or vector(0)"
+                }
+              ],
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "orange",
+                        "value": 1
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "type": "stat",
+              "title": "Exceptions expiring (0-29 d)",
+              "gridPos": {
+                "x": 12,
+                "y": 4,
+                "w": 3,
+                "h": 4
+              },
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "targets": [
+                {
+                  "expr": "count(readiness_exception_days_left{package=~\"$package\", owner=~\"$owner\"} < 30 >= 0) or vector(0)"
+                }
+              ],
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "orange",
+                        "value": 1
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "type": "stat",
+              "title": "Expired exceptions",
+              "gridPos": {
+                "x": 15,
+                "y": 4,
+                "w": 3,
+                "h": 4
+              },
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "targets": [
+                {
+                  "expr": "count(readiness_exception_days_left{package=~\"$package\", owner=~\"$owner\"} < 0) or vector(0)"
+                }
+              ],
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": 1
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "type": "stat",
+              "title": "Prediction not comparable (UNKNOWN)",
+              "gridPos": {
+                "x": 18,
+                "y": 4,
+                "w": 6,
+                "h": 4
+              },
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "targets": [
+                {
+                  "expr": "max(readiness_engine_predictions{status=\"UNKNOWN\"})"
+                }
+              ],
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "orange",
+                        "value": 1
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "type": "table",
+              "title": "Prediction check (non-MATCH)",
+              "gridPos": {
+                "x": 0,
+                "y": 46,
+                "w": 24,
+                "h": 12
+              },
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "targets": [
+                {
+                  "refId": "A",
+                  "expr": "label_join((label_replace(operator_prediction_mismatch{cluster=~\"$cluster\", package=~\"$package\", owner=~\"$owner\"} == 1, \"status\", \"MISMATCH\", \"package\", \".*\") or label_replace(operator_prediction_stale_plan{cluster=~\"$cluster\", package=~\"$package\", owner=~\"$owner\"} == 1, \"status\", \"STALE-PLAN\", \"package\", \".*\")), \"row_key\", \"/\", \"cluster\", \"namespace\", \"subscription\")",
+                  "format": "table",
+                  "instant": true
+                },
+                {
+                  "refId": "B",
+                  "expr": "sum by (row_key) (label_join(operator_prediction_plan_age_days{cluster=~\"$cluster\", package=~\"$package\", owner=~\"$owner\"}, \"row_key\", \"/\", \"cluster\", \"namespace\", \"subscription\"))",
+                  "format": "table",
+                  "instant": true
+                }
+              ],
+              "transformations": [
+                {
+                  "id": "joinByField",
+                  "options": {
+                    "byField": "row_key",
+                    "mode": "outer"
+                  }
+                },
+                {
+                  "id": "organize",
+                  "options": {
+                    "excludeByName": {
+                      "Time": true,
+                      "__name__": true,
+                      "row_key": true,
+                      "Value #A": true,
+                      "channel": true,
+                      "job": true,
+                      "instance": true,
+                      "pod": true,
+                      "service": true,
+                      "endpoint": true
+                    },
+                    "indexByName": {
+                      "cluster": 0,
+                      "namespace": 1,
+                      "subscription": 2,
+                      "package": 3,
+                      "installed": 4,
+                      "owner": 5,
+                      "status": 6,
+                      "Value #B": 7
+                    },
+                    "renameByName": {
+                      "Value #B": "Plan age (days)"
+                    }
+                  }
+                },
+                {
+                  "id": "sortBy",
+                  "options": {
+                    "sort": [
+                      {
+                        "field": "Plan age (days)",
+                        "desc": true
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "type": "table",
+              "title": "Exceptions (days left)",
+              "gridPos": {
+                "x": 0,
+                "y": 58,
+                "w": 12,
+                "h": 10
+              },
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "targets": [
+                {
+                  "expr": "readiness_exception_days_left{package=~\"$package\", owner=~\"$owner\"}",
+                  "format": "table",
+                  "instant": true
+                }
+              ],
+              "transformations": [
+                {
+                  "id": "organize",
+                  "options": {
+                    "excludeByName": {
+                      "Time": true,
+                      "__name__": true,
+                      "job": true,
+                      "instance": true,
+                      "namespace": true,
+                      "pod": true,
+                      "service": true,
+                      "endpoint": true,
+                      "container": true
+                    },
+                    "indexByName": {
+                      "package": 0,
+                      "owner": 1,
+                      "Value": 2
+                    },
+                    "renameByName": {
+                      "Value": "Days left"
+                    }
+                  }
+                },
+                {
+                  "id": "sortBy",
+                  "options": {
+                    "sort": [
+                      {
+                        "field": "Days left",
+                        "desc": false
+                      }
+                    ]
+                  }
+                }
+              ],
+              "fieldConfig": {
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Days left"
+                    },
+                    "properties": [
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "color": "red",
+                              "value": null
+                            },
+                            {
+                              "color": "orange",
+                              "value": 0
+                            },
+                            {
+                              "color": "green",
+                              "value": 30
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "color-background"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "type": "table",
+              "title": "Sources",
+              "gridPos": {
+                "x": 12,
+                "y": 58,
+                "w": 12,
+                "h": 10
+              },
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "targets": [
+                {
+                  "expr": "max by (source) (readiness_engine_source_up)",
+                  "format": "table",
+                  "instant": true
+                }
+              ],
+              "transformations": [
+                {
+                  "id": "organize",
+                  "options": {
+                    "excludeByName": {
+                      "Time": true,
+                      "__name__": true,
+                      "job": true,
+                      "instance": true,
+                      "namespace": true,
+                      "pod": true,
+                      "service": true,
+                      "endpoint": true,
+                      "container": true
+                    },
+                    "indexByName": {
+                      "source": 0,
+                      "Value": 1
+                    },
+                    "renameByName": {
+                      "Value": "Up"
+                    }
+                  }
+                }
+              ],
+              "fieldConfig": {
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Up"
+                    },
+                    "properties": [
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "color": "red",
+                              "value": null
+                            },
+                            {
+                              "color": "green",
+                              "value": 1
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "color-background"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
             }
           ]
         }
@@ -551,12 +1006,12 @@ manifests should match snapshot:
     kind: Role
     metadata:
       labels:
-        app.kubernetes.io/instance: operator-readiness
+        app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: operator-readiness
-        app.kubernetes.io/version: 0.6.0
-        helm.sh/chart: operator-readiness-1.0.0
-      name: operator-readiness-packagemanifests
+        app.kubernetes.io/name: operators-guard
+        app.kubernetes.io/version: 0.7.4
+        helm.sh/chart: operators-guard-0.7.1
+      name: operators-guard-packagemanifests
       namespace: openshift-marketplace
     rules:
       - apiGroups:
@@ -570,25 +1025,26 @@ manifests should match snapshot:
     kind: RoleBinding
     metadata:
       labels:
-        app.kubernetes.io/instance: operator-readiness
+        app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: operator-readiness
-        app.kubernetes.io/version: 0.6.0
-        helm.sh/chart: operator-readiness-1.0.0
-      name: operator-readiness-packagemanifests
+        app.kubernetes.io/name: operators-guard
+        app.kubernetes.io/version: 0.7.4
+        helm.sh/chart: operators-guard-0.7.1
+      name: operators-guard-packagemanifests
       namespace: openshift-marketplace
     roleRef:
       apiGroup: rbac.authorization.k8s.io
       kind: Role
-      name: operator-readiness-packagemanifests
+      name: operators-guard-packagemanifests
     subjects:
       - kind: ServiceAccount
-        name: operator-readiness
-        namespace: apc-operator-readiness
+        name: operators-guard
+        namespace: apc-operators-guard
   7: |
     apiVersion: v1
     data:
       policy.yaml: |
+        defaultOwner: unassigned
         drift:
           maxDaysBehind: 90
           supportWarnDays: 180
@@ -604,6 +1060,8 @@ manifests should match snapshot:
         - odf-operator
         minVersions:
           openshift-gitops-operator: 1.21.0
+        owners:
+          openshift-gitops-operator: platform-team
         strategy: eus
         unsupportedWindow:
           allow:
@@ -611,103 +1069,173 @@ manifests should match snapshot:
     kind: ConfigMap
     metadata:
       labels:
-        app.kubernetes.io/instance: operator-readiness
+        app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: operator-readiness
-        app.kubernetes.io/version: 0.6.0
-        helm.sh/chart: operator-readiness-1.0.0
-      name: operator-readiness-policy
-      namespace: apc-operator-readiness
+        app.kubernetes.io/name: operators-guard
+        app.kubernetes.io/version: 0.7.4
+        helm.sh/chart: operators-guard-0.7.1
+      name: operators-guard-policy
+      namespace: apc-operators-guard
   8: |
     apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule
     metadata:
       labels:
-        app.kubernetes.io/instance: operator-readiness
+        app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: operator-readiness
-        app.kubernetes.io/version: 0.6.0
-        helm.sh/chart: operator-readiness-1.0.0
-      name: operator-readiness-rules
-      namespace: apc-operator-readiness
+        app.kubernetes.io/name: operators-guard
+        app.kubernetes.io/version: 0.7.4
+        helm.sh/chart: operators-guard-0.7.1
+      name: operators-guard-rules
+      namespace: apc-operators-guard
     spec:
       groups:
-        - name: operator-readiness.rules
+        - name: operators-guard.rules
           rules:
             - alert: OperatorUnsupportedNow
               annotations:
                 description: '{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }} is not supported on the current OCP minor (evidence: {{ $labels.evidence }}).'
+                owner: '{{ $labels.owner }}'
                 summary: Operator is not supported on the running OpenShift version
               expr: operator_upgrade_readiness{scope="current", status="BLOCKER"} == 1
               for: 1h
               labels:
+                owner: '{{ $labels.owner }}'
                 severity: critical
                 team: platform
                 vendor: aspecta
             - alert: OperatorUpgradeBlocker
               annotations:
                 description: '{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }} blocks upgrade to OCP {{ $labels.target_ocp }} (evidence: {{ $labels.evidence }}).'
+                owner: '{{ $labels.owner }}'
                 summary: Operator blocks the OpenShift upgrade
               expr: operator_upgrade_readiness{scope="target", status="BLOCKER"} == 1
               for: 1h
               labels:
+                owner: '{{ $labels.owner }}'
                 severity: warning
                 team: platform
                 vendor: aspecta
             - alert: OperatorSupportEnded
               annotations:
                 description: '{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }}: vendor support of this version line has ended.'
+                owner: '{{ $labels.owner }}'
                 summary: Vendor support of the installed operator version has ended
               expr: operator_drift_status{status="SUPPORT-ENDED"} == 1
               for: 24h
               labels:
+                owner: '{{ $labels.owner }}'
                 severity: warning
                 team: platform
                 vendor: aspecta
             - alert: OperatorBelowMinVersion
               annotations:
                 description: '{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }} is below policy.minVersions.'
+                owner: '{{ $labels.owner }}'
                 summary: Installed operator is below the version the platform requires
               expr: operator_below_min_version == 1
               for: 1h
               labels:
+                owner: '{{ $labels.owner }}'
                 severity: warning
                 team: platform
                 vendor: aspecta
             - alert: OperatorPinStale
               annotations:
                 description: The OperatorPolicy of {{ $labels.package }} on cluster {{ $labels.cluster }} (installed {{ $labels.installed }}) lacks the channel head or the pending InstallPlan CSV in versions[].
+                owner: '{{ $labels.owner }}'
                 summary: OperatorPolicy versions[] does not cover the newest catalog version
               expr: operator_pin_stale == 1
               for: 7d
               labels:
+                owner: '{{ $labels.owner }}'
                 severity: info
                 team: platform
                 vendor: aspecta
             - alert: OperatorVersionBehind
               annotations:
                 description: '{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }} is behind its channel.'
+                owner: '{{ $labels.owner }}'
                 summary: Newer operator version has been available for longer than policy.drift.maxDaysBehind
               expr: operator_drift_status{status="BEHIND"} == 1
               for: 7d
               labels:
+                owner: '{{ $labels.owner }}'
                 severity: info
+                team: platform
+                vendor: aspecta
+            - alert: OperatorPredictionMismatch
+              annotations:
+                description: '{{ $labels.package }} on cluster {{ $labels.cluster }} has a CSV that is not a valid next step from the installed CSV; review the InstallPlan and channel graph before approval.'
+                owner: '{{ $labels.owner }}'
+                summary: Observed OLM CSV is outside the channel graph
+              expr: operator_prediction_mismatch == 1
+              for: 1h
+              labels:
+                owner: '{{ $labels.owner }}'
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: OperatorStalePendingInstallPlan
+              annotations:
+                description: '{{ $labels.package }} on cluster {{ $labels.cluster }}: pending InstallPlan was resolved against an older catalog head; review and approve or delete it; OLM then re-resolves.'
+                owner: '{{ $labels.owner }}'
+                summary: Pending InstallPlan was resolved against an older catalog head
+              expr: operator_prediction_stale_plan == 1 and on(cluster, namespace, subscription, package, installed, channel, owner) operator_prediction_plan_age_days > 14
+              for: 1h
+              labels:
+                owner: '{{ $labels.owner }}'
+                severity: info
+                team: platform
+                vendor: aspecta
+            - alert: OperatorStalePendingInstallPlanNoTimestamp
+              annotations:
+                description: '{{ $labels.package }} on cluster {{ $labels.cluster }} has a stale pending InstallPlan with no readable creation time; review its channel and plan before approval.'
+                owner: '{{ $labels.owner }}'
+                summary: Pending InstallPlan has no readable creation time
+              expr: operator_prediction_stale_plan == 1 unless on(cluster, namespace, subscription, package, installed, channel, owner) operator_prediction_plan_age_days
+              for: 7d
+              labels:
+                owner: '{{ $labels.owner }}'
+                severity: info
+                team: platform
+                vendor: aspecta
+            - alert: OperatorExceptionExpiring
+              annotations:
+                description: Exception for {{ $labels.package }} expires in {{ $value }} days.
+                owner: '{{ $labels.owner }}'
+                summary: Operator exception expires within 30 days
+              expr: readiness_exception_days_left < 30 and readiness_exception_days_left >= 0
+              labels:
+                owner: '{{ $labels.owner }}'
+                severity: warning
+                team: platform
+                vendor: aspecta
+            - alert: OperatorExceptionExpired
+              annotations:
+                description: Exception for {{ $labels.package }} has expired ({{ $value }} days left).
+                owner: '{{ $labels.owner }}'
+                summary: Operator exception has expired
+              expr: readiness_exception_days_left < 0
+              labels:
+                owner: '{{ $labels.owner }}'
+                severity: warning
                 team: platform
                 vendor: aspecta
             - alert: OperatorReadinessCollectStale
               annotations:
-                description: readiness-engine in apc-operator-readiness has not completed a successful collect for more than 3 hours; readiness results and the CI snapshot are outdated.
+                description: readiness-engine in apc-operators-guard has not completed a successful collect for more than 3 hours; readiness results and the CI snapshot are outdated.
                 summary: Operator readiness data is stale
-              expr: time() - readiness_engine_last_success_timestamp_seconds{namespace="apc-operator-readiness"} > 3 * 3600
+              expr: time() - readiness_engine_last_success_timestamp_seconds{namespace="apc-operators-guard"} > 3 * 3600
               labels:
                 severity: warning
                 team: platform
                 vendor: aspecta
             - alert: OperatorReadinessNoData
               annotations:
-                description: readiness-engine in apc-operator-readiness has not completed any successful collect for 30 minutes (pod not ready or not scraped). Check the pod logs.
+                description: readiness-engine in apc-operators-guard has not completed any successful collect for 30 minutes (pod not ready or not scraped). Check the pod logs.
                 summary: Operator readiness collector has no data
-              expr: absent(readiness_engine_last_success_timestamp_seconds{namespace="apc-operator-readiness"})
+              expr: absent(readiness_engine_last_success_timestamp_seconds{namespace="apc-operators-guard"})
               for: 30m
               labels:
                 severity: warning
@@ -717,7 +1245,7 @@ manifests should match snapshot:
               annotations:
                 description: Source {{ $labels.source }} has been unavailable for 6 hours; affected results are reported as UNKNOWN.
                 summary: Operator readiness data source is unavailable
-              expr: readiness_engine_source_up{namespace="apc-operator-readiness"} == 0
+              expr: readiness_engine_source_up{namespace="apc-operators-guard"} == 0
               for: 6h
               labels:
                 severity: warning
@@ -728,13 +1256,13 @@ manifests should match snapshot:
     kind: Service
     metadata:
       labels:
-        app.kubernetes.io/instance: operator-readiness
+        app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: operator-readiness
-        app.kubernetes.io/version: 0.6.0
-        helm.sh/chart: operator-readiness-1.0.0
-      name: operator-readiness
-      namespace: apc-operator-readiness
+        app.kubernetes.io/name: operators-guard
+        app.kubernetes.io/version: 0.7.4
+        helm.sh/chart: operators-guard-0.7.1
+      name: operators-guard
+      namespace: apc-operators-guard
     spec:
       ports:
         - name: metrics
@@ -742,37 +1270,37 @@ manifests should match snapshot:
           protocol: TCP
           targetPort: metrics
       selector:
-        app.kubernetes.io/instance: operator-readiness
-        app.kubernetes.io/name: operator-readiness
+        app.kubernetes.io/instance: operators-guard
+        app.kubernetes.io/name: operators-guard
   10: |
     apiVersion: monitoring.coreos.com/v1
     kind: ServiceMonitor
     metadata:
       labels:
-        app.kubernetes.io/instance: operator-readiness
+        app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: operator-readiness
-        app.kubernetes.io/version: 0.6.0
-        helm.sh/chart: operator-readiness-1.0.0
-      name: operator-readiness
-      namespace: apc-operator-readiness
+        app.kubernetes.io/name: operators-guard
+        app.kubernetes.io/version: 0.7.4
+        helm.sh/chart: operators-guard-0.7.1
+      name: operators-guard
+      namespace: apc-operators-guard
     spec:
       endpoints:
         - interval: 5m
           port: metrics
       selector:
         matchLabels:
-          app.kubernetes.io/instance: operator-readiness
-          app.kubernetes.io/name: operator-readiness
+          app.kubernetes.io/instance: operators-guard
+          app.kubernetes.io/name: operators-guard
   11: |
     apiVersion: v1
     kind: ServiceAccount
     metadata:
       labels:
-        app.kubernetes.io/instance: operator-readiness
+        app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: operator-readiness
-        app.kubernetes.io/version: 0.6.0
-        helm.sh/chart: operator-readiness-1.0.0
-      name: operator-readiness
-      namespace: apc-operator-readiness
+        app.kubernetes.io/name: operators-guard
+        app.kubernetes.io/version: 0.7.4
+        helm.sh/chart: operators-guard-0.7.1
+      name: operators-guard
+      namespace: apc-operators-guard

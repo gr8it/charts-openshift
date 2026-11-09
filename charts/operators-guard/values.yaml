@@ -7,20 +7,23 @@
 # proxy: ~
 # noProxy: ~
 
-# image: <string> - readiness-engine container image (ghcr.io is private: mirror it to a registry the cluster can pull from)
-image: {}
+# image: <string> - operators-guard container image without a tag, the tag is the chart appVersion (ghcr.io is private: mirror it to a registry the cluster can pull from)
+image: ghcr.io/gr8it/operators-guard
 # imagePullSecrets: <list> - names of existing kubernetes.io/dockerconfigjson Secrets used to pull the image
 imagePullSecrets: []
 # nodeSelector: <object> - optional pod nodeSelector (e.g. to pin the pod to a node that already holds the image)
 nodeSelector: {}
 # interval: <duration> - how often the collector gathers inventory, graph, catalogs and Lifecycle API data
 interval: 1h
+# historyKeep: <integer> - local report copies retained in the cache (0 disables; emptyDir is lost on pod restart)
+historyKeep: 24
 
 # policy: <object> - mandatory, readiness policy rendered as-is into ConfigMap (see https://github.com/gr8it/apc-operators-guard/blob/main/docs/02-design.md, "Policy")
 #   strategy (required) eus | next-minor | pinned
 #   lockstep, graph.conditionalRisks, unsupportedWindow.allow, exceptions, lifecycleProducts, catalogSources,
 #   helmOperators are used by the engine
 #   minVersions (package -> minimum installed version), drift.maxDaysBehind / drift.supportWarnDays
+#   owners (package -> owner) and defaultOwner (default: unassigned) label operator and drift results
 #   (see https://github.com/gr8it/apc-operators-guard/blob/main/engine/README.md); other keys are passed unchanged
 policy: {}
 
