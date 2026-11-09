@@ -1,17 +1,17 @@
 ---
-# operator_upgrade_readiness{cluster,namespace,package,installed,channel,source,scope,target_ocp,evidence,status} 1
+# operator_upgrade_readiness{cluster,namespace,package,installed,channel,source,scope,target_ocp,evidence,status,owner} 1
 #   scope="current" - is the installed version supported on the running OCP minor today
 #   scope="target"  - result for the target T computed from the upgrade graph and policy
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: {{ include "operator-readiness.name" . }}-rules
+  name: {{ include "operators-guard.name" . }}-rules
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "operator-readiness.labels" . | nindent 4 }}
+    {{- include "operators-guard.labels" . | nindent 4 }}
 spec:
   groups:
-  - name: operator-readiness.rules
+  - name: operators-guard.rules
     rules:
       - alert: OperatorUnsupportedNow
         expr: operator_upgrade_readiness{scope="current", status="BLOCKER"} == 1
@@ -20,7 +20,9 @@ spec:
           severity: critical
           vendor: aspecta
           team: platform
+          owner: "{{`{{ $labels.owner }}`}}"
         annotations:
+          owner: "{{`{{ $labels.owner }}`}}"
           summary: "Operator is not supported on the running OpenShift version"
           description: "{{`{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }} is not supported on the current OCP minor (evidence: {{ $labels.evidence }}).`}}"
       - alert: OperatorUpgradeBlocker
@@ -30,7 +32,9 @@ spec:
           severity: warning
           vendor: aspecta
           team: platform
+          owner: "{{`{{ $labels.owner }}`}}"
         annotations:
+          owner: "{{`{{ $labels.owner }}`}}"
           summary: "Operator blocks the OpenShift upgrade"
           description: "{{`{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }} blocks upgrade to OCP {{ $labels.target_ocp }} (evidence: {{ $labels.evidence }}).`}}"
       # drift: operator_drift_status{status} - see engine/README.md; thresholds come from policy.drift / policy.minVersions
@@ -41,7 +45,9 @@ spec:
           severity: warning
           vendor: aspecta
           team: platform
+          owner: "{{`{{ $labels.owner }}`}}"
         annotations:
+          owner: "{{`{{ $labels.owner }}`}}"
           summary: "Vendor support of the installed operator version has ended"
           description: "{{`{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }}: vendor support of this version line has ended.`}}"
       - alert: OperatorBelowMinVersion
@@ -51,7 +57,9 @@ spec:
           severity: warning
           vendor: aspecta
           team: platform
+          owner: "{{`{{ $labels.owner }}`}}"
         annotations:
+          owner: "{{`{{ $labels.owner }}`}}"
           summary: "Installed operator is below the version the platform requires"
           description: "{{`{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }} is below policy.minVersions.`}}"
       - alert: OperatorPinStale
@@ -61,7 +69,9 @@ spec:
           severity: info
           vendor: aspecta
           team: platform
+          owner: "{{`{{ $labels.owner }}`}}"
         annotations:
+          owner: "{{`{{ $labels.owner }}`}}"
           summary: "OperatorPolicy versions[] does not cover the newest catalog version"
           description: "{{`The OperatorPolicy of {{ $labels.package }} on cluster {{ $labels.cluster }} (installed {{ $labels.installed }}) lacks the channel head or the pending InstallPlan CSV in versions[].`}}"
       - alert: OperatorVersionBehind
@@ -71,9 +81,69 @@ spec:
           severity: info
           vendor: aspecta
           team: platform
+          owner: "{{`{{ $labels.owner }}`}}"
         annotations:
+          owner: "{{`{{ $labels.owner }}`}}"
           summary: "Newer operator version has been available for longer than policy.drift.maxDaysBehind"
           description: "{{`{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }} is behind its channel.`}}"
+      - alert: OperatorPredictionMismatch
+        expr: operator_prediction_mismatch == 1
+        for: 1h
+        labels:
+          severity: warning
+          vendor: aspecta
+          team: platform
+          owner: "{{`{{ $labels.owner }}`}}"
+        annotations:
+          owner: "{{`{{ $labels.owner }}`}}"
+          summary: "Observed OLM CSV is outside the channel graph"
+          description: "{{`{{ $labels.package }} on cluster {{ $labels.cluster }} has a CSV that is not a valid next step from the installed CSV; review the InstallPlan and channel graph before approval.`}}"
+      - alert: OperatorStalePendingInstallPlan
+        expr: operator_prediction_stale_plan == 1 and on(cluster, namespace, subscription, package, installed, channel, owner) operator_prediction_plan_age_days > 14
+        for: 1h
+        labels:
+          severity: info
+          vendor: aspecta
+          team: platform
+          owner: "{{`{{ $labels.owner }}`}}"
+        annotations:
+          owner: "{{`{{ $labels.owner }}`}}"
+          summary: "Pending InstallPlan was resolved against an older catalog head"
+          description: "{{`{{ $labels.package }} on cluster {{ $labels.cluster }}: pending InstallPlan was resolved against an older catalog head; review and approve or delete it; OLM then re-resolves.`}}"
+      - alert: OperatorStalePendingInstallPlanNoTimestamp
+        expr: operator_prediction_stale_plan == 1 unless on(cluster, namespace, subscription, package, installed, channel, owner) operator_prediction_plan_age_days
+        for: 7d
+        labels:
+          severity: info
+          vendor: aspecta
+          team: platform
+          owner: "{{`{{ $labels.owner }}`}}"
+        annotations:
+          owner: "{{`{{ $labels.owner }}`}}"
+          summary: "Pending InstallPlan has no readable creation time"
+          description: "{{`{{ $labels.package }} on cluster {{ $labels.cluster }} has a stale pending InstallPlan with no readable creation time; review its channel and plan before approval.`}}"
+      - alert: OperatorExceptionExpiring
+        expr: readiness_exception_days_left < 30 and readiness_exception_days_left >= 0
+        labels:
+          severity: warning
+          vendor: aspecta
+          team: platform
+          owner: "{{`{{ $labels.owner }}`}}"
+        annotations:
+          owner: "{{`{{ $labels.owner }}`}}"
+          summary: "Operator exception expires within 30 days"
+          description: "{{`Exception for {{ $labels.package }} expires in {{ $value }} days.`}}"
+      - alert: OperatorExceptionExpired
+        expr: readiness_exception_days_left < 0
+        labels:
+          severity: warning
+          vendor: aspecta
+          team: platform
+          owner: "{{`{{ $labels.owner }}`}}"
+        annotations:
+          owner: "{{`{{ $labels.owner }}`}}"
+          summary: "Operator exception has expired"
+          description: "{{`Exception for {{ $labels.package }} has expired ({{ $value }} days left).`}}"
       - alert: OperatorReadinessCollectStale
         expr: time() - readiness_engine_last_success_timestamp_seconds{namespace="{{ .Release.Namespace }}"} > 3 * 3600
         labels:

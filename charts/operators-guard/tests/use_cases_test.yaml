@@ -2,10 +2,103 @@ suite: Use cases
 values:
   - ../values.example.yaml
 release:
-  name: operator-readiness
-  namespace: apc-operator-readiness
+  name: operators-guard
+  namespace: apc-operators-guard
 
 tests:
+  - it: routes operator alerts to the package owner
+    template: templates/prometheusRule.yaml
+    asserts:
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorUnsupportedNow")].labels.owner
+          value: "{{ $labels.owner }}"
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorUnsupportedNow")].annotations.owner
+          value: "{{ $labels.owner }}"
+      - notExists:
+          path: spec.groups[0].rules[?(@.alert == "OperatorReadinessCollectStale")].labels.owner
+
+  - it: alerts before and after exception expiry
+    template: templates/prometheusRule.yaml
+    asserts:
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorExceptionExpiring")].alert
+          value: OperatorExceptionExpiring
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorExceptionExpiring")].labels.owner
+          value: "{{ $labels.owner }}"
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorExceptionExpired")].alert
+          value: OperatorExceptionExpired
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorExceptionExpired")].labels.severity
+          value: warning
+
+  - it: alerts on a prediction mismatch and keeps the owner
+    template: templates/prometheusRule.yaml
+    asserts:
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorPredictionMismatch")].alert
+          value: OperatorPredictionMismatch
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorPredictionMismatch")].expr
+          value: operator_prediction_mismatch == 1
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorPredictionMismatch")].labels.owner
+          value: "{{ $labels.owner }}"
+
+  - it: alerts on a stale pending plan older than 14 days
+    template: templates/prometheusRule.yaml
+    asserts:
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorStalePendingInstallPlan")].labels.owner
+          value: "{{ $labels.owner }}"
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorStalePendingInstallPlan")].labels.severity
+          value: info
+      - matchRegex:
+          path: spec.groups[0].rules[?(@.alert == "OperatorStalePendingInstallPlan")].expr
+          pattern: '^operator_prediction_stale_plan == 1 and on\(cluster, namespace, subscription, package, installed, channel, owner\) operator_prediction_plan_age_days > 14$'
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorStalePendingInstallPlan")].for
+          value: 1h
+      - matchRegex:
+          path: spec.groups[0].rules[?(@.alert == "OperatorStalePendingInstallPlanNoTimestamp")].expr
+          pattern: '^operator_prediction_stale_plan == 1 unless on\(cluster, namespace, subscription, package, installed, channel, owner\) operator_prediction_plan_age_days$'
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorStalePendingInstallPlanNoTimestamp")].for
+          value: 7d
+
+  - it: uses the released engine image with history support
+    template: templates/deployment.yaml
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].image
+          pattern: 'ghcr\.io/gr8it/operators-guard:0\.7\.4$'
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --history-keep=24
+
+  - it: gets referenced InstallPlans from the hub with read access only
+    template: templates/clusterRole.yaml
+    documentIndex: 0
+    asserts:
+      - contains:
+          path: rules[4].resources
+          content: installplans
+      - equal:
+          path: rules[4].verbs
+          value: [get]
+
+  - it: configures the local history limit
+    template: templates/deployment.yaml
+    set:
+      historyKeep: 3
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --history-keep=3
+
   - it: does not render GrafanaDashboard when disabled
     template: templates/grafanaDashboard.yaml
     set:
@@ -23,6 +116,34 @@ tests:
           path: spec.instanceSelector.matchLabels.dashboards
           value: grafana-custom
 
+  - it: includes prediction, exception and source panels in the GrafanaDashboard
+    template: templates/grafanaDashboard.yaml
+    asserts:
+      - matchRegex:
+          path: spec.json
+          pattern: '"title": "Prediction mismatches"'
+      - matchRegex:
+          path: spec.json
+          pattern: '"title": "Stale pending InstallPlans"'
+      - matchRegex:
+          path: spec.json
+          pattern: '"title": "Exceptions expiring \(0-29 d\)"'
+      - matchRegex:
+          path: spec.json
+          pattern: '"title": "Expired exceptions"'
+      - matchRegex:
+          path: spec.json
+          pattern: '"title": "Prediction not comparable \(UNKNOWN\)"'
+      - matchRegex:
+          path: spec.json
+          pattern: '"title": "Prediction check \(non-MATCH\)"'
+      - matchRegex:
+          path: spec.json
+          pattern: '"title": "Exceptions \(days left\)"'
+      - matchRegex:
+          path: spec.json
+          pattern: '"title": "Sources"'
+
   - it: fails without policy.strategy
     template: templates/policyCm.yaml
     set:
@@ -39,7 +160,7 @@ tests:
     asserts:
       - notContains:
           path: spec.template.spec.containers[0].args
-          content: --snapshot-repository=quay-registry.apps.hub01.example.com/apc/operator-readiness-snapshot
+          content: --snapshot-repository=quay-registry.apps.hub01.example.com/apc/operators-guard-snapshot
       - notExists:
           path: spec.template.spec.volumes[?(@.name == "snapshot-push")]
       - notContains:

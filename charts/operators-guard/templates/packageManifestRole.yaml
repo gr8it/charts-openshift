@@ -4,10 +4,10 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ include "operator-readiness.name" . }}-packagemanifests
+  name: {{ include "operators-guard.name" . }}-packagemanifests
   namespace: openshift-marketplace
   labels:
-    {{- include "operator-readiness.labels" . | nindent 4 }}
+    {{- include "operators-guard.labels" . | nindent 4 }}
 rules:
 - apiGroups: ["packages.operators.coreos.com"]
   resources: ["packagemanifests"]
@@ -16,15 +16,15 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ include "operator-readiness.name" . }}-packagemanifests
+  name: {{ include "operators-guard.name" . }}-packagemanifests
   namespace: openshift-marketplace
   labels:
-    {{- include "operator-readiness.labels" . | nindent 4 }}
+    {{- include "operators-guard.labels" . | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: {{ include "operator-readiness.name" . }}-packagemanifests
+  name: {{ include "operators-guard.name" . }}-packagemanifests
 subjects:
 - kind: ServiceAccount
-  name: {{ include "operator-readiness.name" . }}
+  name: {{ include "operators-guard.name" . }}
   namespace: {{ .Release.Namespace }}

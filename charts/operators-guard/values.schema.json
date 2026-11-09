@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "operator-readiness values",
+  "title": "operators-guard values",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -15,13 +15,18 @@
     },
     "image": {
       "type": "string",
-      "description": "readiness-engine container image.",
+      "description": "operators-guard container image without a tag (the tag is the chart appVersion).",
       "minLength": 1
     },
     "interval": {
       "type": "string",
       "description": "Collector interval as Go duration (e.g. 30m, 1h).",
       "pattern": "^([0-9]+(s|m|h))+$"
+    },
+    "historyKeep": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of report-only history entries kept in the pod cache (default 24; 0 disables)."
     },
     "policy": {
       "type": "object",
@@ -58,6 +63,19 @@
               "description": "Vendor support ends within this many days = SUPPORT-ENDING (default 180)."
             }
           }
+        },
+        "owners": {
+          "type": ["object", "null"],
+          "description": "Package -> operator owner.",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "defaultOwner": {
+          "type": ["string", "null"],
+          "minLength": 1,
+          "description": "Owner for packages without a mapping or exception (default: unassigned)."
         }
       }
     },
