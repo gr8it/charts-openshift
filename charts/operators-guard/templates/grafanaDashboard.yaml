@@ -13,5 +13,5 @@ spec:
     matchLabels:
       dashboards: {{ .Values.grafanaDashboard.instanceName }}
   json: |
-    {{- .Files.Get "dashboards/operators-guard.json" | nindent 4 }}
+    {{- .Files.Get "dashboards/operators-guard.json" | replace "\"value\": 10800" (printf "\"value\": %s" (include "operators-guard.staleSeconds" .)) | nindent 4 }}
 {{- end }}

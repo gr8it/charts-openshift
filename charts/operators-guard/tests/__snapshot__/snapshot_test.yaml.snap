@@ -7,8 +7,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.8
+        app.kubernetes.io/version: 0.9.0
+        helm.sh/chart: operators-guard-0.8.0
       name: operators-guard
     rules:
       - apiGroups:
@@ -72,8 +72,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.8
+        app.kubernetes.io/version: 0.9.0
+        helm.sh/chart: operators-guard-0.8.0
       name: operators-guard
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -91,8 +91,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.8
+        app.kubernetes.io/version: 0.9.0
+        helm.sh/chart: operators-guard-0.8.0
       name: operators-guard
       namespace: apc-operators-guard
     spec:
@@ -106,13 +106,13 @@ manifests should match snapshot:
       template:
         metadata:
           annotations:
-            checksum/policy: c94d7b0d91a771e78f109647b8d4a846d10d80c132875d87287fb1ad1794c8bf
+            checksum/policy: 6f00699e36c591f11a9ec4a98eafe59a4ede9af41684c90ed183dbb09b957354
           labels:
             app.kubernetes.io/instance: operators-guard
             app.kubernetes.io/managed-by: Helm
             app.kubernetes.io/name: operators-guard
-            app.kubernetes.io/version: 0.8.0
-            helm.sh/chart: operators-guard-0.7.8
+            app.kubernetes.io/version: 0.9.0
+            helm.sh/chart: operators-guard-0.8.0
         spec:
           containers:
             - args:
@@ -123,7 +123,8 @@ manifests should match snapshot:
                 - --snapshot-repository=quay-registry.apps.hub01.example.com/apc/operators-guard-snapshot
                 - --cache-dir=/var/cache/readiness
                 - --history-keep=24
-                - --listen=:8080
+                - --listen=127.0.0.1:8080
+                - --metrics-listen=:9090
               env:
                 - name: HTTPS_PROXY
                   value: http://proxy.example.com:3128
@@ -137,7 +138,7 @@ manifests should match snapshot:
                   value: https://search-search-api.open-cluster-management.svc:4010/searchapi/graphql
                 - name: SEARCH_API_CA_FILE
                   value: /etc/pki/service-ca/service-ca.crt
-              image: ghcr.io/gr8it/operators-guard:0.8.0
+              image: ghcr.io/gr8it/operators-guard:0.9.0
               livenessProbe:
                 httpGet:
                   path: /healthz
@@ -145,7 +146,7 @@ manifests should match snapshot:
                 periodSeconds: 30
               name: collector
               ports:
-                - containerPort: 8080
+                - containerPort: 9090
                   name: metrics
                   protocol: TCP
               readinessProbe:
@@ -184,16 +185,27 @@ manifests should match snapshot:
                 - --provider=openshift
                 - --openshift-service-account=operators-guard
                 - --openshift-sar={"resource":"*","verb":"*"}
-                - --upstream=http://localhost:8080
+                - --upstream=http://127.0.0.1:8080
                 - --tls-cert=/etc/tls/private/tls.crt
                 - --tls-key=/etc/tls/private/tls.key
                 - --cookie-secret-file=/etc/proxy/secrets/cookie-secret
               image: registry.redhat.io/openshift4/ose-oauth-proxy:v4.12.0
+              livenessProbe:
+                httpGet:
+                  path: /oauth/healthz
+                  port: https
+                  scheme: HTTPS
+                periodSeconds: 30
               name: oauth-proxy
               ports:
                 - containerPort: 8443
                   name: https
                   protocol: TCP
+              readinessProbe:
+                httpGet:
+                  path: /oauth/healthz
+                  port: https
+                  scheme: HTTPS
               resources:
                 limits:
                   memory: 128Mi
@@ -247,8 +259,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.8
+        app.kubernetes.io/version: 0.9.0
+        helm.sh/chart: operators-guard-0.8.0
       name: operators-guard
       namespace: apc-operators-guard
     spec:
@@ -833,11 +845,12 @@ manifests should match snapshot:
                       "instance": true,
                       "pod": true,
                       "service": true,
-                      "endpoint": true
+                      "endpoint": true,
+                      "namespace": true
                     },
                     "indexByName": {
                       "cluster": 0,
-                      "namespace": 1,
+                      "exported_namespace": 1,
                       "subscription": 2,
                       "package": 3,
                       "installed": 4,
@@ -846,6 +859,7 @@ manifests should match snapshot:
                       "Value #B": 7
                     },
                     "renameByName": {
+                      "exported_namespace": "namespace",
                       "Value #B": "Plan age (days)"
                     }
                   }
@@ -1049,8 +1063,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.8
+        app.kubernetes.io/version: 0.9.0
+        helm.sh/chart: operators-guard-0.8.0
       name: operators-guard-allow-proxy
       namespace: apc-operators-guard
     spec:
@@ -1072,8 +1086,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.8
+        app.kubernetes.io/version: 0.9.0
+        helm.sh/chart: operators-guard-0.8.0
       name: operators-guard-oauth-cookie
       namespace: apc-operators-guard
     spec:
@@ -1095,8 +1109,8 @@ manifests should match snapshot:
               app.kubernetes.io/instance: operators-guard
               app.kubernetes.io/managed-by: Helm
               app.kubernetes.io/name: operators-guard
-              app.kubernetes.io/version: 0.8.0
-              helm.sh/chart: operators-guard-0.7.8
+              app.kubernetes.io/version: 0.9.0
+              helm.sh/chart: operators-guard-0.8.0
   7: |
     apiVersion: generators.external-secrets.io/v1alpha1
     kind: Password
@@ -1105,8 +1119,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.8
+        app.kubernetes.io/version: 0.9.0
+        helm.sh/chart: operators-guard-0.8.0
       name: operators-guard-oauth-cookie
       namespace: apc-operators-guard
     spec:
@@ -1123,8 +1137,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.8
+        app.kubernetes.io/version: 0.9.0
+        helm.sh/chart: operators-guard-0.8.0
       name: operators-guard-packagemanifests
       namespace: openshift-marketplace
     rules:
@@ -1142,8 +1156,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.8
+        app.kubernetes.io/version: 0.9.0
+        helm.sh/chart: operators-guard-0.8.0
       name: operators-guard-packagemanifests
       namespace: openshift-marketplace
     roleRef:
@@ -1186,8 +1200,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.8
+        app.kubernetes.io/version: 0.9.0
+        helm.sh/chart: operators-guard-0.8.0
       name: operators-guard-policy
       namespace: apc-operators-guard
   11: |
@@ -1198,8 +1212,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.8
+        app.kubernetes.io/version: 0.9.0
+        helm.sh/chart: operators-guard-0.8.0
       name: operators-guard-rules
       namespace: apc-operators-guard
     spec:
@@ -1338,9 +1352,9 @@ manifests should match snapshot:
                 vendor: aspecta
             - alert: OperatorReadinessCollectStale
               annotations:
-                description: readiness-engine in apc-operators-guard has not completed a successful collect for more than 3 hours; readiness results and the CI snapshot are outdated.
+                description: readiness-engine in apc-operators-guard has not completed a successful collect for more than 3 hours (three collect intervals, at least 3); readiness results and the CI snapshot are outdated.
                 summary: Operator readiness data is stale
-              expr: time() - readiness_engine_last_success_timestamp_seconds{namespace="apc-operators-guard"} > 3 * 3600
+              expr: time() - readiness_engine_last_success_timestamp_seconds{namespace="apc-operators-guard"} > 10800
               labels:
                 severity: warning
                 team: platform
@@ -1373,8 +1387,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.8
+        app.kubernetes.io/version: 0.9.0
+        helm.sh/chart: operators-guard-0.8.0
       name: operators-guard
       namespace: apc-operators-guard
     spec:
@@ -1396,14 +1410,14 @@ manifests should match snapshot:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.8
+        app.kubernetes.io/version: 0.9.0
+        helm.sh/chart: operators-guard-0.8.0
       name: operators-guard
       namespace: apc-operators-guard
     spec:
       ports:
         - name: metrics
-          port: 8080
+          port: 9090
           protocol: TCP
           targetPort: metrics
         - name: https
@@ -1421,8 +1435,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.8
+        app.kubernetes.io/version: 0.9.0
+        helm.sh/chart: operators-guard-0.8.0
       name: operators-guard
       namespace: apc-operators-guard
     spec:
@@ -1443,7 +1457,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.8
+        app.kubernetes.io/version: 0.9.0
+        helm.sh/chart: operators-guard-0.8.0
       name: operators-guard
       namespace: apc-operators-guard

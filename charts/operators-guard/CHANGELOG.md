@@ -5,6 +5,15 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-11-10
+
+- appVersion 0.9.0: the reports listen on `127.0.0.1:8080` only, so pods on the network cannot read them without oauth-proxy
+- **Breaking:** the Service port `metrics`, the ServiceMonitor and the probes use the metrics listener on port 9090 (`/metrics`, `/healthz`, `/readyz`);
+  oauth-proxy upstream is `http://127.0.0.1:8080`; port-forward to `deploy/operators-guard` instead of the Service
+- Readiness and liveness probes for oauth-proxy on `/oauth/healthz`
+- `OperatorReadinessCollectStale` and the "Data age" panel use three collect intervals, at least 3 h (was a fixed 3 h)
+- The non-MATCH prediction table shows the operator namespace (`exported_namespace`) in the namespace column
+
 ## [0.7.8] - 2026-11-10
 
 - Fix the oauth-proxy cookie secret: write the generated `.password`, not the whole generator data map

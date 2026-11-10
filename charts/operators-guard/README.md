@@ -53,10 +53,14 @@ The Route `operators-guard` (`reencrypt`) leads to an oauth-proxy sidecar: users
 allowed to do everything (`cluster-admin`, `--openshift-sar={"resource":"*","verb":"*"}`) are let through.
 The host is the default one of the Route: `oc -n <namespace> get route operators-guard -o jsonpath='{.spec.host}'`.
 
-Without the Route (e.g. for `/metrics`, which stays on port 8080 without oauth-proxy), use a port-forward:
+The engine serves the reports (`/`, `/summary`, `/report`, `/history`, `/diff`), which have no authentication, only on
+`127.0.0.1:8080` in the pod, so they are reachable only through oauth-proxy or a port-forward. The pod network gets the
+metrics listener on port 9090 with `/metrics`, `/healthz` and `/readyz` only (Service port `metrics`, ServiceMonitor, probes).
+
+Without the Route, use a port-forward to the pod:
 
 ```sh
-oc -n apc-operators-guard port-forward svc/operators-guard 8080:8080 &
+oc -n apc-operators-guard port-forward deploy/operators-guard 8080:8080 &
 curl -s localhost:8080/summary
 ```
 
