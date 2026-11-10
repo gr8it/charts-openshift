@@ -74,7 +74,7 @@ tests:
     asserts:
       - matchRegex:
           path: spec.template.spec.containers[0].image
-          pattern: 'ghcr\.io/gr8it/operators-guard:0\.8\.0$'
+          pattern: 'ghcr\.io/gr8it/operators-guard:0\.9\.0$'
       - contains:
           path: spec.template.spec.containers[0].args
           content: --history-keep=24
@@ -263,7 +263,7 @@ tests:
           content: '--openshift-sar={"resource":"*","verb":"*"}'
       - contains:
           path: spec.template.spec.containers[1].args
-          content: --upstream=http://localhost:8080
+          content: --upstream=http://127.0.0.1:8080
       - contains:
           path: spec.template.spec.volumes
           content:
@@ -311,7 +311,7 @@ tests:
           path: spec.ports
           content:
             name: metrics
-            port: 8080
+            port: 9090
             targetPort: metrics
             protocol: TCP
 
@@ -386,6 +386,90 @@ tests:
       - matchRegex:
           path: spec.json
           pattern: 'operator_prediction_plan_age_days\{[^}]*\} and on\(cluster, exported_namespace, subscription'
+
+  - it: keeps the reports on localhost and exposes only the metrics listener
+    template: templates/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --listen=127.0.0.1:8080
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --metrics-listen=:9090
+      - equal:
+          path: spec.template.spec.containers[0].ports
+          value:
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: metrics
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.port
+          value: metrics
+
+  - it: shows the operator namespace in the non-MATCH table
+    template: templates/grafanaDashboard.yaml
+    asserts:
+      - matchRegex:
+          path: spec.json
+          pattern: '"exported_namespace": "namespace"'
+      - matchRegex:
+          path: spec.json
+          pattern: '"exported_namespace": 1,'
+      - matchRegex:
+          path: spec.json
+          pattern: '"endpoint": true,\s*"namespace": true'
+
+  - it: probes the oauth-proxy sidecar
+    template: templates/deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[1].readinessProbe.httpGet
+          value:
+            path: /oauth/healthz
+            port: https
+            scheme: HTTPS
+      - equal:
+          path: spec.template.spec.containers[1].livenessProbe.httpGet
+          value:
+            path: /oauth/healthz
+            port: https
+            scheme: HTTPS
+
+  - it: keeps the 3 h stale threshold for the default interval
+    template: templates/prometheusRule.yaml
+    asserts:
+      - matchRegex:
+          path: spec.groups[0].rules[?(@.alert == "OperatorReadinessCollectStale")].expr
+          pattern: '> 10800$'
+
+  - it: derives the stale threshold from a 6 h interval in the alert and the dashboard
+    set:
+      interval: 6h
+    asserts:
+      - template: templates/prometheusRule.yaml
+        matchRegex:
+          path: spec.groups[0].rules[?(@.alert == "OperatorReadinessCollectStale")].expr
+          pattern: '> 64800$'
+      - template: templates/prometheusRule.yaml
+        matchRegex:
+          path: spec.groups[0].rules[?(@.alert == "OperatorReadinessCollectStale")].annotations.description
+          pattern: 'more than 18 hours'
+      - template: templates/grafanaDashboard.yaml
+        matchRegex:
+          path: spec.json
+          pattern: '"value": 64800'
+
+  - it: keeps at least 3 h for a short interval
+    template: templates/prometheusRule.yaml
+    set:
+      interval: 15m
+    asserts:
+      - matchRegex:
+          path: spec.groups[0].rules[?(@.alert == "OperatorReadinessCollectStale")].expr
+          pattern: '> 10800$'
 
   - it: sets the node selector
     template: templates/deployment.yaml

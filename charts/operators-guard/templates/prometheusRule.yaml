@@ -141,14 +141,14 @@ spec:
           summary: "Operator exception has expired"
           description: "{{`Exception for {{ $labels.package }} has expired ({{ $value }} days left).`}}"
       - alert: OperatorReadinessCollectStale
-        expr: time() - readiness_engine_last_success_timestamp_seconds{namespace="{{ .Release.Namespace }}"} > 3 * 3600
+        expr: time() - readiness_engine_last_success_timestamp_seconds{namespace="{{ .Release.Namespace }}"} > {{ include "operators-guard.staleSeconds" . }}
         labels:
           severity: warning
           vendor: aspecta
           team: platform
         annotations:
           summary: "Operator readiness data is stale"
-          description: "readiness-engine in {{ .Release.Namespace }} has not completed a successful collect for more than 3 hours; readiness results and the CI snapshot are outdated."
+          description: "readiness-engine in {{ .Release.Namespace }} has not completed a successful collect for more than {{ div (include "operators-guard.staleSeconds" . | int) 3600 }} hours (three collect intervals, at least 3); readiness results and the CI snapshot are outdated."
       - alert: OperatorReadinessNoData
         expr: absent(readiness_engine_last_success_timestamp_seconds{namespace="{{ .Release.Namespace }}"})
         for: 30m

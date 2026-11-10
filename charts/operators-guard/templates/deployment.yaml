@@ -48,7 +48,8 @@ spec:
         {{- end }}
         - --cache-dir=/var/cache/readiness
         - --history-keep={{ .Values.historyKeep }}
-        - --listen=:8080
+        - --listen=127.0.0.1:8080
+        - --metrics-listen=:9090
         env:
         {{- with include "apc-global-overrides.proxy" . }}
         - name: HTTPS_PROXY
@@ -68,7 +69,7 @@ spec:
           value: /etc/pki/service-ca/service-ca.crt
         ports:
         - name: metrics
-          containerPort: 8080
+          containerPort: 9090
           protocol: TCP
         readinessProbe:
           httpGet:
@@ -110,7 +111,7 @@ spec:
         - --provider=openshift
         - --openshift-service-account={{ include "operators-guard.name" . }}
         - '--openshift-sar={"resource":"*","verb":"*"}'
-        - --upstream=http://localhost:8080
+        - --upstream=http://127.0.0.1:8080
         - --tls-cert=/etc/tls/private/tls.crt
         - --tls-key=/etc/tls/private/tls.key
         - --cookie-secret-file=/etc/proxy/secrets/cookie-secret
@@ -118,6 +119,17 @@ spec:
         - name: https
           containerPort: 8443
           protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /oauth/healthz
+            port: https
+            scheme: HTTPS
+        livenessProbe:
+          httpGet:
+            path: /oauth/healthz
+            port: https
+            scheme: HTTPS
+          periodSeconds: 30
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
