@@ -60,3 +60,35 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{- define "gitops-bootstrap.nodePoolHealthCheck" -}}
+hs = { status = "Progressing", message = "Waiting for NodePool status" }
+
+if obj.status == nil then
+  return hs
+end
+
+for _, condition in ipairs(obj.status.conditions or {}) do
+  if condition.type == "Degraded" and condition.status == "True" then
+    hs.status = "Degraded"
+    hs.message = condition.message or "NodePool is degraded"
+    return hs
+  end
+
+  if (condition.type == "UpdatingConfig" or condition.type == "UpdatingVersion" or condition.type == "UpdatingPlatformMachineTemplate") and condition.status == "True" then
+    hs.message = condition.message or "NodePool update is in progress"
+    return hs
+  end
+end
+
+for _, condition in ipairs(obj.status.conditions or {}) do
+  if condition.type == "Ready" and condition.status == "True" and condition.observedGeneration == obj.metadata.generation then
+    hs.status = "Healthy"
+    hs.message = condition.message or "NodePool is ready"
+    return hs
+  end
+end
+
+hs.message = "Waiting for NodePool readiness to reflect its current generation"
+return hs
+{{- end }}
