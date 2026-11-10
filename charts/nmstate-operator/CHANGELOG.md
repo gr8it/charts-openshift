@@ -5,6 +5,14 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2026-11-09
+
+- Bump to kubernetes-nmstate-operator.4.19.0-202611050700 (catalog head 2026-11-09)
+
+## [1.0.2] - 2026-11-02
+
+- `kubernetes-nmstate-operator.4.19.0-202607311600` → `kubernetes-nmstate-operator.4.19.0-202610241354` (current `stable` channel head); added to `versions`
+
 ## [1.0.1] - 2026-10-29
 
 - `kubernetes-nmstate-operator.4.17.0-202502250404` → `kubernetes-nmstate-operator.4.19.0-202607311600`; matches huba and spokea1

@@ -5,6 +5,12 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2026-11-03
+
+### Added
+
+- Allow ingress to the ActiveGate HTTP and HTTPS service ports from application namespaces.
+
 ## [1.0.3] - 2026-10-19
 
 ### Changed

@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ printf "%s-activegate" (include "dynatrace-instance.fullname" .) | trunc 63 | trimSuffix "-" }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "dynatrace-instance.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/created-by: {{ include "apc-global-overrides.clusterName" . | default .Release.Name | quote }}
+      app.kubernetes.io/managed-by: dynatrace-operator
+      app.kubernetes.io/name: activegate
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              apc.namespace.type: application
+      ports:
+        - protocol: TCP
+          port: http
+        - protocol: TCP
+          port: https
