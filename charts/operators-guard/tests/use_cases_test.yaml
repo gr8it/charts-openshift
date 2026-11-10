@@ -222,6 +222,36 @@ tests:
             name: NO_PROXY
             value: .example.com,.svc,.cluster.local,$(KUBERNETES_SERVICE_HOST)
 
+  - it: allows egress to the proxy CIDRs
+    template: templates/networkPolicy.yaml
+    asserts:
+      - isKind:
+          of: NetworkPolicy
+      - equal:
+          path: metadata.name
+          value: operators-guard-allow-proxy
+      - equal:
+          path: spec.podSelector.matchLabels
+          value:
+            app.kubernetes.io/name: operators-guard
+            app.kubernetes.io/instance: operators-guard
+      - equal:
+          path: spec.policyTypes
+          value: [Egress]
+      - equal:
+          path: spec.egress[0].to
+          value:
+            - ipBlock:
+                cidr: 192.0.2.10/32
+
+  - it: renders no proxy NetworkPolicy without proxy CIDRs
+    template: templates/networkPolicy.yaml
+    set:
+      global.apc.proxyCIDRs: []
+    asserts:
+      - hasDocuments:
+          count: 0
+
   - it: sets the node selector
     template: templates/deployment.yaml
     set:

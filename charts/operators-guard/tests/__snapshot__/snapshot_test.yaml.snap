@@ -8,7 +8,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.7.4
-        helm.sh/chart: operators-guard-0.7.1
+        helm.sh/chart: operators-guard-0.7.2
       name: operators-guard
     rules:
       - apiGroups:
@@ -73,7 +73,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.7.4
-        helm.sh/chart: operators-guard-0.7.1
+        helm.sh/chart: operators-guard-0.7.2
       name: operators-guard
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -92,7 +92,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.7.4
-        helm.sh/chart: operators-guard-0.7.1
+        helm.sh/chart: operators-guard-0.7.2
       name: operators-guard
       namespace: apc-operators-guard
     spec:
@@ -106,13 +106,13 @@ manifests should match snapshot:
       template:
         metadata:
           annotations:
-            checksum/policy: 3139de18bc5b7bfadb9661f4cfb876bf65b5f140c6c6f332228e408a5cc8eb7f
+            checksum/policy: ee1ebb40421385be012b345f0958d5cb6a5161cef057a2aa8a262b1e50a008b8
           labels:
             app.kubernetes.io/instance: operators-guard
             app.kubernetes.io/managed-by: Helm
             app.kubernetes.io/name: operators-guard
             app.kubernetes.io/version: 0.7.4
-            helm.sh/chart: operators-guard-0.7.1
+            helm.sh/chart: operators-guard-0.7.2
         spec:
           containers:
             - args:
@@ -208,7 +208,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.7.4
-        helm.sh/chart: operators-guard-0.7.1
+        helm.sh/chart: operators-guard-0.7.2
       name: operators-guard
       namespace: apc-operators-guard
     spec:
@@ -1002,6 +1002,29 @@ manifests should match snapshot:
           ]
         }
   5: |
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      labels:
+        app.kubernetes.io/instance: operators-guard
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: operators-guard
+        app.kubernetes.io/version: 0.7.4
+        helm.sh/chart: operators-guard-0.7.2
+      name: operators-guard-allow-proxy
+      namespace: apc-operators-guard
+    spec:
+      egress:
+        - to:
+            - ipBlock:
+                cidr: 192.0.2.10/32
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/instance: operators-guard
+          app.kubernetes.io/name: operators-guard
+      policyTypes:
+        - Egress
+  6: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: Role
     metadata:
@@ -1010,7 +1033,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.7.4
-        helm.sh/chart: operators-guard-0.7.1
+        helm.sh/chart: operators-guard-0.7.2
       name: operators-guard-packagemanifests
       namespace: openshift-marketplace
     rules:
@@ -1020,7 +1043,7 @@ manifests should match snapshot:
           - packagemanifests
         verbs:
           - get
-  6: |
+  7: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
@@ -1029,7 +1052,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.7.4
-        helm.sh/chart: operators-guard-0.7.1
+        helm.sh/chart: operators-guard-0.7.2
       name: operators-guard-packagemanifests
       namespace: openshift-marketplace
     roleRef:
@@ -1040,7 +1063,7 @@ manifests should match snapshot:
       - kind: ServiceAccount
         name: operators-guard
         namespace: apc-operators-guard
-  7: |
+  8: |
     apiVersion: v1
     data:
       policy.yaml: |
@@ -1073,10 +1096,10 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.7.4
-        helm.sh/chart: operators-guard-0.7.1
+        helm.sh/chart: operators-guard-0.7.2
       name: operators-guard-policy
       namespace: apc-operators-guard
-  8: |
+  9: |
     apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule
     metadata:
@@ -1085,7 +1108,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.7.4
-        helm.sh/chart: operators-guard-0.7.1
+        helm.sh/chart: operators-guard-0.7.2
       name: operators-guard-rules
       namespace: apc-operators-guard
     spec:
@@ -1251,7 +1274,7 @@ manifests should match snapshot:
                 severity: warning
                 team: platform
                 vendor: aspecta
-  9: |
+  10: |
     apiVersion: v1
     kind: Service
     metadata:
@@ -1260,7 +1283,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.7.4
-        helm.sh/chart: operators-guard-0.7.1
+        helm.sh/chart: operators-guard-0.7.2
       name: operators-guard
       namespace: apc-operators-guard
     spec:
@@ -1272,7 +1295,7 @@ manifests should match snapshot:
       selector:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/name: operators-guard
-  10: |
+  11: |
     apiVersion: monitoring.coreos.com/v1
     kind: ServiceMonitor
     metadata:
@@ -1281,7 +1304,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.7.4
-        helm.sh/chart: operators-guard-0.7.1
+        helm.sh/chart: operators-guard-0.7.2
       name: operators-guard
       namespace: apc-operators-guard
     spec:
@@ -1292,7 +1315,7 @@ manifests should match snapshot:
         matchLabels:
           app.kubernetes.io/instance: operators-guard
           app.kubernetes.io/name: operators-guard
-  11: |
+  12: |
     apiVersion: v1
     kind: ServiceAccount
     metadata:
@@ -1301,6 +1324,6 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.7.4
-        helm.sh/chart: operators-guard-0.7.1
+        helm.sh/chart: operators-guard-0.7.2
       name: operators-guard
       namespace: apc-operators-guard
