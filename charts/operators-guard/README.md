@@ -47,7 +47,7 @@ with `.svc`, `.cluster.local` and the API service IP appended (the engine uses P
 
 ## UI
 
-The Route `operators-guard` (`Reencrypt`) leads to an oauth-proxy sidecar: users log in with OpenShift and only users
+The Route `operators-guard` (`reencrypt`) leads to an oauth-proxy sidecar: users log in with OpenShift and only users
 allowed to do everything (`cluster-admin`, `--openshift-sar={"resource":"*","verb":"*"}`) are let through, others get `403`.
 
 ## Metrics and alerts
