@@ -25,8 +25,8 @@
     },
     "interval": {
       "type": "string",
-      "description": "Collector interval as Go duration (e.g. 30m, 1h).",
-      "pattern": "^([0-9]+(s|m|h))+$"
+      "description": "Collector interval: hours, minutes and seconds in this order, each at most once (e.g. 1h, 30m, 1h30m).",
+      "pattern": "^([0-9]+h([0-9]+m)?([0-9]+s)?|[0-9]+m([0-9]+s)?|[0-9]+s)$"
     },
     "historyKeep": {
       "type": "integer",
