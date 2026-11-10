@@ -8,7 +8,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.7
+        helm.sh/chart: operators-guard-0.7.8
       name: operators-guard
     rules:
       - apiGroups:
@@ -73,7 +73,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.7
+        helm.sh/chart: operators-guard-0.7.8
       name: operators-guard
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -92,7 +92,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.7
+        helm.sh/chart: operators-guard-0.7.8
       name: operators-guard
       namespace: apc-operators-guard
     spec:
@@ -106,13 +106,13 @@ manifests should match snapshot:
       template:
         metadata:
           annotations:
-            checksum/policy: 5a76bcf7e9c1b3f9abe38e48ff38cb8ed80bcce98f702ef8c6cf6be544d07302
+            checksum/policy: c94d7b0d91a771e78f109647b8d4a846d10d80c132875d87287fb1ad1794c8bf
           labels:
             app.kubernetes.io/instance: operators-guard
             app.kubernetes.io/managed-by: Helm
             app.kubernetes.io/name: operators-guard
             app.kubernetes.io/version: 0.8.0
-            helm.sh/chart: operators-guard-0.7.7
+            helm.sh/chart: operators-guard-0.7.8
         spec:
           containers:
             - args:
@@ -248,7 +248,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.7
+        helm.sh/chart: operators-guard-0.7.8
       name: operators-guard
       namespace: apc-operators-guard
     spec:
@@ -801,13 +801,13 @@ manifests should match snapshot:
               "targets": [
                 {
                   "refId": "A",
-                  "expr": "label_join((label_replace(operator_prediction_mismatch{cluster=~\"$cluster\", package=~\"$package\", owner=~\"$owner\"} == 1, \"status\", \"MISMATCH\", \"package\", \".*\") or label_replace(operator_prediction_stale_plan{cluster=~\"$cluster\", package=~\"$package\", owner=~\"$owner\"} == 1, \"status\", \"STALE-PLAN\", \"package\", \".*\")), \"row_key\", \"/\", \"cluster\", \"namespace\", \"subscription\")",
+                  "expr": "label_join((label_replace(operator_prediction_mismatch{cluster=~\"$cluster\", package=~\"$package\", owner=~\"$owner\"} == 1, \"status\", \"MISMATCH\", \"package\", \".*\") or label_replace(operator_prediction_stale_plan{cluster=~\"$cluster\", package=~\"$package\", owner=~\"$owner\"} == 1, \"status\", \"STALE-PLAN\", \"package\", \".*\")), \"row_key\", \"/\", \"cluster\", \"exported_namespace\", \"subscription\")",
                   "format": "table",
                   "instant": true
                 },
                 {
                   "refId": "B",
-                  "expr": "sum by (row_key) (label_join(operator_prediction_plan_age_days{cluster=~\"$cluster\", package=~\"$package\", owner=~\"$owner\"}, \"row_key\", \"/\", \"cluster\", \"namespace\", \"subscription\"))",
+                  "expr": "sum by (row_key) (label_join(operator_prediction_plan_age_days{cluster=~\"$cluster\", package=~\"$package\", owner=~\"$owner\"} and on(cluster, exported_namespace, subscription, package, installed, channel, owner) (operator_prediction_mismatch == 1 or operator_prediction_stale_plan == 1), \"row_key\", \"/\", \"cluster\", \"exported_namespace\", \"subscription\"))",
                   "format": "table",
                   "instant": true
                 }
@@ -1050,7 +1050,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.7
+        helm.sh/chart: operators-guard-0.7.8
       name: operators-guard-allow-proxy
       namespace: apc-operators-guard
     spec:
@@ -1073,7 +1073,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.7
+        helm.sh/chart: operators-guard-0.7.8
       name: operators-guard-oauth-cookie
       namespace: apc-operators-guard
     spec:
@@ -1089,14 +1089,14 @@ manifests should match snapshot:
         name: operators-guard-oauth-cookie
         template:
           data:
-            cookie-secret: '{{ . }}'
+            cookie-secret: '{{ .password }}'
           metadata:
             labels:
               app.kubernetes.io/instance: operators-guard
               app.kubernetes.io/managed-by: Helm
               app.kubernetes.io/name: operators-guard
               app.kubernetes.io/version: 0.8.0
-              helm.sh/chart: operators-guard-0.7.7
+              helm.sh/chart: operators-guard-0.7.8
   7: |
     apiVersion: generators.external-secrets.io/v1alpha1
     kind: Password
@@ -1106,7 +1106,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.7
+        helm.sh/chart: operators-guard-0.7.8
       name: operators-guard-oauth-cookie
       namespace: apc-operators-guard
     spec:
@@ -1124,7 +1124,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.7
+        helm.sh/chart: operators-guard-0.7.8
       name: operators-guard-packagemanifests
       namespace: openshift-marketplace
     rules:
@@ -1143,7 +1143,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.7
+        helm.sh/chart: operators-guard-0.7.8
       name: operators-guard-packagemanifests
       namespace: openshift-marketplace
     roleRef:
@@ -1187,7 +1187,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.7
+        helm.sh/chart: operators-guard-0.7.8
       name: operators-guard-policy
       namespace: apc-operators-guard
   11: |
@@ -1199,7 +1199,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.7
+        helm.sh/chart: operators-guard-0.7.8
       name: operators-guard-rules
       namespace: apc-operators-guard
     spec:
@@ -1295,7 +1295,7 @@ manifests should match snapshot:
                 description: '{{ $labels.package }} on cluster {{ $labels.cluster }}: pending InstallPlan was resolved against an older catalog head; review and approve or delete it; OLM then re-resolves.'
                 owner: '{{ $labels.owner }}'
                 summary: Pending InstallPlan was resolved against an older catalog head
-              expr: operator_prediction_stale_plan == 1 and on(cluster, namespace, subscription, package, installed, channel, owner) operator_prediction_plan_age_days > 14
+              expr: operator_prediction_stale_plan == 1 and on(cluster, exported_namespace, subscription, package, installed, channel, owner) operator_prediction_plan_age_days > 14
               for: 1h
               labels:
                 owner: '{{ $labels.owner }}'
@@ -1307,7 +1307,7 @@ manifests should match snapshot:
                 description: '{{ $labels.package }} on cluster {{ $labels.cluster }} has a stale pending InstallPlan with no readable creation time; review its channel and plan before approval.'
                 owner: '{{ $labels.owner }}'
                 summary: Pending InstallPlan has no readable creation time
-              expr: operator_prediction_stale_plan == 1 unless on(cluster, namespace, subscription, package, installed, channel, owner) operator_prediction_plan_age_days
+              expr: operator_prediction_stale_plan == 1 unless on(cluster, exported_namespace, subscription, package, installed, channel, owner) operator_prediction_plan_age_days
               for: 7d
               labels:
                 owner: '{{ $labels.owner }}'
@@ -1374,7 +1374,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.7
+        helm.sh/chart: operators-guard-0.7.8
       name: operators-guard
       namespace: apc-operators-guard
     spec:
@@ -1397,7 +1397,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.7
+        helm.sh/chart: operators-guard-0.7.8
       name: operators-guard
       namespace: apc-operators-guard
     spec:
@@ -1422,7 +1422,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.7
+        helm.sh/chart: operators-guard-0.7.8
       name: operators-guard
       namespace: apc-operators-guard
     spec:
@@ -1444,6 +1444,6 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.7
+        helm.sh/chart: operators-guard-0.7.8
       name: operators-guard
       namespace: apc-operators-guard
