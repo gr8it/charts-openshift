@@ -1,12 +1,4 @@
 ---
-# Only what readiness-engine calls: ManagedCluster versions, hub ClusterVersion (Upgradeable),
-# APIRequestCounts, hub OperatorPolicies (version pins) and ManagedClusterViews. Operators come from the ACM Search API (authorized with
-# this ServiceAccount token); Search returns managed cluster objects only for namespaces where the
-# caller can create managedclusterviews, so that verb is required for the inventory itself. Objects of the
-# hub itself (local-cluster) are authorized against the caller's own RBAC, hence the list rules for
-# Subscriptions, CSVs and Deployments (Helm operators) are listed; referenced InstallPlans are fetched by name.
-# PackageManifests of the hub are read with a Role in
-# openshift-marketplace (templates/packageManifestRole.yaml); managed clusters are read through ManagedClusterViews.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
