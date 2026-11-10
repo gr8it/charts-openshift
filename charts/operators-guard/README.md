@@ -1,4 +1,4 @@
-# Operator Readiness
+# operators-guard
 
 Deploys the `readiness-engine` collector on the ACM hub. Every interval it reads the operator inventory of all
 managed clusters (ACM Search API, ManagedClusterView), the OCP upgrade graph, the Red Hat Lifecycle API and
@@ -24,6 +24,7 @@ Design: [apc-operators-guard/docs/02-design.md](https://github.com/gr8it/apc-ope
 > [!NOTE]
 > `policy` is mandatory; `snapshot.*` are optional (`pushSecret` is mandatory once `repository` is set). RBAC is a ClusterRole limited to what the engine calls
 > (ManagedClusters, hub ClusterVersion, APIRequestCounts, hub OperatorPolicies, ManagedClusterViews, and list on Subscriptions, CSVs and Deployments because ACM Search authorizes the hub's own objects against the caller's RBAC).
+> InstallPlans of the hub are read by name when a Subscription references one; managed cluster reads use named ManagedClusterViews.
 
 Global values (apc-global-overrides): `global.apc.proxy` sets `HTTPS_PROXY` / `HTTP_PROXY`; `global.apc.noProxy` sets `NO_PROXY`,
 with `.svc`, `.cluster.local` and the API service IP appended (the engine uses Python urllib, which ignores CIDRs);
@@ -35,7 +36,7 @@ with `.svc`, `.cluster.local` and the API service IP appended (the engine uses P
 | oauthProxyImage             | str  | `registry.redhat.io/openshift4/ose-oauth-proxy:v4.12.0` | oauth-proxy sidecar in front of the UI Route (only cluster-admins) |
 | imagePullSecrets            | list | `[]`                                      | Existing dockerconfigjson Secrets used to pull the image |
 | nodeSelector                | obj  | `{}`                                      | Optional pod nodeSelector |
-| interval                    | str  | `1h`                                      | Collector interval (Go duration) |
+| interval                    | str  | `1h`                                      | Collector interval: `h`, `m`, `s` in this order, each at most once (`1h`, `30m`, `1h30m`) |
 | historyKeep                 | int  | `24`                                      | Report-only local history entries; `0` disables. The cache is an `emptyDir`, so history is lost on pod restart. A chart change would be needed to mount a PVC. |
 | policy                      | obj  |                                           | Readiness policy, `policy.strategy` is mandatory (`eus`, `next-minor`, `pinned`) |
 | policy.owners               | obj  | `{}`                                      | Package to owner; null also uses the empty map. Used in report rows, metric labels and alerts |
@@ -49,21 +50,30 @@ with `.svc`, `.cluster.local` and the API service IP appended (the engine uses P
 
 The Route `operators-guard` (`reencrypt`) leads to an oauth-proxy sidecar: users log in with OpenShift and only users
 allowed to do everything (`cluster-admin`, `--openshift-sar={"resource":"*","verb":"*"}`) are let through, others get `403`.
+The host is the default one of the Route: `oc -n <namespace> get route operators-guard -o jsonpath='{.spec.host}'`.
 
-## Metrics and alerts
-
-The ClusterRole gets hub InstallPlans by name when a Subscription references one. Managed cluster reads use named ManagedClusterViews.
-
-Metrics, including the `readiness_engine_predictions` gauge, are listed in [engine/README.md](https://github.com/gr8it/apc-operators-guard/blob/main/engine/README.md#metrics). Alerts: `OperatorUnsupportedNow`,
-`OperatorUpgradeBlocker`, `OperatorSupportEnded`, `OperatorBelowMinVersion`, `OperatorPinStale`, `OperatorVersionBehind`, `OperatorPredictionMismatch`, `OperatorStalePendingInstallPlan` (known plan age over 14 days, `for: 1h`), `OperatorStalePendingInstallPlanNoTimestamp` (unknown age, `for: 7d`), `OperatorExceptionExpiring` (0–29 days left), `OperatorExceptionExpired`, `OperatorReadinessCollectStale`, `OperatorReadinessNoData`, `OperatorReadinessSourceDown`.
-Operator alerts carry the metric's `owner` label; the dashboard can filter by owner.
+Without the Route (e.g. for `/metrics`, which stays on port 8080 without oauth-proxy), use a port-forward:
 
 ```sh
 oc -n apc-operators-guard port-forward svc/operators-guard 8080:8080 &
 curl -s localhost:8080/summary
 ```
 
-HTML page with filters: open `http://localhost:8080/` while the port-forward runs.
+## Logging
+
+The engine logs each collect step at `INFO` (start, inventory, lifecycle, catalog, prediction, evaluation, snapshot, next run)
+and every failed API call attempt at `WARNING` with method, URL, attempt and duration. The chart does not set `LOG_LEVEL`,
+so the engine default `INFO` applies (`DEBUG`, which also logs successful calls, needs a chart change).
+
+```sh
+oc -n apc-operators-guard logs -f deploy/operators-guard -c collector
+```
+
+## Metrics and alerts
+
+Metrics, including the `readiness_engine_predictions` gauge, are listed in [engine/README.md](https://github.com/gr8it/apc-operators-guard/blob/main/engine/README.md#metrics). Alerts: `OperatorUnsupportedNow`,
+`OperatorUpgradeBlocker`, `OperatorSupportEnded`, `OperatorBelowMinVersion`, `OperatorPinStale`, `OperatorVersionBehind`, `OperatorPredictionMismatch`, `OperatorStalePendingInstallPlan` (known plan age over 14 days, `for: 1h`), `OperatorStalePendingInstallPlanNoTimestamp` (unknown age, `for: 7d`), `OperatorExceptionExpiring` (0–29 days left), `OperatorExceptionExpired`, `OperatorReadinessCollectStale`, `OperatorReadinessNoData`, `OperatorReadinessSourceDown`.
+Operator alerts carry the metric's `owner` label; the dashboard can filter by owner.
 
 ## Dashboard
 
