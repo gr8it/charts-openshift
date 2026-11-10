@@ -5,6 +5,10 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.4] - 2026-11-10
+
+- Use lowercase `reencrypt` as stored by the Route API, so Argo CD does not report the Route as OutOfSync
+
 ## [0.7.3] - 2026-11-10
 
 - Add Route `operators-guard` to the UI through an oauth-proxy sidecar that lets only cluster-admins through
