@@ -5,6 +5,10 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.7] - 2026-11-10
+
+- Lowered requests `256Mi` / `50m` and limits `512Mi` / `500m`
+
 ## [0.7.6] - 2026-11-10
 
 - Schema accepts `interval` only in the format the engine parses (`h`, `m`, `s` in this order, e.g. `1h30m`)

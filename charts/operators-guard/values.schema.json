@@ -28,6 +28,31 @@
       "description": "Collector interval: hours, minutes and seconds in this order, each at most once (e.g. 1h, 30m, 1h30m).",
       "pattern": "^([0-9]+h([0-9]+m)?([0-9]+s)?|[0-9]+m([0-9]+s)?|[0-9]+s)$"
     },
+    "resources": {
+      "type": "object",
+      "description": "Requests and limits of the collector container.",
+      "additionalProperties": false,
+      "properties": {
+        "requests": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "number"
+            ]
+          }
+        },
+        "limits": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "number"
+            ]
+          }
+        }
+      }
+    },
     "historyKeep": {
       "type": "integer",
       "minimum": 0,

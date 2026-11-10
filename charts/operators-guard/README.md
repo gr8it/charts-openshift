@@ -37,6 +37,7 @@ with `.svc`, `.cluster.local` and the API service IP appended (the engine uses P
 | imagePullSecrets            | list | `[]`                                      | Existing dockerconfigjson Secrets used to pull the image |
 | nodeSelector                | obj  | `{}`                                      | Optional pod nodeSelector |
 | interval                    | str  | `1h`                                      | Collector interval: `h`, `m`, `s` in this order, each at most once (`1h`, `30m`, `1h30m`) |
+| resources                   | obj  | requests `256Mi` / `50m`, limits `512Mi` / `500m` | Collector container; peak on a hub with 3 clusters: ~130 MiB, ~45m CPU (2026-11-10). Raise the memory for larger fleets |
 | historyKeep                 | int  | `24`                                      | Report-only local history entries; `0` disables. The cache is an `emptyDir`, so history is lost on pod restart. A chart change would be needed to mount a PVC. |
 | policy                      | obj  |                                           | Readiness policy, `policy.strategy` is mandatory (`eus`, `next-minor`, `pinned`) |
 | policy.owners               | obj  | `{}`                                      | Package to owner; null also uses the empty map. Used in report rows, metric labels and alerts |

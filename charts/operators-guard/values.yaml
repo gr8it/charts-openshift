@@ -19,6 +19,14 @@ imagePullSecrets: []
 nodeSelector: {}
 # interval: <duration> - how often the collector gathers inventory, graph, catalogs and Lifecycle API data
 interval: 1h
+
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 50m
+  limits:
+    memory: 512Mi
+    cpu: 500m
 # historyKeep: <integer> - local report copies retained in the cache (0 disables; emptyDir is lost on pod restart)
 historyKeep: 24
 
