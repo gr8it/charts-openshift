@@ -36,6 +36,9 @@ infrastructureNamespace: ""
 # OCP release image (full FQDN with tag)
 releaseImage: "quay.io/openshift-release-dev/ocp-release:4.18.41-multi"
 
+# Version tag for the ose-cli image used by the NodePool release check job
+oseCliImageTag: "4.15"
+
 # OCP update channel
 channel: eus-4.18
 
@@ -67,6 +70,8 @@ nodeSelector:
 
 # NodePool
 nodePool:
+  # Keep on the current release during HostedCluster upgrades; advance separately afterward.
+  releaseImage: ""
   replicas: 2
   upgradeType: InPlace
   autoRepair: false

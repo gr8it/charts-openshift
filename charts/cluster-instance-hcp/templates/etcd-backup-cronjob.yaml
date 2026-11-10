@@ -26,7 +26,7 @@ spec:
           restartPolicy: Never
           initContainers:
             - name: init
-              image: registry.redhat.io/openshift4/ose-cli:v4.15
+              image: registry.redhat.io/openshift4/ose-cli:v{{ .Values.oseCliImageTag }}
               command: ["/bin/bash", "/usr/local/bin/init.sh"]
               securityContext:
                 allowPrivilegeEscalation: false

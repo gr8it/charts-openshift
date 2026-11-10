@@ -7,7 +7,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.8
+        helm.sh/chart: cluster-instance-hcp-2.0.19
       name: kube-apiserver-cert
       namespace: example01
     spec:
@@ -33,7 +33,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.8
+        helm.sh/chart: cluster-instance-hcp-2.0.19
       name: oauth-idp-ca-bundle
       namespace: example01
   3: |
@@ -63,7 +63,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.8
+        helm.sh/chart: cluster-instance-hcp-2.0.19
       name: kubeletconfig-worker
       namespace: example01
   4: |
@@ -94,7 +94,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.8
+        helm.sh/chart: cluster-instance-hcp-2.0.19
       name: machineconfig-chrony
       namespace: example01
   5: |
@@ -124,7 +124,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.8
+        helm.sh/chart: cluster-instance-hcp-2.0.19
       name: machineconfig-logind
       namespace: example01
   6: |
@@ -154,7 +154,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.8
+        helm.sh/chart: cluster-instance-hcp-2.0.19
       name: machineconfig-mirror-registries
       namespace: example01
   7: |
@@ -170,7 +170,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.8
+        helm.sh/chart: cluster-instance-hcp-2.0.19
       name: registry-ca-bundle
       namespace: example01
   8: |
@@ -186,7 +186,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.8
+        helm.sh/chart: cluster-instance-hcp-2.0.19
       name: user-ca-bundle
       namespace: example01
   9: |
@@ -212,7 +212,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.8
+        helm.sh/chart: cluster-instance-hcp-2.0.19
       name: velero-resource-policy-example01
       namespace: openshift-adp
   10: |
@@ -223,7 +223,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.8
+        helm.sh/chart: cluster-instance-hcp-2.0.19
       name: bastion-ldap-bind-secret
       namespace: example01
     spec:
@@ -248,7 +248,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.8
+        helm.sh/chart: cluster-instance-hcp-2.0.19
       name: ad-ldap-bind-secret
       namespace: example01
     spec:
@@ -273,7 +273,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.8
+        helm.sh/chart: cluster-instance-hcp-2.0.19
       name: entra-id-client-secret
       namespace: example01
     spec:
@@ -298,7 +298,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.8
+        helm.sh/chart: cluster-instance-hcp-2.0.19
       name: pullsecret-cluster-example01
       namespace: example01
     spec:
@@ -323,6 +323,7 @@ manifests should match snapshot:
     kind: HostedCluster
     metadata:
       annotations:
+        argocd.argoproj.io/ignore-healthcheck: "true"
         argocd.argoproj.io/sync-wave: "0"
         hypershift.openshift.io/force-upgrade-to: quay.io/openshift-release-dev/ocp-release:4.17.11-multi
       labels:
@@ -330,7 +331,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
         cluster.open-cluster-management.io/clusterset: default
-        helm.sh/chart: cluster-instance-hcp-2.0.8
+        helm.sh/chart: cluster-instance-hcp-2.0.19
       name: example01
       namespace: example01
     spec:
@@ -511,7 +512,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.8
+        helm.sh/chart: cluster-instance-hcp-2.0.19
       name: example01
       namespace: example01
     spec:
@@ -543,13 +544,193 @@ manifests should match snapshot:
         app.kubernetes.io/name: cluster-instance-hcp
         cloud: BareMetal
         cluster.open-cluster-management.io/clusterset: default
-        helm.sh/chart: cluster-instance-hcp-2.0.8
+        helm.sh/chart: cluster-instance-hcp-2.0.19
         name: example01
         vendor: OpenShift
       name: example01
     spec:
       hubAcceptsClient: true
   17: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+        argocd.argoproj.io/sync-wave: "5"
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.19
+      name: nodepool-release-check-example01
+      namespace: example01
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/instance: cluster-instance-hcp
+            app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/name: cluster-instance-hcp
+            helm.sh/chart: cluster-instance-hcp-2.0.19
+        spec:
+          containers:
+            - args:
+                - |
+                  set -euo pipefail
+
+                  log() {
+                    printf '[%s] %s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" "$*"
+                  }
+
+                  while true; do
+                    nodepool=$(oc get nodepool "nodepool-${HOSTED_CLUSTER}-1" \
+                      -n "$NAMESPACE" \
+                      --ignore-not-found \
+                      -o name)
+
+                    if [[ -z "$nodepool" ]]; then
+                      log "NodePool nodepool-${HOSTED_CLUSTER}-1 does not exist; allowing initial installation"
+                      exit 0
+                    fi
+
+                    status=$(oc get hostedcluster "$HOSTED_CLUSTER" \
+                      -n "$NAMESPACE" \
+                      --ignore-not-found \
+                      -o jsonpath='{.metadata.generation}{"|"}{.spec.release.image}{"|"}{.status.version.desired.version}{"|"}{.status.version.desired.image}{"|"}{.status.version.history[0].state}{"|"}{.status.version.history[0].version}{"|"}{.status.version.history[0].image}{"|"}{.status.conditions[?(@.type=="Available")].status}{"|"}{.status.conditions[?(@.type=="Available")].observedGeneration}')
+
+                    if [[ -z "$status" ]]; then
+                      log "HostedCluster $HOSTED_CLUSTER does not exist; allowing initial installation"
+                      exit 0
+                    fi
+
+                    IFS='|' read -r generation spec_image desired_version desired_image history_state history_version history_image available_status available_generation <<< "$status"
+                    if [[ "$spec_image" =~ :([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+                      spec_version="${BASH_REMATCH[1]}"
+                    else
+                      spec_version=""
+                    fi
+
+                    log "HostedCluster release: spec=$spec_version desired=$desired_version latest=$history_version ($history_state) available=$available_status generation=$available_generation/$generation; waiting for $EXPECTED_VERSION"
+                    if [[ "$spec_version" == "$EXPECTED_VERSION" \
+                      && "$desired_version" == "$EXPECTED_VERSION" \
+                      && "$history_state" == "Completed" \
+                      && "$history_version" == "$EXPECTED_VERSION" \
+                      && "$history_image" == "$desired_image" \
+                      && "$available_status" == "True" \
+                      && "$available_generation" == "$generation" ]]; then
+                      log "HostedCluster release $EXPECTED_VERSION is completed and available"
+                      exit 0
+                    fi
+
+                    sleep 30
+                  done
+              command:
+                - /bin/bash
+                - -c
+              env:
+                - name: HOSTED_CLUSTER
+                  value: example01
+                - name: NAMESPACE
+                  value: example01
+                - name: EXPECTED_VERSION
+                  value: 4.17.11
+              image: registry.redhat.io/openshift4/ose-cli:v4.15
+              imagePullPolicy: IfNotPresent
+              name: verify-hostedcluster-release
+              resources:
+                limits:
+                  cpu: 100m
+                  memory: 128Mi
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                readOnlyRootFilesystem: true
+              volumeMounts:
+                - mountPath: /tmp
+                  name: tmp
+          restartPolicy: Never
+          serviceAccountName: nodepool-release-check-example01
+          volumes:
+            - emptyDir: {}
+              name: tmp
+  18: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      annotations:
+        argocd.argoproj.io/hook: PreSync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+        argocd.argoproj.io/sync-wave: "0"
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.19
+      name: nodepool-release-check-example01
+      namespace: example01
+    rules:
+      - apiGroups:
+          - hypershift.openshift.io
+        resourceNames:
+          - example01
+        resources:
+          - hostedclusters
+        verbs:
+          - get
+      - apiGroups:
+          - hypershift.openshift.io
+        resourceNames:
+          - nodepool-example01-1
+        resources:
+          - nodepools
+        verbs:
+          - get
+  19: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      annotations:
+        argocd.argoproj.io/hook: PreSync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+        argocd.argoproj.io/sync-wave: "0"
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.19
+      name: nodepool-release-check-example01
+      namespace: example01
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: nodepool-release-check-example01
+    subjects:
+      - kind: ServiceAccount
+        name: nodepool-release-check-example01
+        namespace: example01
+  20: |
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      annotations:
+        argocd.argoproj.io/hook: PreSync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+        argocd.argoproj.io/sync-wave: "0"
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.19
+      name: nodepool-release-check-example01
+      namespace: example01
+  21: |
     apiVersion: hypershift.openshift.io/v1beta1
     kind: NodePool
     metadata:
@@ -559,7 +740,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.8
+        helm.sh/chart: cluster-instance-hcp-2.0.19
       name: nodepool-example01-1
       namespace: example01
     spec:
@@ -582,7 +763,7 @@ manifests should match snapshot:
       release:
         image: quay.io/openshift-release-dev/ocp-release:4.17.11-multi
       replicas: 4
-  18: |
+  22: |
     apiVersion: v1
     kind: Secret
     metadata:
@@ -590,14 +771,14 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.8
+        helm.sh/chart: cluster-instance-hcp-2.0.19
       name: sshkey-cluster-example01
       namespace: example01
     stringData:
       id_rsa.pub: |-
         ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN45Yki8PhtTZ7NFk9xST9LHvrPgmHuSTHXI2CdXLxzF ops@example.com
         ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyTwo admin@example.com
-  19: |
+  23: |
     apiVersion: velero.io/v1
     kind: Schedule
     metadata:
@@ -605,7 +786,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: cluster-instance-hcp
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: cluster-instance-hcp
-        helm.sh/chart: cluster-instance-hcp-2.0.8
+        helm.sh/chart: cluster-instance-hcp-2.0.19
       name: example01
       namespace: openshift-adp
     spec:

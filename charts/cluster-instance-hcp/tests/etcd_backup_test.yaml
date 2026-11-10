@@ -32,6 +32,7 @@ tests:
       etcd.backup.enabled: true
       etcd.backup.schedule: "15 2 * * *"
       etcd.backup.paused: true
+      oseCliImageTag: "4.20"
     asserts:
       - equal:
           path: metadata.name
@@ -48,6 +49,9 @@ tests:
       - equal:
           path: spec.jobTemplate.spec.template.spec.serviceAccountName
           value: etcd-hcp-backup-mycluster
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].image
+          value: registry.redhat.io/openshift4/ose-cli:v4.20
 
   - it: should create the scripts ConfigMap when enabled
     template: templates/etcd-backup-scripts-configmap.yaml

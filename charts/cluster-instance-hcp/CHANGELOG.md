@@ -1,6 +1,72 @@
 All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.19] - 2026-11-10
+
+### Fixed
+
+- Allow fresh NodePool installation before cluster operators are available while keeping existing NodePool upgrades gated on HostedCluster release completion.
+
+## [2.0.18] - 2026-11-10
+
+### Fixed
+
+- Allow the NodePool release check to pass when an available HostedCluster reports the target version, even while cluster operators are converging.
+
+## [2.0.17] - 2026-11-10
+
+### Fixed
+
+- Run the NodePool release-check Job at sync wave 0.
+
+## [2.0.16] - 2026-11-10
+
+### Fixed
+
+- Allow initial NodePool installation before HostedCluster cluster operators are available.
+
+## [2.0.15] - 2026-11-09
+
+### Changed
+
+- Rename NodePool release-check templates to use `release-check` in their filenames.
+
+## [2.0.14] - 2026-11-09
+
+### Changed
+
+- Add UTC timestamps to NodePool release-check Job log messages.
+
+## [2.0.13] - 2026-11-09
+
+### Fixed
+
+- Run the NodePool release check after the HostedCluster sync and before the NodePool sync.
+
+## [2.0.12] - 2026-11-09
+
+### Changed
+
+- Configure `ose-cli` image tags with the `oseCliImageTag` value, defaulting to `4.15`.
+
+## [2.0.11] - 2026-11-09
+
+### Fixed
+
+- Mount a writable `/tmp` in the PreSync check job while keeping the container root filesystem read-only.
+
+## [2.0.10] - 2026-11-09
+
+### Changed
+
+- Derive the PreSync check's OpenShift CLI image version from `releaseImage`.
+
+## [2.0.9] - 2026-11-09
+
+### Added
+
+- Gate NodePool upgrades with a PreSync check for the HostedCluster's completed target release.
+
 ## [2.0.8] - 2026-11-06
 
 ### Changed

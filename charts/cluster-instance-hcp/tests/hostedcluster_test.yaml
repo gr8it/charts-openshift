@@ -33,6 +33,9 @@ tests:
       - equal:
           path: metadata.annotations["argocd.argoproj.io/sync-wave"]
           value: "0"
+      - equal:
+          path: metadata.annotations["argocd.argoproj.io/ignore-healthcheck"]
+          value: "true"
 
   - it: should use a custom update channel when set
     set:

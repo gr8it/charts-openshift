@@ -1,0 +1,66 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: cluster-instance-hcp NodePool release check
+templates:
+  - templates/nodepool-release-check-job.yaml
+values:
+  - ../values.lint.yaml
+release:
+  name: cluster-instance-hcp
+  namespace: mycluster
+
+tests:
+  - it: should check the requested NodePool release after the HostedCluster syncs
+    set:
+      clusterName: mycluster
+      releaseImage: quay.io/openshift-release-dev/ocp-release:4.20.11-multi
+      nodePool.releaseImage: quay.io/openshift-release-dev/ocp-release:4.19.10-multi
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: registry.redhat.io/openshift4/ose-cli:v4.15
+      - equal:
+          path: metadata.annotations["argocd.argoproj.io/hook"]
+          value: Sync
+      - equal:
+          path: metadata.annotations["argocd.argoproj.io/sync-wave"]
+          value: "5"
+      - equal:
+          path: spec.template.spec.containers[0].env[2].value
+          value: "4.19.10"
+      - matchRegex:
+          path: spec.template.spec.containers[0].args[0]
+          pattern: 'history_state.*Completed'
+      - matchRegex:
+          path: spec.template.spec.containers[0].args[0]
+          pattern: 'oc get nodepool'
+      - matchRegex:
+          path: spec.template.spec.containers[0].args[0]
+          pattern: 'NodePool nodepool-\$\{HOSTED_CLUSTER\}-1 does not exist; allowing initial installation'
+      - matchRegex:
+          path: spec.template.spec.containers[0].args[0]
+          pattern: 'date -u .*Y-%m-%dT%H:%M:%SZ'
+      - matchRegex:
+          path: spec.template.spec.containers[0].args[0]
+          pattern: 'log "HostedCluster release:'
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].mountPath
+          value: /tmp
+      - isEmpty:
+          path: spec.template.spec.volumes[0].emptyDir
+
+  - it: should allow overriding the ose-cli image tag
+    set:
+      clusterName: mycluster
+      oseCliImageTag: "4.20"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: registry.redhat.io/openshift4/ose-cli:v4.20
+
+  - it: should allow initial installation when HostedCluster does not exist
+    set:
+      clusterName: mycluster
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].args[0]
+          pattern: 'does not exist; allowing initial installation'

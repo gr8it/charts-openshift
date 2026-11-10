@@ -21,72 +21,13 @@ Deploys a HyperShift Hosted Control Plane (HCP) cluster on an ACM hub cluster. C
 
   These identity-provider secrets are required only when the corresponding provider credential reference is configured.
 
-## Argo CD HostedCluster health check
+## HostedCluster and NodePool upgrades
 
-To make Argo CD wait for a HostedCluster upgrade before syncing later waves, configure a custom health check in the `argocd-cm` ConfigMap for the Argo CD instance managing this chart:
+1. The HostedCluster syncs at wave 0.
+2. The release-check Job runs as a `Sync` hook at wave 5. If the NodePool does not yet exist, it allows initial installation to proceed. Otherwise, it waits until the HostedCluster reports the NodePool's requested `xx.yy.zz` version as desired and completed, its history image matches its desired image, and its `Available` condition has observed the current generation.
+3. If the check succeeds, Argo CD applies the NodePool at wave 10.
 
-Use the namespace where that Argo CD instance stores its `argocd-cm`; the example uses `openshift-gitops`.
-
-```yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: argocd-cm
-  namespace: openshift-gitops
-data:
-  resource.customizations.health.hypershift.openshift.io_HostedCluster: |
-    hs = { status = "Progressing", message = "Waiting for HostedCluster status" }
-
-    if obj.status == nil then
-      return hs
-    end
-
-    for _, condition in ipairs(obj.status.conditions or {}) do
-      if condition.type == "Degraded" and condition.status == "True" then
-        hs.status = "Degraded"
-        hs.message = condition.message or "HostedCluster is degraded"
-        return hs
-      end
-      if condition.type == "ClusterVersionFailing" and condition.status == "True" then
-        hs.status = "Degraded"
-        hs.message = condition.message or "HostedCluster version update is failing"
-        return hs
-      end
-    end
-
-    local version = obj.status.version
-    if version == nil then
-      hs.message = "Waiting for HostedCluster version status"
-      return hs
-    end
-
-    if version.observedGeneration ~= obj.metadata.generation then
-      hs.message = "Waiting for current HostedCluster generation to be observed"
-      return hs
-    end
-
-    local history = version.history or {}
-    local latest = history[1]
-    if latest == nil or latest.state ~= "Completed" or latest.image ~= (version.desired or {}).image then
-      hs.message = "Waiting for desired HostedCluster release to complete"
-      return hs
-    end
-
-    for _, condition in ipairs(obj.status.conditions or {}) do
-      if condition.type == "Available" and condition.status == "True" then
-        hs.status = "Healthy"
-        hs.message = "HostedCluster is available at its desired completed release"
-        return hs
-      end
-    end
-
-    hs.message = "Waiting for HostedCluster to become available"
-    return hs
-```
-
-The check reports `Healthy` only when the current generation has been observed, the desired release is the latest `Completed` entry in `status.version.history`, and the `Available` condition is `True`. An incomplete or failing upgrade therefore keeps the HostedCluster unhealthy, preventing Argo CD from advancing to a later sync wave. Apply this customization to the Argo CD instance's own configuration; it is not a chart value.
-
-HyperShift documents the [HostedCluster version status and upgrade history](https://github.com/openshift/hypershift/blob/main/api/hypershift/v1beta1/hostedcluster_types.go).
+The release-check Job provides the upgrade gate. Set `releaseImage` and `nodePool.releaseImage` to the target release, then sync.
 
 ## Values
 
@@ -95,6 +36,7 @@ HyperShift documents the [HostedCluster version status and upgrade history](http
 | `clusterName`                                | HCP cluster name (namespace, infraID, ManagedCluster name). **Required.**                               | —                                                         |
 | `clusterSet`                                 | ACM ManagedClusterSet label                                                                             | `default`                                                 |
 | `releaseImage`                               | OCP release image FQDN with tag                                                                         | `quay.io/openshift-release-dev/ocp-release:4.17.11-multi` |
+| `oseCliImageTag`                             | Version tag for `ose-cli` images used by the NodePool release check and etcd backup init container      | `4.15`                                                    |
 | `channel`                                    | OCP update channel; omitted from the HostedCluster when empty                                           | `eus-4.18`                                                |
 | `apiServerAuditProfile`                      | HostedCluster API server audit profile (`None`, `Default`, `WriteRequestBodies`, or `AllRequestBodies`) | `Default`                                                 |
 | `infrastructureNamespace`                    | Infra namespace override; defaults to `infrastructure-<clusterName>`                                    | `""`                                                      |
@@ -110,6 +52,7 @@ HyperShift documents the [HostedCluster version status and upgrade history](http
 | `etcd.backup.objectBucketClaim.name`         | ObjectBucketClaim name; defaults to `etcd-hcp-<clusterName>-backup`                                     | `""`                                                      |
 | `etcd.backup.objectBucketClaim.storageClass` | StorageClass used when creating the ObjectBucketClaim                                                   | `ocs-storagecluster-ceph-rgw`                             |
 | `nodePool.replicas`                          | Number of worker nodes                                                                                  | `2`                                                       |
+| `nodePool.releaseImage`                      | NodePool release image; update after the HostedCluster reaches the target release                       | `releaseImage`                                            |
 | `nodePool.upgradeType`                       | Upgrade strategy (`InPlace` or `Replace`)                                                               | `InPlace`                                                 |
 | `nodePool.autoRepair`                        | Enable automatic node repair                                                                            | `false`                                                   |
 | `nodePool.nodeLabels`                        | Labels applied to worker nodes                                                                          | `{}`                                                      |

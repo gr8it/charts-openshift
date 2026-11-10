@@ -1,5 +1,6 @@
 {{- $clusterName := include "cluster-instance-hcp.clusterName" . }}
 {{- $imageProxyHost := include "apc-global-overrides.imageProxyHost" . }}
+{{- $nodePoolReleaseImage := .Values.nodePool.releaseImage | default .Values.releaseImage }}
 apiVersion: hypershift.openshift.io/v1beta1
 kind: NodePool
 metadata:
@@ -32,4 +33,4 @@ spec:
       agentLabelSelector:
         matchLabels: {}
   release:
-    image: {{ .Values.releaseImage }}
+    image: {{ $nodePoolReleaseImage }}

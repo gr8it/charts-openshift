@@ -12,6 +12,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
   annotations:
     argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/ignore-healthcheck: "true"
     hypershift.openshift.io/force-upgrade-to: {{ .Values.releaseImage }}
   labels:
     {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
