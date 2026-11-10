@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _If you are upgrading: please see [`UPGRADING.md`](UPGRADING.md)._
 
+## [2.6.0] - 2026-11-10
+
+_([SPEXAPC-26333](https://aspecta.atlassian.net/browse/SPEXAPC-26333))_
+
+_Upgrade from 2.5.0 only. Crossplane must be upgraded one minor version at a time._
+
+### Changed
+
+- Bump `Crossplane` to 2.4.3
+  - every installed provider and function gets a new package revision on upgrade, so their pods restart
+
 ## [2.5.0] - 2026-11-10
 
 _([SPEXAPC-26333](https://aspecta.atlassian.net/browse/SPEXAPC-26333))_
