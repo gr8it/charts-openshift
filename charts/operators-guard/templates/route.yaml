@@ -1,0 +1,17 @@
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ include "operators-guard.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "operators-guard.labels" . | nindent 4 }}
+spec:
+  port:
+    targetPort: https
+  tls:
+    termination: Reencrypt
+    insecureEdgeTerminationPolicy: Redirect
+  to:
+    kind: Service
+    name: {{ include "operators-guard.name" . }}

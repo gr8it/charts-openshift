@@ -252,6 +252,79 @@ tests:
       - hasDocuments:
           count: 0
 
+  - it: lets only cluster-admins through oauth-proxy
+    template: templates/deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[1].name
+          value: oauth-proxy
+      - contains:
+          path: spec.template.spec.containers[1].args
+          content: '--openshift-sar={"resource":"*","verb":"*"}'
+      - contains:
+          path: spec.template.spec.containers[1].args
+          content: --upstream=http://localhost:8080
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: oauth-tls
+            secret:
+              secretName: operators-guard-tls
+
+  - it: exposes the UI through a reencrypt Route to oauth-proxy
+    template: templates/route.yaml
+    asserts:
+      - isKind:
+          of: Route
+      - equal:
+          path: spec.tls.termination
+          value: Reencrypt
+      - equal:
+          path: spec.port.targetPort
+          value: https
+      - equal:
+          path: spec.to.name
+          value: operators-guard
+
+  - it: registers the Route as OAuth redirect of the ServiceAccount
+    template: templates/serviceAccount.yaml
+    asserts:
+      - matchRegex:
+          path: metadata.annotations["serviceaccounts.openshift.io/oauth-redirectreference.primary"]
+          pattern: '"kind":"Route","name":"operators-guard"'
+
+  - it: requests a serving certificate and keeps the metrics port
+    template: templates/service.yaml
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: metadata.annotations["service.beta.openshift.io/serving-cert-secret-name"]
+          value: operators-guard-tls
+      - contains:
+          path: spec.ports
+          content:
+            name: https
+            port: 8443
+            targetPort: https
+            protocol: TCP
+      - contains:
+          path: spec.ports
+          content:
+            name: metrics
+            port: 8080
+            targetPort: metrics
+            protocol: TCP
+
+  - it: generates the oauth-proxy cookie secret in the cluster
+    template: templates/oauthCookieExternalSecret.yaml
+    asserts:
+      - equal:
+          path: spec.target.name
+          value: operators-guard-oauth-cookie
+      - equal:
+          path: spec.dataFrom[0].sourceRef.generatorRef.name
+          value: operators-guard-oauth-cookie
+
   - it: sets the node selector
     template: templates/deployment.yaml
     set:

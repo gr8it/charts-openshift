@@ -11,6 +11,8 @@
 
 # image: <string> - operators-guard container image without a tag, the tag is the chart appVersion (ghcr.io is private: mirror it to a registry the cluster can pull from)
 image: ghcr.io/gr8it/operators-guard
+# oauthProxyImage: <string> - OpenShift oauth-proxy sidecar in front of the UI Route (only cluster-admins are let through)
+oauthProxyImage: registry.redhat.io/openshift4/ose-oauth-proxy:v4.12.0
 # imagePullSecrets: <list> - names of existing kubernetes.io/dockerconfigjson Secrets used to pull the image
 imagePullSecrets: []
 # nodeSelector: <object> - optional pod nodeSelector (e.g. to pin the pod to a node that already holds the image)

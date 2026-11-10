@@ -6,6 +6,8 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "operators-guard.labels" . | nindent 4 }}
+  annotations:
+    service.beta.openshift.io/serving-cert-secret-name: {{ include "operators-guard.name" . }}-tls
 spec:
   selector:
     {{- include "operators-guard.selectorLabels" . | nindent 4 }}
@@ -13,6 +15,10 @@ spec:
   - name: metrics
     port: 8080
     targetPort: metrics
+    protocol: TCP
+  - name: https
+    port: 8443
+    targetPort: https
     protocol: TCP
 ---
 apiVersion: monitoring.coreos.com/v1
