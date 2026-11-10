@@ -1,6 +1,4 @@
 ---
-# Long-running collector instead of a CronJob: it keeps the last result in memory and serves
-# /metrics between runs, so Prometheus can scrape it without a Pushgateway.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -57,8 +55,6 @@ spec:
           value: {{ . | quote }}
         - name: HTTP_PROXY
           value: {{ . | quote }}
-        # Python urllib matches host names and domain suffixes only (no CIDRs): the in-cluster
-        # Search API and the API service IP must be listed explicitly
         - name: NO_PROXY
           value: {{ list (include "apc-global-overrides.noProxy" $) ".svc" ".cluster.local" "$(KUBERNETES_SERVICE_HOST)" | compact | join "," | quote }}
         {{- end }}
@@ -68,14 +64,12 @@ spec:
         {{- end }}
         - name: SEARCH_API_URL
           value: https://search-search-api.open-cluster-management.svc:4010/searchapi/graphql
-        # CA only for the in-cluster Search API; external endpoints use the system trust store
         - name: SEARCH_API_CA_FILE
           value: /etc/pki/service-ca/service-ca.crt
         ports:
         - name: metrics
           containerPort: 8080
           protocol: TCP
-        # ready only after the first successful collect
         readinessProbe:
           httpGet:
             path: /readyz
@@ -91,7 +85,6 @@ spec:
           capabilities:
             drop:
             - ALL
-        # Pyxis catalog records of every installed package are held in memory (~100 MB seen); headroom for larger fleets
         resources:
           requests:
             memory: "1Gi"
@@ -115,8 +108,6 @@ spec:
           mountPath: /var/cache/readiness
         - name: tmp
           mountPath: /tmp
-      # UI and API for the Route; only users allowed to do everything (cluster-admin) pass the review.
-      # /metrics stays on the Service port 8080 for the ServiceMonitor.
       - name: oauth-proxy
         image: {{ .Values.oauthProxyImage }}
         args:
@@ -169,7 +160,6 @@ spec:
       - name: service-ca
         configMap:
           name: openshift-service-ca.crt
-      # API cache and report history; lost on pod restart
       - name: cache
         emptyDir:
           sizeLimit: 5Gi
