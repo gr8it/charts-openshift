@@ -14,6 +14,7 @@ Design: [apc-operators-guard/docs/02-design.md](https://github.com/gr8it/apc-ope
 - Only with `snapshot.repository`: Secret (`kubernetes.io/dockerconfigjson`) with Quay robot push credentials in the release namespace.
 - grafana-operator and a Grafana instance labeled `dashboards: <instanceName>` (when `grafanaDashboard.enabled`).
 - Egress to `access.redhat.com`, `api.openshift.com` and `catalog.redhat.com` (through `global.apc.proxy` when the cluster has no direct internet access).
+  With `global.apc.proxyCIDRs` the chart creates a NetworkPolicy that allows egress to the proxy (platform namespaces deny it by default).
 - Ingress to `search-search-api` (port 4010) in `open-cluster-management` from the release namespace
   (newer ACM versions restrict it with a NetworkPolicy).
 
@@ -24,7 +25,8 @@ Design: [apc-operators-guard/docs/02-design.md](https://github.com/gr8it/apc-ope
 > (ManagedClusters, hub ClusterVersion, APIRequestCounts, hub OperatorPolicies, ManagedClusterViews, and list on Subscriptions, CSVs and Deployments because ACM Search authorizes the hub's own objects against the caller's RBAC).
 
 Global values (apc-global-overrides): `global.apc.proxy` sets `HTTPS_PROXY` / `HTTP_PROXY`; `global.apc.noProxy` sets `NO_PROXY`,
-with `.svc`, `.cluster.local` and the API service IP appended (the engine uses Python urllib, which ignores CIDRs).
+with `.svc`, `.cluster.local` and the API service IP appended (the engine uses Python urllib, which ignores CIDRs);
+`global.apc.proxyCIDRs` creates the NetworkPolicy `<release>-allow-proxy` with egress to these CIDRs.
 
 |Variable                     | Type | Default                                   | Notes |
 |:---                         |:---  |:---                                       |:---   |

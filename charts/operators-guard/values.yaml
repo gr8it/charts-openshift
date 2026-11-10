@@ -3,9 +3,11 @@
 #   apc:
 #     proxy:    # egress proxy for access.redhat.com, api.openshift.com and catalog.redhat.com (HTTPS_PROXY, HTTP_PROXY)
 #     noProxy:  # NO_PROXY; .svc, .cluster.local and the API service IP are appended (urllib ignores CIDRs)
+#     proxyCIDRs: # proxy CIDRs, a NetworkPolicy allows egress to them (platform namespaces deny it by default)
 ## and their local overrides
 # proxy: ~
 # noProxy: ~
+# proxyCIDRs: ~
 
 # image: <string> - operators-guard container image without a tag, the tag is the chart appVersion (ghcr.io is private: mirror it to a registry the cluster can pull from)
 image: ghcr.io/gr8it/operators-guard
