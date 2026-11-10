@@ -95,7 +95,7 @@ spec:
           summary: "Observed OLM CSV is outside the channel graph"
           description: "{{`{{ $labels.package }} on cluster {{ $labels.cluster }} has a CSV that is not a valid next step from the installed CSV; review the InstallPlan and channel graph before approval.`}}"
       - alert: OperatorStalePendingInstallPlan
-        expr: operator_prediction_stale_plan == 1 and on(cluster, namespace, subscription, package, installed, channel, owner) operator_prediction_plan_age_days > 14
+        expr: operator_prediction_stale_plan == 1 and on(cluster, exported_namespace, subscription, package, installed, channel, owner) operator_prediction_plan_age_days > 14
         for: 1h
         labels:
           severity: info
@@ -107,7 +107,7 @@ spec:
           summary: "Pending InstallPlan was resolved against an older catalog head"
           description: "{{`{{ $labels.package }} on cluster {{ $labels.cluster }}: pending InstallPlan was resolved against an older catalog head; review and approve or delete it; OLM then re-resolves.`}}"
       - alert: OperatorStalePendingInstallPlanNoTimestamp
-        expr: operator_prediction_stale_plan == 1 unless on(cluster, namespace, subscription, package, installed, channel, owner) operator_prediction_plan_age_days
+        expr: operator_prediction_stale_plan == 1 unless on(cluster, exported_namespace, subscription, package, installed, channel, owner) operator_prediction_plan_age_days
         for: 7d
         labels:
           severity: info

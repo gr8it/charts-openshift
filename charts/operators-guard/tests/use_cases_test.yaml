@@ -58,13 +58,13 @@ tests:
           value: info
       - matchRegex:
           path: spec.groups[0].rules[?(@.alert == "OperatorStalePendingInstallPlan")].expr
-          pattern: '^operator_prediction_stale_plan == 1 and on\(cluster, namespace, subscription, package, installed, channel, owner\) operator_prediction_plan_age_days > 14$'
+          pattern: '^operator_prediction_stale_plan == 1 and on\(cluster, exported_namespace, subscription, package, installed, channel, owner\) operator_prediction_plan_age_days > 14$'
       - equal:
           path: spec.groups[0].rules[?(@.alert == "OperatorStalePendingInstallPlan")].for
           value: 1h
       - matchRegex:
           path: spec.groups[0].rules[?(@.alert == "OperatorStalePendingInstallPlanNoTimestamp")].expr
-          pattern: '^operator_prediction_stale_plan == 1 unless on\(cluster, namespace, subscription, package, installed, channel, owner\) operator_prediction_plan_age_days$'
+          pattern: '^operator_prediction_stale_plan == 1 unless on\(cluster, exported_namespace, subscription, package, installed, channel, owner\) operator_prediction_plan_age_days$'
       - equal:
           path: spec.groups[0].rules[?(@.alert == "OperatorStalePendingInstallPlanNoTimestamp")].for
           value: 7d
@@ -359,6 +359,33 @@ tests:
       - equal:
           path: spec.template.spec.containers[1].resources.limits.memory
           value: 128Mi
+
+  - it: writes only the generated password into the oauth-proxy cookie secret
+    template: templates/oauthCookieExternalSecret.yaml
+    asserts:
+      - equal:
+          path: spec.target.template.data.cookie-secret
+          value: "{{ .password }}"
+
+  - it: joins prediction alerts on the scraped operator namespace
+    template: templates/prometheusRule.yaml
+    asserts:
+      - matchRegex:
+          path: spec.groups[0].rules[?(@.alert == "OperatorStalePendingInstallPlan")].expr
+          pattern: 'on\(cluster, exported_namespace, subscription,'
+      - matchRegex:
+          path: spec.groups[0].rules[?(@.alert == "OperatorStalePendingInstallPlanNoTimestamp")].expr
+          pattern: 'on\(cluster, exported_namespace, subscription,'
+
+  - it: keys and filters the non-MATCH prediction table by the operator namespace
+    template: templates/grafanaDashboard.yaml
+    asserts:
+      - notMatchRegex:
+          path: spec.json
+          pattern: '"cluster\\", \\"namespace\\", \\"subscription'
+      - matchRegex:
+          path: spec.json
+          pattern: 'operator_prediction_plan_age_days\{[^}]*\} and on\(cluster, exported_namespace, subscription'
 
   - it: sets the node selector
     template: templates/deployment.yaml

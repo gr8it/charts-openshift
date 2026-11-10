@@ -5,6 +5,12 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.8] - 2026-11-10
+
+- Fix the oauth-proxy cookie secret: write the generated `.password`, not the whole generator data map
+- Use `exported_namespace` (the operator namespace after the scrape) in the prediction alert joins and the non-MATCH table keys
+- Show only MISMATCH and STALE-PLAN plans in the non-MATCH prediction table
+
 ## [0.7.7] - 2026-11-10
 
 - Lowered requests `256Mi` / `50m` and limits `512Mi` / `500m`

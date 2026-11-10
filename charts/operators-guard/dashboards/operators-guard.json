@@ -542,13 +542,13 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "label_join((label_replace(operator_prediction_mismatch{cluster=~\"$cluster\", package=~\"$package\", owner=~\"$owner\"} == 1, \"status\", \"MISMATCH\", \"package\", \".*\") or label_replace(operator_prediction_stale_plan{cluster=~\"$cluster\", package=~\"$package\", owner=~\"$owner\"} == 1, \"status\", \"STALE-PLAN\", \"package\", \".*\")), \"row_key\", \"/\", \"cluster\", \"namespace\", \"subscription\")",
+          "expr": "label_join((label_replace(operator_prediction_mismatch{cluster=~\"$cluster\", package=~\"$package\", owner=~\"$owner\"} == 1, \"status\", \"MISMATCH\", \"package\", \".*\") or label_replace(operator_prediction_stale_plan{cluster=~\"$cluster\", package=~\"$package\", owner=~\"$owner\"} == 1, \"status\", \"STALE-PLAN\", \"package\", \".*\")), \"row_key\", \"/\", \"cluster\", \"exported_namespace\", \"subscription\")",
           "format": "table",
           "instant": true
         },
         {
           "refId": "B",
-          "expr": "sum by (row_key) (label_join(operator_prediction_plan_age_days{cluster=~\"$cluster\", package=~\"$package\", owner=~\"$owner\"}, \"row_key\", \"/\", \"cluster\", \"namespace\", \"subscription\"))",
+          "expr": "sum by (row_key) (label_join(operator_prediction_plan_age_days{cluster=~\"$cluster\", package=~\"$package\", owner=~\"$owner\"} and on(cluster, exported_namespace, subscription, package, installed, channel, owner) (operator_prediction_mismatch == 1 or operator_prediction_stale_plan == 1), \"row_key\", \"/\", \"cluster\", \"exported_namespace\", \"subscription\"))",
           "format": "table",
           "instant": true
         }
