@@ -49,7 +49,7 @@ with `.svc`, `.cluster.local` and the API service IP appended (the engine uses P
 ## UI
 
 The Route `operators-guard` (`reencrypt`) leads to an oauth-proxy sidecar: users log in with OpenShift and only users
-allowed to do everything (`cluster-admin`, `--openshift-sar={"resource":"*","verb":"*"}`) are let through, others get `403`.
+allowed to do everything (`cluster-admin`, `--openshift-sar={"resource":"*","verb":"*"}`) are let through.
 The host is the default one of the Route: `oc -n <namespace> get route operators-guard -o jsonpath='{.spec.host}'`.
 
 Without the Route (e.g. for `/metrics`, which stays on port 8080 without oauth-proxy), use a port-forward:
@@ -74,10 +74,6 @@ oc -n apc-operators-guard logs -f deploy/operators-guard -c collector
 Metrics, including the `readiness_engine_predictions` gauge, are listed in [engine/README.md](https://github.com/gr8it/apc-operators-guard/blob/main/engine/README.md#metrics). Alerts: `OperatorUnsupportedNow`,
 `OperatorUpgradeBlocker`, `OperatorSupportEnded`, `OperatorBelowMinVersion`, `OperatorPinStale`, `OperatorVersionBehind`, `OperatorPredictionMismatch`, `OperatorStalePendingInstallPlan` (known plan age over 14 days, `for: 1h`), `OperatorStalePendingInstallPlanNoTimestamp` (unknown age, `for: 7d`), `OperatorExceptionExpiring` (0–29 days left), `OperatorExceptionExpired`, `OperatorReadinessCollectStale`, `OperatorReadinessNoData`, `OperatorReadinessSourceDown`.
 Operator alerts carry the metric's `owner` label; the dashboard can filter by owner.
-
-## Dashboard
-
-The Grafana dashboard shows prediction counts and a detail table with namespace, Subscription and plan age; separate counts for expiring and expired exceptions; exception expiry sorted by days left; and per-source health. Cluster, package and owner filters apply to operator metrics. Exceptions have package and owner labels; prediction totals and sources have no operator labels.
 
 ## Example Deployment
 
