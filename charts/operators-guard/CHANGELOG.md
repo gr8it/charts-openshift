@@ -5,6 +5,10 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.3] - 2026-11-10
+
+- Add Route `operators-guard` to the UI through an oauth-proxy sidecar that lets only cluster-admins through
+
 ## [0.7.2] - 2026-11-10
 
 - Add NetworkPolicy `<release>-allow-proxy` with egress to `global.apc.proxyCIDRs`;

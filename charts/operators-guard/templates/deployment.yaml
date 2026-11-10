@@ -115,7 +115,49 @@ spec:
           mountPath: /var/cache/readiness
         - name: tmp
           mountPath: /tmp
+      # UI and API for the Route; only users allowed to do everything (cluster-admin) pass the review.
+      # /metrics stays on the Service port 8080 for the ServiceMonitor.
+      - name: oauth-proxy
+        image: {{ .Values.oauthProxyImage }}
+        args:
+        - --https-address=:8443
+        - --provider=openshift
+        - --openshift-service-account={{ include "operators-guard.name" . }}
+        - '--openshift-sar={"resource":"*","verb":"*"}'
+        - --upstream=http://localhost:8080
+        - --tls-cert=/etc/tls/private/tls.crt
+        - --tls-key=/etc/tls/private/tls.key
+        - --cookie-secret-file=/etc/proxy/secrets/cookie-secret
+        ports:
+        - name: https
+          containerPort: 8443
+          protocol: TCP
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "10m"
+          limits:
+            memory: "128Mi"
+        volumeMounts:
+        - name: oauth-tls
+          mountPath: /etc/tls/private
+          readOnly: true
+        - name: oauth-cookie
+          mountPath: /etc/proxy/secrets
+          readOnly: true
       volumes:
+      - name: oauth-tls
+        secret:
+          secretName: {{ include "operators-guard.name" . }}-tls
+      - name: oauth-cookie
+        secret:
+          secretName: {{ include "operators-guard.name" . }}-oauth-cookie
       - name: policy
         configMap:
           name: {{ include "operators-guard.name" . }}-policy

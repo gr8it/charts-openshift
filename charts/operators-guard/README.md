@@ -15,6 +15,7 @@ Design: [apc-operators-guard/docs/02-design.md](https://github.com/gr8it/apc-ope
 - grafana-operator and a Grafana instance labeled `dashboards: <instanceName>` (when `grafanaDashboard.enabled`).
 - Egress to `access.redhat.com`, `api.openshift.com` and `catalog.redhat.com` (through `global.apc.proxy` when the cluster has no direct internet access).
   With `global.apc.proxyCIDRs` the chart creates a NetworkPolicy that allows egress to the proxy (platform namespaces deny it by default).
+- External Secrets Operator: generates the oauth-proxy cookie secret (`Password` generator).
 - Ingress to `search-search-api` (port 4010) in `open-cluster-management` from the release namespace
   (newer ACM versions restrict it with a NetworkPolicy).
 
@@ -31,6 +32,7 @@ with `.svc`, `.cluster.local` and the API service IP appended (the engine uses P
 |Variable                     | Type | Default                                   | Notes |
 |:---                         |:---  |:---                                       |:---   |
 | image                       | str  | `ghcr.io/gr8it/operators-guard` | Image without a tag; the tag is the chart appVersion (ghcr.io is private; mirror it to a registry the cluster can pull from) |
+| oauthProxyImage             | str  | `registry.redhat.io/openshift4/ose-oauth-proxy:v4.12.0` | oauth-proxy sidecar in front of the UI Route (only cluster-admins) |
 | imagePullSecrets            | list | `[]`                                      | Existing dockerconfigjson Secrets used to pull the image |
 | nodeSelector                | obj  | `{}`                                      | Optional pod nodeSelector |
 | interval                    | str  | `1h`                                      | Collector interval (Go duration) |
@@ -42,6 +44,11 @@ with `.svc`, `.cluster.local` and the API service IP appended (the engine uses P
 | snapshot.pushSecret         | str  |                                           | Existing dockerconfigjson Secret with Quay push credentials; mandatory when `snapshot.repository` is set |
 | grafanaDashboard.enabled    | bool | `true`                                    | Creates GrafanaDashboard CR |
 | grafanaDashboard.instanceName | str | `apc-grafana`                            | Value of the `dashboards` label on the Grafana instance |
+
+## UI
+
+The Route `operators-guard` (`Reencrypt`) leads to an oauth-proxy sidecar: users log in with OpenShift and only users
+allowed to do everything (`cluster-admin`, `--openshift-sar={"resource":"*","verb":"*"}`) are let through, others get `403`.
 
 ## Metrics and alerts
 
