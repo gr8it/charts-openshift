@@ -325,6 +325,41 @@ tests:
           path: spec.dataFrom[0].sourceRef.generatorRef.name
           value: operators-guard-oauth-cookie
 
+  - it: sizes the collector from the measured peak by default
+    template: templates/deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources
+          value:
+            requests:
+              memory: 256Mi
+              cpu: 50m
+            limits:
+              memory: 512Mi
+              cpu: 500m
+
+  - it: overrides only the given collector resources and keeps the other defaults
+    template: templates/deployment.yaml
+    set:
+      resources:
+        requests:
+          memory: 1Gi
+        limits:
+          memory: 2Gi
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources
+          value:
+            requests:
+              memory: 1Gi
+              cpu: 50m
+            limits:
+              memory: 2Gi
+              cpu: 500m
+      - equal:
+          path: spec.template.spec.containers[1].resources.limits.memory
+          value: 128Mi
+
   - it: sets the node selector
     template: templates/deployment.yaml
     set:

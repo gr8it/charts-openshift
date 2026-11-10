@@ -8,7 +8,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.6
+        helm.sh/chart: operators-guard-0.7.7
       name: operators-guard
     rules:
       - apiGroups:
@@ -73,7 +73,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.6
+        helm.sh/chart: operators-guard-0.7.7
       name: operators-guard
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -92,7 +92,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.6
+        helm.sh/chart: operators-guard-0.7.7
       name: operators-guard
       namespace: apc-operators-guard
     spec:
@@ -106,13 +106,13 @@ manifests should match snapshot:
       template:
         metadata:
           annotations:
-            checksum/policy: ff9a289a24fcc02ed56dd7fb957e9d44a24eaf8ff6583774750ece9473dc7004
+            checksum/policy: 5a76bcf7e9c1b3f9abe38e48ff38cb8ed80bcce98f702ef8c6cf6be544d07302
           labels:
             app.kubernetes.io/instance: operators-guard
             app.kubernetes.io/managed-by: Helm
             app.kubernetes.io/name: operators-guard
             app.kubernetes.io/version: 0.8.0
-            helm.sh/chart: operators-guard-0.7.6
+            helm.sh/chart: operators-guard-0.7.7
         spec:
           containers:
             - args:
@@ -154,11 +154,11 @@ manifests should match snapshot:
                   port: metrics
               resources:
                 limits:
-                  cpu: "1"
-                  memory: 2Gi
+                  cpu: 500m
+                  memory: 512Mi
                 requests:
-                  cpu: 200m
-                  memory: 1Gi
+                  cpu: 50m
+                  memory: 256Mi
               securityContext:
                 allowPrivilegeEscalation: false
                 capabilities:
@@ -248,7 +248,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.6
+        helm.sh/chart: operators-guard-0.7.7
       name: operators-guard
       namespace: apc-operators-guard
     spec:
@@ -1050,7 +1050,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.6
+        helm.sh/chart: operators-guard-0.7.7
       name: operators-guard-allow-proxy
       namespace: apc-operators-guard
     spec:
@@ -1073,7 +1073,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.6
+        helm.sh/chart: operators-guard-0.7.7
       name: operators-guard-oauth-cookie
       namespace: apc-operators-guard
     spec:
@@ -1096,7 +1096,7 @@ manifests should match snapshot:
               app.kubernetes.io/managed-by: Helm
               app.kubernetes.io/name: operators-guard
               app.kubernetes.io/version: 0.8.0
-              helm.sh/chart: operators-guard-0.7.6
+              helm.sh/chart: operators-guard-0.7.7
   7: |
     apiVersion: generators.external-secrets.io/v1alpha1
     kind: Password
@@ -1106,7 +1106,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.6
+        helm.sh/chart: operators-guard-0.7.7
       name: operators-guard-oauth-cookie
       namespace: apc-operators-guard
     spec:
@@ -1124,7 +1124,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.6
+        helm.sh/chart: operators-guard-0.7.7
       name: operators-guard-packagemanifests
       namespace: openshift-marketplace
     rules:
@@ -1143,7 +1143,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.6
+        helm.sh/chart: operators-guard-0.7.7
       name: operators-guard-packagemanifests
       namespace: openshift-marketplace
     roleRef:
@@ -1187,7 +1187,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.6
+        helm.sh/chart: operators-guard-0.7.7
       name: operators-guard-policy
       namespace: apc-operators-guard
   11: |
@@ -1199,7 +1199,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.6
+        helm.sh/chart: operators-guard-0.7.7
       name: operators-guard-rules
       namespace: apc-operators-guard
     spec:
@@ -1374,7 +1374,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.6
+        helm.sh/chart: operators-guard-0.7.7
       name: operators-guard
       namespace: apc-operators-guard
     spec:
@@ -1397,7 +1397,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.6
+        helm.sh/chart: operators-guard-0.7.7
       name: operators-guard
       namespace: apc-operators-guard
     spec:
@@ -1422,7 +1422,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.6
+        helm.sh/chart: operators-guard-0.7.7
       name: operators-guard
       namespace: apc-operators-guard
     spec:
@@ -1444,6 +1444,6 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
         app.kubernetes.io/version: 0.8.0
-        helm.sh/chart: operators-guard-0.7.6
+        helm.sh/chart: operators-guard-0.7.7
       name: operators-guard
       namespace: apc-operators-guard

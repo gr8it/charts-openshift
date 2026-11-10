@@ -86,12 +86,7 @@ spec:
             drop:
             - ALL
         resources:
-          requests:
-            memory: "1Gi"
-            cpu: "200m"
-          limits:
-            memory: "2Gi"
-            cpu: "1"
+          {{- toYaml .Values.resources | nindent 10 }}
         volumeMounts:
         - name: policy
           mountPath: /etc/readiness
