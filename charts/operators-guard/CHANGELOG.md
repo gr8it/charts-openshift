@@ -5,6 +5,11 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-11-11
+
+- appVersion 0.10.0: new `brief` command writes operator pins and a work order from the report
+- Optional `brief.enabled` writes the work order to `/var/cache/readiness/brief` on the existing cache volume; no new RBAC
+
 ## [0.8.0] - 2026-11-10
 
 - appVersion 0.9.0: the reports listen on `127.0.0.1:8080` only, so pods on the network cannot read them without oauth-proxy

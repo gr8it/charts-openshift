@@ -74,7 +74,7 @@ tests:
     asserts:
       - matchRegex:
           path: spec.template.spec.containers[0].image
-          pattern: 'ghcr\.io/gr8it/operators-guard:0\.9\.0$'
+          pattern: 'ghcr\.io/gr8it/operators-guard:0\.10\.0$'
       - contains:
           path: spec.template.spec.containers[0].args
           content: --history-keep=24
@@ -504,3 +504,19 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].args
           content: --interval=30m
+
+  - it: leaves brief output disabled by default
+    template: templates/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].args
+          content: --brief-out=/var/cache/readiness/brief
+
+  - it: writes the brief to the existing data volume when enabled
+    template: templates/deployment.yaml
+    set:
+      brief.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --brief-out=/var/cache/readiness/brief

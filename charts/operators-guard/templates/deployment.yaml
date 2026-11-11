@@ -48,6 +48,9 @@ spec:
         {{- end }}
         - --cache-dir=/var/cache/readiness
         - --history-keep={{ .Values.historyKeep }}
+        {{- if .Values.brief.enabled }}
+        - --brief-out=/var/cache/readiness/brief
+        {{- end }}
         - --listen=127.0.0.1:8080
         - --metrics-listen=:9090
         env:
