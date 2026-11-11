@@ -1,7 +1,4 @@
 {{- range $projectName,$project := .Values.projects }}
-{{- $projectAnnotations := ($project.annotations) | default dict }}
-{{- $defaultAnnotations := dict "argocd.argoproj.io/sync-wave" "-100" }}
-{{- $annotations := mergeOverwrite $defaultAnnotations $projectAnnotations }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
@@ -14,10 +11,10 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
   {{- end }}
+  {{- with $project.annotations }}
   annotations:
-    {{- with $annotations }}
       {{- toYaml . | nindent 4 }}
-    {{- end }}
+  {{- end }}
 spec:
   {{- if $project.extraFields }}
   {{- tpl $project.extraFields $ | trim | nindent 2 }}

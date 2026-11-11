@@ -9,14 +9,13 @@ release:
   namespace: apc-gitops
 
 tests:
-  - it: should create projects before applications by default
+  - it: should not add a default sync wave to project annotations
     documentSelector:
       path: metadata.name
       value: cluster-config
     asserts:
-      - equal:
+      - notExists:
           path: metadata.annotations["argocd.argoproj.io/sync-wave"]
-          value: "-1"
       - equal:
           path: metadata.annotations.project
           value: test
@@ -24,14 +23,27 @@ tests:
           path: metadata.name
           value: cluster-config
 
-  - it: should preserve project annotations alongside the default sync wave
+  - it: should preserve an explicitly provided project sync wave
     documentSelector:
       path: metadata.name
       value: cluster-config
+    set:
+      projects:
+        cluster-config:
+          annotations:
+            argocd.argoproj.io/sync-wave: "4"
     asserts:
       - equal:
           path: metadata.annotations["argocd.argoproj.io/sync-wave"]
-          value: "-1"
+          value: "4"
       - equal:
           path: metadata.annotations.project
           value: test
+
+  - it: should omit metadata annotations when none are provided
+    documentSelector:
+      path: metadata.name
+      value: tenants
+    asserts:
+      - notExists:
+          path: metadata.annotations

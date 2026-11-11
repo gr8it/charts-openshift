@@ -2,6 +2,12 @@
 
 All notable changes to this component will be documented in this file.
 
+## [1.2.3] - 2026-11-11
+
+### Changed
+
+- Only render AppProject annotations when provided; no default sync-wave is added.
+
 ## [1.2.2] - 2026-11-10
 
 ### Changed
