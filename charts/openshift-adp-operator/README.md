@@ -21,7 +21,7 @@ This chart is designed for ACM-managed environments where operators are installe
 openshift-adp-operator:
   render:
     chart: gr8it-openshift/openshift-adp-operator
-    chartVersion: "1.0.0"
+    chartVersion: "1.1.0"
   destination:
     namespace: openshift-adp
   syncOptions:
@@ -37,11 +37,11 @@ openshift-adp-operator:
 The chart supports the following configuration options through the `acm-operatorpolicy` values:
 
 ### Subscription Configuration
-- `subscription.channel`: The operator channel (default: `stable-1.4`)
+- `subscription.channel`: The operator channel (default: `stable`)
 - `subscription.name`: The operator name (default: `redhat-oadp-operator`)
 - `subscription.source`: The operator source catalog (default: `redhat-operators`)
 - `subscription.sourceNamespace`: The source namespace (default: `openshift-marketplace`)
-- `subscription.startingCSV`: The ClusterServiceVersion (default: `oadp-operator.v1.4.3`)
+- `subscription.startingCSV`: The ClusterServiceVersion (default: `oadp-operator.v1.5.8`)
 - `subscription.namespace`: The installation namespace (default: `openshift-adp`)
 
 ### Operator Group Configuration
