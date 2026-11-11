@@ -1,0 +1,33 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "operators-guard.name" . }}
+  labels:
+    {{- include "operators-guard.labels" . | nindent 4 }}
+rules:
+- apiGroups: ["config.openshift.io"]
+  resources: ["clusterversions"]
+  verbs:     ["get"]
+  resourceNames: ["version"]
+- apiGroups: ["apiserver.openshift.io"]
+  resources: ["apirequestcounts"]
+  verbs:     ["list"]
+- apiGroups: ["cluster.open-cluster-management.io"]
+  resources: ["managedclusters"]
+  verbs:     ["list"]
+- apiGroups: ["operators.coreos.com"]
+  resources: ["subscriptions", "clusterserviceversions"]
+  verbs:     ["list"]
+- apiGroups: ["operators.coreos.com"]
+  resources: ["installplans"]
+  verbs:     ["get"]
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs:     ["list"]
+- apiGroups: ["policy.open-cluster-management.io"]
+  resources: ["operatorpolicies"]
+  verbs:     ["list"]
+- apiGroups: ["view.open-cluster-management.io"]
+  resources: ["managedclusterviews"]
+  verbs:     ["get", "create", "delete"]

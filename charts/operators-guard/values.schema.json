@@ -1,0 +1,191 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "operators-guard values",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "global": {
+      "type": "object",
+      "description": "Global values to be accessed by all (sub)charts.",
+      "additionalProperties": true
+    },
+    "nameOverride": {
+      "type": "string",
+      "description": "Overrides chart name used for resource names and app.kubernetes.io/name."
+    },
+    "image": {
+      "type": "string",
+      "description": "operators-guard container image without a tag (the tag is the chart appVersion).",
+      "minLength": 1
+    },
+    "oauthProxyImage": {
+      "type": "string",
+      "description": "OpenShift oauth-proxy sidecar image in front of the UI Route.",
+      "minLength": 1
+    },
+    "interval": {
+      "type": "string",
+      "description": "Collector interval: hours, minutes and seconds in this order, each at most once (e.g. 1h, 30m, 1h30m).",
+      "pattern": "^([0-9]+h([0-9]+m)?([0-9]+s)?|[0-9]+m([0-9]+s)?|[0-9]+s)$"
+    },
+    "resources": {
+      "type": "object",
+      "description": "Requests and limits of the collector container.",
+      "additionalProperties": false,
+      "properties": {
+        "requests": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "number"
+            ]
+          }
+        },
+        "limits": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "number"
+            ]
+          }
+        }
+      }
+    },
+    "historyKeep": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of report-only history entries kept in the pod cache (default 24; 0 disables)."
+    },
+    "policy": {
+      "type": "object",
+      "description": "Readiness policy passed to the engine unchanged. Only strategy is validated here.",
+      "additionalProperties": true,
+      "properties": {
+        "strategy": {
+          "type": "string",
+          "enum": [
+            "eus",
+            "next-minor",
+            "pinned"
+          ]
+        },
+        "minVersions": {
+          "type": "object",
+          "description": "Package -> minimum installed version (major.minor.patch); below it = BELOW-MIN.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "drift": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "maxDaysBehind": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "A newer version in the channel for longer than this = BEHIND (default 90)."
+            },
+            "supportWarnDays": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Vendor support ends within this many days = SUPPORT-ENDING (default 180)."
+            }
+          }
+        },
+        "owners": {
+          "type": ["object", "null"],
+          "description": "Package -> operator owner.",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "defaultOwner": {
+          "type": ["string", "null"],
+          "minLength": 1,
+          "description": "Owner for packages without a mapping or exception (default: unassigned)."
+        }
+      }
+    },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "repository": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Optional OCI repository in hub Quay for the snapshot; empty = no push."
+        },
+        "pushSecret": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Existing dockerconfigjson Secret with Quay push credentials; required when repository is set."
+        }
+      }
+    },
+    "grafanaDashboard": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "instanceName": {
+          "type": "string",
+          "description": "Value of the dashboards label on the Grafana instance.",
+          "minLength": 1
+        }
+      }
+    },
+    "imagePullSecrets": {
+      "type": "array",
+      "description": "Names of existing dockerconfigjson Secrets used to pull the image.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "nodeSelector": {
+      "type": "object",
+      "description": "Optional pod nodeSelector.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "proxy": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Local override of global.apc.proxy."
+    },
+    "noProxy": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Local override of global.apc.noProxy."
+    },
+    "proxyCIDRs": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "description": "Local override of global.apc.proxyCIDRs.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "apc-global-overrides": {
+      "type": "object",
+      "description": "Values of the apc-global-overrides library dependency."
+    }
+  }
+}

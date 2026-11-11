@@ -1,0 +1,12 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "operators-guard.name" . }}-packagemanifests
+  namespace: openshift-marketplace
+  labels:
+    {{- include "operators-guard.labels" . | nindent 4 }}
+rules:
+- apiGroups: ["packages.operators.coreos.com"]
+  resources: ["packagemanifests"]
+  verbs:     ["get"]

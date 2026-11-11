@@ -1,0 +1,174 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "operators-guard.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "operators-guard.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "operators-guard.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "operators-guard.labels" . | nindent 8 }}
+      annotations:
+        checksum/policy: {{ include (print $.Template.BasePath "/policyCm.yaml") . | sha256sum }}
+    spec:
+      serviceAccountName: {{ include "operators-guard.name" . }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- range . }}
+      - name: {{ . }}
+        {{- end }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: collector
+        image: {{ .Values.image }}:{{ .Chart.AppVersion }}
+        args:
+        - collect
+        - --loop
+        - --interval={{ .Values.interval }}
+        - --policy=/etc/readiness/policy.yaml
+        {{- if .Values.snapshot.repository }}
+        - --snapshot-repository={{ .Values.snapshot.repository }}
+        {{- end }}
+        - --cache-dir=/var/cache/readiness
+        - --history-keep={{ .Values.historyKeep }}
+        - --listen=127.0.0.1:8080
+        - --metrics-listen=:9090
+        env:
+        {{- with include "apc-global-overrides.proxy" . }}
+        - name: HTTPS_PROXY
+          value: {{ . | quote }}
+        - name: HTTP_PROXY
+          value: {{ . | quote }}
+        - name: NO_PROXY
+          value: {{ list (include "apc-global-overrides.noProxy" $) ".svc" ".cluster.local" "$(KUBERNETES_SERVICE_HOST)" | compact | join "," | quote }}
+        {{- end }}
+        {{- if .Values.snapshot.repository }}
+        - name: SNAPSHOT_AUTH_FILE
+          value: /run/secrets/snapshot-push/.dockerconfigjson
+        {{- end }}
+        - name: SEARCH_API_URL
+          value: https://search-search-api.open-cluster-management.svc:4010/searchapi/graphql
+        - name: SEARCH_API_CA_FILE
+          value: /etc/pki/service-ca/service-ca.crt
+        ports:
+        - name: metrics
+          containerPort: 9090
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: metrics
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: metrics
+          periodSeconds: 30
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        volumeMounts:
+        - name: policy
+          mountPath: /etc/readiness
+          readOnly: true
+        {{- if .Values.snapshot.repository }}
+        - name: snapshot-push
+          mountPath: /run/secrets/snapshot-push
+          readOnly: true
+        {{- end }}
+        - name: service-ca
+          mountPath: /etc/pki/service-ca
+          readOnly: true
+        - name: cache
+          mountPath: /var/cache/readiness
+        - name: tmp
+          mountPath: /tmp
+      - name: oauth-proxy
+        image: {{ .Values.oauthProxyImage }}
+        args:
+        - --https-address=:8443
+        - --provider=openshift
+        - --openshift-service-account={{ include "operators-guard.name" . }}
+        - '--openshift-sar={"resource":"*","verb":"*"}'
+        - --upstream=http://127.0.0.1:8080
+        - --tls-cert=/etc/tls/private/tls.crt
+        - --tls-key=/etc/tls/private/tls.key
+        - --cookie-secret-file=/etc/proxy/secrets/cookie-secret
+        ports:
+        - name: https
+          containerPort: 8443
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /oauth/healthz
+            port: https
+            scheme: HTTPS
+        livenessProbe:
+          httpGet:
+            path: /oauth/healthz
+            port: https
+            scheme: HTTPS
+          periodSeconds: 30
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "10m"
+          limits:
+            memory: "128Mi"
+        volumeMounts:
+        - name: oauth-tls
+          mountPath: /etc/tls/private
+          readOnly: true
+        - name: oauth-cookie
+          mountPath: /etc/proxy/secrets
+          readOnly: true
+      volumes:
+      - name: oauth-tls
+        secret:
+          secretName: {{ include "operators-guard.name" . }}-tls
+      - name: oauth-cookie
+        secret:
+          secretName: {{ include "operators-guard.name" . }}-oauth-cookie
+      - name: policy
+        configMap:
+          name: {{ include "operators-guard.name" . }}-policy
+      {{- if .Values.snapshot.repository }}
+      - name: snapshot-push
+        secret:
+          secretName: {{ required "snapshot.pushSecret is required when snapshot.repository is set" .Values.snapshot.pushSecret }}
+      {{- end }}
+      - name: service-ca
+        configMap:
+          name: openshift-service-ca.crt
+      - name: cache
+        emptyDir:
+          sizeLimit: 5Gi
+      - name: tmp
+        emptyDir: {}

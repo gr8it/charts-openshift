@@ -1,0 +1,39 @@
+global:
+  apc:
+    proxy: http://proxy.example.com:3128
+    noProxy: .example.com
+    proxyCIDRs:
+      - 192.0.2.10/32
+
+interval: 1h
+historyKeep: 24
+
+policy:
+  strategy: eus
+  owners:
+    openshift-gitops-operator: platform-team
+  defaultOwner: unassigned
+  lockstep: [kubevirt-hyperconverged, odf-operator]
+  graph:
+    conditionalRisks: block
+  unsupportedWindow:
+    allow: [redhat-oadp-operator]
+  # drift checks (all optional): minimum versions the platform needs, thresholds for BEHIND / SUPPORT-ENDING
+  minVersions:
+    openshift-gitops-operator: "1.21.0"
+  drift:
+    maxDaysBehind: 90
+    supportWarnDays: 180
+  exceptions:
+    - package: external-secrets
+      reason: upstream, no OCP support matrix
+      owner: platform-team
+      expires: "2027-03-31"
+
+snapshot:
+  repository: quay-registry.apps.hub01.example.com/apc/operators-guard-snapshot
+  pushSecret: operators-guard-quay-push
+
+grafanaDashboard:
+  enabled: true
+  instanceName: apc-grafana

@@ -1,0 +1,15 @@
+---
+# cookie secret of oauth-proxy, generated in the cluster
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: Password
+metadata:
+  name: {{ include "operators-guard.name" . }}-oauth-cookie
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "operators-guard.labels" . | nindent 4 }}
+spec:
+  length: 32
+  digits: 6
+  symbols: 0
+  noUpper: false
+  allowRepeat: true
