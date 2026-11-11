@@ -20,18 +20,3 @@ spec:
     port: 8443
     targetPort: https
     protocol: TCP
----
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: {{ include "operators-guard.name" . }}
-  namespace: {{ .Release.Namespace }}
-  labels:
-    {{- include "operators-guard.labels" . | nindent 4 }}
-spec:
-  selector:
-    matchLabels:
-      {{- include "operators-guard.selectorLabels" . | nindent 6 }}
-  endpoints:
-  - port: metrics
-    interval: 1m

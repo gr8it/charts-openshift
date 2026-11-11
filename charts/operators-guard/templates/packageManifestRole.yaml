@@ -10,19 +10,3 @@ rules:
 - apiGroups: ["packages.operators.coreos.com"]
   resources: ["packagemanifests"]
   verbs:     ["get"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: {{ include "operators-guard.name" . }}-packagemanifests
-  namespace: openshift-marketplace
-  labels:
-    {{- include "operators-guard.labels" . | nindent 4 }}
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: {{ include "operators-guard.name" . }}-packagemanifests
-subjects:
-- kind: ServiceAccount
-  name: {{ include "operators-guard.name" . }}
-  namespace: {{ .Release.Namespace }}
