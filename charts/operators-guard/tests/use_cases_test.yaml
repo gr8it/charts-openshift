@@ -81,7 +81,6 @@ tests:
 
   - it: gets referenced InstallPlans from the hub with read access only
     template: templates/clusterRole.yaml
-    documentIndex: 0
     asserts:
       - contains:
           path: rules[4].resources
@@ -295,7 +294,6 @@ tests:
 
   - it: requests a serving certificate and keeps the metrics port
     template: templates/service.yaml
-    documentIndex: 0
     asserts:
       - equal:
           path: metadata.annotations["service.beta.openshift.io/serving-cert-secret-name"]

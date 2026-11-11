@@ -31,18 +31,3 @@ rules:
 - apiGroups: ["view.open-cluster-management.io"]
   resources: ["managedclusterviews"]
   verbs:     ["get", "create", "delete"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: {{ include "operators-guard.name" . }}
-  labels:
-    {{- include "operators-guard.labels" . | nindent 4 }}
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: {{ include "operators-guard.name" . }}
-subjects:
-- kind: ServiceAccount
-  name: {{ include "operators-guard.name" . }}
-  namespace: {{ .Release.Namespace }}
