@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: Values schema
+templates:
+  - templates/policy.yaml
+values:
+  - ../values.lint.yaml
+release:
+  name: crossplane-vault-provider-bootstrap
+  namespace: apc-crossplane-system
+
+tests:
+  - it: fails when the provider service account is empty
+    set:
+      vaultProviderServiceAccount: ""
+    asserts:
+      - failedTemplate:
+          errorPattern: "/vaultProviderServiceAccount': minLength"
+
+  - it: fails when extra policies are not a list
+    set:
+      vaultKubernetesRoleExtraPolicies: admin
+    asserts:
+      - failedTemplate:
+          errorPattern: "/vaultKubernetesRoleExtraPolicies': got string, want array"
+
+  - it: fails when an extra policy name is empty
+    set:
+      vaultKubernetesRoleExtraPolicies:
+        - ""
+    asserts:
+      - failedTemplate:
+          errorPattern: "/vaultKubernetesRoleExtraPolicies/0': minLength"
