@@ -25,3 +25,30 @@ tests:
       - equal:
           path: spec.oneAgent.hostGroup
           value: custom-host-group
+  - it: uses configured ActiveGate group
+    template: templates/dynakube.yaml
+    set:
+      activeGate.group: custom-activegate-group
+    asserts:
+      - equal:
+          path: spec.activeGate.group
+          value: custom-activegate-group
+  - it: allows application namespaces to access ActiveGate
+    template: templates/networkpolicy-activegate.yaml
+    asserts:
+      - equal:
+          path: spec.podSelector.matchLabels
+          value:
+            app.kubernetes.io/created-by: test-cluster
+            app.kubernetes.io/managed-by: dynatrace-operator
+            app.kubernetes.io/name: activegate
+      - equal:
+          path: spec.ingress[0].from[0].namespaceSelector.matchLabels
+          value:
+            apc.namespace.type: application
+      - equal:
+          path: spec.ingress[0].ports[0].port
+          value: http
+      - equal:
+          path: spec.ingress[0].ports[1].port
+          value: https
