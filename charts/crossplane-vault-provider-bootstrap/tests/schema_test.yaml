@@ -30,3 +30,10 @@ tests:
     asserts:
       - failedTemplate:
           errorPattern: "/vaultKubernetesRoleExtraPolicies/0': minLength"
+
+  - it: fails when the provider service account is unset with null
+    set:
+      vaultProviderServiceAccount: null
+    asserts:
+      - failedTemplate:
+          errorPattern: "missing property 'vaultProviderServiceAccount'"
