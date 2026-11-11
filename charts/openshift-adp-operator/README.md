@@ -51,7 +51,9 @@ The chart supports the following configuration options through the `acm-operator
 
 ### Policy Configuration
 - `upgradeApproval`: Upgrade approval mode (default: `None`)
-- `versions`: Allowed operator versions (default: `["oadp-operator.v1.4.3"]`)
+- `versions`: Allowed operator versions (default: `["oadp-operator.v1.4.3", "oadp-operator.v1.5.8"]`)
+
+OADP 1.5 requires OpenShift 4.19.
 
 ## Post-Installation
 
@@ -65,4 +67,4 @@ After the operator is installed, you can create DataProtectionApplication (DPA) 
 
 ## Dependencies
 
-- acm-operatorpolicy: ^1.1.0
+- acm-operatorpolicy: 1.3.0
