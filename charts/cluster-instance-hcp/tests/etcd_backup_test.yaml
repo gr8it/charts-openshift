@@ -149,5 +149,8 @@ tests:
           path: metadata.name
           value: etcd-hcp-mycluster-backup
       - equal:
+          path: metadata.annotations["argocd.argoproj.io/sync-options"]
+          value: Prune=false
+      - equal:
           path: spec.storageClassName
           value: ocs-storagecluster-ceph-rgw

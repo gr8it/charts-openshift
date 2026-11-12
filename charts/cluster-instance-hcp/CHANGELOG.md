@@ -1,6 +1,14 @@
 All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.21] - 2026-11-12
+
+### Fixed
+
+- Preserve etcd backup ObjectBucketClaims during Argo CD pruning.
+- Map registry CA bundles to the configured registry authority.
+- Aggregate credentials into one ExternalSecret per identity-provider Secret.
+
 ## [2.0.20] - 2026-11-12
 
 ### Fixed

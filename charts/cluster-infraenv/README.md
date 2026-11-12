@@ -6,38 +6,38 @@ Deploys an `InfraEnv` and related resources for a Hosted Control Plane (HCP) clu
 
 - ACM with HyperShift and Assisted Service (agent-install.openshift.io CRDs)
 - External Secrets Operator with a ClusterSecretStore pointing to Vault
-- The pull-secret for Red Hat private registries in Vault secret `apc-platform/<env-short-name>/infraenv/infrastructure-<envName>`, key `.dockerconfigjson`
+- The pull-secret for Red Hat private registries in Vault secret `<KVmountPlatform>/<environmentShort>/infraenv/<infraEnvName>/pullSecret`, key `.dockerconfigjson`. By default, `infraEnvName` is `infrastructure-<envName>`.
 
 ## Values
 
-| Parameter | Description | Default |
-|---|---|---|
-| `envName` | Environment name. **Required.** | `""` |
-| `agentEnvironment` | Agent label environment override. Defaults to `envName` when omitted. | `""` |
-| `infraEnvName` | Name used for the InfraEnv, Namespace, and NMStateConfig selector. | `infrastructure-{{ .envName }}` |
-| `cpuArchitecture` | CPU architecture for agent discovery | `x86_64` |
-| `ipxeScriptType` | iPXE script type | `DiscoveryImageAlways` |
-| `osImageVersion` | **Required.** OpenShift version for the InfraEnv OS image. It must match an OpenShift version available in the AgentServiceConfig OS image list. For single-node clusters on OpenShift versions before 4.16, use the cluster version. Do not set this together with `ClusterRef`. [Documentation](https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.10/html/clusters/cluster_mce_overview#create-host-inventory-cli) | — |
-| `nmStateConfigs` | Per-node static network configurations, i.e. nmstateconfig CR **Required.**| `[]` |
-| `nmStateConfigs.name` | nmstateconfig.metadata.name **Required.**| `""` |
-| `nmStateConfigs.config` | nmstateconfig.spec.config **Required.**| `{}` |
-| `nmStateConfigs.interfaces` | nmstateconfig.spec.interfaces **Required.**| `[]` |
-| `backup.enabled` | Create a Velero Schedule for the InfraEnv namespace | `false` |
-| `backup.schedule` | Cron schedule for the Velero backup | `"0 0 * * *"` |
-| `backup.paused` | Pause the Velero Schedule | `false` |
-| `backup.ttl` | Backup retention duration as a Go duration, e.g. `168h0m0s` for seven days | `"336h0m0s"` |
+| Parameter                   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Default                         |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| `envName`                   | Environment name. **Required.**                                                                                                                                                                                                                                                                                                                                                                                                                                  | `""`                            |
+| `agentEnvironment`          | Agent label environment override. Defaults to `envName` when omitted.                                                                                                                                                                                                                                                                                                                                                                                            | `""`                            |
+| `infraEnvName`              | Name used for the InfraEnv, Namespace, and NMStateConfig selector.                                                                                                                                                                                                                                                                                                                                                                                               | `infrastructure-{{ .envName }}` |
+| `cpuArchitecture`           | CPU architecture for agent discovery                                                                                                                                                                                                                                                                                                                                                                                                                             | `x86_64`                        |
+| `ipxeScriptType`            | iPXE script type                                                                                                                                                                                                                                                                                                                                                                                                                                                 | `DiscoveryImageAlways`          |
+| `osImageVersion`            | **Required.** OpenShift version for the InfraEnv OS image. It must match an OpenShift version available in the AgentServiceConfig OS image list. For single-node clusters on OpenShift versions before 4.16, use the cluster version. Do not set this together with `ClusterRef`. [Documentation](https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.10/html/clusters/cluster_mce_overview#create-host-inventory-cli) | —                               |
+| `nmStateConfigs`            | Per-node static network configurations, i.e. nmstateconfig CR **Required.**                                                                                                                                                                                                                                                                                                                                                                                      | `[]`                            |
+| `nmStateConfigs.name`       | nmstateconfig.metadata.name **Required.**                                                                                                                                                                                                                                                                                                                                                                                                                        | `""`                            |
+| `nmStateConfigs.config`     | nmstateconfig.spec.config **Required.**                                                                                                                                                                                                                                                                                                                                                                                                                          | `{}`                            |
+| `nmStateConfigs.interfaces` | nmstateconfig.spec.interfaces **Required.**                                                                                                                                                                                                                                                                                                                                                                                                                      | `[]`                            |
+| `backup.enabled`            | Create a Velero Schedule for the InfraEnv namespace                                                                                                                                                                                                                                                                                                                                                                                                              | `false`                         |
+| `backup.schedule`           | Cron schedule for the Velero backup                                                                                                                                                                                                                                                                                                                                                                                                                              | `"0 0 * * *"`                   |
+| `backup.paused`             | Pause the Velero Schedule                                                                                                                                                                                                                                                                                                                                                                                                                                        | `false`                         |
+| `backup.ttl`                | Backup retention duration as a Go duration, e.g. `168h0m0s` for seven days                                                                                                                                                                                                                                                                                                                                                                                       | `"336h0m0s"`                    |
 
 ## Global values used
 
-| Global value | Description |
-|---|---|
-| `global.apc.proxy` | HTTP/HTTPS proxy URL injected into InfraEnv |
-| `global.apc.noProxy` | noProxy list injected into InfraEnv, ensure to list all primary internal and node-level subnets,127.0.0.1 and localhost,169.254.169.254 - for Cloud Provider IaaS,.svc and .cluster.local,Internal API Server URL,CNI Service CIDR,CNI Pod CIDR, 172.20.0.1- [KB 7127777](https://access.redhat.com/solutions/7127777) |
-| `global.apc.environmentShort` | Environment short name used in Vault paths |
-| `global.apc.ntpServers` | NTP servers to be used |
-| `global.apc.sshAuthorizedKeys` | List of SSH public keys to be added to authorized_keys |
-| `global.apc.services.externalSecretsOperator.defaultClusterSecretStore` | ClusterSecretStore for ExternalSecret |
-| `global.apc.services.vault.KVmountPlatform` | Vault KV mount path prefix |
+| Global value                                                            | Description                                                                                                                                                                                                                                                                                                            |
+| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `global.apc.proxy`                                                      | HTTP/HTTPS proxy URL injected into InfraEnv                                                                                                                                                                                                                                                                            |
+| `global.apc.noProxy`                                                    | noProxy list injected into InfraEnv, ensure to list all primary internal and node-level subnets,127.0.0.1 and localhost,169.254.169.254 - for Cloud Provider IaaS,.svc and .cluster.local,Internal API Server URL,CNI Service CIDR,CNI Pod CIDR, 172.20.0.1- [KB 7127777](https://access.redhat.com/solutions/7127777) |
+| `global.apc.environmentShort`                                           | Environment short name used in Vault paths                                                                                                                                                                                                                                                                             |
+| `global.apc.ntpServers`                                                 | NTP servers to be used                                                                                                                                                                                                                                                                                                 |
+| `global.apc.sshAuthorizedKeys`                                          | List of SSH public keys to be added to authorized_keys                                                                                                                                                                                                                                                                 |
+| `global.apc.services.externalSecretsOperator.defaultClusterSecretStore` | ClusterSecretStore for ExternalSecret                                                                                                                                                                                                                                                                                  |
+| `global.apc.services.vault.KVmountPlatform`                             | Vault KV mount path prefix                                                                                                                                                                                                                                                                                             |
 
 ## NMStateConfig structure
 
@@ -51,8 +51,8 @@ nmStateConfigs:
         name: ens7f0np0
       - macAddress: "aa:bb:cc:dd:ee:ff"
         name: ens13f0np0
-    config:          # raw nmstate network config
+    config: # raw nmstate network config
       interfaces: [...]
-      dns-resolver: {...}
-      routes: {...}
+      dns-resolver: { ... }
+      routes: { ... }
 ```

@@ -162,6 +162,43 @@ tests:
           path: spec.additionalNTPSources
           content: 10.4.5.6
 
+  - it: should prefer local SSH keys and NTP servers over global values
+    set:
+      envName: mycluster
+      osImageVersion: "4.15"
+      sshAuthorizedKeys:
+        - "ssh-ed25519 AAAA local-key ops@example.com"
+      ntpServers:
+        - 10.2.3.4
+      proxy: http://local-proxy.example.com:8080
+      noProxy: .local.example.com
+      nmStateConfigs:
+        - name: node-01
+          interfaces:
+            - macAddress: "aa:bb:cc:dd:ee:01"
+              name: ens0
+          config: {}
+      global.apc.proxy: http://global-proxy.example.com:8080
+      global.apc.noProxy: .global.example.com
+      global.apc.sshAuthorizedKeys:
+        - "ssh-ed25519 BBBB global-key ops@example.com"
+      global.apc.ntpServers:
+        - 10.5.6.7
+    asserts:
+      - equal:
+          path: spec.sshAuthorizedKey
+          value: "ssh-ed25519 AAAA local-key ops@example.com"
+      - equal:
+          path: spec.additionalNTPSources
+          value:
+            - 10.2.3.4
+      - equal:
+          path: spec.proxy.httpProxy
+          value: http://local-proxy.example.com:8080
+      - equal:
+          path: spec.proxy.noProxy
+          value: .local.example.com
+
   - it: should set proxy from global values when configured
     set:
       envName: mycluster
