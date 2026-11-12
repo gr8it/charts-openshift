@@ -5,6 +5,14 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-11-11
+
+_([SPEXAPC-7310](https://aspecta.atlassian.net/browse/SPEXAPC-7310))_
+
+### Added
+
+- `values.schema.json` validating the Vault role and provider values
+
 ## [2.1.0] - 2026-10-15
 
 _([SPEXAPC-26776](https://aspecta.atlassian.net/browse/SPEXAPC-26776))_
