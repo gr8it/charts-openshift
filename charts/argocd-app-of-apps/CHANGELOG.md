@@ -7,6 +7,7 @@ All notable changes to this component will be documented in this file.
 ### Changed
 
 - Remove the default AppProject sync-wave annotation.
+- Application sync options override defaults with the same option name.
 
 ## [1.2.3] - 2026-11-11
 

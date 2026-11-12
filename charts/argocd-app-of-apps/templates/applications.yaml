@@ -75,7 +75,19 @@ spec:
 
   {{- $applicationSyncOptions := ($application.syncOptions) | default list }}
   {{- $defaultSyncOptions := ((($.Values.default).application).syncOptions) | default list }}
-  {{- $syncOptions := uniq (concat $applicationSyncOptions $defaultSyncOptions ) }}
+  {{- $syncOptionNames := list }}
+  {{- $syncOptionValues := dict }}
+  {{- range concat $applicationSyncOptions $defaultSyncOptions }}
+    {{- $syncOptionName := first (splitList "=" .) }}
+    {{- if not (hasKey $syncOptionValues $syncOptionName) }}
+      {{- $syncOptionNames = append $syncOptionNames $syncOptionName }}
+      {{- $_ := set $syncOptionValues $syncOptionName . }}
+    {{- end }}
+  {{- end }}
+  {{- $syncOptions := list }}
+  {{- range $syncOptionNames }}
+    {{- $syncOptions = append $syncOptions (get $syncOptionValues .) }}
+  {{- end }}
 
   {{- if or $autoSyncEnabled $autoPruneEnabled ($application.managedNamespaceMetadata) $syncPolicyRetry $syncOptions }}
   syncPolicy:
