@@ -1,0 +1,137 @@
+{{- $clusterName := include "cluster-instance-hcp.clusterName" . }}
+{{- $rootDomain := include "apc-global-overrides.require-clusterRootDomain" . }}
+{{- $proxy := include "apc-global-overrides.proxy" . }}
+{{- $caCertificatesBundle := include "apc-global-overrides.caCertificatesBundle" . }}
+{{- $imageProxyHost := include "apc-global-overrides.imageProxyHost" . }}
+{{- $imageProxySources := include "apc-global-overrides.imageProxySources" . | fromYamlArray }}
+{{- $identityProviders := (include "apc-global-overrides.identityProviders" .) | fromYamlArray }}
+apiVersion: hypershift.openshift.io/v1beta1
+kind: HostedCluster
+metadata:
+  name: {{ $clusterName }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/ignore-healthcheck: "true"
+    hypershift.openshift.io/force-upgrade-to: {{ .Values.releaseImage }}
+  labels:
+    {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
+    cluster.open-cluster-management.io/clusterset: {{ .Values.clusterSet | quote }}
+spec:
+  {{- if $caCertificatesBundle }}
+  additionalTrustBundle:
+    name: user-ca-bundle
+  {{- end }}
+  {{- with .Values.channel }}
+  channel: {{ . }}
+  {{- end }}
+  configuration:
+    apiServer:
+      audit:
+        profile: {{ .Values.apiServerAuditProfile }}
+      servingCerts:
+        namedCertificates:
+          - names:
+              - api.{{ $clusterName }}.{{ $rootDomain }}
+              - oauth.{{ $clusterName }}.{{ $rootDomain }}
+            servingCertificate:
+              name: kube-apiserver-cert
+    {{- if and $imageProxyHost $caCertificatesBundle }}
+    image:
+      additionalTrustedCA:
+        name: registry-ca-bundle
+    {{- end }}
+    {{- if $identityProviders }}
+    oauth:
+      identityProviders:
+        {{- range $identityProvider := $identityProviders }}
+        - {{ include "cluster-instance-hcp.identityProvider" (dict "provider" $identityProvider "caCertificatesBundle" $caCertificatesBundle) | fromYaml | toYaml | indent 10 | trim }}
+        {{- end }}
+    {{- end }}
+    {{- if $proxy }}
+    proxy:
+      httpProxy: {{ $proxy | quote }}
+      httpsProxy: {{ $proxy | quote }}
+      noProxy: {{ include "apc-global-overrides.noProxy" . | quote }}
+      {{- if $caCertificatesBundle }}
+      trustedCA:
+        name: user-ca-bundle
+      {{- end }}
+    {{- end }}
+  {{- if $imageProxySources }}
+  imageContentSources:
+    {{- range $imageProxySources }}
+    - mirrors:
+        - {{ $imageProxyHost }}/{{ . }}
+      source: {{ . }}
+    {{- end }}
+  {{- end }}
+  {{- with .Values.tolerations }}
+  tolerations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.nodeSelector }}
+  nodeSelector:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  etcd:
+    managed:
+      storage:
+        persistentVolume:
+          size: {{ .Values.etcd.storageSize }}
+          storageClassName: {{ .Values.etcd.storageClassName }}
+        type: PersistentVolume
+    managementType: Managed
+  release:
+    image: {{ .Values.releaseImage }}
+  pullSecret:
+    name: pullsecret-cluster-{{ $clusterName }}
+  {{- if include "apc-global-overrides.sshAuthorizedKeysBundle" . }}
+  sshKey:
+    name: sshkey-cluster-{{ $clusterName }}
+  {{- end }}
+  networking:
+    clusterNetwork:
+      - cidr: {{ .Values.networking.clusterCIDR }}
+        hostPrefix: {{ .Values.networking.clusterHostPrefix }}
+    networkType: OVNKubernetes
+    serviceNetwork:
+      - cidr: {{ .Values.networking.serviceCIDR }}
+  controllerAvailabilityPolicy: HighlyAvailable
+  infrastructureAvailabilityPolicy: HighlyAvailable
+  olmCatalogPlacement: management
+  platform:
+    type: Agent
+    agent:
+      agentNamespace: {{ include "cluster-instance-hcp.infrastructureNamespace" . }}
+  infraID: {{ $clusterName }}
+  dns:
+    baseDomain: {{ $rootDomain }}
+  services:
+    - service: APIServer
+      servicePublishingStrategy:
+        type: LoadBalancer
+    - service: OAuthServer
+      servicePublishingStrategy:
+        type: NodePort
+        nodePort:
+          address: oauth.{{ $clusterName }}.{{ $rootDomain }}
+          port: {{ .Values.services.oauthPort | required ".services.oauthPort must be set" }}
+    - service: Konnectivity
+      servicePublishingStrategy:
+        type: NodePort
+        nodePort:
+          address: konnectivity.{{ $clusterName }}.{{ $rootDomain }}
+          port: {{ .Values.services.konnectivityPort | required ".services.konnectivityPort must be set" }}
+    - service: Ignition
+      servicePublishingStrategy:
+        type: NodePort
+        nodePort:
+          address: ignition.{{ $clusterName }}.{{ $rootDomain }}
+          port: {{ .Values.services.ignitionPort | required ".services.ignitionPort must be set" }}
+    - service: OIDC
+      servicePublishingStrategy:
+        type: NodePort
+        nodePort:
+          address: oidc.{{ $clusterName }}.{{ $rootDomain }}
+          port: {{ .Values.services.oidcPort | required ".services.oidcPort must be set"}}

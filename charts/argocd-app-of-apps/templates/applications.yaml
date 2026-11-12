@@ -73,7 +73,23 @@ spec:
   {{- $defaultSyncPolicyRetry := ((($.Values.default).application).syncPolicyRetry) | default dict }}
   {{- $syncPolicyRetry := merge $applicationSyncPolicyRetry $defaultSyncPolicyRetry }}
 
-  {{- if or $autoSyncEnabled $autoPruneEnabled ($application.managedNamespaceMetadata) $syncPolicyRetry (hasKey $application "syncOptions") }}
+  {{- $applicationSyncOptions := ($application.syncOptions) | default list }}
+  {{- $defaultSyncOptions := ((($.Values.default).application).syncOptions) | default list }}
+  {{- $syncOptionNames := list }}
+  {{- $syncOptionValues := dict }}
+  {{- range concat $applicationSyncOptions $defaultSyncOptions }}
+    {{- $syncOptionName := first (splitList "=" .) }}
+    {{- if not (hasKey $syncOptionValues $syncOptionName) }}
+      {{- $syncOptionNames = append $syncOptionNames $syncOptionName }}
+      {{- $_ := set $syncOptionValues $syncOptionName . }}
+    {{- end }}
+  {{- end }}
+  {{- $syncOptions := list }}
+  {{- range $syncOptionNames }}
+    {{- $syncOptions = append $syncOptions (get $syncOptionValues .) }}
+  {{- end }}
+
+  {{- if or $autoSyncEnabled $autoPruneEnabled ($application.managedNamespaceMetadata) $syncPolicyRetry $syncOptions }}
   syncPolicy:
 
     {{- if or $autoSyncEnabled $autoPruneEnabled }}
@@ -98,11 +114,9 @@ spec:
       {{- toYaml . | nindent 6 }}
     {{- end }}
 
-    {{- if hasKey $application "syncOptions" }}
+    {{- if $syncOptions }}
     syncOptions:
-      {{- with $application.syncOptions }}
-      {{- toYaml . | nindent 6 }}
-      {{- end }}
+      {{- toYaml $syncOptions | nindent 6 }}
     {{- end }}
   {{- end }}
   source:

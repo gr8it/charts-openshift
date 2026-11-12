@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kubeletconfig-worker
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
+data:
+  config: |
+    apiVersion: machineconfiguration.openshift.io/v1
+    kind: KubeletConfig
+    metadata:
+      labels:
+        machineconfiguration.openshift.io/role: worker
+      name: kubeletconfig-worker
+    spec:
+      kubeletConfig:
+        {{- .Values.kubeletConfig | toYaml | nindent 8 }}

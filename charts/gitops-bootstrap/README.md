@@ -8,6 +8,10 @@ This helm chart bootstraps APC GitOps using ACM policies to all managed clusters
 - configurationpolicy to create network policies for argocd to communicate correctly
 - configurationpolicy to create App of Apps ArgoCD application on managed clusters with disabled sync to allow override in case of a problem
 
+## Argo CD health checks
+
+The bootstrapped Argo CD instance includes custom health checks for `Application` and HyperShift `NodePool` resources, configured through `spec.resourceHealthChecks`. The NodePool check reports Progressing while its configuration, version, or platform machine template is updating, even when `Ready` is still true; it reports Healthy only when `Ready` is true for the current generation. HostedCluster health is not customized here, allowing charts to control sync ordering independently.
+
 ## Manual steps
 
 When auto sync is not enabled for the argocd-app-of-apps application (default), the synchronization must be enabled temporarily by manually running the following commands **in the GitOps namespace** (the value of `.Values.namespace`, default `apc-gitops`):

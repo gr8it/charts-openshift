@@ -1,0 +1,14 @@
+{{- if .Values.clusterSets }}
+{{- range .Values.clusterSets }}
+apiVersion: cluster.open-cluster-management.io/v1beta2
+kind: ManagedClusterSet
+metadata:
+  name: {{ . | quote }}
+  labels:
+    {{- include "acm-instance.labels" $ | nindent 4 }}
+spec:
+  clusterSelector:
+    selectorType: ExclusiveClusterSetLabel
+---
+{{- end }}
+{{- end }}

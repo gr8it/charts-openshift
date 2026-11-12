@@ -1,0 +1,105 @@
+{{- $clusterName := include "cluster-instance-hcp.clusterName" . }}
+{{- $expectedVersion := regexFind ":[0-9]+\\.[0-9]+\\.[0-9]+" .Values.releaseImage | trimPrefix ":" | required "releaseImage must include an xx.yy.zz version tag" }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nodepool-release-check-{{ $clusterName }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "5"
+  labels:
+    {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        {{- include "cluster-instance-hcp.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: nodepool-release-check-{{ $clusterName }}
+      restartPolicy: Never
+      containers:
+        - name: verify-hostedcluster-release
+          image: registry.redhat.io/openshift4/ose-cli:v{{ .Values.oseCliImageTag }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/bash
+            - -c
+          args:
+            - |
+              set -euo pipefail
+
+              log() {
+                printf '[%s] %s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" "$*"
+              }
+
+              while true; do
+                nodepool=$(oc get nodepool "nodepool-${HOSTED_CLUSTER}-1" \
+                  -n "$NAMESPACE" \
+                  --ignore-not-found \
+                  -o name)
+
+                if [[ -z "$nodepool" ]]; then
+                  log "NodePool nodepool-${HOSTED_CLUSTER}-1 does not exist; allowing initial installation"
+                  exit 0
+                fi
+
+                status=$(oc get hostedcluster "$HOSTED_CLUSTER" \
+                  -n "$NAMESPACE" \
+                  --ignore-not-found \
+                  -o jsonpath='{.metadata.generation}{"|"}{.spec.release.image}{"|"}{.status.version.desired.version}{"|"}{.status.version.desired.image}{"|"}{.status.version.history[0].state}{"|"}{.status.version.history[0].version}{"|"}{.status.version.history[0].image}{"|"}{.status.conditions[?(@.type=="Available")].status}{"|"}{.status.conditions[?(@.type=="Available")].observedGeneration}')
+
+                if [[ -z "$status" ]]; then
+                  log "HostedCluster $HOSTED_CLUSTER does not exist; allowing initial installation"
+                  exit 0
+                fi
+
+                IFS='|' read -r generation spec_image desired_version desired_image history_state history_version history_image available_status available_generation <<< "$status"
+                if [[ "$spec_image" =~ :([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+                  spec_version="${BASH_REMATCH[1]}"
+                else
+                  spec_version=""
+                fi
+
+                log "HostedCluster release: spec=$spec_version desired=$desired_version latest=$history_version ($history_state) available=$available_status generation=$available_generation/$generation; waiting for $EXPECTED_VERSION"
+                if [[ "$spec_version" == "$EXPECTED_VERSION" \
+                  && "$desired_version" == "$EXPECTED_VERSION" \
+                  && "$history_state" == "Completed" \
+                  && "$history_version" == "$EXPECTED_VERSION" \
+                  && "$history_image" == "$desired_image" \
+                  && "$available_status" == "True" \
+                  && "$available_generation" == "$generation" ]]; then
+                  log "HostedCluster release $EXPECTED_VERSION is completed and available"
+                  exit 0
+                fi
+
+                sleep 30
+              done
+          env:
+            - name: HOSTED_CLUSTER
+              value: {{ $clusterName | quote }}
+            - name: NAMESPACE
+              value: {{ .Release.Namespace | quote }}
+            - name: EXPECTED_VERSION
+              value: {{ $expectedVersion | quote }}
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}

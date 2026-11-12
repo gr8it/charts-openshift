@@ -1,0 +1,14 @@
+{{- $identityProviders := (include "apc-global-overrides.identityProviders" .) | fromYamlArray }}
+{{- $caCertificatesBundle := include "apc-global-overrides.caCertificatesBundle" . }}
+{{- if and $identityProviders $caCertificatesBundle }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oauth-idp-ca-bundle
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
+data:
+  ca.crt: |
+    {{- $caCertificatesBundle | nindent 4 }}
+{{- end }}

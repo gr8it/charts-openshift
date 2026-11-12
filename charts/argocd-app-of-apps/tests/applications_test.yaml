@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: Applications
+templates:
+  - templates/applications.yaml
+values:
+  - ../values.example.yaml
+release:
+  name: argocd-app-of-apps
+  namespace: apc-gitops
+
+tests:
+  - it: should let application sync options override defaults with the same name
+    documentSelector:
+      path: metadata.name
+      value: config-acs
+    set:
+      applications:
+        config-acs:
+          syncOptions:
+            - ApplyOutOfSyncOnly=false
+    asserts:
+      - equal:
+          path: spec.syncPolicy.syncOptions
+          value:
+            - ApplyOutOfSyncOnly=false

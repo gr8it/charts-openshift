@@ -11,6 +11,12 @@ tests:
     asserts:
       - matchSnapshot: {}
 
+  - it: identityProviders defaults to an empty list
+    asserts:
+      - equal:
+          path: data.identityProviders
+          value: []
+
   - it: customer from default values
     asserts:
       - equal: { path: data.customer, value: ~ }
@@ -73,14 +79,17 @@ tests:
       - equal:
           path: data.ntpServers
           value: []
-      - notExists:
+      - equal:
           path: data.chronyConfig
-      - notExists:
+          value: ""
+      - equal:
           path: data.chronyConfigBase64
+          value: null
 
   - it: sshAuthorizedKeys from default values
     asserts:
       - equal: { path: data.sshAuthorizedKeys, value: [] }
+      - equal: { path: data.sshAuthorizedKeysBundle, value: "" }
 
   - it: services and merged default values
     asserts:
@@ -109,6 +118,8 @@ tests:
   - it: adIntegration from default values - merged
     set:
       adIntegration:
+        type: LDAP
+        mappingMethod: claim
         ldap:
           url: "ad-merged.example.com"
     asserts:
@@ -116,8 +127,15 @@ tests:
       - equal: { path: data.adIntegration.type, value: "LDAP" }
       - equal: { path: data.adIntegration.mappingMethod, value: "claim" }
       - equal: { path: data.adIntegration.ldap.bindDN, value: "" }
-      - equal: { path: data.adIntegration.ldap.url, value: "ad-merged.example.com" }
       - equal: { path: data.adIntegration.ldap.insecure, value: false }
+      - equal: { path: data.adIntegration.ldap.url, value: "ad-merged.example.com" }
+      - equal:
+          path: data.adIntegration.ldap.attributes
+          value:
+            email: ["mail"]
+            id: ["sAMAccountName"]
+            name: ["cn"]
+            preferredUsername: ["sAMAccountName"]
       - equal:
           path: data.adIntegration.ldap.attributes.email
           value:
@@ -142,6 +160,8 @@ tests:
   - it: ldapIntegration from default values - merged
     set:
       ldapIntegration:
+        type: LDAP
+        mappingMethod: claim
         ldap:
           url: "ldap-merged.example.com"
     asserts:
@@ -149,8 +169,15 @@ tests:
       - equal: { path: data.ldapIntegration.type, value: "LDAP" }
       - equal: { path: data.ldapIntegration.mappingMethod, value: "claim" }
       - equal: { path: data.ldapIntegration.ldap.bindDN, value: "" }
-      - equal: { path: data.ldapIntegration.ldap.url, value: "ldap-merged.example.com" }
       - equal: { path: data.ldapIntegration.ldap.insecure, value: false }
+      - equal: { path: data.ldapIntegration.ldap.url, value: "ldap-merged.example.com" }
+      - equal:
+          path: data.ldapIntegration.ldap.attributes
+          value:
+            email: ["mail"]
+            id: ["dn"]
+            name: ["cn"]
+            preferredUsername: ["uid"]
       - equal:
           path: data.ldapIntegration.ldap.attributes.email
           value:

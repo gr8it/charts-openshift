@@ -1,0 +1,29 @@
+{{- $clusterName := include "cluster-instance-hcp.clusterName" . }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: nodepool-release-check-{{ $clusterName }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "0"
+  labels:
+    {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
+rules:
+  - apiGroups:
+      - hypershift.openshift.io
+    resources:
+      - hostedclusters
+    resourceNames:
+      - {{ $clusterName }}
+    verbs:
+      - get
+  - apiGroups:
+      - hypershift.openshift.io
+    resources:
+      - nodepools
+    resourceNames:
+      - nodepool-{{ $clusterName }}-1
+    verbs:
+      - get

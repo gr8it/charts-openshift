@@ -1,0 +1,361 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: cluster-instance-hcp HostedCluster
+templates:
+  - templates/hostedcluster.yaml
+values:
+  - ../values.lint.yaml
+release:
+  name: cluster-instance-hcp
+  namespace: mycluster
+
+tests:
+  - it: should set cluster name from clusterName value
+    set:
+      clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+    asserts:
+      - equal:
+          path: metadata.name
+          value: mycluster
+      - equal:
+          path: spec.infraID
+          value: mycluster
+      - equal:
+          path: spec.dns.baseDomain
+          value: cloud.example.com
+      - equal:
+          path: spec.channel
+          value: eus-4.18
+      - equal:
+          path: metadata.annotations["argocd.argoproj.io/sync-wave"]
+          value: "0"
+      - equal:
+          path: metadata.annotations["argocd.argoproj.io/ignore-healthcheck"]
+          value: "true"
+      - equal:
+          path: metadata.annotations["hypershift.openshift.io/force-upgrade-to"]
+          value: quay.io/openshift-release-dev/ocp-release:4.18.41-multi
+
+  - it: should set force-upgrade-to to the configured releaseImage
+    set:
+      clusterName: mycluster
+      releaseImage: quay.io/openshift-release-dev/ocp-release:4.20.11-multi
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+    asserts:
+      - equal:
+          path: metadata.annotations["hypershift.openshift.io/force-upgrade-to"]
+          value: quay.io/openshift-release-dev/ocp-release:4.20.11-multi
+
+  - it: should use a custom update channel when set
+    set:
+      clusterName: mycluster
+      channel: stable-4.18
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+    asserts:
+      - equal:
+          path: spec.channel
+          value: stable-4.18
+
+  - it: should omit the update channel when it is empty
+    set:
+      clusterName: mycluster
+      channel: ""
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+    asserts:
+      - notExists:
+          path: spec.channel
+
+  - it: should use a custom API server audit profile when set
+    set:
+      clusterName: mycluster
+      apiServerAuditProfile: WriteRequestBodies
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+    asserts:
+      - equal:
+          path: spec.configuration.apiServer.audit.profile
+          value: WriteRequestBodies
+
+  - it: should set infrastructure namespace to infrastructure-<clusterName> by default
+    set:
+      clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+    asserts:
+      - equal:
+          path: spec.platform.agent.agentNamespace
+          value: infrastructure-mycluster
+
+  - it: should use custom infrastructureNamespace when set
+    set:
+      clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+      infrastructureNamespace: custom-infra-ns
+    asserts:
+      - equal:
+          path: spec.platform.agent.agentNamespace
+          value: custom-infra-ns
+
+  - it: should construct service addresses from clusterName and rootDomain
+    set:
+      clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+    asserts:
+      - contains:
+          path: spec.services
+          content:
+            service: OAuthServer
+            servicePublishingStrategy:
+              type: NodePort
+              nodePort:
+                address: oauth.mycluster.cloud.example.com
+                port: 30102
+
+  - it: should default networkType to OVNKubernetes
+    set:
+      clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+    asserts:
+      - equal:
+          path: spec.networking.networkType
+          value: OVNKubernetes
+
+  - it: should use the default clusterSet when not set
+    set:
+      clusterName: prod01
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+    asserts:
+      - equal:
+          path: metadata.labels["cluster.open-cluster-management.io/clusterset"]
+          value: default
+
+  - it: should use explicit clusterSet when set
+    set:
+      clusterName: prod01
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+      clusterSet: myclusterset
+    asserts:
+      - equal:
+          path: metadata.labels["cluster.open-cluster-management.io/clusterset"]
+          value: myclusterset
+
+  - it: should include proxy config when global proxy is configured
+    set:
+      clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+      global.apc.proxy: http://proxy.example.com:8080
+      global.apc.noProxy: .example.com,.svc
+      global.apc.caCertificates:
+        root-ca.crt: |
+          -----BEGIN CERTIFICATE-----
+          example
+          -----END CERTIFICATE-----
+    asserts:
+      - equal:
+          path: spec.configuration.proxy.httpProxy
+          value: http://proxy.example.com:8080
+      - equal:
+          path: spec.configuration.proxy.trustedCA.name
+          value: user-ca-bundle
+
+  - it: should omit proxy trustedCA when no custom CA bundle is configured
+    set:
+      clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+      global.apc.proxy: http://proxy.example.com:8080
+      global.apc.noProxy: .example.com,.svc
+    asserts:
+      - equal:
+          path: spec.configuration.proxy.httpProxy
+          value: http://proxy.example.com:8080
+      - equal:
+          path: spec.configuration.proxy.httpsProxy
+          value: http://proxy.example.com:8080
+      - notExists:
+          path: spec.configuration.proxy.trustedCA
+
+  - it: should include CA bundle reference when configured
+    set:
+      clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+      global:
+        apc:
+          caCertificates:
+            example.com: |
+              -----BEGIN CERTIFICATE-----
+              MIIDVTCCAj2gAwIBAgIUeRYCH56h2vgcgcQTlLVIZW+3t98wD.example
+              -----END CERTIFICATE-----
+    asserts:
+      - equal:
+          path: spec.additionalTrustBundle.name
+          value: user-ca-bundle
+
+  - it: should omit proxy config when global proxy is not configured
+    set:
+      clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+    asserts:
+      - notExists:
+          path: spec.additionalTrustBundle
+      - notExists:
+          path: spec.configuration.proxy
+
+  - it: should include imageContentSources when imageProxy.host and imageProxy.sources are set in global
+    set:
+      clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+      global:
+        apc:
+          imageProxy:
+            host: my-registry.example.com
+            sources:
+              - quay.io
+          caCertificates:
+            example.com: |
+              -----BEGIN CERTIFICATE-----
+              MIIDVTCCAj2gAwIBAgIUeRYCH56h2vgcgcQTlLVIZW+3t98wD.example
+              -----END CERTIFICATE-----
+    asserts:
+      - contains:
+          path: spec.imageContentSources
+          content:
+            source: quay.io
+            mirrors:
+              - my-registry.example.com/quay.io
+      - equal:
+          path: spec.configuration.image.additionalTrustedCA.name
+          value: registry-ca-bundle
+
+  - it: should omit image config when imageProxy.host is not set
+    set:
+      clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+    asserts:
+      - notExists:
+          path: spec.configuration.image
+
+  - it: should omit image additionalTrustedCA when mirror host has no custom CA bundle
+    set:
+      clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+      global.apc.imageProxy.host: my-registry.example.com
+    asserts:
+      - notExists:
+          path: spec.configuration.image.additionalTrustedCA
+
+  - it: should omit oauth configuration when identityProviders is empty
+    set:
+      clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+    asserts:
+      - notExists:
+          path: spec.configuration.oauth
+
+  - it: should allow an explicit empty identityProviders list to disable global providers
+    set:
+      clusterName: mycluster
+      identityProviders: []
+      global.apc.identityProviders:
+        - name: Example LDAP
+          type: LDAP
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+    asserts:
+      - notExists:
+          path: spec.configuration.oauth
+
+  - it: should include apiServer namedCertificates
+    set:
+      clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+    asserts:
+      - equal:
+          path: spec.configuration.apiServer.servingCerts.namedCertificates[0].servingCertificate.name
+          value: kube-apiserver-cert
+      - contains:
+          path: spec.configuration.apiServer.servingCerts.namedCertificates[0].names
+          content: api.mycluster.cloud.example.com
+      - contains:
+          path: spec.configuration.apiServer.servingCerts.namedCertificates[0].names
+          content: oauth.mycluster.cloud.example.com

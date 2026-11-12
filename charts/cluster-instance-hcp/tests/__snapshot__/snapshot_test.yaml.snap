@@ -1,0 +1,811 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.20
+      name: kube-apiserver-cert
+      namespace: example01
+    spec:
+      commonName: api.example01.cloud.example.com
+      dnsNames:
+        - api.example01.cloud.example.com
+        - oauth.example01.cloud.example.com
+      isCA: false
+      issuerRef:
+        kind: ClusterIssuer
+        name: vault-issuer
+      secretName: kube-apiserver-cert
+  2: |
+    apiVersion: v1
+    data:
+      ca.crt: |
+        -----BEGIN CERTIFICATE-----
+        MIIBxTCCAW+gAwIBAgIJAExample
+        -----END CERTIFICATE-----
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.20
+      name: oauth-idp-ca-bundle
+      namespace: example01
+  3: |
+    apiVersion: v1
+    data:
+      config: |
+        apiVersion: machineconfiguration.openshift.io/v1
+        kind: KubeletConfig
+        metadata:
+          labels:
+            machineconfiguration.openshift.io/role: worker
+          name: kubeletconfig-worker
+        spec:
+          kubeletConfig:
+            autoSizingReserved: false
+            containerLogMaxFiles: 5
+            containerLogMaxSize: 20Mi
+            maxPods: 350
+            podsPerCore: 0
+            systemReserved:
+              cpu: 800m
+              ephemeral-storage: 3Gi
+              memory: 4Gi
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.20
+      name: kubeletconfig-worker
+      namespace: example01
+  4: |
+    apiVersion: v1
+    data:
+      config: |
+        apiVersion: machineconfiguration.openshift.io/v1
+        kind: MachineConfig
+        metadata:
+          labels:
+            machineconfiguration.openshift.io/role: worker
+          name: 99-worker-chrony
+        spec:
+          config:
+            ignition:
+              version: 3.4.0
+            storage:
+              files:
+                - contents:
+                    compression: ''
+                    source: 'data:text/plain;charset=utf-8;base64,c2VydmVyIDEwLjAuMC4xMSBpYnVyc3QKc2VydmVyIDEwLjAuMC4xMiBpYnVyc3QKZHJpZnRmaWxlIC92YXIvbGliL2Nocm9ueS9kcmlmdAptYWtlc3RlcCAxLjAgMwpydGNzeW5jCmxvZ2RpciAvdmFyL2xvZy9jaHJvbnkK'
+                  mode: 420
+                  overwrite: true
+                  path: /etc/chrony.conf
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.20
+      name: machineconfig-chrony
+      namespace: example01
+  5: |
+    apiVersion: v1
+    data:
+      config: |
+        apiVersion: machineconfiguration.openshift.io/v1
+        kind: MachineConfig
+        metadata:
+          labels:
+            machineconfiguration.openshift.io/role: worker
+          name: 99-worker-logind
+        spec:
+          config:
+            ignition:
+              version: 3.4.0
+            storage:
+              files:
+                - path: /etc/systemd/logind.conf.d/10-custom.conf
+                  mode: 0644
+                  overwrite: true
+                  contents:
+                    source: "data:text/plain;charset=utf-8;base64,W0xvZ2luXQojIFNTSCBoYXJkZW5pbmcKU3RvcElkbGVTZXNzaW9uU2VjPTkwMAo="
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.20
+      name: machineconfig-logind
+      namespace: example01
+  6: |
+    apiVersion: v1
+    data:
+      config: |
+        apiVersion: machineconfiguration.openshift.io/v1
+        kind: MachineConfig
+        metadata:
+          labels:
+            machineconfiguration.openshift.io/role: worker
+          name: 99-worker-mirror-by-tag-registries
+        spec:
+          config:
+            ignition:
+              version: 3.1.0
+            storage:
+              files:
+                - contents:
+                    source: data:text/plain;charset=utf-8;base64,W1tyZWdpc3RyeV1dCiAgcHJlZml4ID0gIiIKICBsb2NhdGlvbiA9ICJxdWF5LmlvIgogIG1pcnJvci1ieS1kaWdlc3Qtb25seSA9IGZhbHNlCgogIFtbcmVnaXN0cnkubWlycm9yXV0KICAgIGxvY2F0aW9uID0gIm15LXJlZ2lzdHJ5LmV4YW1wbGUuY29tL3F1YXkuaW8iCgpbW3JlZ2lzdHJ5XV0KICBwcmVmaXggPSAiIgogIGxvY2F0aW9uID0gInJlZ2lzdHJ5LmNvbm5lY3QucmVkaGF0LmNvbSIKICBtaXJyb3ItYnktZGlnZXN0LW9ubHkgPSBmYWxzZQoKICBbW3JlZ2lzdHJ5Lm1pcnJvcl1dCiAgICBsb2NhdGlvbiA9ICJteS1yZWdpc3RyeS5leGFtcGxlLmNvbS9yZWdpc3RyeS5jb25uZWN0LnJlZGhhdC5jb20iCgpbW3JlZ2lzdHJ5XV0KICBwcmVmaXggPSAiIgogIGxvY2F0aW9uID0gInJlZ2lzdHJ5LnJlZGhhdC5pbyIKICBtaXJyb3ItYnktZGlnZXN0LW9ubHkgPSBmYWxzZQoKICBbW3JlZ2lzdHJ5Lm1pcnJvcl1dCiAgICBsb2NhdGlvbiA9ICJteS1yZWdpc3RyeS5leGFtcGxlLmNvbS9yZWdpc3RyeS5yZWRoYXQuaW8iCgpbW3JlZ2lzdHJ5XV0KICBwcmVmaXggPSAiIgogIGxvY2F0aW9uID0gImRvY2tlci5pbyIKICBtaXJyb3ItYnktZGlnZXN0LW9ubHkgPSBmYWxzZQoKICBbW3JlZ2lzdHJ5Lm1pcnJvcl1dCiAgICBsb2NhdGlvbiA9ICJteS1yZWdpc3RyeS5leGFtcGxlLmNvbS9kb2NrZXIuaW8iCgpbW3JlZ2lzdHJ5XV0KICBwcmVmaXggPSAiIgogIGxvY2F0aW9uID0gImdoY3IuaW8iCiAgbWlycm9yLWJ5LWRpZ2VzdC1vbmx5ID0gZmFsc2UKCiAgW1tyZWdpc3RyeS5taXJyb3JdXQogICAgbG9jYXRpb24gPSAibXktcmVnaXN0cnkuZXhhbXBsZS5jb20vZ2hjci5pbyIKCg==
+                  filesystem: root
+                  mode: 420
+                  path: /etc/containers/registries.conf.d/99-mirror-by-tag-registries.conf
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.20
+      name: machineconfig-mirror-registries
+      namespace: example01
+  7: |
+    apiVersion: v1
+    data:
+      my-registry.example.com..443: |
+        -----BEGIN CERTIFICATE-----
+        MIIBxTCCAW+gAwIBAgIJAExample
+        -----END CERTIFICATE-----
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.20
+      name: registry-ca-bundle
+      namespace: example01
+  8: |
+    apiVersion: v1
+    data:
+      ca-bundle.crt: |
+        -----BEGIN CERTIFICATE-----
+        MIIBxTCCAW+gAwIBAgIJAExample
+        -----END CERTIFICATE-----
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.20
+      name: user-ca-bundle
+      namespace: example01
+  9: |
+    apiVersion: v1
+    data:
+      policies.yaml: |
+        version: v1
+        policies:
+          - name: exclude-specific-secrets
+            action: skip
+            target:
+              - groupResource: secrets
+                names:
+                  - bootstrap-hub-kubeconfig
+                  - hub-kubeconfig-secret
+                  - "example01-import"
+                namespaces:
+                  - "klusterlet-example01"
+                  - "example01-example01"
+    kind: ConfigMap
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.20
+      name: velero-resource-policy-example01
+      namespace: openshift-adp
+  10: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.20
+      name: bastion-ldap-bind-secret
+      namespace: example01
+    spec:
+      data:
+        - remoteRef:
+            key: apc-platform/p/hcp/example01/identityProvider/bastion-ldap-bind-secret
+            property: bindPassword
+          secretKey: bindPassword
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: vault
+      target:
+        creationPolicy: Orphan
+        deletionPolicy: Retain
+        name: bastion-ldap-bind-secret
+  11: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.20
+      name: ad-ldap-bind-secret
+      namespace: example01
+    spec:
+      data:
+        - remoteRef:
+            key: apc-platform/p/hcp/example01/identityProvider/ad-ldap-bind-secret
+            property: bindPassword
+          secretKey: bindPassword
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: vault
+      target:
+        creationPolicy: Orphan
+        deletionPolicy: Retain
+        name: ad-ldap-bind-secret
+  12: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.20
+      name: entra-id-client-secret
+      namespace: example01
+    spec:
+      data:
+        - remoteRef:
+            key: apc-platform/p/hcp/example01/identityProvider/entra-id-client-secret
+            property: clientSecret
+          secretKey: clientSecret
+      refreshInterval: 15m
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: vault
+      target:
+        creationPolicy: Orphan
+        deletionPolicy: Retain
+        name: entra-id-client-secret
+  13: |
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.20
+      name: pullsecret-cluster-example01
+      namespace: example01
+    spec:
+      data:
+        - remoteRef:
+            key: apc-platform/p/hcp/example01/pullSecret
+            property: .dockerconfigjson
+          secretKey: pullsecret
+      refreshInterval: 1h
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: vault
+      target:
+        creationPolicy: Owner
+        name: pullsecret-cluster-example01
+        template:
+          data:
+            .dockerconfigjson: '{{ .pullsecret | toString }}'
+          type: kubernetes.io/dockerconfigjson
+  14: |
+    apiVersion: hypershift.openshift.io/v1beta1
+    kind: HostedCluster
+    metadata:
+      annotations:
+        argocd.argoproj.io/ignore-healthcheck: "true"
+        argocd.argoproj.io/sync-wave: "0"
+        hypershift.openshift.io/force-upgrade-to: quay.io/openshift-release-dev/ocp-release:4.17.11-multi
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        cluster.open-cluster-management.io/clusterset: default
+        helm.sh/chart: cluster-instance-hcp-2.0.20
+      name: example01
+      namespace: example01
+    spec:
+      additionalTrustBundle:
+        name: user-ca-bundle
+      channel: eus-4.18
+      configuration:
+        apiServer:
+          audit:
+            profile: Default
+          servingCerts:
+            namedCertificates:
+              - names:
+                  - api.example01.cloud.example.com
+                  - oauth.example01.cloud.example.com
+                servingCertificate:
+                  name: kube-apiserver-cert
+        image:
+          additionalTrustedCA:
+            name: registry-ca-bundle
+        oauth:
+          identityProviders:
+            - ldap:
+                attributes:
+                  email:
+                    - mail
+                  id:
+                    - dn
+                  name:
+                    - cn
+                  preferredUsername:
+                    - uid
+                bindDN: cn=svc-ocp,ou=Technical-Accounts,dc=example,dc=com
+                bindPassword:
+                  name: bastion-ldap-bind-secret
+                ca:
+                  name: oauth-idp-ca-bundle
+                insecure: false
+                url: ldaps://ldap.example.com/OU=Users,dc=example,dc=com?uid
+              mappingMethod: claim
+              name: Example LDAP
+              type: LDAP
+            - ldap:
+                attributes:
+                  email:
+                    - mail
+                  id:
+                    - sAMAccountName
+                  name:
+                    - cn
+                  preferredUsername:
+                    - sAMAccountName
+                bindDN: CN=svc-ocp,OU=Service Accounts,DC=example,DC=com
+                bindPassword:
+                  name: ad-ldap-bind-secret
+                ca:
+                  name: oauth-idp-ca-bundle
+                insecure: false
+                url: ldaps://ad.example.com/DC=example,DC=com?sAMAccountName
+              mappingMethod: claim
+              name: Example Active Directory
+              type: LDAP
+            - mappingMethod: claim
+              name: Example Microsoft Entra ID
+              openID:
+                ca:
+                  name: oauth-idp-ca-bundle
+                claims:
+                  email:
+                    - email
+                  groups:
+                    - groups
+                  name:
+                    - name
+                  preferredUsername:
+                    - preferred_username
+                    - email
+                clientID: example-client-id
+                clientSecret:
+                  name: entra-id-client-secret
+                extraScopes:
+                  - email
+                  - profile
+                issuer: https://login.microsoftonline.com/example-tenant-id/v2.0
+              type: OpenID
+        proxy:
+          httpProxy: http://proxy.example.com:8080
+          httpsProxy: http://proxy.example.com:8080
+          noProxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,10.0.0.0/8,172.16.0.0/12
+          trustedCA:
+            name: user-ca-bundle
+      controllerAvailabilityPolicy: HighlyAvailable
+      dns:
+        baseDomain: cloud.example.com
+      etcd:
+        managed:
+          storage:
+            persistentVolume:
+              size: 8Gi
+              storageClassName: lvms-vg1
+            type: PersistentVolume
+        managementType: Managed
+      imageContentSources:
+        - mirrors:
+            - my-registry.example.com/quay.io
+          source: quay.io
+        - mirrors:
+            - my-registry.example.com/registry.connect.redhat.com
+          source: registry.connect.redhat.com
+        - mirrors:
+            - my-registry.example.com/registry.redhat.io
+          source: registry.redhat.io
+        - mirrors:
+            - my-registry.example.com/docker.io
+          source: docker.io
+        - mirrors:
+            - my-registry.example.com/ghcr.io
+          source: ghcr.io
+      infraID: example01
+      infrastructureAvailabilityPolicy: HighlyAvailable
+      networking:
+        clusterNetwork:
+          - cidr: 172.26.0.0/16
+            hostPrefix: 21
+        networkType: OVNKubernetes
+        serviceNetwork:
+          - cidr: 172.25.64.0/18
+      nodeSelector:
+        node-role.kubernetes.io/master: ""
+      olmCatalogPlacement: management
+      platform:
+        agent:
+          agentNamespace: infrastructure-example01
+        type: Agent
+      pullSecret:
+        name: pullsecret-cluster-example01
+      release:
+        image: quay.io/openshift-release-dev/ocp-release:4.17.11-multi
+      services:
+        - service: APIServer
+          servicePublishingStrategy:
+            type: LoadBalancer
+        - service: OAuthServer
+          servicePublishingStrategy:
+            nodePort:
+              address: oauth.example01.cloud.example.com
+              port: 30102
+            type: NodePort
+        - service: Konnectivity
+          servicePublishingStrategy:
+            nodePort:
+              address: konnectivity.example01.cloud.example.com
+              port: 30103
+            type: NodePort
+        - service: Ignition
+          servicePublishingStrategy:
+            nodePort:
+              address: ignition.example01.cloud.example.com
+              port: 30104
+            type: NodePort
+        - service: OIDC
+          servicePublishingStrategy:
+            nodePort:
+              address: oidc.example01.cloud.example.com
+              port: 30101
+            type: NodePort
+      sshKey:
+        name: sshkey-cluster-example01
+      tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+          operator: Exists
+  15: |
+    apiVersion: agent.open-cluster-management.io/v1
+    kind: KlusterletAddonConfig
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.20
+      name: example01
+      namespace: example01
+    spec:
+      applicationManager:
+        enabled: true
+      certPolicyController:
+        enabled: true
+      clusterLabels:
+        cloud: BareMetal
+        vendor: OpenShift
+      clusterName: example01
+      clusterNamespace: example01
+      policyController:
+        enabled: true
+      searchCollector:
+        enabled: true
+  16: |
+    apiVersion: cluster.open-cluster-management.io/v1
+    kind: ManagedCluster
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "0"
+        import.open-cluster-management.io/hosting-cluster-name: local-cluster
+        import.open-cluster-management.io/klusterlet-deploy-mode: Hosted
+        open-cluster-management/created-via: hypershift
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        cloud: BareMetal
+        cluster.open-cluster-management.io/clusterset: default
+        helm.sh/chart: cluster-instance-hcp-2.0.20
+        name: example01
+        vendor: OpenShift
+      name: example01
+    spec:
+      hubAcceptsClient: true
+  17: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+        argocd.argoproj.io/sync-wave: "5"
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.20
+      name: nodepool-release-check-example01
+      namespace: example01
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/instance: cluster-instance-hcp
+            app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/name: cluster-instance-hcp
+            helm.sh/chart: cluster-instance-hcp-2.0.20
+        spec:
+          containers:
+            - args:
+                - |
+                  set -euo pipefail
+
+                  log() {
+                    printf '[%s] %s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" "$*"
+                  }
+
+                  while true; do
+                    nodepool=$(oc get nodepool "nodepool-${HOSTED_CLUSTER}-1" \
+                      -n "$NAMESPACE" \
+                      --ignore-not-found \
+                      -o name)
+
+                    if [[ -z "$nodepool" ]]; then
+                      log "NodePool nodepool-${HOSTED_CLUSTER}-1 does not exist; allowing initial installation"
+                      exit 0
+                    fi
+
+                    status=$(oc get hostedcluster "$HOSTED_CLUSTER" \
+                      -n "$NAMESPACE" \
+                      --ignore-not-found \
+                      -o jsonpath='{.metadata.generation}{"|"}{.spec.release.image}{"|"}{.status.version.desired.version}{"|"}{.status.version.desired.image}{"|"}{.status.version.history[0].state}{"|"}{.status.version.history[0].version}{"|"}{.status.version.history[0].image}{"|"}{.status.conditions[?(@.type=="Available")].status}{"|"}{.status.conditions[?(@.type=="Available")].observedGeneration}')
+
+                    if [[ -z "$status" ]]; then
+                      log "HostedCluster $HOSTED_CLUSTER does not exist; allowing initial installation"
+                      exit 0
+                    fi
+
+                    IFS='|' read -r generation spec_image desired_version desired_image history_state history_version history_image available_status available_generation <<< "$status"
+                    if [[ "$spec_image" =~ :([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+                      spec_version="${BASH_REMATCH[1]}"
+                    else
+                      spec_version=""
+                    fi
+
+                    log "HostedCluster release: spec=$spec_version desired=$desired_version latest=$history_version ($history_state) available=$available_status generation=$available_generation/$generation; waiting for $EXPECTED_VERSION"
+                    if [[ "$spec_version" == "$EXPECTED_VERSION" \
+                      && "$desired_version" == "$EXPECTED_VERSION" \
+                      && "$history_state" == "Completed" \
+                      && "$history_version" == "$EXPECTED_VERSION" \
+                      && "$history_image" == "$desired_image" \
+                      && "$available_status" == "True" \
+                      && "$available_generation" == "$generation" ]]; then
+                      log "HostedCluster release $EXPECTED_VERSION is completed and available"
+                      exit 0
+                    fi
+
+                    sleep 30
+                  done
+              command:
+                - /bin/bash
+                - -c
+              env:
+                - name: HOSTED_CLUSTER
+                  value: example01
+                - name: NAMESPACE
+                  value: example01
+                - name: EXPECTED_VERSION
+                  value: 4.17.11
+              image: registry.redhat.io/openshift4/ose-cli:v4.15
+              imagePullPolicy: IfNotPresent
+              name: verify-hostedcluster-release
+              resources:
+                limits:
+                  cpu: 100m
+                  memory: 128Mi
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                readOnlyRootFilesystem: true
+              volumeMounts:
+                - mountPath: /tmp
+                  name: tmp
+          restartPolicy: Never
+          serviceAccountName: nodepool-release-check-example01
+          volumes:
+            - emptyDir: {}
+              name: tmp
+  18: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      annotations:
+        argocd.argoproj.io/hook: PreSync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+        argocd.argoproj.io/sync-wave: "0"
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.20
+      name: nodepool-release-check-example01
+      namespace: example01
+    rules:
+      - apiGroups:
+          - hypershift.openshift.io
+        resourceNames:
+          - example01
+        resources:
+          - hostedclusters
+        verbs:
+          - get
+      - apiGroups:
+          - hypershift.openshift.io
+        resourceNames:
+          - nodepool-example01-1
+        resources:
+          - nodepools
+        verbs:
+          - get
+  19: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      annotations:
+        argocd.argoproj.io/hook: PreSync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+        argocd.argoproj.io/sync-wave: "0"
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.20
+      name: nodepool-release-check-example01
+      namespace: example01
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: nodepool-release-check-example01
+    subjects:
+      - kind: ServiceAccount
+        name: nodepool-release-check-example01
+        namespace: example01
+  20: |
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      annotations:
+        argocd.argoproj.io/hook: PreSync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+        argocd.argoproj.io/sync-wave: "0"
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.20
+      name: nodepool-release-check-example01
+      namespace: example01
+  21: |
+    apiVersion: hypershift.openshift.io/v1beta1
+    kind: NodePool
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "10"
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.20
+      name: nodepool-example01-1
+      namespace: example01
+    spec:
+      clusterName: example01
+      config:
+        - name: machineconfig-chrony
+        - name: machineconfig-logind
+        - name: kubeletconfig-worker
+        - name: machineconfig-mirror-registries
+      management:
+        autoRepair: false
+        upgradeType: InPlace
+      nodeLabels:
+        k8s.ovn.org/egress-assignable: ""
+      platform:
+        agent:
+          agentLabelSelector:
+            matchLabels: {}
+        type: Agent
+      release:
+        image: quay.io/openshift-release-dev/ocp-release:4.17.11-multi
+      replicas: 4
+  22: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.20
+      name: sshkey-cluster-example01
+      namespace: example01
+    stringData:
+      id_rsa.pub: |-
+        ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN45Yki8PhtTZ7NFk9xST9LHvrPgmHuSTHXI2CdXLxzF ops@example.com
+        ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyTwo admin@example.com
+  23: |
+    apiVersion: velero.io/v1
+    kind: Schedule
+    metadata:
+      labels:
+        app.kubernetes.io/instance: cluster-instance-hcp
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cluster-instance-hcp
+        helm.sh/chart: cluster-instance-hcp-2.0.20
+      name: example01
+      namespace: openshift-adp
+    spec:
+      paused: false
+      schedule: 0 0 * * *
+      template:
+        excludedNamespaceScopedResources:
+          - events
+          - events.events.k8s.io
+          - pods
+          - replicasets.apps
+        includedNamespaceScopedResources:
+          - '*'
+        includedNamespaces:
+          - example01
+          - example01-example01
+          - klusterlet-example01
+        resourcePolicy:
+          kind: configmap
+          name: velero-resource-policy-example01
+        snapshotMoveData: false
+        ttl: 336h0m0s

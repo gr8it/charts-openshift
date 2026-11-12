@@ -1,0 +1,14 @@
+{{- if and .Values.etcd.backup.enabled .Values.etcd.backup.objectBucketClaim.create }}
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: {{ include "cluster-instance-hcp.etcdBackup.objectBucketClaimName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cluster-instance-hcp.etcdBackup.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  generateBucketName: {{ include "cluster-instance-hcp.etcdBackup.objectBucketClaimName" . }}
+  storageClassName: {{ .Values.etcd.backup.objectBucketClaim.storageClass | quote }}
+{{- end }}

@@ -1,0 +1,38 @@
+{{- $clusterName := include "cluster-instance-hcp.clusterName" . }}
+{{- $imageProxyHost := include "apc-global-overrides.imageProxyHost" . }}
+{{- $nodePoolReleaseImage := .Values.nodePool.releaseImage | default .Values.releaseImage }}
+apiVersion: hypershift.openshift.io/v1beta1
+kind: NodePool
+metadata:
+  name: nodepool-{{ $clusterName }}-1
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+  labels:
+    {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
+spec:
+  clusterName: {{ $clusterName }}
+  config:
+    {{- if (include "apc-global-overrides.ntpServers" . | fromYamlArray) }}
+    - name: machineconfig-chrony
+    {{- end }}
+    - name: machineconfig-logind
+    - name: kubeletconfig-worker
+    {{- if $imageProxyHost }}
+    - name: machineconfig-mirror-registries
+    {{- end }}
+  replicas: {{ .Values.nodePool.replicas }}
+  management:
+    autoRepair: {{ .Values.nodePool.autoRepair }}
+    upgradeType: {{ .Values.nodePool.upgradeType }}
+  {{- with .Values.nodePool.nodeLabels }}
+  nodeLabels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  platform:
+    type: Agent
+    agent:
+      agentLabelSelector:
+        matchLabels: {}
+  release:
+    image: {{ $nodePoolReleaseImage }}

@@ -137,15 +137,13 @@ charts-openshift/
 
 [apc-global-overrides-helpers]: /charts/apc-global-overrides/README.md#helper-function-list
 
-Cluster/environment values (customer name, cluster name, base URL, proxy, shared stores, etc.) come from the conf repo via `apc-global-overrides`. Never hardcode them — use the library's helpers (see [README][apc-global-overrides-helpers]). Prefer the `require-` variant to fail fast when a value is missing.
-
-### values.yaml Conventions
-
-- Absolutely prefer deployment ease over configurability. Charts should be opinionated and not require configuration for every possible option.
-  - configuration options need to cover only the minimal / parameters changing between environments, e.g. image tags, resource sizes, etc.
-- Leave optional sections empty (`{}` or `[]`).
-- Favor convention-over-configuration = don't add a value unless it must be configurable, e.g. do not configure ingress URL - construct it from a convention-based pattern using the cluster's base URL (from apc-global-overrides) and the standard chart helpers, e.g. `application.{{ include "apc-global-overrides.require-clusterAppsDomain" . }}`
-- Global cluster values come from the `apc-global-overrides` library; document them as comments but don't set them:
+- Cluster/environment specific values (customer name, cluster name, base URL, proxy, shared stores, etc.) is configured once (DRY) in config repository.
+  - Never hardcode them — use the `apc-global-overrides` chart library helpers, (see [README][apc-global-overrides-helpers]).
+  - `apc-global-overrides` allows to override global values (`.Value.global.apc`) with a chart specific value if needed, e.g. `.Values.global.apc.proxy` can be overridden with `.Values.proxy` in a chart.
+- For all required parameters, prefer the `require-` variant to fail fast when a value is missing if possible.
+- All helper functions must be documented in the `apc-global-overrides` README
+- Configuration, which is shared between multiple charts, should be placed in `apc-global-overrides` rather than in individual charts.
+- Document which `apc-global-overrides` are used as comments in the values.yaml, but don't set them:
 
   ```yaml
   ## uses following global values => do not set here
@@ -155,40 +153,49 @@ Cluster/environment values (customer name, cluster name, base URL, proxy, shared
   #       appsDomain:
   ```
 
+- The used `apc-global-overrides` should be set in values.lint.yaml, values.example.yaml or other example values files, but not in values.yaml.
+- Preferably all `apc-global-overrides` should be set in values.example.yaml, including optional ones such as proxy, ca certificates, etc. This ensures that the example values file is a complete example of a working configuration.
+- unittest of the `apc-global-overrides` chart (= a library chart) are located in `library-charts-unittests/apc-global-overrides-unit-tests` directory.
+  - uses values.global.yaml (for global values) and values.local.yaml (for local overrides) 
+  - unittests cover usecases with default chart values, global values, local values, and global values with local overrides
+
+### values.yaml Conventions
+
+- Absolutely prefer deployment ease over configurability. Charts should be opinionated and not require configuration for every possible option.
+  - configuration options need to cover only the minimal / parameters changing between environments, e.g. image tags, resource sizes, etc.
+- Leave optional sections empty with correct type (`{}` or `[]`)
+- Values keys must use **lowerCamelCase** (e.g., `resourceQuota`, not `ResourceQuota`).
+- Do not duplicate defaults between `values.yaml` and template fallback expressions. If a default is set in `values.yaml`, do not also set it with `| default "..."` in the template — single source of truth.
+- Values that are not consumed by any template must be removed.
+- `image.pullPolicy` default must be `IfNotPresent` for pinned tags, and `Always` for latest tag.
+- Security-sensitive defaults must be secure by default: admin APIs must be opt-in (default disabled), `insecureSkipTLSVerify` must default to `false`.
+- Chart default values should reflect the production-ready cluster state, not a QA-specific non-default.
+- Favor convention-over-configuration = don't add a value unless it must be configurable, e.g. do not configure ingress URL - construct it from a convention-based pattern using the cluster's base URL (from apc-global-overrides) and the standard chart helpers, e.g. `application-xy.{{ include "apc-global-overrides.require-clusterAppsDomain" . }}`
+
+
 ### values.example.yaml
 
 - Contains only overrides of the default values and global values that are required to render the chart templates.
 - Contains realistic, non-secret example values.
 - Used as an example and by snapshot unit tests — never deployed directly.
+- Must exercise all key feature paths, including optional features (e.g., custom CA certs).
+- If several use cases are available (hub / spoke usage), include multiple example files (e.g., `values.example.<usecase>.yaml`)
 
 ### values.lint.yaml
 
 - Contains only values required to pass `helm lint` that are absent from `values.yaml` (typically cluster/environment globals).
+  - Remove values from `values.lint.yaml` that are already set as defaults in `values.yaml`.
+  - Remove `values.lint.yaml` entirely if it becomes unnecessary (e.g., after removing the conditional that required it).
 
 ### values.schema.json
 
 - Always include a `values.schema.json` file for each chart. This ensures that values are validated during `helm install/upgrade` and prevents misconfigurations.
+- prefer `additionalProperties: false` to prevent typos and misconfigurations in values files.
+- Every new structured value (especially objects/maps) must be added to the schema.
 
 ## Unit Tests
 
 Framework: [helm-unittest](https://github.com/helm-unittest/helm-unittest)
-
-Tests live in `tests/snapshot_test.yaml`:
-
-```yaml
-suite: Snapshot test
-templates:
-  - templates/*
-values:
-  - ../values.example.yaml
-release:
-  name: <chart-name>
-
-tests:
-  - it: manifests should match snapshot
-    asserts:
-      - matchSnapshot: {}
-```
 
 - All charts include a snapshot test usually consuming the `values.example.yaml` file.
 - Charts should include proper unittests, covering all edge cases.
@@ -216,25 +223,29 @@ tests:
 
 ## PrometheusRule Conventions
 
-Per-rule labels always include severity, vendor and team, e.g.:
+- `PrometheusRule` `metadata.labels` must include the standard chart labels via the `<chart>.labels` helper.
+- `PrometheusRule` labels must include severity, vendor and team labels to allow filtering by vendor and team in the Prometheus UI. Usually the labels in this repo should be `vendor: aspecta` and `team: platform` - other values are exceptions and need to be justified.
+- Alert names must be prefixed with the component name to avoid global collisions (e.g., `KafkaBridgeContainerDown`, not `MonitoringAvailability`).
+- Alert selectors must be scoped to the specific release, not broad regex patterns that can match other pods in the same namespace.
+- For CrashLoopBackOff detection, use `max_over_time(kube_pod_container_status_waiting_reason{...,reason="CrashLoopBackOff"}[5m]) > 0`, not restart-rate expressions that fire on normal rollouts.
+- Alert expressions using `== 0` should include an `absent(...)` branch to also fire when metric series disappear (e.g., scrape issues, component missing).
+- Do not use `for:` with counter-based (`increase()`/`rate()`) expressions — `for` only makes sense for gauges; for counters use a longer window instead.
+- Alert expressions must be validated against real metric names and label sets before merging — do not rely on LLM-generated PromQL without verification.
+- Do not hardcode namespace values in PromQL expressions when the namespace is configurable via values.
 
-```yaml
-apiVersion: monitoring.coreos.com/v1
-kind: PrometheusRule
-...
-spec:
-  groups:
-    - rules:
-        - labels:
-            severity: warning | critical
-            vendor: aspecta
-            team: platform
-```
+## Secrets
+
+Do not commit secrets to git. Store in a  secret store (e.g., Vault) and reference using ExternalSecrets of External Secret Operator. them in the conf repo.
+
+If secrets can be generated, prefer generating them dynamically over static secrets. For this PushSecret CR can be used.
 
 ## Things to avoid
 
 - **Extra objects / extraManifests** — do not implement for APC charts; keep complexity in the chart, not in the config repo.
 - **Helm lookup** — makes deployment non-deterministic; incompatible with rendered-manifest GitOps. Use Kyverno or Crossplane instead.
+- **Hardcoding `fullnameOverride`** in chart defaults — if legacy resources require a specific name, configure it in the conf repo.
+- **Committing** — developer-local files must not be checked in.
+- **Duplicating code from other repositories** in a chart — keep it DRY; reference the other chart as a dependency instead.
 
 ## URLs
 

@@ -1,0 +1,18 @@
+{{- $clusterName := include "cluster-instance-hcp.clusterName" . }}
+apiVersion: cluster.open-cluster-management.io/v1
+kind: ManagedCluster
+metadata:
+  name: {{ $clusterName }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+    import.open-cluster-management.io/hosting-cluster-name: local-cluster
+    import.open-cluster-management.io/klusterlet-deploy-mode: Hosted
+    open-cluster-management/created-via: hypershift
+  labels:
+    {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
+    cloud: BareMetal
+    vendor: OpenShift
+    name: {{ $clusterName }}
+    cluster.open-cluster-management.io/clusterset: {{ .Values.clusterSet | quote }}
+spec:
+  hubAcceptsClient: true

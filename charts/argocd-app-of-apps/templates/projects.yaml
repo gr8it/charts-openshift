@@ -11,12 +11,9 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
   {{- end }}
-
-  {{- if $project.annotations }}
+  {{- with $project.annotations }}
   annotations:
-    {{- with $project.annotations }}
       {{- toYaml . | nindent 4 }}
-    {{- end }}
   {{- end }}
 spec:
   {{- if $project.extraFields }}

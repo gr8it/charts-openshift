@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: cluster-instance-hcp optional CA bundles
+templates:
+  - templates/configmap-registry-ca-bundle.yaml
+  - templates/configmap-user-ca-bundle.yaml
+values:
+  - ../values.lint.yaml
+release:
+  name: cluster-instance-hcp
+  namespace: mycluster
+
+tests:
+  - it: should omit registry CA ConfigMap when image proxy has no custom CA bundle
+    template: templates/configmap-registry-ca-bundle.yaml
+    set:
+      global.apc.imageProxy.host: my-registry.example.com
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should omit user CA ConfigMap when no custom CA bundle is configured
+    template: templates/configmap-user-ca-bundle.yaml
+    asserts:
+      - hasDocuments:
+          count: 0

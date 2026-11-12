@@ -13,7 +13,7 @@ manifest should match snapshot:
             preferredUsername:
               - sAMAccountName-local
           bindDN: cn=svc-local,dc=local,dc=com
-          insecure: true
+          insecure: false
           url: ldaps://ad-local.example.com/dc=local,dc=com
         mappingMethod: claim
         name: AD Login local
@@ -87,6 +87,14 @@ manifest should match snapshot:
       customerName: customerName-local
       environment: environment-local
       environmentShort: environmentShort-local
+      identityProviders:
+        - ldap:
+            bindPassword:
+              name: local-ldap-bind-secret
+            url: ldaps://ldap-local.example.com/dc=local,dc=com?uid
+          mappingMethod: claim
+          name: Local LDAP
+          type: LDAP
       imageProxyHost: local.example.com
       imageProxySources:
         - quay.io-local
@@ -102,7 +110,7 @@ manifest should match snapshot:
             preferredUsername:
               - uid-local
           bindDN: cn=svc-local,dc=local,dc=com
-          insecure: true
+          insecure: false
           url: ldaps://ldap-local.example.com/dc=local,dc=com
         mappingMethod: claim
         name: LDAP Login local
@@ -193,11 +201,11 @@ manifest should match snapshot:
           name: vaultName-local
           url: vaultUrl-local
       sshAuthorizedKeys:
-        - ssh-ed25519 AAAA local1-key
-        - ssh-ed25519 AAAA local2-key
+        - ssh-ed25519 AAAA local-key
+        - ssh-ed25519 BBBB local-key
       sshAuthorizedKeysArray:
-        - ssh-ed25519 AAAA local1-key
-        - ssh-ed25519 AAAA local2-key
-      sshAuthorizedKeysBundle: |
-        ssh-ed25519 AAAA local1-key
-        ssh-ed25519 AAAA local2-key
+        - ssh-ed25519 AAAA local-key
+        - ssh-ed25519 BBBB local-key
+      sshAuthorizedKeysBundle: |-
+        ssh-ed25519 AAAA local-key
+        ssh-ed25519 BBBB local-key
