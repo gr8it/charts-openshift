@@ -36,3 +36,12 @@ tests:
     asserts:
       - hasDocuments:
           count: 0
+
+  - it: should omit the shared CA bundle when providers have no custom certificates
+    set:
+      global.apc.identityProviders:
+        - name: Example LDAP
+          type: LDAP
+    asserts:
+      - hasDocuments:
+          count: 0

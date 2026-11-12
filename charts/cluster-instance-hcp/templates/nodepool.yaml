@@ -13,7 +13,9 @@ metadata:
 spec:
   clusterName: {{ $clusterName }}
   config:
+    {{- if (include "apc-global-overrides.ntpServers" . | fromYamlArray) }}
     - name: machineconfig-chrony
+    {{- end }}
     - name: machineconfig-logind
     - name: kubeletconfig-worker
     {{- if $imageProxyHost }}

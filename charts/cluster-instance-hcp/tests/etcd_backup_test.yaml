@@ -107,6 +107,22 @@ tests:
       - hasDocuments:
           count: 1
 
+  - it: should alert for old successes and for missing or never-created success series
+    template: templates/etcd-backup-prometheusrule.yaml
+    set:
+      clusterName: mycluster
+      etcd.backup.enabled: true
+    asserts:
+      - matchRegex:
+          path: spec.groups[0].rules[1].expr
+          pattern: 'kube_cronjob_status_last_successful_time\{namespace="mycluster", cronjob="etcd-hcp-backup-mycluster"\}'
+      - matchRegex:
+          path: spec.groups[0].rules[1].expr
+          pattern: 'kube_cronjob_created\{namespace="mycluster", cronjob="etcd-hcp-backup-mycluster"\}'
+      - matchRegex:
+          path: spec.groups[0].rules[1].expr
+          pattern: 'absent\(kube_cronjob_status_last_successful_time\{namespace="mycluster", cronjob="etcd-hcp-backup-mycluster"\}\)'
+
   - it: should not create etcd backup resources when disabled
     template: templates/etcd-backup-cronjob.yaml
     set:

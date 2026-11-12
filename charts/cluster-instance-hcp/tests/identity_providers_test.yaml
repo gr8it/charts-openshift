@@ -41,12 +41,10 @@ tests:
       - equal:
           path: spec.configuration.oauth.identityProviders[0].ldap.bindPassword.name
           value: ldap-bind-secret
-      - equal:
+      - notExists:
           path: spec.configuration.oauth.identityProviders[0].ldap.ca.name
-          value: oauth-idp-ca-bundle
-      - equal:
+      - notExists:
           path: spec.configuration.oauth.identityProviders[1].ldap.ca.name
-          value: oauth-idp-ca-bundle
       - equal:
           path: spec.configuration.oauth.identityProviders[1].name
           value: Example Active Directory
@@ -73,9 +71,8 @@ tests:
       - equal:
           path: spec.configuration.oauth.identityProviders[2].openID.issuer
           value: https://login.microsoftonline.com/example-tenant-id/v2.0
-      - equal:
+      - notExists:
           path: spec.configuration.oauth.identityProviders[2].openID.ca.name
-          value: oauth-idp-ca-bundle
       - equal:
           path: spec.configuration.oauth.identityProviders[2].openID.extraScopes
           value:
@@ -85,3 +82,35 @@ tests:
           path: spec.configuration.oauth.identityProviders[2].openID.claims.preferredUsername
           value:
             - preferred_username
+
+  - it: should reference the shared CA bundle for LDAP and OpenID providers when certificates are configured
+    set:
+      clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+      global.apc.identityProviders:
+        - name: Example LDAP
+          type: LDAP
+          ldap:
+            url: ldaps://ldap.example.com/dc=example,dc=com?uid
+            bindDN: cn=ldap-service,dc=example,dc=com
+        - name: Example OpenID
+          type: OpenID
+          openID:
+            clientID: example-client-id
+            issuer: https://issuer.example.com
+      global.apc.caCertificates:
+        root-ca.crt: |
+          -----BEGIN CERTIFICATE-----
+          example
+          -----END CERTIFICATE-----
+    asserts:
+      - equal:
+          path: spec.configuration.oauth.identityProviders[0].ldap.ca.name
+          value: oauth-idp-ca-bundle
+      - equal:
+          path: spec.configuration.oauth.identityProviders[1].openID.ca.name
+          value: oauth-idp-ca-bundle

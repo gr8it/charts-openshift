@@ -24,10 +24,10 @@ Deploys a HyperShift Hosted Control Plane (HCP) cluster on an ACM hub cluster. C
 ## HostedCluster and NodePool upgrades
 
 1. The HostedCluster syncs at wave 0.
-2. The release-check Job runs as a `Sync` hook at wave 5. If the NodePool does not yet exist, it allows initial installation to proceed. Otherwise, it waits until the HostedCluster reports the NodePool's requested `xx.yy.zz` version as desired and completed, its history image matches its desired image, and its `Available` condition has observed the current generation.
+2. The release-check Job runs as a `Sync` hook at wave 5. If the NodePool does not yet exist, it allows initial installation to proceed. Otherwise, it waits until the HostedCluster's requested `releaseImage` version is desired and completed, its history image matches its desired image, and its `Available` condition has observed the current generation.
 3. If the check succeeds, Argo CD applies the NodePool at wave 10.
 
-The release-check Job provides the upgrade gate. Set `releaseImage` and `nodePool.releaseImage` to the target release, then sync.
+The release-check Job provides the upgrade gate. To upgrade, first set `releaseImage` to the target and keep `nodePool.releaseImage` at the current worker version; sync and wait for the HostedCluster upgrade to complete. Then set `nodePool.releaseImage` to the target and sync again.
 
 ## Values
 
@@ -93,17 +93,17 @@ Deprecated. Legacy LDAP configuration is no longer used by the HostedCluster OAu
 
 ### `identityProviders`
 
-Configures the HostedCluster OAuth identity providers using OpenShift OAuth provider entries. LDAP entries receive the same default attribute mappings as the `cluster-config-standalone` OAuth template. When identity providers are configured, the chart creates an `oauth-idp-ca-bundle` ConfigMap from `global.apc.caCertificates`; LDAP and OpenID providers reference this shared bundle.
+Configures the HostedCluster OAuth identity providers using OpenShift OAuth provider entries. LDAP entries receive the same default attribute mappings as the `cluster-config-standalone` OAuth template. When identity providers and `global.apc.caCertificates` are configured, the chart creates an `oauth-idp-ca-bundle` ConfigMap and LDAP/OpenID providers reference it. Without custom certificates, these providers use system trust.
 
 Creates an ExternalSecret for each identity-provider secret reference supported by `cluster-config-standalone`. Secrets are retained when the ExternalSecret is removed.
 
 ### Image registry mirroring
 
-Enabled when `global.apc.imageProxy.host` is set. Creates `registry-ca-bundle` ConfigMap and `machineconfig-mirror-registries`. Adds `imageContentSources` to the HostedCluster.
+Enabled when `global.apc.imageProxy.host` is set. Creates `machineconfig-mirror-registries` and adds `imageContentSources` to the HostedCluster. When custom CA certificates are configured, also creates and references the `registry-ca-bundle` ConfigMap.
 
 ### Proxy
 
-Enabled when `global.apc.proxy` is set. Creates `user-ca-bundle` ConfigMap from `global.apc.caCertificates`. Configures proxy settings in the HostedCluster.
+Enabled when `global.apc.proxy` is set. Configures proxy settings in the HostedCluster. When custom CA certificates are configured, also creates and references the `user-ca-bundle` ConfigMap.
 
 ### `kubeletConfig`
 

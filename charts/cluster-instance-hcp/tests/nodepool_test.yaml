@@ -49,6 +49,16 @@ tests:
           content:
             name: machineconfig-mirror-registries
 
+  - it: should omit the chrony machineconfig reference when NTP servers are empty
+    set:
+      clusterName: mycluster
+      global.apc.ntpServers: []
+    asserts:
+      - notContains:
+          path: spec.config
+          content:
+            name: machineconfig-chrony
+
   - it: should include mirror-registries machineconfig when imageProxy.host is set in global
     set:
       clusterName: mycluster

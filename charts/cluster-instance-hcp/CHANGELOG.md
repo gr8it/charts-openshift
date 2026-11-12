@@ -1,6 +1,16 @@
 All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.20] - 2026-11-12
+
+### Fixed
+
+- Omit identity-provider and proxy CA references when no custom CA certificates are configured.
+- Correctly map identity-provider credential references into ExternalSecrets.
+- Set force-upgrade-to to the configured release image and gate worker upgrades on control-plane release completion.
+- Make optional NTP machine configuration and etcd backup alerts resilient to absent configuration or metrics.
+- Allow chart-specific identity-provider overrides in values validation.
+
 ## [2.0.19] - 2026-11-10
 
 ### Fixed

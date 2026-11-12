@@ -78,7 +78,8 @@ helm.sh/chart: {{ include "cluster-instance-hcp.chart" . }}
 Returns an OAuth identity provider in the OpenShift API format.
 */}}
 {{- define "cluster-instance-hcp.identityProvider" -}}
-{{- $provider := . -}}
+{{- $provider := .provider -}}
+{{- $caCertificatesBundle := .caCertificatesBundle -}}
 {{- if eq $provider.type "LDAP" -}}
 {{- $ldap := $provider.ldap -}}
 {{- $attributes := $ldap.attributes | default dict -}}
@@ -91,15 +92,19 @@ Returns an OAuth identity provider in the OpenShift API format.
   "bindDN" $ldap.bindDN
   "insecure" ($ldap.insecure | default false)
   "url" $ldap.url
-  "ca" (dict "name" "oauth-idp-ca-bundle")
 -}}
+{{- if $caCertificatesBundle -}}
+{{- $_ := set $ldapConfig "ca" (dict "name" "oauth-idp-ca-bundle") -}}
+{{- end -}}
 {{- with $ldap.bindPassword -}}
 {{- $_ := set $ldapConfig "bindPassword" . -}}
 {{- end -}}
 {{- dict "name" $provider.name "type" $provider.type "mappingMethod" $provider.mappingMethod "ldap" $ldapConfig | toYaml -}}
 {{- else if eq $provider.type "OpenID" -}}
 {{- $openID := deepCopy ($provider.openID | default dict) -}}
+{{- if $caCertificatesBundle -}}
 {{- $_ := set $openID "ca" (dict "name" "oauth-idp-ca-bundle") -}}
+{{- end -}}
 {{- $_ := set $provider "openID" $openID -}}
 {{- toYaml $provider -}}
 {{- else -}}

@@ -36,7 +36,7 @@ spec:
               - oauth.{{ $clusterName }}.{{ $rootDomain }}
             servingCertificate:
               name: kube-apiserver-cert
-    {{- if $imageProxyHost }}
+    {{- if and $imageProxyHost $caCertificatesBundle }}
     image:
       additionalTrustedCA:
         name: registry-ca-bundle
@@ -45,7 +45,7 @@ spec:
     oauth:
       identityProviders:
         {{- range $identityProvider := $identityProviders }}
-        - {{ include "cluster-instance-hcp.identityProvider" $identityProvider | fromYaml | toYaml | indent 10 | trim }}
+        - {{ include "cluster-instance-hcp.identityProvider" (dict "provider" $identityProvider "caCertificatesBundle" $caCertificatesBundle) | fromYaml | toYaml | indent 10 | trim }}
         {{- end }}
     {{- end }}
     {{- if $proxy }}
@@ -53,8 +53,10 @@ spec:
       httpProxy: {{ $proxy | quote }}
       httpsProxy: {{ $proxy | quote }}
       noProxy: {{ include "apc-global-overrides.noProxy" . | quote }}
+      {{- if $caCertificatesBundle }}
       trustedCA:
         name: user-ca-bundle
+      {{- end }}
     {{- end }}
   {{- if $imageProxySources }}
   imageContentSources:

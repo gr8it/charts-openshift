@@ -9,7 +9,7 @@ release:
   namespace: mycluster
 
 tests:
-  - it: should check the requested NodePool release after the HostedCluster syncs
+  - it: should check the requested HostedCluster release before upgrading the NodePool
     set:
       clusterName: mycluster
       releaseImage: quay.io/openshift-release-dev/ocp-release:4.20.11-multi
@@ -26,7 +26,7 @@ tests:
           value: "5"
       - equal:
           path: spec.template.spec.containers[0].env[2].value
-          value: "4.19.10"
+          value: "4.20.11"
       - matchRegex:
           path: spec.template.spec.containers[0].args[0]
           pattern: 'history_state.*Completed'

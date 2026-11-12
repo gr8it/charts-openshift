@@ -36,6 +36,23 @@ tests:
       - equal:
           path: metadata.annotations["argocd.argoproj.io/ignore-healthcheck"]
           value: "true"
+      - equal:
+          path: metadata.annotations["hypershift.openshift.io/force-upgrade-to"]
+          value: quay.io/openshift-release-dev/ocp-release:4.18.41-multi
+
+  - it: should set force-upgrade-to to the configured releaseImage
+    set:
+      clusterName: mycluster
+      releaseImage: quay.io/openshift-release-dev/ocp-release:4.20.11-multi
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+    asserts:
+      - equal:
+          path: metadata.annotations["hypershift.openshift.io/force-upgrade-to"]
+          value: quay.io/openshift-release-dev/ocp-release:4.20.11-multi
 
   - it: should use a custom update channel when set
     set:
@@ -174,6 +191,11 @@ tests:
         oidcPort: 30101
       global.apc.proxy: http://proxy.example.com:8080
       global.apc.noProxy: .example.com,.svc
+      global.apc.caCertificates:
+        root-ca.crt: |
+          -----BEGIN CERTIFICATE-----
+          example
+          -----END CERTIFICATE-----
     asserts:
       - equal:
           path: spec.configuration.proxy.httpProxy
@@ -181,6 +203,26 @@ tests:
       - equal:
           path: spec.configuration.proxy.trustedCA.name
           value: user-ca-bundle
+
+  - it: should omit proxy trustedCA when no custom CA bundle is configured
+    set:
+      clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+      global.apc.proxy: http://proxy.example.com:8080
+      global.apc.noProxy: .example.com,.svc
+    asserts:
+      - equal:
+          path: spec.configuration.proxy.httpProxy
+          value: http://proxy.example.com:8080
+      - equal:
+          path: spec.configuration.proxy.httpsProxy
+          value: http://proxy.example.com:8080
+      - notExists:
+          path: spec.configuration.proxy.trustedCA
 
   - it: should include CA bundle reference when configured
     set:
@@ -258,9 +300,38 @@ tests:
       - notExists:
           path: spec.configuration.image
 
+  - it: should omit image additionalTrustedCA when mirror host has no custom CA bundle
+    set:
+      clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+      global.apc.imageProxy.host: my-registry.example.com
+    asserts:
+      - notExists:
+          path: spec.configuration.image.additionalTrustedCA
+
   - it: should omit oauth configuration when identityProviders is empty
     set:
       clusterName: mycluster
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+    asserts:
+      - notExists:
+          path: spec.configuration.oauth
+
+  - it: should allow an explicit empty identityProviders list to disable global providers
+    set:
+      clusterName: mycluster
+      identityProviders: []
+      global.apc.identityProviders:
+        - name: Example LDAP
+          type: LDAP
       services:
         oauthPort: 30102
         konnectivityPort: 30103

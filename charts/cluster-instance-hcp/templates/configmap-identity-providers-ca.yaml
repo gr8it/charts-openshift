@@ -1,5 +1,6 @@
 {{- $identityProviders := (include "apc-global-overrides.identityProviders" .) | fromYamlArray }}
-{{- if $identityProviders }}
+{{- $caCertificatesBundle := include "apc-global-overrides.caCertificatesBundle" . }}
+{{- if and $identityProviders $caCertificatesBundle }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -9,5 +10,5 @@ metadata:
     {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
 data:
   ca.crt: |
-    {{- include "apc-global-overrides.caCertificatesBundle" . | nindent 4 }}
+    {{- $caCertificatesBundle | nindent 4 }}
 {{- end }}
