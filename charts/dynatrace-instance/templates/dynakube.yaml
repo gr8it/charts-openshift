@@ -18,12 +18,16 @@ spec:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   oneAgent:
-    hostGroup: {{ .Values.hostGroup | default (printf "os-%s" (include "apc-global-overrides.clusterName" . | default .Release.Name)) | quote }}
+    hostGroup: {{ .Values.hostGroup | default (include "apc-global-overrides.clusterName" . | default .Release.Name) | quote }}
     applicationMonitoring:
       namespaceSelector:
         matchLabels:
           apc.namespace.telemetry: external-dynatrace
   {{- with .Values.activeGate }}
   activeGate:
-    {{- toYaml . | nindent 4 }}
+    capabilities:
+      {{- toYaml .capabilities | nindent 6 }}
+    resources:
+      {{- toYaml .resources | nindent 6 }}
+    group: {{ .group | default (printf "os-%s" (include "apc-global-overrides.clusterName" $ | default $.Release.Name)) | quote }}
   {{- end }}
