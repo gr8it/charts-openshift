@@ -52,9 +52,10 @@ identityProviders:
 adIntegration:
   name: AD Login local
   ldap:
+    bindDN: "cn=svc-local,dc=local,dc=com"
+    url: "ldaps://ad-local.example.com/dc=local,dc=com"
+    insecure: false
     attributes:
-      bindDN: "cn=svc-local,dc=local,dc=com"
-      url: "ldaps://ad-local.example.com/dc=local,dc=com"
       email:
         - mail-local
       id:
@@ -66,9 +67,10 @@ adIntegration:
 ldapIntegration:
   name: LDAP Login local
   ldap:
+    bindDN: "cn=svc-local,dc=local,dc=com"
+    url: "ldaps://ldap-local.example.com/dc=local,dc=com"
+    insecure: false
     attributes:
-      bindDN: "cn=svc-local,dc=local,dc=com"
-      url: "ldaps://ldap-local.example.com/dc=local,dc=com"
       email:
         - mail-local
       id:

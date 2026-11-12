@@ -121,14 +121,21 @@ tests:
         type: LDAP
         mappingMethod: claim
         ldap:
-          attributes:
-            url: "ad-merged.example.com"
+          url: "ad-merged.example.com"
     asserts:
       - equal: { path: data.adIntegration.name, value: "" }
       - equal: { path: data.adIntegration.type, value: "LDAP" }
       - equal: { path: data.adIntegration.mappingMethod, value: "claim" }
-      - equal: { path: data.adIntegration.ldap.attributes.bindDN, value: "" }
-      - equal: { path: data.adIntegration.ldap.attributes.url, value: "ad-merged.example.com" }
+      - equal: { path: data.adIntegration.ldap.bindDN, value: "" }
+      - equal: { path: data.adIntegration.ldap.insecure, value: false }
+      - equal: { path: data.adIntegration.ldap.url, value: "ad-merged.example.com" }
+      - equal:
+          path: data.adIntegration.ldap.attributes
+          value:
+            email: ["mail"]
+            id: ["sAMAccountName"]
+            name: ["cn"]
+            preferredUsername: ["sAMAccountName"]
       - equal:
           path: data.adIntegration.ldap.attributes.email
           value:
@@ -156,14 +163,21 @@ tests:
         type: LDAP
         mappingMethod: claim
         ldap:
-          attributes:
-            url: "ldap-merged.example.com"
+          url: "ldap-merged.example.com"
     asserts:
       - equal: { path: data.ldapIntegration.name, value: "" }
       - equal: { path: data.ldapIntegration.type, value: "LDAP" }
       - equal: { path: data.ldapIntegration.mappingMethod, value: "claim" }
-      - equal: { path: data.ldapIntegration.ldap.attributes.bindDN, value: "" }
-      - equal: { path: data.ldapIntegration.ldap.attributes.url, value: "ldap-merged.example.com" }
+      - equal: { path: data.ldapIntegration.ldap.bindDN, value: "" }
+      - equal: { path: data.ldapIntegration.ldap.insecure, value: false }
+      - equal: { path: data.ldapIntegration.ldap.url, value: "ldap-merged.example.com" }
+      - equal:
+          path: data.ldapIntegration.ldap.attributes
+          value:
+            email: ["mail"]
+            id: ["dn"]
+            name: ["cn"]
+            preferredUsername: ["uid"]
       - equal:
           path: data.ldapIntegration.ldap.attributes.email
           value:

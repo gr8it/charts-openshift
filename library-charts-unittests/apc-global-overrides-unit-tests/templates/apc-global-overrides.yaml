@@ -102,11 +102,11 @@ data:
   {{- end }}
   identityProviders:
     {{- include "apc-global-overrides.identityProviders" . | nindent 4 }}
-  {{- if ((((include "apc-global-overrides.adIntegration" .) | fromYaml).ldap).attributes).url }}
+  {{- if (((include "apc-global-overrides.adIntegration" .) | fromYaml).ldap).url }}
   adIntegration:
     {{- (include "apc-global-overrides.adIntegration" .) | nindent 4 }}
   {{- end }}
-  {{- if ((((include "apc-global-overrides.ldapIntegration" .) | fromYaml).ldap).attributes).url }}
+  {{- if (((include "apc-global-overrides.ldapIntegration" .) | fromYaml).ldap).url }}
   ldapIntegration:
     {{- (include "apc-global-overrides.ldapIntegration" .) | nindent 4 }}
   {{- end }}

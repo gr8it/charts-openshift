@@ -75,9 +75,10 @@ global:
     adIntegration:
       name: AD Login global
       ldap:
+        bindDN: "cn=svc-global,dc=global,dc=com"
+        url: "ldaps://ad-global.example.com/dc=global,dc=com"
+        insecure: false
         attributes:
-          bindDN: "cn=svc-global,dc=global,dc=com"
-          url: "ldaps://ad-global.example.com/dc=global,dc=com"
           email:
             - mail-global
           id:
@@ -89,9 +90,10 @@ global:
     ldapIntegration:
       name: LDAP Login global
       ldap:
+        bindDN: "cn=svc-global,dc=global,dc=com"
+        url: "ldaps://ldap-global.example.com/dc=global,dc=com"
+        insecure: false
         attributes:
-          bindDN: "cn=svc-global,dc=global,dc=com"
-          url: "ldaps://ldap-global.example.com/dc=global,dc=com"
           email:
             - mail-global
           id:

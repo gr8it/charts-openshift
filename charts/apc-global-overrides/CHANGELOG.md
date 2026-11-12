@@ -5,6 +5,12 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-11-12
+
+### Fixed
+
+- Keep LDAP connection settings outside the attribute mappings in the deprecated integration helpers
+
 ## [2.0.0] - 2026-10-15
 
 ### Changed
@@ -61,7 +67,7 @@ _([SPEXAPC-7592](https://example.atlassian.net/browse/SPEXAPC-7592))_
 
 _([SPEXAPC-8916](https://aspecta.atlassian.net/browse/SPEXAPC-8916))_
 
-### Added 
+### Added
 
 - `apc-global-overrides.metallbL2Interface` helper
 - `apc-global-overrides.metallbL2Interface` helper

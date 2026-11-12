@@ -124,8 +124,9 @@ tests:
       - equal: { path: data.adIntegration.name, value: "AD Login local" }
       - equal: { path: data.adIntegration.type, value: "LDAP" }
       - equal: { path: data.adIntegration.mappingMethod, value: "claim" }
-      - equal: { path: data.adIntegration.ldap.attributes.bindDN, value: "cn=svc-local,dc=local,dc=com" }
-      - equal: { path: data.adIntegration.ldap.attributes.url, value: "ldaps://ad-local.example.com/dc=local,dc=com" }
+      - equal: { path: data.adIntegration.ldap.bindDN, value: "cn=svc-local,dc=local,dc=com" }
+      - equal: { path: data.adIntegration.ldap.url, value: "ldaps://ad-local.example.com/dc=local,dc=com" }
+      - equal: { path: data.adIntegration.ldap.insecure, value: false }
       - equal:
           path: data.adIntegration.ldap.attributes.email
           value:
@@ -148,8 +149,9 @@ tests:
       - equal: { path: data.ldapIntegration.name, value: "LDAP Login local" }
       - equal: { path: data.ldapIntegration.type, value: "LDAP" }
       - equal: { path: data.ldapIntegration.mappingMethod, value: "claim" }
-      - equal: { path: data.ldapIntegration.ldap.attributes.bindDN, value: "cn=svc-local,dc=local,dc=com" }
-      - equal: { path: data.ldapIntegration.ldap.attributes.url, value: "ldaps://ldap-local.example.com/dc=local,dc=com" }
+      - equal: { path: data.ldapIntegration.ldap.bindDN, value: "cn=svc-local,dc=local,dc=com" }
+      - equal: { path: data.ldapIntegration.ldap.url, value: "ldaps://ldap-local.example.com/dc=local,dc=com" }
+      - equal: { path: data.ldapIntegration.ldap.insecure, value: false }
       - equal:
           path: data.ldapIntegration.ldap.attributes.email
           value:
