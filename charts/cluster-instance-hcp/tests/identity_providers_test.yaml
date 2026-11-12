@@ -83,6 +83,19 @@ tests:
           value:
             - preferred_username
 
+  - it: should allow an empty local list to override global identity providers
+    set:
+      clusterName: mycluster
+      identityProviders: []
+      services:
+        oauthPort: 30102
+        konnectivityPort: 30103
+        ignitionPort: 30104
+        oidcPort: 30101
+    asserts:
+      - notExists:
+          path: spec.configuration.oauth
+
   - it: should reference the shared CA bundle for LDAP and OpenID providers when certificates are configured
     set:
       clusterName: mycluster
