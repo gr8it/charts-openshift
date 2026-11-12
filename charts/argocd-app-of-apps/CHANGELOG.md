@@ -2,6 +2,12 @@
 
 All notable changes to this component will be documented in this file.
 
+## [1.2.4] - 2026-11-12
+
+### Changed
+
+- Remove the default AppProject sync-wave annotation.
+
 ## [1.2.3] - 2026-11-11
 
 ### Changed
