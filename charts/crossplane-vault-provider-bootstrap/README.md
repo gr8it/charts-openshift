@@ -68,7 +68,7 @@ vault login #grep token from UI
 
     ```bash
     vault auth list
-    vault auth disable auth/<clustername>
+    vault auth disable <clustername>
     ```
 
 
