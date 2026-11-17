@@ -15,12 +15,7 @@
     },
     "image": {
       "type": "string",
-      "description": "operators-guard container image without a tag (the tag is the chart appVersion).",
-      "minLength": 1
-    },
-    "oauthProxyImage": {
-      "type": "string",
-      "description": "OpenShift oauth-proxy sidecar image in front of the UI Route.",
+      "description": "readiness-engine container image (default tag 0.12.0).",
       "minLength": 1
     },
     "interval": {
@@ -28,29 +23,11 @@
       "description": "Collector interval: hours, minutes and seconds in this order, each at most once (e.g. 1h, 30m, 1h30m).",
       "pattern": "^([0-9]+h([0-9]+m)?([0-9]+s)?|[0-9]+m([0-9]+s)?|[0-9]+s)$"
     },
-    "resources": {
+    "brief": {
       "type": "object",
-      "description": "Requests and limits of the collector container.",
       "additionalProperties": false,
       "properties": {
-        "requests": {
-          "type": "object",
-          "additionalProperties": {
-            "type": [
-              "string",
-              "number"
-            ]
-          }
-        },
-        "limits": {
-          "type": "object",
-          "additionalProperties": {
-            "type": [
-              "string",
-              "number"
-            ]
-          }
-        }
+        "enabled": {"type": "boolean", "description": "Write an offline work order alongside the cached snapshot."}
       }
     },
     "historyKeep": {
@@ -60,7 +37,7 @@
     },
     "policy": {
       "type": "object",
-      "description": "Readiness policy passed to the engine unchanged. Only strategy is validated here.",
+      "description": "Readiness policy passed unchanged; workflow and brief scope are validated by the engine too.",
       "additionalProperties": true,
       "properties": {
         "strategy": {
@@ -106,6 +83,100 @@
           "type": ["string", "null"],
           "minLength": 1,
           "description": "Owner for packages without a mapping or exception (default: unassigned)."
+        },
+        "workflow": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "chartsRepo": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "\\S"
+                },
+                "remote": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "\\S"
+                },
+                "baseBranch": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "\\S",
+                  "default": "main"
+                }
+              }
+            },
+            "confRepos": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "\\S"
+                  },
+                  "clusters": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "\\S"
+                    }
+                  },
+                  "envs": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "\\S"
+                    },
+                    "additionalProperties": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "\\S"
+                    }
+                  }
+                }
+              }
+            },
+            "ticketPrefix": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "push": {
+              "type": "string",
+              "enum": [
+                "ask",
+                "allowed"
+              ],
+              "default": "ask"
+            }
+          },
+          "description": "Optional work-order destinations; missing fields require user answers. Cluster sets must be disjoint (checked by engine)."
+        },
+        "brief": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "excludeClusters": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              },
+              "description": "Exclude targets and gates only; known installed CSVs remain in work-order versions. Unknown names fail generation."
+            }
+          }
         }
       }
     },
@@ -158,34 +229,9 @@
         "type": "string"
       }
     },
-    "proxy": {
-      "type": [
-        "string",
-        "null"
-      ],
-      "description": "Local override of global.apc.proxy."
-    },
-    "noProxy": {
-      "type": [
-        "string",
-        "null"
-      ],
-      "description": "Local override of global.apc.noProxy."
-    },
-    "proxyCIDRs": {
-      "type": [
-        "array",
-        "null"
-      ],
-      "description": "Local override of global.apc.proxyCIDRs.",
-      "items": {
-        "type": "string",
-        "minLength": 1
-      }
-    },
     "apc-global-overrides": {
       "type": "object",
-      "description": "Values of the apc-global-overrides library dependency."
+      "description": "Values for the apc-global-overrides library dependency."
     }
   }
 }

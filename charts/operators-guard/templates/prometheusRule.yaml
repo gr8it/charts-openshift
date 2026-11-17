@@ -1,4 +1,7 @@
 ---
+# operator_upgrade_readiness{cluster,namespace,package,installed,channel,source,scope,target_ocp,evidence,status,owner} 1
+#   scope="current" - is the installed version supported on the running OCP minor today
+#   scope="target"  - result for the target T computed from the upgrade graph and policy
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -34,6 +37,7 @@ spec:
           owner: "{{`{{ $labels.owner }}`}}"
           summary: "Operator blocks the OpenShift upgrade"
           description: "{{`{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }} blocks upgrade to OCP {{ $labels.target_ocp }} (evidence: {{ $labels.evidence }}).`}}"
+      # drift: operator_drift_status{status} - see engine/README.md; thresholds come from policy.drift / policy.minVersions
       - alert: OperatorSupportEnded
         expr: operator_drift_status{status="SUPPORT-ENDED"} == 1
         for: 24h
@@ -149,6 +153,8 @@ spec:
         annotations:
           summary: "Operator readiness data is stale"
           description: "readiness-engine in {{ .Release.Namespace }} has not completed a successful collect for more than {{ div (include "operators-guard.staleSeconds" . | int) 3600 }} hours (three collect intervals, at least 3); readiness results and the CI snapshot are outdated."
+      # the pod is not ready (and not scraped) until the first successful collect,
+      # so a collector that never succeeds shows up only as missing data
       - alert: OperatorReadinessNoData
         expr: absent(readiness_engine_last_success_timestamp_seconds{namespace="{{ .Release.Namespace }}"})
         for: 30m
