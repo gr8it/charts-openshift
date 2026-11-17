@@ -1,0 +1,13 @@
+{{- $policy := .Values.policy | default dict -}}
+{{- $_ := required "policy.strategy is required" $policy.strategy -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "operators-guard.name" . }}-policy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "operators-guard.labels" . | nindent 4 }}
+data:
+  policy.yaml: |
+    {{- toYaml $policy | nindent 4 }}

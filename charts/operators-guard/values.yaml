@@ -1,0 +1,46 @@
+## uses following global values => do not set here
+# global:
+#   apc:
+#     proxy:
+#     noProxy:
+#     proxyCIDRs:
+
+# image: <string> - readiness-engine container image (ghcr.io is private: mirror it to a registry the cluster can pull from)
+image: ghcr.io/gr8it/operators-guard:0.12.0
+# imagePullSecrets: <list> - names of existing kubernetes.io/dockerconfigjson Secrets used to pull the image
+imagePullSecrets: []
+# nodeSelector: <object> - optional pod nodeSelector (e.g. to pin the pod to a node that already holds the image)
+nodeSelector: {}
+# interval: <duration> - how often the collector gathers inventory, graph, catalogs and Lifecycle API data
+interval: 1h
+# historyKeep: <integer> - local report copies retained in the cache (0 disables; emptyDir is lost on pod restart)
+historyKeep: 24
+
+# policy: <object> - mandatory, readiness policy rendered as-is into ConfigMap
+#   strategy (required) eus | next-minor | pinned
+#   lockstep, graph.conditionalRisks, unsupportedWindow.allow, exceptions, lifecycleProducts, catalogSources,
+#   helmOperators are used by the engine
+#   minVersions (package -> minimum installed version), drift.maxDaysBehind / drift.supportWarnDays
+#   owners (package -> owner) and defaultOwner (default: unassigned) label operator and drift results
+#   workflow: chartsRepo {path, remote, baseBranch: main}, confRepos [{path, clusters, envs}],
+#   ticketPrefix and push (ask | allowed); brief.excludeClusters defaults to []
+#   are work-order settings only; supply destination data at runtime, never commit it here
+#   (see the engine README linked from this chart's README); other keys are passed unchanged
+policy: {}
+
+snapshot:
+  # repository: <string> - optional, OCI repository in hub Quay where the snapshot is pushed (consumed by conf repo CI);
+  #   without it nothing is pushed and the snapshot stays in the pod cache
+  repository: ~
+  # pushSecret: <string> - mandatory when repository is set, existing kubernetes.io/dockerconfigjson Secret with Quay robot push credentials
+  pushSecret: ~
+
+grafanaDashboard:
+  # enabled: <bool> - creates GrafanaDashboard CR for grafana-operator
+  enabled: true
+  # instanceName: <string> - value of the `dashboards` label on the Grafana instance
+  instanceName: apc-grafana
+
+brief:
+  # enabled: <bool> - write brief.md and pins.yaml to /var/cache/readiness/brief after collection
+  enabled: false

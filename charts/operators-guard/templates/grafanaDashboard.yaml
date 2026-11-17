@@ -1,0 +1,17 @@
+{{- if .Values.grafanaDashboard.enabled }}
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: {{ include "operators-guard.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "operators-guard.labels" . | nindent 4 }}
+spec:
+  allowCrossNamespaceImport: true
+  instanceSelector:
+    matchLabels:
+      dashboards: {{ .Values.grafanaDashboard.instanceName }}
+  json: |
+    {{- .Files.Get "dashboards/operators-guard.json" | replace "\"value\": 10800" (printf "\"value\": %s" (include "operators-guard.staleSeconds" .)) | nindent 4 }}
+{{- end }}
