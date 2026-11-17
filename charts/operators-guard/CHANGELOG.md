@@ -5,13 +5,11 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
-
-- List every in-scope operator row in work orders, with its action and report reason.
-- Keep sound cluster pins when another cluster lacks evidence, and mark those pins partial.
-
 ## [0.11.0] - 2026-11-11
 
+- **Breaking:** remove the Route, oauth-proxy sidecar and OAuth cookie Secret; reports are reachable only through a pod port-forward.
+  Argo CD prunes the old Route, ExternalSecret and Password generator only when pruning is enabled.
+- **Breaking:** remove the `proxy` value; the chart reads `global.apc.proxy`, `global.apc.noProxy` and `global.apc.proxyCIDRs`.
 - Pin engine 0.12.0 with catalog channel options in the report and work order.
 - Keep chart pins on the subscribed channel until a user chooses a switch.
 - Use cluster proxy settings and scrape metrics every minute.
