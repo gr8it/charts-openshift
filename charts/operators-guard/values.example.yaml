@@ -1,15 +1,15 @@
-global:
-  apc:
-    proxy: http://proxy.example.com:3128
-    noProxy: .example.com
-    proxyCIDRs:
-      - 192.0.2.10/32
-
+image: registry.example.com/apc/readiness-engine:0.12.0  # mirror of ghcr.io/gr8it/operators-guard
 interval: 1h
 historyKeep: 24
 
 policy:
   strategy: eus
+  brief:
+    excludeClusters: []
+  # Supply chartsRepo, confRepos and ticketPrefix at runtime (engine/README.md).
+  # Without destinations, the generated order asks before any edits.
+  workflow:
+    push: ask
   owners:
     openshift-gitops-operator: platform-team
   defaultOwner: unassigned
@@ -31,9 +31,13 @@ policy:
       expires: "2027-03-31"
 
 snapshot:
-  repository: quay-registry.apps.hub01.example.com/apc/operators-guard-snapshot
-  pushSecret: operators-guard-quay-push
+  repository: registry.example.com/apc/operator-readiness-snapshot
+  pushSecret: operator-readiness-quay-push
 
 grafanaDashboard:
   enabled: true
   instanceName: apc-grafana
+
+# Copy /var/cache/readiness/brief from the collector after a successful run.
+brief:
+  enabled: true

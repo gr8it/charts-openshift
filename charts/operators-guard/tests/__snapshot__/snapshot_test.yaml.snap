@@ -7,8 +7,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.9.0
-        helm.sh/chart: operators-guard-0.8.0
+        app.kubernetes.io/version: 0.12.0
+        helm.sh/chart: operators-guard-0.11.0
       name: operators-guard
     rules:
       - apiGroups:
@@ -72,8 +72,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.9.0
-        helm.sh/chart: operators-guard-0.8.0
+        app.kubernetes.io/version: 0.12.0
+        helm.sh/chart: operators-guard-0.11.0
       name: operators-guard
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -82,7 +82,7 @@ manifests should match snapshot:
     subjects:
       - kind: ServiceAccount
         name: operators-guard
-        namespace: apc-operators-guard
+        namespace: apc-operator-readiness
   3: |
     apiVersion: apps/v1
     kind: Deployment
@@ -91,10 +91,10 @@ manifests should match snapshot:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.9.0
-        helm.sh/chart: operators-guard-0.8.0
+        app.kubernetes.io/version: 0.12.0
+        helm.sh/chart: operators-guard-0.11.0
       name: operators-guard
-      namespace: apc-operators-guard
+      namespace: apc-operator-readiness
     spec:
       replicas: 1
       selector:
@@ -106,13 +106,13 @@ manifests should match snapshot:
       template:
         metadata:
           annotations:
-            checksum/policy: 6f00699e36c591f11a9ec4a98eafe59a4ede9af41684c90ed183dbb09b957354
+            checksum/policy: 62d2ce54c7d09c7e0d81cb644ac78459c5dc4b3a58a71ae0c18aa08ee7ab2087
           labels:
             app.kubernetes.io/instance: operators-guard
             app.kubernetes.io/managed-by: Helm
             app.kubernetes.io/name: operators-guard
-            app.kubernetes.io/version: 0.9.0
-            helm.sh/chart: operators-guard-0.8.0
+            app.kubernetes.io/version: 0.12.0
+            helm.sh/chart: operators-guard-0.11.0
         spec:
           containers:
             - args:
@@ -120,25 +120,20 @@ manifests should match snapshot:
                 - --loop
                 - --interval=1h
                 - --policy=/etc/readiness/policy.yaml
-                - --snapshot-repository=quay-registry.apps.hub01.example.com/apc/operators-guard-snapshot
+                - --snapshot-repository=registry.example.com/apc/operator-readiness-snapshot
                 - --cache-dir=/var/cache/readiness
                 - --history-keep=24
+                - --brief-out=/var/cache/readiness/brief
                 - --listen=127.0.0.1:8080
                 - --metrics-listen=:9090
               env:
-                - name: HTTPS_PROXY
-                  value: http://proxy.example.com:3128
-                - name: HTTP_PROXY
-                  value: http://proxy.example.com:3128
-                - name: NO_PROXY
-                  value: .example.com,.svc,.cluster.local,$(KUBERNETES_SERVICE_HOST)
                 - name: SNAPSHOT_AUTH_FILE
                   value: /run/secrets/snapshot-push/.dockerconfigjson
                 - name: SEARCH_API_URL
                   value: https://search-search-api.open-cluster-management.svc:4010/searchapi/graphql
                 - name: SEARCH_API_CA_FILE
                   value: /etc/pki/service-ca/service-ca.crt
-              image: ghcr.io/gr8it/operators-guard:0.9.0
+              image: registry.example.com/apc/readiness-engine:0.12.0
               livenessProbe:
                 httpGet:
                   path: /healthz
@@ -155,11 +150,11 @@ manifests should match snapshot:
                   port: metrics
               resources:
                 limits:
-                  cpu: 500m
-                  memory: 512Mi
+                  cpu: "1"
+                  memory: 2Gi
                 requests:
-                  cpu: 50m
-                  memory: 256Mi
+                  cpu: 200m
+                  memory: 1Gi
               securityContext:
                 allowPrivilegeEscalation: false
                 capabilities:
@@ -180,69 +175,18 @@ manifests should match snapshot:
                   name: cache
                 - mountPath: /tmp
                   name: tmp
-            - args:
-                - --https-address=:8443
-                - --provider=openshift
-                - --openshift-service-account=operators-guard
-                - --openshift-sar={"resource":"*","verb":"*"}
-                - --upstream=http://127.0.0.1:8080
-                - --tls-cert=/etc/tls/private/tls.crt
-                - --tls-key=/etc/tls/private/tls.key
-                - --cookie-secret-file=/etc/proxy/secrets/cookie-secret
-              image: registry.redhat.io/openshift4/ose-oauth-proxy:v4.12.0
-              livenessProbe:
-                httpGet:
-                  path: /oauth/healthz
-                  port: https
-                  scheme: HTTPS
-                periodSeconds: 30
-              name: oauth-proxy
-              ports:
-                - containerPort: 8443
-                  name: https
-                  protocol: TCP
-              readinessProbe:
-                httpGet:
-                  path: /oauth/healthz
-                  port: https
-                  scheme: HTTPS
-              resources:
-                limits:
-                  memory: 128Mi
-                requests:
-                  cpu: 10m
-                  memory: 32Mi
-              securityContext:
-                allowPrivilegeEscalation: false
-                capabilities:
-                  drop:
-                    - ALL
-                readOnlyRootFilesystem: true
-              volumeMounts:
-                - mountPath: /etc/tls/private
-                  name: oauth-tls
-                  readOnly: true
-                - mountPath: /etc/proxy/secrets
-                  name: oauth-cookie
-                  readOnly: true
           securityContext:
             runAsNonRoot: true
             seccompProfile:
               type: RuntimeDefault
           serviceAccountName: operators-guard
           volumes:
-            - name: oauth-tls
-              secret:
-                secretName: operators-guard-tls
-            - name: oauth-cookie
-              secret:
-                secretName: operators-guard-oauth-cookie
             - configMap:
                 name: operators-guard-policy
               name: policy
             - name: snapshot-push
               secret:
-                secretName: operators-guard-quay-push
+                secretName: operator-readiness-quay-push
             - configMap:
                 name: openshift-service-ca.crt
               name: service-ca
@@ -259,10 +203,10 @@ manifests should match snapshot:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.9.0
-        helm.sh/chart: operators-guard-0.8.0
+        app.kubernetes.io/version: 0.12.0
+        helm.sh/chart: operators-guard-0.11.0
       name: operators-guard
-      namespace: apc-operators-guard
+      namespace: apc-operator-readiness
     spec:
       allowCrossNamespaceImport: true
       instanceSelector:
@@ -271,7 +215,7 @@ manifests should match snapshot:
       json: |
         {
           "title": "Operator upgrade readiness",
-          "uid": "operators-guard",
+          "uid": "operator-readiness",
           "schemaVersion": 39,
           "refresh": "5m",
           "time": {
@@ -1056,80 +1000,6 @@ manifests should match snapshot:
           ]
         }
   5: |
-    apiVersion: networking.k8s.io/v1
-    kind: NetworkPolicy
-    metadata:
-      labels:
-        app.kubernetes.io/instance: operators-guard
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.9.0
-        helm.sh/chart: operators-guard-0.8.0
-      name: operators-guard-allow-proxy
-      namespace: apc-operators-guard
-    spec:
-      egress:
-        - to:
-            - ipBlock:
-                cidr: 192.0.2.10/32
-      podSelector:
-        matchLabels:
-          app.kubernetes.io/instance: operators-guard
-          app.kubernetes.io/name: operators-guard
-      policyTypes:
-        - Egress
-  6: |
-    apiVersion: external-secrets.io/v1beta1
-    kind: ExternalSecret
-    metadata:
-      labels:
-        app.kubernetes.io/instance: operators-guard
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.9.0
-        helm.sh/chart: operators-guard-0.8.0
-      name: operators-guard-oauth-cookie
-      namespace: apc-operators-guard
-    spec:
-      dataFrom:
-        - sourceRef:
-            generatorRef:
-              apiVersion: generators.external-secrets.io/v1alpha1
-              kind: Password
-              name: operators-guard-oauth-cookie
-      refreshInterval: "0"
-      target:
-        creationPolicy: Owner
-        name: operators-guard-oauth-cookie
-        template:
-          data:
-            cookie-secret: '{{ .password }}'
-          metadata:
-            labels:
-              app.kubernetes.io/instance: operators-guard
-              app.kubernetes.io/managed-by: Helm
-              app.kubernetes.io/name: operators-guard
-              app.kubernetes.io/version: 0.9.0
-              helm.sh/chart: operators-guard-0.8.0
-  7: |
-    apiVersion: generators.external-secrets.io/v1alpha1
-    kind: Password
-    metadata:
-      labels:
-        app.kubernetes.io/instance: operators-guard
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.9.0
-        helm.sh/chart: operators-guard-0.8.0
-      name: operators-guard-oauth-cookie
-      namespace: apc-operators-guard
-    spec:
-      allowRepeat: true
-      digits: 6
-      length: 32
-      noUpper: false
-      symbols: 0
-  8: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: Role
     metadata:
@@ -1137,8 +1007,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.9.0
-        helm.sh/chart: operators-guard-0.8.0
+        app.kubernetes.io/version: 0.12.0
+        helm.sh/chart: operators-guard-0.11.0
       name: operators-guard-packagemanifests
       namespace: openshift-marketplace
     rules:
@@ -1148,7 +1018,7 @@ manifests should match snapshot:
           - packagemanifests
         verbs:
           - get
-  9: |
+  6: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
@@ -1156,8 +1026,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.9.0
-        helm.sh/chart: operators-guard-0.8.0
+        app.kubernetes.io/version: 0.12.0
+        helm.sh/chart: operators-guard-0.11.0
       name: operators-guard-packagemanifests
       namespace: openshift-marketplace
     roleRef:
@@ -1167,11 +1037,13 @@ manifests should match snapshot:
     subjects:
       - kind: ServiceAccount
         name: operators-guard
-        namespace: apc-operators-guard
-  10: |
+        namespace: apc-operator-readiness
+  7: |
     apiVersion: v1
     data:
       policy.yaml: |
+        brief:
+          excludeClusters: []
         defaultOwner: unassigned
         drift:
           maxDaysBehind: 90
@@ -1194,17 +1066,19 @@ manifests should match snapshot:
         unsupportedWindow:
           allow:
           - redhat-oadp-operator
+        workflow:
+          push: ask
     kind: ConfigMap
     metadata:
       labels:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.9.0
-        helm.sh/chart: operators-guard-0.8.0
+        app.kubernetes.io/version: 0.12.0
+        helm.sh/chart: operators-guard-0.11.0
       name: operators-guard-policy
-      namespace: apc-operators-guard
-  11: |
+      namespace: apc-operator-readiness
+  8: |
     apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule
     metadata:
@@ -1212,10 +1086,10 @@ manifests should match snapshot:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.9.0
-        helm.sh/chart: operators-guard-0.8.0
+        app.kubernetes.io/version: 0.12.0
+        helm.sh/chart: operators-guard-0.11.0
       name: operators-guard-rules
-      namespace: apc-operators-guard
+      namespace: apc-operator-readiness
     spec:
       groups:
         - name: operators-guard.rules
@@ -1352,18 +1226,18 @@ manifests should match snapshot:
                 vendor: aspecta
             - alert: OperatorReadinessCollectStale
               annotations:
-                description: readiness-engine in apc-operators-guard has not completed a successful collect for more than 3 hours (three collect intervals, at least 3); readiness results and the CI snapshot are outdated.
+                description: readiness-engine in apc-operator-readiness has not completed a successful collect for more than 3 hours (three collect intervals, at least 3); readiness results and the CI snapshot are outdated.
                 summary: Operator readiness data is stale
-              expr: time() - readiness_engine_last_success_timestamp_seconds{namespace="apc-operators-guard"} > 10800
+              expr: time() - readiness_engine_last_success_timestamp_seconds{namespace="apc-operator-readiness"} > 10800
               labels:
                 severity: warning
                 team: platform
                 vendor: aspecta
             - alert: OperatorReadinessNoData
               annotations:
-                description: readiness-engine in apc-operators-guard has not completed any successful collect for 30 minutes (pod not ready or not scraped). Check the pod logs.
+                description: readiness-engine in apc-operator-readiness has not completed any successful collect for 30 minutes (pod not ready or not scraped). Check the pod logs.
                 summary: Operator readiness collector has no data
-              expr: absent(readiness_engine_last_success_timestamp_seconds{namespace="apc-operators-guard"})
+              expr: absent(readiness_engine_last_success_timestamp_seconds{namespace="apc-operator-readiness"})
               for: 30m
               labels:
                 severity: warning
@@ -1373,75 +1247,46 @@ manifests should match snapshot:
               annotations:
                 description: Source {{ $labels.source }} has been unavailable for 6 hours; affected results are reported as UNKNOWN.
                 summary: Operator readiness data source is unavailable
-              expr: readiness_engine_source_up{namespace="apc-operators-guard"} == 0
+              expr: readiness_engine_source_up{namespace="apc-operator-readiness"} == 0
               for: 6h
               labels:
                 severity: warning
                 team: platform
                 vendor: aspecta
-  12: |
-    apiVersion: route.openshift.io/v1
-    kind: Route
-    metadata:
-      labels:
-        app.kubernetes.io/instance: operators-guard
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.9.0
-        helm.sh/chart: operators-guard-0.8.0
-      name: operators-guard
-      namespace: apc-operators-guard
-    spec:
-      port:
-        targetPort: https
-      tls:
-        insecureEdgeTerminationPolicy: Redirect
-        termination: reencrypt
-      to:
-        kind: Service
-        name: operators-guard
-  13: |
+  9: |
     apiVersion: v1
     kind: Service
     metadata:
-      annotations:
-        service.beta.openshift.io/serving-cert-secret-name: operators-guard-tls
       labels:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.9.0
-        helm.sh/chart: operators-guard-0.8.0
+        app.kubernetes.io/version: 0.12.0
+        helm.sh/chart: operators-guard-0.11.0
       name: operators-guard
-      namespace: apc-operators-guard
+      namespace: apc-operator-readiness
     spec:
       ports:
         - name: metrics
           port: 9090
           protocol: TCP
           targetPort: metrics
-        - name: https
-          port: 8443
-          protocol: TCP
-          targetPort: https
       selector:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/name: operators-guard
-  14: |
+  10: |
     apiVersion: v1
     kind: ServiceAccount
     metadata:
-      annotations:
-        serviceaccounts.openshift.io/oauth-redirectreference.primary: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"operators-guard"}}'
       labels:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.9.0
-        helm.sh/chart: operators-guard-0.8.0
+        app.kubernetes.io/version: 0.12.0
+        helm.sh/chart: operators-guard-0.11.0
       name: operators-guard
-      namespace: apc-operators-guard
-  15: |
+      namespace: apc-operator-readiness
+  11: |
     apiVersion: monitoring.coreos.com/v1
     kind: ServiceMonitor
     metadata:
@@ -1449,10 +1294,10 @@ manifests should match snapshot:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: operators-guard
-        app.kubernetes.io/version: 0.9.0
-        helm.sh/chart: operators-guard-0.8.0
+        app.kubernetes.io/version: 0.12.0
+        helm.sh/chart: operators-guard-0.11.0
       name: operators-guard
-      namespace: apc-operators-guard
+      namespace: apc-operator-readiness
     spec:
       endpoints:
         - interval: 1m

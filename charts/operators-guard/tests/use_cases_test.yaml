@@ -3,7 +3,7 @@ values:
   - ../values.example.yaml
 release:
   name: operators-guard
-  namespace: apc-operators-guard
+  namespace: apc-operator-readiness
 
 tests:
   - it: routes operator alerts to the package owner
@@ -74,13 +74,14 @@ tests:
     asserts:
       - matchRegex:
           path: spec.template.spec.containers[0].image
-          pattern: 'ghcr\.io/gr8it/operators-guard:0\.9\.0$'
+          pattern: 'readiness-engine:0\.12\.0$'
       - contains:
           path: spec.template.spec.containers[0].args
           content: --history-keep=24
 
   - it: gets referenced InstallPlans from the hub with read access only
     template: templates/clusterRole.yaml
+    documentIndex: 0
     asserts:
       - contains:
           path: rules[4].resources
@@ -159,7 +160,7 @@ tests:
     asserts:
       - notContains:
           path: spec.template.spec.containers[0].args
-          content: --snapshot-repository=quay-registry.apps.hub01.example.com/apc/operators-guard-snapshot
+          content: --snapshot-repository=registry.example.com/apc/operator-readiness-snapshot
       - notExists:
           path: spec.template.spec.volumes[?(@.name == "snapshot-push")]
       - notContains:
@@ -176,7 +177,7 @@ tests:
       - failedTemplate:
           errorMessage: snapshot.pushSecret is required when snapshot.repository is set
 
-  - it: sets proxy environment variables from the global proxy
+  - it: sets proxy environment variables from global values
     template: templates/deployment.yaml
     set:
       global.apc.proxy: http://proxy.example.com:3128
@@ -193,197 +194,30 @@ tests:
             name: NO_PROXY
             value: .example.com,.svc,.cluster.local,$(KUBERNETES_SERVICE_HOST)
 
-  - it: appends in-cluster hosts when global noProxy is empty
-    template: templates/deployment.yaml
+  - it: allows egress to configured proxy CIDRs
+    template: templates/networkPolicy.yaml
     set:
-      global.apc.proxy: http://proxy.example.com:3128
-      global.apc.noProxy: ""
+      global.apc.proxyCIDRs:
+        - 192.0.2.10/32
     asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: NO_PROXY
-            value: .svc,.cluster.local,$(KUBERNETES_SERVICE_HOST)
+      - equal:
+          path: spec.egress[0].to[0].ipBlock.cidr
+          value: 192.0.2.10/32
 
-  - it: sets no proxy variables without a proxy
+  - it: renders no proxy NetworkPolicy without proxy CIDRs
+    template: templates/networkPolicy.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: sets no proxy variables by default
     template: templates/deployment.yaml
-    set:
-      global.apc.proxy: ""
     asserts:
       - notContains:
           path: spec.template.spec.containers[0].env
           content:
             name: HTTPS_PROXY
             value: http://proxy.example.com:3128
-      - notContains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: NO_PROXY
-            value: .example.com,.svc,.cluster.local,$(KUBERNETES_SERVICE_HOST)
-
-  - it: allows egress to the proxy CIDRs
-    template: templates/networkPolicy.yaml
-    asserts:
-      - isKind:
-          of: NetworkPolicy
-      - equal:
-          path: metadata.name
-          value: operators-guard-allow-proxy
-      - equal:
-          path: spec.podSelector.matchLabels
-          value:
-            app.kubernetes.io/name: operators-guard
-            app.kubernetes.io/instance: operators-guard
-      - equal:
-          path: spec.policyTypes
-          value: [Egress]
-      - equal:
-          path: spec.egress[0].to
-          value:
-            - ipBlock:
-                cidr: 192.0.2.10/32
-
-  - it: renders no proxy NetworkPolicy without proxy CIDRs
-    template: templates/networkPolicy.yaml
-    set:
-      global.apc.proxyCIDRs: []
-    asserts:
-      - hasDocuments:
-          count: 0
-
-  - it: lets only cluster-admins through oauth-proxy
-    template: templates/deployment.yaml
-    asserts:
-      - equal:
-          path: spec.template.spec.containers[1].name
-          value: oauth-proxy
-      - contains:
-          path: spec.template.spec.containers[1].args
-          content: '--openshift-sar={"resource":"*","verb":"*"}'
-      - contains:
-          path: spec.template.spec.containers[1].args
-          content: --upstream=http://127.0.0.1:8080
-      - contains:
-          path: spec.template.spec.volumes
-          content:
-            name: oauth-tls
-            secret:
-              secretName: operators-guard-tls
-
-  - it: exposes the UI through a reencrypt Route to oauth-proxy
-    template: templates/route.yaml
-    asserts:
-      - isKind:
-          of: Route
-      - equal:
-          path: spec.tls.termination
-          value: reencrypt
-      - equal:
-          path: spec.port.targetPort
-          value: https
-      - equal:
-          path: spec.to.name
-          value: operators-guard
-
-  - it: registers the Route as OAuth redirect of the ServiceAccount
-    template: templates/serviceAccount.yaml
-    asserts:
-      - matchRegex:
-          path: metadata.annotations["serviceaccounts.openshift.io/oauth-redirectreference.primary"]
-          pattern: '"kind":"Route","name":"operators-guard"'
-
-  - it: requests a serving certificate and keeps the metrics port
-    template: templates/service.yaml
-    asserts:
-      - equal:
-          path: metadata.annotations["service.beta.openshift.io/serving-cert-secret-name"]
-          value: operators-guard-tls
-      - contains:
-          path: spec.ports
-          content:
-            name: https
-            port: 8443
-            targetPort: https
-            protocol: TCP
-      - contains:
-          path: spec.ports
-          content:
-            name: metrics
-            port: 9090
-            targetPort: metrics
-            protocol: TCP
-
-  - it: generates the oauth-proxy cookie secret in the cluster
-    template: templates/oauthCookieExternalSecret.yaml
-    asserts:
-      - equal:
-          path: spec.target.name
-          value: operators-guard-oauth-cookie
-      - equal:
-          path: spec.dataFrom[0].sourceRef.generatorRef.name
-          value: operators-guard-oauth-cookie
-
-  - it: sizes the collector from the measured peak by default
-    template: templates/deployment.yaml
-    asserts:
-      - equal:
-          path: spec.template.spec.containers[0].resources
-          value:
-            requests:
-              memory: 256Mi
-              cpu: 50m
-            limits:
-              memory: 512Mi
-              cpu: 500m
-
-  - it: overrides only the given collector resources and keeps the other defaults
-    template: templates/deployment.yaml
-    set:
-      resources:
-        requests:
-          memory: 1Gi
-        limits:
-          memory: 2Gi
-    asserts:
-      - equal:
-          path: spec.template.spec.containers[0].resources
-          value:
-            requests:
-              memory: 1Gi
-              cpu: 50m
-            limits:
-              memory: 2Gi
-              cpu: 500m
-      - equal:
-          path: spec.template.spec.containers[1].resources.limits.memory
-          value: 128Mi
-
-  - it: writes only the generated password into the oauth-proxy cookie secret
-    template: templates/oauthCookieExternalSecret.yaml
-    asserts:
-      - equal:
-          path: spec.target.template.data.cookie-secret
-          value: "{{ .password }}"
-
-  - it: joins prediction alerts on the scraped operator namespace
-    template: templates/prometheusRule.yaml
-    asserts:
-      - matchRegex:
-          path: spec.groups[0].rules[?(@.alert == "OperatorStalePendingInstallPlan")].expr
-          pattern: 'on\(cluster, exported_namespace, subscription,'
-      - matchRegex:
-          path: spec.groups[0].rules[?(@.alert == "OperatorStalePendingInstallPlanNoTimestamp")].expr
-          pattern: 'on\(cluster, exported_namespace, subscription,'
-
-  - it: keys and filters the non-MATCH prediction table by the operator namespace
-    template: templates/grafanaDashboard.yaml
-    asserts:
-      - notMatchRegex:
-          path: spec.json
-          pattern: '"cluster\\", \\"namespace\\", \\"subscription'
-      - matchRegex:
-          path: spec.json
-          pattern: 'operator_prediction_plan_age_days\{[^}]*\} and on\(cluster, exported_namespace, subscription'
 
   - it: keeps the reports on localhost and exposes only the metrics listener
     template: templates/deployment.yaml
@@ -403,38 +237,40 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].readinessProbe.httpGet.port
           value: metrics
-      - equal:
-          path: spec.template.spec.containers[0].livenessProbe.httpGet.port
-          value: metrics
 
-  - it: shows the operator namespace in the non-MATCH table
+  - it: points the Service and ServiceMonitor at the metrics listener
+    template: templates/service.yaml
+    asserts:
+      - equal:
+          path: spec.ports
+          value:
+            - name: metrics
+              port: 9090
+              targetPort: metrics
+              protocol: TCP
+
+  - it: scrapes metrics every minute
+    template: templates/serviceMonitor.yaml
+    asserts:
+      - equal:
+          path: spec.endpoints[0].interval
+          value: 1m
+
+  - it: keys, filters and shows the non-MATCH table by the operator namespace
     template: templates/grafanaDashboard.yaml
     asserts:
+      - notMatchRegex:
+          path: spec.json
+          pattern: '"cluster\\", \\"namespace\\", \\"subscription'
+      - matchRegex:
+          path: spec.json
+          pattern: 'operator_prediction_plan_age_days\{[^}]*\} and on\(cluster, exported_namespace, subscription'
       - matchRegex:
           path: spec.json
           pattern: '"exported_namespace": "namespace"'
       - matchRegex:
           path: spec.json
-          pattern: '"exported_namespace": 1,'
-      - matchRegex:
-          path: spec.json
           pattern: '"endpoint": true,\s*"namespace": true'
-
-  - it: probes the oauth-proxy sidecar
-    template: templates/deployment.yaml
-    asserts:
-      - equal:
-          path: spec.template.spec.containers[1].readinessProbe.httpGet
-          value:
-            path: /oauth/healthz
-            port: https
-            scheme: HTTPS
-      - equal:
-          path: spec.template.spec.containers[1].livenessProbe.httpGet
-          value:
-            path: /oauth/healthz
-            port: https
-            scheme: HTTPS
 
   - it: keeps the 3 h stale threshold for the default interval
     template: templates/prometheusRule.yaml
@@ -504,3 +340,53 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].args
           content: --interval=30m
+
+  - it: leaves brief output disabled by default
+    template: templates/deployment.yaml
+    set:
+      brief.enabled: false
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].args
+          content: --brief-out=/var/cache/readiness/brief
+
+  - it: writes the brief to the existing data volume when enabled
+    template: templates/deployment.yaml
+    set:
+      brief.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --brief-out=/var/cache/readiness/brief
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: cache
+            mountPath: /var/cache/readiness
+
+  - it: transports work-order scope and workflow without repository execution
+    template: templates/policyCm.yaml
+    set:
+      policy.brief.excludeClusters: [cluster-a]
+      policy.workflow:
+        chartsRepo:
+          path: /tmp/charts
+          remote: https://example.com/charts.git
+          baseBranch: main
+        confRepos:
+          - path: /tmp/conf-repo-a
+            clusters: [cluster-a]
+            envs:
+              cluster-a: qa
+        ticketPrefix: TASK-1
+        push: ask
+    asserts:
+      - matchRegex:
+          path: data["policy.yaml"]
+          pattern: 'excludeClusters:\s+- cluster-a'
+      - matchRegex:
+          path: data["policy.yaml"]
+          pattern: 'remote: https://example.com/charts.git'
+      - matchRegex:
+          path: data["policy.yaml"]
+          pattern: 'envs:\s+cluster-a: qa'

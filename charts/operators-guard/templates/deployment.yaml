@@ -1,4 +1,6 @@
 ---
+# Long-running collector instead of a CronJob: it keeps the last result in memory and serves
+# /metrics between runs, so Prometheus can scrape it without a Pushgateway.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -37,7 +39,7 @@ spec:
           type: RuntimeDefault
       containers:
       - name: collector
-        image: {{ .Values.image }}:{{ .Chart.AppVersion }}
+        image: {{ .Values.image }}
         args:
         - collect
         - --loop
@@ -48,6 +50,10 @@ spec:
         {{- end }}
         - --cache-dir=/var/cache/readiness
         - --history-keep={{ .Values.historyKeep }}
+        {{- if .Values.brief.enabled }}
+        - --brief-out=/var/cache/readiness/brief
+        {{- end }}
+        # reports only on localhost (port-forward); the pod network gets /metrics, /healthz and /readyz only
         - --listen=127.0.0.1:8080
         - --metrics-listen=:9090
         env:
@@ -65,12 +71,14 @@ spec:
         {{- end }}
         - name: SEARCH_API_URL
           value: https://search-search-api.open-cluster-management.svc:4010/searchapi/graphql
+        # CA only for the in-cluster Search API; external endpoints use the system trust store
         - name: SEARCH_API_CA_FILE
           value: /etc/pki/service-ca/service-ca.crt
         ports:
         - name: metrics
           containerPort: 9090
           protocol: TCP
+        # ready only after the first successful collect
         readinessProbe:
           httpGet:
             path: /readyz
@@ -86,8 +94,14 @@ spec:
           capabilities:
             drop:
             - ALL
+        # Pyxis catalog records of every installed package are held in memory (~100 MB seen); headroom for larger fleets
         resources:
-          {{- toYaml .Values.resources | nindent 10 }}
+          requests:
+            memory: "1Gi"
+            cpu: "200m"
+          limits:
+            memory: "2Gi"
+            cpu: "1"
         volumeMounts:
         - name: policy
           mountPath: /etc/readiness
@@ -104,58 +118,7 @@ spec:
           mountPath: /var/cache/readiness
         - name: tmp
           mountPath: /tmp
-      - name: oauth-proxy
-        image: {{ .Values.oauthProxyImage }}
-        args:
-        - --https-address=:8443
-        - --provider=openshift
-        - --openshift-service-account={{ include "operators-guard.name" . }}
-        - '--openshift-sar={"resource":"*","verb":"*"}'
-        - --upstream=http://127.0.0.1:8080
-        - --tls-cert=/etc/tls/private/tls.crt
-        - --tls-key=/etc/tls/private/tls.key
-        - --cookie-secret-file=/etc/proxy/secrets/cookie-secret
-        ports:
-        - name: https
-          containerPort: 8443
-          protocol: TCP
-        readinessProbe:
-          httpGet:
-            path: /oauth/healthz
-            port: https
-            scheme: HTTPS
-        livenessProbe:
-          httpGet:
-            path: /oauth/healthz
-            port: https
-            scheme: HTTPS
-          periodSeconds: 30
-        securityContext:
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
-        resources:
-          requests:
-            memory: "32Mi"
-            cpu: "10m"
-          limits:
-            memory: "128Mi"
-        volumeMounts:
-        - name: oauth-tls
-          mountPath: /etc/tls/private
-          readOnly: true
-        - name: oauth-cookie
-          mountPath: /etc/proxy/secrets
-          readOnly: true
       volumes:
-      - name: oauth-tls
-        secret:
-          secretName: {{ include "operators-guard.name" . }}-tls
-      - name: oauth-cookie
-        secret:
-          secretName: {{ include "operators-guard.name" . }}-oauth-cookie
       - name: policy
         configMap:
           name: {{ include "operators-guard.name" . }}-policy
@@ -167,6 +130,7 @@ spec:
       - name: service-ca
         configMap:
           name: openshift-service-ca.crt
+      # API cache and report history; lost on pod restart
       - name: cache
         emptyDir:
           sizeLimit: 5Gi

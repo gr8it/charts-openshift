@@ -1,12 +1,12 @@
-# operators-guard
+# Operator Readiness
 
 Deploys the `readiness-engine` collector on the ACM hub. Every interval it reads the operator inventory of all
 managed clusters (ACM Search API, ManagedClusterView), the OCP upgrade graph, the Red Hat Lifecycle API and
 the Red Hat Ecosystem Catalog (Pyxis), evaluates upgrade readiness against the policy, serves
 an HTML page on `/`, `/summary`, `/report`, `/history`, `/diff` and `/metrics` (ServiceMonitor, PrometheusRule, GrafanaDashboard) and, when `snapshot.repository` is set, pushes a snapshot to Quay.
 
-Engine and image (`ghcr.io/gr8it/operators-guard`): [apc-operators-guard/engine](https://github.com/gr8it/apc-operators-guard/blob/main/engine/README.md).
-Design: [apc-operators-guard/docs/02-design.md](https://github.com/gr8it/apc-operators-guard/blob/main/docs/02-design.md).
+Engine and image (`ghcr.io/gr8it/operators-guard`): [engine/](https://github.com/gr8it/apc-operators-guard/blob/operators-guard-chart-0.11.0/engine/README.md).
+Design: [docs/02-design.md](https://github.com/gr8it/apc-operators-guard/blob/operators-guard-chart-0.11.0/docs/02-design.md).
 
 ## Prerequisites
 
@@ -14,8 +14,7 @@ Design: [apc-operators-guard/docs/02-design.md](https://github.com/gr8it/apc-ope
 - Only with `snapshot.repository`: Secret (`kubernetes.io/dockerconfigjson`) with Quay robot push credentials in the release namespace.
 - grafana-operator and a Grafana instance labeled `dashboards: <instanceName>` (when `grafanaDashboard.enabled`).
 - Egress to `access.redhat.com`, `api.openshift.com` and `catalog.redhat.com` (through `global.apc.proxy` when the cluster has no direct internet access).
-  With `global.apc.proxyCIDRs` the chart creates a NetworkPolicy that allows egress to the proxy (platform namespaces deny it by default).
-- External Secrets Operator: generates the oauth-proxy cookie secret (`Password` generator).
+- Set `global.apc.proxy` and `global.apc.noProxy` in the conf repo when the hub needs a proxy. Set `global.apc.proxyCIDRs` to allow egress to that proxy from namespaces with default-deny egress.
 - Ingress to `search-search-api` (port 4010) in `open-cluster-management` from the release namespace
   (newer ACM versions restrict it with a NetworkPolicy).
 
@@ -24,22 +23,21 @@ Design: [apc-operators-guard/docs/02-design.md](https://github.com/gr8it/apc-ope
 > [!NOTE]
 > `policy` is mandatory; `snapshot.*` are optional (`pushSecret` is mandatory once `repository` is set). RBAC is a ClusterRole limited to what the engine calls
 > (ManagedClusters, hub ClusterVersion, APIRequestCounts, hub OperatorPolicies, ManagedClusterViews, and list on Subscriptions, CSVs and Deployments because ACM Search authorizes the hub's own objects against the caller's RBAC).
-> InstallPlans of the hub are read by name when a Subscription references one; managed cluster reads use named ManagedClusterViews.
-
-Global values (apc-global-overrides): `global.apc.proxy` sets `HTTPS_PROXY` / `HTTP_PROXY`; `global.apc.noProxy` sets `NO_PROXY`,
-with `.svc`, `.cluster.local` and the API service IP appended (the engine uses Python urllib, which ignores CIDRs);
-`global.apc.proxyCIDRs` creates the NetworkPolicy `<release>-allow-proxy` with egress to these CIDRs.
 
 |Variable                     | Type | Default                                   | Notes |
 |:---                         |:---  |:---                                       |:---   |
-| image                       | str  | `ghcr.io/gr8it/operators-guard` | Image without a tag; the tag is the chart appVersion (ghcr.io is private; mirror it to a registry the cluster can pull from) |
-| oauthProxyImage             | str  | `registry.redhat.io/openshift4/ose-oauth-proxy:v4.12.0` | oauth-proxy sidecar in front of the UI Route (only cluster-admins) |
+| image                       | str  | `ghcr.io/gr8it/operators-guard:0.12.0`    | readiness-engine container image (ghcr.io is private; mirror it to a registry the cluster can pull from) |
 | imagePullSecrets            | list | `[]`                                      | Existing dockerconfigjson Secrets used to pull the image |
 | nodeSelector                | obj  | `{}`                                      | Optional pod nodeSelector |
-| interval                    | str  | `1h`                                      | Collector interval: `h`, `m`, `s` in this order, each at most once (`1h`, `30m`, `1h30m`) |
-| resources                   | obj  | requests `256Mi` / `50m`, limits `512Mi` / `500m` | Collector container; peak on a hub with 3 clusters: ~130 MiB, ~45m CPU (2026-11-10). Raise the memory for larger fleets |
+| global.apc.proxy            | str  | absent                                    | Optional egress proxy for HTTP and HTTPS, supplied by the conf repo |
+| global.apc.noProxy          | str  | absent                                    | Additional bypass hosts; the chart appends `.svc`, `.cluster.local` and the API service IP |
+| global.apc.proxyCIDRs       | list | `[]`                                      | Proxy CIDRs allowed by the optional egress NetworkPolicy |
+| interval                    | str  | `1h`                                      | Collector interval: `h`, `m`, `s` in this order, each at most once (`1h`, `30m`, `1h30m`); `OperatorReadinessCollectStale` fires after three intervals, at least 3 h |
+| brief.enabled               | bool | `false` | Write `brief.md` and `pins.yaml` to `/var/cache/readiness/brief` beside the snapshot; copy them out before the pod restarts. Uses the existing cache and RBAC. |
 | historyKeep                 | int  | `24`                                      | Report-only local history entries; `0` disables. The cache is an `emptyDir`, so history is lost on pod restart. A chart change would be needed to mount a PVC. |
 | policy                      | obj  |                                           | Readiness policy, `policy.strategy` is mandatory (`eus`, `next-minor`, `pinned`) |
+| policy.workflow             | obj | absent | Optional runtime destinations: chartsRepo (path, remote, baseBranch default main), confRepos (path, disjoint clusters, envs mapping), ticketPrefix, push (ask default or allowed). Missing fields require user answers before edits. Never commit destination data. |
+| policy.brief.excludeClusters | list | `[]` | Omit named clusters from work-order targets/gates, retaining their known installed CSVs in versions; unknown names fail. Reports and snapshots stay complete. |
 | policy.owners               | obj  | `{}`                                      | Package to owner; null also uses the empty map. Used in report rows, metric labels and alerts |
 | policy.defaultOwner         | str  | `unassigned`                              | Owner when a package has no mapping or exception owner; null uses the default |
 | snapshot.repository         | str  |                                           | Optional OCI repository in hub Quay; pushes a UTC timestamp tag, then tags it `:latest`. Verify pushes before relying on remote history. |
@@ -47,43 +45,49 @@ with `.svc`, `.cluster.local` and the API service IP appended (the engine uses P
 | grafanaDashboard.enabled    | bool | `true`                                    | Creates GrafanaDashboard CR |
 | grafanaDashboard.instanceName | str | `apc-grafana`                            | Value of the `dashboards` label on the Grafana instance |
 
-## UI
+## Metrics and alerts
 
-The Route `operators-guard` (`reencrypt`) leads to an oauth-proxy sidecar: users log in with OpenShift and only users
-allowed to do everything (`cluster-admin`, `--openshift-sar={"resource":"*","verb":"*"}`) are let through.
-The host is the default one of the Route: `oc -n <namespace> get route operators-guard -o jsonpath='{.spec.host}'`.
+The ClusterRole gets hub InstallPlans by name when a Subscription references one. Managed cluster reads use named ManagedClusterViews.
 
-The engine serves the reports (`/`, `/summary`, `/report`, `/history`, `/diff`), which have no authentication, only on
-`127.0.0.1:8080` in the pod, so they are reachable only through oauth-proxy or a port-forward. The pod network gets the
-metrics listener on port 9090 with `/metrics`, `/healthz` and `/readyz` only (Service port `metrics`, ServiceMonitor, probes).
+Metrics, including the `readiness_engine_predictions` gauge, are listed in [engine/README.md](https://github.com/gr8it/apc-operators-guard/blob/operators-guard-chart-0.11.0/engine/README.md#metrics). Alerts: `OperatorUnsupportedNow`,
+`OperatorUpgradeBlocker`, `OperatorSupportEnded`, `OperatorBelowMinVersion`, `OperatorPinStale`, `OperatorVersionBehind`, `OperatorPredictionMismatch`, `OperatorStalePendingInstallPlan` (known plan age over 14 days, `for: 1h`), `OperatorStalePendingInstallPlanNoTimestamp` (unknown age, `for: 7d`), `OperatorExceptionExpiring` (0–29 days left), `OperatorExceptionExpired`, `OperatorReadinessCollectStale`, `OperatorReadinessNoData`, `OperatorReadinessSourceDown`.
+Operator alerts carry the metric's `owner` label; the dashboard can filter by owner.
 
-Without the Route, use a port-forward to the pod:
+The reports (`/`, `/summary`, `/report`, `/history`, `/diff`) have no authentication, so the engine serves them only on
+`127.0.0.1:8080` in the pod; the Service and the ServiceMonitor use the metrics listener on port 9090
+(`/metrics`, `/healthz`, `/readyz` only). The ServiceMonitor scrapes every minute. Read the reports through a port-forward to the pod:
 
 ```sh
-oc -n apc-operators-guard port-forward deploy/operators-guard 8080:8080 &
+oc -n <namespace> port-forward deploy/operators-guard 8080:8080 &
 curl -s localhost:8080/summary
 ```
 
-## Logging
+HTML page with filters: open `http://localhost:8080/` while the port-forward runs.
 
-The engine logs each collect step at `INFO` (start, inventory, lifecycle, catalog, prediction, evaluation, snapshot, next run)
-and every failed API call attempt at `WARNING` with method, URL, attempt and duration. The chart does not set `LOG_LEVEL`,
-so the engine default `INFO` applies (`DEBUG`, which also logs successful calls, needs a chart change).
+## Dashboard
+
+The Grafana dashboard shows prediction counts and a detail table with namespace, Subscription and plan age; separate counts for expiring and expired exceptions; exception expiry sorted by days left; and per-source health. Cluster, package and owner filters apply to operator metrics. Exceptions have package and owner labels; prediction totals and sources have no operator labels.
+
+## Local validation
 
 ```sh
-oc -n apc-operators-guard logs -f deploy/operators-guard -c collector
+helm lint charts/operators-guard -f charts/operators-guard/values.example.yaml
+helm template operators-guard charts/operators-guard -f charts/operators-guard/values.example.yaml
+helm unittest --strict charts/operators-guard
+sh charts/operators-guard/tests/schema_test.sh
 ```
 
-## Metrics and alerts
-
-Metrics, including the `readiness_engine_predictions` gauge, are listed in [engine/README.md](https://github.com/gr8it/apc-operators-guard/blob/main/engine/README.md#metrics). Alerts: `OperatorUnsupportedNow`,
-`OperatorUpgradeBlocker`, `OperatorSupportEnded`, `OperatorBelowMinVersion`, `OperatorPinStale`, `OperatorVersionBehind`, `OperatorPredictionMismatch`, `OperatorStalePendingInstallPlan` (known plan age over 14 days, `for: 1h`), `OperatorStalePendingInstallPlanNoTimestamp` (unknown age, `for: 7d`), `OperatorExceptionExpiring` (0–29 days left), `OperatorExceptionExpired`, `OperatorReadinessCollectStale`, `OperatorReadinessNoData`, `OperatorReadinessSourceDown`.
-Operator alerts carry the metric's `owner` label; the dashboard can filter by owner.
+Run from the repository root. The schema script tests invalid inputs separately because helm-unittest rejects
+schema failures before it can evaluate assertions.
 
 ## Example Deployment
 
 See [values.example.yaml](values.example.yaml).
 
 ```sh
-$ helm -n apc-operators-guard install -f values.example.yaml operators-guard .
+$ helm -n apc-operator-readiness install -f values.example.yaml operators-guard .
 ```
+
+Work orders are self-contained instructions for a separate executor: one charts PR per operator, then a render
+and PR per operator in each mapped conf repo. The engine does not edit repositories, render components, push or
+open PRs. Runtime workflow precedence and strict validation are documented in [engine usage](https://github.com/gr8it/apc-operators-guard/blob/operators-guard-chart-0.11.0/engine/README.md#chart-work-order).
