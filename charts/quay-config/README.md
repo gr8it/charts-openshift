@@ -3,11 +3,7 @@
 ## High-level design
 
 ```mermaid
-%%{init: {
-  "theme":"base",
-  "flowchart": {"defaultRenderer": "elk"}
-  }
-}%%
+%%{init: {"layout": "elk"}}%%
 
 flowchart LR
 
