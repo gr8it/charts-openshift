@@ -21,7 +21,6 @@ dependencies:
   - name: apc-global-overrides
     version: "1.0.0"
     repository: https://raw.githubusercontent.com/gr8it/charts-openshift/refs/heads/main/
-
 ```
 
 Reference particular helper function in chart template:
@@ -127,6 +126,7 @@ global:
     imageProxy:
       host: ~
       sources: []
+    identityProviders: []
     adIntegration: {}
     ldapIntegration: {}
     services:
@@ -158,76 +158,148 @@ global:
 
 ## Helper function list
 
-|Name|Local override|Global|Output type|Default|Note|
-|---|---|---|---|---|---|
-|apc-global-overrides.boolDefaults|-|-|boolean|-|see [booleans](#booleans) do not use directly|
-|apc-global-overrides.customer|customer|global.apc.customer|string|-|customer name, used as prefix|
-|apc-global-overrides.require-customer|customer|global.apc.customer|string|-||
-|apc-global-overrides.customerName|customerName|global.apc.customerName|string|-|full customer name, e.g. shown in Alertmanager messages/ITSM|
-|apc-global-overrides.require-customerName|customerName|global.apc.customerName|string|-||
-|apc-global-overrides.repoURL|repoURL|global.apc.repoURL|string|-|repo URL, used for GitOps|
-|apc-global-overrides.require-repoURL|repoURL|global.apc.repoURL|string|-||
-|apc-global-overrides.repoShort|repoShort|global.apc.repoShort|string|-|extracts organization and project name from repoURL and concatenates them using '-', e.g. gr8it-charts-openshift|
-|apc-global-overrides.repoTargetRevision|repoTargetRevision|global.apc.repoTargetRevision|string|HEAD||
-|apc-global-overrides.environment|environment|global.apc.environment|string|-|environment is the name of the environment at customer, which is different to cluster name. In the GitOps repo naming = meta environment, e.g. prod, hub, test, dev|
-|apc-global-overrides.require-environment|environment|global.apc.environment|string|-||
-|apc-global-overrides.environmentShort|environmentShort|global.apc.environmentShort|string|-|usually 1st character of environment, e.g. p for prod, h for hub, d for dev, t for test|
-|apc-global-overrides.require-environmentShort|environmentShort|global.apc.environmentShort|string|-||
-|apc-global-overrides.clusterName|cluster.name|global.apc.cluster.name|string|-||
-|apc-global-overrides.require-clusterName|cluster.name|global.apc.cluster.name|string|-||
-|apc-global-overrides.clusterAcmName|cluster.acmName|global.apc.cluster.acmName|string|-|name of the ACM managed cluster = for hub = local-cluster, for other clusters = name of the cluster above|
-|apc-global-overrides.require-clusterAcmName|cluster.acmName|global.apc.cluster.acmName|string|-||
-|apc-global-overrides.clusterType|cluster.type|global.apc.cluster.type|string|-|one of standalone, hcp|
-|apc-global-overrides.require-clusterType|cluster.type|global.apc.cluster.type|string|-||
-|apc-global-overrides.clusterRootDomain|cluster.rootDomain|global.apc.cluster.rootDomain|string|-||
-|apc-global-overrides.require-clusterRootDomain|cluster.rootDomain|global.apc.cluster.rootDomain|string|-||
-|apc-global-overrides.clusterBaseDomain|cluster.baseDomain|global.apc.cluster.baseDomain|string|-||
-|apc-global-overrides.require-clusterBaseDomain|cluster.baseDomain|global.apc.cluster.baseDomain|string|-||
-|apc-global-overrides.clusterAppsDomain|cluster.appsDomain|global.apc.cluster.appsDomain|string|-|ingress URL suffix|
-|apc-global-overrides.require-clusterAppsDomain|cluster.appsDomain|global.apc.cluster.appsDomain|string|-||
-|apc-global-overrides.clusterApiURL|cluster.apiURL|global.apc.cluster.apiURL|string|-||
-|apc-global-overrides.require-clusterApiURL|cluster.apiURL|global.apc.cluster.apiURL|string|-||
-|apc-global-overrides.clusterKubeVersion|cluster.kubeVersion|global.apc.cluster.kubeVersion|string|-|version of the Kubernetes API to adhere to|
-|apc-global-overrides.require-clusterKubeVersion|cluster.kubeVersion|global.apc.cluster.kubeVersion|string|-||
-|apc-global-overrides.clusterApiVersions|cluster.apiVersions|global.apc.cluster.apiVersions|list|-|List of supported Kubernetes API versions to be reported as available during helm template rendering, i.e. sets helms' --api-versions flag. Use only as last resort !!! Usually newer versions of helm charts do not need this. Always create a comment stating the component, which uses the particular apiVersion|
-|apc-global-overrides.clusterServices|cluster.services|global.apc.cluster.services|dictionary|-|cluster local services - used to share values between helm charts|
-|apc-global-overrides.merge-clusterServices|cluster.services|global.apc.cluster.services|dictionary|-||
-|apc-global-overrides.clusterIsHub|cluster.isHub|global.apc.cluster.isHub|boolean|false|Is a hub cluster running ACM|
-|apc-global-overrides.clusterRunsApps|cluster.runsApps|global.apc.cluster.runsApps|boolean|false|Cluster runs business applications (usually the all non-hub clusters run apps)|
-|apc-global-overrides.proxy|proxy|global.apc.proxy|string|-||
-|apc-global-overrides.require-proxy|proxy|global.apc.proxy|string|-||
-|apc-global-overrides.noProxy|noProxy|global.apc.noProxy|string|-||
-|apc-global-overrides.require-noProxy|noProxy|global.apc.noProxy|string|-||
-|apc-global-overrides.proxyCIDRs|proxyCIDRs|global.apc.proxyCIDRs|list|-||
-|apc-global-overrides.require-proxyCIDRs|proxyCIDRs|global.apc.proxyCIDRs|list|-||
-|apc-global-overrides.ntpServers|ntpServers|global.apc.ntpServers|list|-| NTP servers to use in e.g. infraEnv, HCP / standalone |
-|apc-global-overrides.require-ntpServers|ntpServers|global.apc.ntpServers|list|-||
-|apc-global-overrides.chronyConfig|ntpServers|global.apc.ntpServers|list|-| Chrony config from ntpServers |
-|apc-global-overrides.sshAuthorizedKeys|sshAuthorizedKeys|global.apc.sshAuthorizedKeys|list|-| SSH public key(s) to add to authorized_keys. Array |
-|apc-global-overrides.require-sshAuthorizedKeys|sshAuthorizedKeys|global.apc.sshAuthorizedKeys|list|-||
-|apc-global-overrides.imageProxyHost|imageProxy.host|global.apc.imageProxy.host|string|-|Mirror registry hostname|
-|apc-global-overrides.require-imageProxyHost|imageProxy.host|global.apc.imageProxy.host|string|-||
-|apc-global-overrides.imageProxySources|imageProxy.sources|global.apc.imageProxy.sources|list|[]|Source registries to mirror through the image proxy|
-|apc-global-overrides.services|services|global.apc.services|dictionary|-|global services. Used to share values between helm charts|
-|apc-global-overrides.merge-services|services|global.apc.services|dictionary|-||
-|apc-global-overrides.caCertificates|caCertificates|global.apc.caCertificates|dictionary|-|Custom CA certificates to trust, keys contain name of the CA with suffix .crt, and values contains one or more PEM encoded certificate(s)|
-|apc-global-overrides.merge-caCertificates|caCertificates|global.apc.caCertificates|dictionary|-||
-|apc-global-overrides.caCertificatesBundle|caCertificates|global.apc.caCertificates|string|-|flattened caCertificates to be used as a bundle|
+| Name                                                 | Local override      | Global                         | Output type | Default | Note                                                                                                                                                                                                                                                                                                                |
+| ---------------------------------------------------- | ------------------- | ------------------------------ | ----------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| apc-global-overrides.boolDefaults                    | -                   | -                              | boolean     | -       | see [booleans](#booleans) do not use directly                                                                                                                                                                                                                                                                       |
+| apc-global-overrides.customer                        | customer            | global.apc.customer            | string      | -       | customer name, used as prefix                                                                                                                                                                                                                                                                                       |
+| apc-global-overrides.require-customer                | customer            | global.apc.customer            | string      | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.customerName                    | customerName        | global.apc.customerName        | string      | -       | full customer name, e.g. shown in Alertmanager messages/ITSM                                                                                                                                                                                                                                                        |
+| apc-global-overrides.require-customerName            | customerName        | global.apc.customerName        | string      | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.repoURL                         | repoURL             | global.apc.repoURL             | string      | -       | repo URL, used for GitOps                                                                                                                                                                                                                                                                                           |
+| apc-global-overrides.require-repoURL                 | repoURL             | global.apc.repoURL             | string      | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.repoShort                       | repoShort           | global.apc.repoShort           | string      | -       | extracts organization and project name from repoURL and concatenates them using '-', e.g. gr8it-charts-openshift                                                                                                                                                                                                    |
+| apc-global-overrides.repoTargetRevision              | repoTargetRevision  | global.apc.repoTargetRevision  | string      | HEAD    |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.environment                     | environment         | global.apc.environment         | string      | -       | environment is the name of the environment at customer, which is different to cluster name. In the GitOps repo naming = meta environment, e.g. prod, hub, test, dev                                                                                                                                                 |
+| apc-global-overrides.require-environment             | environment         | global.apc.environment         | string      | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.environmentShort                | environmentShort    | global.apc.environmentShort    | string      | -       | usually 1st character of environment, e.g. p for prod, h for hub, d for dev, t for test                                                                                                                                                                                                                             |
+| apc-global-overrides.require-environmentShort        | environmentShort    | global.apc.environmentShort    | string      | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.clusterName                     | cluster.name        | global.apc.cluster.name        | string      | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.require-clusterName             | cluster.name        | global.apc.cluster.name        | string      | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.clusterAcmName                  | cluster.acmName     | global.apc.cluster.acmName     | string      | -       | name of the ACM managed cluster = for hub = local-cluster, for other clusters = name of the cluster above                                                                                                                                                                                                           |
+| apc-global-overrides.require-clusterAcmName          | cluster.acmName     | global.apc.cluster.acmName     | string      | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.clusterType                     | cluster.type        | global.apc.cluster.type        | string      | -       | one of standalone, hcp                                                                                                                                                                                                                                                                                              |
+| apc-global-overrides.require-clusterType             | cluster.type        | global.apc.cluster.type        | string      | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.clusterRootDomain               | cluster.rootDomain  | global.apc.cluster.rootDomain  | string      | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.require-clusterRootDomain       | cluster.rootDomain  | global.apc.cluster.rootDomain  | string      | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.clusterBaseDomain               | cluster.baseDomain  | global.apc.cluster.baseDomain  | string      | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.require-clusterBaseDomain       | cluster.baseDomain  | global.apc.cluster.baseDomain  | string      | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.clusterAppsDomain               | cluster.appsDomain  | global.apc.cluster.appsDomain  | string      | -       | ingress URL suffix                                                                                                                                                                                                                                                                                                  |
+| apc-global-overrides.require-clusterAppsDomain       | cluster.appsDomain  | global.apc.cluster.appsDomain  | string      | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.clusterApiURL                   | cluster.apiURL      | global.apc.cluster.apiURL      | string      | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.require-clusterApiURL           | cluster.apiURL      | global.apc.cluster.apiURL      | string      | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.clusterKubeVersion              | cluster.kubeVersion | global.apc.cluster.kubeVersion | string      | -       | version of the Kubernetes API to adhere to                                                                                                                                                                                                                                                                          |
+| apc-global-overrides.require-clusterKubeVersion      | cluster.kubeVersion | global.apc.cluster.kubeVersion | string      | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.clusterApiVersions              | cluster.apiVersions | global.apc.cluster.apiVersions | list        | -       | List of supported Kubernetes API versions to be reported as available during helm template rendering, i.e. sets helms' --api-versions flag. Use only as last resort !!! Usually newer versions of helm charts do not need this. Always create a comment stating the component, which uses the particular apiVersion |
+| apc-global-overrides.clusterServices                 | cluster.services    | global.apc.cluster.services    | dictionary  | -       | cluster local services - used to share values between helm charts                                                                                                                                                                                                                                                   |
+| apc-global-overrides.merge-clusterServices           | cluster.services    | global.apc.cluster.services    | dictionary  | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.clusterIsHub                    | cluster.isHub       | global.apc.cluster.isHub       | boolean     | false   | Is a hub cluster running ACM                                                                                                                                                                                                                                                                                        |
+| apc-global-overrides.clusterRunsApps                 | cluster.runsApps    | global.apc.cluster.runsApps    | boolean     | false   | Cluster runs business applications (usually the all non-hub clusters run apps)                                                                                                                                                                                                                                      |
+| apc-global-overrides.proxy                           | proxy               | global.apc.proxy               | string      | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.require-proxy                   | proxy               | global.apc.proxy               | string      | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.noProxy                         | noProxy             | global.apc.noProxy             | string      | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.require-noProxy                 | noProxy             | global.apc.noProxy             | string      | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.proxyCIDRs                      | proxyCIDRs          | global.apc.proxyCIDRs          | list        | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.require-proxyCIDRs              | proxyCIDRs          | global.apc.proxyCIDRs          | list        | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.ntpServers                      | ntpServers          | global.apc.ntpServers          | list        | -       | NTP servers to use in e.g. infraEnv, HCP / standalone                                                                                                                                                                                                                                                               |
+| apc-global-overrides.require-ntpServers              | ntpServers          | global.apc.ntpServers          | list        | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.chronyConfig                    | ntpServers          | global.apc.ntpServers          | list        | -       | Chrony config from ntpServers                                                                                                                                                                                                                                                                                       |
+| apc-global-overrides.sshAuthorizedKeys               | sshAuthorizedKeys   | global.apc.sshAuthorizedKeys   | list        | -       | SSH public keys                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.sshAuthorizedKeysBundle         | sshAuthorizedKeys   | global.apc.sshAuthorizedKeys   | string      | -       | SSH public keys joined with newlines                                                                                                                                                                                                                                                                                |
+| apc-global-overrides.require-sshAuthorizedKeysBundle | sshAuthorizedKeys   | global.apc.sshAuthorizedKeys   | string      | -       | Required SSH public keys joined with newlines                                                                                                                                                                                                                                                                       |
+| apc-global-overrides.imageProxyHost                  | imageProxy.host     | global.apc.imageProxy.host     | string      | -       | Mirror registry hostname                                                                                                                                                                                                                                                                                            |
+| apc-global-overrides.require-imageProxyHost          | imageProxy.host     | global.apc.imageProxy.host     | string      | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.imageProxySources               | imageProxy.sources  | global.apc.imageProxy.sources  | list        | []      | Source registries to mirror through the image proxy                                                                                                                                                                                                                                                                 |
+| apc-global-overrides.identityProviders               | identityProviders   | global.apc.identityProviders   | list        | []      | OpenShift OAuth identity providers                                                                                                                                                                                                                                                                                  |
+| apc-global-overrides.services                        | services            | global.apc.services            | dictionary  | -       | global services. Used to share values between helm charts                                                                                                                                                                                                                                                           |
+| apc-global-overrides.merge-services                  | services            | global.apc.services            | dictionary  | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.caCertificates                  | caCertificates      | global.apc.caCertificates      | dictionary  | -       | Custom CA certificates to trust, keys contain name of the CA with suffix .crt, and values contains one or more PEM encoded certificate(s)                                                                                                                                                                           |
+| apc-global-overrides.merge-caCertificates            | caCertificates      | global.apc.caCertificates      | dictionary  | -       |                                                                                                                                                                                                                                                                                                                     |
+| apc-global-overrides.caCertificatesBundle            | caCertificates      | global.apc.caCertificates      | string      | -       | flattened caCertificates to be used as a bundle                                                                                                                                                                                                                                                                     |
 
-### Integration dict helpers
+### Deprecated integration dictionary helpers
 
-`apc-global-overrides.adIntegration` and `apc-global-overrides.ldapIntegration` return a merged configuration dictionary using a three-way merge: local values override global values, which override built-in defaults.
+`adIntegration` and `ldapIntegration` are deprecated. Use `identityProviders` to configure OAuth identity providers.
+
+`apc-global-overrides.adIntegration` and `apc-global-overrides.ldapIntegration` remain available for backward compatibility. They return a merged configuration dictionary using a three-way merge: local values override global values, which override built-in defaults.
 
 The dictionary object is equivalent to the Openshift OAUTH list item structure for ldap / ad protocol.
 
-|Name|Local override|Global|Output type|Note|
-|---|---|---|---|---|
-|apc-global-overrides.adIntegration|adIntegration|global.apc.adIntegration|dict|Active Directory IDP configuration with default LDAP attribute mappings|
-|apc-global-overrides.ldapIntegration|ldapIntegration|global.apc.ldapIntegration|dict|LDAP IDP configuration with default attribute mappings|
+| Name                                 | Local override  | Global                     | Output type | Note                                                                                |
+| ------------------------------------ | --------------- | -------------------------- | ----------- | ----------------------------------------------------------------------------------- |
+| apc-global-overrides.adIntegration   | adIntegration   | global.apc.adIntegration   | dict        | Deprecated. Active Directory IDP configuration with default LDAP attribute mappings |
+| apc-global-overrides.ldapIntegration | ldapIntegration | global.apc.ldapIntegration | dict        | Deprecated. LDAP IDP configuration with default attribute mappings                  |
+
+Configure providers as complete OpenShift OAuth identity-provider entries:
+
+```yaml
+global:
+  apc:
+    identityProviders:
+      - name: Example LDAP
+        type: LDAP
+        mappingMethod: claim
+        ldap:
+          attributes:
+            id:
+              - dn
+            email:
+              - mail
+            name:
+              - cn
+            preferredUsername:
+              - uid
+          bindDN: cn=service,dc=example,dc=com
+          bindPassword:
+            name: ldap-bind-secret
+          insecure: false
+          url: ldaps://ldap.example.com/dc=example,dc=com?uid
+      - name: Example Active Directory
+        type: LDAP
+        mappingMethod: claim
+        ldap:
+          attributes:
+            id:
+              - sAMAccountName
+            email:
+              - mail
+            name:
+              - cn
+            preferredUsername:
+              - sAMAccountName
+          bindDN: cn=ad-service,dc=example,dc=com
+          bindPassword:
+            name: ad-bind-secret
+          insecure: false
+          url: ldaps://ad.example.com/dc=example,dc=com?sAMAccountName
+      - name: Example Microsoft Entra ID
+        type: OpenID
+        mappingMethod: claim
+        openID:
+          clientID: example-client-id
+          clientSecret:
+            name: entra-id-client-secret
+          issuer: https://login.microsoftonline.com/example-tenant-id/v2.0
+          extraScopes:
+            - email
+            - profile
+          claims:
+            preferredUsername:
+              - preferred_username
+              - email
+            name:
+              - name
+            email:
+              - email
+            groups:
+              - groups
+```
+
+Use the top-level `identityProviders` value for a chart-specific list override. When set, it replaces the global list, including when set to an empty list.
 
 Built-in defaults (applied when not overridden at global or local level):
 
 **adIntegration:**
+
 ```yaml
 name: ~
 type: LDAP
@@ -248,6 +320,7 @@ ldap:
 ```
 
 **ldapIntegration:**
+
 ```yaml
 name: ~
 type: LDAP
@@ -271,31 +344,31 @@ ldap:
 
 Helpers to query a specific service parameters available:
 
-|Name|Local override|Global|Output type|Default|Note|
-|---|---|---|---|---|---|
-|apc-global-overrides.certManagerDefaultClusterIssuer|services.certManager.defaultClusterIssuer|global.apc.services.certManager.defaultClusterIssuer|string|-|Cert manager cluster issuer to use for cluster-config certificates|
-|apc-global-overrides.require-certManagerDefaultClusterIssuer|services.certManager.defaultClusterIssuer|global.apc.services.certManager.defaultClusterIssuer|string|-||
-|apc-global-overrides.crossplaneKubeVaultProviderConfigName|services.crossplane.kubeVaultProviderConfigName|global.apc.services.crossplane.kubeVaultProviderConfigName|string|-|name of the crossplane Vault provider config to be used when creating Vault resources using crossplane|
-|apc-global-overrides.require-crossplaneKubeVaultProviderConfigName|services.crossplane.kubeVaultProviderConfigName|global.apc.services.crossplane.kubeVaultProviderConfigName|string|-||
-|apc-global-overrides.crossplaneKubeKeycloakProviderConfigName|services.crossplane.kubeKeycloakProviderConfigName|global.apc.services.crossplane.kubeKeycloakProviderConfigName|string|-|name of the crossplane Keycloak provider config to be used when creating Keycloak resources using crossplane|
-|apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName|services.crossplane.kubeKeycloakProviderConfigName|global.apc.services.crossplane.kubeKeycloakProviderConfigName|string|-||
-|apc-global-overrides.ESODefaultClusterSecretStore|services.externalSecretsOperator.defaultClusterSecretStore|global.apc.services.externalSecretsOperator.defaultClusterSecretStore|string|-|External Secrets Operator default cluster secret store to use for cluster-config externalsecrets|
-|apc-global-overrides.require-ESODefaultClusterSecretStore|services.externalSecretsOperator.defaultClusterSecretStore|global.apc.services.externalSecretsOperator.defaultClusterSecretStore|string|-||
-|apc-global-overrides.keycloakUrl|services.keycloak.url|global.apc.services.keycloak.url|string|-|Keycloak Admin API URL|
-|apc-global-overrides.require-keycloakUrl|services.keycloak.url|global.apc.services.keycloak.url|string|-||
-|apc-global-overrides.keycloakRealm|services.keycloak.realm|global.apc.services.keycloak.realm|string|-|Keycloak application Realm|
-|apc-global-overrides.require-keycloakRealm|services.keycloak.realm|global.apc.services.keycloak.realm|string|-||
-|apc-global-overrides.metallbNamespace|services.metallb.namespace|global.apc.services.metallb.namespace|string|metallb-system|namespace where metallb is installed|
-|apc-global-overrides.metallbL2Interface|services.metallb.l2interface|global.apc.services.metallb.l2interface|string|br-ex|interface on which the IP addresses from the IP pool are advertised|
-|apc-global-overrides.quayHost|services.quay.host|global.apc.services.quay.host|string|-|Quay host, e.g. used for mirroring|
-|apc-global-overrides.require-quayHost|services.quay.host|global.apc.services.quay.host|string|-||
-|apc-global-overrides.vaultKubeAuthMountPath|services.vault.kubeAuthMountPath|global.apc.services.vault.kubeAuthMountPath|string|-|Cluster specific auth mount point to be used for kubernetes auth method to Vault|
-|apc-global-overrides.require-vaultKubeAuthMountPath|services.vault.kubeAuthMountPath|global.apc.services.vault.kubeAuthMountPath|string|-||
-|apc-global-overrides.vaultName|services.vault.name|global.apc.services.vault.name|string|-|Human friendly Vault name, e.g. used in resource names|
-|apc-global-overrides.require-vaultName|services.vault.name|global.apc.services.vault.name|string|-||
-|apc-global-overrides.vaultUrl|services.vault.url|global.apc.services.vault.url|string|-|URL of the Vault server|
-|apc-global-overrides.require-vaultUrl|services.vault.url|global.apc.services.vault.url|string|-||
-|apc-global-overrides.vaultKVmountPlatform|services.vault.KVmountPlatform|global.apc.services.vault.KVmountPlatform|string|apc-platform|Vault KV mount for platform secrets|
+| Name                                                                  | Local override                                             | Global                                                                | Output type | Default        | Note                                                                                                         |
+| --------------------------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------- | ----------- | -------------- | ------------------------------------------------------------------------------------------------------------ |
+| apc-global-overrides.certManagerDefaultClusterIssuer                  | services.certManager.defaultClusterIssuer                  | global.apc.services.certManager.defaultClusterIssuer                  | string      | -              | Cert manager cluster issuer to use for cluster-config certificates                                           |
+| apc-global-overrides.require-certManagerDefaultClusterIssuer          | services.certManager.defaultClusterIssuer                  | global.apc.services.certManager.defaultClusterIssuer                  | string      | -              |                                                                                                              |
+| apc-global-overrides.crossplaneKubeVaultProviderConfigName            | services.crossplane.kubeVaultProviderConfigName            | global.apc.services.crossplane.kubeVaultProviderConfigName            | string      | -              | name of the crossplane Vault provider config to be used when creating Vault resources using crossplane       |
+| apc-global-overrides.require-crossplaneKubeVaultProviderConfigName    | services.crossplane.kubeVaultProviderConfigName            | global.apc.services.crossplane.kubeVaultProviderConfigName            | string      | -              |                                                                                                              |
+| apc-global-overrides.crossplaneKubeKeycloakProviderConfigName         | services.crossplane.kubeKeycloakProviderConfigName         | global.apc.services.crossplane.kubeKeycloakProviderConfigName         | string      | -              | name of the crossplane Keycloak provider config to be used when creating Keycloak resources using crossplane |
+| apc-global-overrides.require-crossplaneKubeKeycloakProviderConfigName | services.crossplane.kubeKeycloakProviderConfigName         | global.apc.services.crossplane.kubeKeycloakProviderConfigName         | string      | -              |                                                                                                              |
+| apc-global-overrides.ESODefaultClusterSecretStore                     | services.externalSecretsOperator.defaultClusterSecretStore | global.apc.services.externalSecretsOperator.defaultClusterSecretStore | string      | -              | External Secrets Operator default cluster secret store to use for cluster-config externalsecrets             |
+| apc-global-overrides.require-ESODefaultClusterSecretStore             | services.externalSecretsOperator.defaultClusterSecretStore | global.apc.services.externalSecretsOperator.defaultClusterSecretStore | string      | -              |                                                                                                              |
+| apc-global-overrides.keycloakUrl                                      | services.keycloak.url                                      | global.apc.services.keycloak.url                                      | string      | -              | Keycloak Admin API URL                                                                                       |
+| apc-global-overrides.require-keycloakUrl                              | services.keycloak.url                                      | global.apc.services.keycloak.url                                      | string      | -              |                                                                                                              |
+| apc-global-overrides.keycloakRealm                                    | services.keycloak.realm                                    | global.apc.services.keycloak.realm                                    | string      | -              | Keycloak application Realm                                                                                   |
+| apc-global-overrides.require-keycloakRealm                            | services.keycloak.realm                                    | global.apc.services.keycloak.realm                                    | string      | -              |                                                                                                              |
+| apc-global-overrides.metallbNamespace                                 | services.metallb.namespace                                 | global.apc.services.metallb.namespace                                 | string      | metallb-system | namespace where metallb is installed                                                                         |
+| apc-global-overrides.metallbL2Interface                               | services.metallb.l2interface                               | global.apc.services.metallb.l2interface                               | string      | br-ex          | interface on which the IP addresses from the IP pool are advertised                                          |
+| apc-global-overrides.quayHost                                         | services.quay.host                                         | global.apc.services.quay.host                                         | string      | -              | Quay host, e.g. used for mirroring                                                                           |
+| apc-global-overrides.require-quayHost                                 | services.quay.host                                         | global.apc.services.quay.host                                         | string      | -              |                                                                                                              |
+| apc-global-overrides.vaultKubeAuthMountPath                           | services.vault.kubeAuthMountPath                           | global.apc.services.vault.kubeAuthMountPath                           | string      | -              | Cluster specific auth mount point to be used for kubernetes auth method to Vault                             |
+| apc-global-overrides.require-vaultKubeAuthMountPath                   | services.vault.kubeAuthMountPath                           | global.apc.services.vault.kubeAuthMountPath                           | string      | -              |                                                                                                              |
+| apc-global-overrides.vaultName                                        | services.vault.name                                        | global.apc.services.vault.name                                        | string      | -              | Human friendly Vault name, e.g. used in resource names                                                       |
+| apc-global-overrides.require-vaultName                                | services.vault.name                                        | global.apc.services.vault.name                                        | string      | -              |                                                                                                              |
+| apc-global-overrides.vaultUrl                                         | services.vault.url                                         | global.apc.services.vault.url                                         | string      | -              | URL of the Vault server                                                                                      |
+| apc-global-overrides.require-vaultUrl                                 | services.vault.url                                         | global.apc.services.vault.url                                         | string      | -              |                                                                                                              |
+| apc-global-overrides.vaultKVmountPlatform                             | services.vault.KVmountPlatform                             | global.apc.services.vault.KVmountPlatform                             | string      | apc-platform   | Vault KV mount for platform secrets                                                                          |
 
 ## Unit tests
 

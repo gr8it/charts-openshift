@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: cluster-instance-hcp Velero Schedule
+templates:
+  - templates/velero-schedule.yaml
+values:
+  - ../values.lint.yaml
+release:
+  name: cluster-instance-hcp
+  namespace: mycluster
+
+tests:
+  - it: should create a Velero Schedule when backup is enabled
+    set:
+      clusterName: mycluster
+      backup:
+        enabled: true
+        schedule: "0 0 * * *"
+        ttl: "168h0m0s"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: apiVersion
+          value: velero.io/v1
+      - equal:
+          path: kind
+          value: Schedule
+      - equal:
+          path: metadata.name
+          value: mycluster
+      - equal:
+          path: metadata.namespace
+          value: openshift-adp
+      - equal:
+          path: spec.schedule
+          value: "0 0 * * *"
+      - equal:
+          path: spec.paused
+          value: false
+      - contains:
+          path: spec.template.includedNamespaces
+          content: mycluster
+      - equal:
+          path: spec.template.ttl
+          value: 168h0m0s
+      - equal:
+          path: spec.template.resourcePolicy.kind
+          value: configmap
+      - equal:
+          path: spec.template.resourcePolicy.name
+          value: velero-resource-policy-mycluster
+      - contains:
+          path: spec.template.includedNamespaces
+          content: mycluster-mycluster
+      - contains:
+          path: spec.template.includedNamespaces
+          content: klusterlet-mycluster
+
+  - it: should not create a Velero Schedule when backup is disabled
+    set:
+      clusterName: mycluster
+      backup.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0

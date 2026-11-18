@@ -1,0 +1,20 @@
+{{- $clusterName := include "cluster-instance-hcp.clusterName" . }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: nodepool-release-check-{{ $clusterName }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "0"
+  labels:
+    {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: nodepool-release-check-{{ $clusterName }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: nodepool-release-check-{{ $clusterName }}

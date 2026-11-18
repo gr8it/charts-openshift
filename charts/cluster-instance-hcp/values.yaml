@@ -1,0 +1,113 @@
+nameOverride: ""
+fullnameOverride: ""
+
+## uses following global values => do not set here
+# global:
+#   apc:
+#     proxy: ~
+#     noProxy: ~
+#     ntpServers: []
+#     caCertificates: {}
+#     sshAuthorizedKeys: []
+#     cluster:
+#       rootDomain: ~
+#     imageProxy:
+#       host: ~
+#       sources: []
+#     adIntegration: {}
+#     ldapIntegration: {}
+#     services:
+#       externalSecretsOperator:
+#         defaultClusterSecretStore: ~
+#       vault:
+#         KVmountPlatform: ~
+#       certManager:
+#         defaultClusterIssuer: ~
+
+# HCP cluster name — also used as: namespace, infraID, ManagedCluster name
+clusterName: ""
+
+# ACM cluster set label
+clusterSet: default
+
+# Infrastructure namespace — defaults to infrastructure-<clusterName>
+infrastructureNamespace: ""
+
+# OCP release image (full FQDN with tag)
+releaseImage: "quay.io/openshift-release-dev/ocp-release:4.18.41-multi"
+
+# Version tag for the ose-cli image used by the NodePool release check job
+oseCliImageTag: "4.15"
+
+# OCP update channel
+channel: eus-4.18
+
+# API server audit profile
+apiServerAuditProfile: Default
+
+etcd:
+  storageClassName: lvms-vg1
+  storageSize: 8Gi
+  backup:
+    enabled: false
+    schedule: "0 0 * * *"
+    paused: false
+    retentionDays: 3
+    etcdStatefulSetName: etcd
+    compressSnapshot: false
+    objectBucketClaim:
+      create: false
+      name: ""
+      storageClass: ocs-storagecluster-ceph-rgw
+
+# Scheduling of HCP control plane pods on hub
+tolerations:
+  - operator: Exists
+    effect: NoSchedule
+    key: node-role.kubernetes.io/master
+nodeSelector:
+  node-role.kubernetes.io/master: ""
+
+# NodePool
+nodePool:
+  # Keep on the current release during HostedCluster upgrades; advance separately afterward.
+  releaseImage: ""
+  replicas: 2
+  upgradeType: InPlace
+  autoRepair: false
+  nodeLabels: {}
+
+# Cluster networking
+networking:
+  clusterCIDR: 172.26.0.0/16
+  clusterHostPrefix: 21
+  serviceCIDR: 172.25.64.0/18
+
+# NodePort service publishing — ports must be unique per cluster on the same hub
+services:
+  oauthPort: ~
+  konnectivityPort: ~
+  ignitionPort: ~
+  oidcPort: ~
+
+backup:
+  enabled: false
+  schedule: "0 0 * * *"
+  paused: false
+  ttl: "336h0m0s"
+
+kubeletConfig:
+  containerLogMaxFiles: 5
+  containerLogMaxSize: 20Mi
+  podsPerCore: 0
+  maxPods: 350
+  systemReserved:
+    cpu: 800m
+    memory: 4Gi
+    ephemeral-storage: 3Gi
+  autoSizingReserved: false
+
+logindConfig: |
+  [Login]
+  # SSH hardening
+  StopIdleSessionSec=900
