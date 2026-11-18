@@ -68,6 +68,14 @@ The chart is implemented as an ACM policy and does following:
   - If Kube Auth CRs are provisioned
     - Sets Vault Provider to use Kubernetes auth
 
+Hints for Vault CLI:
+``` bash
+export VAULT_SKIP_VERIFY=true
+export VAULT_ADDR=https://your-vault.example.com/
+vault login #grep token from UI
+```
+
+
 > [!IMPORTANT]  
 > The Token secret is NOT removed automatically. After the switch, verify all Vault managed resources are `Synced` (`kubectl get managed`), then remove the secret and revoke the token manually:
 >
@@ -78,6 +86,14 @@ The chart is implemented as an ACM policy and does following:
 > ```
 
 ## Token Secret generation
+
+  
+0) If cluster is re-installed and authentification method was already created, disable existing method for cluster
+
+    ```bash
+    vault auth list
+    vault auth disable <clustername>
+    ```
 
 1) Admin creates a token using `vault token create -ttl=15m --renewable=false`
 
@@ -95,10 +111,19 @@ The chart is implemented as an ACM policy and does following:
 
 > [!NOTE]  
 > Policies of the creating (admin) user will be reused by default. Or specify policy to be used using `-policy <policy-name>`
+  
+> [!WARNING]  
+> Do not create using root token, as it would create a long lived root token copy!!!
 
-1) Copy the token from the `token` parameter
+3) Change the maximum validity of a token back
 
-1) Store the token to a file:
+    ```bash
+    vault write sys/auth/token/tune max_lease_ttl=768h
+    ```
+
+4) Copy the token from the `token` parameter
+
+5) Store the token to a file:
 
    ```bash
    cat <<EOF > /tmp/vault-credentials
@@ -109,7 +134,7 @@ The chart is implemented as an ACM policy and does following:
    EOF
    ```
 
-1) Create the Token secret on MANAGED CLUSTER(s)
+6) Create the Token secret on MANAGED CLUSTER(s)
 
    ```bash
    kubectl create secret generic <secret-name> -n apc-crossplane-system --from-file=credentials=/tmp/vault-credentials
@@ -122,6 +147,17 @@ The chart is implemented as an ACM policy and does following:
 > The Token secret to be used hint is available in the ACM GUI -> Governance -> Policies -> crossplane-vault-provider-bootstrap -> Results -> *-providerconfig-token-auth policy Message:
 >
 > ![Token Auth Check hint](images/token-secret-policy.png)
+
+### Bootstrap
+
+
+7) restart bootstrap process again
+
+- to run the bootstrap process again, set the particular Provider Config credentials source to `Secret`, e.g.
+
+```bash
+kubectl patch providerconfigs.vault.upbound.io <vault provider config> --type="merge" -p '{"spec": {"credentials":{"source": "Secret"}}}'
+```
 
 ### Helm Chart Parameters
 
@@ -143,13 +179,7 @@ The chart is implemented as an ACM policy and does following:
 - remove the policy.policy.open-cluster-management.io
 - remove the kube auth from Vault
 
-### Bootstrap
 
-- to run the bootstrap process again, set the particular Provider Config credentials source to `Secret`, e.g.
-
-```bash
-kubectl patch providerconfig vault.lab.gr8it.cloud --type="merge" -p '{"spec": {"credentials":{"source": "Secret"}}}'
-```
 
 ## TODO
 
