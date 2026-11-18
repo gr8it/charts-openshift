@@ -42,3 +42,62 @@ spec:
         patchStrategicMerge:
           metadata:
             labels: {{ `{{ object_from_lists(labelentries[].key, labelentries[].value) }}` | quote }}
+            
+    - name: mirror-on-service
+      match:
+        any:
+          - resources:
+              kinds:
+                - Service
+              namespaceSelector:
+                matchLabels:
+                  apc.namespace.type: application
+      context:
+        - name: nslabels
+          apiCall:
+            urlPath: "/api/v1/namespaces/{{ `{{ request.namespace }}` }}"
+            jmesPath: "metadata.labels"
+            default: {}
+      preconditions:
+        all:
+          - key: {{ `{{ nslabels.team || '' }}` | quote }}
+            operator: NotEquals
+            value: ""
+          - key: {{ `{{ nslabels.vendor || '' }}` | quote }}
+            operator: NotEquals
+            value: ""
+      mutate:
+        patchStrategicMerge:
+          metadata:
+            labels:
+              +(team): {{ `{{ nslabels.team }}` | quote }}
+              +(vendor): {{ `{{ nslabels.vendor }}` | quote }}
+
+    - name: mirror-on-namespace-change
+      match:
+        any:
+          - resources:
+              kinds:
+                - Namespace
+              selector:
+                matchLabels:
+                  apc.namespace.type: application
+      preconditions:
+        all:
+          - key: {{ `{{ request.object.metadata.labels.team || '' }}` | quote }}
+            operator: NotEquals
+            value: ""
+          - key: {{ `{{ request.object.metadata.labels.vendor || '' }}` | quote }}
+            operator: NotEquals
+            value: ""
+      mutate:
+        mutateExistingOnPolicyUpdate: true
+        targets:
+          - apiVersion: v1
+            kind: Service
+            namespace: {{ `{{ request.object.metadata.name }}` | quote }}
+        patchStrategicMerge:
+          metadata:
+            labels:
+              +(team): {{ `{{ request.object.metadata.labels.team }}` | quote }}
+              +(vendor): {{ `{{ request.object.metadata.labels.vendor }}` | quote }}

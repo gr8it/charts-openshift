@@ -24,8 +24,8 @@ pkiIssuer:
   issuerName: ~       # needed in case we want to import already created roles for named issued, if not specified default issuer is used
   pkiRoles:
     defaultSettings:    # default settings for all created roles
-      ttl: "365d"
-      maxTtl: "365d"
+      ttl: "31536000"     # 365d in seconds as returned by Vault, otherwise Crossplane updates the role endlessly
+      maxTtl: "31536000"
       allowBareDomains: true
       allowSubdomains: true
       allowLocalhost: false

@@ -1,0 +1,26 @@
+{{- if .Values.hwXcaUrl }}
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: hw-xca
+  namespace: {{ .Release.Namespace }}
+spec:
+  jobName: hw-xca
+  interval: 10s
+  scrapeTimeout: 10s
+  module: http_2xx
+  prober:
+    url: blackbox-exporter-prometheus-blackbox-exporter.{{ .Release.Namespace }}.svc:9115
+    scheme: http
+    path: /probe
+  targets:
+    staticConfig:
+      labels:
+        vendor: aspecta
+        team: platform
+        module: http_2xx
+        component: xca
+        target: hw-xca
+      static:
+        - {{ .Values.hwXcaUrl }}
+{{- end }}

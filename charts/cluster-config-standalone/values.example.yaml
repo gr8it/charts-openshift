@@ -103,4 +103,27 @@ oauth:
         fileData:
           name: htpass-secret
   tokenConfig:
-    accessTokenMaxAgeSeconds : 3600 
+    accessTokenMaxAgeSeconds : 3600
+
+dedicatedEtcdStorageDevices:
+  - /dev/vg1/1
+  - /dev/vg1/2
+  - /dev/vg1/3
+
+kubeletConfigs:
+  - name: system-reserved-master
+    pool: master
+    autoSizingReserved: false
+    kubeletConfig:
+      systemReserved:
+        cpu: 1000m
+        ephemeral-storage: 5Gi
+        memory: 4Gi
+  - name: system-reserved-worker
+    pool: worker
+    autoSizingReserved: false
+    kubeletConfig:
+      systemReserved:
+        cpu: 1000m
+        ephemeral-storage: 5Gi
+        memory: 4Gi

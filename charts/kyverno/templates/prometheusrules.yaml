@@ -67,16 +67,16 @@ spec:
           annotations:
             summary: Kyverno UpdateRequests are not being garbage collected.
             description: UpdateRequests keep being created but none have been deleted in the last 6 hours, so the backlog only grows. Left unchecked this reaches updateRequestThreshold in the Kyverno configmap and blocks all new UpdateRequest creation, silently stopping generate/mutate-existing policies from applying to new triggers.
-        - alert: KyvernoUpdateRequestsDropped
-          expr: sum(increase(kyverno_breaker_drops_total[15m])) > 0
+        - alert: KyvernoBreakerDroppingEntries
+          expr: sum by (circuit_name) (increase(kyverno_breaker_drops_total[15m])) > 0
           for: 5m
           labels:
             severity: warning
             vendor: aspecta
             team: platform
           annotations:
-            summary: Kyverno is dropping new UpdateRequests.
-            description: The Kyverno circuit breaker is dropping new UpdateRequests because updateRequestThreshold (default 1000) was reached. Generate/mutate-existing policies are not applied to new triggers until the backlog drains.
+            summary: Kyverno circuit breaker {{ `{{ $labels.circuit_name }}` }} is dropping entries.
+            description: The Kyverno circuit breaker "{{ `{{ $labels.circuit_name }}` }}" dropped new entries in the last 15 minutes because its limit was reached. For "background-scan reports" this means background scan results are being discarded until the backlog of ephemeral reports drains.
         - alert: KyvernoCleanupControllerDown
           expr: absent(up{service="kyverno-cleanup-controller-metrics",namespace="{{ .Release.Namespace }}"}) == 1
           for: 10m
@@ -87,6 +87,7 @@ spec:
           annotations:
             summary: Kyverno cleanup controller is down.
             description: Kyverno cleanup controller is not running. CleanupPolicy and TTL cleanup targets will not be removed while it is down.
+        {{- if .Values.kyverno.reportsController.enabled }}
         - alert: KyvernoReportsControllerDown
           expr: absent(up{service="kyverno-reports-controller-metrics",namespace="{{ .Release.Namespace }}"}) == 1
           for: 10m
@@ -97,6 +98,7 @@ spec:
           annotations:
             summary: Kyverno reports controller is down.
             description: Kyverno reports controller is not running. This controller aggregates policy/admission results into PolicyReports; while down, kyverno_policy_results_total may go stale and mask real policy failures from KyvernoPolicyResultsError/KyvernoPolicyResultsFail.
+        {{- end }}
         - alert: KyvernoPolicyRuleSlowExecution
           expr: histogram_quantile(0.95, sum by (le, policy_name, rule_name) (rate(kyverno_policy_execution_duration_seconds_bucket[15m]))) > 5
           for: 15m

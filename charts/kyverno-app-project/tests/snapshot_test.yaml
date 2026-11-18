@@ -54,3 +54,32 @@ tests:
       - equal:
           path: spec.rules[0].validate.deny.conditions.all[0].value
           value: ""
+
+  - it: mirrors the namespace ownership onto services without overwriting their own labels
+    template: templates/clusterpolicy-app-project-metadata.yaml
+    asserts:
+      - lengthEqual:
+          path: spec.rules
+          count: 3
+      - equal:
+          path: spec.rules[1].name
+          value: mirror-on-service
+      # +() adds team / vendor only when missing, so a service that carries its
+      # own keeps it - that is how one namespace can hold more teams
+      - equal:
+          path: spec.rules[1].mutate.patchStrategicMerge.metadata.labels
+          value:
+            +(team): "{{ nslabels.team }}"
+            +(vendor): "{{ nslabels.vendor }}"
+      # the namespace labels are pushed into existing services that miss them
+      - equal:
+          path: spec.rules[2].mutate.targets[0].kind
+          value: Service
+      - equal:
+          path: spec.rules[2].mutate.patchStrategicMerge.metadata.labels
+          value:
+            +(team): "{{ request.object.metadata.labels.team }}"
+            +(vendor): "{{ request.object.metadata.labels.vendor }}"
+      - equal:
+          path: spec.rules[2].mutate.mutateExistingOnPolicyUpdate
+          value: true

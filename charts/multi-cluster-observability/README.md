@@ -7,6 +7,7 @@ This chart packages ACM multi-cluster observability resources that were previous
 - `MultiClusterObservability` (`observability.open-cluster-management.io/v1beta2`)
 - `ObjectBucketClaim` for Thanos object storage
 - Kyverno `Policy` generating the `thanos-object-storage` `Secret` from OBC-provided bucket data
+- Kyverno `Policy` generating the `thanos-tls-ca` `Secret` from the `openshift-service-ca.crt` `ConfigMap` (follows service CA rotation)
 - `ExternalSecret` `alertmanager-config` for hub Alertmanager routing, producing the consumed `Secret`
 - Metrics allowlist `ConfigMap` resources
 - Grafana dashboard `ConfigMap` resources included from `files/grafana-dashboards/*.json`

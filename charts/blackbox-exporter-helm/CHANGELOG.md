@@ -5,6 +5,25 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-10-28
+
+### Fixed
+
+- Add `target` label to `openshift-api` and `openshift-console` Probes, required by the availability dashboards (spoke clusters were missing from them since 1.0.0)
+
+
+## [1.1.0] - 2026-10-23
+
+_([SPEXAPC-27137](https://aspecta.atlassian.net/browse/SPEXAPC-27137))_
+
+### Added
+
+- Probe `hw-xca` for Lenovo XClarity Administrator, rendered only when `hwXcaUrl` is set
+
+### Changed
+
+- README: document Probes instead of `serviceMonitor.targets`
+
 ## [1.0.7] - 2026-01-22
 
 ### Fixed
