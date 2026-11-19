@@ -1,0 +1,50 @@
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: app-project-monitoring-quota
+  labels:
+  {{- include "kyverno-app-project.labels" . | nindent 4 }}
+  annotations:
+    policies.kyverno.io/title: Create monitoring resource quota for namespace
+    policies.kyverno.io/category: quota
+    policies.kyverno.io/subject: project
+    policies.kyverno.io/minversion: 1.20.0
+spec:
+  evaluation:
+    generateExisting:
+      enabled: true
+    skipBackgroundRequests: {{ .Values.monitoringQuota.skipBackgroundRequests }}
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["namespaces"]
+    objectSelector:
+      matchLabels:
+        apc.namespace.type: application
+  matchConditions:
+    # create only: generateExisting re-applies periodically and would overwrite manual changes
+    - name: quota-missing
+      expression: dyn(resource.Get("v1", "resourcequotas", object.metadata.name, "monitoring-quota")) == null
+  generate:
+    - template:
+        interpolate: cel
+        value: |
+          apiVersion: v1
+          kind: ResourceQuota
+          metadata:
+            name: monitoring-quota
+            namespace: (( object.metadata.name ))
+          spec:
+            hard:
+              {{- with .Values.monitoringQuota }}
+              count/alertmanagerconfigs.monitoring.coreos.com: {{ .alertmanagerconfigsMonitoringCoreosCom | quote }}  # Maximum number of AlertmanagerConfigs (for configuring alertmanager instances)
+              count/alertmanagers.monitoring.coreos.com: {{ .alertmanagersMonitoringCoreosCom | quote }}              # Maximum number of Alertmanagers (for creating alertmanager instances)
+              count/podmonitors.monitoring.coreos.com: {{ .podmonitorsMonitoringCoreosCom | quote }}                  # Maximum number of PodMonitors (for defining pod-level metrics collection)
+              count/probes.monitoring.coreos.com: {{ .probesMonitoringCoreosCom | quote }}                            # Maximum number of Probes (for defining liveness and readiness probes)
+              count/prometheuses.monitoring.coreos.com: {{ .prometheusesMonitoringCoreosCom | quote }}                # Maximum number of Prometheuses (for creating Prometheus instances)
+              count/prometheusrules.monitoring.coreos.com: {{ .prometheusrulesMonitoringCoreosCom | quote }}          # Maximum number of PrometheusRules (for Prometheus alerting rules)
+              count/servicemonitors.monitoring.coreos.com: {{ .servicemonitorsMonitoringCoreosCom | quote }}          # Maximum number of ServiceMonitors (for defining service-level metrics collections
+              count/thanosrulers.monitoring.coreos.com: {{ .thanosrulersMonitoringCoreosCom | quote }}                # Maximum number of ThanosRulers (for creating Thanos ruler instances for Prometheus)
+              {{- end }}

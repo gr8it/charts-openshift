@@ -1,0 +1,50 @@
+---
+apiVersion: policies.kyverno.io/v1
+kind: MutatingPolicy
+metadata:
+  name: {{ default "apc-tempo-stack" .Values.tempoStack.name }}-tempo-cleanup-tenants
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
+    policies.kyverno.io/title: Update TempoStack tenants on namespace delete
+    policies.kyverno.io/category: gitops
+    policies.kyverno.io/subject: Cleanup TempoStack tenants
+    policies.kyverno.io/minversion: 1.20.0
+  labels:
+{{- include "tempo-stack.labels" . | nindent 4 }}
+spec:
+  evaluation:
+    mutateExisting:
+      enabled: true
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["DELETE"]
+        resources: ["namespaces"]
+    objectSelector:
+      matchLabels:
+        {{ .Values.namespaceSelector.key }}: {{ .Values.namespaceSelector.value }}
+  # policy create/update events re-run the policy for all existing namespaces as UPDATE requests
+  matchConditions:
+    - name: namespace-deleted
+      expression: request.operation == 'DELETE'
+  variables:
+    # on DELETE the namespace is only in request.oldObject; in the target phase `object` is the TempoStack
+    - name: namespace
+      expression: "request.operation == 'DELETE' ? request.oldObject.metadata.name : ''"
+  targetMatchConstraints:
+    expression: resource.Get("tempo.grafana.com/v1alpha1", "tempostacks", {{ .Release.Namespace | quote }}, {{ default "apc-tempo-stack" .Values.tempoStack.name | quote }})
+  targetMatchConditions:
+    - name: has-tenant
+      expression: variables.namespace != '' && object.spec.tenants.authentication.exists(t, t.tenantName == variables.namespace)
+  mutations:
+    - patchType: JSONPatch
+      jsonPatch:
+        expression: >-
+          [
+            JSONPatch{
+              op: "replace",
+              path: "/spec/tenants/authentication",
+              value: object.spec.tenants.authentication.filter(t, t.tenantName != variables.namespace)
+            }
+          ]

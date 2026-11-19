@@ -1,213 +1,5 @@
 manifests should match snapshot:
   1: |
-    apiVersion: kyverno.io/v1
-    kind: ClusterPolicy
-    metadata:
-      annotations:
-        argocd.argoproj.io/sync-options: Replace=true
-        policies.kyverno.io/category: gitops
-        policies.kyverno.io/minversion: 1.13.0
-        policies.kyverno.io/subject: Generate ClusterRoles for application tenants in TempoStack
-        policies.kyverno.io/title: Generate ClusterRoles and RoleBindings for TempoStack tenants
-      labels:
-        app.kubernetes.io/instance: openshift-distributed-tracing
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: openshift-distributed-tracing
-        helm.sh/chart: openshift-distributed-tracing-1.1.0
-      name: apc-tempo-stack-generate-tenant-clusterrole
-    spec:
-      background: true
-      rules:
-        - generate:
-            apiVersion: rbac.authorization.k8s.io/v1
-            data:
-              metadata:
-                labels:
-                  generated-by: generate-writer-clusterrole-for-application-namespace
-                  rbac.authorization.k8s.io/apc-opentelemetry-collector-apc-observability-cluster-role: "true"
-              rules:
-                - apiGroups:
-                    - tempo.grafana.com
-                  resourceNames:
-                    - traces
-                  resources:
-                    - '{{request.object.metadata.name}}'
-                  verbs:
-                    - create
-            generateExisting: true
-            kind: ClusterRole
-            name: apc-tempo-stack-writer-{{request.object.metadata.name}}
-            synchronize: true
-          match:
-            any:
-              - resources:
-                  kinds:
-                    - Namespace
-                  selector:
-                    matchLabels:
-                      apc.namespace.type: application
-          name: generate-clusterrole-writer-for-application-namespace
-        - generate:
-            apiVersion: rbac.authorization.k8s.io/v1
-            data:
-              metadata:
-                labels:
-                  generated-by: generate-reader-clusterrole-for-application-namespace
-              rules:
-                - apiGroups:
-                    - tempo.grafana.com
-                  resourceNames:
-                    - traces
-                  resources:
-                    - '{{request.object.metadata.name}}'
-                  verbs:
-                    - get
-            generateExisting: true
-            kind: ClusterRole
-            name: apc-tempo-stack-reader-{{request.object.metadata.name}}
-            synchronize: true
-          match:
-            any:
-              - resources:
-                  kinds:
-                    - Namespace
-                  selector:
-                    matchLabels:
-                      apc.namespace.type: application
-          name: generate-clusterrole-reader-for-application-namespace
-        - generate:
-            apiVersion: rbac.authorization.k8s.io/v1
-            data:
-              roleRef:
-                apiGroup: rbac.authorization.k8s.io
-                kind: ClusterRole
-                name: apc-tempo-stack-reader-{{ request.object.metadata.name }}
-              subjects:
-                - kind: Group
-                  name: APC-D-{{ to_upper('{{request.object.metadata.name}}') }}-PJA
-                - kind: Group
-                  name: APC-D-{{ to_upper('{{request.object.metadata.name}}') }}-DEV
-                - kind: Group
-                  name: APC-D-{{ to_upper('{{request.object.metadata.name}}') }}-TES
-                - kind: Group
-                  name: APC-D-{{ to_upper('{{request.object.metadata.name}}') }}-OPR
-            generateExisting: true
-            kind: ClusterRoleBinding
-            name: apc-tempo-stack-reader-{{request.object.metadata.name}}
-            synchronize: true
-          match:
-            any:
-              - resources:
-                  kinds:
-                    - Namespace
-                  selector:
-                    matchLabels:
-                      apc.namespace.type: application
-          name: generate-rolebinding-reader-for-application-namespace
-      validationFailureAction: Audit
-  2: |
-    apiVersion: kyverno.io/v1
-    kind: ClusterPolicy
-    metadata:
-      annotations:
-        argocd.argoproj.io/sync-options: Replace=true
-        policies.kyverno.io/category: gitops
-        policies.kyverno.io/minversion: 1.13.0
-        policies.kyverno.io/subject: Cleanup TempoStack tenants
-        policies.kyverno.io/title: Update TempoStack tenants on namespace delete
-      labels:
-        app.kubernetes.io/instance: openshift-distributed-tracing
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: openshift-distributed-tracing
-        helm.sh/chart: openshift-distributed-tracing-1.1.0
-      name: apc-tempo-stack-tempo-cleanup-tenants
-    spec:
-      mutateExistingOnPolicyUpdate: false
-      rules:
-        - match:
-            any:
-              - resources:
-                  kinds:
-                    - Namespace
-                  operations:
-                    - DELETE
-                  selector:
-                    matchLabels:
-                      apc.namespace.type: application
-          mutate:
-            foreach:
-              - list: target.spec.tenants.authentication
-                patchesJson6902: |-
-                  - op: remove
-                    path: /spec/tenants/authentication/{{ elementIndex }}
-                preconditions:
-                  all:
-                    - key: '{{ element.tenantName }}'
-                      operator: Equals
-                      value: '{{ request.oldObject.metadata.name }}'
-            targets:
-              - apiVersion: tempo.grafana.com/v1alpha1
-                kind: TempoStack
-                name: apc-tempo-stack
-                namespace: NAMESPACE
-          name: remove-tenant-from-tempostack-on-namespace-delete
-  3: |
-    apiVersion: kyverno.io/v1
-    kind: ClusterPolicy
-    metadata:
-      annotations:
-        argocd.argoproj.io/sync-options: Replace=true
-        policies.kyverno.io/category: gitops
-        policies.kyverno.io/minversion: 1.13.0
-        policies.kyverno.io/subject: Sync TempoStack tenants with namespaces
-        policies.kyverno.io/title: Update TempoStack tenants on namespace create
-      labels:
-        app.kubernetes.io/instance: openshift-distributed-tracing
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: openshift-distributed-tracing
-        helm.sh/chart: openshift-distributed-tracing-1.1.0
-      name: apc-tempo-stack-tempo-sync-tenants
-    spec:
-      background: true
-      mutateExistingOnPolicyUpdate: true
-      rules:
-        - context:
-            - apiCall:
-                default: []
-                jmesPath: spec.tenants.authentication[*].tenantName
-                method: GET
-                urlPath: /apis/tempo.grafana.com/v1alpha1/namespaces/NAMESPACE/tempostacks/apc-tempo-stack
-              name: tenantNames
-          match:
-            all:
-              - resources:
-                  kinds:
-                    - Namespace
-                  selector:
-                    matchLabels:
-                      apc.namespace.type: application
-          mutate:
-            mutateExistingOnPolicyUpdate: true
-            patchesJson6902: |-
-              - op: add
-                path: "/spec/tenants/authentication/-"
-                value:
-                  tenantName: "{{ request.object.metadata.name }}"
-                  tenantId: "{{ request.object.metadata.name }}"
-            targets:
-              - apiVersion: tempo.grafana.com/v1alpha1
-                kind: TempoStack
-                name: apc-tempo-stack
-                namespace: NAMESPACE
-          name: add-tenant-to-tempostack
-          preconditions:
-            all:
-              - key: '{{ request.object.metadata.name }}'
-                message: A tenant is added into tempo.
-                operator: AnyNotIn
-                value: '{{ tenantNames }}'
-      validationFailureAction: Audit
-  4: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -215,7 +7,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
-        helm.sh/chart: openshift-distributed-tracing-1.1.0
+        helm.sh/chart: openshift-distributed-tracing-2.0.0
         rbac.kyverno.io/aggregate-to-admission-controller: "true"
       name: kyverno:admission-controller:openshift-distributed-tracing
     rules:
@@ -225,7 +17,7 @@ manifests should match snapshot:
           - rolebindings
         verbs:
           - get
-  5: |
+  2: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -233,7 +25,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
-        helm.sh/chart: openshift-distributed-tracing-1.1.0
+        helm.sh/chart: openshift-distributed-tracing-2.0.0
         rbac.kyverno.io/aggregate-to-background-controller: "true"
       name: kyverno:background-controller:openshift-distributed-tracing
     rules:
@@ -304,7 +96,7 @@ manifests should match snapshot:
           - subjectaccessreviews
         verbs:
           - create
-  6: |
+  3: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -312,7 +104,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
-        helm.sh/chart: openshift-distributed-tracing-1.1.0
+        helm.sh/chart: openshift-distributed-tracing-2.0.0
       name: tempostack-traces-read
     rules:
       - apiGroups:
@@ -324,6 +116,208 @@ manifests should match snapshot:
           - '*'
         verbs:
           - get
+  4: |
+    apiVersion: policies.kyverno.io/v1
+    kind: GeneratingPolicy
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-options: Replace=true
+        policies.kyverno.io/category: gitops
+        policies.kyverno.io/minversion: 1.20.0
+        policies.kyverno.io/subject: Generate ClusterRoles for application tenants in TempoStack
+        policies.kyverno.io/title: Generate ClusterRoles and RoleBindings for TempoStack tenants
+      labels:
+        app.kubernetes.io/instance: openshift-distributed-tracing
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: openshift-distributed-tracing
+        helm.sh/chart: openshift-distributed-tracing-2.0.0
+      name: apc-tempo-stack-generate-tenant-clusterrole
+    spec:
+      evaluation:
+        generateExisting:
+          enabled: true
+        synchronize:
+          enabled: true
+      generate:
+        - template:
+            interpolate: cel
+            value: |
+              apiVersion: rbac.authorization.k8s.io/v1
+              kind: ClusterRole
+              metadata:
+                name: apc-tempo-stack-writer-(( object.metadata.name ))
+                labels:
+                  generated-by: generate-writer-clusterrole-for-application-namespace
+                  rbac.authorization.k8s.io/apc-opentelemetry-collector-apc-observability-cluster-role: "true"
+              rules:
+                - apiGroups:
+                    - tempo.grafana.com
+                  resources:
+                    - (( object.metadata.name ))
+                  resourceNames:
+                    - traces
+                  verbs:
+                    - 'create'
+        - template:
+            interpolate: cel
+            value: |
+              apiVersion: rbac.authorization.k8s.io/v1
+              kind: ClusterRole
+              metadata:
+                name: apc-tempo-stack-reader-(( object.metadata.name ))
+                labels:
+                  generated-by: generate-reader-clusterrole-for-application-namespace
+              rules:
+                - apiGroups:
+                    - tempo.grafana.com
+                  resources:
+                    - (( object.metadata.name ))
+                  resourceNames:
+                    - traces
+                  verbs:
+                    - get
+        - template:
+            interpolate: cel
+            value: |
+              apiVersion: rbac.authorization.k8s.io/v1
+              kind: ClusterRoleBinding
+              metadata:
+                name: apc-tempo-stack-reader-(( object.metadata.name ))
+              roleRef:
+                apiGroup: rbac.authorization.k8s.io
+                kind: ClusterRole
+                name: apc-tempo-stack-reader-(( object.metadata.name ))
+              subjects:
+                - kind: Group
+                  name: APC-D-(( object.metadata.name.upperAscii() ))-PJA
+                - kind: Group
+                  name: APC-D-(( object.metadata.name.upperAscii() ))-DEV
+                - kind: Group
+                  name: APC-D-(( object.metadata.name.upperAscii() ))-TES
+                - kind: Group
+                  name: APC-D-(( object.metadata.name.upperAscii() ))-OPR
+      matchConstraints:
+        objectSelector:
+          matchLabels:
+            apc.namespace.type: application
+        resourceRules:
+          - apiGroups:
+              - ""
+            apiVersions:
+              - v1
+            operations:
+              - CREATE
+              - UPDATE
+            resources:
+              - namespaces
+  5: |
+    apiVersion: policies.kyverno.io/v1
+    kind: MutatingPolicy
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-options: Replace=true
+        policies.kyverno.io/category: gitops
+        policies.kyverno.io/minversion: 1.20.0
+        policies.kyverno.io/subject: Cleanup TempoStack tenants
+        policies.kyverno.io/title: Update TempoStack tenants on namespace delete
+      labels:
+        app.kubernetes.io/instance: openshift-distributed-tracing
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: openshift-distributed-tracing
+        helm.sh/chart: openshift-distributed-tracing-2.0.0
+      name: apc-tempo-stack-tempo-cleanup-tenants
+    spec:
+      evaluation:
+        mutateExisting:
+          enabled: true
+      matchConditions:
+        - expression: request.operation == 'DELETE'
+          name: namespace-deleted
+      matchConstraints:
+        objectSelector:
+          matchLabels:
+            apc.namespace.type: application
+        resourceRules:
+          - apiGroups:
+              - ""
+            apiVersions:
+              - v1
+            operations:
+              - DELETE
+            resources:
+              - namespaces
+      mutations:
+        - jsonPatch:
+            expression: |-
+              [
+                JSONPatch{
+                  op: "replace",
+                  path: "/spec/tenants/authentication",
+                  value: object.spec.tenants.authentication.filter(t, t.tenantName != variables.namespace)
+                }
+              ]
+          patchType: JSONPatch
+      targetMatchConditions:
+        - expression: variables.namespace != '' && object.spec.tenants.authentication.exists(t, t.tenantName == variables.namespace)
+          name: has-tenant
+      targetMatchConstraints:
+        expression: resource.Get("tempo.grafana.com/v1alpha1", "tempostacks", "NAMESPACE", "apc-tempo-stack")
+      variables:
+        - expression: 'request.operation == ''DELETE'' ? request.oldObject.metadata.name : '''''
+          name: namespace
+  6: |
+    apiVersion: policies.kyverno.io/v1
+    kind: MutatingPolicy
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-options: Replace=true
+        policies.kyverno.io/category: gitops
+        policies.kyverno.io/minversion: 1.20.0
+        policies.kyverno.io/subject: Sync TempoStack tenants with namespaces
+        policies.kyverno.io/title: Update TempoStack tenants on namespace create
+      labels:
+        app.kubernetes.io/instance: openshift-distributed-tracing
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: openshift-distributed-tracing
+        helm.sh/chart: openshift-distributed-tracing-2.0.0
+      name: apc-tempo-stack-tempo-sync-tenants
+    spec:
+      evaluation:
+        mutateExisting:
+          enabled: true
+      matchConstraints:
+        objectSelector:
+          matchLabels:
+            apc.namespace.type: application
+        resourceRules:
+          - apiGroups:
+              - ""
+            apiVersions:
+              - v1
+            operations:
+              - CREATE
+              - UPDATE
+            resources:
+              - namespaces
+      mutations:
+        - jsonPatch:
+            expression: |-
+              [
+                JSONPatch{
+                  op: "add",
+                  path: "/spec/tenants/authentication/-",
+                  value: {"tenantName": variables.namespace, "tenantId": variables.namespace}
+                }
+              ]
+          patchType: JSONPatch
+      targetMatchConditions:
+        - expression: '!object.spec.tenants.authentication.exists(t, t.tenantName == variables.namespace)'
+          name: tenant-missing
+      targetMatchConstraints:
+        expression: resource.Get("tempo.grafana.com/v1alpha1", "tempostacks", "NAMESPACE", "apc-tempo-stack")
+      variables:
+        - expression: request.object.metadata.name
+          name: namespace
   7: |
     apiVersion: networking.k8s.io/v1
     kind: NetworkPolicy
@@ -332,7 +326,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
-        helm.sh/chart: openshift-distributed-tracing-1.1.0
+        helm.sh/chart: openshift-distributed-tracing-2.0.0
       name: allow-from-cluster-observability-operator
       namespace: NAMESPACE
     spec:
@@ -352,7 +346,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
-        helm.sh/chart: openshift-distributed-tracing-1.1.0
+        helm.sh/chart: openshift-distributed-tracing-2.0.0
       name: apc-tempo-stack
       namespace: NAMESPACE
     spec:
@@ -366,7 +360,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: openshift-distributed-tracing
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: openshift-distributed-tracing
-        helm.sh/chart: openshift-distributed-tracing-1.1.0
+        helm.sh/chart: openshift-distributed-tracing-2.0.0
       name: apc-tempo-stack
       namespace: NAMESPACE
     spec:

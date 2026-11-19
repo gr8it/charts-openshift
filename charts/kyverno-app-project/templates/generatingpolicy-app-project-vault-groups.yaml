@@ -1,0 +1,109 @@
+{{- $roles := (include "kyverno-app-project.vaultRolesOverride" . | fromYaml) }}
+{{- $capabilities := (include "kyverno-app-project.vaultCapabilitiesOverride" . | fromYaml) }}
+{{- range $vr, $vrs := $roles }}
+{{- $caps := list }}
+{{- range (get $capabilities $vr | default list) }}
+{{- $caps = append $caps (quote .) }}
+{{- end }}
+---
+# one policy per vault role and kind, so that each downstream resource is created only when missing
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: app-project-vault-groups-{{ $vrs }}-policy
+  annotations:
+    policies.kyverno.io/title: Setup vault project policy for {{ $vr }} role
+    policies.kyverno.io/category: Secrets
+    policies.kyverno.io/subject: project
+    policies.kyverno.io/minversion: 1.20.0
+  labels:
+    {{- include "kyverno-app-project.labels" $ | nindent 4 }}
+spec:
+  {{- include "kyverno-app-project.vaultGroupsSpec" (dict "root" $ "short" $vrs) | nindent 2 }}
+  {{- include "kyverno-app-project.vaultGroupsMatchConditions" (dict "short" $vrs "apiVersion" "vault.vault.upbound.io/v1alpha1" "resource" "policies") | nindent 2 }}
+  generate:
+    - template:
+        interpolate: cel
+        value: |
+          apiVersion: vault.vault.upbound.io/v1alpha1
+          kind: Policy
+          metadata:
+            name: (( variables.name ))
+          spec:
+            deletionPolicy: Delete
+            forProvider:
+              name: (( variables.name ))
+              policy: |
+                # Access to secrets path (v1)
+                path "apc/(( variables.clusterInitial ))/(( object.metadata.name ))/*" {
+                  capabilities = [{{ join ", " $caps }}]
+                }
+
+                # Access to secrets path (v2)
+                path "apc/data/(( variables.clusterInitial ))/(( object.metadata.name ))/*" {
+                  capabilities = [{{ join ", " $caps }}]
+                }
+
+                # Access to metadata (v2)
+                path "apc/metadata/(( variables.clusterInitial ))/(( object.metadata.name ))/*" {
+                  capabilities = [{{ join ", " $caps }}]
+                }
+
+                # Allow version delete
+                path "apc/delete/(( variables.clusterInitial ))/(( object.metadata.name ))/*" {
+                  capabilities = ["update"]
+                }
+
+                # Allow version destroy
+                path "apc/destroy/(( variables.clusterInitial ))/(( object.metadata.name ))/*" {
+                  capabilities = ["update"]
+                }
+
+                # Allow version undelete
+                path "apc/undelete/(( variables.clusterInitial ))/(( object.metadata.name ))/*" {
+                  capabilities = ["update"]
+                }
+
+                # Allow browsing to the project secrets
+                path "apc/metadata/" {
+                  capabilities = ["list"]
+                }
+                path "apc/metadata/(( variables.clusterInitial ))" {
+                  capabilities = ["list"]
+                }
+
+            providerConfigRef:
+              name: {{ include "apc-global-overrides.require-crossplaneKubeVaultProviderConfigName" $ }}
+---
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: app-project-vault-groups-{{ $vrs }}-group
+  annotations:
+    policies.kyverno.io/title: Setup vault project group for {{ $vr }} role
+    policies.kyverno.io/category: Secrets
+    policies.kyverno.io/subject: project
+    policies.kyverno.io/minversion: 1.20.0
+  labels:
+    {{- include "kyverno-app-project.labels" $ | nindent 4 }}
+spec:
+  {{- include "kyverno-app-project.vaultGroupsSpec" (dict "root" $ "short" $vrs) | nindent 2 }}
+  {{- include "kyverno-app-project.vaultGroupsMatchConditions" (dict "short" $vrs "apiVersion" "ldap.vault.upbound.io/v1alpha1" "resource" "authbackendgroups") | nindent 2 }}
+  generate:
+    - template:
+        interpolate: cel
+        value: |
+          apiVersion: ldap.vault.upbound.io/v1alpha1
+          kind: AuthBackendGroup
+          metadata:
+            name: (( variables.name ))
+          spec:
+            deletionPolicy: Delete
+            forProvider:
+              backend: {{ $.Values.vaultGroupDefaults.authBackendName }}
+              groupname: (( variables.name ))
+              policies:
+                - (( variables.name ))
+            providerConfigRef:
+              name: {{ include "apc-global-overrides.require-crossplaneKubeVaultProviderConfigName" $ }}
+{{- end }}

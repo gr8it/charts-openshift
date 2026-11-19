@@ -1,0 +1,44 @@
+{{- if and .Values.argocd.syncOnPullSecretUpdate .Values.vault.refPullSecretPath }}
+---
+apiVersion: policies.kyverno.io/v1
+kind: MutatingPolicy
+metadata:
+  name: {{ printf "%s-%s-argo-sync" (include "quay-config.name" .) .Release.Namespace }}
+  labels:
+    {{- include "quay-config.labels" . | nindent 4 }}
+spec:
+  evaluation:
+    mutateExisting:
+      enabled: true
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["UPDATE"]
+        resources: ["secrets"]
+        resourceNames: ["{{ include "quay-config.objname.registry-credentials" . }}"]
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: {{ .Release.Namespace }}
+  # policy create/update events re-run the policy for the existing Secret as an UPDATE without oldObject,
+  # which must not trigger a sync
+  matchConditions:
+    - name: secret-updated
+      expression: oldObject != null
+  targetMatchConstraints:
+    expression: resource.Get("argoproj.io/v1alpha1", "applications", {{ .Values.argocd.appNamespace | default "apc-gitops" | quote }}, {{ .Values.argocd.appName | default .Chart.Name | quote }})
+  mutations:
+    - patchType: JSONPatch
+      jsonPatch:
+        expression: >-
+          [
+            JSONPatch{
+              op: "add",
+              path: "/operation",
+              value: {
+                "initiatedBy": dyn({"username": {{ printf "%s-%s-argo-sync" (include "quay-config.name" .) .Release.Namespace | quote }}}),
+                "sync": dyn({"syncStrategy": {"hook": {"force": false}}})
+              }
+            }
+          ]
+{{- end }}

@@ -1,0 +1,48 @@
+apiVersion: policies.kyverno.io/v1
+kind: MutatingPolicy
+metadata:
+  name: app-project-service-metadata-existing
+  labels:
+    {{- include "kyverno-app-project.labels" . | nindent 4 }}
+  annotations:
+    policies.kyverno.io/title: Mirror team and vendor Namespace labels on existing Services
+    policies.kyverno.io/category: Monitoring
+    policies.kyverno.io/subject: project
+    policies.kyverno.io/minversion: 1.20.0
+spec:
+  evaluation:
+    mutateExisting:
+      enabled: true
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["namespaces"]
+    objectSelector:
+      matchLabels:
+        apc.namespace.type: application
+  # targetMatchConstraints run against the trigger (`object`); variables are also used in the
+  # target phase, where `object` is the Service, so they read the trigger via request.object
+  variables:
+    - name: team
+      expression: request.object.metadata.?labels[?'team'].orValue('')
+    - name: vendor
+      expression: request.object.metadata.?labels[?'vendor'].orValue('')
+  matchConditions:
+    - name: namespace-has-team-and-vendor
+      expression: variables.team != '' && variables.vendor != ''
+  targetMatchConstraints:
+    expression: resource.List("v1", "services", object.metadata.name)
+  # add only, never overwrite a label set on the Service
+  mutations:
+    - patchType: ApplyConfiguration
+      applyConfiguration:
+        expression: >-
+          'team' in object.metadata.?labels.orValue({}) ? Object{} :
+          Object{metadata: Object.metadata{labels: {"team": variables.team}}}
+    - patchType: ApplyConfiguration
+      applyConfiguration:
+        expression: >-
+          'vendor' in object.metadata.?labels.orValue({}) ? Object{} :
+          Object{metadata: Object.metadata{labels: {"vendor": variables.vendor}}}

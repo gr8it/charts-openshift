@@ -17,8 +17,8 @@ Helm chart for OpenShift cluster monitoring configuration. Configures the built-
 | `disk-raid-array-monitoring` | PrometheusRule | `openshift-monitoring` |
 | `ldap-monitoring` | PrometheusRule | `apc-monitoring-bastion` |
 | `vault-bastion` | Service + Endpoints + ServiceMonitor | `apc-monitoring-bastion` |
-| `cluster-policy-cluster-monitoring` | ClusterPolicy | cluster-scoped |
-| `cluster-policy-application`, `cluster-policy-non-application` | ClusterPolicy | cluster-scoped |
+| `cluster-policy-cluster-monitoring` | Kyverno GeneratingPolicy | cluster-scoped |
+| `cluster-policy-application`, `cluster-policy-non-application` | Kyverno GeneratingPolicy | cluster-scoped |
 | `monitoring-daily`, `uwm-daily` | Schedule (Velero) | `openshift-adp` |
 
 ## Dependencies

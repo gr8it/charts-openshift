@@ -1,0 +1,46 @@
+---
+apiVersion: policies.kyverno.io/v1
+kind: MutatingPolicy
+metadata:
+  name: {{ default "apc-tempo-stack" .Values.tempoStack.name }}-tempo-sync-tenants
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
+    policies.kyverno.io/title: Update TempoStack tenants on namespace create
+    policies.kyverno.io/category: gitops
+    policies.kyverno.io/subject: Sync TempoStack tenants with namespaces
+    policies.kyverno.io/minversion: 1.20.0
+  labels:
+{{- include "tempo-stack.labels" . | nindent 4 }}
+spec:
+  evaluation:
+    mutateExisting:
+      enabled: true
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["namespaces"]
+    objectSelector:
+      matchLabels:
+        {{ .Values.namespaceSelector.key }}: {{ .Values.namespaceSelector.value }}
+  # trigger data is read through request.object: in the target phase `object` is the TempoStack
+  variables:
+    - name: namespace
+      expression: request.object.metadata.name
+  targetMatchConstraints:
+    expression: resource.Get("tempo.grafana.com/v1alpha1", "tempostacks", {{ .Release.Namespace | quote }}, {{ default "apc-tempo-stack" .Values.tempoStack.name | quote }})
+  targetMatchConditions:
+    - name: tenant-missing
+      expression: "!object.spec.tenants.authentication.exists(t, t.tenantName == variables.namespace)"
+  mutations:
+    - patchType: JSONPatch
+      jsonPatch:
+        expression: >-
+          [
+            JSONPatch{
+              op: "add",
+              path: "/spec/tenants/authentication/-",
+              value: {"tenantName": variables.namespace, "tenantId": variables.namespace}
+            }
+          ]

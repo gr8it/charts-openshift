@@ -1,0 +1,77 @@
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: app-project-kubevirt-cr-quota
+  labels:
+  {{- include "kyverno-app-project.labels" . | nindent 4 }}
+  annotations:
+    policies.kyverno.io/title: Create KubeVirt resource quota for namespace
+    policies.kyverno.io/category: quota
+    policies.kyverno.io/subject: project
+    policies.kyverno.io/minversion: 1.20.0
+spec:
+  evaluation:
+    generateExisting:
+      enabled: true
+    skipBackgroundRequests: {{ .Values.kubevirtCrQuota.skipBackgroundRequests }}
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["namespaces"]
+    objectSelector:
+      matchLabels:
+        apc.namespace.type: application
+  matchConditions:
+    # create only: generateExisting re-applies periodically and would overwrite manual changes
+    - name: quota-missing
+      expression: dyn(resource.Get("v1", "resourcequotas", object.metadata.name, "kubevirt-cr-quota")) == null
+  generate:
+    - template:
+        interpolate: cel
+        value: |
+          apiVersion: v1
+          kind: ResourceQuota
+          metadata:
+            name: kubevirt-cr-quota
+            namespace: (( object.metadata.name ))
+          spec:
+            hard:
+              {{- with .Values.kubevirtCrQuota }}
+              count/aaqs.aaq.kubevirt.io: {{ .aaqsAaqKubevirtIo | quote }}                                                                                        # Limit on 'AAQ' resources
+              count/cdiconfigs.cdi.kubevirt.io: {{ .cdiconfigsCdiKubevirtIo | quote }}                                                                            # Limit on CDI configuration objects
+              count/cdis.cdi.kubevirt.io: {{ .cdisCdiKubevirtIo | quote }}                                                                                        # Limit on CDI custom resources
+              count/dataimportcrons.cdi.kubevirt.io: {{ .dataimportcronsCdiKubevirtIo | quote }}                                                                  # Reduced maximum scheduled DataImportCron jobs
+              count/datasources.cdi.kubevirt.io: {{ .datasourcesCdiKubevirtIo | quote }}                                                                          # Reduced maximum DataSources for DataVolumes
+              count/datavolumes.cdi.kubevirt.io: {{ .datavolumesCdiKubevirtIo | quote }}                                                                          # Reduced maximum number of DataVolumes
+              count/hostpathprovisioners.hostpathprovisioner.kubevirt.io: {{ .hostpathprovisionersHostpathprovisionerKubevirtIo | quote }}                        # Limit on HostPath provisioners
+              count/hyperconvergeds.hco.kubevirt.io: {{ .hyperconvergedsHcoKubevirtIo | quote }}                                                                  # Maximum number of HyperConverged objects
+              count/kubevirts.kubevirt.io: {{ .kubevirtsKubevirtIo | quote }}                                                                                     # Limit on KubeVirt configurations
+              count/migrationpolicies.migrations.kubevirt.io: {{ .migrationpoliciesMigrationsKubevirtIo | quote }}                                                # Limit on migration policies
+              count/mtqs.mtq.kubevirt.io: {{ .mtqsMtqKubevirtIo | quote }}                                                                                        # Limit on MTQ custom resources
+              count/networkaddonsconfigs.networkaddonsoperator.network.kubevirt.io: {{ .networkaddonsconfigsNetworkaddonsoperatorNetworkKubevirtIo | quote }}     # Limit on Network Add-Ons configurations
+              count/objecttransfers.cdi.kubevirt.io: {{ .objecttransfersCdiKubevirtIo | quote }}                                                                  # Maximum number of ObjectTransfers
+              count/openstackvolumepopulators.forklift.cdi.kubevirt.io: {{ .openstackvolumepopulatorsForkliftCdiKubevirtIo | quote }}                             # Limit on OpenStack volume populators
+              count/ovirtvolumepopulators.forklift.cdi.kubevirt.io: {{ .ovirtvolumepopulatorsForkliftCdiKubevirtIo | quote }}                                     # Limit on oVirt volume populators
+              count/ssps.ssp.kubevirt.io: {{ .sspsSspKubevirtIo | quote }}                                                                                        # Limit on SSP custom resources
+              count/storageprofiles.cdi.kubevirt.io: {{ .storageprofilesCdiKubevirtIo | quote }}                                                                  # Limit on storage profiles
+              count/virtualmachineclones.clone.kubevirt.io: {{ .virtualmachineclonesCloneKubevirtIo | quote }}                                                    # Reduced maximum number of VirtualMachine clones
+              count/virtualmachineclusterinstancetypes.instancetype.kubevirt.io: {{ .virtualmachineclusterinstancetypesInstancetypeKubevirtIo | quote }}          # Limit on cluster-wide instance types for VMs
+              count/virtualmachineclusterpreferences.instancetype.kubevirt.io: {{ .virtualmachineclusterpreferencesInstancetypeKubevirtIo | quote }}              # Limit on cluster-wide instance type preferences
+              count/virtualmachineexports.export.kubevirt.io: {{ .virtualmachineexportsExportKubevirtIo | quote }}                                                # Reduced limit on VirtualMachine exports
+              count/virtualmachineinstancemigrations.kubevirt.io: {{ .virtualmachineinstancemigrationsKubevirtIo | quote }}                                       # Reduced maximum number of VirtualMachineInstance migrations
+              count/virtualmachineinstancepresets.kubevirt.io: {{ .virtualmachineinstancepresetsKubevirtIo | quote }}                                             # Reduced limit on instance presets for VMs
+              count/virtualmachineinstancereplicasets.kubevirt.io: {{ .virtualmachineinstancereplicasetsKubevirtIo | quote }}                                     # Reduced maximum number of VM ReplicaSets
+              count/virtualmachineinstances.kubevirt.io: {{ .virtualmachineinstancesKubevirtIo | quote }}                                                         # Maximum number of running VirtualMachineInstances (VMIs)
+              count/virtualmachineinstancetypes.instancetype.kubevirt.io: {{ .virtualmachineinstancetypesInstancetypeKubevirtIo | quote }}                        # Reduced limit on namespace-scoped instance types
+              count/virtualmachinepools.pool.kubevirt.io: {{ .virtualmachinepoolsPoolKubevirtIo | quote }}                                                        # Reduced maximum number of VirtualMachine pools
+              count/virtualmachinepreferences.instancetype.kubevirt.io: {{ .virtualmachinepreferencesInstancetypeKubevirtIo | quote }}                            # Reduced limit on namespace-scoped instance type preferences
+              count/virtualmachinerestores.snapshot.kubevirt.io: {{ .virtualmachinerestoresSnapshotKubevirtIo | quote }}                                          # Reduced limit on VirtualMachine restores
+              count/virtualmachines.kubevirt.io: {{ .virtualmachinesKubevirtIo | quote }}                                                                         # Maximum number of VirtualMachines
+              count/virtualmachinesnapshotcontents.snapshot.kubevirt.io: {{ .virtualmachinesnapshotcontentsSnapshotKubevirtIo | quote }}                          # Reduced limit on VirtualMachineSnapshot contents
+              count/virtualmachinesnapshots.snapshot.kubevirt.io: {{ .virtualmachinesnapshotsSnapshotKubevirtIo | quote }}                                        # Reduced maximum number of VirtualMachineSnapshots
+              count/volumeclonesources.cdi.kubevirt.io: {{ .volumeclonesourcesCdiKubevirtIo | quote }}                                                            # Reduced limit on volume clone sources
+              count/volumeimportsources.cdi.kubevirt.io: {{ .volumeimportsourcesCdiKubevirtIo | quote }}                                                          # Reduced limit on volume import sources
+              count/volumeuploadsources.cdi.kubevirt.io: {{ .volumeuploadsourcesCdiKubevirtIo | quote }}                                                          # Reduced limit on volume upload sources
+              {{- end }}

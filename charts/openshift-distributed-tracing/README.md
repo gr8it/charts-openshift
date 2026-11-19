@@ -4,7 +4,7 @@ Helm chart for deploying Red Hat OpenShift distributed tracing (Tempo) together 
 
 ## Overview
 
-The chart deploys a `TempoStack` and a set of Kyverno `ClusterPolicy` / `ClusterCleanupPolicy` resources. Tenants and per-namespace RBAC are not managed in Git — they are reconciled automatically from labelled namespaces so that adding or removing an application namespace transparently updates Tempo.
+The chart deploys a `TempoStack` and a set of Kyverno `GeneratingPolicy` / `MutatingPolicy` resources. Tenants and per-namespace RBAC are not managed in Git — they are reconciled automatically from labelled namespaces so that adding or removing an application namespace transparently updates Tempo.
 
 A namespace participates in tracing when it carries the configured label, by default:
 
@@ -16,7 +16,7 @@ apc.namespace.type: application
 
 - Red Hat OpenShift cluster (or Kubernetes >= 1.16)
 - [Tempo Operator](https://docs.openshift.com/container-platform/latest/observability/distr_tracing/distr_tracing_tempo/distr-tracing-tempo-installing.html) installed
-- [Kyverno](https://kyverno.io/) installed (>= 1.13.0)
+- [Kyverno](https://kyverno.io/) installed (>= 1.20.0)
 - An object storage class for Tempo backend (default: `ocs-storagecluster-ceph-rgw` via `ObjectBucketClaim`)
 - The chart dependency `apc-global-overrides` (declared in `Chart.yaml`)
 
@@ -142,5 +142,5 @@ helm unittest charts/openshift-distributed-tracing
 
 List of future improvements
 
-- Update policy clusterpolicy-tempo-cleanup-tenant.yaml
+- Update policy mutatingpolicy-tempo-cleanup-tenant.yaml
   - another way to implement this would be to store the tenant list in step 1 as a dictionary (e.g. configmap keys), and than in step 2 have a separate policy looping through the dictionary to get the full list of tenants and write it as a list to the CR, i.e. instead of having partial changes to the CR always create the full list and update it as whole.

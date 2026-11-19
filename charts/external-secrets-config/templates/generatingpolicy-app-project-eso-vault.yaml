@@ -1,0 +1,70 @@
+{{- if eq "true" (include "apc-global-overrides.clusterRunsApps" .) }}
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: app-project-eso-vault
+  annotations:
+    policies.kyverno.io/title: Setup vault access and generate SecretStore
+    policies.kyverno.io/category: Secrets
+    policies.kyverno.io/subject: project
+    policies.kyverno.io/minversion: 1.20.0
+spec:
+  evaluation:
+    generateExisting:
+      enabled: true
+    synchronize:
+      enabled: true
+    skipBackgroundRequests: false
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["namespaces"]
+    objectSelector:
+      matchLabels:
+        apc.namespace.type: application
+  generate:
+    - template:
+        interpolate: cel
+        value: |
+          apiVersion: external-secrets.io/v1beta1
+          kind: SecretStore
+          metadata:
+            name: vault-hub01
+            namespace: (( object.metadata.name ))
+          spec:
+            retrySettings:
+              maxRetries: 5
+              retryInterval: 10s
+            provider:
+              vault:
+                server: {{ include "apc-global-overrides.require-vaultUrl" . }}
+                path: {{ .Values.vaultKVmount }}
+                version: v2
+                caProvider:
+                  type: ConfigMap
+                  name: kube-root-ca.crt
+                  key: ca.crt
+                auth:
+                  kubernetes:
+                    mountPath: {{ include "apc-global-overrides.require-vaultKubeAuthMountPath" . }}
+                    role: (( object.metadata.name ))-vie
+                    serviceAccountRef:
+                      name: vault-auth
+    - template:
+        interpolate: cel
+        value: |
+          apiVersion: rbac.authorization.k8s.io/v1
+          kind: ClusterRoleBinding
+          metadata:
+            name: (( object.metadata.name ))-auth-delegator
+          roleRef:
+            apiGroup: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: system:auth-delegator
+          subjects:
+            - kind: ServiceAccount
+              namespace: (( object.metadata.name ))
+              name: vault-auth
+{{- end }}

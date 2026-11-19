@@ -1,0 +1,40 @@
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: cluster-policy-non-application
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+spec:
+  evaluation:
+    generateExisting:
+      enabled: true
+    synchronize:
+      enabled: true
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["namespaces"]
+  # openshift.io/user-monitoring is not checked: the pre-1.20 ClusterPolicy precondition on it was always true
+  matchConditions:
+    - name: not-a-system-namespace
+      expression: "!(object.metadata.name.startsWith('openshift') || object.metadata.name.startsWith('kube') || object.metadata.name == 'default')"
+    - name: not-cluster-monitoring
+      expression: "object.metadata.?labels[?'openshift.io/cluster-monitoring'].orValue('') in ['', 'false']"
+    - name: not-an-application-namespace
+      expression: "object.metadata.?labels[?'apc.namespace.type'].orValue('') != 'application'"
+  generate:
+    - template:
+        interpolate: cel
+        value: |
+          apiVersion: monitoring.coreos.com/v1
+          kind: PrometheusRule
+          metadata:
+            name: user-workload-monitoring-non-app-(( object.metadata.name ))
+            namespace: (( object.metadata.name ))
+          spec:
+            groups:
+              - name: user-workload-non-app-(( object.metadata.name ))
+                rules:
+                  {{- include "monitoring.namespaceRules" (dict "root" .) | nindent 18 }}

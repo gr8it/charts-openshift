@@ -1,0 +1,41 @@
+apiVersion: policies.kyverno.io/v1
+kind: MutatingPolicy
+metadata:
+  name: app-project-service-metadata
+  labels:
+    {{- include "kyverno-app-project.labels" . | nindent 4 }}
+  annotations:
+    policies.kyverno.io/title: Mirror team and vendor Namespace labels on Services
+    policies.kyverno.io/category: Monitoring
+    policies.kyverno.io/subject: project
+    policies.kyverno.io/minversion: 1.20.0
+spec:
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["services"]
+    namespaceSelector:
+      matchLabels:
+        apc.namespace.type: application
+  variables:
+    - name: team
+      expression: namespaceObject.metadata.?labels[?'team'].orValue('')
+    - name: vendor
+      expression: namespaceObject.metadata.?labels[?'vendor'].orValue('')
+  matchConditions:
+    - name: namespace-has-team-and-vendor
+      expression: variables.team != '' && variables.vendor != ''
+  # add only, never overwrite a label set on the Service
+  mutations:
+    - patchType: ApplyConfiguration
+      applyConfiguration:
+        expression: >-
+          'team' in object.metadata.?labels.orValue({}) ? Object{} :
+          Object{metadata: Object.metadata{labels: {"team": variables.team}}}
+    - patchType: ApplyConfiguration
+      applyConfiguration:
+        expression: >-
+          'vendor' in object.metadata.?labels.orValue({}) ? Object{} :
+          Object{metadata: Object.metadata{labels: {"vendor": variables.vendor}}}

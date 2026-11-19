@@ -1,0 +1,53 @@
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: cluster-policy-application
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+spec:
+  evaluation:
+    generateExisting:
+      enabled: true
+    synchronize:
+      enabled: true
+    # vendor/team namespace labels are set by the Kyverno background controller (kyverno-app-project)
+    skipBackgroundRequests: false
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["namespaces"]
+  matchConditions:
+    - name: not-a-system-namespace
+      expression: "!(object.metadata.name.startsWith('openshift') || object.metadata.name.startsWith('kube') || object.metadata.name == 'default')"
+    - name: not-cluster-monitoring
+      expression: "object.metadata.?labels[?'openshift.io/cluster-monitoring'].orValue('') in ['', 'false']"
+    - name: user-monitoring
+      expression: "object.metadata.?labels[?'openshift.io/user-monitoring'].orValue('') in ['', 'true']"
+    - name: application-namespace
+      expression: "object.metadata.?labels[?'apc.namespace.type'].orValue('') == 'application'"
+  variables:
+    - name: platformVendor
+      expression: {{ .Values.platformAlertLabels.vendor | toJson | quote }}
+    - name: platformTeam
+      expression: {{ .Values.platformAlertLabels.team | toJson | quote }}
+    # namespace label, falling back to platformAlertLabels when missing or empty
+    - name: vendor
+      expression: "cel.bind(v, object.metadata.?labels[?'vendor'].orValue(''), v != '' ? v : variables.platformVendor)"
+    - name: team
+      expression: "cel.bind(t, object.metadata.?labels[?'team'].orValue(''), t != '' ? t : variables.platformTeam)"
+  generate:
+    - template:
+        interpolate: cel
+        value: |
+          apiVersion: monitoring.coreos.com/v1
+          kind: PrometheusRule
+          metadata:
+            name: user-workload-monitoring-app-(( object.metadata.name ))
+            namespace: (( object.metadata.name ))
+          spec:
+            groups:
+              - name: user-workload-app(( object.metadata.name ))
+                rules:
+                  {{- include "monitoring.namespaceRules" (dict "root" . "vendor" "(( variables.vendor ))" "team" "(( variables.team ))") | nindent 18 }}

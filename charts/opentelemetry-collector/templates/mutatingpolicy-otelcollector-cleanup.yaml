@@ -1,0 +1,58 @@
+---
+apiVersion: policies.kyverno.io/v1
+kind: MutatingPolicy
+metadata:
+  name: {{ include "opentelemetry-collector.fullname" . }}-cleanup-tenants
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
+    policies.kyverno.io/title: Remove Open Telemetry tenants on namespace delete or label removal
+    policies.kyverno.io/category: gitops
+    policies.kyverno.io/subject: Sync Open Telemetry tenants with namespaces
+    policies.kyverno.io/minversion: 1.20.0
+spec:
+  evaluation:
+    mutateExisting:
+      enabled: true
+  # Tenant removed because the namespace itself is deleted.
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["DELETE"]
+        resources: ["namespaces"]
+    objectSelector:
+      matchLabels:
+        {{ .Values.namespaceSelector.key }}: {{ .Values.namespaceSelector.value }}
+  # policy create/update events re-run the policy for all existing namespaces as UPDATE requests
+  matchConditions:
+    - name: namespace-deleted
+      expression: request.operation == 'DELETE'
+  variables:
+    # on DELETE the namespace is only in request.oldObject; in the target phase `object` is the OpenTelemetryCollector
+    - name: namespace
+      expression: "request.operation == 'DELETE' ? request.oldObject.metadata.name : ''"
+    - name: statement
+      expression: "'route() where resource.attributes[\"k8s.namespace.name\"] == \"' + variables.namespace + '\"'"
+    # otlp/<namespace> is the exporter name used before otlp_grpc/<namespace>
+    - name: exporters
+      expression: "['otlp/' + variables.namespace, 'otlp_grpc/' + variables.namespace].filter(e, e in object.spec.config.exporters)"
+  targetMatchConstraints:
+    expression: resource.Get("opentelemetry.io/v1beta1", "opentelemetrycollectors", {{ .Release.Namespace | quote }}, {{ .Values.instanceNameOverride | default (include "opentelemetry-collector.fullname" .) | quote }})
+  targetMatchConditions:
+    - name: namespace-deleted
+      expression: variables.namespace != ''
+  mutations:
+    - patchType: JSONPatch
+      jsonPatch:
+        expression: >-
+          variables.exporters.map(e, JSONPatch{op: "remove", path: "/spec/config/exporters/" + jsonpatch.escapeKey(e)}) +
+          (('traces/' + variables.namespace) in object.spec.config.service.pipelines ? [
+            JSONPatch{op: "remove", path: "/spec/config/service/pipelines/" + jsonpatch.escapeKey('traces/' + variables.namespace)}
+          ] : []) +
+          (object.spec.config.connectors.routing.table.exists(r, r.statement == variables.statement) ? [
+            JSONPatch{
+              op: "replace",
+              path: "/spec/config/connectors/routing/table",
+              value: object.spec.config.connectors.routing.table.filter(r, r.statement != variables.statement)
+            }
+          ] : [])

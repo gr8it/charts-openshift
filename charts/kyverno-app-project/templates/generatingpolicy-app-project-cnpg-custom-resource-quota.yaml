@@ -1,0 +1,45 @@
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: app-project-cnpg-custom-resource-quota
+  labels:
+  {{- include "kyverno-app-project.labels" . | nindent 4 }}
+  annotations:
+    policies.kyverno.io/title: Create CloudNativePG resource quota for namespace
+    policies.kyverno.io/category: quota
+    policies.kyverno.io/subject: project
+    policies.kyverno.io/minversion: 1.20.0
+spec:
+  evaluation:
+    generateExisting:
+      enabled: true
+    skipBackgroundRequests: {{ .Values.cpngCustomResourceQuota.skipBackgroundRequests }}
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["namespaces"]
+    objectSelector:
+      matchLabels:
+        apc.namespace.type: application
+  matchConditions:
+    # create only: generateExisting re-applies periodically and would overwrite manual changes
+    - name: quota-missing
+      expression: dyn(resource.Get("v1", "resourcequotas", object.metadata.name, "cnpg-custom-resource-quota")) == null
+  generate:
+    - template:
+        interpolate: cel
+        value: |
+          apiVersion: v1
+          kind: ResourceQuota
+          metadata:
+            name: cnpg-custom-resource-quota
+            namespace: (( object.metadata.name ))
+          spec:
+            hard:
+              {{- with .Values.cpngCustomResourceQuota }}
+              count/clusters.postgresql.cnpg.io: {{ .clustersPostgresqlCpngIo | quote }}                     # Maximum number of PostgreSQL clusters
+              count/backups.postgresql.cnpg.io: {{ .backupsPostgresqlCpngIo | quote }}                       # Maximum number of PostgreSQL backups
+              count/scheduledbackups.postgresql.cnpg.io: {{ .scheduledbackupsPostgresqlCpngIo | quote }}     # Maximum number of PostgreSQL scheduled backups
+              {{- end }}

@@ -8,6 +8,7 @@ rules:
 - apiGroups: [""]
   resources: ["serviceaccounts"]
   verbs: ["create", "delete", "get", "update"]
+# list/watch: Kyverno >= 1.20 watches synchronized downstream resources
 - apiGroups: ["argoproj.io"]
   resources: ["appprojects"]
-  verbs: ["create", "delete", "get", "update"]
+  verbs: ["create", "delete", "get", "list", "watch", "update"]

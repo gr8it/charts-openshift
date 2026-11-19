@@ -1,0 +1,57 @@
+{{- if eq "true" (include "apc-global-overrides.clusterRunsApps" .) }}
+# using kyverno policy because accessor needs to read from the cluster / vault status
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: policy-svc-vie
+  annotations:
+    policies.kyverno.io/title: Setup vault access policy
+    policies.kyverno.io/category: Secrets
+    policies.kyverno.io/subject: project
+    policies.kyverno.io/minversion: 1.20.0
+spec:
+  # to enable sync for crossplane objects, use SSA
+  useServerSideApply: true
+  evaluation:
+    generateExisting:
+      enabled: true
+    synchronize:
+      enabled: true
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["auth.vault.upbound.io"]
+        apiVersions: ["*"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["backends"]
+  matchConditions:
+    - name: kubernetes-backend
+      expression: object.spec.?forProvider.?type.orValue('') == 'kubernetes'
+    - name: accessor-known
+      expression: object.?status.?atProvider.?accessor.orValue('') != ''
+  generate:
+    - template:
+        interpolate: cel
+        value: |
+          apiVersion: vault.vault.upbound.io/v1alpha1
+          kind: Policy
+          metadata:
+            name: {{ .Values.vaultKVmount }}-{{ include "apc-global-overrides.require-environmentShort" . }}-svc-vie
+          spec:
+            deletionPolicy: Orphan
+            forProvider:
+              name: {{ .Values.vaultKVmount }}-{{ include "apc-global-overrides.require-environmentShort" . }}-svc-vie
+
+              policy: |
+
+                path "{{ .Values.vaultKVmount }}/{{ include "apc-global-overrides.environmentShort" . }}/{{ "{{" }}identity.entity.aliases.(( object.status.atProvider.accessor )).metadata.service_account_namespace{{ "}}" }}/*" {
+                  capabilities = ["read", "list"]
+                }
+                path "{{ .Values.vaultKVmount }}/data/{{ include "apc-global-overrides.environmentShort" . }}/{{ "{{" }}identity.entity.aliases.(( object.status.atProvider.accessor )).metadata.service_account_namespace{{ "}}" }}/*" {
+                  capabilities = ["read", "list"]
+                }
+                path "{{ .Values.vaultKVmount }}/metadata/{{ include "apc-global-overrides.environmentShort" . }}/{{ "{{" }}identity.entity.aliases.(( object.status.atProvider.accessor )).metadata.service_account_namespace{{ "}}" }}/*" {
+                  capabilities = ["read", "list"]
+                }
+            providerConfigRef:
+              name: {{ include "apc-global-overrides.require-crossplaneKubeVaultProviderConfigName" . }}
+{{- end }}

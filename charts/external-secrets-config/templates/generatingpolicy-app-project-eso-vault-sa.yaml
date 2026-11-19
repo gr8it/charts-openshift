@@ -1,0 +1,37 @@
+{{- if eq "true" (include "apc-global-overrides.clusterRunsApps" .) }}
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: app-project-eso-vault-sa
+  annotations:
+    policies.kyverno.io/title: Create vault-auth ServiceAccount
+    policies.kyverno.io/category: Secrets
+    policies.kyverno.io/subject: project
+    policies.kyverno.io/minversion: 1.20.0
+spec:
+  evaluation:
+    generateExisting:
+      enabled: true
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["namespaces"]
+    objectSelector:
+      matchLabels:
+        apc.namespace.type: application
+  matchConditions:
+    # create only: re-applying would drop the secrets OpenShift adds to the ServiceAccount
+    - name: serviceaccount-missing
+      expression: dyn(resource.Get("v1", "serviceaccounts", object.metadata.name, "vault-auth")) == null
+  generate:
+    - template:
+        interpolate: cel
+        value: |
+          apiVersion: v1
+          kind: ServiceAccount
+          metadata:
+            name: vault-auth
+            namespace: (( object.metadata.name ))
+{{- end }}

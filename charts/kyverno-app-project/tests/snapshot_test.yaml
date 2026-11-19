@@ -11,75 +11,137 @@ tests:
     asserts:
       - matchSnapshot: {}
 
-  - it: copies every key of the project metadata ConfigMap onto the namespace
-    template: templates/clusterpolicy-app-project-metadata.yaml
+  - it: copies every valid key of the project metadata ConfigMap onto the namespace
+    template: templates/mutatingpolicy-app-project-namespace-metadata.yaml
     asserts:
       - equal:
-          path: spec.rules[0].match.any[0].resources.names[0]
+          path: spec.matchConstraints.resourceRules[0].resourceNames[0]
           value: project-metadata
       - equal:
-          path: spec.rules[0].mutate.targets[0].kind
-          value: Namespace
+          path: spec.evaluation.mutateExisting.enabled
+          value: true
       - equal:
-          path: spec.rules[0].mutate.patchStrategicMerge.metadata.labels
-          value: "{{ object_from_lists(labelentries[].key, labelentries[].value) }}"
-      - equal:
-          path: spec.rules[0].context[0].variable.jmesPath
-          value: "items(request.object.data, 'key', 'value')[?regex_match('^[a-zA-Z0-9]([-_.a-zA-Z0-9]{0,61}[a-zA-Z0-9])?$', key) && regex_match('^[a-zA-Z0-9]([-_.a-zA-Z0-9]{0,61}[a-zA-Z0-9])?$', value) && !starts_with(key, 'apc.') && !contains(key, 'kubernetes') && !contains(key, 'openshift') && !contains(key, 'k8s')]"
+          path: spec.targetMatchConstraints.expression
+          value: resource.Get("v1", "namespaces", "", object.metadata.namespace)
       - matchRegex:
-          path: spec.rules[0].context[0].variable.jmesPath
-          pattern: "!starts_with\\(key, 'apc\\.'\\)"
+          path: spec.variables[0].expression
+          pattern: "k\\.matches\\('\\^\\[a-zA-Z0-9\\]\\(\\[-_\\.a-zA-Z0-9\\]\\{0,61\\}\\[a-zA-Z0-9\\]\\)\\?\\$'\\)"
       - matchRegex:
-          path: spec.rules[0].context[0].variable.jmesPath
-          pattern: "regex_match\\('\\^\\[a-zA-Z0-9\\]\\(\\[-_\\.a-zA-Z0-9\\]\\{0,61\\}\\[a-zA-Z0-9\\]\\)\\?\\$', key\\)"
+          path: spec.variables[0].expression
+          pattern: "!k\\.startsWith\\('apc\\.'\\)"
       - equal:
-          path: spec.rules[0].context[0].variable.default
-          value: []
-      - equal:
-          path: spec.rules[0].preconditions.all[0].key
-          value: "{{ length(labelentries) }}"
+          path: spec.matchConditions[0].expression
+          value: size(variables.labelKeys) > 0
+      - matchRegex:
+          path: spec.mutations[0].applyConfiguration.expression
+          pattern: "labels: variables.labels"
 
   - it: only reports, never blocks, a namespace without the project metadata ConfigMap
-    template: templates/clusterpolicy-app-project-require-metadata-cm.yaml
+    template: templates/validatingpolicy-app-project-require-metadata-cm.yaml
     asserts:
       - equal:
-          path: spec.rules[0].validate.failureAction
-          value: Audit
+          path: spec.validationActions
+          value: [Audit]
       - equal:
-          path: spec.rules[0].context[0].apiCall.urlPath
-          value: "/api/v1/namespaces/{{ request.object.metadata.name }}/configmaps/project-metadata"
+          path: spec.evaluation.admission.enabled
+          value: false
       - equal:
-          path: spec.rules[0].context[0].apiCall.default
-          value: ""
+          path: spec.evaluation.background.enabled
+          value: true
       - equal:
-          path: spec.rules[0].validate.deny.conditions.all[0].value
-          value: ""
+          path: spec.validations[0].expression
+          value: dyn(resource.Get("v1", "configmaps", object.metadata.name, "project-metadata")) != null
 
   - it: mirrors the namespace ownership onto services without overwriting their own labels
-    template: templates/clusterpolicy-app-project-metadata.yaml
+    template: templates/mutatingpolicy-app-project-service-metadata.yaml
     asserts:
-      - lengthEqual:
-          path: spec.rules
-          count: 3
       - equal:
-          path: spec.rules[1].name
-          value: mirror-on-service
-      # +() adds team / vendor only when missing, so a service that carries its
+          path: spec.variables[0].expression
+          value: namespaceObject.metadata.?labels[?'team'].orValue('')
+      # a label is added only when missing, so a service that carries its
       # own keeps it - that is how one namespace can hold more teams
+      - matchRegex:
+          path: spec.mutations[0].applyConfiguration.expression
+          pattern: "^'team' in object.metadata.\\?labels.orValue\\(\\{\\}\\) \\? Object\\{\\} :"
+      - matchRegex:
+          path: spec.mutations[1].applyConfiguration.expression
+          pattern: "^'vendor' in object.metadata.\\?labels.orValue\\(\\{\\}\\) \\? Object\\{\\} :"
+
+  - it: pushes the namespace ownership into existing services that miss it
+    template: templates/mutatingpolicy-app-project-service-metadata-existing.yaml
+    asserts:
       - equal:
-          path: spec.rules[1].mutate.patchStrategicMerge.metadata.labels
-          value:
-            +(team): "{{ nslabels.team }}"
-            +(vendor): "{{ nslabels.vendor }}"
-      # the namespace labels are pushed into existing services that miss them
-      - equal:
-          path: spec.rules[2].mutate.targets[0].kind
-          value: Service
-      - equal:
-          path: spec.rules[2].mutate.patchStrategicMerge.metadata.labels
-          value:
-            +(team): "{{ request.object.metadata.labels.team }}"
-            +(vendor): "{{ request.object.metadata.labels.vendor }}"
-      - equal:
-          path: spec.rules[2].mutate.mutateExistingOnPolicyUpdate
+          path: spec.evaluation.mutateExisting.enabled
           value: true
+      - equal:
+          path: spec.targetMatchConstraints.expression
+          value: resource.List("v1", "services", object.metadata.name)
+      - equal:
+          path: spec.variables[0].expression
+          value: request.object.metadata.?labels[?'team'].orValue('')
+
+  - it: creates quotas only when missing, so manual changes are kept
+    template: templates/generatingpolicy-app-project-default-resource-quota.yaml
+    asserts:
+      - equal:
+          path: spec.matchConditions[0].expression
+          value: dyn(resource.Get("v1", "resourcequotas", object.metadata.name, "default-resource-quota")) == null
+      - notExists:
+          path: spec.evaluation.synchronize
+
+  - it: keeps skipBackgroundRequests configurable per quota
+    template: templates/generatingpolicy-app-project-kubevirt-cr-quota.yaml
+    set:
+      kubevirtCrQuota.skipBackgroundRequests: false
+    asserts:
+      - equal:
+          path: spec.evaluation.skipBackgroundRequests
+          value: false
+
+  - it: creates the limit range only when missing
+    template: templates/generatingpolicy-app-project-limitrange.yaml
+    asserts:
+      - equal:
+          path: spec.matchConditions[0].expression
+          value: dyn(resource.Get("v1", "limitranges", object.metadata.name, "default-limit-range")) == null
+
+  - it: does not create the proxy ConfigMap policy without a proxy
+    template: templates/generatingpolicy-app-project-internetproxy-cm.yaml
+    set:
+      proxy: ""
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: creates a vault policy and group generating policy per vault role of the environment
+    template: templates/generatingpolicy-app-project-vault-groups.yaml
+    asserts:
+      # prod overrides the roles to admin (pja) and operator (opr)
+      - hasDocuments:
+          count: 4
+      - equal:
+          path: metadata.name
+          value: app-project-vault-groups-pja-policy
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: app-project-vault-groups-pja-group
+        documentIndex: 1
+      - matchRegex:
+          path: spec.matchConditions[0].expression
+          pattern: 'dyn\(resource.Get\("vault.vault.upbound.io/v1alpha1", "policies", "", "apc-" \+'
+        documentIndex: 0
+      - matchRegex:
+          path: spec.generate[0].template.value
+          pattern: 'capabilities = \["create", "read", "update", "delete", "list", "patch"\]'
+        documentIndex: 0
+
+  - it: cleans up vault resources generated by the pre-1.20 policy too
+    template: templates/deletingpolicy-app-project-vault-groups.yaml
+    asserts:
+      - contains:
+          path: spec.matchConstraints.objectSelector.matchExpressions[0].values
+          content: app-project-vault-groups
+      - contains:
+          path: spec.matchConstraints.objectSelector.matchExpressions[0].values
+          content: app-project-vault-groups-opr-group

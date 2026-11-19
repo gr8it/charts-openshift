@@ -8,7 +8,7 @@ spec:
     - name: kyverno.rules
       rules:
         - alert: KyvernoPolicyResultsError
-          expr: sum by (policy_name) (increase(kyverno_policy_results_total{rule_result="error"}[2h])) > 0
+          expr: (sum by (policy_name) (increase({__name__=~"kyverno_(validating|mutating|generating|image_validating)_policy_results_total",result="error"}[2h])) or sum by (policy_name) (increase(kyverno_deleting_controller_errors_total[2h]))) > 0
           for: 10m
           labels:
             severity: warning
@@ -18,7 +18,7 @@ spec:
             summary: Kyverno policy:{{ `{{ $labels.policy_name }}` }} run with errors.
             description: Kyverno policy {{ `{{ $labels.policy_name }}` }} run with errors, please investigate kyverno logs for root cause.
         - alert: KyvernoPolicyResultsFail
-          expr: sum by (policy_name) (increase(kyverno_policy_results_total{rule_result="fail"}[2h])) > 0
+          expr: sum by (policy_name) (increase({__name__=~"kyverno_(validating|mutating|generating|image_validating)_policy_results_total",result="fail"}[2h])) > 0
           for: 10m
           labels:
             severity: warning
@@ -97,18 +97,18 @@ spec:
             team: platform
           annotations:
             summary: Kyverno reports controller is down.
-            description: Kyverno reports controller is not running. This controller aggregates policy/admission results into PolicyReports; while down, kyverno_policy_results_total may go stale and mask real policy failures from KyvernoPolicyResultsError/KyvernoPolicyResultsFail.
+            description: Kyverno reports controller is not running. This controller aggregates policy/admission results into PolicyReports; while down, the kyverno_*_policy_results_total metrics may go stale and mask real policy failures from KyvernoPolicyResultsError/KyvernoPolicyResultsFail.
         {{- end }}
         - alert: KyvernoPolicyRuleSlowExecution
-          expr: histogram_quantile(0.95, sum by (le, policy_name, rule_name) (rate(kyverno_policy_execution_duration_seconds_bucket[15m]))) > 5
+          expr: histogram_quantile(0.95, sum by (le, policy_name) (rate({__name__=~"kyverno_(validating|mutating|generating|image_validating)_policy_execution_duration_seconds_bucket"}[15m]))) > 5
           for: 15m
           labels:
             severity: warning
             vendor: aspecta
             team: platform
           annotations:
-            summary: Kyverno rule {{ `{{ $labels.policy_name }}` }}/{{ `{{ $labels.rule_name }}` }} is executing slowly.
-            description: The p95 execution time for rule {{ `{{ $labels.rule_name }}` }} in policy {{ `{{ $labels.policy_name }}` }} has exceeded 5s over the last 15 minutes. Slow rules drag down background-scan throughput and can contribute to a growing UpdateRequest backlog.
+            summary: Kyverno policy {{ `{{ $labels.policy_name }}` }} is executing slowly.
+            description: The p95 execution time of policy {{ `{{ $labels.policy_name }}` }} has exceeded 5s over the last 15 minutes. Slow policies drag down background-scan throughput and can contribute to a growing UpdateRequest backlog.
         - alert: KyvernoAdmissionReviewLatencyHigh
           expr: histogram_quantile(0.95, sum by (le) (rate(kyverno_admission_review_duration_seconds_bucket[15m]))) > 5
           for: 15m
@@ -119,13 +119,13 @@ spec:
           annotations:
             summary: Kyverno admission review latency is high.
             description: The p95 admission review duration has exceeded 5s over the last 15 minutes. This risks admission webhook timeouts, which (depending on failurePolicy) can start blocking ordinary resource creates/updates cluster-wide.
-        - alert: KyvernoBackgroundPolicyDeleted
-          expr: increase(kyverno_policy_changes_total{policy_change_type="deleted",policy_background_mode="true"}[15m]) > 0
-          for: 1m
+        - alert: KyvernoLegacyPoliciesPresent
+          expr: sum by (kind) (kyverno_legacy_policies_total{namespace="{{ .Release.Namespace }}"}) > 0
+          for: 1h
           labels:
             severity: warning
             vendor: aspecta
             team: platform
           annotations:
-            summary: A background-enabled Kyverno policy was deleted.
-            description: A policy with background scanning enabled was deleted. If this generates or mutates existing resources, downstream resources will silently stop being reconciled/enforced. Verify this was intentional.
+            summary: Legacy Kyverno {{ `{{ $labels.kind }}` }} resources are present.
+            description: '{{ `{{ $value }}` }} legacy kyverno.io {{ `{{ $labels.kind }}` }} resource(s) exist on the cluster. Kyverno >= 1.20 does not execute them, so whatever they generate, mutate, validate or clean up is silently not enforced. Migrate them to policies.kyverno.io policies (https://kyverno.io/docs/guides/migration-to-cel/) and delete them.'

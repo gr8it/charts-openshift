@@ -30,7 +30,7 @@ This Helm chart deploys Blackbox exporter in following configuration:
 
 - [prometheus-blackbox-exporter](https://prometheus-community.github.io/helm-charts/)
 - [apc-global-overrides](https://github.com/gr8it/charts-openshift/tree/main/charts/apc-global-overrides)
-- deployed configmap for proxy using [kyverno](https://github.com/gr8it/charts-openshift/blob/main/charts/kyverno-app-project/templates/clusterpolicy-app-project-internetproxy-cm.yaml)
+- deployed configmap for proxy using [kyverno](https://github.com/gr8it/charts-openshift/blob/main/charts/kyverno-app-project/templates/generatingpolicy-app-project-internetproxy-cm.yaml)
 
 
 ## Configuration

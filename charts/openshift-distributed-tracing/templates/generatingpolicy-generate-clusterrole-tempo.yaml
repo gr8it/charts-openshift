@@ -1,0 +1,91 @@
+---
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: {{ default "apc-tempo-stack" .Values.tempoStack.name }}-generate-tenant-clusterrole
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
+    policies.kyverno.io/title: Generate ClusterRoles and RoleBindings for TempoStack tenants
+    policies.kyverno.io/category: gitops
+    policies.kyverno.io/subject: Generate ClusterRoles for application tenants in TempoStack
+    policies.kyverno.io/minversion: 1.20.0
+  labels:
+{{- include "tempo-stack.labels" . | nindent 4 }}
+spec:
+  evaluation:
+    generateExisting:
+      enabled: true
+    synchronize:
+      enabled: true
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["namespaces"]
+    objectSelector:
+      matchLabels:
+        {{ .Values.namespaceSelector.key }}: {{ .Values.namespaceSelector.value }}
+  generate:
+    - template:
+        interpolate: cel
+        value: |
+          apiVersion: rbac.authorization.k8s.io/v1
+          kind: ClusterRole
+          metadata:
+            name: {{ default "apc-tempo-stack" .Values.tempoStack.name }}-writer-(( object.metadata.name ))
+            labels:
+              generated-by: generate-writer-clusterrole-for-application-namespace
+              {{- if .Values.otelCollector.role.aggregation.enabled }}
+              {{ .Values.otelCollector.role.aggregation.clusterRoleName }}: "true"
+              {{- end }}
+          rules:
+            - apiGroups:
+                - tempo.grafana.com
+              resources:
+                - (( object.metadata.name ))
+              resourceNames:
+                - traces
+              verbs:
+                - 'create'
+    - template:
+        interpolate: cel
+        value: |
+          apiVersion: rbac.authorization.k8s.io/v1
+          kind: ClusterRole
+          metadata:
+            name: {{ default "apc-tempo-stack" .Values.tempoStack.name }}-reader-(( object.metadata.name ))
+            labels:
+              generated-by: generate-reader-clusterrole-for-application-namespace
+          rules:
+            - apiGroups:
+                - tempo.grafana.com
+              resources:
+                - (( object.metadata.name ))
+              resourceNames:
+                - traces
+              verbs:
+                - get
+    - template:
+        interpolate: cel
+        value: |
+          apiVersion: rbac.authorization.k8s.io/v1
+          kind: ClusterRoleBinding
+          metadata:
+            name: {{ default "apc-tempo-stack" .Values.tempoStack.name }}-reader-(( object.metadata.name ))
+          roleRef:
+            apiGroup: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: {{ default "apc-tempo-stack" .Values.tempoStack.name }}-reader-(( object.metadata.name ))
+          subjects:
+            {{- $env := include "apc-global-overrides.require-environmentShort" $ | upper }}
+            - kind: Group
+              name: APC-{{ $env }}-(( object.metadata.name.upperAscii() ))-PJA
+          {{- if ne ( include "apc-global-overrides.require-environmentShort" $ ) "p" }}
+            - kind: Group
+              name: APC-{{ $env }}-(( object.metadata.name.upperAscii() ))-DEV
+            - kind: Group
+              name: APC-{{ $env }}-(( object.metadata.name.upperAscii() ))-TES
+          {{- end }}
+            - kind: Group
+              name: APC-{{ $env }}-(( object.metadata.name.upperAscii() ))-OPR

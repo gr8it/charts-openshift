@@ -5,6 +5,15 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-11-19
+
+### Changed
+
+- **Breaking:** requires Kyverno >= 1.20; `cluster-policy-application`, `cluster-policy-non-application` and `cluster-policy-cluster-monitoring` migrated from `ClusterPolicy` to CEL `GeneratingPolicy` (`policies.kyverno.io/v1`), names kept so existing PrometheusRules are adopted
+- `files/namespace-rules.yaml` uses the Kyverno CEL placeholder `(( object.metadata.name ))` instead of JMESPath `{{ request.object.metadata.name }}` and no longer escapes `{{ $labels }}`
+
+_([SPEXAPC-32527](https://aspecta.atlassian.net/browse/SPEXAPC-32527))_
+
 ## [1.3.2] - 2026-10-28
 
 _([SPEXAPC-28123](https://aspecta.atlassian.net/browse/SPEXAPC-28123))_

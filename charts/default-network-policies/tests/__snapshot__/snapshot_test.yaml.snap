@@ -7,7 +7,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: default-network-policies
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: default-network-policies
-        helm.sh/chart: default-network-policies-1.5.1
+        helm.sh/chart: default-network-policies-2.0.0
       name: application-anp-policy
     spec:
       egress:
@@ -85,48 +85,46 @@ manifests should match snapshot:
               values:
                 - application
   2: |
-    apiVersion: kyverno.io/v1
-    kind: ClusterPolicy
+    apiVersion: policies.kyverno.io/v1
+    kind: GeneratingPolicy
     metadata:
       annotations:
         policies.kyverno.io/category: networkpolicy
-        policies.kyverno.io/minversion: 1.13.0
+        policies.kyverno.io/minversion: 1.20.0
         policies.kyverno.io/subject: project
         policies.kyverno.io/title: Create default networkpolicy in namespace
       labels:
         app.kubernetes.io/instance: default-network-policies
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: default-network-policies
-        helm.sh/chart: default-network-policies-1.5.1
+        helm.sh/chart: default-network-policies-2.0.0
       name: app-project-networkpolicy
     spec:
-      background: true
-      generateExisting: true
-      rules:
-        - generate:
-            apiVersion: networking.k8s.io/v1
-            data:
+      evaluation:
+        generateExisting:
+          enabled: true
+      generate:
+        - template:
+            interpolate: cel
+            value: |
+              apiVersion: networking.k8s.io/v1
+              kind: NetworkPolicy
+              metadata:
+                name: (( object.metadata.name ))-allow-from-same-namespace
+                namespace: (( object.metadata.name ))
               spec:
+                podSelector: {}
                 ingress:
                   - from:
                       - podSelector: {}
-                podSelector: {}
-            kind: NetworkPolicy
-            name: '{{ request.object.metadata.name }}-allow-from-same-namespace'
-            namespace: '{{ request.object.metadata.name }}'
-            synchronize: false
-          match:
-            any:
-              - resources:
-                  kinds:
-                    - Namespace
-                  selector:
-                    matchLabels:
-                      apc.namespace.type: application
-          name: app-project-networkpolicy
-        - generate:
-            apiVersion: networking.k8s.io/v1
-            data:
+        - template:
+            interpolate: cel
+            value: |
+              apiVersion: networking.k8s.io/v1
+              kind: NetworkPolicy
+              metadata:
+                name: (( object.metadata.name ))-allow-from-openshift-ingress
+                namespace: (( object.metadata.name ))
               spec:
                 ingress:
                   - from:
@@ -134,20 +132,20 @@ manifests should match snapshot:
                           matchLabels:
                             network.openshift.io/policy-group: ingress
                 podSelector: {}
-            kind: NetworkPolicy
-            name: '{{ request.object.metadata.name }}-allow-from-openshift-ingress'
-            namespace: '{{ request.object.metadata.name }}'
-            synchronize: false
-          match:
-            any:
-              - resources:
-                  kinds:
-                    - Namespace
-                  selector:
-                    matchLabels:
-                      apc.namespace.type: application
-          name: app-project-networkpolicy-ingress
-      validationFailureAction: Audit
+      matchConstraints:
+        objectSelector:
+          matchLabels:
+            apc.namespace.type: application
+        resourceRules:
+          - apiGroups:
+              - ""
+            apiVersions:
+              - v1
+            operations:
+              - CREATE
+              - UPDATE
+            resources:
+              - namespaces
   3: |
     apiVersion: policy.networking.k8s.io/v1alpha1
     kind: BaselineAdminNetworkPolicy
@@ -156,7 +154,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: default-network-policies
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: default-network-policies
-        helm.sh/chart: default-network-policies-1.5.1
+        helm.sh/chart: default-network-policies-2.0.0
       name: default
     spec:
       egress:
@@ -186,7 +184,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: default-network-policies
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: default-network-policies
-        helm.sh/chart: default-network-policies-1.5.1
+        helm.sh/chart: default-network-policies-2.0.0
       name: platform-anp-policy
     spec:
       egress:
@@ -296,48 +294,46 @@ manifests should match snapshot:
               values:
                 - platform
   5: |
-    apiVersion: kyverno.io/v1
-    kind: ClusterPolicy
+    apiVersion: policies.kyverno.io/v1
+    kind: GeneratingPolicy
     metadata:
       annotations:
         policies.kyverno.io/category: networkpolicy
-        policies.kyverno.io/minversion: 1.13.0
+        policies.kyverno.io/minversion: 1.20.0
         policies.kyverno.io/subject: project
         policies.kyverno.io/title: Create default networkpolicy in namespace
       labels:
         app.kubernetes.io/instance: default-network-policies
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: default-network-policies
-        helm.sh/chart: default-network-policies-1.5.1
+        helm.sh/chart: default-network-policies-2.0.0
       name: platform-project-networkpolicy
     spec:
-      background: true
-      generateExisting: true
-      rules:
-        - generate:
-            apiVersion: networking.k8s.io/v1
-            data:
+      evaluation:
+        generateExisting:
+          enabled: true
+      generate:
+        - template:
+            interpolate: cel
+            value: |
+              apiVersion: networking.k8s.io/v1
+              kind: NetworkPolicy
+              metadata:
+                name: (( object.metadata.name ))-allow-from-same-namespace
+                namespace: (( object.metadata.name ))
               spec:
+                podSelector: {}
                 ingress:
                   - from:
                       - podSelector: {}
-                podSelector: {}
-            kind: NetworkPolicy
-            name: '{{ request.object.metadata.name }}-allow-from-same-namespace'
-            namespace: '{{ request.object.metadata.name }}'
-            synchronize: false
-          match:
-            any:
-              - resources:
-                  kinds:
-                    - Namespace
-                  selector:
-                    matchLabels:
-                      apc.namespace.type: platform
-          name: platform-project-networkpolicy
-        - generate:
-            apiVersion: networking.k8s.io/v1
-            data:
+        - template:
+            interpolate: cel
+            value: |
+              apiVersion: networking.k8s.io/v1
+              kind: NetworkPolicy
+              metadata:
+                name: (( object.metadata.name ))-allow-from-openshift-ingress
+                namespace: (( object.metadata.name ))
               spec:
                 ingress:
                   - from:
@@ -345,20 +341,20 @@ manifests should match snapshot:
                           matchLabels:
                             network.openshift.io/policy-group: ingress
                 podSelector: {}
-            kind: NetworkPolicy
-            name: '{{ request.object.metadata.name }}-allow-from-openshift-ingress'
-            namespace: '{{ request.object.metadata.name }}'
-            synchronize: false
-          match:
-            any:
-              - resources:
-                  kinds:
-                    - Namespace
-                  selector:
-                    matchLabels:
-                      apc.namespace.type: platform
-          name: platform-project-networkpolicy-ingress
-      validationFailureAction: Audit
+      matchConstraints:
+        objectSelector:
+          matchLabels:
+            apc.namespace.type: platform
+        resourceRules:
+          - apiGroups:
+              - ""
+            apiVersions:
+              - v1
+            operations:
+              - CREATE
+              - UPDATE
+            resources:
+              - namespaces
   6: |
     apiVersion: policy.networking.k8s.io/v1alpha1
     kind: AdminNetworkPolicy
@@ -367,7 +363,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: default-network-policies
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: default-network-policies
-        helm.sh/chart: default-network-policies-1.5.1
+        helm.sh/chart: default-network-policies-2.0.0
       name: cluster-wide-restricted-policy
     spec:
       egress:

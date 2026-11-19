@@ -263,19 +263,6 @@ kyverno:
         - ALL
       seccompProfile:
         type: RuntimeDefault
-  policyReportsCleanup:
-    securityContext:
-      runAsUser:
-      runAsGroup:
-      runAsNonRoot: true
-      privileged: false
-      allowPrivilegeEscalation: false
-      readOnlyRootFilesystem: true
-      capabilities:
-        drop:
-        - ALL
-      seccompProfile:
-        type: RuntimeDefault
   crds:
     migration:
       securityContext:
@@ -309,9 +296,12 @@ kyverno:
 
   metricsConfig:
     metricsExposure:
-      # Counter disabled
-      kyverno_policy_rule_info_total:
-        enabled: true
       # Histogram disabled
       kyverno_admission_review_duration_seconds:
         enabled: true
+
+  upgrade:
+    # Kyverno >= 1.20 no longer executes legacy kyverno.io policies (ClusterPolicy, Policy, ...) and blocks
+    # the upgrade while any exist. They can only be replaced by policies.kyverno.io policies once 1.20 runs,
+    # so the check is acknowledged; migrate remaining legacy policies right after the upgrade.
+    acknowledgeLegacyPoliciesNotEnforced: true

@@ -1,43 +1,47 @@
-apiVersion: kyverno.io/v1
-kind: ClusterPolicy
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
 metadata:
   name: grafana-application-logs-clusterrolebinding
   annotations:
     policies.kyverno.io/title: Generate Grafana application logs clusterrolebinding
     policies.kyverno.io/category: RBAC
     policies.kyverno.io/subject: Grafana
-    policies.kyverno.io/minversion: 1.13.0
+    policies.kyverno.io/minversion: 1.20.0
   labels:
     {{- include "kyverno-app-grafana.labels" . | nindent 4 }}
 spec:
-  background: true
-  validationFailureAction: Audit
-  rules:
-    - name: generate-grafana-application-logs-clusterrolebinding
-      match:
-        any:
-          - resources:
-              kinds:
-                - grafana.integreatly.org/*/Grafana
-      exclude:
-        any:
-          - resources:
-              namespaces:
-                - apc-observability
-      generate:
-        orphanDownstreamOnPolicyDelete: true
-        synchronize: true
-        generateExisting: true
-        apiVersion: rbac.authorization.k8s.io/v1
-        kind: ClusterRoleBinding
-        name: "{{`{{ request.object.metadata.namespace }}`}}-{{`{{ request.object.metadata.name }}`}}-cluster-logging-application-view"
-        data:
+  evaluation:
+    generateExisting:
+      enabled: true
+    synchronize:
+      enabled: true
+    orphanDownstreamOnPolicyDelete:
+      enabled: true
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["grafana.integreatly.org"]
+        apiVersions: ["*"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["grafanas"]
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: NotIn
+          values:
+            - apc-observability
+  generate:
+    - template:
+        interpolate: cel
+        value: |
+          apiVersion: rbac.authorization.k8s.io/v1
+          kind: ClusterRoleBinding
+          metadata:
+            name: (( object.metadata.namespace ))-(( object.metadata.name ))-cluster-logging-application-view
           roleRef:
             apiGroup: rbac.authorization.k8s.io
             kind: ClusterRole
             name: cluster-logging-application-view
           subjects:
             - kind: ServiceAccount
-              name: "{{`{{ request.object.metadata.name }}`}}-sa"
-              namespace: {{`"{{ request.object.metadata.namespace }}"`}}
-      skipBackgroundRequests: true
+              name: (( object.metadata.name ))-sa
+              namespace: (( object.metadata.namespace ))

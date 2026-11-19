@@ -1,0 +1,47 @@
+{{- if (include "apc-global-overrides.proxy" .) }}
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: app-project-internetproxy-cm
+  labels:
+  {{- include "kyverno-app-project.labels" . | nindent 4 }}
+  annotations:
+    policies.kyverno.io/title: Create configmap for internet proxy
+    policies.kyverno.io/category: internetproxy
+    policies.kyverno.io/subject: project
+    policies.kyverno.io/minversion: 1.20.0
+spec:
+  useServerSideApply: true
+  evaluation:
+    generateExisting:
+      enabled: true
+    synchronize:
+      enabled: true
+    orphanDownstreamOnPolicyDelete:
+      enabled: true
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["namespaces"]
+    objectSelector:
+      matchLabels:
+        apc.namespace.type: application
+  generate:
+    - template:
+        interpolate: cel
+        value: |
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: proxy
+            namespace: (( object.metadata.name ))
+          data:
+            http_proxy: {{ include "apc-global-overrides.proxy" . }}
+            https_proxy: {{ include "apc-global-overrides.proxy" . }}
+            no_proxy: {{ include "apc-global-overrides.noProxy" . }}
+            HTTP_PROXY: {{ include "apc-global-overrides.proxy" . }}
+            HTTPS_PROXY: {{ include "apc-global-overrides.proxy" . }}
+            NO_PROXY: {{ include "apc-global-overrides.noProxy" . }}
+{{- end }}

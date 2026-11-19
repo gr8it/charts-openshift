@@ -1,48 +1,80 @@
 manifests should match snapshot:
   1: |
-    apiVersion: kyverno.io/v1
-    kind: ClusterPolicy
+    apiVersion: policies.kyverno.io/v1
+    kind: GeneratingPolicy
     metadata:
       annotations:
         policies.kyverno.io/category: RBAC
-        policies.kyverno.io/minversion: 1.13.0
+        policies.kyverno.io/minversion: 1.20.0
         policies.kyverno.io/subject: Grafana
         policies.kyverno.io/title: Generate Grafana application logs clusterrolebinding
       labels:
         app.kubernetes.io/instance: kyverno-app-grafana
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: kyverno-app-grafana
-        helm.sh/chart: kyverno-app-grafana-1.0.0
+        helm.sh/chart: kyverno-app-grafana-2.0.0
       name: grafana-application-logs-clusterrolebinding
     spec:
-      background: true
-      rules:
-        - exclude:
-            any:
-              - resources:
-                  namespaces:
-                    - apc-observability
-          generate:
-            apiVersion: rbac.authorization.k8s.io/v1
-            data:
+      evaluation:
+        generateExisting:
+          enabled: true
+        orphanDownstreamOnPolicyDelete:
+          enabled: true
+        synchronize:
+          enabled: true
+      generate:
+        - template:
+            interpolate: cel
+            value: |
+              apiVersion: rbac.authorization.k8s.io/v1
+              kind: ClusterRoleBinding
+              metadata:
+                name: (( object.metadata.namespace ))-(( object.metadata.name ))-cluster-logging-application-view
               roleRef:
                 apiGroup: rbac.authorization.k8s.io
                 kind: ClusterRole
                 name: cluster-logging-application-view
               subjects:
                 - kind: ServiceAccount
-                  name: '{{ request.object.metadata.name }}-sa'
-                  namespace: '{{ request.object.metadata.namespace }}'
-            generateExisting: true
-            kind: ClusterRoleBinding
-            name: '{{ request.object.metadata.namespace }}-{{ request.object.metadata.name }}-cluster-logging-application-view'
-            orphanDownstreamOnPolicyDelete: true
-            synchronize: true
-          match:
-            any:
-              - resources:
-                  kinds:
-                    - grafana.integreatly.org/*/Grafana
-          name: generate-grafana-application-logs-clusterrolebinding
-          skipBackgroundRequests: true
-      validationFailureAction: Audit
+                  name: (( object.metadata.name ))-sa
+                  namespace: (( object.metadata.namespace ))
+      matchConstraints:
+        namespaceSelector:
+          matchExpressions:
+            - key: kubernetes.io/metadata.name
+              operator: NotIn
+              values:
+                - apc-observability
+        resourceRules:
+          - apiGroups:
+              - grafana.integreatly.org
+            apiVersions:
+              - '*'
+            operations:
+              - CREATE
+              - UPDATE
+            resources:
+              - grafanas
+  2: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kyverno-app-grafana
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-grafana
+        helm.sh/chart: kyverno-app-grafana-2.0.0
+        rbac.kyverno.io/aggregate-to-background-controller: "true"
+      name: kyverno:background-controller:grafana-application-logs
+    rules:
+      - apiGroups:
+          - rbac.authorization.k8s.io
+        resources:
+          - clusterrolebindings
+        verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - delete

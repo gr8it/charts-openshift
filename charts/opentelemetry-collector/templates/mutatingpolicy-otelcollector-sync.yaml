@@ -1,0 +1,68 @@
+---
+apiVersion: policies.kyverno.io/v1
+kind: MutatingPolicy
+metadata:
+  name: {{ include "opentelemetry-collector.fullname" . }}-sync-tenants
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
+    policies.kyverno.io/title: Sync Open Telemetry tenants on namespace create or label change
+    policies.kyverno.io/category: gitops
+    policies.kyverno.io/subject: Sync Open Telemetry tenants with namespaces
+    policies.kyverno.io/minversion: 1.20.0
+spec:
+  evaluation:
+    mutateExisting:
+      enabled: true
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["namespaces"]
+    objectSelector:
+      matchLabels:
+        {{ .Values.namespaceSelector.key }}: {{ .Values.namespaceSelector.value }}
+  # trigger data is read through request.object: in the target phase `object` is the OpenTelemetryCollector
+  variables:
+    - name: namespace
+      expression: request.object.metadata.name
+    - name: exporter
+      expression: "'otlp_grpc/' + variables.namespace"
+    - name: pipeline
+      expression: "'traces/' + variables.namespace"
+  targetMatchConstraints:
+    expression: resource.Get("opentelemetry.io/v1beta1", "opentelemetrycollectors", {{ .Release.Namespace | quote }}, {{ .Values.instanceNameOverride | default (include "opentelemetry-collector.fullname" .) | quote }})
+  # Exporter and pipeline are map keys -> "add" sets them, re-runs just re-apply the same value.
+  # The routing table is a list -> a route is appended only when the namespace has none yet,
+  # so re-runs (background scans, policy updates) do not create duplicate entries.
+  mutations:
+    - patchType: JSONPatch
+      jsonPatch:
+        expression: >-
+          [
+            JSONPatch{
+              op: "add",
+              path: "/spec/config/exporters/" + jsonpatch.escapeKey(variables.exporter),
+              value: {
+                "endpoint": dyn({{ .Values.tracesEndpoint | required "Traces endpoint is required!" | toJson }}),
+                "auth": dyn({"authenticator": "bearertokenauth"}),
+                "headers": dyn({"X-Scope-OrgID": variables.namespace}),
+                "tls": dyn({"insecure": dyn(false), "ca_file": dyn("/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt")})
+              }
+            },
+            JSONPatch{
+              op: "add",
+              path: "/spec/config/service/pipelines/" + jsonpatch.escapeKey(variables.pipeline),
+              value: {"receivers": ["routing"], "exporters": [variables.exporter]}
+            }
+          ] +
+          (object.spec.config.connectors.routing.table.exists(r, r.pipelines[0] == variables.pipeline) ? [] : [
+            JSONPatch{
+              op: "add",
+              path: "/spec/config/connectors/routing/table/-",
+              value: {
+                "statement": dyn("route() where resource.attributes[\"k8s.namespace.name\"] == \"" + variables.namespace + "\""),
+                "pipelines": dyn([variables.pipeline])
+              }
+            }
+          ])

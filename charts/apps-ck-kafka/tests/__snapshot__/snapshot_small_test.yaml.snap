@@ -7,7 +7,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
       name: kafka-brokers
       namespace: kafka
     spec:
@@ -26,45 +26,6 @@ manifests should match snapshot:
         name: vault-issuer
       secretName: kafka-brokers-tls
   2: |
-    apiVersion: kyverno.io/v1
-    kind: ClusterPolicy
-    metadata:
-      labels:
-        app.kubernetes.io/instance: kafka
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
-      name: kafka-kuser-sync
-    spec:
-      background: true
-      rules:
-        - generate:
-            foreach:
-              - apiVersion: v1
-                data:
-                  data: '{{ request.object.data }}'
-                  kind: Secret
-                  stringData:
-                    sasl.jaas.config: org.apache.kafka.common.security.scram.ScramLoginModule required username="{{ replace_all(request.object.metadata.name, '-eso', '') }}" password="{{ base64_decode(request.object.data.password) }}";
-                  type: Opaque
-                kind: Secret
-                list: request.object.metadata.annotations."sync-kafkauser-to-appns" | parse_json(@)
-                name: kafka-user-{{ replace_all(request.object.metadata.name, '-eso', '') }}
-                namespace: '{{ element }}'
-            generateExisting: true
-            synchronize: true
-          match:
-            any:
-              - resources:
-                  kinds:
-                    - Secret
-                  namespaces:
-                    - kafka
-                  selector:
-                    matchLabels:
-                      kafka-user-sync: "true"
-          name: sync-kafkauser-to-appns
-  3: |
     apiVersion: v1
     data:
       kafka-metrics-config.yml: |
@@ -235,10 +196,10 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
       name: kafka-metrics
       namespace: kafka
-  4: |
+  3: |
     apiVersion: apps/v1
     kind: Deployment
     metadata:
@@ -246,7 +207,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
       name: kafka-oauth-proxy
       namespace: kafka
     spec:
@@ -288,7 +249,7 @@ manifests should match snapshot:
                   cpu: 20m
                   memory: 128Mi
           serviceAccountName: kafka-oauth-proxy
-  5: |
+  4: |
     apiVersion: external-secrets.io/v1beta1
     kind: ExternalSecret
     metadata:
@@ -296,7 +257,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
       name: app-producer
       namespace: kafka
     spec:
@@ -321,7 +282,7 @@ manifests should match snapshot:
                 ["app-namespace-1","app-namespace-2"]
             labels:
               kafka-user-sync: "true"
-  6: |
+  5: |
     apiVersion: external-secrets.io/v1beta1
     kind: ExternalSecret
     metadata:
@@ -329,7 +290,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
       name: app-consumer
       namespace: kafka
     spec:
@@ -347,7 +308,7 @@ manifests should match snapshot:
         creationPolicy: Orphan
         deletionPolicy: Retain
         name: app-consumer-eso
-  7: |
+  6: |
     apiVersion: external-secrets.io/v1beta1
     kind: ExternalSecret
     metadata:
@@ -355,7 +316,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
       name: analytics-consumer
       namespace: kafka
     spec:
@@ -373,7 +334,7 @@ manifests should match snapshot:
         creationPolicy: Orphan
         deletionPolicy: Retain
         name: analytics-consumer-eso
-  8: |
+  7: |
     apiVersion: external-secrets.io/v1beta1
     kind: ExternalSecret
     metadata:
@@ -381,7 +342,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
       name: admin
       namespace: kafka
     spec:
@@ -399,7 +360,7 @@ manifests should match snapshot:
         creationPolicy: Orphan
         deletionPolicy: Retain
         name: admin-eso
-  9: |
+  8: |
     apiVersion: external-secrets.io/v1beta1
     kind: ExternalSecret
     metadata:
@@ -407,7 +368,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
       name: kafka-oauth-proxy-cookie-secret
       namespace: kafka
     spec:
@@ -429,8 +390,63 @@ manifests should match snapshot:
               app.kubernetes.io/instance: kafka
               app.kubernetes.io/managed-by: Helm
               app.kubernetes.io/name: kafka
-              helm.sh/chart: apps-ck-kafka-1.4.0
+              helm.sh/chart: apps-ck-kafka-2.0.0
           type: Opaque
+  9: |
+    apiVersion: policies.kyverno.io/v1
+    kind: GeneratingPolicy
+    metadata:
+      labels:
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: apps-ck-kafka-2.0.0
+      name: kafka-kuser-sync
+    spec:
+      evaluation:
+        generateExisting:
+          enabled: true
+        synchronize:
+          enabled: true
+      generate:
+        - expression: variables.namespaces.all(ns, generator.Apply(ns, [variables.secret]))
+      matchConditions:
+        - expression: '''sync-kafkauser-to-appns'' in object.metadata.?annotations.orValue({})'
+          name: has-target-namespaces
+      matchConstraints:
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: kafka
+        objectSelector:
+          matchLabels:
+            kafka-user-sync: "true"
+        resourceRules:
+          - apiGroups:
+              - ""
+            apiVersions:
+              - v1
+            operations:
+              - CREATE
+              - UPDATE
+            resources:
+              - secrets
+      variables:
+        - expression: json.unmarshal(object.metadata.annotations['sync-kafkauser-to-appns'])
+          name: namespaces
+        - expression: object.metadata.name.replace('-eso', '')
+          name: user
+        - expression: |-
+            {
+              "apiVersion": dyn("v1"),
+              "kind": dyn("Secret"),
+              "metadata": dyn({"name": "kafka-user-" + variables.user}),
+              "type": dyn("Opaque"),
+              "data": dyn(object.data),
+              "stringData": dyn({
+                "sasl.jaas.config": "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"" + variables.user + "\" password=\"" + string(base64.decode(object.data.password)) + "\";"
+              })
+            }
+          name: secret
   10: |
     apiVersion: kafka.strimzi.io/v1beta2
     kind: Kafka
@@ -442,7 +458,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
       name: kafka
       namespace: kafka
     spec:
@@ -530,7 +546,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
         strimzi.io/cluster: kafka
       name: kafka-brokers
       namespace: kafka
@@ -561,7 +577,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
         strimzi.io/cluster: kafka
       name: kafka-controllers
       namespace: kafka
@@ -592,7 +608,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
         strimzi.io/cluster: kafka
       name: events-v1
       namespace: kafka
@@ -612,7 +628,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
         strimzi.io/cluster: kafka
       name: app-producer
       namespace: kafka
@@ -662,7 +678,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
         strimzi.io/cluster: kafka
       name: app-consumer
       namespace: kafka
@@ -708,7 +724,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
         strimzi.io/cluster: kafka
       name: analytics-consumer
       namespace: kafka
@@ -754,7 +770,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
         strimzi.io/cluster: kafka
       name: admin
       namespace: kafka
@@ -777,7 +793,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
         strimzi.io/cluster: kafka
       name: apc-kafka-admin
       namespace: kafka
@@ -795,7 +811,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
       name: kafka-pwd-gen
       namespace: kafka
     spec:
@@ -812,7 +828,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
       name: kafka-oauth-proxy-cookie-secret
       namespace: kafka
     spec:
@@ -829,7 +845,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
       name: app-producer
       namespace: kafka
     spec:
@@ -856,7 +872,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
       name: app-consumer
       namespace: kafka
     spec:
@@ -883,7 +899,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
       name: analytics-consumer
       namespace: kafka
     spec:
@@ -910,7 +926,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
       name: admin
       namespace: kafka
     spec:
@@ -937,7 +953,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
       name: kafka-oauth-service-account-access
       namespace: kafka
     rules:
@@ -957,7 +973,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
       name: kafka-oauth-service-account-access
       namespace: kafka
     roleRef:
@@ -975,7 +991,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
       name: kafka-kafka-ui
       namespace: kafka
     spec:
@@ -997,7 +1013,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
       name: kafka-brokers
       namespace: openshift-adp
     spec:
@@ -1018,7 +1034,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
       name: kafka-oauth-proxy
       namespace: kafka
     spec:
@@ -1040,6 +1056,6 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kafka
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kafka
-        helm.sh/chart: apps-ck-kafka-1.4.0
+        helm.sh/chart: apps-ck-kafka-2.0.0
       name: kafka-oauth-proxy
       namespace: kafka

@@ -1,0 +1,55 @@
+apiVersion: policies.kyverno.io/v1
+kind: MutatingPolicy
+metadata:
+  name: app-project-namespace-metadata
+  labels:
+    {{- include "kyverno-app-project.labels" . | nindent 4 }}
+  annotations:
+    policies.kyverno.io/title: Patch Namespace labels from the project metadata ConfigMap
+    policies.kyverno.io/category: Monitoring
+    policies.kyverno.io/subject: project
+    policies.kyverno.io/minversion: 1.20.0
+spec:
+  evaluation:
+    mutateExisting:
+      enabled: true
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["configmaps"]
+        resourceNames:
+          - {{ .Values.projectMetadataConfigMapName }}
+    namespaceSelector:
+      matchLabels:
+        apc.namespace.type: application
+  # targetMatchConstraints run against the trigger (`object`); variables are also used in the
+  # target phase, where `object` is the Namespace, so they read the trigger via request.object
+  variables:
+    - name: labelKeys
+      expression: >-
+        request.object.?data.orValue({}).filter(k,
+          k.matches('^[a-zA-Z0-9]([-_.a-zA-Z0-9]{0,61}[a-zA-Z0-9])?$') &&
+          request.object.data[k].matches('^[a-zA-Z0-9]([-_.a-zA-Z0-9]{0,61}[a-zA-Z0-9])?$') &&
+          !k.startsWith('apc.') && !k.contains('kubernetes') && !k.contains('openshift') && !k.contains('k8s'))
+    - name: labels
+      expression: >-
+        transform.listObjToMap(
+          variables.labelKeys.map(k, {"key": k}),
+          variables.labelKeys.map(k, {"value": request.object.data[k]}),
+          "key", "value")
+  matchConditions:
+    - name: has-valid-labels
+      expression: size(variables.labelKeys) > 0
+  targetMatchConstraints:
+    expression: resource.Get("v1", "namespaces", "", object.metadata.namespace)
+  mutations:
+    - patchType: ApplyConfiguration
+      applyConfiguration:
+        expression: >-
+          Object{
+            metadata: Object.metadata{
+              labels: variables.labels
+            }
+          }

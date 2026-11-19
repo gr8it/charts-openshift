@@ -1,6 +1,6 @@
 manifests should match snapshot:
   1: |
-    raw: "Chart version: 3.5.2\nKyverno version: v1.15.2\n\nThank you for installing kyverno! Your release is named kyverno.\n\nThe following components have been installed in your cluster:\n- CRDs\n- Admission controller\n- Reports controller\n- Cleanup controller\n- Background controller\n\n\n⚠️  WARNING: The minimal Kubernetes version officially supported by Kyverno is 1.21. Earlier versions are untested and Kyverno is not guaranteed to work with Kubernetes v1.20.0.\n\n\n⚠️  WARNING: PolicyExceptions are disabled by default. To enable them, set '--enablePolicyException' to true.\n\n\U0001F4A1 Note: There is a trade-off when deciding which approach to take regarding Namespace exclusions. Please see the documentation at https://kyverno.io/docs/installation/#security-vs-operability to understand the risks.\n"
+    raw: "Chart version: 3.9.2\nKyverno version: v1.19.2\n\nThank you for installing kyverno! Your release is named kyverno.\n\nThe following components have been installed in your cluster:\n- CRDs\n- Admission controller\n- Reports controller\n- Cleanup controller\n- Background controller\n\n\n⚠️  WARNING: The minimal Kubernetes version officially supported by Kyverno is 1.21. Earlier versions are untested and Kyverno is not guaranteed to work with Kubernetes v1.20.0.\n\n\n⚠️  WARNING: PolicyExceptions are disabled by default. To enable them, set '--enablePolicyException' to true.\n⚠️  WARNING: The legacy kyverno.io policy types are deprecated and will be removed in a future release. Migrate to their policies.kyverno.io replacements:\n    - ClusterPolicy / Policy → ValidatingPolicy, MutatingPolicy, GeneratingPolicy, ImageValidatingPolicy (and their namespaced variants)\n    - ClusterCleanupPolicy / CleanupPolicy → DeletingPolicy / NamespacedDeletingPolicy\n    - PolicyException (kyverno.io) → PolicyException (policies.kyverno.io)\n    See https://kyverno.io/docs/guides/migration-to-cel/ for the migration guide.\n\n\U0001F4A1 Note: There is a trade-off when deciding which approach to take regarding Namespace exclusions. Please see the documentation at https://kyverno.io/docs/installation/#security-vs-operability to understand the risks.\n"
   2: |
     aggregationRule:
       clusterRoleSelectors:
@@ -17,9 +17,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: admission-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-admission-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:admission-controller
   3: |
     apiVersion: rbac.authorization.k8s.io/v1
@@ -29,9 +30,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: admission-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-admission-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:admission-controller:core
     rules:
       - apiGroups:
@@ -47,6 +49,8 @@ manifests should match snapshot:
           - validatingwebhookconfigurations
           - validatingadmissionpolicies
           - validatingadmissionpolicybindings
+          - mutatingadmissionpolicies
+          - mutatingadmissionpolicybindings
         verbs:
           - create
           - delete
@@ -103,12 +107,20 @@ manifests should match snapshot:
         resources:
           - validatingpolicies
           - validatingpolicies/status
+          - namespacedvalidatingpolicies
+          - namespacedvalidatingpolicies/status
           - imagevalidatingpolicies
           - imagevalidatingpolicies/status
+          - namespacedimagevalidatingpolicies
+          - namespacedimagevalidatingpolicies/status
           - generatingpolicies
           - generatingpolicies/status
+          - namespacedgeneratingpolicies
+          - namespacedgeneratingpolicies/status
           - mutatingpolicies
           - mutatingpolicies/status
+          - namespacedmutatingpolicies
+          - namespacedmutatingpolicies/status
         verbs:
           - create
           - delete
@@ -230,9 +242,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: admission-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-admission-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:admission-controller
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -250,9 +263,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: admission-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-admission-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:admission-controller:view
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -270,9 +284,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: admission-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-admission-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-admission-controller
       namespace: apc-kyverno
     spec:
@@ -294,9 +309,10 @@ manifests should match snapshot:
             app.kubernetes.io/component: admission-controller
             app.kubernetes.io/instance: kyverno
             app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/name: kyverno-admission-controller
             app.kubernetes.io/part-of: kyverno
-            app.kubernetes.io/version: 3.5.2
-            helm.sh/chart: kyverno-3.5.2
+            app.kubernetes.io/version: 3.9.2
+            helm.sh/chart: kyverno-3.9.2
         spec:
           affinity:
             podAntiAffinity:
@@ -315,6 +331,7 @@ manifests should match snapshot:
             - args:
                 - --caSecretName=kyverno-svc.apc-kyverno.svc.kyverno-tls-ca
                 - --tlsSecretName=kyverno-svc.apc-kyverno.svc.kyverno-tls-pair
+                - --tlsKeyAlgorithm=RSA
                 - --backgroundServiceAccountName=system:serviceaccount:apc-kyverno:kyverno-background-controller
                 - --reportsServiceAccountName=system:serviceaccount:apc-kyverno:kyverno-reports-controller
                 - --servicePort=443
@@ -327,6 +344,7 @@ manifests should match snapshot:
                 - --admissionReports=true
                 - --maxAdmissionReports=1000
                 - --autoUpdateWebhooks=true
+                - --excludeBootstrapResources=false
                 - --enableConfigMapCaching=true
                 - --controllerRuntimeMetricsAddress=:8080
                 - --enableDeferredLoading=true
@@ -336,6 +354,8 @@ manifests should match snapshot:
                 - --generateMutatingAdmissionPolicy=false
                 - --dumpPatches=false
                 - --maxAPICallResponseLength=2000000
+                - --apiCallTimeout=30s
+                - --maxGlobalContextEntries=0
                 - --loggingFormat=text
                 - --v=2
                 - --omitEvents=PolicyApplied,PolicySkipped
@@ -367,7 +387,7 @@ manifests should match snapshot:
                   value: /.sigstore
                 - name: KYVERNO_DEPLOYMENT
                   value: kyverno-admission-controller
-              image: reg.kyverno.io/kyverno/kyverno:v1.15.2
+              image: reg.kyverno.io/kyverno/kyverno:v1.19.2
               imagePullPolicy: IfNotPresent
               livenessProbe:
                 failureThreshold: 2
@@ -411,7 +431,9 @@ manifests should match snapshot:
                     - ALL
                 privileged: false
                 readOnlyRootFilesystem: true
+                runAsGroup: 65534
                 runAsNonRoot: true
+                runAsUser: 65534
                 seccompProfile:
                   type: RuntimeDefault
               startupProbe:
@@ -425,6 +447,9 @@ manifests should match snapshot:
               volumeMounts:
                 - mountPath: /.sigstore
                   name: sigstore
+                - mountPath: /var/run/secrets/kyverno/apicall
+                  name: apicall-token
+                  readOnly: true
           dnsPolicy: ClusterFirst
           initContainers:
             - args:
@@ -452,7 +477,7 @@ manifests should match snapshot:
                   value: kyverno-admission-controller
                 - name: KYVERNO_SVC
                   value: kyverno-svc
-              image: reg.kyverno.io/kyverno/kyvernopre:v1.15.2
+              image: reg.kyverno.io/kyverno/kyvernopre:v1.19.2
               imagePullPolicy: IfNotPresent
               name: kyverno-pre
               resources:
@@ -469,13 +494,25 @@ manifests should match snapshot:
                     - ALL
                 privileged: false
                 readOnlyRootFilesystem: true
+                runAsGroup: 65534
                 runAsNonRoot: true
+                runAsUser: 65534
                 seccompProfile:
                   type: RuntimeDefault
+          nodeSelector:
+            kubernetes.io/os: linux
           serviceAccountName: kyverno-admission-controller
           volumes:
             - emptyDir: {}
               name: sigstore
+            - name: apicall-token
+              projected:
+                defaultMode: 292
+                sources:
+                  - serviceAccountToken:
+                      audience: kyverno-svc.kyverno.io
+                      expirationSeconds: 3600
+                      path: token
   7: |
     apiVersion: policy/v1
     kind: PodDisruptionBudget
@@ -484,9 +521,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: admission-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-admission-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-admission-controller
       namespace: apc-kyverno
     spec:
@@ -504,9 +542,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: admission-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-admission-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:admission-controller
       namespace: apc-kyverno
     rules:
@@ -563,9 +602,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: admission-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-admission-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:admission-controller
       namespace: apc-kyverno
     roleRef:
@@ -584,9 +624,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: admission-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-admission-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-svc
       namespace: apc-kyverno
     spec:
@@ -609,9 +650,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: admission-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-admission-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-svc-metrics
       namespace: apc-kyverno
     spec:
@@ -634,9 +676,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: admission-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-admission-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-admission-controller
       namespace: apc-kyverno
   13: |
@@ -647,9 +690,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: admission-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-admission-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-admission-controller
       namespace: apc-kyverno
     spec:
@@ -681,9 +725,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: background-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-background-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:background-controller
   15: |
     apiVersion: rbac.authorization.k8s.io/v1
@@ -693,9 +738,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: background-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-background-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:background-controller:core
     rules:
       - apiGroups:
@@ -729,7 +775,9 @@ manifests should match snapshot:
           - policies.kyverno.io
         resources:
           - generatingpolicies
+          - namespacedgeneratingpolicies
           - mutatingpolicies
+          - namespacedmutatingpolicies
           - policyexceptions
         verbs:
           - create
@@ -902,9 +950,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: background-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-background-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:background-controller
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -922,9 +971,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: background-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-background-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:background-controller:view
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -942,9 +992,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: background-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-background-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-background-controller
       namespace: apc-kyverno
     spec:
@@ -966,9 +1017,10 @@ manifests should match snapshot:
             app.kubernetes.io/component: background-controller
             app.kubernetes.io/instance: kyverno
             app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/name: kyverno-background-controller
             app.kubernetes.io/part-of: kyverno
-            app.kubernetes.io/version: 3.5.2
-            helm.sh/chart: kyverno-3.5.2
+            app.kubernetes.io/version: 3.9.2
+            helm.sh/chart: kyverno-3.9.2
         spec:
           affinity:
             podAntiAffinity:
@@ -990,8 +1042,11 @@ manifests should match snapshot:
                 - --metricsPort=8000
                 - --resyncPeriod=15m
                 - --enableConfigMapCaching=true
+                - --controllerRuntimeMetricsAddress=:8080
                 - --enableDeferredLoading=true
                 - --maxAPICallResponseLength=2000000
+                - --apiCallTimeout=30s
+                - --maxGlobalContextEntries=0
                 - --loggingFormat=text
                 - --v=2
                 - --omitEvents=PolicyApplied,PolicySkipped
@@ -1014,7 +1069,7 @@ manifests should match snapshot:
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.namespace
-              image: reg.kyverno.io/kyverno/background-controller:v1.15.2
+              image: reg.kyverno.io/kyverno/background-controller:v1.19.2
               imagePullPolicy: IfNotPresent
               name: controller
               ports:
@@ -1038,11 +1093,28 @@ manifests should match snapshot:
                     - ALL
                 privileged: false
                 readOnlyRootFilesystem: true
+                runAsGroup: 65534
                 runAsNonRoot: true
+                runAsUser: 65534
                 seccompProfile:
                   type: RuntimeDefault
+              volumeMounts:
+                - mountPath: /var/run/secrets/kyverno/apicall
+                  name: apicall-token
+                  readOnly: true
           dnsPolicy: ClusterFirst
+          nodeSelector:
+            kubernetes.io/os: linux
           serviceAccountName: kyverno-background-controller
+          volumes:
+            - name: apicall-token
+              projected:
+                defaultMode: 292
+                sources:
+                  - serviceAccountToken:
+                      audience: kyverno-svc.kyverno.io
+                      expirationSeconds: 3600
+                      path: token
   19: |
     apiVersion: policy/v1
     kind: PodDisruptionBudget
@@ -1051,9 +1123,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: background-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-background-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-background-controller
       namespace: apc-kyverno
     spec:
@@ -1071,9 +1144,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: background-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-background-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:background-controller
       namespace: apc-kyverno
     rules:
@@ -1121,9 +1195,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: background-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-background-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:background-controller
       namespace: apc-kyverno
     roleRef:
@@ -1142,9 +1217,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: background-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-background-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-background-controller-metrics
       namespace: apc-kyverno
     spec:
@@ -1167,9 +1243,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: background-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-background-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-background-controller
       namespace: apc-kyverno
   24: |
@@ -1180,9 +1257,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: background-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-background-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-background-controller
       namespace: apc-kyverno
     spec:
@@ -1214,9 +1292,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: cleanup-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-cleanup-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:cleanup-controller
   26: |
     apiVersion: rbac.authorization.k8s.io/v1
@@ -1226,9 +1305,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: cleanup-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-cleanup-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:cleanup-controller:core
     rules:
       - apiGroups:
@@ -1268,6 +1348,7 @@ manifests should match snapshot:
           - policies.kyverno.io
         resources:
           - deletingpolicies
+          - namespaceddeletingpolicies
         verbs:
           - get
           - list
@@ -1276,6 +1357,7 @@ manifests should match snapshot:
           - policies.kyverno.io
         resources:
           - deletingpolicies/status
+          - namespaceddeletingpolicies/status
         verbs:
           - update
       - apiGroups:
@@ -1340,9 +1422,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: cleanup-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-cleanup-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:cleanup-controller:additional
     rules:
       - apiGroups:
@@ -1376,9 +1459,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: cleanup-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-cleanup-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:cleanup-controller
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -1396,9 +1480,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: cleanup-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-cleanup-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-cleanup-controller
       namespace: apc-kyverno
     spec:
@@ -1420,9 +1505,10 @@ manifests should match snapshot:
             app.kubernetes.io/component: cleanup-controller
             app.kubernetes.io/instance: kyverno
             app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/name: kyverno-cleanup-controller
             app.kubernetes.io/part-of: kyverno
-            app.kubernetes.io/version: 3.5.2
-            helm.sh/chart: kyverno-3.5.2
+            app.kubernetes.io/version: 3.9.2
+            helm.sh/chart: kyverno-3.9.2
         spec:
           affinity:
             podAntiAffinity:
@@ -1441,16 +1527,18 @@ manifests should match snapshot:
             - args:
                 - --caSecretName=kyverno-cleanup-controller.apc-kyverno.svc.kyverno-tls-ca
                 - --tlsSecretName=kyverno-cleanup-controller.apc-kyverno.svc.kyverno-tls-pair
+                - --tlsKeyAlgorithm=RSA
                 - --servicePort=443
-                - --cleanupServerPort=9443
-                - --webhookServerPort=9443
                 - --resyncPeriod=15m
+                - --cleanupServerPort=9443
                 - --disableMetrics=false
                 - --otelConfig=prometheus
                 - --metricsPort=8000
                 - --enableDeferredLoading=true
                 - --dumpPayload=false
                 - --maxAPICallResponseLength=2000000
+                - --apiCallTimeout=30s
+                - --maxGlobalContextEntries=0
                 - --loggingFormat=text
                 - --v=2
                 - --protectManagedResources=false
@@ -1476,7 +1564,7 @@ manifests should match snapshot:
                       fieldPath: metadata.namespace
                 - name: KYVERNO_SVC
                   value: kyverno-cleanup-controller
-              image: reg.kyverno.io/kyverno/cleanup-controller:v1.15.2
+              image: reg.kyverno.io/kyverno/cleanup-controller:v1.19.2
               imagePullPolicy: IfNotPresent
               livenessProbe:
                 failureThreshold: 2
@@ -1520,7 +1608,9 @@ manifests should match snapshot:
                     - ALL
                 privileged: false
                 readOnlyRootFilesystem: true
+                runAsGroup: 65534
                 runAsNonRoot: true
+                runAsUser: 65534
                 seccompProfile:
                   type: RuntimeDefault
               startupProbe:
@@ -1531,8 +1621,23 @@ manifests should match snapshot:
                   scheme: HTTPS
                 initialDelaySeconds: 2
                 periodSeconds: 6
+              volumeMounts:
+                - mountPath: /var/run/secrets/kyverno/apicall
+                  name: apicall-token
+                  readOnly: true
           dnsPolicy: ClusterFirst
+          nodeSelector:
+            kubernetes.io/os: linux
           serviceAccountName: kyverno-cleanup-controller
+          volumes:
+            - name: apicall-token
+              projected:
+                defaultMode: 292
+                sources:
+                  - serviceAccountToken:
+                      audience: kyverno-svc.kyverno.io
+                      expirationSeconds: 3600
+                      path: token
   30: |
     apiVersion: policy/v1
     kind: PodDisruptionBudget
@@ -1541,9 +1646,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: cleanup-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-cleanup-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-cleanup-controller
       namespace: apc-kyverno
     spec:
@@ -1561,9 +1667,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: cleanup-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-cleanup-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:cleanup-controller
       namespace: apc-kyverno
     rules:
@@ -1578,6 +1685,8 @@ manifests should match snapshot:
         resourceNames:
           - kyverno-cleanup-controller.apc-kyverno.svc.kyverno-tls-ca
           - kyverno-cleanup-controller.apc-kyverno.svc.kyverno-tls-pair
+          - kyverno-cleanup-controller.apc-kyverno.metering.kyverno-tls-ca
+          - kyverno-cleanup-controller.apc-kyverno.metering.kyverno-tls-pair
         resources:
           - secrets
         verbs:
@@ -1615,6 +1724,12 @@ manifests should match snapshot:
           - patch
           - update
       - apiGroups:
+          - discovery.k8s.io
+        resources:
+          - endpointslices
+        verbs:
+          - list
+      - apiGroups:
           - apps
         resources:
           - deployments
@@ -1630,9 +1745,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: cleanup-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-cleanup-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:cleanup-controller
       namespace: apc-kyverno
     roleRef:
@@ -1651,9 +1767,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: cleanup-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-cleanup-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-cleanup-controller
       namespace: apc-kyverno
     spec:
@@ -1676,9 +1793,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: cleanup-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-cleanup-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-cleanup-controller-metrics
       namespace: apc-kyverno
     spec:
@@ -1701,9 +1819,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: cleanup-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-cleanup-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-cleanup-controller
       namespace: apc-kyverno
   36: |
@@ -1714,9 +1833,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: cleanup-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-cleanup-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-cleanup-controller
       namespace: apc-kyverno
     spec:
@@ -1752,15 +1872,15 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno
       namespace: apc-kyverno
   38: |
     apiVersion: v1
     data:
       bucketBoundaries: 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 15, 20, 25, 30
-      metricsExposure: '{"kyverno_admission_requests_total":{"disabledLabelDimensions":["resource_namespace"]},"kyverno_admission_review_duration_seconds":{"disabledLabelDimensions":["resource_namespace"],"enabled":true},"kyverno_cleanup_controller_deletedobjects_total":{"disabledLabelDimensions":["resource_namespace","policy_namespace"]},"kyverno_policy_execution_duration_seconds":{"disabledLabelDimensions":["resource_namespace","resource_request_operation"]},"kyverno_policy_results_total":{"disabledLabelDimensions":["resource_namespace","policy_namespace"]},"kyverno_policy_rule_info_total":{"disabledLabelDimensions":["resource_namespace","policy_namespace"],"enabled":true}}'
+      metricsExposure: '{"kyverno_admission_requests_total":{"disabledLabelDimensions":["resource_namespace"]},"kyverno_admission_review_duration_seconds":{"disabledLabelDimensions":["resource_namespace"],"enabled":true},"kyverno_cleanup_controller_deletedobjects_total":{"disabledLabelDimensions":["resource_namespace","policy_namespace"]},"kyverno_generating_policy_execution_duration_seconds":{"disabledLabelDimensions":["resource_namespace","resource_request_operation"]},"kyverno_generating_policy_results_total":{"disabledLabelDimensions":["resource_namespace","policy_namespace"]},"kyverno_image_validating_policy_execution_duration_seconds":{"disabledLabelDimensions":["resource_namespace","resource_request_operation"]},"kyverno_image_validating_policy_results_total":{"disabledLabelDimensions":["resource_namespace","policy_namespace"]},"kyverno_mutating_policy_execution_duration_seconds":{"disabledLabelDimensions":["resource_namespace","resource_request_operation"]},"kyverno_mutating_policy_results_total":{"disabledLabelDimensions":["resource_namespace","policy_namespace"]},"kyverno_policy_execution_duration_seconds":{"disabledLabelDimensions":["resource_namespace","resource_request_operation"]},"kyverno_policy_results_total":{"disabledLabelDimensions":["resource_namespace","policy_namespace"]},"kyverno_policy_rule_info_total":{"disabledLabelDimensions":["resource_namespace","policy_namespace"]},"kyverno_validating_policy_execution_duration_seconds":{"disabledLabelDimensions":["resource_namespace","resource_request_operation"]},"kyverno_validating_policy_results_total":{"disabledLabelDimensions":["resource_namespace","policy_namespace"]}}'
       namespaces: '{"exclude":[],"include":[]}'
     kind: ConfigMap
     metadata:
@@ -1769,8 +1889,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-metrics
       namespace: apc-kyverno
   39: |
@@ -1785,13 +1905,22 @@ manifests should match snapshot:
         app.kubernetes.io/component: hooks
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-hooks
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:migrate-resources
     rules:
       - apiGroups:
           - kyverno.io
+        resources:
+          - '*'
+        verbs:
+          - get
+          - list
+          - update
+      - apiGroups:
+          - policies.kyverno.io
         resources:
           - '*'
         verbs:
@@ -1822,9 +1951,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: hooks
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-hooks
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:migrate-resources
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -1847,9 +1977,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: hooks
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-hooks
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-migrate-resources
       namespace: apc-kyverno
   42: |
@@ -1858,15 +1989,15 @@ manifests should match snapshot:
     metadata:
       annotations:
         helm.sh/hook: post-upgrade
-        helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded,hook-failed
         helm.sh/hook-weight: "200"
       labels:
         app.kubernetes.io/component: hooks
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-hooks
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-migrate-resources
       namespace: apc-kyverno
     spec:
@@ -1891,9 +2022,31 @@ manifests should match snapshot:
                 - policyexceptions.kyverno.io
                 - --resource
                 - updaterequests.kyverno.io
-              image: reg.kyverno.io/kyverno/kyverno-cli:v1.15.2
+                - --resource
+                - deletingpolicies.policies.kyverno.io
+                - --resource
+                - generatingpolicies.policies.kyverno.io
+                - --resource
+                - imagevalidatingpolicies.policies.kyverno.io
+                - --resource
+                - mutatingpolicies.policies.kyverno.io
+                - --resource
+                - namespaceddeletingpolicies.policies.kyverno.io
+                - --resource
+                - namespacedgeneratingpolicies.policies.kyverno.io
+                - --resource
+                - namespacedimagevalidatingpolicies.policies.kyverno.io
+                - --resource
+                - namespacedmutatingpolicies.policies.kyverno.io
+                - --resource
+                - namespacedvalidatingpolicies.policies.kyverno.io
+                - --resource
+                - policyexceptions.policies.kyverno.io
+                - --resource
+                - validatingpolicies.policies.kyverno.io
+              image: reg.kyverno.io/kyverno/kyverno-cli:v1.19.2
               imagePullPolicy: IfNotPresent
-              name: kubectl
+              name: kyverno-cli
               resources:
                 limits:
                   cpu: 100m
@@ -1913,6 +2066,8 @@ manifests should match snapshot:
                 runAsUser: null
                 seccompProfile:
                   type: RuntimeDefault
+          nodeSelector:
+            kubernetes.io/os: linux
           restartPolicy: Never
           serviceAccountName: kyverno-migrate-resources
   43: |
@@ -1927,10 +2082,11 @@ manifests should match snapshot:
         app.kubernetes.io/component: hooks
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-hooks
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
-      name: kyverno-rm-mutatingwhconfig
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
+      name: kyverno-rm-webhooks
       namespace: apc-kyverno
     spec:
       backoffLimit: 2
@@ -1938,13 +2094,9 @@ manifests should match snapshot:
         spec:
           automountServiceAccountToken: true
           containers:
-            - command:
-                - kubectl
-                - delete
-                - mutatingwebhookconfiguration
-                - -l
-                - webhook.kyverno.io/managed-by=kyverno
-              image: registry.k8s.io/kubectl:v1.32.7
+            - args:
+                - delete-webhooks
+              image: ghcr.io/kyverno/readiness-checker:v1.19.2
               imagePullPolicy: null
               name: kubectl
               resources:
@@ -1964,60 +2116,11 @@ manifests should match snapshot:
                 runAsNonRoot: true
                 seccompProfile:
                   type: RuntimeDefault
+          nodeSelector:
+            kubernetes.io/os: linux
           restartPolicy: Never
           serviceAccountName: kyverno-admission-controller
   44: |
-    apiVersion: batch/v1
-    kind: Job
-    metadata:
-      annotations:
-        helm.sh/hook: pre-delete
-        helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded,hook-failed
-        helm.sh/hook-weight: "100"
-      labels:
-        app.kubernetes.io/component: hooks
-        app.kubernetes.io/instance: kyverno
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
-      name: kyverno-rm-validatingwhconfig
-      namespace: apc-kyverno
-    spec:
-      backoffLimit: 2
-      template:
-        spec:
-          automountServiceAccountToken: true
-          containers:
-            - command:
-                - kubectl
-                - delete
-                - validatingwebhookconfiguration
-                - -l
-                - webhook.kyverno.io/managed-by=kyverno
-              image: registry.k8s.io/kubectl:v1.32.7
-              imagePullPolicy: null
-              name: kubectl
-              resources:
-                limits:
-                  cpu: 100m
-                  memory: 256Mi
-                requests:
-                  cpu: 10m
-                  memory: 64Mi
-              securityContext:
-                allowPrivilegeEscalation: false
-                capabilities:
-                  drop:
-                    - ALL
-                privileged: false
-                readOnlyRootFilesystem: true
-                runAsNonRoot: true
-                seccompProfile:
-                  type: RuntimeDefault
-          restartPolicy: Never
-          serviceAccountName: kyverno-admission-controller
-  45: |
     apiVersion: batch/v1
     kind: Job
     metadata:
@@ -2029,9 +2132,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: hooks
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-hooks
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-scale-to-zero
       namespace: apc-kyverno
     spec:
@@ -2040,16 +2144,9 @@ manifests should match snapshot:
         spec:
           automountServiceAccountToken: true
           containers:
-            - command:
-                - kubectl
-                - scale
-                - -n
-                - apc-kyverno
-                - deployment
-                - -l
-                - app.kubernetes.io/part-of=kyverno
-                - --replicas=0
-              image: registry.k8s.io/kubectl:v1.32.7
+            - args:
+                - scale-deploy
+              image: ghcr.io/kyverno/readiness-checker:v1.19.2
               imagePullPolicy: null
               name: kubectl
               resources:
@@ -2069,9 +2166,11 @@ manifests should match snapshot:
                 runAsNonRoot: true
                 seccompProfile:
                   type: RuntimeDefault
+          nodeSelector:
+            kubernetes.io/os: linux
           restartPolicy: Never
           serviceAccountName: kyverno-admission-controller
-  46: |
+  45: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -2080,8 +2179,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
         rbac.authorization.k8s.io/aggregate-to-admin: "true"
       name: kyverno:rbac:admin:policies
     rules:
@@ -2100,7 +2199,29 @@ manifests should match snapshot:
           - patch
           - update
           - watch
-  47: |
+      - apiGroups:
+          - policies.kyverno.io
+        resources:
+          - deletingpolicies
+          - generatingpolicies
+          - imagevalidatingpolicies
+          - mutatingpolicies
+          - namespaceddeletingpolicies
+          - namespacedgeneratingpolicies
+          - namespacedimagevalidatingpolicies
+          - namespacedmutatingpolicies
+          - namespacedvalidatingpolicies
+          - policyexceptions
+          - validatingpolicies
+        verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+  46: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -2109,8 +2230,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
         rbac.authorization.k8s.io/aggregate-to-view: "true"
       name: kyverno:rbac:view:policies
     rules:
@@ -2125,7 +2246,25 @@ manifests should match snapshot:
           - get
           - list
           - watch
-  48: |
+      - apiGroups:
+          - policies.kyverno.io
+        resources:
+          - deletingpolicies
+          - generatingpolicies
+          - imagevalidatingpolicies
+          - mutatingpolicies
+          - namespaceddeletingpolicies
+          - namespacedgeneratingpolicies
+          - namespacedimagevalidatingpolicies
+          - namespacedmutatingpolicies
+          - namespacedvalidatingpolicies
+          - policyexceptions
+          - validatingpolicies
+        verbs:
+          - get
+          - list
+          - watch
+  47: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -2134,8 +2273,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
         rbac.authorization.k8s.io/aggregate-to-admin: "true"
       name: kyverno:rbac:admin:policyreports
     rules:
@@ -2152,7 +2291,7 @@ manifests should match snapshot:
           - patch
           - update
           - watch
-  49: |
+  48: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -2161,8 +2300,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
         rbac.authorization.k8s.io/aggregate-to-view: "true"
       name: kyverno:rbac:view:policyreports
     rules:
@@ -2175,7 +2314,7 @@ manifests should match snapshot:
           - get
           - list
           - watch
-  50: |
+  49: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -2184,8 +2323,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
         rbac.authorization.k8s.io/aggregate-to-admin: "true"
       name: kyverno:rbac:admin:reports
     rules:
@@ -2202,7 +2341,7 @@ manifests should match snapshot:
           - patch
           - update
           - watch
-  51: |
+  50: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -2211,8 +2350,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
         rbac.authorization.k8s.io/aggregate-to-view: "true"
       name: kyverno:rbac:view:reports
     rules:
@@ -2225,7 +2364,7 @@ manifests should match snapshot:
           - get
           - list
           - watch
-  52: |
+  51: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -2234,8 +2373,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
         rbac.authorization.k8s.io/aggregate-to-admin: "true"
       name: kyverno:rbac:admin:updaterequests
     rules:
@@ -2251,7 +2390,7 @@ manifests should match snapshot:
           - patch
           - update
           - watch
-  53: |
+  52: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -2260,8 +2399,8 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
         rbac.authorization.k8s.io/aggregate-to-view: "true"
       name: kyverno:rbac:view:updaterequests
     rules:
@@ -2273,7 +2412,7 @@ manifests should match snapshot:
           - get
           - list
           - watch
-  54: |
+  53: |
     aggregationRule:
       clusterRoleSelectors:
         - matchLabels:
@@ -2289,11 +2428,12 @@ manifests should match snapshot:
         app.kubernetes.io/component: reports-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-reports-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:reports-controller
-  55: |
+  54: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -2301,9 +2441,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: reports-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-reports-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:reports-controller:core
     rules:
       - apiGroups:
@@ -2343,10 +2484,16 @@ manifests should match snapshot:
         resources:
           - validatingpolicies
           - validatingpolicies/status
+          - namespacedvalidatingpolicies
+          - namespacedvalidatingpolicies/status
           - imagevalidatingpolicies
           - imagevalidatingpolicies/status
+          - namespacedimagevalidatingpolicies
+          - namespacedimagevalidatingpolicies/status
           - generatingpolicies
+          - namespacedgeneratingpolicies
           - mutatingpolicies
+          - namespacedmutatingpolicies
         verbs:
           - create
           - delete
@@ -2436,7 +2583,7 @@ manifests should match snapshot:
           - get
           - list
           - watch
-  56: |
+  55: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
@@ -2444,9 +2591,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: reports-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-reports-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:reports-controller
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -2456,7 +2604,7 @@ manifests should match snapshot:
       - kind: ServiceAccount
         name: kyverno-reports-controller
         namespace: apc-kyverno
-  57: |
+  56: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
@@ -2464,9 +2612,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: reports-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-reports-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:reports-controller:view
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -2476,7 +2625,7 @@ manifests should match snapshot:
       - kind: ServiceAccount
         name: kyverno-reports-controller
         namespace: apc-kyverno
-  58: |
+  57: |
     apiVersion: apps/v1
     kind: Deployment
     metadata:
@@ -2484,9 +2633,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: reports-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-reports-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-reports-controller
       namespace: apc-kyverno
     spec:
@@ -2508,9 +2658,10 @@ manifests should match snapshot:
             app.kubernetes.io/component: reports-controller
             app.kubernetes.io/instance: kyverno
             app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/name: kyverno-reports-controller
             app.kubernetes.io/part-of: kyverno
-            app.kubernetes.io/version: 3.5.2
-            helm.sh/chart: kyverno-3.5.2
+            app.kubernetes.io/version: 3.9.2
+            helm.sh/chart: kyverno-3.9.2
         spec:
           affinity:
             podAntiAffinity:
@@ -2544,6 +2695,8 @@ manifests should match snapshot:
                 - --enableConfigMapCaching=true
                 - --enableDeferredLoading=true
                 - --maxAPICallResponseLength=2000000
+                - --apiCallTimeout=30s
+                - --maxGlobalContextEntries=0
                 - --loggingFormat=text
                 - --v=2
                 - --omitEvents=PolicyApplied,PolicySkipped
@@ -2570,7 +2723,7 @@ manifests should match snapshot:
                       fieldPath: metadata.namespace
                 - name: TUF_ROOT
                   value: /.sigstore
-              image: reg.kyverno.io/kyverno/reports-controller:v1.15.2
+              image: reg.kyverno.io/kyverno/reports-controller:v1.19.2
               imagePullPolicy: IfNotPresent
               name: controller
               ports:
@@ -2594,18 +2747,33 @@ manifests should match snapshot:
                     - ALL
                 privileged: false
                 readOnlyRootFilesystem: true
+                runAsGroup: 65534
                 runAsNonRoot: true
+                runAsUser: 65534
                 seccompProfile:
                   type: RuntimeDefault
               volumeMounts:
                 - mountPath: /.sigstore
                   name: sigstore
+                - mountPath: /var/run/secrets/kyverno/apicall
+                  name: apicall-token
+                  readOnly: true
           dnsPolicy: ClusterFirst
+          nodeSelector:
+            kubernetes.io/os: linux
           serviceAccountName: kyverno-reports-controller
           volumes:
             - emptyDir: {}
               name: sigstore
-  59: |
+            - name: apicall-token
+              projected:
+                defaultMode: 292
+                sources:
+                  - serviceAccountToken:
+                      audience: kyverno-svc.kyverno.io
+                      expirationSeconds: 3600
+                      path: token
+  58: |
     apiVersion: policy/v1
     kind: PodDisruptionBudget
     metadata:
@@ -2613,9 +2781,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: reports-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-reports-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-reports-controller
       namespace: apc-kyverno
     spec:
@@ -2625,7 +2794,7 @@ manifests should match snapshot:
           app.kubernetes.io/component: reports-controller
           app.kubernetes.io/instance: kyverno
           app.kubernetes.io/part-of: kyverno
-  60: |
+  59: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: Role
     metadata:
@@ -2633,9 +2802,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: reports-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-reports-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:reports-controller
       namespace: apc-kyverno
     rules:
@@ -2675,7 +2845,7 @@ manifests should match snapshot:
           - get
           - patch
           - update
-  61: |
+  60: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
@@ -2683,9 +2853,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: reports-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-reports-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno:reports-controller
       namespace: apc-kyverno
     roleRef:
@@ -2696,7 +2867,7 @@ manifests should match snapshot:
       - kind: ServiceAccount
         name: kyverno-reports-controller
         namespace: apc-kyverno
-  62: |
+  61: |
     apiVersion: v1
     kind: Service
     metadata:
@@ -2704,9 +2875,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: reports-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-reports-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-reports-controller-metrics
       namespace: apc-kyverno
     spec:
@@ -2720,7 +2892,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/part-of: kyverno
       type: ClusterIP
-  63: |
+  62: |
     apiVersion: v1
     automountServiceAccountToken: false
     kind: ServiceAccount
@@ -2729,12 +2901,13 @@ manifests should match snapshot:
         app.kubernetes.io/component: reports-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-reports-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-reports-controller
       namespace: apc-kyverno
-  64: |
+  63: |
     apiVersion: monitoring.coreos.com/v1
     kind: ServiceMonitor
     metadata:
@@ -2742,9 +2915,10 @@ manifests should match snapshot:
         app.kubernetes.io/component: reports-controller
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kyverno-reports-controller
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-reports-controller
       namespace: apc-kyverno
     spec:
@@ -2760,7 +2934,7 @@ manifests should match snapshot:
           app.kubernetes.io/component: reports-controller
           app.kubernetes.io/instance: kyverno
           app.kubernetes.io/part-of: kyverno
-  65: |
+  64: |
     apiVersion: v1
     kind: Pod
     metadata:
@@ -2771,18 +2945,20 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-admission-controller-metrics
       namespace: apc-kyverno
     spec:
       automountServiceAccountToken: true
       containers:
-        - command:
-            - /bin/sh
-            - -c
-            - sleep 20 ; wget -O- -S --no-check-certificate http://kyverno-svc-metrics.apc-kyverno:8000/metrics
-          image: busybox:1.35
+        - args:
+            - check-http
+            - --service-name=kyverno-svc-metrics
+            - --namespace=apc-kyverno
+            - --port=8000
+            - --path=metrics
+          image: ghcr.io/kyverno/readiness-checker:latest
           imagePullPolicy: IfNotPresent
           name: test
           resources:
@@ -2802,6 +2978,56 @@ manifests should match snapshot:
             runAsNonRoot: true
             seccompProfile:
               type: RuntimeDefault
+      nodeSelector:
+        kubernetes.io/os: linux
+      restartPolicy: Never
+  65: |
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      annotations:
+        helm.sh/hook: test
+      labels:
+        app.kubernetes.io/component: test
+        app.kubernetes.io/instance: kyverno
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/part-of: kyverno
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
+      name: kyverno-cleanup-controller-liveness
+      namespace: apc-kyverno
+    spec:
+      automountServiceAccountToken: true
+      containers:
+        - args:
+            - check-http
+            - --service-name=kyverno-cleanup-controller
+            - --namespace=apc-kyverno
+            - --port=443
+            - --path=health/liveness
+            - --https
+          image: ghcr.io/kyverno/readiness-checker:latest
+          imagePullPolicy: IfNotPresent
+          name: test
+          resources:
+            limits:
+              cpu: 100m
+              memory: 256Mi
+            requests:
+              cpu: 10m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+      nodeSelector:
+        kubernetes.io/os: linux
       restartPolicy: Never
   66: |
     apiVersion: v1
@@ -2814,18 +3040,20 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
-      name: kyverno-cleanup-controller-liveness
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
+      name: kyverno-cleanup-controller-metrics
       namespace: apc-kyverno
     spec:
       automountServiceAccountToken: true
       containers:
-        - command:
-            - /bin/sh
-            - -c
-            - sleep 20 ; wget -O- -S --no-check-certificate https://kyverno-cleanup-controller.apc-kyverno:443/health/liveness
-          image: busybox:1.35
+        - args:
+            - check-http
+            - --service-name=kyverno-cleanup-controller-metrics
+            - --namespace=apc-kyverno
+            - --port=8000
+            - --path=metrics
+          image: ghcr.io/kyverno/readiness-checker:latest
           imagePullPolicy: IfNotPresent
           name: test
           resources:
@@ -2845,6 +3073,8 @@ manifests should match snapshot:
             runAsNonRoot: true
             seccompProfile:
               type: RuntimeDefault
+      nodeSelector:
+        kubernetes.io/os: linux
       restartPolicy: Never
   67: |
     apiVersion: v1
@@ -2857,18 +3087,21 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
-      name: kyverno-cleanup-controller-metrics
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
+      name: kyverno-cleanup-controller-readiness
       namespace: apc-kyverno
     spec:
       automountServiceAccountToken: true
       containers:
-        - command:
-            - /bin/sh
-            - -c
-            - sleep 20 ; wget -O- -S --no-check-certificate http://kyverno-cleanup-controller-metrics.apc-kyverno:8000/metrics
-          image: busybox:1.35
+        - args:
+            - check-http
+            - --service-name=kyverno-cleanup-controller
+            - --namespace=apc-kyverno
+            - --port=443
+            - --path=health/readiness
+            - --https
+          image: ghcr.io/kyverno/readiness-checker:latest
           imagePullPolicy: IfNotPresent
           name: test
           resources:
@@ -2888,6 +3121,8 @@ manifests should match snapshot:
             runAsNonRoot: true
             seccompProfile:
               type: RuntimeDefault
+      nodeSelector:
+        kubernetes.io/os: linux
       restartPolicy: Never
   68: |
     apiVersion: v1
@@ -2900,61 +3135,20 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
-      name: kyverno-cleanup-controller-readiness
-      namespace: apc-kyverno
-    spec:
-      automountServiceAccountToken: true
-      containers:
-        - command:
-            - /bin/sh
-            - -c
-            - sleep 20 ; wget -O- -S --no-check-certificate https://kyverno-cleanup-controller.apc-kyverno:443/health/readiness
-          image: busybox:1.35
-          imagePullPolicy: IfNotPresent
-          name: test
-          resources:
-            limits:
-              cpu: 100m
-              memory: 256Mi
-            requests:
-              cpu: 10m
-              memory: 64Mi
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-            privileged: false
-            readOnlyRootFilesystem: true
-            runAsNonRoot: true
-            seccompProfile:
-              type: RuntimeDefault
-      restartPolicy: Never
-  69: |
-    apiVersion: v1
-    kind: Pod
-    metadata:
-      annotations:
-        helm.sh/hook: test
-      labels:
-        app.kubernetes.io/component: test
-        app.kubernetes.io/instance: kyverno
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/part-of: kyverno
-        app.kubernetes.io/version: 3.5.2
-        helm.sh/chart: kyverno-3.5.2
+        app.kubernetes.io/version: 3.9.2
+        helm.sh/chart: kyverno-3.9.2
       name: kyverno-reports-controller-metrics
       namespace: apc-kyverno
     spec:
       automountServiceAccountToken: true
       containers:
-        - command:
-            - /bin/sh
-            - -c
-            - sleep 20 ; wget -O- -S --no-check-certificate http://kyverno-reports-controller-metrics.apc-kyverno:8000/metrics
-          image: busybox:1.35
+        - args:
+            - check-http
+            - --service-name=kyverno-reports-controller-metrics
+            - --namespace=apc-kyverno
+            - --port=8000
+            - --path=metrics
+          image: ghcr.io/kyverno/readiness-checker:latest
           imagePullPolicy: IfNotPresent
           name: test
           resources:
@@ -2974,8 +3168,10 @@ manifests should match snapshot:
             runAsNonRoot: true
             seccompProfile:
               type: RuntimeDefault
+      nodeSelector:
+        kubernetes.io/os: linux
       restartPolicy: Never
-  70: |
+  69: |
     apiVersion: grafana.integreatly.org/v1beta1
     kind: GrafanaDashboard
     metadata:
@@ -2983,9 +3179,9 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: kyverno
-        app.kubernetes.io/version: 3.5.2
+        app.kubernetes.io/version: 3.9.2
         dashboards: apc-grafana
-        helm.sh/chart: kyverno-1.6.1
+        helm.sh/chart: kyverno-2.0.0
       name: kyverno-dashboard
       namespace: apc-kyverno
     spec:
@@ -6462,7 +6658,7 @@ manifests should match snapshot:
           "gnetId": 15987
         }
       resyncPeriod: 10m
-  71: |
+  70: |
     apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule
     metadata:
@@ -6476,7 +6672,7 @@ manifests should match snapshot:
               annotations:
                 description: Kyverno policy {{ $labels.policy_name }} run with errors, please investigate kyverno logs for root cause.
                 summary: Kyverno policy:{{ $labels.policy_name }} run with errors.
-              expr: sum by (policy_name) (increase(kyverno_policy_results_total{rule_result="error"}[2h])) > 0
+              expr: (sum by (policy_name) (increase({__name__=~"kyverno_(validating|mutating|generating|image_validating)_policy_results_total",result="error"}[2h])) or sum by (policy_name) (increase(kyverno_deleting_controller_errors_total[2h]))) > 0
               for: 10m
               labels:
                 severity: warning
@@ -6486,7 +6682,7 @@ manifests should match snapshot:
               annotations:
                 description: Kyverno policy {{ $labels.policy_name }} failed, please investigate kyverno logs for root cause.
                 summary: Kyverno policy {{ $labels.policy_name }} failed.
-              expr: sum by (policy_name) (increase(kyverno_policy_results_total{rule_result="fail"}[2h])) > 0
+              expr: sum by (policy_name) (increase({__name__=~"kyverno_(validating|mutating|generating|image_validating)_policy_results_total",result="fail"}[2h])) > 0
               for: 10m
               labels:
                 severity: warning
@@ -6554,7 +6750,7 @@ manifests should match snapshot:
                 vendor: aspecta
             - alert: KyvernoReportsControllerDown
               annotations:
-                description: Kyverno reports controller is not running. This controller aggregates policy/admission results into PolicyReports; while down, kyverno_policy_results_total may go stale and mask real policy failures from KyvernoPolicyResultsError/KyvernoPolicyResultsFail.
+                description: Kyverno reports controller is not running. This controller aggregates policy/admission results into PolicyReports; while down, the kyverno_*_policy_results_total metrics may go stale and mask real policy failures from KyvernoPolicyResultsError/KyvernoPolicyResultsFail.
                 summary: Kyverno reports controller is down.
               expr: absent(up{service="kyverno-reports-controller-metrics",namespace="apc-kyverno"}) == 1
               for: 10m
@@ -6564,9 +6760,9 @@ manifests should match snapshot:
                 vendor: aspecta
             - alert: KyvernoPolicyRuleSlowExecution
               annotations:
-                description: The p95 execution time for rule {{ $labels.rule_name }} in policy {{ $labels.policy_name }} has exceeded 5s over the last 15 minutes. Slow rules drag down background-scan throughput and can contribute to a growing UpdateRequest backlog.
-                summary: Kyverno rule {{ $labels.policy_name }}/{{ $labels.rule_name }} is executing slowly.
-              expr: histogram_quantile(0.95, sum by (le, policy_name, rule_name) (rate(kyverno_policy_execution_duration_seconds_bucket[15m]))) > 5
+                description: The p95 execution time of policy {{ $labels.policy_name }} has exceeded 5s over the last 15 minutes. Slow policies drag down background-scan throughput and can contribute to a growing UpdateRequest backlog.
+                summary: Kyverno policy {{ $labels.policy_name }} is executing slowly.
+              expr: histogram_quantile(0.95, sum by (le, policy_name) (rate({__name__=~"kyverno_(validating|mutating|generating|image_validating)_policy_execution_duration_seconds_bucket"}[15m]))) > 5
               for: 15m
               labels:
                 severity: warning
@@ -6582,12 +6778,12 @@ manifests should match snapshot:
                 severity: warning
                 team: platform
                 vendor: aspecta
-            - alert: KyvernoBackgroundPolicyDeleted
+            - alert: KyvernoLegacyPoliciesPresent
               annotations:
-                description: A policy with background scanning enabled was deleted. If this generates or mutates existing resources, downstream resources will silently stop being reconciled/enforced. Verify this was intentional.
-                summary: A background-enabled Kyverno policy was deleted.
-              expr: increase(kyverno_policy_changes_total{policy_change_type="deleted",policy_background_mode="true"}[15m]) > 0
-              for: 1m
+                description: '{{ $value }} legacy kyverno.io {{ $labels.kind }} resource(s) exist on the cluster. Kyverno >= 1.20 does not execute them, so whatever they generate, mutate, validate or clean up is silently not enforced. Migrate them to policies.kyverno.io policies (https://kyverno.io/docs/guides/migration-to-cel/) and delete them.'
+                summary: Legacy Kyverno {{ $labels.kind }} resources are present.
+              expr: sum by (kind) (kyverno_legacy_policies_total{namespace="apc-kyverno"}) > 0
+              for: 1h
               labels:
                 severity: warning
                 team: platform

@@ -1,8 +1,8 @@
 suite: Kyverno generated namespace rules
 templates:
-  - templates/cluster-policy-application.yaml
-  - templates/cluster-policy-non-application.yaml
-  - templates/cluster-policy-cluster-monitoring.yaml
+  - templates/generatingpolicy-application.yaml
+  - templates/generatingpolicy-non-application.yaml
+  - templates/generatingpolicy-cluster-monitoring.yaml
 values:
   - ../values.example.yaml
 release:
@@ -11,100 +11,99 @@ release:
 
 tests:
   - it: takes application vendor/team from namespace labels, falling back to platformAlertLabels
-    template: templates/cluster-policy-application.yaml
+    template: templates/generatingpolicy-application.yaml
     asserts:
+      - matchRegex:
+          path: spec.generate[0].template.value
+          pattern: '\n\s+vendor: \(\( variables\.vendor \)\)\n\s+team: \(\( variables\.team \)\)\n'
       - equal:
-          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
-          value: "{{request.object.metadata.labels.vendor || platformVendor}}"
-      - equal:
-          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
-          value: "{{request.object.metadata.labels.team || platformTeam}}"
-      - equal:
-          path: spec.rules[0].context
+          path: spec.variables[0]
           value:
-            - name: platformVendor
-              variable:
-                value: examplevendor
-            - name: platformTeam
-              variable:
-                value: exampleteam
+            name: platformVendor
+            expression: '"examplevendor"'
+      - equal:
+          path: spec.variables[1]
+          value:
+            name: platformTeam
+            expression: '"exampleteam"'
+      - equal:
+          path: spec.variables[2].expression
+          value: "cel.bind(v, object.metadata.?labels[?'vendor'].orValue(''), v != '' ? v : variables.platformVendor)"
 
-  - it: passes application fallbacks with spaces and apostrophes as plain context values
-    template: templates/cluster-policy-application.yaml
+  - it: passes application fallbacks with spaces and apostrophes as CEL string literals
+    template: templates/generatingpolicy-application.yaml
     set:
       platformAlertLabels:
         vendor: O'Reilly
         team: platform ops
     asserts:
       - equal:
-          path: spec.rules[0].context[0].variable.value
-          value: O'Reilly
+          path: spec.variables[0].expression
+          value: '"O''Reilly"'
       - equal:
-          path: spec.rules[0].context[1].variable.value
-          value: platform ops
-      - equal:
-          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
-          value: "{{request.object.metadata.labels.vendor || platformVendor}}"
+          path: spec.variables[1].expression
+          value: '"platform ops"'
 
   - it: processes namespace label updates made by Kyverno background controller
-    template: templates/cluster-policy-application.yaml
+    template: templates/generatingpolicy-application.yaml
     asserts:
       - equal:
-          path: spec.rules[0].skipBackgroundRequests
+          path: spec.evaluation.skipBackgroundRequests
           value: false
 
-  - it: routes non-application namespace alerts to platform
-    template: templates/cluster-policy-non-application.yaml
+  - it: keeps the downstream PrometheusRules synchronized and processes namespace updates
+    templates:
+      - templates/generatingpolicy-application.yaml
+      - templates/generatingpolicy-non-application.yaml
+      - templates/generatingpolicy-cluster-monitoring.yaml
     asserts:
       - equal:
-          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
-          value: examplevendor
+          path: spec.evaluation.synchronize.enabled
+          value: true
       - equal:
-          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
-          value: exampleteam
+          path: spec.matchConstraints.resourceRules[0].operations
+          value: ["CREATE", "UPDATE"]
+
+  - it: routes non-application namespace alerts to platform
+    template: templates/generatingpolicy-non-application.yaml
+    asserts:
+      - matchRegex:
+          path: spec.generate[0].template.value
+          pattern: '\n\s+vendor: "examplevendor"\n\s+team: "exampleteam"\n'
 
   - it: routes cluster monitoring namespace alerts to platform
-    template: templates/cluster-policy-cluster-monitoring.yaml
+    template: templates/generatingpolicy-cluster-monitoring.yaml
     asserts:
-      - equal:
-          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
-          value: examplevendor
-      - equal:
-          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
-          value: exampleteam
+      - matchRegex:
+          path: spec.generate[0].template.value
+          pattern: '\n\s+vendor: "examplevendor"\n\s+team: "exampleteam"\n'
 
   - it: takes platform vendor/team from platformAlertLabels values
     templates:
-      - templates/cluster-policy-non-application.yaml
-      - templates/cluster-policy-cluster-monitoring.yaml
+      - templates/generatingpolicy-non-application.yaml
+      - templates/generatingpolicy-cluster-monitoring.yaml
     set:
       platformAlertLabels:
         vendor: othervendor
         team: otherteam
     asserts:
-      - equal:
-          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
-          value: othervendor
-      - equal:
-          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
-          value: otherteam
+      - matchRegex:
+          path: spec.generate[0].template.value
+          pattern: '\n\s+vendor: "othervendor"\n\s+team: "otherteam"\n'
 
   - it: renders platformAlertLabels as strings even when they look like other YAML types
-    template: templates/cluster-policy-non-application.yaml
+    template: templates/generatingpolicy-non-application.yaml
     set:
       platformAlertLabels:
         vendor: "true"
         team: platform ops
     asserts:
-      - equal:
-          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.vendor
-          value: "true"
-      - equal:
-          path: spec.rules[0].generate.data.spec.groups[0].rules[0].labels.team
-          value: platform ops
+      - matchRegex:
+          path: spec.generate[0].template.value
+          pattern: '\n\s+vendor: "true"\n\s+team: "platform ops"\n'
 
   - it: fails schema validation when platformAlertLabels.team is missing
-    template: templates/cluster-policy-application.yaml
+    template: templates/generatingpolicy-application.yaml
     set:
       platformAlertLabels.team: null
     asserts:
@@ -112,7 +111,7 @@ tests:
           errorPattern: "platformAlertLabels"
 
   - it: fails schema validation when platformAlertLabels.vendor is not a string
-    template: templates/cluster-policy-application.yaml
+    template: templates/generatingpolicy-application.yaml
     set:
       platformAlertLabels.vendor: 123
     asserts:
@@ -120,11 +119,24 @@ tests:
           errorPattern: "platformAlertLabels"
 
   - it: renders every rule from files/namespace-rules.yaml
-    template: templates/cluster-policy-application.yaml
+    template: templates/generatingpolicy-application.yaml
     asserts:
-      - lengthEqual:
-          path: spec.rules[0].generate.data.spec.groups[0].rules
-          count: 25
       - matchRegex:
-          path: spec.rules[0].generate.data.spec.groups[0].rules[0].expr
-          pattern: '^max by \(namespace,pod,container\) \(\s+max_over_time\(kube_pod_container_status_waiting_reason\{reason="CrashLoopBackOff"'
+          path: spec.generate[0].template.value
+          pattern: '(\n\s+- alert: [\s\S]*){25}'
+      - notMatchRegex:
+          path: spec.generate[0].template.value
+          pattern: '(\n\s+- alert: [\s\S]*){26}'
+      - matchRegex:
+          path: spec.generate[0].template.value
+          pattern: '- alert: [A-Za-z]+\n\s+expr: \|-\n\s+max by \(namespace,pod,container\) \(\n\s+max_over_time\(kube_pod_container_status_waiting_reason\{reason="CrashLoopBackOff", job="kube-state-metrics", namespace="\(\( object\.metadata\.name \)\)"\}'
+
+  - it: has no Kyverno JMESPath leftovers in the generated rules
+    templates:
+      - templates/generatingpolicy-application.yaml
+      - templates/generatingpolicy-non-application.yaml
+      - templates/generatingpolicy-cluster-monitoring.yaml
+    asserts:
+      - notMatchRegex:
+          path: spec.generate[0].template.value
+          pattern: 'request\.object|\\\{\{'

@@ -1,0 +1,59 @@
+{{- $userToAppNs := false }}
+
+{{- range $userData := .Values.kafkaUsers.users }}
+{{- if $userData.appNs }}
+  {{- $userToAppNs = true }}
+  {{- break }}
+{{- end }}
+{{- end }}
+
+{{- if $userToAppNs }}
+{{- if not (and .Values.mirror.enabled (ne .Release.Namespace .Values.mirror.upstreamComponent)) }}
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: {{ $.Release.Namespace }}-kuser-sync
+  labels:
+    {{- include "apps-ck-kafka.labels" . | nindent 4 }}
+spec:
+  evaluation:
+    generateExisting:
+      enabled: true
+    synchronize:
+      enabled: true
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["secrets"]
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: {{ $.Release.Namespace }}
+    objectSelector:
+      matchLabels:
+        kafka-user-sync: "true"
+  matchConditions:
+    - name: has-target-namespaces
+      expression: "'sync-kafkauser-to-appns' in object.metadata.?annotations.orValue({})"
+  variables:
+    - name: namespaces
+      expression: json.unmarshal(object.metadata.annotations['sync-kafkauser-to-appns'])
+    - name: user
+      expression: object.metadata.name.replace('-eso', '')
+    - name: secret
+      expression: >-
+        {
+          "apiVersion": dyn("v1"),
+          "kind": dyn("Secret"),
+          "metadata": dyn({"name": "kafka-user-" + variables.user}),
+          "type": dyn("Opaque"),
+          "data": dyn(object.data),
+          "stringData": dyn({
+            "sasl.jaas.config": "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"" + variables.user + "\" password=\"" + string(base64.decode(object.data.password)) + "\";"
+          })
+        }
+  generate:
+    - expression: variables.namespaces.all(ns, generator.Apply(ns, [variables.secret]))
+{{- end }}
+{{- end }}

@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.0] - 2026-11-19
+
+### Changed
+
+- **Breaking:** requires Kyverno >= 1.20; `generate-thanos-object-storage-secret` and `generate-thanos-tls-ca-secret` migrated from namespaced `Policy` to CEL `NamespacedGeneratingPolicy` (`policies.kyverno.io/v1`), names kept so existing Secrets are adopted
+
+_([SPEXAPC-32527](https://aspecta.atlassian.net/browse/SPEXAPC-32527))_
+
 ## [1.2.0] - 2026-10-20
 
 ### Added

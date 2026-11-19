@@ -1,0 +1,53 @@
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: app-project-grafana-quota
+  labels:
+  {{- include "kyverno-app-project.labels" . | nindent 4 }}
+  annotations:
+    policies.kyverno.io/title: Create Grafana resource quota for namespace
+    policies.kyverno.io/category: quota
+    policies.kyverno.io/subject: project
+    policies.kyverno.io/minversion: 1.20.0
+spec:
+  evaluation:
+    generateExisting:
+      enabled: true
+    skipBackgroundRequests: {{ .Values.grafanaQuota.skipBackgroundRequests }}
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["namespaces"]
+    objectSelector:
+      matchLabels:
+        apc.namespace.type: application
+  matchConditions:
+    # create only: generateExisting re-applies periodically and would overwrite manual changes
+    - name: quota-missing
+      expression: dyn(resource.Get("v1", "resourcequotas", object.metadata.name, "grafana-quota")) == null
+  generate:
+    - template:
+        interpolate: cel
+        value: |
+          apiVersion: v1
+          kind: ResourceQuota
+          metadata:
+            name: grafana-quota
+            namespace: (( object.metadata.name ))
+          spec:
+            hard:
+              {{- with .Values.grafanaQuota }}
+              count/alertingrules.loki.grafana.com: {{ .alertingrulesLokiGrafanaCom | quote }}                                               # Maximum number of Loki alerting rules (for defining alerting conditions in Loki)
+              count/grafanaalertrulegroups.grafana.integreatly.org: {{ .grafanaalertrulegroupsGrafanaIntegreatlyOrg | quote }}               # Maximum number of Grafana alert rule groups (for organizing alert rules in Grafana)
+              count/grafanacontactpoints.grafana.integreatly.org: {{ .grafanacontactpointsGrafanaIntegreatlyOrg | quote }}                   # Maximum number of Grafana contact points (for defining notification channels in Grafana)
+              count/grafanadashboards.grafana.integreatly.org: {{ .grafanadashboardsGrafanaIntegreatlyOrg | quote }}                         # Maximum number of Grafana dashboards (for visualizing metrics in Grafana)
+              count/grafanadatasources.grafana.integreatly.org: {{ .grafanadatasourcesGrafanaIntegreatlyOrg | quote }}                       # Maximum number of Grafana data sources (for connecting to external data systems)
+              count/grafanafolders.grafana.integreatly.org: {{ .grafanafoldersGrafanaIntegreatlyOrg | quote }}                               # Maximum number of Grafana folders (for organizing dashboards in Grafana)
+              count/grafananotificationpolicies.grafana.integreatly.org: {{ .grafananotificationpoliciesGrafanaIntegreatlyOrg | quote }}     # Maximum number of Grafana notification policies (for defining alert handling policies)
+              count/grafanas.grafana.integreatly.org: {{ .grafanasGrafanaIntegreatlyOrg | quote }}                                           # Maximum number of Grafana instances (for deploying separate Grafana instances)
+              count/lokistacks.loki.grafana.com: {{ .lokistacksLokiGrafanaCom | quote }}                                                     # Maximum number of Loki stacks (for managing log storage and aggregation in Loki)
+              count/recordingrules.loki.grafana.com: {{ .recordingrulesLokiGrafanaCom | quote }}                                             # Maximum number of Loki recording rules (for precomputing and storing log query results)
+              count/rulerconfigs.loki.grafana.com: {{ .rulerconfigsLokiGrafanaCom | quote }}                                                 # Maximum number of Loki ruler configurations (for configuring alerting in Loki's ruler)\
+              {{- end }}

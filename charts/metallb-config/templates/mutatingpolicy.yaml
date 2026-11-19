@@ -1,0 +1,25 @@
+apiVersion: policies.kyverno.io/v1
+kind: MutatingPolicy
+metadata:
+  name: patch-l2advertisement
+  labels:
+    {{- include "metallb-config.labels" . | nindent 4 }}
+spec:
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["metallb.io"]
+        apiVersions: ["*"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["l2advertisements"]
+  matchConditions:
+    - name: no-interfaces
+      expression: size(object.?spec.?interfaces.orValue([])) == 0
+  mutations:
+    - patchType: ApplyConfiguration
+      applyConfiguration:
+        expression: >-
+          Object{
+            spec: Object.spec{
+              interfaces: [{{ .Values.metallbInterface | quote }}]
+            }
+          }

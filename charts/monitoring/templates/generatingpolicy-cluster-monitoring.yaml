@@ -1,0 +1,37 @@
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: cluster-policy-cluster-monitoring
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+spec:
+  evaluation:
+    generateExisting:
+      enabled: true
+    synchronize:
+      enabled: true
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["namespaces"]
+  matchConditions:
+    - name: not-a-system-namespace
+      expression: "!(object.metadata.name.startsWith('openshift') || object.metadata.name.startsWith('kube') || object.metadata.name == 'default')"
+    - name: cluster-monitoring
+      expression: "object.metadata.?labels[?'openshift.io/cluster-monitoring'].orValue('') == 'true'"
+  generate:
+    - template:
+        interpolate: cel
+        value: |
+          apiVersion: monitoring.coreos.com/v1
+          kind: PrometheusRule
+          metadata:
+            name: cluster-monitoring-(( object.metadata.name ))
+            namespace: (( object.metadata.name ))
+          spec:
+            groups:
+              - name: cluster-monitoring-(( object.metadata.name ))
+                rules:
+                  {{- include "monitoring.namespaceRules" (dict "root" .) | nindent 18 }}

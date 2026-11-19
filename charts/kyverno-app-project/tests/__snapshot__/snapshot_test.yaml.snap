@@ -1,626 +1,5 @@
 manifests should match snapshot:
   1: |
-    apiVersion: kyverno.io/v2
-    kind: ClusterCleanupPolicy
-    metadata:
-      annotations:
-        policies.kyverno.io/category: Secrets
-        policies.kyverno.io/minversion: 1.13.0
-        policies.kyverno.io/subject: project
-        policies.kyverno.io/title: Cleanup vault project groups and policies
-      labels:
-        app.kubernetes.io/instance: kyverno-app-project
-        app.kubernetes.io/managed-by: ArgoCD
-        app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.5.1
-      name: app-project-vault-groups-cleanup
-    spec:
-      conditions:
-        all:
-          - key: '{{ target.metadata.name | split(@, ''-'') | [2:-1] | join(''-'',@) }}'
-            operator: AllNotIn
-            value: '{{ appNamespaces }}'
-      context:
-        - apiCall:
-            default:
-              - '{{ target.metadata.name | split(@, ''-'') | [2:-1] | join(''-'',@) }}'
-            jmesPath: items[?metadata.labels."apc.namespace.type" == 'application'].metadata.name
-            urlPath: /api/v1/namespaces
-          name: appNamespaces
-      match:
-        all:
-          - resources:
-              kinds:
-                - vault.vault.upbound.io/*/Policy
-                - ldap.vault.upbound.io/*/AuthBackendGroup
-              selector:
-                matchLabels:
-                  generate.kyverno.io/policy-name: app-project-vault-groups
-      schedule: 0 */3 * * *
-  2: |
-    apiVersion: kyverno.io/v1
-    kind: ClusterPolicy
-    metadata:
-      annotations:
-        policies.kyverno.io/category: internetproxy
-        policies.kyverno.io/minversion: 1.15.0
-        policies.kyverno.io/subject: project
-        policies.kyverno.io/title: Create configmap for internet proxy
-      labels:
-        app.kubernetes.io/instance: kyverno-app-project
-        app.kubernetes.io/managed-by: ArgoCD
-        app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.5.1
-      name: app-project-internetproxy-cm
-    spec:
-      background: false
-      rules:
-        - generate:
-            apiVersion: v1
-            data:
-              data:
-                HTTP_PROXY: http://proxy.example.com:8080
-                HTTPS_PROXY: http://proxy.example.com:8080
-                NO_PROXY: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
-                http_proxy: http://proxy.example.com:8080
-                https_proxy: http://proxy.example.com:8080
-                no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
-              kind: ConfigMap
-            generateExisting: true
-            kind: ConfigMap
-            name: proxy
-            namespace: '{{request.object.metadata.name}}'
-            orphanDownstreamOnPolicyDelete: true
-            synchronize: true
-          match:
-            any:
-              - resources:
-                  kinds:
-                    - Namespace
-                  selector:
-                    matchLabels:
-                      apc.namespace.type: application
-          name: app-project-internetproxy-cm
-      useServerSideApply: true
-      validationFailureAction: Audit
-  3: |
-    apiVersion: kyverno.io/v1
-    kind: ClusterPolicy
-    metadata:
-      annotations:
-        policies.kyverno.io/category: limit range
-        policies.kyverno.io/minversion: 1.13.0
-        policies.kyverno.io/subject: project
-        policies.kyverno.io/title: Create default limit range for namespace
-      labels:
-        app.kubernetes.io/instance: kyverno-app-project
-        app.kubernetes.io/managed-by: ArgoCD
-        app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.5.1
-      name: app-project-limitrange
-    spec:
-      background: true
-      generateExisting: true
-      rules:
-        - generate:
-            apiVersion: v1
-            data:
-              spec:
-                limits:
-                  - default:
-                      cpu: 200m
-                      ephemeral-storage: 1Gi
-                      memory: 200Mi
-                    defaultRequest:
-                      cpu: 50m
-                      memory: 50Mi
-                    type: Container
-            kind: LimitRange
-            name: default-limit-range
-            namespace: '{{request.object.metadata.name}}'
-          match:
-            any:
-              - resources:
-                  kinds:
-                    - Namespace
-                  selector:
-                    matchLabels:
-                      apc.namespace.type: application
-          name: app-project-default-limit-range
-          skipBackgroundRequests: true
-      validationFailureAction: Audit
-  4: |
-    apiVersion: kyverno.io/v1
-    kind: ClusterPolicy
-    metadata:
-      annotations:
-        policies.kyverno.io/category: Monitoring
-        policies.kyverno.io/minversion: 1.13.0
-        policies.kyverno.io/subject: project
-        policies.kyverno.io/title: Patch Namespace labels from the project metadata ConfigMap
-      labels:
-        app.kubernetes.io/instance: kyverno-app-project
-        app.kubernetes.io/managed-by: ArgoCD
-        app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.5.1
-      name: app-project-namespace-metadata
-    spec:
-      background: true
-      rules:
-        - context:
-            - name: labelentries
-              variable:
-                default: []
-                jmesPath: items(request.object.data, 'key', 'value')[?regex_match('^[a-zA-Z0-9]([-_.a-zA-Z0-9]{0,61}[a-zA-Z0-9])?$', key) && regex_match('^[a-zA-Z0-9]([-_.a-zA-Z0-9]{0,61}[a-zA-Z0-9])?$', value) && !starts_with(key, 'apc.') && !contains(key, 'kubernetes') && !contains(key, 'openshift') && !contains(key, 'k8s')]
-          match:
-            any:
-              - resources:
-                  kinds:
-                    - ConfigMap
-                  names:
-                    - project-metadata
-                  namespaceSelector:
-                    matchLabels:
-                      apc.namespace.type: application
-          mutate:
-            mutateExistingOnPolicyUpdate: true
-            patchStrategicMerge:
-              metadata:
-                labels: '{{ object_from_lists(labelentries[].key, labelentries[].value) }}'
-            targets:
-              - apiVersion: v1
-                kind: Namespace
-                name: '{{ request.object.metadata.namespace }}'
-          name: set-namespace-labels
-          preconditions:
-            all:
-              - key: '{{ length(labelentries) }}'
-                operator: GreaterThan
-                value: 0
-        - context:
-            - apiCall:
-                default: {}
-                jmesPath: metadata.labels
-                urlPath: /api/v1/namespaces/{{ request.namespace }}
-              name: nslabels
-          match:
-            any:
-              - resources:
-                  kinds:
-                    - Service
-                  namespaceSelector:
-                    matchLabels:
-                      apc.namespace.type: application
-          mutate:
-            patchStrategicMerge:
-              metadata:
-                labels:
-                  +(team): '{{ nslabels.team }}'
-                  +(vendor): '{{ nslabels.vendor }}'
-          name: mirror-on-service
-          preconditions:
-            all:
-              - key: '{{ nslabels.team || '''' }}'
-                operator: NotEquals
-                value: ""
-              - key: '{{ nslabels.vendor || '''' }}'
-                operator: NotEquals
-                value: ""
-        - match:
-            any:
-              - resources:
-                  kinds:
-                    - Namespace
-                  selector:
-                    matchLabels:
-                      apc.namespace.type: application
-          mutate:
-            mutateExistingOnPolicyUpdate: true
-            patchStrategicMerge:
-              metadata:
-                labels:
-                  +(team): '{{ request.object.metadata.labels.team }}'
-                  +(vendor): '{{ request.object.metadata.labels.vendor }}'
-            targets:
-              - apiVersion: v1
-                kind: Service
-                namespace: '{{ request.object.metadata.name }}'
-          name: mirror-on-namespace-change
-          preconditions:
-            all:
-              - key: '{{ request.object.metadata.labels.team || '''' }}'
-                operator: NotEquals
-                value: ""
-              - key: '{{ request.object.metadata.labels.vendor || '''' }}'
-                operator: NotEquals
-                value: ""
-  5: |
-    apiVersion: kyverno.io/v1
-    kind: ClusterPolicy
-    metadata:
-      annotations:
-        policies.kyverno.io/category: quota
-        policies.kyverno.io/minversion: 1.13.0
-        policies.kyverno.io/subject: project
-        policies.kyverno.io/title: Create quotas for namespace
-      labels:
-        app.kubernetes.io/instance: kyverno-app-project
-        app.kubernetes.io/managed-by: ArgoCD
-        app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.5.1
-      name: app-project-quotas
-    spec:
-      background: true
-      generateExisting: true
-      rules:
-        - generate:
-            apiVersion: v1
-            data:
-              spec:
-                hard:
-                  count/cronjobs.batch: "20"
-                  count/daemonsets.apps: "0"
-                  count/deployments.apps: "10"
-                  count/ingresses.networking.k8s.io: "10"
-                  count/jobs.batch: "50"
-                  count/networkpolicies.networking.k8s.io: "20"
-                  count/replicasets.apps: "100"
-                  count/routes.route.openshift.io: "10"
-                  count/serviceaccounts: "20"
-                  count/services: "20"
-                  count/statefulsets.apps: "5"
-                  limits.cpu: "8"
-                  limits.memory: 35Gi
-                  persistentvolumeclaims: "15"
-                  pods: "30"
-                  requests.cpu: "4"
-                  requests.memory: 20Gi
-                  requests.storage: 300Gi
-                  services.loadbalancers: "2"
-            kind: ResourceQuota
-            name: default-resource-quota
-            namespace: '{{request.object.metadata.name}}'
-            synchronize: false
-          match:
-            any:
-              - resources:
-                  kinds:
-                    - Namespace
-                  selector:
-                    matchLabels:
-                      apc.namespace.type: application
-          name: app-project-default-resource-quota
-          skipBackgroundRequests: true
-        - generate:
-            apiVersion: v1
-            data:
-              spec:
-                hard:
-                  count/backups.postgresql.cnpg.io: "15"
-                  count/clusters.postgresql.cnpg.io: "1"
-                  count/scheduledbackups.postgresql.cnpg.io: "2"
-            kind: ResourceQuota
-            name: cnpg-custom-resource-quota
-            namespace: '{{request.object.metadata.name}}'
-            synchronize: false
-          match:
-            any:
-              - resources:
-                  kinds:
-                    - Namespace
-                  selector:
-                    matchLabels:
-                      apc.namespace.type: application
-          name: app-project-cnpg-custom-resource-quota
-          skipBackgroundRequests: true
-        - generate:
-            apiVersion: v1
-            data:
-              spec:
-                hard:
-                  count/alertmanagerconfigs.monitoring.coreos.com: "1"
-                  count/alertmanagers.monitoring.coreos.com: "0"
-                  count/podmonitors.monitoring.coreos.com: "20"
-                  count/probes.monitoring.coreos.com: "10"
-                  count/prometheuses.monitoring.coreos.com: "0"
-                  count/prometheusrules.monitoring.coreos.com: "10"
-                  count/servicemonitors.monitoring.coreos.com: "20"
-                  count/thanosrulers.monitoring.coreos.com: "0"
-            kind: ResourceQuota
-            name: monitoring-quota
-            namespace: '{{request.object.metadata.name}}'
-            synchronize: false
-          match:
-            any:
-              - resources:
-                  kinds:
-                    - Namespace
-                  selector:
-                    matchLabels:
-                      apc.namespace.type: application
-          name: app-project-monitoring-quota
-          skipBackgroundRequests: true
-        - generate:
-            apiVersion: v1
-            data:
-              spec:
-                hard:
-                  count/alertingrules.loki.grafana.com: "0"
-                  count/grafanaalertrulegroups.grafana.integreatly.org: "0"
-                  count/grafanacontactpoints.grafana.integreatly.org: "0"
-                  count/grafanadashboards.grafana.integreatly.org: "10"
-                  count/grafanadatasources.grafana.integreatly.org: "5"
-                  count/grafanafolders.grafana.integreatly.org: "10"
-                  count/grafananotificationpolicies.grafana.integreatly.org: "0"
-                  count/grafanas.grafana.integreatly.org: "1"
-                  count/lokistacks.loki.grafana.com: "0"
-                  count/recordingrules.loki.grafana.com: "0"
-                  count/rulerconfigs.loki.grafana.com: "0"
-            kind: ResourceQuota
-            name: grafana-quota
-            namespace: '{{request.object.metadata.name}}'
-            synchronize: false
-          match:
-            any:
-              - resources:
-                  kinds:
-                    - Namespace
-                  selector:
-                    matchLabels:
-                      apc.namespace.type: application
-          name: app-project-grafana-quota
-          skipBackgroundRequests: true
-        - generate:
-            apiVersion: v1
-            data:
-              spec:
-                hard:
-                  count/aaqs.aaq.kubevirt.io: "0"
-                  count/cdiconfigs.cdi.kubevirt.io: "0"
-                  count/cdis.cdi.kubevirt.io: "0"
-                  count/dataimportcrons.cdi.kubevirt.io: "10"
-                  count/datasources.cdi.kubevirt.io: "5"
-                  count/datavolumes.cdi.kubevirt.io: "5"
-                  count/hostpathprovisioners.hostpathprovisioner.kubevirt.io: "0"
-                  count/hyperconvergeds.hco.kubevirt.io: "0"
-                  count/kubevirts.kubevirt.io: "0"
-                  count/migrationpolicies.migrations.kubevirt.io: "0"
-                  count/mtqs.mtq.kubevirt.io: "0"
-                  count/networkaddonsconfigs.networkaddonsoperator.network.kubevirt.io: "0"
-                  count/objecttransfers.cdi.kubevirt.io: "0"
-                  count/openstackvolumepopulators.forklift.cdi.kubevirt.io: "0"
-                  count/ovirtvolumepopulators.forklift.cdi.kubevirt.io: "0"
-                  count/ssps.ssp.kubevirt.io: "0"
-                  count/storageprofiles.cdi.kubevirt.io: "0"
-                  count/virtualmachineclones.clone.kubevirt.io: "2"
-                  count/virtualmachineclusterinstancetypes.instancetype.kubevirt.io: "0"
-                  count/virtualmachineclusterpreferences.instancetype.kubevirt.io: "0"
-                  count/virtualmachineexports.export.kubevirt.io: "2"
-                  count/virtualmachineinstancemigrations.kubevirt.io: "5"
-                  count/virtualmachineinstancepresets.kubevirt.io: "2"
-                  count/virtualmachineinstancereplicasets.kubevirt.io: "2"
-                  count/virtualmachineinstances.kubevirt.io: "2"
-                  count/virtualmachineinstancetypes.instancetype.kubevirt.io: "2"
-                  count/virtualmachinepools.pool.kubevirt.io: "2"
-                  count/virtualmachinepreferences.instancetype.kubevirt.io: "2"
-                  count/virtualmachinerestores.snapshot.kubevirt.io: "5"
-                  count/virtualmachines.kubevirt.io: "2"
-                  count/virtualmachinesnapshotcontents.snapshot.kubevirt.io: "10"
-                  count/virtualmachinesnapshots.snapshot.kubevirt.io: "10"
-                  count/volumeclonesources.cdi.kubevirt.io: "5"
-                  count/volumeimportsources.cdi.kubevirt.io: "5"
-                  count/volumeuploadsources.cdi.kubevirt.io: "5"
-            kind: ResourceQuota
-            name: kubevirt-cr-quota
-            namespace: '{{request.object.metadata.name}}'
-            synchronize: false
-          match:
-            any:
-              - resources:
-                  kinds:
-                    - Namespace
-                  selector:
-                    matchLabels:
-                      apc.namespace.type: application
-          name: app-project-kubevirt-cr-quota
-          skipBackgroundRequests: true
-      validationFailureAction: Audit
-  6: |
-    apiVersion: kyverno.io/v1
-    kind: ClusterPolicy
-    metadata:
-      annotations:
-        policies.kyverno.io/category: Monitoring
-        policies.kyverno.io/minversion: 1.13.0
-        policies.kyverno.io/subject: Namespace
-        policies.kyverno.io/title: Report application Namespaces without a project metadata ConfigMap
-      labels:
-        app.kubernetes.io/instance: kyverno-app-project
-        app.kubernetes.io/managed-by: ArgoCD
-        app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.5.1
-      name: app-project-require-metadata-configmap
-    spec:
-      admission: false
-      background: true
-      rules:
-        - context:
-            - apiCall:
-                default: ""
-                jmesPath: metadata.name
-                urlPath: /api/v1/namespaces/{{ request.object.metadata.name }}/configmaps/project-metadata
-              name: metadataconfigmap
-          match:
-            any:
-              - resources:
-                  kinds:
-                    - Namespace
-                  selector:
-                    matchLabels:
-                      apc.namespace.type: application
-          name: require-metadata-configmap
-          validate:
-            deny:
-              conditions:
-                all:
-                  - key: '{{ metadataconfigmap }}'
-                    operator: Equals
-                    value: ""
-            failureAction: Audit
-            message: Namespace '{{ request.object.metadata.name }}' has no 'project-metadata' ConfigMap, so the project has no owner and its metrics are still reported under the platform defaults. Create the ConfigMap in the namespace with proper labels.
-  7: |
-    apiVersion: kyverno.io/v1
-    kind: ClusterPolicy
-    metadata:
-      annotations:
-        policies.kyverno.io/category: Secrets
-        policies.kyverno.io/minversion: 1.13.0
-        policies.kyverno.io/subject: project
-        policies.kyverno.io/title: Setup vault project groups and policies
-      labels:
-        app.kubernetes.io/instance: kyverno-app-project
-        app.kubernetes.io/managed-by: ArgoCD
-        app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.5.1
-      name: app-project-vault-groups
-    spec:
-      background: true
-      rules:
-        - context:
-            - name: vaultRoleList
-              variable:
-                value:
-                  - admin
-                  - operator
-            - name: vaultProviderConfigRef
-              variable:
-                value: vault-hub-provider-config
-            - name: vaultAuthBackendName
-              variable:
-                value: ad
-            - apiCall:
-                default: ""
-                jmesPath: split((spec.host || ''), '.') | [2]
-                method: GET
-                urlPath: /apis/route.openshift.io/v1/namespaces/openshift-console/routes/console
-              name: clusterName
-            - name: vaultRolePrefix
-              variable:
-                value: apc-{{ split((clusterName || ''), '') | [0] }}-{{ request.object.metadata.name }}
-          generate:
-            foreach:
-              - apiVersion: vault.vault.upbound.io/v1alpha1
-                context:
-                  - name: vaultRole
-                    variable:
-                      jmesPath: element
-                  - name: vaultRoleShort
-                    variable:
-                      default: ""
-                      value: '{{ vaultRole == ''admin'' && ''pja'' || vaultRole == ''operator'' && ''opr'' }}'
-                  - name: vaultRoleCapabilities
-                    variable:
-                      default: ""
-                      value: '{{ vaultRole == ''admin'' && ''"create", "read", "update", "delete", "list", "patch"'' || vaultRole == ''operator'' && ''"create", "read", "update", "delete", "list", "patch"'' }}'
-                data:
-                  spec:
-                    deletionPolicy: Delete
-                    forProvider:
-                      name: '{{ vaultRolePrefix }}-{{ vaultRoleShort }}'
-                      policy: |
-                        # Access to secrets path (v1)
-                        path "apc/{{ split((clusterName || ''), '') | [0] }}/{{ request.object.metadata.name }}/*" {
-                          capabilities = [{{ vaultRoleCapabilities }}]
-                        }
-
-                        # Access to secrets path (v2)
-                        path "apc/data/{{ split((clusterName || ''), '') | [0] }}/{{ request.object.metadata.name }}/*" {
-                          capabilities = [{{ vaultRoleCapabilities }}]
-                        }
-
-                        # Access to metadata (v2)
-                        path "apc/metadata/{{ split((clusterName || ''), '') | [0] }}/{{ request.object.metadata.name }}/*" {
-                          capabilities = [{{ vaultRoleCapabilities }}]
-                        }
-
-                        # Allow version delete
-                        path "apc/delete/{{ split((clusterName || ''), '') | [0] }}/{{ request.object.metadata.name }}/*" {
-                          capabilities = ["update"]
-                        }
-
-                        # Allow version destroy
-                        path "apc/destroy/{{ split((clusterName || ''), '') | [0] }}/{{ request.object.metadata.name }}/*" {
-                          capabilities = ["update"]
-                        }
-
-                        # Allow version undelete
-                        path "apc/undelete/{{ split((clusterName || ''), '') | [0] }}/{{ request.object.metadata.name }}/*" {
-                          capabilities = ["update"]
-                        }
-
-                        # Allow browsing to the project secrets
-                        path "apc/metadata/" {
-                          capabilities = ["list"]
-                        }
-                        path "apc/metadata/{{ split((clusterName || ''), '') | [0] }}" {
-                          capabilities = ["list"]
-                        }
-                    providerConfigRef:
-                      name: '{{ vaultProviderConfigRef }}'
-                kind: Policy
-                list: vaultRoleList
-                name: '{{ vaultRolePrefix }}-{{ vaultRoleShort }}'
-                preconditions:
-                  all:
-                    - key: '{{ length(vaultRoleShort || '''') }}'
-                      operator: GreaterThan
-                      value: 0
-                    - key: '{{ length(clusterName || '''') }}'
-                      operator: GreaterThan
-                      value: 0
-              - apiVersion: ldap.vault.upbound.io/v1alpha1
-                context:
-                  - name: vaultRole
-                    variable:
-                      jmesPath: element
-                  - name: vaultRoleShort
-                    variable:
-                      default: ""
-                      value: '{{ vaultRole == ''admin'' && ''pja'' || vaultRole == ''operator'' && ''opr'' }}'
-                data:
-                  spec:
-                    deletionPolicy: Delete
-                    forProvider:
-                      backend: '{{ vaultAuthBackendName }}'
-                      groupname: '{{ vaultRolePrefix }}-{{ vaultRoleShort }}'
-                      policies:
-                        - '{{ vaultRolePrefix }}-{{ vaultRoleShort }}'
-                    providerConfigRef:
-                      name: '{{ vaultProviderConfigRef }}'
-                kind: AuthBackendGroup
-                list: vaultRoleList
-                name: '{{ vaultRolePrefix }}-{{ vaultRoleShort }}'
-                preconditions:
-                  all:
-                    - key: '{{ length(vaultRoleShort || '''') }}'
-                      operator: GreaterThan
-                      value: 0
-                    - key: '{{ length(clusterName || '''') }}'
-                      operator: GreaterThan
-                      value: 0
-            generateExisting: true
-            synchronize: false
-          match:
-            any:
-              - resources:
-                  kinds:
-                    - Namespace
-                  selector:
-                    matchLabels:
-                      apc.namespace.type: application
-          name: project-vault-policy-group
-          skipBackgroundRequests: true
-  8: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -628,7 +7,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno-app-project
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.5.1
+        helm.sh/chart: kyverno-app-project-2.0.0
         rbac.kyverno.io/aggregate-to-background-controller: "true"
       name: kyverno:background-controller:project-metadata
     rules:
@@ -643,7 +22,7 @@ manifests should match snapshot:
           - watch
           - update
           - patch
-  9: |
+  2: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -651,7 +30,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno-app-project
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.5.1
+        helm.sh/chart: kyverno-app-project-2.0.0
         rbac.kyverno.io/aggregate-to-background-controller: "true"
       name: kyverno:background-controller:project-vault-groups
     rules:
@@ -669,7 +48,7 @@ manifests should match snapshot:
         verbs:
           - get
           - create
-  10: |
+  3: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -677,7 +56,7 @@ manifests should match snapshot:
         app.kubernetes.io/instance: kyverno-app-project
         app.kubernetes.io/managed-by: ArgoCD
         app.kubernetes.io/name: kyverno-app-project
-        helm.sh/chart: kyverno-app-project-1.5.1
+        helm.sh/chart: kyverno-app-project-2.0.0
         rbac.kyverno.io/aggregate-to-cleanup-controller: "true"
       name: kyverno:cleanup-controller:project-vault-groups
     rules:
@@ -702,3 +81,993 @@ manifests should match snapshot:
         verbs:
           - delete
           - list
+  4: |
+    apiVersion: policies.kyverno.io/v1
+    kind: DeletingPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: Secrets
+        policies.kyverno.io/minversion: 1.20.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Cleanup vault project groups and policies
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-2.0.0
+      name: app-project-vault-groups-cleanup
+    spec:
+      conditions:
+        - expression: '!(variables.namespace in variables.appNamespaces)'
+          name: namespace-not-an-application-namespace
+      matchConstraints:
+        objectSelector:
+          matchExpressions:
+            - key: generate.kyverno.io/policy-name
+              operator: In
+              values:
+                - app-project-vault-groups
+                - app-project-vault-groups-pja-policy
+                - app-project-vault-groups-pja-group
+                - app-project-vault-groups-opr-policy
+                - app-project-vault-groups-opr-group
+        resourceRules:
+          - apiGroups:
+              - vault.vault.upbound.io
+            apiVersions:
+              - '*'
+            resources:
+              - policies
+          - apiGroups:
+              - ldap.vault.upbound.io
+            apiVersions:
+              - '*'
+            resources:
+              - authbackendgroups
+      schedule: 0 */3 * * *
+      variables:
+        - expression: object.metadata.name.split('-')
+          name: nameParts
+        - expression: variables.nameParts.slice(2, size(variables.nameParts) - 1).join('-')
+          name: namespace
+        - expression: 'dyn(resource.List("v1", "namespaces", "", {"apc.namespace.type": "application"}).items).map(n, n.metadata.name)'
+          name: appNamespaces
+  5: |
+    apiVersion: policies.kyverno.io/v1
+    kind: GeneratingPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: quota
+        policies.kyverno.io/minversion: 1.20.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Create CloudNativePG resource quota for namespace
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-2.0.0
+      name: app-project-cnpg-custom-resource-quota
+    spec:
+      evaluation:
+        generateExisting:
+          enabled: true
+        skipBackgroundRequests: true
+      generate:
+        - template:
+            interpolate: cel
+            value: |
+              apiVersion: v1
+              kind: ResourceQuota
+              metadata:
+                name: cnpg-custom-resource-quota
+                namespace: (( object.metadata.name ))
+              spec:
+                hard:
+                  count/clusters.postgresql.cnpg.io: "1"                     # Maximum number of PostgreSQL clusters
+                  count/backups.postgresql.cnpg.io: "15"                       # Maximum number of PostgreSQL backups
+                  count/scheduledbackups.postgresql.cnpg.io: "2"     # Maximum number of PostgreSQL scheduled backups
+      matchConditions:
+        - expression: dyn(resource.Get("v1", "resourcequotas", object.metadata.name, "cnpg-custom-resource-quota")) == null
+          name: quota-missing
+      matchConstraints:
+        objectSelector:
+          matchLabels:
+            apc.namespace.type: application
+        resourceRules:
+          - apiGroups:
+              - ""
+            apiVersions:
+              - v1
+            operations:
+              - CREATE
+              - UPDATE
+            resources:
+              - namespaces
+  6: |
+    apiVersion: policies.kyverno.io/v1
+    kind: GeneratingPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: quota
+        policies.kyverno.io/minversion: 1.20.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Create default resource quota for namespace
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-2.0.0
+      name: app-project-default-resource-quota
+    spec:
+      evaluation:
+        generateExisting:
+          enabled: true
+        skipBackgroundRequests: true
+      generate:
+        - template:
+            interpolate: cel
+            value: |
+              apiVersion: v1
+              kind: ResourceQuota
+              metadata:
+                name: default-resource-quota
+                namespace: (( object.metadata.name ))
+              spec:
+                hard:
+                  count/cronjobs.batch: "20"                                      # Maximum number of CronJobs
+                  count/daemonsets.apps: "0"                                    # Maximum number of DaemonSets (standard useers must not be able to run any workloads that require DaemonSets)
+                  count/deployments.apps: "10"                                  # Maximum number of Deployments
+                  count/ingresses.networking.k8s.io: "10"              # Maximum number of Ingresses
+                  count/routes.route.openshift.io: "10"                  # Maximum number of Routes
+                  count/jobs.batch: "50"                                              # Maximum number of Jobs
+                  count/networkpolicies.networking.k8s.io: "20"  # Maximum number ofNetwork Policies
+                  count/replicasets.apps: "100"                                  # Maximum number of ReplicaSets
+                  count/serviceaccounts: "20"                                   # Maximum number of ServiceAccounts
+                  count/services: "20"                                                 # Maximum number of Services
+                  count/statefulsets.apps: "5"                                # Maximum number of StatefulSets
+                  requests.cpu: "4"                                                # Total requested CPU for all pods
+                  requests.memory: "20Gi"                                          # Total requested memory for all pods
+                  limits.cpu: "8"                                                    # Maximum CPU allowed for all pods
+                  limits.memory: "35Gi"                                              # Maximum memory allowed for all pods
+                  pods: "30"                                                               # Maximum number of pods
+                  persistentvolumeclaims: "15"                           # Maximum PVCs allowed
+                  requests.storage: "300Gi"                                        # Total requested storage for all pods
+                  services.loadbalancers: "2"                            # Maximum number of services of a LoadBalancer type
+      matchConditions:
+        - expression: dyn(resource.Get("v1", "resourcequotas", object.metadata.name, "default-resource-quota")) == null
+          name: quota-missing
+      matchConstraints:
+        objectSelector:
+          matchLabels:
+            apc.namespace.type: application
+        resourceRules:
+          - apiGroups:
+              - ""
+            apiVersions:
+              - v1
+            operations:
+              - CREATE
+              - UPDATE
+            resources:
+              - namespaces
+  7: |
+    apiVersion: policies.kyverno.io/v1
+    kind: GeneratingPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: quota
+        policies.kyverno.io/minversion: 1.20.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Create Grafana resource quota for namespace
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-2.0.0
+      name: app-project-grafana-quota
+    spec:
+      evaluation:
+        generateExisting:
+          enabled: true
+        skipBackgroundRequests: true
+      generate:
+        - template:
+            interpolate: cel
+            value: |
+              apiVersion: v1
+              kind: ResourceQuota
+              metadata:
+                name: grafana-quota
+                namespace: (( object.metadata.name ))
+              spec:
+                hard:
+                  count/alertingrules.loki.grafana.com: "0"                                               # Maximum number of Loki alerting rules (for defining alerting conditions in Loki)
+                  count/grafanaalertrulegroups.grafana.integreatly.org: "0"               # Maximum number of Grafana alert rule groups (for organizing alert rules in Grafana)
+                  count/grafanacontactpoints.grafana.integreatly.org: "0"                   # Maximum number of Grafana contact points (for defining notification channels in Grafana)
+                  count/grafanadashboards.grafana.integreatly.org: "10"                         # Maximum number of Grafana dashboards (for visualizing metrics in Grafana)
+                  count/grafanadatasources.grafana.integreatly.org: "5"                       # Maximum number of Grafana data sources (for connecting to external data systems)
+                  count/grafanafolders.grafana.integreatly.org: "10"                               # Maximum number of Grafana folders (for organizing dashboards in Grafana)
+                  count/grafananotificationpolicies.grafana.integreatly.org: "0"     # Maximum number of Grafana notification policies (for defining alert handling policies)
+                  count/grafanas.grafana.integreatly.org: "1"                                           # Maximum number of Grafana instances (for deploying separate Grafana instances)
+                  count/lokistacks.loki.grafana.com: "0"                                                     # Maximum number of Loki stacks (for managing log storage and aggregation in Loki)
+                  count/recordingrules.loki.grafana.com: "0"                                             # Maximum number of Loki recording rules (for precomputing and storing log query results)
+                  count/rulerconfigs.loki.grafana.com: "0"                                                 # Maximum number of Loki ruler configurations (for configuring alerting in Loki's ruler)\
+      matchConditions:
+        - expression: dyn(resource.Get("v1", "resourcequotas", object.metadata.name, "grafana-quota")) == null
+          name: quota-missing
+      matchConstraints:
+        objectSelector:
+          matchLabels:
+            apc.namespace.type: application
+        resourceRules:
+          - apiGroups:
+              - ""
+            apiVersions:
+              - v1
+            operations:
+              - CREATE
+              - UPDATE
+            resources:
+              - namespaces
+  8: |
+    apiVersion: policies.kyverno.io/v1
+    kind: GeneratingPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: internetproxy
+        policies.kyverno.io/minversion: 1.20.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Create configmap for internet proxy
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-2.0.0
+      name: app-project-internetproxy-cm
+    spec:
+      evaluation:
+        generateExisting:
+          enabled: true
+        orphanDownstreamOnPolicyDelete:
+          enabled: true
+        synchronize:
+          enabled: true
+      generate:
+        - template:
+            interpolate: cel
+            value: |
+              apiVersion: v1
+              kind: ConfigMap
+              metadata:
+                name: proxy
+                namespace: (( object.metadata.name ))
+              data:
+                http_proxy: http://proxy.example.com:8080
+                https_proxy: http://proxy.example.com:8080
+                no_proxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+                HTTP_PROXY: http://proxy.example.com:8080
+                HTTPS_PROXY: http://proxy.example.com:8080
+                NO_PROXY: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+      matchConstraints:
+        objectSelector:
+          matchLabels:
+            apc.namespace.type: application
+        resourceRules:
+          - apiGroups:
+              - ""
+            apiVersions:
+              - v1
+            operations:
+              - CREATE
+              - UPDATE
+            resources:
+              - namespaces
+      useServerSideApply: true
+  9: |
+    apiVersion: policies.kyverno.io/v1
+    kind: GeneratingPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: quota
+        policies.kyverno.io/minversion: 1.20.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Create KubeVirt resource quota for namespace
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-2.0.0
+      name: app-project-kubevirt-cr-quota
+    spec:
+      evaluation:
+        generateExisting:
+          enabled: true
+        skipBackgroundRequests: true
+      generate:
+        - template:
+            interpolate: cel
+            value: |
+              apiVersion: v1
+              kind: ResourceQuota
+              metadata:
+                name: kubevirt-cr-quota
+                namespace: (( object.metadata.name ))
+              spec:
+                hard:
+                  count/aaqs.aaq.kubevirt.io: "0"                                                                                        # Limit on 'AAQ' resources
+                  count/cdiconfigs.cdi.kubevirt.io: "0"                                                                            # Limit on CDI configuration objects
+                  count/cdis.cdi.kubevirt.io: "0"                                                                                        # Limit on CDI custom resources
+                  count/dataimportcrons.cdi.kubevirt.io: "10"                                                                  # Reduced maximum scheduled DataImportCron jobs
+                  count/datasources.cdi.kubevirt.io: "5"                                                                          # Reduced maximum DataSources for DataVolumes
+                  count/datavolumes.cdi.kubevirt.io: "5"                                                                          # Reduced maximum number of DataVolumes
+                  count/hostpathprovisioners.hostpathprovisioner.kubevirt.io: "0"                        # Limit on HostPath provisioners
+                  count/hyperconvergeds.hco.kubevirt.io: "0"                                                                  # Maximum number of HyperConverged objects
+                  count/kubevirts.kubevirt.io: "0"                                                                                     # Limit on KubeVirt configurations
+                  count/migrationpolicies.migrations.kubevirt.io: "0"                                                # Limit on migration policies
+                  count/mtqs.mtq.kubevirt.io: "0"                                                                                        # Limit on MTQ custom resources
+                  count/networkaddonsconfigs.networkaddonsoperator.network.kubevirt.io: "0"     # Limit on Network Add-Ons configurations
+                  count/objecttransfers.cdi.kubevirt.io: "0"                                                                  # Maximum number of ObjectTransfers
+                  count/openstackvolumepopulators.forklift.cdi.kubevirt.io: "0"                             # Limit on OpenStack volume populators
+                  count/ovirtvolumepopulators.forklift.cdi.kubevirt.io: "0"                                     # Limit on oVirt volume populators
+                  count/ssps.ssp.kubevirt.io: "0"                                                                                        # Limit on SSP custom resources
+                  count/storageprofiles.cdi.kubevirt.io: "0"                                                                  # Limit on storage profiles
+                  count/virtualmachineclones.clone.kubevirt.io: "2"                                                    # Reduced maximum number of VirtualMachine clones
+                  count/virtualmachineclusterinstancetypes.instancetype.kubevirt.io: "0"          # Limit on cluster-wide instance types for VMs
+                  count/virtualmachineclusterpreferences.instancetype.kubevirt.io: "0"              # Limit on cluster-wide instance type preferences
+                  count/virtualmachineexports.export.kubevirt.io: "2"                                                # Reduced limit on VirtualMachine exports
+                  count/virtualmachineinstancemigrations.kubevirt.io: "5"                                       # Reduced maximum number of VirtualMachineInstance migrations
+                  count/virtualmachineinstancepresets.kubevirt.io: "2"                                             # Reduced limit on instance presets for VMs
+                  count/virtualmachineinstancereplicasets.kubevirt.io: "2"                                     # Reduced maximum number of VM ReplicaSets
+                  count/virtualmachineinstances.kubevirt.io: "2"                                                         # Maximum number of running VirtualMachineInstances (VMIs)
+                  count/virtualmachineinstancetypes.instancetype.kubevirt.io: "2"                        # Reduced limit on namespace-scoped instance types
+                  count/virtualmachinepools.pool.kubevirt.io: "2"                                                        # Reduced maximum number of VirtualMachine pools
+                  count/virtualmachinepreferences.instancetype.kubevirt.io: "2"                            # Reduced limit on namespace-scoped instance type preferences
+                  count/virtualmachinerestores.snapshot.kubevirt.io: "5"                                          # Reduced limit on VirtualMachine restores
+                  count/virtualmachines.kubevirt.io: "2"                                                                         # Maximum number of VirtualMachines
+                  count/virtualmachinesnapshotcontents.snapshot.kubevirt.io: "10"                          # Reduced limit on VirtualMachineSnapshot contents
+                  count/virtualmachinesnapshots.snapshot.kubevirt.io: "10"                                        # Reduced maximum number of VirtualMachineSnapshots
+                  count/volumeclonesources.cdi.kubevirt.io: "5"                                                            # Reduced limit on volume clone sources
+                  count/volumeimportsources.cdi.kubevirt.io: "5"                                                          # Reduced limit on volume import sources
+                  count/volumeuploadsources.cdi.kubevirt.io: "5"                                                          # Reduced limit on volume upload sources
+      matchConditions:
+        - expression: dyn(resource.Get("v1", "resourcequotas", object.metadata.name, "kubevirt-cr-quota")) == null
+          name: quota-missing
+      matchConstraints:
+        objectSelector:
+          matchLabels:
+            apc.namespace.type: application
+        resourceRules:
+          - apiGroups:
+              - ""
+            apiVersions:
+              - v1
+            operations:
+              - CREATE
+              - UPDATE
+            resources:
+              - namespaces
+  10: |
+    apiVersion: policies.kyverno.io/v1
+    kind: GeneratingPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: limit range
+        policies.kyverno.io/minversion: 1.20.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Create default limit range for namespace
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-2.0.0
+      name: app-project-limitrange
+    spec:
+      evaluation:
+        generateExisting:
+          enabled: true
+        skipBackgroundRequests: true
+      generate:
+        - template:
+            interpolate: cel
+            value: |
+              apiVersion: v1
+              kind: LimitRange
+              metadata:
+                name: default-limit-range
+                namespace: (( object.metadata.name ))
+              spec:
+                limits:
+                  - default:
+                      cpu: "200m"                              # Default CPU limit for containers
+                      memory: "200Mi"                        # Default memory limit for containers
+                      ephemeral-storage: "1Gi"   # Default ephemeral storage limit for containers
+                    defaultRequest:
+                      cpu: "50m"                       # Default CPU request for containers
+                      memory: "50Mi"                 # Default memory request for containers
+                    type: Container
+      matchConditions:
+        - expression: dyn(resource.Get("v1", "limitranges", object.metadata.name, "default-limit-range")) == null
+          name: limitrange-missing
+      matchConstraints:
+        objectSelector:
+          matchLabels:
+            apc.namespace.type: application
+        resourceRules:
+          - apiGroups:
+              - ""
+            apiVersions:
+              - v1
+            operations:
+              - CREATE
+              - UPDATE
+            resources:
+              - namespaces
+  11: |
+    apiVersion: policies.kyverno.io/v1
+    kind: GeneratingPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: quota
+        policies.kyverno.io/minversion: 1.20.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Create monitoring resource quota for namespace
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-2.0.0
+      name: app-project-monitoring-quota
+    spec:
+      evaluation:
+        generateExisting:
+          enabled: true
+        skipBackgroundRequests: true
+      generate:
+        - template:
+            interpolate: cel
+            value: |
+              apiVersion: v1
+              kind: ResourceQuota
+              metadata:
+                name: monitoring-quota
+                namespace: (( object.metadata.name ))
+              spec:
+                hard:
+                  count/alertmanagerconfigs.monitoring.coreos.com: "1"  # Maximum number of AlertmanagerConfigs (for configuring alertmanager instances)
+                  count/alertmanagers.monitoring.coreos.com: "0"              # Maximum number of Alertmanagers (for creating alertmanager instances)
+                  count/podmonitors.monitoring.coreos.com: "20"                  # Maximum number of PodMonitors (for defining pod-level metrics collection)
+                  count/probes.monitoring.coreos.com: "10"                            # Maximum number of Probes (for defining liveness and readiness probes)
+                  count/prometheuses.monitoring.coreos.com: "0"                # Maximum number of Prometheuses (for creating Prometheus instances)
+                  count/prometheusrules.monitoring.coreos.com: "10"          # Maximum number of PrometheusRules (for Prometheus alerting rules)
+                  count/servicemonitors.monitoring.coreos.com: "20"          # Maximum number of ServiceMonitors (for defining service-level metrics collections
+                  count/thanosrulers.monitoring.coreos.com: "0"                # Maximum number of ThanosRulers (for creating Thanos ruler instances for Prometheus)
+      matchConditions:
+        - expression: dyn(resource.Get("v1", "resourcequotas", object.metadata.name, "monitoring-quota")) == null
+          name: quota-missing
+      matchConstraints:
+        objectSelector:
+          matchLabels:
+            apc.namespace.type: application
+        resourceRules:
+          - apiGroups:
+              - ""
+            apiVersions:
+              - v1
+            operations:
+              - CREATE
+              - UPDATE
+            resources:
+              - namespaces
+  12: |
+    apiVersion: policies.kyverno.io/v1
+    kind: GeneratingPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: Secrets
+        policies.kyverno.io/minversion: 1.20.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Setup vault project policy for admin role
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-2.0.0
+      name: app-project-vault-groups-pja-policy
+    spec:
+      evaluation:
+        generateExisting:
+          enabled: true
+        skipBackgroundRequests: true
+      generate:
+        - template:
+            interpolate: cel
+            value: |
+              apiVersion: vault.vault.upbound.io/v1alpha1
+              kind: Policy
+              metadata:
+                name: (( variables.name ))
+              spec:
+                deletionPolicy: Delete
+                forProvider:
+                  name: (( variables.name ))
+                  policy: |
+                    # Access to secrets path (v1)
+                    path "apc/(( variables.clusterInitial ))/(( object.metadata.name ))/*" {
+                      capabilities = ["create", "read", "update", "delete", "list", "patch"]
+                    }
+
+                    # Access to secrets path (v2)
+                    path "apc/data/(( variables.clusterInitial ))/(( object.metadata.name ))/*" {
+                      capabilities = ["create", "read", "update", "delete", "list", "patch"]
+                    }
+
+                    # Access to metadata (v2)
+                    path "apc/metadata/(( variables.clusterInitial ))/(( object.metadata.name ))/*" {
+                      capabilities = ["create", "read", "update", "delete", "list", "patch"]
+                    }
+
+                    # Allow version delete
+                    path "apc/delete/(( variables.clusterInitial ))/(( object.metadata.name ))/*" {
+                      capabilities = ["update"]
+                    }
+
+                    # Allow version destroy
+                    path "apc/destroy/(( variables.clusterInitial ))/(( object.metadata.name ))/*" {
+                      capabilities = ["update"]
+                    }
+
+                    # Allow version undelete
+                    path "apc/undelete/(( variables.clusterInitial ))/(( object.metadata.name ))/*" {
+                      capabilities = ["update"]
+                    }
+
+                    # Allow browsing to the project secrets
+                    path "apc/metadata/" {
+                      capabilities = ["list"]
+                    }
+                    path "apc/metadata/(( variables.clusterInitial ))" {
+                      capabilities = ["list"]
+                    }
+
+                providerConfigRef:
+                  name: vault-hub-provider-config
+      matchConditions:
+        - expression: 'cel.bind(parts, cel.bind(route, dyn(resource.Get("route.openshift.io/v1", "routes", "openshift-console", "console")), route == null ? "" : route.spec.host).split("."), size(parts) > 2 ? parts[2] : "") != "" && dyn(resource.Get("vault.vault.upbound.io/v1alpha1", "policies", "", "apc-" + (cel.bind(parts, cel.bind(route, dyn(resource.Get("route.openshift.io/v1", "routes", "openshift-console", "console")), route == null ? "" : route.spec.host).split("."), size(parts) > 2 ? parts[2] : "")).substring(0, 1) + "-" + object.metadata.name + "-pja")) == null'
+          name: cluster-name-resolved-and-policie-missing
+      matchConstraints:
+        objectSelector:
+          matchLabels:
+            apc.namespace.type: application
+        resourceRules:
+          - apiGroups:
+              - ""
+            apiVersions:
+              - v1
+            operations:
+              - CREATE
+              - UPDATE
+            resources:
+              - namespaces
+      variables:
+        - expression: 'cel.bind(parts, cel.bind(route, dyn(resource.Get("route.openshift.io/v1", "routes", "openshift-console", "console")), route == null ? "" : route.spec.host).split("."), size(parts) > 2 ? parts[2] : "")'
+          name: clusterName
+        - expression: variables.clusterName.substring(0, 1)
+          name: clusterInitial
+        - expression: '"apc-" + variables.clusterInitial + "-" + object.metadata.name + "-pja"'
+          name: name
+  13: |
+    apiVersion: policies.kyverno.io/v1
+    kind: GeneratingPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: Secrets
+        policies.kyverno.io/minversion: 1.20.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Setup vault project group for admin role
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-2.0.0
+      name: app-project-vault-groups-pja-group
+    spec:
+      evaluation:
+        generateExisting:
+          enabled: true
+        skipBackgroundRequests: true
+      generate:
+        - template:
+            interpolate: cel
+            value: |
+              apiVersion: ldap.vault.upbound.io/v1alpha1
+              kind: AuthBackendGroup
+              metadata:
+                name: (( variables.name ))
+              spec:
+                deletionPolicy: Delete
+                forProvider:
+                  backend: ad
+                  groupname: (( variables.name ))
+                  policies:
+                    - (( variables.name ))
+                providerConfigRef:
+                  name: vault-hub-provider-config
+      matchConditions:
+        - expression: 'cel.bind(parts, cel.bind(route, dyn(resource.Get("route.openshift.io/v1", "routes", "openshift-console", "console")), route == null ? "" : route.spec.host).split("."), size(parts) > 2 ? parts[2] : "") != "" && dyn(resource.Get("ldap.vault.upbound.io/v1alpha1", "authbackendgroups", "", "apc-" + (cel.bind(parts, cel.bind(route, dyn(resource.Get("route.openshift.io/v1", "routes", "openshift-console", "console")), route == null ? "" : route.spec.host).split("."), size(parts) > 2 ? parts[2] : "")).substring(0, 1) + "-" + object.metadata.name + "-pja")) == null'
+          name: cluster-name-resolved-and-authbackendgroup-missing
+      matchConstraints:
+        objectSelector:
+          matchLabels:
+            apc.namespace.type: application
+        resourceRules:
+          - apiGroups:
+              - ""
+            apiVersions:
+              - v1
+            operations:
+              - CREATE
+              - UPDATE
+            resources:
+              - namespaces
+      variables:
+        - expression: 'cel.bind(parts, cel.bind(route, dyn(resource.Get("route.openshift.io/v1", "routes", "openshift-console", "console")), route == null ? "" : route.spec.host).split("."), size(parts) > 2 ? parts[2] : "")'
+          name: clusterName
+        - expression: variables.clusterName.substring(0, 1)
+          name: clusterInitial
+        - expression: '"apc-" + variables.clusterInitial + "-" + object.metadata.name + "-pja"'
+          name: name
+  14: |
+    apiVersion: policies.kyverno.io/v1
+    kind: GeneratingPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: Secrets
+        policies.kyverno.io/minversion: 1.20.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Setup vault project policy for operator role
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-2.0.0
+      name: app-project-vault-groups-opr-policy
+    spec:
+      evaluation:
+        generateExisting:
+          enabled: true
+        skipBackgroundRequests: true
+      generate:
+        - template:
+            interpolate: cel
+            value: |
+              apiVersion: vault.vault.upbound.io/v1alpha1
+              kind: Policy
+              metadata:
+                name: (( variables.name ))
+              spec:
+                deletionPolicy: Delete
+                forProvider:
+                  name: (( variables.name ))
+                  policy: |
+                    # Access to secrets path (v1)
+                    path "apc/(( variables.clusterInitial ))/(( object.metadata.name ))/*" {
+                      capabilities = ["create", "read", "update", "delete", "list", "patch"]
+                    }
+
+                    # Access to secrets path (v2)
+                    path "apc/data/(( variables.clusterInitial ))/(( object.metadata.name ))/*" {
+                      capabilities = ["create", "read", "update", "delete", "list", "patch"]
+                    }
+
+                    # Access to metadata (v2)
+                    path "apc/metadata/(( variables.clusterInitial ))/(( object.metadata.name ))/*" {
+                      capabilities = ["create", "read", "update", "delete", "list", "patch"]
+                    }
+
+                    # Allow version delete
+                    path "apc/delete/(( variables.clusterInitial ))/(( object.metadata.name ))/*" {
+                      capabilities = ["update"]
+                    }
+
+                    # Allow version destroy
+                    path "apc/destroy/(( variables.clusterInitial ))/(( object.metadata.name ))/*" {
+                      capabilities = ["update"]
+                    }
+
+                    # Allow version undelete
+                    path "apc/undelete/(( variables.clusterInitial ))/(( object.metadata.name ))/*" {
+                      capabilities = ["update"]
+                    }
+
+                    # Allow browsing to the project secrets
+                    path "apc/metadata/" {
+                      capabilities = ["list"]
+                    }
+                    path "apc/metadata/(( variables.clusterInitial ))" {
+                      capabilities = ["list"]
+                    }
+
+                providerConfigRef:
+                  name: vault-hub-provider-config
+      matchConditions:
+        - expression: 'cel.bind(parts, cel.bind(route, dyn(resource.Get("route.openshift.io/v1", "routes", "openshift-console", "console")), route == null ? "" : route.spec.host).split("."), size(parts) > 2 ? parts[2] : "") != "" && dyn(resource.Get("vault.vault.upbound.io/v1alpha1", "policies", "", "apc-" + (cel.bind(parts, cel.bind(route, dyn(resource.Get("route.openshift.io/v1", "routes", "openshift-console", "console")), route == null ? "" : route.spec.host).split("."), size(parts) > 2 ? parts[2] : "")).substring(0, 1) + "-" + object.metadata.name + "-opr")) == null'
+          name: cluster-name-resolved-and-policie-missing
+      matchConstraints:
+        objectSelector:
+          matchLabels:
+            apc.namespace.type: application
+        resourceRules:
+          - apiGroups:
+              - ""
+            apiVersions:
+              - v1
+            operations:
+              - CREATE
+              - UPDATE
+            resources:
+              - namespaces
+      variables:
+        - expression: 'cel.bind(parts, cel.bind(route, dyn(resource.Get("route.openshift.io/v1", "routes", "openshift-console", "console")), route == null ? "" : route.spec.host).split("."), size(parts) > 2 ? parts[2] : "")'
+          name: clusterName
+        - expression: variables.clusterName.substring(0, 1)
+          name: clusterInitial
+        - expression: '"apc-" + variables.clusterInitial + "-" + object.metadata.name + "-opr"'
+          name: name
+  15: |
+    apiVersion: policies.kyverno.io/v1
+    kind: GeneratingPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: Secrets
+        policies.kyverno.io/minversion: 1.20.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Setup vault project group for operator role
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-2.0.0
+      name: app-project-vault-groups-opr-group
+    spec:
+      evaluation:
+        generateExisting:
+          enabled: true
+        skipBackgroundRequests: true
+      generate:
+        - template:
+            interpolate: cel
+            value: |
+              apiVersion: ldap.vault.upbound.io/v1alpha1
+              kind: AuthBackendGroup
+              metadata:
+                name: (( variables.name ))
+              spec:
+                deletionPolicy: Delete
+                forProvider:
+                  backend: ad
+                  groupname: (( variables.name ))
+                  policies:
+                    - (( variables.name ))
+                providerConfigRef:
+                  name: vault-hub-provider-config
+      matchConditions:
+        - expression: 'cel.bind(parts, cel.bind(route, dyn(resource.Get("route.openshift.io/v1", "routes", "openshift-console", "console")), route == null ? "" : route.spec.host).split("."), size(parts) > 2 ? parts[2] : "") != "" && dyn(resource.Get("ldap.vault.upbound.io/v1alpha1", "authbackendgroups", "", "apc-" + (cel.bind(parts, cel.bind(route, dyn(resource.Get("route.openshift.io/v1", "routes", "openshift-console", "console")), route == null ? "" : route.spec.host).split("."), size(parts) > 2 ? parts[2] : "")).substring(0, 1) + "-" + object.metadata.name + "-opr")) == null'
+          name: cluster-name-resolved-and-authbackendgroup-missing
+      matchConstraints:
+        objectSelector:
+          matchLabels:
+            apc.namespace.type: application
+        resourceRules:
+          - apiGroups:
+              - ""
+            apiVersions:
+              - v1
+            operations:
+              - CREATE
+              - UPDATE
+            resources:
+              - namespaces
+      variables:
+        - expression: 'cel.bind(parts, cel.bind(route, dyn(resource.Get("route.openshift.io/v1", "routes", "openshift-console", "console")), route == null ? "" : route.spec.host).split("."), size(parts) > 2 ? parts[2] : "")'
+          name: clusterName
+        - expression: variables.clusterName.substring(0, 1)
+          name: clusterInitial
+        - expression: '"apc-" + variables.clusterInitial + "-" + object.metadata.name + "-opr"'
+          name: name
+  16: |
+    apiVersion: policies.kyverno.io/v1
+    kind: MutatingPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: Monitoring
+        policies.kyverno.io/minversion: 1.20.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Patch Namespace labels from the project metadata ConfigMap
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-2.0.0
+      name: app-project-namespace-metadata
+    spec:
+      evaluation:
+        mutateExisting:
+          enabled: true
+      matchConditions:
+        - expression: size(variables.labelKeys) > 0
+          name: has-valid-labels
+      matchConstraints:
+        namespaceSelector:
+          matchLabels:
+            apc.namespace.type: application
+        resourceRules:
+          - apiGroups:
+              - ""
+            apiVersions:
+              - v1
+            operations:
+              - CREATE
+              - UPDATE
+            resourceNames:
+              - project-metadata
+            resources:
+              - configmaps
+      mutations:
+        - applyConfiguration:
+            expression: |-
+              Object{
+                metadata: Object.metadata{
+                  labels: variables.labels
+                }
+              }
+          patchType: ApplyConfiguration
+      targetMatchConstraints:
+        expression: resource.Get("v1", "namespaces", "", object.metadata.namespace)
+      variables:
+        - expression: |-
+            request.object.?data.orValue({}).filter(k,
+              k.matches('^[a-zA-Z0-9]([-_.a-zA-Z0-9]{0,61}[a-zA-Z0-9])?$') &&
+              request.object.data[k].matches('^[a-zA-Z0-9]([-_.a-zA-Z0-9]{0,61}[a-zA-Z0-9])?$') &&
+              !k.startsWith('apc.') && !k.contains('kubernetes') && !k.contains('openshift') && !k.contains('k8s'))
+          name: labelKeys
+        - expression: |-
+            transform.listObjToMap(
+              variables.labelKeys.map(k, {"key": k}),
+              variables.labelKeys.map(k, {"value": request.object.data[k]}),
+              "key", "value")
+          name: labels
+  17: |
+    apiVersion: policies.kyverno.io/v1
+    kind: MutatingPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: Monitoring
+        policies.kyverno.io/minversion: 1.20.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Mirror team and vendor Namespace labels on existing Services
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-2.0.0
+      name: app-project-service-metadata-existing
+    spec:
+      evaluation:
+        mutateExisting:
+          enabled: true
+      matchConditions:
+        - expression: variables.team != '' && variables.vendor != ''
+          name: namespace-has-team-and-vendor
+      matchConstraints:
+        objectSelector:
+          matchLabels:
+            apc.namespace.type: application
+        resourceRules:
+          - apiGroups:
+              - ""
+            apiVersions:
+              - v1
+            operations:
+              - CREATE
+              - UPDATE
+            resources:
+              - namespaces
+      mutations:
+        - applyConfiguration:
+            expression: '''team'' in object.metadata.?labels.orValue({}) ? Object{} : Object{metadata: Object.metadata{labels: {"team": variables.team}}}'
+          patchType: ApplyConfiguration
+        - applyConfiguration:
+            expression: '''vendor'' in object.metadata.?labels.orValue({}) ? Object{} : Object{metadata: Object.metadata{labels: {"vendor": variables.vendor}}}'
+          patchType: ApplyConfiguration
+      targetMatchConstraints:
+        expression: resource.List("v1", "services", object.metadata.name)
+      variables:
+        - expression: request.object.metadata.?labels[?'team'].orValue('')
+          name: team
+        - expression: request.object.metadata.?labels[?'vendor'].orValue('')
+          name: vendor
+  18: |
+    apiVersion: policies.kyverno.io/v1
+    kind: MutatingPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: Monitoring
+        policies.kyverno.io/minversion: 1.20.0
+        policies.kyverno.io/subject: project
+        policies.kyverno.io/title: Mirror team and vendor Namespace labels on Services
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-2.0.0
+      name: app-project-service-metadata
+    spec:
+      matchConditions:
+        - expression: variables.team != '' && variables.vendor != ''
+          name: namespace-has-team-and-vendor
+      matchConstraints:
+        namespaceSelector:
+          matchLabels:
+            apc.namespace.type: application
+        resourceRules:
+          - apiGroups:
+              - ""
+            apiVersions:
+              - v1
+            operations:
+              - CREATE
+              - UPDATE
+            resources:
+              - services
+      mutations:
+        - applyConfiguration:
+            expression: '''team'' in object.metadata.?labels.orValue({}) ? Object{} : Object{metadata: Object.metadata{labels: {"team": variables.team}}}'
+          patchType: ApplyConfiguration
+        - applyConfiguration:
+            expression: '''vendor'' in object.metadata.?labels.orValue({}) ? Object{} : Object{metadata: Object.metadata{labels: {"vendor": variables.vendor}}}'
+          patchType: ApplyConfiguration
+      variables:
+        - expression: namespaceObject.metadata.?labels[?'team'].orValue('')
+          name: team
+        - expression: namespaceObject.metadata.?labels[?'vendor'].orValue('')
+          name: vendor
+  19: |
+    apiVersion: policies.kyverno.io/v1
+    kind: ValidatingPolicy
+    metadata:
+      annotations:
+        policies.kyverno.io/category: Monitoring
+        policies.kyverno.io/minversion: 1.20.0
+        policies.kyverno.io/subject: Namespace
+        policies.kyverno.io/title: Report application Namespaces without a project metadata ConfigMap
+      labels:
+        app.kubernetes.io/instance: kyverno-app-project
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: kyverno-app-project
+        helm.sh/chart: kyverno-app-project-2.0.0
+      name: app-project-require-metadata-configmap
+    spec:
+      evaluation:
+        admission:
+          enabled: false
+        background:
+          enabled: true
+      matchConstraints:
+        objectSelector:
+          matchLabels:
+            apc.namespace.type: application
+        resourceRules:
+          - apiGroups:
+              - ""
+            apiVersions:
+              - v1
+            operations:
+              - CREATE
+              - UPDATE
+            resources:
+              - namespaces
+      validationActions:
+        - Audit
+      validations:
+        - expression: dyn(resource.Get("v1", "configmaps", object.metadata.name, "project-metadata")) != null
+          messageExpression: '"Namespace ''" + object.metadata.name + "'' has no ''project-metadata'' ConfigMap, so the project has no owner and its metrics are still reported under the platform defaults. Create the ConfigMap in the namespace with proper labels."'

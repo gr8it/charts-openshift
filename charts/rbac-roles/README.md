@@ -12,6 +12,5 @@ OCP and APC roles are defined in [```values.yaml```](values.yaml) file under key
 
 ## Todo
 
-- refactor [```app-project-rolebindings.yaml```](./templates/app-project-rolebindings.yaml) that Kyverno context / templating is replaced with helm templating
 - regactor the [```values.yaml```](values.yaml) in the way that values under key ```groupSuffix``` are placed under ```defaultRoles``` key, helpers function and role templating will have to be udpated as well
 - once the [RH issue](https://access.redhat.com/support/cases/#/case/04259235) is resolver, remove the workaround in [```ocp-role.yaml```](./templates/ocp-role.yaml)

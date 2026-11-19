@@ -1,0 +1,100 @@
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: {{ include "application-gitops.fullname" . }}
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
+    policies.kyverno.io/title: Generate ArgoCD appproject and rolebinding
+    policies.kyverno.io/category: gitops
+    policies.kyverno.io/subject: Generate application gitops resources
+    policies.kyverno.io/minversion: 1.20.0
+  labels:
+    {{- include "application-gitops.labels" . | nindent 4 }}
+spec:
+  evaluation:
+    generateExisting:
+      enabled: true
+    synchronize:
+      enabled: true
+    orphanDownstreamOnPolicyDelete:
+      enabled: true
+  # UPDATE must be matched: a synchronized trigger whose UPDATE does not match gets its downstream deleted
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["argoproj.io"]
+        apiVersions: ["*"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["applications"]
+    namespaceSelector:
+      matchLabels:
+        apc.namespace.type: application
+  matchConditions:
+    - name: application-named-as-namespace
+      expression: object.metadata.name == object.metadata.namespace
+  generate:
+    - template:
+        interpolate: cel
+        value: |
+          apiVersion: argoproj.io/v1alpha1
+          kind: AppProject
+          metadata:
+            name: (( object.metadata.namespace ))
+            namespace: {{ .Values.gitopsNamespace }}
+          spec:
+            description: (( object.metadata.namespace )) namespace project
+            orphanedResources:
+              warn: false
+            # explicitly disable cluster resource access
+            clusterResourceWhitelist: []
+            # allow namespaced resources only using specific service account
+            destinationServiceAccounts:
+              - defaultServiceAccount: {{ include "application-gitops.fullname" . }}
+                namespace: "*"
+                server: https://kubernetes.default.svc
+            # allow deployment to any namespace in the cluster, using rolebinding in the destination namespace, pointing to the service account created by this policy
+            # RBAC of ArgoCD is sidestepped by using "*", but Kubernetes RBAC is still in place
+            destinations:
+              - namespace: "*"
+                # name: in-cluster
+                server: https://kubernetes.default.svc
+            # allow applications from current namespace only
+            sourceNamespaces:
+              - (( object.metadata.namespace ))
+            sourceRepos:
+            {{- if .Values.allowedRepositories }}
+              {{- range .Values.allowedRepositories }}
+              - {{ . }}
+              {{- end }}
+            {{- else }}
+              - "*"
+            {{- end }}
+            roles:
+              {{- range $role, $roleValues := (include "application-gitops.roles" $ | fromJson ) }}
+              {{- if and $roleValues $roleValues.policies }}
+              - description: (( object.metadata.namespace )) project {{ $role }} access
+                groups:
+                  - APC-{{ include "apc-global-overrides.require-environmentShort" $ | upper }}-(( object.metadata.namespace.upperAscii() ))-{{ $roleValues.groupSuffix }}
+                name: {{ $role }}
+                policies:
+                {{- range $policy := $roleValues.policies }}
+                  - p, proj:(( object.metadata.namespace )):{{ $role }}, {{ tpl $policy $ }}
+                {{- end }}
+
+              {{- end }}
+              {{- end }}
+    - template:
+        interpolate: cel
+        value: |
+          apiVersion: rbac.authorization.k8s.io/v1
+          kind: RoleBinding
+          metadata:
+            name: {{ include "application-gitops.fullname" . }}
+            namespace: (( object.metadata.namespace ))
+          roleRef:
+            apiGroup: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: {{ .Values.adminRole }}
+          subjects:
+            - kind: ServiceAccount
+              name: {{ include "application-gitops.fullname" . }}
+              namespace: (( object.metadata.namespace ))

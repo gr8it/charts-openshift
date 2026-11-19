@@ -1,0 +1,61 @@
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: app-project-default-resource-quota
+  labels:
+  {{- include "kyverno-app-project.labels" . | nindent 4 }}
+  annotations:
+    policies.kyverno.io/title: Create default resource quota for namespace
+    policies.kyverno.io/category: quota
+    policies.kyverno.io/subject: project
+    policies.kyverno.io/minversion: 1.20.0
+spec:
+  evaluation:
+    generateExisting:
+      enabled: true
+    skipBackgroundRequests: {{ .Values.defaultResourceQuota.skipBackgroundRequests }}
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["namespaces"]
+    objectSelector:
+      matchLabels:
+        apc.namespace.type: application
+  matchConditions:
+    # create only: generateExisting re-applies periodically and would overwrite manual changes
+    - name: quota-missing
+      expression: dyn(resource.Get("v1", "resourcequotas", object.metadata.name, "default-resource-quota")) == null
+  generate:
+    - template:
+        interpolate: cel
+        value: |
+          apiVersion: v1
+          kind: ResourceQuota
+          metadata:
+            name: default-resource-quota
+            namespace: (( object.metadata.name ))
+          spec:
+            hard:
+              {{- with .Values.defaultResourceQuota }}
+              count/cronjobs.batch: {{ .cronjobsBatch | quote }}                                      # Maximum number of CronJobs
+              count/daemonsets.apps: {{ .daemonsetsApps | quote }}                                    # Maximum number of DaemonSets (standard useers must not be able to run any workloads that require DaemonSets)
+              count/deployments.apps: {{ .deploymentsApps | quote }}                                  # Maximum number of Deployments
+              count/ingresses.networking.k8s.io: {{ .ingressesNetworkingK8sIo | quote }}              # Maximum number of Ingresses
+              count/routes.route.openshift.io: {{ .routesRouteOpenshiftIo | quote }}                  # Maximum number of Routes
+              count/jobs.batch: {{ .jobsBatch | quote }}                                              # Maximum number of Jobs
+              count/networkpolicies.networking.k8s.io: {{ .networkpoliciesNetworkingK8sIo | quote }}  # Maximum number ofNetwork Policies
+              count/replicasets.apps: {{ .replicasetsApps | quote }}                                  # Maximum number of ReplicaSets
+              count/serviceaccounts: {{ .serviceaccounts | quote }}                                   # Maximum number of ServiceAccounts
+              count/services: {{ .services | quote }}                                                 # Maximum number of Services
+              count/statefulsets.apps: {{ .statefulsetsApps | quote }}                                # Maximum number of StatefulSets
+              requests.cpu: {{ .requestsCpu | quote }}                                                # Total requested CPU for all pods
+              requests.memory: {{ .requestsMemory | quote }}                                          # Total requested memory for all pods
+              limits.cpu: {{ .limitsCpu | quote }}                                                    # Maximum CPU allowed for all pods
+              limits.memory: {{ .limitsMemory | quote }}                                              # Maximum memory allowed for all pods
+              pods: {{ .pods | quote }}                                                               # Maximum number of pods
+              persistentvolumeclaims: {{ .persistentvolumeclaims | quote }}                           # Maximum PVCs allowed
+              requests.storage: {{ .requestsStorage | quote }}                                        # Total requested storage for all pods
+              services.loadbalancers: {{ .servicesLoadbalancers | quote }}                            # Maximum number of services of a LoadBalancer type
+              {{- end }}
