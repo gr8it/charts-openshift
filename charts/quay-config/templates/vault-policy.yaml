@@ -1,4 +1,4 @@
-{{- if or .Values.vault.refPullSecretPath (values (.Values.vault.clusterPullSecretPath | default dict) | compact) }}
+{{- if or .Values.vault.refPullSecretPath (include "quay-config.hasClusterPullSecretPath" .) }}
 ---
 apiVersion: vault.vault.upbound.io/v1alpha1
 kind: Policy
@@ -14,7 +14,13 @@ spec:
 
       {{- $clusterPullSecretPath := default dict .Values.vault.clusterPullSecretPath }}
 
-      {{- if and .Values.vault.refPullSecretPath (not (has .Values.vault.refPullSecretPath (values $clusterPullSecretPath))) }}
+      {{- $refPathIsClusterPath := false }}
+      {{- range $cluster, $config := $clusterPullSecretPath }}
+      {{- if eq $.Values.vault.refPullSecretPath (include "quay-config.clusterPullSecretPath" (dict "config" $config)) }}
+      {{- $refPathIsClusterPath = true }}
+      {{- end }}
+      {{- end }}
+      {{- if and .Values.vault.refPullSecretPath (not $refPathIsClusterPath) }}
       {{- $refPullSecretPath := .Values.vault.refPullSecretPath }}
       path "{{ $refPullSecretPath }}" {
         capabilities = ["read", "list"]
@@ -27,7 +33,8 @@ spec:
       }
       {{- end }}
 
-      {{- range $cluster, $path := $clusterPullSecretPath }}
+      {{- range $cluster, $config := $clusterPullSecretPath }}
+      {{- $path := include "quay-config.clusterPullSecretPath" (dict "config" $config) }}
       {{- if $path }}
       path "{{ $path }}" {
         capabilities = ["create", "read", "update", "patch", "list"]

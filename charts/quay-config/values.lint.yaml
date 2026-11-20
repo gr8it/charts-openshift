@@ -25,9 +25,15 @@ dbVolumeSize: 50Gi
 vault:
   refPullSecretPath: apc-platform/x/cluster-config
   clusterPullSecretPath:
-    hub:    apc-platform/x/cluster-config
-    spoke1: apc-platform/y/cluster-config
-    spoke2: apc-platform/z/cluster-config
+    hub:
+      path: apc-platform/h/cluster-config
+      key: pull-secret
+    spoke1:
+      path: apc-platform/hcp/spoke1/pullSecret
+      key: .dockerconfigjson
+    spoke2:
+      path: apc-platform/hcp/spoke2/pullSecret
+      key: .dockerconfigjson
 
 argocd:
   syncOnPullSecretUpdate: true
