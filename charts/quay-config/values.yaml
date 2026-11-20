@@ -44,15 +44,18 @@ vault:
   # the secret key name should be "pull-secret" and the value is a dockerconfig.json format
   # registry credentials found in here will be used for authenticating to the registries listed in imageProxyRegistries
   refPullSecretPath: ~
-  # dictionary of key:value pairs where "key" is the cluster name and "value" is the vault path to this clusters pull-secret
+  # map of cluster names to their Vault path and optional field key
   # the secret must already exist on the vault side
-  # if the whole dictionary is set to null, no robot account for clusters are created.# if only the "value" is set to null, rubot account for that cluster (key) is created but the pull-secret will not be auto-updated with credentials for accessing this quay proxy.
+  # set path to null to create the robot account without updating that cluster's Vault secret
   clusterPullSecretPath: ~
-    #cluster-name: vault/env/path
-    #dev01:  apc-platform/d/cluster-config
-    #test01: apc-platform/t/cluster-config
-    #prod01: apc-platform/p/cluster-config
-    #hub01:  apc-platform/h/cluster-config
+    #cluster-name:
+    #  path: vault/env/path
+    #  key: pull-secret
+    #dev01:
+    #  path: apc-platform/d/cluster-config
+    #  key: pull-secret
+  # fallback field key when a cluster does not specify its own key
+  clusterPullSecretKey: pull-secret
 
 # oc adm release info --image-for=cli
 ocImage: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8bda2b4d186c34f5cc0794037d2704b37731dab71a3a2363511831ec635e3f60

@@ -36,6 +36,19 @@
       "pattern": "^[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+){2,}$",
       "minLength": 1
     },
+    "clusterPullSecretConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path"],
+      "properties": {
+        "path": { "$ref": "#/$definitions/vaultPath" },
+        "key": {
+          "type": "string",
+          "description": "Field name to read and update in this cluster Vault secret",
+          "minLength": 1
+        }
+      }
+    },
     "k8sObjName": {
       "type": "string",
       "minLength": 1,
@@ -154,8 +167,16 @@
             "pattern": "^[A-Za-z][A-Za-z0-9._\\-]+$"
           },
           "additionalProperties": {
-            "$ref": "#/$definitions/vaultPath"
+            "oneOf": [
+              { "$ref": "#/$definitions/vaultPath" },
+              { "$ref": "#/$definitions/clusterPullSecretConfig" }
+            ]
           }
+        },
+        "clusterPullSecretKey": {
+          "type": "string",
+          "description": "Field name to update in each cluster Vault secret",
+          "minLength": 1
         }
       }
     },
