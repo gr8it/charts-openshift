@@ -44,18 +44,19 @@ vault:
   # the secret key name should be "pull-secret" and the value is a dockerconfig.json format
   # registry credentials found in here will be used for authenticating to the registries listed in imageProxyRegistries
   refPullSecretPath: ~
-  # map of cluster names to their Vault path and optional field key
+  # map of cluster names to their Vault path and field key
   # the secret must already exist on the vault side
   # set path to null to create the robot account without updating that cluster's Vault secret
   clusterPullSecretPath: ~
     #cluster-name:
     #  path: vault/env/path
     #  key: pull-secret
-    #dev01:
-    #  path: apc-platform/d/cluster-config
+    #hub01:
+    #  path: apc-platform/h/cluster-config
     #  key: pull-secret
-  # fallback field key when a cluster does not specify its own key
-  clusterPullSecretKey: pull-secret
+    #dev01:
+    #  path: apc-platform/h/hcp/dev01/pullSecret
+    #  key: .dockerconfigjson
 
 # oc adm release info --image-for=cli
 ocImage: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8bda2b4d186c34f5cc0794037d2704b37731dab71a3a2363511831ec635e3f60

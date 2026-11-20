@@ -104,8 +104,7 @@ spec:
               mountPath: /vault
       containers:
         {{- range $cluster, $config := .Values.vault.clusterPullSecretPath }}
-        {{- $path := include "quay-config.clusterPullSecretPath" (dict "value" $config) }}
-        {{- $key := include "quay-config.clusterPullSecretKey" (dict "value" $config "default" $.Values.vault.clusterPullSecretKey) }}
+        {{- $path := include "quay-config.clusterPullSecretPath" (dict "config" $config) }}
         - name: {{ printf "init-robot-%s" (regexReplaceAll "[^a-zA-Z0-9]+" $cluster "-" | lower | trunc 63 | trimSuffix "-") }}
           image: {{ $.Values.ocImage }}
           imagePullPolicy: Always
@@ -128,7 +127,7 @@ spec:
               value: {{ print "no" | quote }}
             {{- end }}
             - name: CLUSTERVAULTKEY
-              value: {{ $key | quote }}
+              value: {{ $config.key | quote }}
           resources:
             {{- $.Values.resourcesOverride.postinstall | toYaml | nindent 12 }}
           securityContext:

@@ -39,7 +39,7 @@
     "clusterPullSecretConfig": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["path"],
+      "required": ["path", "key"],
       "properties": {
         "path": { "$ref": "#/$definitions/vaultPath" },
         "key": {
@@ -167,16 +167,8 @@
             "pattern": "^[A-Za-z][A-Za-z0-9._\\-]+$"
           },
           "additionalProperties": {
-            "oneOf": [
-              { "$ref": "#/$definitions/vaultPath" },
-              { "$ref": "#/$definitions/clusterPullSecretConfig" }
-            ]
+            "$ref": "#/$definitions/clusterPullSecretConfig"
           }
-        },
-        "clusterPullSecretKey": {
-          "type": "string",
-          "description": "Field name to update in each cluster Vault secret",
-          "minLength": 1
         }
       }
     },

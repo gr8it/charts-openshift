@@ -16,7 +16,7 @@ spec:
 
       {{- $refPathIsClusterPath := false }}
       {{- range $cluster, $config := $clusterPullSecretPath }}
-      {{- if eq $.Values.vault.refPullSecretPath (include "quay-config.clusterPullSecretPath" (dict "value" $config)) }}
+      {{- if eq $.Values.vault.refPullSecretPath (include "quay-config.clusterPullSecretPath" (dict "config" $config)) }}
       {{- $refPathIsClusterPath = true }}
       {{- end }}
       {{- end }}
@@ -34,7 +34,7 @@ spec:
       {{- end }}
 
       {{- range $cluster, $config := $clusterPullSecretPath }}
-      {{- $path := include "quay-config.clusterPullSecretPath" (dict "value" $config) }}
+      {{- $path := include "quay-config.clusterPullSecretPath" (dict "config" $config) }}
       {{- if $path }}
       path "{{ $path }}" {
         capabilities = ["create", "read", "update", "patch", "list"]
