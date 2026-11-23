@@ -370,6 +370,25 @@ manifests should match snapshot:
         app.kubernetes.io/name: apc-roles
         app.kubernetes.io/version: 1.0.0
         helm.sh/chart: apc-roles-1.0.1
+      name: apc_admins-cluster-admin
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-admin
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: ocp_admins_dev
+  21: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
       name: apc_operator-cluster-reader
     roleRef:
       apiGroup: rbac.authorization.k8s.io
@@ -379,7 +398,7 @@ manifests should match snapshot:
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: apc_operator_dev
-  21: |
+  22: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
@@ -398,7 +417,7 @@ manifests should match snapshot:
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: apc_operator_dev
-  22: |
+  23: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
@@ -417,7 +436,7 @@ manifests should match snapshot:
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: apc_operator_dev
-  23: |
+  24: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
@@ -436,7 +455,7 @@ manifests should match snapshot:
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: apc_operator_dev
-  24: |
+  25: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
@@ -455,7 +474,7 @@ manifests should match snapshot:
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: apc_operator_dev
-  25: |
+  26: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
@@ -474,7 +493,7 @@ manifests should match snapshot:
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: apc_operator_dev
-  26: |
+  27: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
@@ -493,7 +512,7 @@ manifests should match snapshot:
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: apc_operator_dev
-  27: |
+  28: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
@@ -512,7 +531,7 @@ manifests should match snapshot:
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: apc_secauditor_dev
-  28: |
+  29: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
@@ -531,7 +550,7 @@ manifests should match snapshot:
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: apc_secauditor_dev
-  29: |
+  30: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
@@ -550,7 +569,7 @@ manifests should match snapshot:
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: apc_secauditor_dev
-  30: |
+  31: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
@@ -569,7 +588,7 @@ manifests should match snapshot:
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: apc_secauditor_dev
-  31: |
+  32: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
@@ -588,7 +607,7 @@ manifests should match snapshot:
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: apc_secauditor_dev
-  32: |
+  33: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
@@ -607,7 +626,7 @@ manifests should match snapshot:
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: apc_secauditor_dev
-  33: |
+  34: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
@@ -626,7 +645,7 @@ manifests should match snapshot:
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: apc_secauditor_dev
-  34: |
+  35: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
@@ -646,7 +665,7 @@ manifests should match snapshot:
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: T1-APC-D ADMINISTRATOR
-  35: |
+  36: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
@@ -666,7 +685,7 @@ manifests should match snapshot:
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: T1-APC-D OPERATOR
-  36: |
+  37: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
@@ -686,7 +705,7 @@ manifests should match snapshot:
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: T1-APC-D SECAUDITOR
-  37: |
+  38: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
@@ -706,7 +725,7 @@ manifests should match snapshot:
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: apc_operator_dev
-  38: |
+  39: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
@@ -726,7 +745,7 @@ manifests should match snapshot:
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: apc_secauditor_dev
-  39: |
+  40: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:

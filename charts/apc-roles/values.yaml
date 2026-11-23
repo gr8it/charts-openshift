@@ -15,11 +15,11 @@ ldapAdminsGroupPrefix: ocp_admins
 adGroupPrefix: T1-APC
 roleNamePrefix: apc
 roleBindings:
-# IdP provider: ad or ldap
-# Format:
-# IdP:
-#   group:
-#     role: namespace
+  # IdP provider: ad or ldap
+  # Format:
+  # IdP:
+  #   group:
+  #     role: namespace
   ad:
     operator:
       monitoring-alertmanager-view: openshift-monitoring
@@ -34,11 +34,11 @@ roleBindings:
       monitoring-alertmanager-view: openshift-monitoring
 
 clusterRoleBindings:
-# IdP provider: ad or ldap
-# Format:
-# IdP:
-#   group:
-#     - clusterRole
+  # IdP provider: ad or ldap
+  # Format:
+  # IdP:
+  #   group:
+  #     - clusterRole
   ad:
     operator:
       - cluster-reader
@@ -79,3 +79,5 @@ clusterRoleBindings:
       - cluster-monitoring-view
       - netobserv-reader
       - netobserv-metrics-reader
+    admins:
+      - cluster-admin
