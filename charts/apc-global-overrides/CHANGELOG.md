@@ -5,6 +5,19 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-11-12
+
+### Fixed
+
+- Keep LDAP connection settings outside the attribute mappings in the deprecated integration helpers
+
+## [2.0.0] - 2026-10-15
+
+### Changed
+
+- Change `sshAuthorizedKeys` from a string to a list and add bundle helpers
+- Add the `identityProviders` helper and deprecate `adIntegration` and `ldapIntegration`
+
 ## [1.10.0] - 2026-08-03
 
 ### Added
@@ -35,6 +48,7 @@ _([SPEXAPC-13223](https://aspecta.atlassian.net/browse/SPEXAPC-13223))_
 ### Added
 
 - `apc-global-overrides.clusterRootDomain` helper
+- `apc-global-overrides.clusterRootDomain` helper
 
 ## [1.7.0] - 2026-02-13
 
@@ -45,13 +59,17 @@ _([SPEXAPC-7592](https://example.atlassian.net/browse/SPEXAPC-7592))_
 - `apc-global-overrides.crossplaneKubeKeycloakProviderConfigName` helper
 - `apc-global-overrides.keycloakUrl` helper
 - `apc-global-overrides.keycloakRealm` helper
+- `apc-global-overrides.crossplaneKubeKeycloakProviderConfigName` helper
+- `apc-global-overrides.keycloakUrl` helper
+- `apc-global-overrides.keycloakRealm` helper
 
 ## [1.6.0] - 2026-02-10
 
 _([SPEXAPC-8916](https://aspecta.atlassian.net/browse/SPEXAPC-8916))_
 
-### Added 
+### Added
 
+- `apc-global-overrides.metallbL2Interface` helper
 - `apc-global-overrides.metallbL2Interface` helper
 
 ## [1.5.0] - 2025-10-29
@@ -60,6 +78,7 @@ _([JIRA-6770](https://example.atlassian.net/browse/JIRA-6770))_
 
 ### Added
 
+- `apc-global-overrides.metallbNamespace` helper
 - `apc-global-overrides.metallbNamespace` helper
 - docs: currently supported configuration
 - docs: service specific helpers

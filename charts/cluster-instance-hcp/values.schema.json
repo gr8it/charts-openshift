@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "additionalProperties": false,
+  "required": ["clusterName"],
+  "properties": {
+    "nameOverride": { "type": "string" },
+    "fullnameOverride": { "type": "string" },
+    "global": { "type": "object" },
+    "apc-global-overrides": { "type": "object" },
+    "clusterName": { "type": "string", "minLength": 1 },
+    "clusterSet": { "type": "string", "minLength": 1 },
+    "releaseImage": { "type": "string" },
+    "identityProviders": { "type": "array", "items": { "type": "object" } },
+    "oseCliImageTag": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" },
+    "channel": { "type": "string" },
+    "apiServerAuditProfile": {
+      "type": "string",
+      "enum": ["None", "Default", "WriteRequestBodies", "AllRequestBodies"]
+    },
+    "infrastructureNamespace": { "type": "string" },
+    "kubeletConfig": { "type": "object" },
+    "logindConfig": { "type": "string" },
+    "tolerations": { "type": "array" },
+    "nodeSelector": { "type": "object" },
+    "etcd": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "storageClassName": { "type": "string" },
+        "storageSize": { "type": "string" },
+        "backup": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "schedule": { "type": "string", "minLength": 1 },
+            "paused": { "type": "boolean" },
+            "retentionDays": { "type": "integer", "minimum": 0 },
+            "etcdStatefulSetName": { "type": "string", "minLength": 1 },
+            "compressSnapshot": { "type": "boolean" },
+            "objectBucketClaim": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "create": { "type": "boolean" },
+                "name": { "type": "string" },
+                "storageClass": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "nodePool": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "releaseImage": { "type": "string" },
+        "replicas": { "type": "integer", "minimum": 1 },
+        "upgradeType": { "type": "string", "enum": ["InPlace", "Replace"] },
+        "autoRepair": { "type": "boolean" },
+        "nodeLabels": { "type": "object" }
+      }
+    },
+    "networking": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "clusterCIDR": { "type": "string" },
+        "clusterHostPrefix": { "type": "integer" },
+        "serviceCIDR": { "type": "string" }
+      }
+    },
+    "services": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["oauthPort", "konnectivityPort", "ignitionPort", "oidcPort"],
+      "properties": {
+        "oauthPort": { "type": "integer" },
+        "konnectivityPort": { "type": "integer" },
+        "ignitionPort": { "type": "integer" },
+        "oidcPort": { "type": "integer" }
+      }
+    },
+    "backup": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "schedule": { "type": "string", "minLength": 1 },
+        "paused": { "type": "boolean" },
+        "ttl": { "type": "string", "minLength": 1 }
+      }
+    },
+    "adIntegration": {
+      "type": "object"
+    },
+    "ldapIntegration": {
+      "type": "object"
+    }
+  }
+}

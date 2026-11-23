@@ -1,0 +1,37 @@
+apiVersion: agent-install.openshift.io/v1beta1
+kind: InfraEnv
+metadata:
+  name: {{ include "cluster-infraenv.infraEnvName" . }}
+  namespace: {{ include "cluster-infraenv.infraEnvName" . }}
+  labels:
+    {{- include "cluster-infraenv.labels" . | nindent 4 }}
+    agentclusterinstalls.extensions.hive.openshift.io/location: {{ .Values.location }}
+    networkType: static
+spec:
+  agentLabels:
+    environment: {{ .Values.agentEnvironment | default .Values.envName }}
+    agentclusterinstalls.extensions.hive.openshift.io/location: {{ .Values.location }}
+  cpuArchitecture: {{ .Values.cpuArchitecture }}
+  osImageVersion: {{ required "osImageVersion is required" .Values.osImageVersion | quote }}
+  ipxeScriptType: {{ .Values.ipxeScriptType }}
+  nmStateConfigLabelSelector:
+    matchLabels:
+      infraenvs.agent-install.openshift.io: {{ include "cluster-infraenv.infraEnvName" . }}
+  {{- if (include "apc-global-overrides.ntpServers" .) | fromYamlArray }}
+  additionalNTPSources:
+    {{- range (include "apc-global-overrides.ntpServers" . | fromYamlArray ) }}
+    - {{ . }}
+    {{- end }}
+  {{- end }}
+  {{- with (include "apc-global-overrides.proxy" .) }}
+  proxy:
+    httpProxy: {{ . }}
+    httpsProxy: {{ . }}
+    noProxy: {{ include "apc-global-overrides.noProxy" $ }}
+  {{- end }}
+  pullSecretRef:
+    name: pullsecret-{{ include "cluster-infraenv.infraEnvName" . }}
+  {{- $sshAuthorizedKeysBundle := include "apc-global-overrides.sshAuthorizedKeysBundle" . }}
+  {{- if $sshAuthorizedKeysBundle }}
+  sshAuthorizedKey: {{ $sshAuthorizedKeysBundle | quote }}
+  {{- end }}

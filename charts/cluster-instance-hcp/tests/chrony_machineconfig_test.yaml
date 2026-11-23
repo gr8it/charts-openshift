@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: cluster-instance-hcp chrony MachineConfig
+templates:
+  - templates/configmap-machineconfig-chrony.yaml
+values:
+  - ../values.lint.yaml
+release:
+  name: cluster-instance-hcp
+  namespace: mycluster
+
+tests:
+  - it: should omit the ConfigMap when NTP servers are empty
+    set:
+      global.apc.ntpServers: []
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should create the ConfigMap when NTP servers are configured
+    asserts:
+      - hasDocuments:
+          count: 1
