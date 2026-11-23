@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _If you are upgrading: please see [`UPGRADING.md`](UPGRADING.md)._
 
+## [2.6.0] - 2026-11-10
+
+_([SPEXAPC-26333](https://aspecta.atlassian.net/browse/SPEXAPC-26333))_
+
+_Upgrade from 2.5.0 only. Crossplane must be upgraded one minor version at a time._
+
+### Changed
+
+- Bump `Crossplane` to 2.4.3
+  - every installed provider and function gets a new package revision on upgrade, so their pods restart
+
+## [2.5.0] - 2026-11-10
+
+_([SPEXAPC-26333](https://aspecta.atlassian.net/browse/SPEXAPC-26333))_
+
+_Upgrade from 2.4.0 only. Crossplane must be upgraded one minor version at a time._
+
+### Changed
+
+- Bump `Crossplane` to 2.3.7
+
+## [2.4.0] - 2026-11-10
+
+_([SPEXAPC-26333](https://aspecta.atlassian.net/browse/SPEXAPC-26333))_
+
+_Upgrade from 2.3.0 only. Crossplane must be upgraded one minor version at a time._
+
+### Changed
+
+- Bump `Crossplane` to 2.2.7
+
+## [2.3.0] - 2026-10-05
+
+_([SPEXAPC-26333](https://aspecta.atlassian.net/browse/SPEXAPC-26333))_
+
+### Added
+
+- Added `monitoring-reminder` dependency to support configuring a `CrossplaneVaultTokenExpirySoon` reminder for the static Vault token used by the Crossplane vault provider
+- Added PodMonitor for Crossplane provider pods
+- Added `CrossplaneProviderDown`, `CrossplaneProviderMetricsDown`, `CrossplaneManagedResourcesNotSynced` and `CrossplaneManagedResourcesNotReady` alerts
+
+### Changed
+
+- Bumped `apc-global-overrides` to 1.10.0
+
+### Fixed
+
+- `CrossplaneControllerDown` and `CrossplaneRBACManagerDown` alerts fire also when the pod is running but its metrics cannot be scraped
+
 ## [2.2.2] - 2026-08-03
 
 _([SPEXAPC-21171](https://aspecta.atlassian.net/browse/SPEXAPC-21171))_

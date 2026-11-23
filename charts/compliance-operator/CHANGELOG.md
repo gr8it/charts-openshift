@@ -5,6 +5,16 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2026-11-09
+
+- Bump to compliance-operator.v1.10.1 (catalog head 2026-11-09)
+
+## [1.1.2] - 2026-10-29
+
+## Changed
+
+- upgrade of operator to 1.10.0, matches QA
+
 ## [1.1.1] - 2026-09-16
 
 ## Fixed

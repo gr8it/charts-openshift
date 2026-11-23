@@ -28,6 +28,10 @@ spec:
         - key: {{`"{{ request.object.metadata.name }}"`}}
           operator: Equals
           value: {{`"{{ request.object.metadata.namespace }}"`}}
+        # skip UPDATE, but don't set match.operations - an explicit operations list breaks the downstream cleanup on Application delete
+        - key: {{`"{{ request.operation }}"`}}
+          operator: NotEquals
+          value: UPDATE
       generate:
         orphanDownstreamOnPolicyDelete: true
         synchronize: true
@@ -93,6 +97,10 @@ spec:
         - key: {{`"{{ request.object.metadata.name }}"`}}
           operator: Equals
           value: {{`"{{ request.object.metadata.namespace }}"`}}
+        # skip UPDATE, but don't set match.operations - an explicit operations list breaks the downstream cleanup on Application delete
+        - key: {{`"{{ request.operation }}"`}}
+          operator: NotEquals
+          value: UPDATE
       generate:
         orphanDownstreamOnPolicyDelete: true
         # disable synchronize, or use server side apply = whole policy only!
@@ -125,6 +133,10 @@ spec:
         - key: {{`"{{ request.object.metadata.name }}"`}}
           operator: Equals
           value: {{`"{{ request.object.metadata.namespace }}"`}}
+        # skip UPDATE, but don't set match.operations - an explicit operations list breaks the downstream cleanup on Application delete
+        - key: {{`"{{ request.operation }}"`}}
+          operator: NotEquals
+          value: UPDATE
       generate:
         orphanDownstreamOnPolicyDelete: true
         synchronize: true

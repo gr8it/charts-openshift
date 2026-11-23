@@ -5,6 +5,16 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-11-10
+
+_([SPEXAPC-30540](https://aspecta.atlassian.net/browse/SPEXAPC-30540))_
+
+
+### Fixed
+
+- Duplicate instance report metrics (`PrometheusDuplicateTimestamps`) by bumping kube-state-metrics to `v2.20.0`; `v2.13.0` added a new custom resource store on every CRD discovery change ([kube-state-metrics#2502](https://github.com/kubernetes/kube-state-metrics/pull/2502))
+
+
 ## [1.2.0] - 2026-08-27
 
 _([SPEXAPC-3367](https://aspecta.atlassian.net/browse/SPEXAPC-3367))_

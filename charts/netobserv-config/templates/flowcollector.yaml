@@ -11,11 +11,23 @@ spec:
     type: eBPF
     ebpf:
       sampling: {{ .Values.flowCollector.agent.ebpf.sampling }}
+      {{- with .Values.flowCollector.agent.ebpf.features }}
+      features:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.flowCollector.agent.ebpf.privileged }}
+      privileged: true
+      {{- end }}
       resources:
         {{- toYaml .Values.flowCollector.agent.ebpf.resources | nindent 8 }}
   processor:
     resources:
       {{- toYaml .Values.flowCollector.processor.resources | nindent 6 }}
+    {{- with .Values.flowCollector.processor.healthRules }}
+    metrics:
+      healthRules:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
   loki:
     enable: true
     mode: LokiStack

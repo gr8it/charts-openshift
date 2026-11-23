@@ -37,3 +37,16 @@ tests:
       - equal:
           path: spec.groups[0].rules[8].expr
           value: 'absent(up{service="kyverno-reports-controller-metrics",namespace="alternate-kyverno"}) == 1'
+  - it: reports controller alert is not rendered when reports controller is disabled
+    set:
+      kyverno.reportsController.enabled: false
+    template: templates/prometheusrules.yaml
+    asserts:
+      - notContains:
+          path: spec.groups[0].rules
+          content:
+            alert: KyvernoReportsControllerDown
+          any: true
+      - lengthEqual:
+          path: spec.groups[0].rules
+          count: 11

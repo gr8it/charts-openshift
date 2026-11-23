@@ -5,6 +5,12 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.12.0] - 2026-09-28
+
+### Changed
+
+- OpenShift GitOps operator `gitops-1.17` / v1.17.0 → `gitops-1.21` / v1.21.4
+
 ## [2.11.1] - 2026-09-10
 
 ### Fixed

@@ -8,7 +8,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.11.1
+        helm.sh/chart: gitops-bootstrap-2.12.0
       name: global
       namespace: apc-bootstrap
     spec:
@@ -23,7 +23,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.11.1
+        helm.sh/chart: gitops-bootstrap-2.12.0
       name: apc-bootstrap
   3: |
     apiVersion: cluster.open-cluster-management.io/v1beta1
@@ -34,7 +34,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.11.1
+        helm.sh/chart: gitops-bootstrap-2.12.0
       name: gitops-bootstrap
       namespace: apc-bootstrap
     spec:
@@ -54,7 +54,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.11.1
+        helm.sh/chart: gitops-bootstrap-2.12.0
       name: gitops-bootstrap
       namespace: apc-bootstrap
     placementRef:
@@ -76,7 +76,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.11.1
+        helm.sh/chart: gitops-bootstrap-2.12.0
       name: gitops-bootstrap
       namespace: apc-bootstrap
     spec:
@@ -92,7 +92,7 @@ manifests should match snapshot:
               remediationAction: enforce
               severity: high
               subscription:
-                channel: gitops-1.17
+                channel: gitops-1.21
                 config:
                   env:
                     - name: DISABLE_DEFAULT_ARGOCD_INSTANCE
@@ -100,12 +100,15 @@ manifests should match snapshot:
                     - name: ARGOCD_CLUSTER_CONFIG_NAMESPACES
                       value: apc-gitops
                 name: openshift-gitops-operator
-                startingCSV: openshift-gitops-operator.v1.17.0
+                startingCSV: openshift-gitops-operator.v1.21.4
               upgradeApproval: Automatic
               versions:
+                - openshift-gitops-operator.v1.21.4
+                - openshift-gitops-operator.v1.21.3
+                - openshift-gitops-operator.v1.21.2
+                - openshift-gitops-operator.v1.21.1
+                - openshift-gitops-operator.v1.21.0
                 - openshift-gitops-operator.v1.17.0
-                - openshift-gitops-operator.v1.16.1
-                - openshift-gitops-operator.v1.16.2
         - extraDependencies:
             - apiVersion: policy.open-cluster-management.io/v1beta1
               compliance: Compliant
@@ -839,7 +842,7 @@ manifests should match snapshot:
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
         argocd.argoproj.io/secret-type: repo-creds
-        helm.sh/chart: gitops-bootstrap-2.11.1
+        helm.sh/chart: gitops-bootstrap-2.12.0
       name: null
       namespace: apc-bootstrap
     stringData:

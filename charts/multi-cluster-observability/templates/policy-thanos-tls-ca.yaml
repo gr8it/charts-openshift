@@ -1,0 +1,41 @@
+{{- if eq (include "apc-global-overrides.clusterIsHub" .) "true" }}
+apiVersion: kyverno.io/v1
+kind: Policy
+metadata:
+  name: generate-thanos-tls-ca-secret
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "multi-cluster-observability.labels" . | nindent 4 }}
+  annotations:
+    policies.kyverno.io/title: Generate Thanos TLS CA Secret
+    policies.kyverno.io/category: ODF
+    policies.kyverno.io/subject: Thanos Object Storage
+    policies.kyverno.io/minversion: 1.13.0
+spec:
+  background: true
+  rules:
+    - name: thanos-tls-ca
+      match:
+        all:
+          - resources:
+              kinds:
+                - ConfigMap
+              names:
+                - openshift-service-ca.crt
+      skipBackgroundRequests: true
+      generate:
+        generateExisting: true
+        synchronize: true
+        orphanDownstreamOnPolicyDelete: true
+        apiVersion: v1
+        kind: Secret
+        name: thanos-tls-ca
+        namespace: {{ .Release.Namespace }}
+        data:
+          metadata:
+            labels:
+              {{- include "multi-cluster-observability.labels" . | nindent 14 }}
+          type: Opaque
+          stringData:
+            service-ca.crt: '{{`{{ request.object.data."service-ca.crt" }}`}}'
+{{- end }}

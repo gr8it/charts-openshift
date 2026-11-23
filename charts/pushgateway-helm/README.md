@@ -32,7 +32,7 @@ The `pushgateway-helm` chart wraps the upstream `prometheus-pushgateway` Helm ch
 
 3. **Route** (OpenShift network route)
    - Public external endpoint for Pushgateway
-   - TLS termination: Reencrypt mode
+   - TLS termination: reencrypt mode
    - Points to OAuth proxy Service
 
 4. **Service for OAuth Proxy**
