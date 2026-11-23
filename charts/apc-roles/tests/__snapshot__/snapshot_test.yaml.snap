@@ -1,0 +1,744 @@
+manifests should match snapshot:
+  1: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_administrator_example-cluster-reader
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-reader
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: T1-APC-D ADMINISTRATOR
+  2: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_administrator_example-cluster-status
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-status
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: T1-APC-D ADMINISTRATOR
+  3: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_administrator_example-cluster-logging-application-view
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-logging-application-view
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: T1-APC-D ADMINISTRATOR
+  4: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_administrator_example-cluster-logging-infrastructure-view
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-logging-infrastructure-view
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: T1-APC-D ADMINISTRATOR
+  5: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_administrator_example-cluster-monitoring-view
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-monitoring-view
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: T1-APC-D ADMINISTRATOR
+  6: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_operator_example-cluster-reader
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-reader
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: T1-APC-D OPERATOR
+  7: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_operator_example-cluster-status
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-status
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: T1-APC-D OPERATOR
+  8: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_operator_example-cluster-logging-application-view
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-logging-application-view
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: T1-APC-D OPERATOR
+  9: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_operator_example-cluster-logging-infrastructure-view
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-logging-infrastructure-view
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: T1-APC-D OPERATOR
+  10: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_operator_example-cluster-monitoring-view
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-monitoring-view
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: T1-APC-D OPERATOR
+  11: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_operator_example-netobserv-reader
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: netobserv-reader
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: T1-APC-D OPERATOR
+  12: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_operator_example-netobserv-metrics-reader
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: netobserv-metrics-reader
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: T1-APC-D OPERATOR
+  13: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_secauditor_example-cluster-reader
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-reader
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: T1-APC-D SECAUDITOR
+  14: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_secauditor_example-cluster-logging-audit-view
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-logging-audit-view
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: T1-APC-D SECAUDITOR
+  15: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_secauditor_example-cluster-logging-application-view
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-logging-application-view
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: T1-APC-D SECAUDITOR
+  16: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_secauditor_example-cluster-logging-infrastructure-view
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-logging-infrastructure-view
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: T1-APC-D SECAUDITOR
+  17: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_secauditor_example-cluster-monitoring-view
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-monitoring-view
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: T1-APC-D SECAUDITOR
+  18: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_secauditor_example-netobserv-reader
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: netobserv-reader
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: T1-APC-D SECAUDITOR
+  19: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_secauditor_example-netobserv-metrics-reader
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: netobserv-metrics-reader
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: T1-APC-D SECAUDITOR
+  20: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_operator-cluster-reader
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-reader
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: apc_operator_dev
+  21: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_operator-cluster-status
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-status
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: apc_operator_dev
+  22: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_operator-cluster-logging-application-view
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-logging-application-view
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: apc_operator_dev
+  23: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_operator-cluster-logging-infrastructure-view
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-logging-infrastructure-view
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: apc_operator_dev
+  24: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_operator-cluster-monitoring-view
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-monitoring-view
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: apc_operator_dev
+  25: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_operator-netobserv-reader
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: netobserv-reader
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: apc_operator_dev
+  26: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_operator-netobserv-metrics-reader
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: netobserv-metrics-reader
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: apc_operator_dev
+  27: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_secauditor-cluster-reader
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-reader
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: apc_secauditor_dev
+  28: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_secauditor-cluster-logging-audit-view
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-logging-audit-view
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: apc_secauditor_dev
+  29: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_secauditor-cluster-logging-application-view
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-logging-application-view
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: apc_secauditor_dev
+  30: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_secauditor-cluster-logging-infrastructure-view
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-logging-infrastructure-view
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: apc_secauditor_dev
+  31: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_secauditor-cluster-monitoring-view
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-monitoring-view
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: apc_secauditor_dev
+  32: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_secauditor-netobserv-reader
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: netobserv-reader
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: apc_secauditor_dev
+  33: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_secauditor-netobserv-metrics-reader
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: netobserv-metrics-reader
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: apc_secauditor_dev
+  34: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_administrator_example-monitoring-alertmanager-view
+      namespace: openshift-monitoring
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: monitoring-alertmanager-view
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: T1-APC-D ADMINISTRATOR
+  35: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_operator_example-monitoring-alertmanager-view
+      namespace: openshift-monitoring
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: monitoring-alertmanager-view
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: T1-APC-D OPERATOR
+  36: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_secauditor_example-monitoring-alertmanager-view
+      namespace: openshift-monitoring
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: monitoring-alertmanager-view
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: T1-APC-D SECAUDITOR
+  37: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_operator-monitoring-alertmanager-view
+      namespace: openshift-monitoring
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: monitoring-alertmanager-view
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: apc_operator_dev
+  38: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: apc_secauditor-monitoring-alertmanager-view
+      namespace: openshift-monitoring
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: monitoring-alertmanager-view
+    subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: apc_secauditor_dev
+  39: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      labels:
+        app.kubernetes.io/instance: apc-roles
+        app.kubernetes.io/managed-by: ArgoCD
+        app.kubernetes.io/name: apc-roles
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: apc-roles-1.0.1
+      name: self-provisioners
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: self-provisioner
+    subjects: null

@@ -1,5 +1,6 @@
 {{- $adGroupPrefix := .Values.adGroupPrefix }}
 {{- $ldapGroupPrefix := .Values.ldapGroupPrefix }}
+{{- $ldapAdminsGroupPrefix := .Values.ldapAdminsGroupPrefix }}
 {{- $roleNamePrefix := .Values.roleNamePrefix }}
 {{- $customerCode := include "apc-global-overrides.customer" . }}
 {{- range $idps, $groups := .Values.clusterRoleBindings }}
@@ -25,7 +26,11 @@ subjects:
   {{- if eq $idps "ad" }}
   name: "{{ $adGroupPrefix }}-{{ include "apc-global-overrides.require-environmentShort" $ | upper }} {{ $group | upper }}"
   {{- else if eq $idps "ldap" }}
+  {{- if eq $group "admins" }}
+  name: {{ $ldapAdminsGroupPrefix }}_{{ include "apc-global-overrides.require-environment" $ }}
+  {{- else }}
   name: {{ $ldapGroupPrefix }}_{{ $group }}_{{ include "apc-global-overrides.require-environment" $ }}
+  {{- end }}
   {{- end }}
 ---
     {{- end}}
