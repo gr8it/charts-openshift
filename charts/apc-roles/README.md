@@ -21,4 +21,4 @@ Mapping between the user groups and roles, clusterRoles are defined in [values.y
 
 By default, the LDAP `admins` group is bound to the `cluster-admin` role. Its binding name uses `ldapAdminsGroupPrefix`, and its subject uses that prefix with the environment name.
 
-Set `projectRequestMessage` to customize the message shown when a user is denied a project request. It is empty by default, so the chart leaves the cluster's existing message unchanged.
+Set `projectRequestMessage` to customize the message shown when a user is denied a project request. It defaults to `Please contact cluster admins to request a new project.`, so the chart manages the cluster's message by default. Set it to an empty string before first deployment to avoid rendering the cluster Project configuration.
