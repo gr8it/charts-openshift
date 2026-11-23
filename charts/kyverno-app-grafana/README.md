@@ -8,7 +8,7 @@ The policy generates RBAC required for Grafana service accounts to read applicat
 
 ## What it creates
 
-The chart installs one Kyverno `GeneratingPolicy` (requires Kyverno >= 1.20) which:
+The chart installs one Kyverno `GeneratingPolicy` (requires Kyverno >= 1.19) which:
 
 - matches `grafana.integreatly.org` `Grafana` resources
 - excludes Grafana resources from the `apc-observability` namespace

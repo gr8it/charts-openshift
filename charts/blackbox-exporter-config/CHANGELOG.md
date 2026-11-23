@@ -9,8 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Breaking:** requires Kyverno >= 1.20; `blackbox-exporter-app-probe-promrules` migrated from `ClusterPolicy` to CEL `GeneratingPolicy` (`policies.kyverno.io/v1`), name kept so existing PrometheusRules are adopted
+- **Breaking:** requires Kyverno >= 1.19; `blackbox-exporter-app-probe-promrules` migrated from `ClusterPolicy` to CEL `GeneratingPolicy` (`policies.kyverno.io/v1`), name kept so existing PrometheusRules are adopted
 - removed the duplicate `description` annotation of `BBAppHttpCodeWarn` (rejected by the strict YAML parser of Kyverno templates); the effective value is unchanged
+- `blackbox-exporter-app-probe-promrules` keeps the generated resources when the policy is deleted (`orphanDownstreamOnPolicyDelete`), same as the pre-2.0.0 `ClusterPolicy`, so rolling back to the `ClusterPolicy` does not delete them
 
 _([SPEXAPC-32527](https://aspecta.atlassian.net/browse/SPEXAPC-32527))_
 

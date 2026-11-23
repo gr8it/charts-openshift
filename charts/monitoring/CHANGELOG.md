@@ -9,8 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Breaking:** requires Kyverno >= 1.20; `cluster-policy-application`, `cluster-policy-non-application` and `cluster-policy-cluster-monitoring` migrated from `ClusterPolicy` to CEL `GeneratingPolicy` (`policies.kyverno.io/v1`), names kept so existing PrometheusRules are adopted
+- **Breaking:** requires Kyverno >= 1.19; `cluster-policy-application`, `cluster-policy-non-application` and `cluster-policy-cluster-monitoring` migrated from `ClusterPolicy` to CEL `GeneratingPolicy` (`policies.kyverno.io/v1`), names kept so existing PrometheusRules are adopted
 - `files/namespace-rules.yaml` uses the Kyverno CEL placeholder `(( object.metadata.name ))` instead of JMESPath `{{ request.object.metadata.name }}` and no longer escapes `{{ $labels }}`
+- the three `GeneratingPolicies` keep the generated resources when the policy is deleted (`orphanDownstreamOnPolicyDelete`), same as the pre-2.0.0 `ClusterPolicy`, so rolling back to the `ClusterPolicy` does not delete them
 
 _([SPEXAPC-32527](https://aspecta.atlassian.net/browse/SPEXAPC-32527))_
 

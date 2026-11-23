@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Breaking:** requires Kyverno >= 1.20; the Argo CD sync trigger migrated from `ClusterPolicy` to CEL `MutatingPolicy` (`policies.kyverno.io/v1`) mutating the existing Application; it ignores the re-evaluation Kyverno runs on policy create/update, so deploying the policy does not trigger a sync
+- **Breaking:** requires Kyverno >= 1.19; the Argo CD sync trigger migrated from `ClusterPolicy` to CEL `MutatingPolicy` (`policies.kyverno.io/v1`) mutating the existing Application; it ignores the re-evaluation Kyverno runs on policy create/update, so deploying the policy does not trigger a sync
 
 _([SPEXAPC-32527](https://aspecta.atlassian.net/browse/SPEXAPC-32527))_
 

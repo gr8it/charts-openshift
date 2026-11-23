@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Breaking:** requires Kyverno >= 1.20; `ClusterPolicy` migrated to CEL `GeneratingPolicy` (`policies.kyverno.io/v1`), name kept so existing ClusterRoleBindings are adopted
-- background controller can get/list/watch ClusterRoleBindings (Kyverno >= 1.20 watches synchronized downstream resources)
+- **Breaking:** requires Kyverno >= 1.19, `ClusterPolicy` migrated to CEL, name kept so existing ClusterRoleBindings are adopted
+- background controller can get/list/watch ClusterRoleBindings (Kyverno >= 1.19 watches synchronized downstream resources)
 
 _([SPEXAPC-32527](https://aspecta.atlassian.net/browse/SPEXAPC-32527))_
 

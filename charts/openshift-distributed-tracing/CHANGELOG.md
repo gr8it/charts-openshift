@@ -9,9 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Breaking:** requires Kyverno >= 1.20; `ClusterPolicies` migrated to CEL policies (`policies.kyverno.io/v1`), names kept
+- **Breaking:** requires Kyverno >= 1.19; `ClusterPolicies` migrated to CEL policies (`policies.kyverno.io/v1`), names kept
 - `<stack>-generate-tenant-clusterrole` → `GeneratingPolicy` (existing ClusterRoles/ClusterRoleBindings are adopted)
 - `<stack>-tempo-sync-tenants` and `<stack>-tempo-cleanup-tenants` → `MutatingPolicy` mutating the existing TempoStack; tenant presence is checked on the TempoStack itself
+- `<stack>-generate-tenant-clusterrole` keeps the generated resources when the policy is deleted (`orphanDownstreamOnPolicyDelete`), same as the pre-2.0.0 `ClusterPolicy`, so rolling back to the `ClusterPolicy` does not delete them
 
 _([SPEXAPC-32527](https://aspecta.atlassian.net/browse/SPEXAPC-32527))_
 

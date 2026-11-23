@@ -3,7 +3,7 @@
 Helm chart that prepares OpenShift Application Data Protection (OADP) for application backups. It renders:
 
 - a Kyverno policy that generates the `DataProtectionApplication` (DPA) with two backup locations (backup and restore)
-- namespaced RBAC granting Kyverno permission to manage the DPA (plus cluster-wide read, as Kyverno >= 1.20 watches synchronized resources cluster-wide)
+- namespaced RBAC granting Kyverno permission to manage the DPA (plus cluster-wide read, as Kyverno >= 1.19 watches synchronized resources cluster-wide)
 - optional `ObjectBucketClaim` resources for Ceph RGW backed storage
 - a Kyverno policy that mirrors cloud credentials from `apc-backup` into `openshift-adp`
 - optional ServiceMonitor resources for Velero metrics
@@ -101,7 +101,7 @@ Put the backup override first (`dpa.backupLocations[0]`) and the restore overrid
 When `kyverno.enabled` is `true`:
 
 1. Source secret (`apc-backup/<default name>`) contains `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
-2. Kyverno `GeneratingPolicy` (Kyverno >= 1.20) generates / syncs a target secret in `openshift-adp` containing the `cloud` data expected by Velero.
+2. Kyverno `GeneratingPolicy` (Kyverno >= 1.19) generates / syncs a target secret in `openshift-adp` containing the `cloud` data expected by Velero.
 3. The DPA references the generated target secret for each backup location.
 
 You can override secret names via the `credentials.*` block if your naming does not follow the defaults (defaults resolve to `oadp-<cluster>-app-backup` / `oadp-<cluster>-app-backup-cloud-credentials` for backup and `oadp-<cluster>-app-restore` / `oadp-<cluster>-app-restore-cloud-credentials` for restore).

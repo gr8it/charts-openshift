@@ -6,7 +6,7 @@ metadata:
     {{- include "kyverno-app-grafana.labels" . | nindent 4 }}
     rbac.kyverno.io/aggregate-to-background-controller: "true"
 rules:
-# get/list/watch: Kyverno >= 1.20 watches synchronized downstream resources
+# get/list/watch: Kyverno >= 1.19 watches synchronized downstream resources
 - apiGroups: ["rbac.authorization.k8s.io"]
   resources: ["clusterrolebindings"]
   verbs: ["get", "list", "watch", "create", "update", "delete"]
