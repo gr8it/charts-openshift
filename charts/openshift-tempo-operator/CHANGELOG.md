@@ -5,6 +5,12 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-11-20
+
+### Changed
+
+- Bump to version tempo-operator.v0.22.0-5 with Automatic upgrade approval
+
 ## [1.2.0] - 2026-09-10
 
 ### Changed
