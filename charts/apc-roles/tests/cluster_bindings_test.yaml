@@ -1,0 +1,19 @@
+suite: Cluster bindings
+templates:
+  - templates/clusterBindings.yaml
+tests:
+  - it: binds the LDAP admins group to the default cluster-admin role
+    documentSelector:
+      path: metadata.name
+      value: ocp_admins-cluster-admin
+    set:
+      customer: example
+      environment: dev
+      environmentShort: d
+    asserts:
+      - equal:
+          path: roleRef.name
+          value: cluster-admin
+      - equal:
+          path: subjects[0].name
+          value: ocp_admins_dev

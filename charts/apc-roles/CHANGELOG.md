@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- prevent OpenShift from automatically restoring the `self-provisioners` binding subjects
+- support an optional custom project request denial message
 - added LDAP admins ClusterRoleBinding with configurable group prefix and chart values schema
 - disabled the default `self-provisioners` ClusterRoleBinding subjects
 - added snapshot unittest coverage

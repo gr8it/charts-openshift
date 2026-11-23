@@ -646,6 +646,13 @@ manifests should match snapshot:
         kind: Group
         name: apc_secauditor_dev
   35: |
+    apiVersion: config.openshift.io/v1
+    kind: Project
+    metadata:
+      name: cluster
+    spec:
+      projectRequestMessage: Please contact cluster admins to request a new project.
+  36: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
@@ -665,7 +672,7 @@ manifests should match snapshot:
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: T1-APC-D ADMINISTRATOR
-  36: |
+  37: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
@@ -685,7 +692,7 @@ manifests should match snapshot:
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: T1-APC-D OPERATOR
-  37: |
+  38: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
@@ -705,7 +712,7 @@ manifests should match snapshot:
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: T1-APC-D SECAUDITOR
-  38: |
+  39: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
@@ -725,7 +732,7 @@ manifests should match snapshot:
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: apc_operator_dev
-  39: |
+  40: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
@@ -745,10 +752,12 @@ manifests should match snapshot:
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: apc_secauditor_dev
-  40: |
+  41: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
+      annotations:
+        rbac.authorization.kubernetes.io/autoupdate: "false"
       labels:
         app.kubernetes.io/instance: apc-roles
         app.kubernetes.io/managed-by: ArgoCD
