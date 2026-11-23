@@ -36,7 +36,7 @@ For best practices / contributing rules see [CONTRIBUTING.md](.github/CONTRIBUTI
 
 ## Build a new/updated helm chart package
 
-> [!TIP]  
+> [!TIP]
 > Don't forget to update helm chart version in Chart.yaml! Otherwise the helm Chart will be skipped
 
 Run:
@@ -45,7 +45,7 @@ Run:
 make build
 ```
 
-> [!NOTE]  
+> [!NOTE]
 > Helm chart will be linted before packaging
 
 ### Helm chart lint
@@ -84,10 +84,10 @@ CHARTFOLDER=<chart dir name> make publish
 
 Where \<chart dir name\> is a directory name in the charts folder.
 
-> [!WARNING]  
+> [!WARNING]
 > Charts won't be pushed to destination if the same tag already exists! Either chart version must be increased, or the chart version deleted in the oci registry (usually using registry GUI)
 
-> [!NOTE]  
+> [!NOTE]
 > Under the hood the publish command uses `helm registry login` to authenticate to the registry
 
 ### Cleanup of decommission charts
@@ -104,7 +104,7 @@ make clean
 
 If there's any problem with the index file, it is possible to regenerate it from scratch.
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > This will rebuild the helm repository index removing any unlinked references and fixing any potential issues with the file. This also has an unintended consequence of updating the `created` timestamp of all the remaining charts in the repository.
 
 ```bash
@@ -124,7 +124,7 @@ helm search repo gr8it-openshift -l
 
 or replace main branch, with feature branch of your choice
 
-> [!NOTE]  
+> [!NOTE]
 > to get the URL, navigate to this repo on github.com, select README.md file, right click raw icon and select Copy link address (or similar) and remove the README.md part.
 
 ### Helm chart from remote location
@@ -137,7 +137,7 @@ helm template ad https://github.com/gr8it/charts/raw/main/active-directory-auth-
 
 or replace main branch, with feature branch of your choice
 
-> [!NOTE]  
+> [!NOTE]
 > to get the URL, navigate to this repo on github.com, select particular chart .tgz stored in packaged_charts/ directory, right click raw icon and select Copy link address (or similar)
 
 ## TODO
