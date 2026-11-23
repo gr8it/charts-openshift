@@ -3,9 +3,11 @@ templates:
   - templates/projectConfig.yaml
 tests:
   - it: does not render cluster project configuration when no request message is set
+    set:
+      projectRequestMessage: ""
     asserts:
       - hasDocuments:
-          count: 1
+          count: 0
 
   - it: sets the custom project request message
     set:
