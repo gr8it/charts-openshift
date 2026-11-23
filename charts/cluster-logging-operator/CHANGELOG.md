@@ -5,6 +5,12 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-11-18
+
+### Changed
+
+- Allow `cluster-logging.v6.4.7` in `stable-6.4`.
+
 ## [1.2.0] - 2026-09-07
 
 ### Changed
