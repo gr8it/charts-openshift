@@ -66,16 +66,36 @@ Validate that all values under clusterPullSecretPath are unique.
 */}}
 {{- define "quay-config.validateClusterPullSecretPath" -}}
 {{- $seen := dict }}
-{{- range $key, $val := .Values.vault.clusterPullSecretPath }}
-  {{- if $val }}
-  {{- if hasKey $seen $val }}
-    {{- fail (printf "clusterPullSecretPath: duplicate value %q used by both %q and %q — values must be distinct" $val (get $seen $val) $key) }}
+{{- range $key, $config := .Values.vault.clusterPullSecretPath }}
+  {{- $path := include "quay-config.clusterPullSecretPath" (dict "config" $config) }}
+  {{- if $path }}
+  {{- if hasKey $seen $path }}
+    {{- fail (printf "clusterPullSecretPath: duplicate value %q used by both %q and %q — values must be distinct" $path (get $seen $path) $key) }}
   {{- end }}
-  {{- $_ := set $seen $val $key }}
+  {{- $_ := set $seen $path $key }}
   {{- end }}
 {{- end }}
 {{- end }}
 
+{{/*
+Read the path from a per-cluster config.
+*/}}
+{{- define "quay-config.clusterPullSecretPath" -}}
+{{- .config.path | default "" -}}
+{{- end }}
+
+{{/*
+Return whether any cluster has a Vault path configured.
+*/}}
+{{- define "quay-config.hasClusterPullSecretPath" -}}
+{{- $hasPath := false }}
+{{- range $cluster, $config := .Values.vault.clusterPullSecretPath }}
+  {{- if include "quay-config.clusterPullSecretPath" (dict "config" $config) }}
+    {{- $hasPath = true }}
+  {{- end }}
+{{- end }}
+{{- if $hasPath }}true{{ end }}
+{{- end }}
 
 {{/*
 Insert path segment into vault path
