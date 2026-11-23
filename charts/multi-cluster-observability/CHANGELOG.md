@@ -4,7 +4,7 @@
 
 ### Changed
 
-- **Breaking:** requires Kyverno >= 1.19; `generate-thanos-object-storage-secret` and `generate-thanos-tls-ca-secret` migrated from namespaced `Policy` to CEL `NamespacedGeneratingPolicy` (`policies.kyverno.io/v1`), names kept so existing Secrets are adopted
+- **Breaking:** requires Kyverno >= 1.19, `generate-thanos-object-storage-secret` and `generate-thanos-tls-ca-secret` `Policies` migrated to CEL, names kept so existing Secrets are adopted
 
 _([SPEXAPC-32527](https://aspecta.atlassian.net/browse/SPEXAPC-32527))_
 

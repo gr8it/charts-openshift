@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Breaking:** requires Kyverno >= 1.19; `<namespace>-kuser-sync` migrated from `ClusterPolicy` to CEL `GeneratingPolicy` (`policies.kyverno.io/v1`), name kept so existing user Secrets are adopted; Secrets in namespaces removed from `appNs` are now deleted
+- **Breaking:** requires Kyverno >= 1.19, `<namespace>-kuser-sync` `ClusterPolicy` migrated to CEL, name kept so existing user Secrets are adopted; Secrets in namespaces removed from `appNs` are now deleted
 - `<namespace>-kuser-sync` keeps the generated resources when the policy is deleted (`orphanDownstreamOnPolicyDelete`), same as the pre-2.0.0 `ClusterPolicy`, so rolling back to the `ClusterPolicy` does not delete them
 
 _([SPEXAPC-32527](https://aspecta.atlassian.net/browse/SPEXAPC-32527))_

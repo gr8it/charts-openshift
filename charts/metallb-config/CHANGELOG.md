@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Breaking:** requires Kyverno >= 1.19; `patch-l2advertisement` migrated from `ClusterPolicy` to CEL `MutatingPolicy` (`policies.kyverno.io/v1`)
+- **Breaking:** requires Kyverno >= 1.19, `patch-l2advertisement` `ClusterPolicy` migrated to CEL
 
 _([SPEXAPC-32527](https://aspecta.atlassian.net/browse/SPEXAPC-32527))_
 

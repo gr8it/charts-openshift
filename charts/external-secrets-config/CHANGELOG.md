@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Breaking:** requires Kyverno >= 1.19; legacy `ClusterPolicy`/`ClusterCleanupPolicy` migrated to CEL policies (`policies.kyverno.io/v1`)
+- **Breaking:** requires Kyverno >= 1.19, `ClusterPolicy`/`ClusterCleanupPolicy` migrated to CEL
 - `app-project-eso-vault` → `GeneratingPolicy` for the synchronized SecretStore and auth-delegator ClusterRoleBinding (name kept, existing resources are adopted)
 - `vault-auth` ServiceAccount and AuthBackendRole moved to `app-project-eso-vault-sa` and `app-project-eso-vault-auth-backend-role`, created only when missing
 - `policy-svc-vie` → `GeneratingPolicy` (server-side apply), generated once the Backend reports its accessor

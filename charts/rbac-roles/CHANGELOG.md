@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Breaking:** requires Kyverno >= 1.19; `app-project-roles` migrated from `ClusterPolicy` to CEL `GeneratingPolicy` (`policies.kyverno.io/v1`), name kept so existing RoleBindings are adopted; the RoleBindings are rendered by Helm instead of Kyverno `foreach`
+- **Breaking:** requires Kyverno >= 1.19, `app-project-roles` `ClusterPolicy` migrated to CEL, name kept so existing RoleBindings are adopted; the RoleBindings are rendered by Helm instead of Kyverno `foreach`
 
 _([SPEXAPC-32527](https://aspecta.atlassian.net/browse/SPEXAPC-32527))_
 

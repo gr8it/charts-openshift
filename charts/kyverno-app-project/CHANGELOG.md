@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Breaking:** requires Kyverno >= 1.19; legacy `ClusterPolicy`/`ClusterCleanupPolicy` migrated to CEL policies (`policies.kyverno.io/v1`)
+- **Breaking:** requires Kyverno >= 1.19, `ClusterPolicy`/`ClusterCleanupPolicy` migrated to CEL
 - `app-project-internetproxy-cm` → `GeneratingPolicy` (name kept, existing ConfigMaps are adopted)
 - `app-project-limitrange` and `app-project-quotas` → one `GeneratingPolicy` per LimitRange/ResourceQuota (`app-project-limitrange`, `app-project-default-resource-quota`, `app-project-cnpg-custom-resource-quota`, `app-project-monitoring-quota`, `app-project-grafana-quota`, `app-project-kubevirt-cr-quota`), created only when missing so manual changes are kept
 - `app-project-namespace-metadata` → three `MutatingPolicy`: `app-project-namespace-metadata` (Namespace labels from the ConfigMap), `app-project-service-metadata` (Service labels on admission), `app-project-service-metadata-existing` (labels of existing Services)
