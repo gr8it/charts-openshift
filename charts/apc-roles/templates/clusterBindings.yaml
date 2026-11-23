@@ -12,7 +12,11 @@ metadata:
   {{- if eq $idps "ad" }}
   name: {{ printf "%s_%s_%s-%s" $roleNamePrefix $group $customerCode $role | trunc 63 | trimSuffix "-" }}
   {{- else if eq $idps "ldap" }}
+  {{- if eq $group "admins" }}
+  name: {{ printf "%s-%s" $ldapAdminsGroupPrefix $role | trunc 63 | trimSuffix "-" }}
+  {{- else }}
   name: {{ printf "%s_%s-%s" $roleNamePrefix $group $role | trunc 63 | trimSuffix "-" }}
+  {{- end }}
   {{- end }}
   labels:
   {{- include "apc-roles.labels" $ | nindent 4 }}
