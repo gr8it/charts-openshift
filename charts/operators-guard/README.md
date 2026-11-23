@@ -14,7 +14,12 @@ Design: [docs/02-design.md](https://github.com/gr8it/apc-operators-guard/blob/op
 - Only with `snapshot.repository`: Secret (`kubernetes.io/dockerconfigjson`) with Quay robot push credentials in the release namespace.
 - grafana-operator and a Grafana instance labeled `dashboards: <instanceName>` (when `grafanaDashboard.enabled`).
 - Egress to `access.redhat.com`, `api.openshift.com` and `catalog.redhat.com` (through `global.apc.proxy` when the cluster has no direct internet access).
-- Set `global.apc.proxy` and `global.apc.noProxy` in the conf repo when the hub needs a proxy. Set `global.apc.proxyCIDRs` to allow egress to that proxy from namespaces with default-deny egress.
+- Set `global.apc.proxy` and `global.apc.noProxy` in the conf repo when the hub needs a proxy. Set `global.apc.proxyCIDRs` to render a NetworkPolicy
+  allowing the collector's egress to that proxy (the APC BaselineAdminNetworkPolicy denies it otherwise).
+  That NetworkPolicy isolates the collector's egress, so all other egress must be allowed elsewhere: label the release namespace
+  `apc.namespace.type: platform` with `default-network-policies` `createPlatformPolicies: true` (its AdminNetworkPolicy allows in-cluster
+  and private-CIDR egress), or add NetworkPolicies for DNS, the Kubernetes API, `search-search-api` port 4010 and any `noProxy` host
+  the collector reaches directly (e.g. the snapshot registry).
 - Ingress to `search-search-api` (port 4010) in `open-cluster-management` from the release namespace
   (newer ACM versions restrict it with a NetworkPolicy).
 
@@ -26,7 +31,8 @@ Design: [docs/02-design.md](https://github.com/gr8it/apc-operators-guard/blob/op
 
 |Variable                     | Type | Default                                   | Notes |
 |:---                         |:---  |:---                                       |:---   |
-| image                       | str  | `ghcr.io/gr8it/operators-guard:0.12.0`    | readiness-engine container image (ghcr.io is private; mirror it to a registry the cluster can pull from) |
+| image.repository            | str  | `ghcr.io/gr8it/operators-guard`           | readiness-engine image repository (ghcr.io is private; mirror it to a registry the cluster can pull from) |
+| image.tag                   | str  | `""`                                      | Image tag; empty uses the chart `appVersion` |
 | imagePullSecrets            | list | `[]`                                      | Existing dockerconfigjson Secrets used to pull the image |
 | nodeSelector                | obj  | `{}`                                      | Optional pod nodeSelector |
 | global.apc.proxy            | str  | absent                                    | Optional egress proxy for HTTP and HTTPS, supplied by the conf repo |

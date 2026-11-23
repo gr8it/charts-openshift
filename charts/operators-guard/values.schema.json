@@ -14,9 +14,20 @@
       "description": "Overrides chart name used for resource names and app.kubernetes.io/name."
     },
     "image": {
-      "type": "string",
-      "description": "readiness-engine container image (default tag 0.12.0).",
-      "minLength": 1
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository"],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "description": "readiness-engine image repository.",
+          "minLength": 1
+        },
+        "tag": {
+          "type": "string",
+          "description": "Image tag; empty uses the chart appVersion."
+        }
+      }
     },
     "interval": {
       "type": "string",

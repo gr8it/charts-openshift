@@ -69,12 +69,23 @@ tests:
           path: spec.groups[0].rules[?(@.alert == "OperatorStalePendingInstallPlanNoTimestamp")].for
           value: 7d
 
+  - it: overrides the image tag
+    template: templates/deployment.yaml
+    set:
+      image.tag: 0.0.1-test
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: registry.example.com/apc/readiness-engine:0.0.1-test
+
   - it: uses the released engine image with history support
     template: templates/deployment.yaml
+    chart:
+      appVersion: 9.9.9
     asserts:
-      - matchRegex:
+      - equal:
           path: spec.template.spec.containers[0].image
-          pattern: 'readiness-engine:0\.12\.0$'
+          value: registry.example.com/apc/readiness-engine:9.9.9
       - contains:
           path: spec.template.spec.containers[0].args
           content: --history-keep=24
