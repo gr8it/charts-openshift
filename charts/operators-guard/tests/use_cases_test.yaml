@@ -101,6 +101,44 @@ tests:
           path: rules[4].verbs
           value: [get]
 
+  - it: lists hub PackageManifests by catalog label and name in openshift-marketplace
+    template: templates/packageManifestRole.yaml
+    asserts:
+      - equal:
+          path: metadata.namespace
+          value: openshift-marketplace
+      - equal:
+          path: rules[0].verbs
+          value: [list]
+
+  - it: gets hub CatalogSources in openshift-marketplace for the ClusterCatalog image match
+    template: templates/packageManifestRole.yaml
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: rules[1]
+          value:
+            apiGroups: [operators.coreos.com]
+            resources: [catalogsources]
+            verbs: [get]
+
+  - it: reads ClusterCatalogs and HostedClusters for catalog hop proofs
+    template: templates/clusterRole.yaml
+    documentIndex: 0
+    asserts:
+      - contains:
+          path: rules
+          content:
+            apiGroups: [hypershift.openshift.io]
+            resources: [hostedclusters]
+            verbs: [list]
+      - contains:
+          path: rules
+          content:
+            apiGroups: [olm.operatorframework.io]
+            resources: [clustercatalogs]
+            verbs: [get]
+
   - it: configures the local history limit
     template: templates/deployment.yaml
     set:

@@ -64,6 +64,18 @@ manifests should match snapshot:
           - get
           - create
           - delete
+      - apiGroups:
+          - hypershift.openshift.io
+        resources:
+          - hostedclusters
+        verbs:
+          - list
+      - apiGroups:
+          - olm.operatorframework.io
+        resources:
+          - clustercatalogs
+        verbs:
+          - get
   2: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
@@ -1045,6 +1057,12 @@ manifests should match snapshot:
           - packages.operators.coreos.com
         resources:
           - packagemanifests
+        verbs:
+          - list
+      - apiGroups:
+          - operators.coreos.com
+        resources:
+          - catalogsources
         verbs:
           - get
   7: |

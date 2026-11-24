@@ -7,6 +7,7 @@
 # Subscriptions, CSVs and Deployments (Helm operators) are listed; referenced InstallPlans are fetched by name.
 # PackageManifests of the hub are read with a Role in
 # openshift-marketplace (templates/packageManifestRole.yaml); managed clusters are read through ManagedClusterViews.
+# Catalog hop proofs read the hub ClusterCatalogs (catalogd) and HostedClusters (hosted control plane catalog).
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -39,3 +40,9 @@ rules:
 - apiGroups: ["view.open-cluster-management.io"]
   resources: ["managedclusterviews"]
   verbs:     ["get", "create", "delete"]
+- apiGroups: ["hypershift.openshift.io"]
+  resources: ["hostedclusters"]
+  verbs:     ["list"]
+- apiGroups: ["olm.operatorframework.io"]
+  resources: ["clustercatalogs"]
+  verbs:     ["get"]
