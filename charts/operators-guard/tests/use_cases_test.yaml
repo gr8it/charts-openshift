@@ -10,63 +10,63 @@ tests:
     template: templates/prometheusRule.yaml
     asserts:
       - equal:
-          path: spec.groups[0].rules[?(@.alert == "OperatorUnsupportedNow")].labels.owner
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardUnsupportedNow")].labels.owner
           value: "{{ $labels.owner }}"
       - equal:
-          path: spec.groups[0].rules[?(@.alert == "OperatorUnsupportedNow")].annotations.owner
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardUnsupportedNow")].annotations.owner
           value: "{{ $labels.owner }}"
       - notExists:
-          path: spec.groups[0].rules[?(@.alert == "OperatorReadinessCollectStale")].labels.owner
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardReadinessCollectStale")].labels.owner
 
   - it: alerts before and after exception expiry
     template: templates/prometheusRule.yaml
     asserts:
       - equal:
-          path: spec.groups[0].rules[?(@.alert == "OperatorExceptionExpiring")].alert
-          value: OperatorExceptionExpiring
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardExceptionExpiring")].alert
+          value: OperatorsGuardExceptionExpiring
       - equal:
-          path: spec.groups[0].rules[?(@.alert == "OperatorExceptionExpiring")].labels.owner
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardExceptionExpiring")].labels.owner
           value: "{{ $labels.owner }}"
       - equal:
-          path: spec.groups[0].rules[?(@.alert == "OperatorExceptionExpired")].alert
-          value: OperatorExceptionExpired
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardExceptionExpired")].alert
+          value: OperatorsGuardExceptionExpired
       - equal:
-          path: spec.groups[0].rules[?(@.alert == "OperatorExceptionExpired")].labels.severity
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardExceptionExpired")].labels.severity
           value: warning
 
   - it: alerts on a prediction mismatch and keeps the owner
     template: templates/prometheusRule.yaml
     asserts:
       - equal:
-          path: spec.groups[0].rules[?(@.alert == "OperatorPredictionMismatch")].alert
-          value: OperatorPredictionMismatch
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardPredictionMismatch")].alert
+          value: OperatorsGuardPredictionMismatch
       - equal:
-          path: spec.groups[0].rules[?(@.alert == "OperatorPredictionMismatch")].expr
-          value: operator_prediction_mismatch == 1
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardPredictionMismatch")].expr
+          value: operator_prediction_mismatch{namespace="apc-operator-readiness"} == 1
       - equal:
-          path: spec.groups[0].rules[?(@.alert == "OperatorPredictionMismatch")].labels.owner
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardPredictionMismatch")].labels.owner
           value: "{{ $labels.owner }}"
 
   - it: alerts on a stale pending plan older than 14 days
     template: templates/prometheusRule.yaml
     asserts:
       - equal:
-          path: spec.groups[0].rules[?(@.alert == "OperatorStalePendingInstallPlan")].labels.owner
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardStalePendingInstallPlan")].labels.owner
           value: "{{ $labels.owner }}"
       - equal:
-          path: spec.groups[0].rules[?(@.alert == "OperatorStalePendingInstallPlan")].labels.severity
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardStalePendingInstallPlan")].labels.severity
           value: info
       - matchRegex:
-          path: spec.groups[0].rules[?(@.alert == "OperatorStalePendingInstallPlan")].expr
-          pattern: '^operator_prediction_stale_plan == 1 and on\(cluster, exported_namespace, subscription, package, installed, channel, owner\) operator_prediction_plan_age_days > 14$'
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardStalePendingInstallPlan")].expr
+          pattern: '^operator_prediction_stale_plan\{namespace="apc-operator-readiness"\} == 1 and on\(cluster, exported_namespace, subscription, package, installed, channel, owner\) operator_prediction_plan_age_days\{namespace="apc-operator-readiness"\} > 14$'
       - equal:
-          path: spec.groups[0].rules[?(@.alert == "OperatorStalePendingInstallPlan")].for
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardStalePendingInstallPlan")].for
           value: 1h
       - matchRegex:
-          path: spec.groups[0].rules[?(@.alert == "OperatorStalePendingInstallPlanNoTimestamp")].expr
-          pattern: '^operator_prediction_stale_plan == 1 unless on\(cluster, exported_namespace, subscription, package, installed, channel, owner\) operator_prediction_plan_age_days$'
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardStalePendingInstallPlanNoTimestamp")].expr
+          pattern: '^operator_prediction_stale_plan\{namespace="apc-operator-readiness"\} == 1 unless on\(cluster, exported_namespace, subscription, package, installed, channel, owner\) operator_prediction_plan_age_days\{namespace="apc-operator-readiness"\}$'
       - equal:
-          path: spec.groups[0].rules[?(@.alert == "OperatorStalePendingInstallPlanNoTimestamp")].for
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardStalePendingInstallPlanNoTimestamp")].for
           value: 7d
 
   - it: overrides the image tag
@@ -287,7 +287,7 @@ tests:
     template: templates/prometheusRule.yaml
     asserts:
       - matchRegex:
-          path: spec.groups[0].rules[?(@.alert == "OperatorReadinessCollectStale")].expr
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardReadinessCollectStale")].expr
           pattern: '> 10800$'
 
   - it: derives the stale threshold from a 6 h interval in the alert and the dashboard
@@ -296,11 +296,11 @@ tests:
     asserts:
       - template: templates/prometheusRule.yaml
         matchRegex:
-          path: spec.groups[0].rules[?(@.alert == "OperatorReadinessCollectStale")].expr
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardReadinessCollectStale")].expr
           pattern: '> 64800$'
       - template: templates/prometheusRule.yaml
         matchRegex:
-          path: spec.groups[0].rules[?(@.alert == "OperatorReadinessCollectStale")].annotations.description
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardReadinessCollectStale")].annotations.description
           pattern: 'more than 18 hours'
       - template: templates/grafanaDashboard.yaml
         matchRegex:
@@ -313,7 +313,7 @@ tests:
       interval: 15m
     asserts:
       - matchRegex:
-          path: spec.groups[0].rules[?(@.alert == "OperatorReadinessCollectStale")].expr
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardReadinessCollectStale")].expr
           pattern: '> 10800$'
 
   - it: sets the node selector

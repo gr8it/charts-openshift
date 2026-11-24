@@ -38,7 +38,7 @@ Design: [docs/02-design.md](https://github.com/gr8it/apc-operators-guard/blob/op
 | global.apc.proxy            | str  | absent                                    | Optional egress proxy for HTTP and HTTPS, supplied by the conf repo |
 | global.apc.noProxy          | str  | absent                                    | Additional bypass hosts; the chart appends `.svc`, `.cluster.local` and the API service IP |
 | global.apc.proxyCIDRs       | list | `[]`                                      | Proxy CIDRs allowed by the optional egress NetworkPolicy |
-| interval                    | str  | `1h`                                      | Collector interval: `h`, `m`, `s` in this order, each at most once (`1h`, `30m`, `1h30m`); `OperatorReadinessCollectStale` fires after three intervals, at least 3 h |
+| interval                    | str  | `1h`                                      | Collector interval: `h`, `m`, `s` in this order, each at most once (`1h`, `30m`, `1h30m`); `OperatorsGuardReadinessCollectStale` fires after three intervals, at least 3 h |
 | brief.enabled               | bool | `false` | Write `brief.md` and `pins.yaml` to `/var/cache/readiness/brief` beside the snapshot; copy them out before the pod restarts. Uses the existing cache and RBAC. |
 | historyKeep                 | int  | `24`                                      | Report-only local history entries; `0` disables. The cache is an `emptyDir`, so history is lost on pod restart. A chart change would be needed to mount a PVC. |
 | policy                      | obj  |                                           | Readiness policy, `policy.strategy` is mandatory (`eus`, `next-minor`, `pinned`) |
@@ -55,8 +55,8 @@ Design: [docs/02-design.md](https://github.com/gr8it/apc-operators-guard/blob/op
 
 The ClusterRole gets hub InstallPlans by name when a Subscription references one. Managed cluster reads use named ManagedClusterViews.
 
-Metrics, including the `readiness_engine_predictions` gauge, are listed in [engine/README.md](https://github.com/gr8it/apc-operators-guard/blob/operators-guard-chart-0.11.0/engine/README.md#metrics). Alerts: `OperatorUnsupportedNow`,
-`OperatorUpgradeBlocker`, `OperatorSupportEnded`, `OperatorBelowMinVersion`, `OperatorPinStale`, `OperatorVersionBehind`, `OperatorPredictionMismatch`, `OperatorStalePendingInstallPlan` (known plan age over 14 days, `for: 1h`), `OperatorStalePendingInstallPlanNoTimestamp` (unknown age, `for: 7d`), `OperatorExceptionExpiring` (0–29 days left), `OperatorExceptionExpired`, `OperatorReadinessCollectStale`, `OperatorReadinessNoData`, `OperatorReadinessSourceDown`.
+Metrics, including the `readiness_engine_predictions` gauge, are listed in [engine/README.md](https://github.com/gr8it/apc-operators-guard/blob/operators-guard-chart-0.11.0/engine/README.md#metrics). Alerts: `OperatorsGuardUnsupportedNow`,
+`OperatorsGuardUpgradeBlocker`, `OperatorsGuardSupportEnded`, `OperatorsGuardBelowMinVersion`, `OperatorsGuardPinStale`, `OperatorsGuardVersionBehind`, `OperatorsGuardPredictionMismatch`, `OperatorsGuardStalePendingInstallPlan` (known plan age over 14 days, `for: 1h`), `OperatorsGuardStalePendingInstallPlanNoTimestamp` (unknown age, `for: 7d`), `OperatorsGuardExceptionExpiring` (0–29 days left), `OperatorsGuardExceptionExpired`, `OperatorsGuardReadinessCollectStale`, `OperatorsGuardReadinessNoData`, `OperatorsGuardReadinessSourceDown`.
 Operator alerts carry the metric's `owner` label; the dashboard can filter by owner.
 
 The reports (`/`, `/summary`, `/report`, `/history`, `/diff`) have no authentication, so the engine serves them only on

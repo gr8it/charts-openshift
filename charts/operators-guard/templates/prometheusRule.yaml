@@ -13,8 +13,8 @@ spec:
   groups:
   - name: operators-guard.rules
     rules:
-      - alert: OperatorUnsupportedNow
-        expr: operator_upgrade_readiness{scope="current", status="BLOCKER"} == 1
+      - alert: OperatorsGuardUnsupportedNow
+        expr: operator_upgrade_readiness{namespace="{{ .Release.Namespace }}", scope="current", status="BLOCKER"} == 1
         for: 1h
         labels:
           severity: critical
@@ -25,8 +25,8 @@ spec:
           owner: "{{`{{ $labels.owner }}`}}"
           summary: "Operator is not supported on the running OpenShift version"
           description: "{{`{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }} is not supported on the current OCP minor (evidence: {{ $labels.evidence }}).`}}"
-      - alert: OperatorUpgradeBlocker
-        expr: operator_upgrade_readiness{scope="target", status="BLOCKER"} == 1
+      - alert: OperatorsGuardUpgradeBlocker
+        expr: operator_upgrade_readiness{namespace="{{ .Release.Namespace }}", scope="target", status="BLOCKER"} == 1
         for: 1h
         labels:
           severity: warning
@@ -38,8 +38,8 @@ spec:
           summary: "Operator blocks the OpenShift upgrade"
           description: "{{`{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }} blocks upgrade to OCP {{ $labels.target_ocp }} (evidence: {{ $labels.evidence }}).`}}"
       # drift: operator_drift_status{status} - see engine/README.md; thresholds come from policy.drift / policy.minVersions
-      - alert: OperatorSupportEnded
-        expr: operator_drift_status{status="SUPPORT-ENDED"} == 1
+      - alert: OperatorsGuardSupportEnded
+        expr: operator_drift_status{namespace="{{ .Release.Namespace }}", status="SUPPORT-ENDED"} == 1
         for: 24h
         labels:
           severity: warning
@@ -50,8 +50,8 @@ spec:
           owner: "{{`{{ $labels.owner }}`}}"
           summary: "Vendor support of the installed operator version has ended"
           description: "{{`{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }}: vendor support of this version line has ended.`}}"
-      - alert: OperatorBelowMinVersion
-        expr: operator_below_min_version == 1
+      - alert: OperatorsGuardBelowMinVersion
+        expr: operator_below_min_version{namespace="{{ .Release.Namespace }}"} == 1
         for: 1h
         labels:
           severity: warning
@@ -62,8 +62,8 @@ spec:
           owner: "{{`{{ $labels.owner }}`}}"
           summary: "Installed operator is below the version the platform requires"
           description: "{{`{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }} is below policy.minVersions.`}}"
-      - alert: OperatorPinStale
-        expr: operator_pin_stale == 1
+      - alert: OperatorsGuardPinStale
+        expr: operator_pin_stale{namespace="{{ .Release.Namespace }}"} == 1
         for: 7d
         labels:
           severity: info
@@ -74,8 +74,8 @@ spec:
           owner: "{{`{{ $labels.owner }}`}}"
           summary: "OperatorPolicy versions[] does not cover the newest catalog version"
           description: "{{`The OperatorPolicy of {{ $labels.package }} on cluster {{ $labels.cluster }} (installed {{ $labels.installed }}) lacks the channel head or the pending InstallPlan CSV in versions[].`}}"
-      - alert: OperatorVersionBehind
-        expr: operator_drift_status{status="BEHIND"} == 1
+      - alert: OperatorsGuardVersionBehind
+        expr: operator_drift_status{namespace="{{ .Release.Namespace }}", status="BEHIND"} == 1
         for: 7d
         labels:
           severity: info
@@ -86,8 +86,8 @@ spec:
           owner: "{{`{{ $labels.owner }}`}}"
           summary: "Newer operator version has been available for longer than policy.drift.maxDaysBehind"
           description: "{{`{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }} is behind its channel.`}}"
-      - alert: OperatorPredictionMismatch
-        expr: operator_prediction_mismatch == 1
+      - alert: OperatorsGuardPredictionMismatch
+        expr: operator_prediction_mismatch{namespace="{{ .Release.Namespace }}"} == 1
         for: 1h
         labels:
           severity: warning
@@ -98,8 +98,8 @@ spec:
           owner: "{{`{{ $labels.owner }}`}}"
           summary: "Observed OLM CSV is outside the channel graph"
           description: "{{`{{ $labels.package }} on cluster {{ $labels.cluster }} has a CSV that is not a valid next step from the installed CSV; review the InstallPlan and channel graph before approval.`}}"
-      - alert: OperatorStalePendingInstallPlan
-        expr: operator_prediction_stale_plan == 1 and on(cluster, exported_namespace, subscription, package, installed, channel, owner) operator_prediction_plan_age_days > 14
+      - alert: OperatorsGuardStalePendingInstallPlan
+        expr: operator_prediction_stale_plan{namespace="{{ .Release.Namespace }}"} == 1 and on(cluster, exported_namespace, subscription, package, installed, channel, owner) operator_prediction_plan_age_days{namespace="{{ .Release.Namespace }}"} > 14
         for: 1h
         labels:
           severity: info
@@ -110,8 +110,8 @@ spec:
           owner: "{{`{{ $labels.owner }}`}}"
           summary: "Pending InstallPlan was resolved against an older catalog head"
           description: "{{`{{ $labels.package }} on cluster {{ $labels.cluster }}: pending InstallPlan was resolved against an older catalog head; review and approve or delete it; OLM then re-resolves.`}}"
-      - alert: OperatorStalePendingInstallPlanNoTimestamp
-        expr: operator_prediction_stale_plan == 1 unless on(cluster, exported_namespace, subscription, package, installed, channel, owner) operator_prediction_plan_age_days
+      - alert: OperatorsGuardStalePendingInstallPlanNoTimestamp
+        expr: operator_prediction_stale_plan{namespace="{{ .Release.Namespace }}"} == 1 unless on(cluster, exported_namespace, subscription, package, installed, channel, owner) operator_prediction_plan_age_days{namespace="{{ .Release.Namespace }}"}
         for: 7d
         labels:
           severity: info
@@ -122,8 +122,8 @@ spec:
           owner: "{{`{{ $labels.owner }}`}}"
           summary: "Pending InstallPlan has no readable creation time"
           description: "{{`{{ $labels.package }} on cluster {{ $labels.cluster }} has a stale pending InstallPlan with no readable creation time; review its channel and plan before approval.`}}"
-      - alert: OperatorExceptionExpiring
-        expr: readiness_exception_days_left < 30 and readiness_exception_days_left >= 0
+      - alert: OperatorsGuardExceptionExpiring
+        expr: readiness_exception_days_left{namespace="{{ .Release.Namespace }}"} < 30 and readiness_exception_days_left{namespace="{{ .Release.Namespace }}"} >= 0
         labels:
           severity: warning
           vendor: aspecta
@@ -133,8 +133,8 @@ spec:
           owner: "{{`{{ $labels.owner }}`}}"
           summary: "Operator exception expires within 30 days"
           description: "{{`Exception for {{ $labels.package }} expires in {{ $value }} days.`}}"
-      - alert: OperatorExceptionExpired
-        expr: readiness_exception_days_left < 0
+      - alert: OperatorsGuardExceptionExpired
+        expr: readiness_exception_days_left{namespace="{{ .Release.Namespace }}"} < 0
         labels:
           severity: warning
           vendor: aspecta
@@ -144,7 +144,7 @@ spec:
           owner: "{{`{{ $labels.owner }}`}}"
           summary: "Operator exception has expired"
           description: "{{`Exception for {{ $labels.package }} has expired ({{ $value }} days left).`}}"
-      - alert: OperatorReadinessCollectStale
+      - alert: OperatorsGuardReadinessCollectStale
         expr: time() - readiness_engine_last_success_timestamp_seconds{namespace="{{ .Release.Namespace }}"} > {{ include "operators-guard.staleSeconds" . }}
         labels:
           severity: warning
@@ -155,7 +155,7 @@ spec:
           description: "readiness-engine in {{ .Release.Namespace }} has not completed a successful collect for more than {{ div (include "operators-guard.staleSeconds" . | int) 3600 }} hours (three collect intervals, at least 3); readiness results and the CI snapshot are outdated."
       # the pod is not ready (and not scraped) until the first successful collect,
       # so a collector that never succeeds shows up only as missing data
-      - alert: OperatorReadinessNoData
+      - alert: OperatorsGuardReadinessNoData
         expr: absent(readiness_engine_last_success_timestamp_seconds{namespace="{{ .Release.Namespace }}"})
         for: 30m
         labels:
@@ -165,7 +165,7 @@ spec:
         annotations:
           summary: "Operator readiness collector has no data"
           description: "readiness-engine in {{ .Release.Namespace }} has not completed any successful collect for 30 minutes (pod not ready or not scraped). Check the pod logs."
-      - alert: OperatorReadinessSourceDown
+      - alert: OperatorsGuardReadinessSourceDown
         expr: readiness_engine_source_up{namespace="{{ .Release.Namespace }}"} == 0
         for: 6h
         labels:

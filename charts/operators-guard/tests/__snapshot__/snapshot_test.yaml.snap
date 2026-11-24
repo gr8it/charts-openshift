@@ -151,10 +151,10 @@ manifests should match snapshot:
               resources:
                 limits:
                   cpu: "1"
-                  memory: 2Gi
+                  memory: 1Gi
                 requests:
                   cpu: 200m
-                  memory: 1Gi
+                  memory: 256Mi
               securityContext:
                 allowPrivilegeEscalation: false
                 capabilities:
@@ -1094,137 +1094,137 @@ manifests should match snapshot:
       groups:
         - name: operators-guard.rules
           rules:
-            - alert: OperatorUnsupportedNow
+            - alert: OperatorsGuardUnsupportedNow
               annotations:
                 description: '{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }} is not supported on the current OCP minor (evidence: {{ $labels.evidence }}).'
                 owner: '{{ $labels.owner }}'
                 summary: Operator is not supported on the running OpenShift version
-              expr: operator_upgrade_readiness{scope="current", status="BLOCKER"} == 1
+              expr: operator_upgrade_readiness{namespace="apc-operator-readiness", scope="current", status="BLOCKER"} == 1
               for: 1h
               labels:
                 owner: '{{ $labels.owner }}'
                 severity: critical
                 team: platform
                 vendor: aspecta
-            - alert: OperatorUpgradeBlocker
+            - alert: OperatorsGuardUpgradeBlocker
               annotations:
                 description: '{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }} blocks upgrade to OCP {{ $labels.target_ocp }} (evidence: {{ $labels.evidence }}).'
                 owner: '{{ $labels.owner }}'
                 summary: Operator blocks the OpenShift upgrade
-              expr: operator_upgrade_readiness{scope="target", status="BLOCKER"} == 1
+              expr: operator_upgrade_readiness{namespace="apc-operator-readiness", scope="target", status="BLOCKER"} == 1
               for: 1h
               labels:
                 owner: '{{ $labels.owner }}'
                 severity: warning
                 team: platform
                 vendor: aspecta
-            - alert: OperatorSupportEnded
+            - alert: OperatorsGuardSupportEnded
               annotations:
                 description: '{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }}: vendor support of this version line has ended.'
                 owner: '{{ $labels.owner }}'
                 summary: Vendor support of the installed operator version has ended
-              expr: operator_drift_status{status="SUPPORT-ENDED"} == 1
+              expr: operator_drift_status{namespace="apc-operator-readiness", status="SUPPORT-ENDED"} == 1
               for: 24h
               labels:
                 owner: '{{ $labels.owner }}'
                 severity: warning
                 team: platform
                 vendor: aspecta
-            - alert: OperatorBelowMinVersion
+            - alert: OperatorsGuardBelowMinVersion
               annotations:
                 description: '{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }} is below policy.minVersions.'
                 owner: '{{ $labels.owner }}'
                 summary: Installed operator is below the version the platform requires
-              expr: operator_below_min_version == 1
+              expr: operator_below_min_version{namespace="apc-operator-readiness"} == 1
               for: 1h
               labels:
                 owner: '{{ $labels.owner }}'
                 severity: warning
                 team: platform
                 vendor: aspecta
-            - alert: OperatorPinStale
+            - alert: OperatorsGuardPinStale
               annotations:
                 description: The OperatorPolicy of {{ $labels.package }} on cluster {{ $labels.cluster }} (installed {{ $labels.installed }}) lacks the channel head or the pending InstallPlan CSV in versions[].
                 owner: '{{ $labels.owner }}'
                 summary: OperatorPolicy versions[] does not cover the newest catalog version
-              expr: operator_pin_stale == 1
+              expr: operator_pin_stale{namespace="apc-operator-readiness"} == 1
               for: 7d
               labels:
                 owner: '{{ $labels.owner }}'
                 severity: info
                 team: platform
                 vendor: aspecta
-            - alert: OperatorVersionBehind
+            - alert: OperatorsGuardVersionBehind
               annotations:
                 description: '{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }} is behind its channel.'
                 owner: '{{ $labels.owner }}'
                 summary: Newer operator version has been available for longer than policy.drift.maxDaysBehind
-              expr: operator_drift_status{status="BEHIND"} == 1
+              expr: operator_drift_status{namespace="apc-operator-readiness", status="BEHIND"} == 1
               for: 7d
               labels:
                 owner: '{{ $labels.owner }}'
                 severity: info
                 team: platform
                 vendor: aspecta
-            - alert: OperatorPredictionMismatch
+            - alert: OperatorsGuardPredictionMismatch
               annotations:
                 description: '{{ $labels.package }} on cluster {{ $labels.cluster }} has a CSV that is not a valid next step from the installed CSV; review the InstallPlan and channel graph before approval.'
                 owner: '{{ $labels.owner }}'
                 summary: Observed OLM CSV is outside the channel graph
-              expr: operator_prediction_mismatch == 1
+              expr: operator_prediction_mismatch{namespace="apc-operator-readiness"} == 1
               for: 1h
               labels:
                 owner: '{{ $labels.owner }}'
                 severity: warning
                 team: platform
                 vendor: aspecta
-            - alert: OperatorStalePendingInstallPlan
+            - alert: OperatorsGuardStalePendingInstallPlan
               annotations:
                 description: '{{ $labels.package }} on cluster {{ $labels.cluster }}: pending InstallPlan was resolved against an older catalog head; review and approve or delete it; OLM then re-resolves.'
                 owner: '{{ $labels.owner }}'
                 summary: Pending InstallPlan was resolved against an older catalog head
-              expr: operator_prediction_stale_plan == 1 and on(cluster, exported_namespace, subscription, package, installed, channel, owner) operator_prediction_plan_age_days > 14
+              expr: operator_prediction_stale_plan{namespace="apc-operator-readiness"} == 1 and on(cluster, exported_namespace, subscription, package, installed, channel, owner) operator_prediction_plan_age_days{namespace="apc-operator-readiness"} > 14
               for: 1h
               labels:
                 owner: '{{ $labels.owner }}'
                 severity: info
                 team: platform
                 vendor: aspecta
-            - alert: OperatorStalePendingInstallPlanNoTimestamp
+            - alert: OperatorsGuardStalePendingInstallPlanNoTimestamp
               annotations:
                 description: '{{ $labels.package }} on cluster {{ $labels.cluster }} has a stale pending InstallPlan with no readable creation time; review its channel and plan before approval.'
                 owner: '{{ $labels.owner }}'
                 summary: Pending InstallPlan has no readable creation time
-              expr: operator_prediction_stale_plan == 1 unless on(cluster, exported_namespace, subscription, package, installed, channel, owner) operator_prediction_plan_age_days
+              expr: operator_prediction_stale_plan{namespace="apc-operator-readiness"} == 1 unless on(cluster, exported_namespace, subscription, package, installed, channel, owner) operator_prediction_plan_age_days{namespace="apc-operator-readiness"}
               for: 7d
               labels:
                 owner: '{{ $labels.owner }}'
                 severity: info
                 team: platform
                 vendor: aspecta
-            - alert: OperatorExceptionExpiring
+            - alert: OperatorsGuardExceptionExpiring
               annotations:
                 description: Exception for {{ $labels.package }} expires in {{ $value }} days.
                 owner: '{{ $labels.owner }}'
                 summary: Operator exception expires within 30 days
-              expr: readiness_exception_days_left < 30 and readiness_exception_days_left >= 0
+              expr: readiness_exception_days_left{namespace="apc-operator-readiness"} < 30 and readiness_exception_days_left{namespace="apc-operator-readiness"} >= 0
               labels:
                 owner: '{{ $labels.owner }}'
                 severity: warning
                 team: platform
                 vendor: aspecta
-            - alert: OperatorExceptionExpired
+            - alert: OperatorsGuardExceptionExpired
               annotations:
                 description: Exception for {{ $labels.package }} has expired ({{ $value }} days left).
                 owner: '{{ $labels.owner }}'
                 summary: Operator exception has expired
-              expr: readiness_exception_days_left < 0
+              expr: readiness_exception_days_left{namespace="apc-operator-readiness"} < 0
               labels:
                 owner: '{{ $labels.owner }}'
                 severity: warning
                 team: platform
                 vendor: aspecta
-            - alert: OperatorReadinessCollectStale
+            - alert: OperatorsGuardReadinessCollectStale
               annotations:
                 description: readiness-engine in apc-operator-readiness has not completed a successful collect for more than 3 hours (three collect intervals, at least 3); readiness results and the CI snapshot are outdated.
                 summary: Operator readiness data is stale
@@ -1233,7 +1233,7 @@ manifests should match snapshot:
                 severity: warning
                 team: platform
                 vendor: aspecta
-            - alert: OperatorReadinessNoData
+            - alert: OperatorsGuardReadinessNoData
               annotations:
                 description: readiness-engine in apc-operator-readiness has not completed any successful collect for 30 minutes (pod not ready or not scraped). Check the pod logs.
                 summary: Operator readiness collector has no data
@@ -1243,7 +1243,7 @@ manifests should match snapshot:
                 severity: warning
                 team: platform
                 vendor: aspecta
-            - alert: OperatorReadinessSourceDown
+            - alert: OperatorsGuardReadinessSourceDown
               annotations:
                 description: Source {{ $labels.source }} has been unavailable for 6 hours; affected results are reported as UNKNOWN.
                 summary: Operator readiness data source is unavailable
