@@ -26,8 +26,7 @@ Design: [docs/02-design.md](https://github.com/gr8it/apc-operators-guard/blob/op
 ## Chart Variables
 
 > [!NOTE]
-> `policy` is mandatory; `snapshot.*` are optional (`pushSecret` is mandatory once `repository` is set). RBAC is a ClusterRole limited to what the engine calls
-> (ManagedClusters, hub ClusterVersion, APIRequestCounts, hub OperatorPolicies, ManagedClusterViews, and list on Subscriptions, CSVs and Deployments because ACM Search authorizes the hub's own objects against the caller's RBAC).
+> `policy` is mandatory; `snapshot.*` are optional (`pushSecret` is mandatory once `repository` is set). RBAC is described in [RBAC](#rbac).
 
 |Variable                     | Type | Default                                   | Notes |
 |:---                         |:---  |:---                                       |:---   |
@@ -50,9 +49,34 @@ Design: [docs/02-design.md](https://github.com/gr8it/apc-operators-guard/blob/op
 | grafanaDashboard.enabled    | bool | `true`                                    | Creates GrafanaDashboard CR |
 | grafanaDashboard.instanceName | str | `apc-grafana`                            | Value of the `dashboards` label on the Grafana instance |
 
-## Metrics and alerts
+## RBAC
 
-The ClusterRole gets hub InstallPlans by name when a Subscription references one. Managed cluster reads use named ManagedClusterViews.
+The ClusterRole ([clusterRole.yaml](templates/clusterRole.yaml)) grants only the read verbs the engine calls; the hub's
+PackageManifests and CatalogSources are read with a Role in `openshift-marketplace` ([packageManifestRole.yaml](templates/packageManifestRole.yaml)).
+
+| Rule | Why |
+|:---  |:--- |
+| `managedclusters`, `clusterversions` (`version`), `apirequestcounts`, `clustercatalogs` | Cluster-scoped: fleet versions, hub Upgradeable, deprecated API use, catalogd catalogs |
+| list `subscriptions`, `clusterserviceversions`, `deployments`, `operatorpolicies`, `hostedclusters`; get `installplans` | Hub objects in any namespace; ACM Search authorizes the hub's own objects against the caller's RBAC |
+| get, create, delete `managedclusterviews` in every namespace | Managed cluster reads; ACM Search also returns a managed cluster's objects only to a caller that can create views in its namespace |
+
+> [!WARNING]
+> **Accepted tradeoff:** a ManagedClusterView is executed by the klusterlet on the managed cluster, so `create` on
+> `managedclusterviews` in every namespace lets this ServiceAccount read **any object on any managed cluster, Secrets
+> included**. Together with list on hub Deployments (pod specs, env values) the effective read access is broad.
+> It is accepted because the inventory does not work without it (ACM Search authorization above) and because the ACM
+> API cannot limit a view's `spec.scope` by kind or namespace.
+
+What keeps it contained:
+
+- The engine only creates views for ClusterVersion, Subscription, InstallPlan, OperatorPolicy, PackageManifest,
+  CatalogSource and APIRequestCount, each by name, and deletes them after the read.
+- No write verbs on any other resource; views cannot change objects on the managed cluster.
+- The ServiceAccount token is used only by the collector pod; reports are served on `127.0.0.1` in the pod (see below).
+- Who can exec into, or read the token of, the release namespace effectively has this read access too: keep that
+  namespace limited to platform admins.
+
+## Metrics and alerts
 
 Metrics, including the `readiness_engine_predictions` gauge, are listed in [engine/README.md](https://github.com/gr8it/apc-operators-guard/blob/operators-guard-chart-0.11.0/engine/README.md#metrics). Alerts: `OperatorsGuardUnsupportedNow`,
 `OperatorsGuardUpgradeBlocker`, `OperatorsGuardSupportEnded`, `OperatorsGuardBelowMinVersion`, `OperatorsGuardPinStale`, `OperatorsGuardVersionBehind`, `OperatorsGuardPredictionMismatch`, `OperatorsGuardStalePendingInstallPlan` (known plan age over 14 days, `for: 1h`), `OperatorsGuardStalePendingInstallPlanNoTimestamp` (unknown age, `for: 7d`), `OperatorsGuardExceptionExpiring` (0–29 days left), `OperatorsGuardExceptionExpired`, `OperatorsGuardReadinessCollectStale`, `OperatorsGuardReadinessNoData`, `OperatorsGuardReadinessSourceDown`.
