@@ -127,6 +127,12 @@ manifests should match snapshot:
                 - --listen=127.0.0.1:8080
                 - --metrics-listen=:9090
               env:
+                - name: HTTPS_PROXY
+                  value: http://proxy.example.com:8080
+                - name: HTTP_PROXY
+                  value: http://proxy.example.com:8080
+                - name: NO_PROXY
+                  value: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1,.svc,.cluster.local,$(KUBERNETES_SERVICE_HOST)
                 - name: SNAPSHOT_AUTH_FILE
                   value: /run/secrets/snapshot-push/.dockerconfigjson
                 - name: SEARCH_API_URL
@@ -1000,6 +1006,29 @@ manifests should match snapshot:
           ]
         }
   5: |
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      labels:
+        app.kubernetes.io/instance: operators-guard
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: operators-guard
+        app.kubernetes.io/version: 0.13.3
+        helm.sh/chart: operators-guard-0.11.0
+      name: operators-guard-allow-proxy
+      namespace: apc-operator-readiness
+    spec:
+      egress:
+        - to:
+            - ipBlock:
+                cidr: 10.1.1.7/32
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/instance: operators-guard
+          app.kubernetes.io/name: operators-guard
+      policyTypes:
+        - Egress
+  6: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: Role
     metadata:
@@ -1018,7 +1047,7 @@ manifests should match snapshot:
           - packagemanifests
         verbs:
           - get
-  6: |
+  7: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
@@ -1038,7 +1067,7 @@ manifests should match snapshot:
       - kind: ServiceAccount
         name: operators-guard
         namespace: apc-operator-readiness
-  7: |
+  8: |
     apiVersion: v1
     data:
       policy.yaml: |
@@ -1078,7 +1107,7 @@ manifests should match snapshot:
         helm.sh/chart: operators-guard-0.11.0
       name: operators-guard-policy
       namespace: apc-operator-readiness
-  8: |
+  9: |
     apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule
     metadata:
@@ -1253,7 +1282,7 @@ manifests should match snapshot:
                 severity: warning
                 team: platform
                 vendor: aspecta
-  9: |
+  10: |
     apiVersion: v1
     kind: Service
     metadata:
@@ -1274,7 +1303,7 @@ manifests should match snapshot:
       selector:
         app.kubernetes.io/instance: operators-guard
         app.kubernetes.io/name: operators-guard
-  10: |
+  11: |
     apiVersion: v1
     kind: ServiceAccount
     metadata:
@@ -1286,7 +1315,7 @@ manifests should match snapshot:
         helm.sh/chart: operators-guard-0.11.0
       name: operators-guard
       namespace: apc-operator-readiness
-  11: |
+  12: |
     apiVersion: monitoring.coreos.com/v1
     kind: ServiceMonitor
     metadata:

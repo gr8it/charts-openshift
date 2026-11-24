@@ -217,12 +217,17 @@ tests:
 
   - it: renders no proxy NetworkPolicy without proxy CIDRs
     template: templates/networkPolicy.yaml
+    set:
+      global.apc.proxyCIDRs: null
     asserts:
       - hasDocuments:
           count: 0
 
-  - it: sets no proxy variables by default
+  - it: sets no proxy variables without proxy globals
     template: templates/deployment.yaml
+    set:
+      global.apc.proxy: null
+      global.apc.noProxy: null
     asserts:
       - notContains:
           path: spec.template.spec.containers[0].env

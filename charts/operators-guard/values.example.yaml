@@ -1,3 +1,10 @@
+global:
+  apc:
+    proxy: http://proxy.example.com:8080
+    noProxy: .example.com,.svc,.cluster.local,localhost,127.0.0.1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.20.0.1
+    proxyCIDRs:
+      - 10.1.1.7/32
+
 image:
   repository: registry.example.com/apc/readiness-engine  # mirror of ghcr.io/gr8it/operators-guard
 interval: 1h
