@@ -25,6 +25,8 @@ spec:
   management:
     autoRepair: {{ .Values.nodePool.autoRepair }}
     upgradeType: {{ .Values.nodePool.upgradeType }}
+  nodeDrainTimeout: {{ .Values.nodePool.nodeDrainTimeout }}
+  nodeVolumeDetachTimeout: {{ .Values.nodePool.nodeVolumeDetachTimeout }}
   {{- with .Values.nodePool.nodeLabels }}
   nodeLabels:
     {{- toYaml . | nindent 4 }}
