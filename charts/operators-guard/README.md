@@ -5,8 +5,8 @@ managed clusters (ACM Search API, ManagedClusterView), the OCP upgrade graph, th
 the Red Hat Ecosystem Catalog (Pyxis), evaluates upgrade readiness against the policy, serves
 an HTML page on `/`, `/summary`, `/report`, `/history`, `/diff` and `/metrics` (ServiceMonitor, PrometheusRule, GrafanaDashboard) and, when `snapshot.repository` is set, pushes a snapshot to Quay.
 
-Engine and image (`ghcr.io/gr8it/operators-guard`): [engine/](https://github.com/gr8it/apc-operators-guard/blob/operators-guard-chart-0.11.0/engine/README.md).
-Design: [docs/02-design.md](https://github.com/gr8it/apc-operators-guard/blob/operators-guard-chart-0.11.0/docs/02-design.md).
+Engine and image (`ghcr.io/gr8it/operators-guard`): [engine/](https://github.com/gr8it/apc-operators-guard/blob/operators-guard-chart-0.12.4/engine/README.md).
+Design: [docs/02-design.md](https://github.com/gr8it/apc-operators-guard/blob/operators-guard-chart-0.12.4/docs/02-design.md).
 
 ## Prerequisites
 
@@ -78,7 +78,7 @@ What keeps it contained:
 
 ## Metrics and alerts
 
-Metrics, including the `readiness_engine_predictions` gauge, are listed in [engine/README.md](https://github.com/gr8it/apc-operators-guard/blob/operators-guard-chart-0.11.0/engine/README.md#metrics). Alerts: `OperatorsGuardUnsupportedNow`,
+Metrics, including the `readiness_engine_predictions` gauge, are listed in [engine/README.md](https://github.com/gr8it/apc-operators-guard/blob/operators-guard-chart-0.12.4/engine/README.md#metrics). Alerts: `OperatorsGuardUnsupportedNow`,
 `OperatorsGuardUpgradeBlocker`, `OperatorsGuardSupportEnded`, `OperatorsGuardBelowMinVersion`, `OperatorsGuardPinStale`, `OperatorsGuardVersionBehind`, `OperatorsGuardPredictionMismatch`, `OperatorsGuardStalePendingInstallPlan` (known plan age over 14 days, `for: 1h`), `OperatorsGuardStalePendingInstallPlanNoTimestamp` (unknown age, `for: 7d`), `OperatorsGuardExceptionExpiring` (0–29 days left), `OperatorsGuardExceptionExpired`, `OperatorsGuardReadinessCollectStale`, `OperatorsGuardReadinessNoData`, `OperatorsGuardReadinessSourceDown`.
 Operator alerts carry the metric's `owner` label; the dashboard can filter by owner.
 
@@ -119,4 +119,4 @@ helm -n apc-operators-guard install -f values.example.yaml operators-guard .
 
 Work orders are self-contained instructions for a separate executor: one charts PR per operator, then a render
 and PR per operator in each mapped conf repo. The engine does not edit repositories, render components, push or
-open PRs. Runtime workflow precedence and strict validation are documented in [engine usage](https://github.com/gr8it/apc-operators-guard/blob/operators-guard-chart-0.11.0/engine/README.md#chart-work-order).
+open PRs. Runtime workflow precedence and strict validation are documented in [engine usage](https://github.com/gr8it/apc-operators-guard/blob/operators-guard-chart-0.12.4/engine/README.md#chart-work-order).
