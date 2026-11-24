@@ -94,13 +94,12 @@ spec:
           capabilities:
             drop:
             - ALL
-        # Pyxis catalog records of every installed package are held in memory (~100 MB seen); headroom for larger fleets
         resources:
           requests:
-            memory: "1Gi"
+            memory: "256Mi"
             cpu: "200m"
           limits:
-            memory: "2Gi"
+            memory: "1Gi"
             cpu: "1"
         volumeMounts:
         - name: policy
