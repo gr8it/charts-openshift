@@ -1,4 +1,9 @@
 {{- if .Values.grafanaDashboard.enabled }}
+{{- /* The Data age threshold is the only "value": 10800 in the JSON; fail rather than change another threshold. */}}
+{{- $json := .Files.Get "dashboards/operators-guard.json" }}
+{{- if ne (len (regexFindAll "\"value\": 10800" $json -1)) 1 }}
+{{- fail "dashboards/operators-guard.json must contain exactly one \"value\": 10800 (Data age threshold)" }}
+{{- end }}
 ---
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
@@ -13,5 +18,5 @@ spec:
     matchLabels:
       dashboards: {{ .Values.grafanaDashboard.instanceName }}
   json: |
-    {{- .Files.Get "dashboards/operators-guard.json" | replace "\"value\": 10800" (printf "\"value\": %s" (include "operators-guard.staleSeconds" .)) | nindent 4 }}
+    {{- $json | replace "\"value\": 10800" (printf "\"value\": %s" (include "operators-guard.staleSeconds" .)) | nindent 4 }}
 {{- end }}
