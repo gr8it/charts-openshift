@@ -82,11 +82,36 @@ tests:
       - equal:
           path: spec.template.spec.containers[2].name
           value: init-robot-spoke2
+      - equal:
+          path: spec.template.spec.containers[0].env[4].name
+          value: CLUSTERVAULTKEY
+      - equal:
+          path: spec.template.spec.containers[0].env[4].value
+          value: pull-secret
+
+  - it: robot account Job uses a cluster-specific Vault path and secret key
+    template: templates/job-robot-accounts.yaml
+    set:
+      vault.clusterPullSecretPath.spoke2.path: apc-platform/z/cluster-config
+      vault.clusterPullSecretPath.spoke2.key: dockerconfigjson
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[2].env[2].name
+          value: CLUSTERVAULTPATH
+      - equal:
+          path: spec.template.spec.containers[2].env[2].value
+          value: apc-platform/z/cluster-config
+      - equal:
+          path: spec.template.spec.containers[2].env[4].name
+          value: CLUSTERVAULTKEY
+      - equal:
+          path: spec.template.spec.containers[2].env[4].value
+          value: dockerconfigjson
 
   - it: robot account Job disables Vault updates when a cluster path is unset
     template: templates/job-robot-accounts.yaml
     set:
-      vault.clusterPullSecretPath.spoke2: null
+      vault.clusterPullSecretPath.spoke2.path: null
     asserts:
       - equal:
           path: spec.template.spec.containers[2].env[2].name

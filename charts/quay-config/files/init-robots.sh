@@ -38,6 +38,7 @@ bootstrapToken="$(cat /var/opt/token/bootstrap)"
 clusterName="$CLUSTERNAME"
 authBackendName="$AUTHBACKENDNAME"
 vaultPath="${CLUSTERVAULTPATH:-}"
+vaultSecretKey="${CLUSTERVAULTKEY:-pull-secret}"
 quayService="$QUAYSERVICE"
 quayRoute="$QUAYROUTE"
 robotAccountsSecret="$ROBOTACCOUNTSECRET"
@@ -118,7 +119,7 @@ else
   exit 1
 fi
 
-currentPullSecret=$(vault/vault kv get -field=pull-secret "$vaultPath")
+currentPullSecret=$(vault/vault kv get -field="$vaultSecretKey" "$vaultPath")
 if ! errorMsg=$(validate_pull_secret "$currentPullSecret" 2>&1); then
   log_error "Original pull-secret at vault:${vaultPath} is malformed."
   echo "$errorMsg"
@@ -135,7 +136,7 @@ fi
 if json_equal "$currentPullSecret" "$mergedPullSecret"; then
   log_info "Pull-secret is already up to date. Nothing to do."
 else
-  echo "$mergedPullSecret" | vault/vault kv patch "$vaultPath" pull-secret=-
+  echo "$mergedPullSecret" | vault/vault kv patch "$vaultPath" "${vaultSecretKey}"=-
   log_info "Updated pull-secret in \"$vaultPath\"."
 fi
 

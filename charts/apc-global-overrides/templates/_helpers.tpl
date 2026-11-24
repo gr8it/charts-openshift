@@ -322,17 +322,24 @@ Create the ntpServers and require it
 {{- end }}
 
 {{/*
-Create the sshAuthorizedKeys array
+Create the sshAuthorizedKeys (list of public keys)
 */}}
 {{- define "apc-global-overrides.sshAuthorizedKeys" -}}
 {{- .Values.sshAuthorizedKeys | default ((.Values.global).apc).sshAuthorizedKeys | default list | toYaml }}
 {{- end }}
 
 {{/*
-Create the sshAuthorizedKeys and require it
+Create the sshAuthorizedKeys bundle (one key per line)
 */}}
-{{- define "apc-global-overrides.require-sshAuthorizedKeys" -}}
-{{- include "apc-global-overrides.sshAuthorizedKeys" . | fromYamlArray | default ("") | required "APC sshAuthorizedKeys is required" | toYaml }}
+{{- define "apc-global-overrides.sshAuthorizedKeysBundle" -}}
+{{- include "apc-global-overrides.sshAuthorizedKeys" . | fromYamlArray | join "\n" }}
+{{- end }}
+
+{{/*
+Create the sshAuthorizedKeys bundle and require it
+*/}}
+{{- define "apc-global-overrides.require-sshAuthorizedKeysBundle" -}}
+{{- include "apc-global-overrides.sshAuthorizedKeysBundle" . | required "APC sshAuthorizedKeys is required" }}
 {{- end }}
 
 {{/*
@@ -532,6 +539,17 @@ Create the image proxy sources (list)
 */}}
 {{- define "apc-global-overrides.imageProxySources" -}}
 {{- (.Values.imageProxy).sources | default (((.Values.global).apc).imageProxy).sources | default list | toYaml }}
+{{- end }}
+
+{{/*
+Create the identity providers list
+*/}}
+{{- define "apc-global-overrides.identityProviders" -}}
+{{- if hasKey .Values "identityProviders" -}}
+{{- .Values.identityProviders | default list | toYaml }}
+{{- else -}}
+{{- (((.Values.global).apc).identityProviders) | default list | toYaml }}
+{{- end }}
 {{- end }}
 
 {{/*

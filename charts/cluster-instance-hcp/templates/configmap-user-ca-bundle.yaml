@@ -1,0 +1,13 @@
+{{- $caCertificatesBundle := include "apc-global-overrides.caCertificatesBundle" . }}
+{{- if $caCertificatesBundle }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-ca-bundle
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
+data:
+  ca-bundle.crt: |
+    {{- $caCertificatesBundle | nindent 4 }}
+{{- end }}

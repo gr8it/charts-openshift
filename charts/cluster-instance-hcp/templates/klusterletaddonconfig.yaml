@@ -1,0 +1,22 @@
+{{- $clusterName := include "cluster-instance-hcp.clusterName" . }}
+apiVersion: agent.open-cluster-management.io/v1
+kind: KlusterletAddonConfig
+metadata:
+  name: {{ $clusterName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cluster-instance-hcp.labels" . | nindent 4 }}
+spec:
+  clusterName: {{ $clusterName }}
+  clusterNamespace: {{ .Release.Namespace }}
+  clusterLabels:
+    cloud: BareMetal
+    vendor: OpenShift
+  applicationManager:
+    enabled: true
+  policyController:
+    enabled: true
+  searchCollector:
+    enabled: true
+  certPolicyController:
+    enabled: true
