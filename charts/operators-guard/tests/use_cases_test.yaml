@@ -3,7 +3,7 @@ values:
   - ../values.example.yaml
 release:
   name: operators-guard
-  namespace: apc-operator-readiness
+  namespace: apc-operators-guard
 
 tests:
   - it: routes operator alerts to the package owner
@@ -42,7 +42,7 @@ tests:
           value: OperatorsGuardPredictionMismatch
       - equal:
           path: spec.groups[0].rules[?(@.alert == "OperatorsGuardPredictionMismatch")].expr
-          value: operator_prediction_mismatch{namespace="apc-operator-readiness"} == 1
+          value: operator_prediction_mismatch{namespace="apc-operators-guard"} == 1
       - equal:
           path: spec.groups[0].rules[?(@.alert == "OperatorsGuardPredictionMismatch")].labels.owner
           value: "{{ $labels.owner }}"
@@ -58,13 +58,13 @@ tests:
           value: info
       - matchRegex:
           path: spec.groups[0].rules[?(@.alert == "OperatorsGuardStalePendingInstallPlan")].expr
-          pattern: '^operator_prediction_stale_plan\{namespace="apc-operator-readiness"\} == 1 and on\(cluster, exported_namespace, subscription, package, installed, channel, owner\) operator_prediction_plan_age_days\{namespace="apc-operator-readiness"\} > 14$'
+          pattern: '^operator_prediction_stale_plan\{namespace="apc-operators-guard"\} == 1 and on\(cluster, exported_namespace, subscription, package, installed, channel, owner\) operator_prediction_plan_age_days\{namespace="apc-operators-guard"\} > 14$'
       - equal:
           path: spec.groups[0].rules[?(@.alert == "OperatorsGuardStalePendingInstallPlan")].for
           value: 1h
       - matchRegex:
           path: spec.groups[0].rules[?(@.alert == "OperatorsGuardStalePendingInstallPlanNoTimestamp")].expr
-          pattern: '^operator_prediction_stale_plan\{namespace="apc-operator-readiness"\} == 1 unless on\(cluster, exported_namespace, subscription, package, installed, channel, owner\) operator_prediction_plan_age_days\{namespace="apc-operator-readiness"\}$'
+          pattern: '^operator_prediction_stale_plan\{namespace="apc-operators-guard"\} == 1 unless on\(cluster, exported_namespace, subscription, package, installed, channel, owner\) operator_prediction_plan_age_days\{namespace="apc-operators-guard"\}$'
       - equal:
           path: spec.groups[0].rules[?(@.alert == "OperatorsGuardStalePendingInstallPlanNoTimestamp")].for
           value: 7d
@@ -171,7 +171,7 @@ tests:
     asserts:
       - notContains:
           path: spec.template.spec.containers[0].args
-          content: --snapshot-repository=registry.example.com/apc/operator-readiness-snapshot
+          content: --snapshot-repository=registry.example.com/apc/operators-guard-snapshot
       - notExists:
           path: spec.template.spec.volumes[?(@.name == "snapshot-push")]
       - notContains:

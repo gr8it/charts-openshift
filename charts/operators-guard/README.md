@@ -1,4 +1,4 @@
-# Operator Readiness
+# Operators Guard
 
 Deploys the `readiness-engine` collector on the ACM hub. Every interval it reads the operator inventory of all
 managed clusters (ACM Search API, ManagedClusterView), the OCP upgrade graph, the Red Hat Lifecycle API and
@@ -90,7 +90,7 @@ schema failures before it can evaluate assertions.
 See [values.example.yaml](values.example.yaml).
 
 ```sh
-$ helm -n apc-operator-readiness install -f values.example.yaml operators-guard .
+helm -n apc-operators-guard install -f values.example.yaml operators-guard .
 ```
 
 Work orders are self-contained instructions for a separate executor: one charts PR per operator, then a render

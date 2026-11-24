@@ -151,7 +151,7 @@ spec:
           vendor: aspecta
           team: platform
         annotations:
-          summary: "Operator readiness data is stale"
+          summary: "Operators Guard data is stale"
           description: "readiness-engine in {{ .Release.Namespace }} has not completed a successful collect for more than {{ div (include "operators-guard.staleSeconds" . | int) 3600 }} hours (three collect intervals, at least 3); readiness results and the CI snapshot are outdated."
       - alert: OperatorsGuardReadinessNoData
         expr: absent(readiness_engine_last_success_timestamp_seconds{namespace="{{ .Release.Namespace }}"})
@@ -161,7 +161,7 @@ spec:
           vendor: aspecta
           team: platform
         annotations:
-          summary: "Operator readiness collector has no data"
+          summary: "Operators Guard collector has no data"
           description: "readiness-engine in {{ .Release.Namespace }} has not completed any successful collect for 30 minutes (pod not ready or not scraped). Check the pod logs."
       - alert: OperatorsGuardReadinessSourceDown
         expr: readiness_engine_source_up{namespace="{{ .Release.Namespace }}"} == 0
@@ -171,5 +171,5 @@ spec:
           vendor: aspecta
           team: platform
         annotations:
-          summary: "Operator readiness data source is unavailable"
+          summary: "Operators Guard data source is unavailable"
           description: "{{`Source {{ $labels.source }} has been unavailable for 6 hours; affected results are reported as UNKNOWN.`}}"
