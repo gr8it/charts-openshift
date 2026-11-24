@@ -321,16 +321,6 @@ tests:
           path: spec.groups[0].rules[?(@.alert == "OperatorsGuardReadinessCollectStale")].expr
           pattern: '> 10800$'
 
-  - it: sets the node selector
-    template: templates/deployment.yaml
-    set:
-      nodeSelector:
-        kubernetes.io/hostname: node-a
-    asserts:
-      - equal:
-          path: spec.template.spec.nodeSelector["kubernetes.io/hostname"]
-          value: node-a
-
   - it: passes image pull secrets
     template: templates/deployment.yaml
     set:

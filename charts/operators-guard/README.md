@@ -34,7 +34,6 @@ Design: [docs/02-design.md](https://github.com/gr8it/apc-operators-guard/blob/op
 | image.repository            | str  | `ghcr.io/gr8it/operators-guard`           | readiness-engine image repository (ghcr.io is private; mirror it to a registry the cluster can pull from) |
 | image.tag                   | str  | `""`                                      | Image tag; empty uses the chart `appVersion` |
 | imagePullSecrets            | list | `[]`                                      | Existing dockerconfigjson Secrets used to pull the image |
-| nodeSelector                | obj  | `{}`                                      | Optional pod nodeSelector |
 | global.apc.proxy            | str  | absent                                    | Optional egress proxy for HTTP and HTTPS, supplied by the conf repo |
 | global.apc.noProxy          | str  | absent                                    | Additional bypass hosts; the chart appends `.svc`, `.cluster.local` and the API service IP |
 | global.apc.proxyCIDRs       | list | `[]`                                      | Proxy CIDRs allowed by the optional egress NetworkPolicy |
