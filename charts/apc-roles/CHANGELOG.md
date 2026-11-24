@@ -1,0 +1,20 @@
+# Changelog
+
+All notable changes to this component will be documented in this file.
+
+The format is based on [Common Changelog](https://common-changelog.org/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.0.1] - 2026-11-23
+
+### Added
+
+- prevent OpenShift from automatically restoring the `self-provisioners` binding subjects
+- support an optional custom project request denial message
+- added LDAP admins ClusterRoleBinding with configurable group prefix and chart values schema
+- disabled the default `self-provisioners` ClusterRoleBinding subjects
+- added snapshot unittest coverage
+
+## [1.0.0] - 2025-08-23
+
+_Initial release._
