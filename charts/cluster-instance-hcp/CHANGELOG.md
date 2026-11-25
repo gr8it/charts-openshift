@@ -1,6 +1,17 @@
 All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.23] - 2026-11-25
+
+### Changed
+
+- **Breaking:** Deploy all etcd backup resources (CronJob, scripts ConfigMap, ServiceAccount, ObjectBucketClaim, PrometheusRule) into the Hosted Control Plane namespace `<clusterName>-<clusterName>` instead of the release namespace. An existing ObjectBucketClaim must be (re)created in the Hosted Control Plane namespace.
+- **Breaking:** Create the etcd backup ObjectBucketClaim with a static `bucketName` (`etcd-hcp-<clusterName>-backup` or `etcd.backup.objectBucketClaim.name`) instead of a generated bucket name.
+- **Breaking:** Rename etcd backup alerts to `HostedClusterEtcdBackupJobFailure` and `HostedClusterEtcdBackupMissing` to avoid collisions with the hub etcd backup alerts.
+- **Breaking:** Remove the etcd backup NetworkPolicy; the backup job now runs in the Hosted Control Plane namespace, where the HyperShift `same-namespace` NetworkPolicy already allows access to etcd.
+- Default `etcd.backup.schedule` to hourly (`"0 * * * *"`).
+- Run etcd backup pods with `runAsNonRoot`, `RuntimeDefault` seccomp profile and read-only root filesystems.
+
 ## [2.0.22] - 2026-11-24
 
 ### Added

@@ -7,7 +7,6 @@ templates:
   - templates/etcd-backup-role.yaml
   - templates/etcd-backup-rolebinding.yaml
   - templates/etcd-backup-serviceaccount.yaml
-  - templates/etcd-backup-networkpolicy.yaml
   - templates/etcd-backup-prometheusrule.yaml
 values:
   - ../values.lint.yaml
@@ -39,7 +38,7 @@ tests:
           value: etcd-hcp-backup-mycluster
       - equal:
           path: metadata.namespace
-          value: mycluster
+          value: mycluster-mycluster
       - equal:
           path: spec.schedule
           value: "15 2 * * *"
@@ -89,15 +88,6 @@ tests:
       - hasDocuments:
           count: 1
 
-  - it: should create the NetworkPolicy when enabled
-    template: templates/etcd-backup-networkpolicy.yaml
-    set:
-      clusterName: mycluster
-      etcd.backup.enabled: true
-    asserts:
-      - hasDocuments:
-          count: 1
-
   - it: should create the PrometheusRule when enabled
     template: templates/etcd-backup-prometheusrule.yaml
     set:
@@ -115,13 +105,88 @@ tests:
     asserts:
       - matchRegex:
           path: spec.groups[0].rules[1].expr
-          pattern: 'kube_cronjob_status_last_successful_time\{namespace="mycluster", cronjob="etcd-hcp-backup-mycluster"\}'
+          pattern: 'kube_cronjob_status_last_successful_time\{namespace="mycluster-mycluster", cronjob="etcd-hcp-backup-mycluster"\}'
       - matchRegex:
           path: spec.groups[0].rules[1].expr
-          pattern: 'kube_cronjob_created\{namespace="mycluster", cronjob="etcd-hcp-backup-mycluster"\}'
+          pattern: 'kube_cronjob_created\{namespace="mycluster-mycluster", cronjob="etcd-hcp-backup-mycluster"\}'
       - matchRegex:
           path: spec.groups[0].rules[1].expr
-          pattern: 'absent\(kube_cronjob_status_last_successful_time\{namespace="mycluster", cronjob="etcd-hcp-backup-mycluster"\}\)'
+          pattern: 'absent\(kube_cronjob_status_last_successful_time\{namespace="mycluster-mycluster", cronjob="etcd-hcp-backup-mycluster"\}\)'
+
+  - it: should place all etcd backup resources in the Hosted Control Plane namespace
+    set:
+      clusterName: mycluster
+      etcd.backup.enabled: true
+      etcd.backup.objectBucketClaim.create: true
+    asserts:
+      - equal:
+          path: metadata.namespace
+          value: mycluster-mycluster
+
+  - it: should bind the Role to the ServiceAccount in the Hosted Control Plane namespace
+    template: templates/etcd-backup-rolebinding.yaml
+    set:
+      clusterName: mycluster
+      etcd.backup.enabled: true
+    asserts:
+      - equal:
+          path: subjects[0].namespace
+          value: mycluster-mycluster
+
+  - it: should prefix alert names to avoid collisions with hub etcd backup alerts
+    template: templates/etcd-backup-prometheusrule.yaml
+    set:
+      clusterName: mycluster
+      etcd.backup.enabled: true
+    asserts:
+      - equal:
+          path: spec.groups[0].rules[0].alert
+          value: HostedClusterEtcdBackupJobFailure
+      - equal:
+          path: spec.groups[0].rules[1].alert
+          value: HostedClusterEtcdBackupMissing
+
+  - it: should default to an hourly schedule
+    template: templates/etcd-backup-cronjob.yaml
+    set:
+      clusterName: mycluster
+      etcd.backup.enabled: true
+    asserts:
+      - equal:
+          path: spec.schedule
+          value: "0 * * * *"
+
+  - it: should run the backup pod with a restricted security context
+    template: templates/etcd-backup-cronjob.yaml
+    set:
+      clusterName: mycluster
+      etcd.backup.enabled: true
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.securityContext
+          value:
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].securityContext.readOnlyRootFilesystem
+          value: true
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.initContainers[1].securityContext.readOnlyRootFilesystem
+          value: true
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
+          value: true
+
+  - it: should scope the job failure alert to the Hosted Control Plane namespace
+    template: templates/etcd-backup-prometheusrule.yaml
+    set:
+      clusterName: mycluster
+      etcd.backup.enabled: true
+    asserts:
+      - matchRegex:
+          path: spec.groups[0].rules[0].expr
+          pattern: 'kube_job_failed\{namespace="mycluster-mycluster", job_name=~"etcd-hcp-backup-mycluster-\.\*"'
 
   - it: should not create etcd backup resources when disabled
     template: templates/etcd-backup-cronjob.yaml
@@ -151,6 +216,11 @@ tests:
       - equal:
           path: metadata.annotations["argocd.argoproj.io/sync-options"]
           value: Prune=false
+      - equal:
+          path: spec.bucketName
+          value: etcd-hcp-mycluster-backup
+      - notExists:
+          path: spec.generateBucketName
       - equal:
           path: spec.storageClassName
           value: ocs-storagecluster-ceph-rgw

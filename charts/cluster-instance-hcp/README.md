@@ -43,7 +43,7 @@ The release-check Job provides the upgrade gate. To upgrade, first set `releaseI
 | `etcd.storageClassName`                      | StorageClass for ETCD PV                                                                                | `lvms-vg1`                                                |
 | `etcd.storageSize`                           | ETCD PV size                                                                                            | `8Gi`                                                     |
 | `etcd.backup.enabled`                        | Create resources for scheduled Hosted Control Plane etcd backups                                        | `false`                                                   |
-| `etcd.backup.schedule`                       | Cron schedule for etcd backups                                                                          | `"0 0 * * *"`                                             |
+| `etcd.backup.schedule`                       | Cron schedule for etcd backups                                                                          | `"0 * * * *"`                                             |
 | `etcd.backup.paused`                         | Suspend the etcd backup CronJob                                                                         | `false`                                                   |
 | `etcd.backup.retentionDays`                  | Number of days to retain snapshots in object storage                                                    | `3`                                                       |
 | `etcd.backup.etcdStatefulSetName`            | Hosted Control Plane etcd StatefulSet name                                                              | `etcd`                                                    |
@@ -79,7 +79,7 @@ When `backup.enabled` is true, creates a Velero Schedule and resource-policy Con
 
 ### Hosted Control Plane etcd backup
 
-When `etcd.backup.enabled` is true, creates a CronJob and the required scripts ConfigMap, ServiceAccount, Role, RoleBinding, NetworkPolicy, and PrometheusRule for etcd snapshots. Backups are uploaded to an S3-compatible ObjectBucketClaim in the release namespace; by default the claim must already exist and be named `etcd-hcp-<clusterName>-backup`. Set `etcd.backup.objectBucketClaim.create: true` to have the chart create it. The CronJob accesses the Hosted Control Plane etcd StatefulSet in the conventional `<clusterName>-<clusterName>` namespace. The `etcd.backup` settings are independent of the Velero `backup` settings.
+When `etcd.backup.enabled` is true, creates a CronJob and the required scripts ConfigMap, ServiceAccount, Role, RoleBinding, and PrometheusRule for etcd snapshots. All etcd backup resources are created in the conventional Hosted Control Plane namespace `<clusterName>-<clusterName>`, next to the etcd StatefulSet. Backups are uploaded to an S3-compatible ObjectBucketClaim in that namespace; by default the claim must already exist and be named `etcd-hcp-<clusterName>-backup`. Set `etcd.backup.objectBucketClaim.create: true` to have the chart create it. The `etcd.backup` settings are independent of the Velero `backup` settings.
 
 ### `apiServerCert`
 

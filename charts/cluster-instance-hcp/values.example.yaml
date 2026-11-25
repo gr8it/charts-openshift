@@ -121,5 +121,12 @@ services:
   ignitionPort: 30104
   oidcPort: 30101
 
+etcd:
+  backup:
+    enabled: true
+    schedule: "10 * * * *"
+    objectBucketClaim:
+      create: true
+
 backup:
   enabled: true

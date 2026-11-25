@@ -3,7 +3,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ include "cluster-instance-hcp.etcdBackup.fullname" . }}
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "cluster-instance-hcp.etcdBackup.namespace" . }}
   labels:
     {{- include "cluster-instance-hcp.etcdBackup.labels" . | nindent 4 }}
 spec:
@@ -24,12 +24,17 @@ spec:
         spec:
           serviceAccountName: {{ include "cluster-instance-hcp.etcdBackup.fullname" . }}
           restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
           initContainers:
             - name: init
               image: registry.redhat.io/openshift4/ose-cli:v{{ .Values.oseCliImageTag }}
               command: ["/bin/bash", "/usr/local/bin/init.sh"]
               securityContext:
                 allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
                 capabilities:
                   drop:
                     - ALL
@@ -47,7 +52,11 @@ spec:
                   mountPath: /usr/local/bin/init.sh
                   subPath: init.sh
                   readOnly: true
+                - name: tmp
+                  mountPath: /tmp
               env:
+                - name: HOME
+                  value: /tmp
                 - name: STATEFULSET
                   valueFrom:
                     configMapKeyRef:
@@ -63,6 +72,7 @@ spec:
               command: ["/bin/bash", "/usr/local/bin/etcdsnap.sh"]
               securityContext:
                 allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
                 capabilities:
                   drop:
                     - ALL

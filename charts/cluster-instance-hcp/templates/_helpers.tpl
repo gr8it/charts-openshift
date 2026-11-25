@@ -50,7 +50,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 
 {{- define "cluster-instance-hcp.etcdBackup.namespace" -}}
 {{- $clusterName := include "cluster-instance-hcp.clusterName" . -}}
-{{- printf "%s-%s" $clusterName $clusterName | trimSuffix "-" -}}
+{{- printf "%s-%s" $clusterName $clusterName -}}
 {{- end }}
 
 {{- define "cluster-instance-hcp.etcdBackup.objectBucketClaimName" -}}
@@ -62,7 +62,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{- define "cluster-instance-hcp.etcdBackup.etcdStatefulSetName" -}}
-{{- .Values.etcd.backup.etcdStatefulSetName | default "etcd" -}}
+{{- .Values.etcd.backup.etcdStatefulSetName -}}
 {{- end }}
 
 {{- define "cluster-instance-hcp.etcdBackup.labels" -}}
