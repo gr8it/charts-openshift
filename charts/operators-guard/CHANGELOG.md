@@ -5,15 +5,18 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.11.0] - 2026-11-11
+## [0.11.0] - 2026-11-25
 
-- **Breaking:** remove the Route, oauth-proxy sidecar and OAuth cookie Secret; reports are reachable only through a pod port-forward.
-  Argo CD prunes the old Route, ExternalSecret and Password generator only when pruning is enabled.
-- **Breaking:** remove the `proxy` value; the chart reads `global.apc.proxy`, `global.apc.noProxy` and `global.apc.proxyCIDRs`.
-- **Breaking:** split `image` into `image.repository` and `image.tag`; the tag defaults to the chart `appVersion`.
-- Pin engine 0.14.0 (`appVersion`) with catalog channel options in the report and work order; its ManagedClusterViews are named `operators-guard-<hash>`.
-- Keep chart pins on the subscribed channel until a user chooses a switch.
-- Use cluster proxy settings and scrape metrics every minute.
+- Rename alerts from `Operator*` to `OperatorsGuard*` and scope their expressions to the release namespace.
+- Remove the `proxy` value. The chart reads `global.apc.proxy`, `global.apc.noProxy` and `global.apc.proxyCIDRs`
+  and allows egress to `proxyCIDRs` with a NetworkPolicy.
+- Split `image` into `image.repository` and `image.tag`. The tag defaults to the chart `appVersion`.
+- Remove `nodeSelector`, `brief.enabled`, `policy.brief` and `policy.workflow`. The schema rejects them.
+  Generate work orders locally with the engine CLI from `/report`.
+- Pin engine 0.14.0 (`appVersion`). Its ManagedClusterViews are named `operators-guard-<hash>`.
+- RBAC: list (was get) PackageManifests and get CatalogSources in `openshift-marketplace`, get ClusterCatalogs, list HostedClusters.
+- Rename the dashboard uid and title to `operators-guard`. Rendering fails unless the Data age threshold occurs exactly once.
+- Scrape metrics every minute (was 5 minutes). Set memory requests/limits to 256Mi/1Gi (was 1Gi/2Gi).
 
 ## [0.10.0] - 2026-11-11
 
