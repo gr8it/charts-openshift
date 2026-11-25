@@ -40,7 +40,6 @@ Design: [docs/02-design.md](https://github.com/gr8it/apc-operators-guard/blob/op
 | brief.enabled               | bool | `false` | Write `brief.md` and `pins.yaml` to `/var/cache/readiness/brief` beside the snapshot; copy them out before the pod restarts. Uses the existing cache and RBAC. |
 | historyKeep                 | int  | `24`                                      | Report-only local history entries; `0` disables. The cache is an `emptyDir`, so history is lost on pod restart. A chart change would be needed to mount a PVC. |
 | policy                      | obj  |                                           | Readiness policy, `policy.strategy` is mandatory (`eus`, `next-minor`, `pinned`) |
-| policy.workflow             | obj | absent | Optional runtime destinations: chartsRepo (path, remote, baseBranch default main), confRepos (path, disjoint clusters, envs mapping), ticketPrefix, push (ask default or allowed). Missing fields require user answers before edits. Never commit destination data. |
 | policy.brief.excludeClusters | list | `[]` | Omit named clusters from work-order targets/gates, retaining their known installed CSVs in versions; unknown names fail. Reports and snapshots stay complete. |
 | policy.owners               | obj  | `{}`                                      | Package to owner; null also uses the empty map. Used in report rows, metric labels and alerts |
 | policy.defaultOwner         | str  | `unassigned`                              | Owner when a package has no mapping or exception owner; null uses the default |
@@ -103,7 +102,6 @@ The Grafana dashboard shows prediction counts and a detail table with namespace,
 helm lint charts/operators-guard -f charts/operators-guard/values.example.yaml
 helm template operators-guard charts/operators-guard -f charts/operators-guard/values.example.yaml
 helm unittest --strict charts/operators-guard
-sh charts/operators-guard/tests/schema_test.sh
 ```
 
 Run from the repository root. The schema script tests invalid inputs separately because helm-unittest rejects
@@ -119,4 +117,4 @@ helm -n apc-operators-guard install -f values.example.yaml operators-guard .
 
 Work orders are self-contained instructions for a separate executor: one charts PR per operator, then a render
 and PR per operator in each mapped conf repo. The engine does not edit repositories, render components, push or
-open PRs. Runtime workflow precedence and strict validation are documented in [engine usage](https://github.com/gr8it/apc-operators-guard/blob/operators-guard-chart-0.12.4/engine/README.md#chart-work-order).
+open PRs. Destinations (charts and conf repos, ticket prefix, push) are not chart values: pass them at runtime with `--workflow` or `OPERATORS_GUARD_WORKFLOW`; without them the work order asks before any edit. See [engine usage](https://github.com/gr8it/apc-operators-guard/blob/operators-guard-chart-0.12.4/engine/README.md#chart-work-order).

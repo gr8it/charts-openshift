@@ -48,8 +48,9 @@
     },
     "policy": {
       "type": "object",
-      "description": "Readiness policy passed unchanged; workflow and brief scope are validated by the engine too.",
+      "description": "Readiness policy passed unchanged; brief scope is validated by the engine too. Work-order workflow destinations are runtime-only (engine --workflow) and rejected here.",
       "additionalProperties": true,
+      "not": {"required": ["workflow"]},
       "properties": {
         "strategy": {
           "type": "string",
@@ -94,84 +95,6 @@
           "type": ["string", "null"],
           "minLength": 1,
           "description": "Owner for packages without a mapping or exception (default: unassigned)."
-        },
-        "workflow": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "chartsRepo": {
-              "type": "object",
-              "additionalProperties": false,
-              "properties": {
-                "path": {
-                  "type": "string",
-                  "minLength": 1,
-                  "pattern": "\\S"
-                },
-                "remote": {
-                  "type": "string",
-                  "minLength": 1,
-                  "pattern": "\\S"
-                },
-                "baseBranch": {
-                  "type": "string",
-                  "minLength": 1,
-                  "pattern": "\\S",
-                  "default": "main"
-                }
-              }
-            },
-            "confRepos": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "properties": {
-                  "path": {
-                    "type": "string",
-                    "minLength": 1,
-                    "pattern": "\\S"
-                  },
-                  "clusters": {
-                    "type": "array",
-                    "uniqueItems": true,
-                    "items": {
-                      "type": "string",
-                      "minLength": 1,
-                      "pattern": "\\S"
-                    }
-                  },
-                  "envs": {
-                    "type": "object",
-                    "propertyNames": {
-                      "type": "string",
-                      "minLength": 1,
-                      "pattern": "\\S"
-                    },
-                    "additionalProperties": {
-                      "type": "string",
-                      "minLength": 1,
-                      "pattern": "\\S"
-                    }
-                  }
-                }
-              }
-            },
-            "ticketPrefix": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "\\S"
-            },
-            "push": {
-              "type": "string",
-              "enum": [
-                "ask",
-                "allowed"
-              ],
-              "default": "ask"
-            }
-          },
-          "description": "Optional work-order destinations; missing fields require user answers. Cluster sets must be disjoint (checked by engine)."
         },
         "brief": {
           "type": "object",

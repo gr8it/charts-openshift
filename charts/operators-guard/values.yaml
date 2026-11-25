@@ -23,10 +23,8 @@ historyKeep: 24
 #   helmOperators are used by the engine
 #   minVersions (package -> minimum installed version), drift.maxDaysBehind / drift.supportWarnDays
 #   owners (package -> owner) and defaultOwner (default: unassigned) label operator and drift results
-#   workflow: chartsRepo {path, remote, baseBranch: main}, confRepos [{path, clusters, envs}],
-#   ticketPrefix and push (ask | allowed); brief.excludeClusters defaults to []
-#   are work-order settings only; supply destination data at runtime, never commit it here
-#   (see the engine README linked from this chart's README); other keys are passed unchanged
+#   brief.excludeClusters (default []) is a work-order setting; other keys are passed unchanged
+#   workflow is rejected: work-order destinations are passed at runtime (engine --workflow), never in values
 policy: {}
 
 snapshot:
