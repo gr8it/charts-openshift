@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Argo CD prunes the old Route, ExternalSecret and Password generator only when pruning is enabled.
 - **Breaking:** remove the `proxy` value; the chart reads `global.apc.proxy`, `global.apc.noProxy` and `global.apc.proxyCIDRs`.
 - **Breaking:** split `image` into `image.repository` and `image.tag`; the tag defaults to the chart `appVersion`.
-- Pin engine 0.13.4 (`appVersion`) with catalog channel options in the report and work order; its ManagedClusterViews are named `operators-guard-<hash>`.
+- Pin engine 0.14.0 (`appVersion`) with catalog channel options in the report and work order; its ManagedClusterViews are named `operators-guard-<hash>`.
 - Keep chart pins on the subscribed channel until a user chooses a switch.
 - Use cluster proxy settings and scrape metrics every minute.
 
