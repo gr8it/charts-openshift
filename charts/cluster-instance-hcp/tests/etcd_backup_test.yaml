@@ -155,6 +155,51 @@ tests:
           path: spec.ingress[0].from[0].podSelector.matchLabels["app.kubernetes.io/instance"]
           value: etcd-hcp-backup-mycluster
 
+  - it: should prefix alert names to avoid collisions with hub etcd backup alerts
+    template: templates/etcd-backup-prometheusrule.yaml
+    set:
+      clusterName: mycluster
+      etcd.backup.enabled: true
+    asserts:
+      - equal:
+          path: spec.groups[0].rules[0].alert
+          value: HostedClusterEtcdBackupJobFailure
+      - equal:
+          path: spec.groups[0].rules[1].alert
+          value: HostedClusterEtcdBackupMissing
+
+  - it: should default to an hourly schedule
+    template: templates/etcd-backup-cronjob.yaml
+    set:
+      clusterName: mycluster
+      etcd.backup.enabled: true
+    asserts:
+      - equal:
+          path: spec.schedule
+          value: "0 * * * *"
+
+  - it: should run the backup pod with a restricted security context
+    template: templates/etcd-backup-cronjob.yaml
+    set:
+      clusterName: mycluster
+      etcd.backup.enabled: true
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.securityContext
+          value:
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].securityContext.readOnlyRootFilesystem
+          value: true
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.initContainers[1].securityContext.readOnlyRootFilesystem
+          value: true
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
+          value: true
+
   - it: should scope the job failure alert to the Hosted Control Plane namespace
     template: templates/etcd-backup-prometheusrule.yaml
     set:

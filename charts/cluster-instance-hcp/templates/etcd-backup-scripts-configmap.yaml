@@ -1,6 +1,6 @@
 {{- if .Values.etcd.backup.enabled }}
 {{- $clusterName := include "cluster-instance-hcp.clusterName" . -}}
-{{- $filePrefix := printf "etcd-%s" (default "snapshot" (regexReplaceAll "[+._]" $clusterName "-")) -}}
+{{- $filePrefix := printf "etcd-%s" (regexReplaceAll "[+._]" $clusterName "-") -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:

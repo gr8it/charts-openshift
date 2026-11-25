@@ -7,6 +7,9 @@ The format is based on [Common Changelog](https://common-changelog.org/), and th
 
 - **Breaking:** Deploy all etcd backup resources (CronJob, scripts ConfigMap, ServiceAccount, ObjectBucketClaim, PrometheusRule) into the Hosted Control Plane namespace `<clusterName>-<clusterName>` instead of the release namespace. An existing ObjectBucketClaim must be (re)created in the Hosted Control Plane namespace.
 - **Breaking:** Create the etcd backup ObjectBucketClaim with a static `bucketName` (`etcd-hcp-<clusterName>-backup` or `etcd.backup.objectBucketClaim.name`) instead of a generated bucket name.
+- **Breaking:** Rename etcd backup alerts to `HostedClusterEtcdBackupJobFailure` and `HostedClusterEtcdBackupMissing` to avoid collisions with the hub etcd backup alerts.
+- Default `etcd.backup.schedule` to hourly (`"0 * * * *"`).
+- Run etcd backup pods with `runAsNonRoot`, `RuntimeDefault` seccomp profile and read-only root filesystems.
 
 ## [2.0.22] - 2026-11-24
 

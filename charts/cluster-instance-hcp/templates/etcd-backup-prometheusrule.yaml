@@ -12,7 +12,7 @@ spec:
   groups:
     - name: cronjob.rules
       rules:
-        - alert: EtcdBackupJobFailure
+        - alert: HostedClusterEtcdBackupJobFailure
           expr: kube_job_failed{namespace="{{ include "cluster-instance-hcp.etcdBackup.namespace" . }}", job_name=~"{{ include "cluster-instance-hcp.etcdBackup.fullname" . }}-.*", condition="true"} > 0
           labels:
             severity: warning
@@ -21,7 +21,7 @@ spec:
           annotations:
             summary: "ETCD backup job for {{ $clusterName }} has failed"
             description: "ETCD backup job for {{ $clusterName }} {{`{{ $labels.namespace }}/{{ $labels.job_name}}`}} has failed."
-        - alert: EtcdBackupMissing
+        - alert: HostedClusterEtcdBackupMissing
           expr: (time() - kube_cronjob_status_last_successful_time{namespace="{{ include "cluster-instance-hcp.etcdBackup.namespace" . }}", cronjob="{{ include "cluster-instance-hcp.etcdBackup.fullname" . }}"}) > 129600 or ((time() - kube_cronjob_created{namespace="{{ include "cluster-instance-hcp.etcdBackup.namespace" . }}", cronjob="{{ include "cluster-instance-hcp.etcdBackup.fullname" . }}"}) > 129600) and on (namespace, cronjob) absent(kube_cronjob_status_last_successful_time{namespace="{{ include "cluster-instance-hcp.etcdBackup.namespace" . }}", cronjob="{{ include "cluster-instance-hcp.etcdBackup.fullname" . }}"})
           labels:
             severity: critical
