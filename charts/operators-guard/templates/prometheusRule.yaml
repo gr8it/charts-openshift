@@ -1,7 +1,4 @@
 ---
-# operator_upgrade_readiness{cluster,namespace,package,installed,channel,source,scope,target_ocp,evidence,status,owner} 1
-#   scope="current" - is the installed version supported on the running OCP minor today
-#   scope="target"  - result for the target T computed from the upgrade graph and policy
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -37,7 +34,6 @@ spec:
           owner: "{{`{{ $labels.owner }}`}}"
           summary: "Operator blocks the OpenShift upgrade"
           description: "{{`{{ $labels.package }} {{ $labels.installed }} on cluster {{ $labels.cluster }} blocks upgrade to OCP {{ $labels.target_ocp }} (evidence: {{ $labels.evidence }}).`}}"
-      # drift: operator_drift_status{status} - see engine/README.md; thresholds come from policy.drift / policy.minVersions
       - alert: OperatorsGuardSupportEnded
         expr: operator_drift_status{namespace="{{ .Release.Namespace }}", status="SUPPORT-ENDED"} == 1
         for: 24h

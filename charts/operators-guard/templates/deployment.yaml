@@ -1,6 +1,4 @@
 ---
-# Long-running collector instead of a CronJob: it keeps the last result in memory and serves
-# /metrics between runs, so Prometheus can scrape it without a Pushgateway.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -46,7 +44,6 @@ spec:
         {{- end }}
         - --cache-dir=/var/cache/readiness
         - --history-keep={{ .Values.historyKeep }}
-        # reports only on localhost (port-forward); the pod network gets /metrics, /healthz and /readyz only
         - --listen=127.0.0.1:8080
         - --metrics-listen=:9090
         env:
@@ -64,14 +61,12 @@ spec:
         {{- end }}
         - name: SEARCH_API_URL
           value: https://search-search-api.open-cluster-management.svc:4010/searchapi/graphql
-        # CA only for the in-cluster Search API; external endpoints use the system trust store
         - name: SEARCH_API_CA_FILE
           value: /etc/pki/service-ca/service-ca.crt
         ports:
         - name: metrics
           containerPort: 9090
           protocol: TCP
-        # ready only after the first successful collect
         readinessProbe:
           httpGet:
             path: /readyz
@@ -122,7 +117,6 @@ spec:
       - name: service-ca
         configMap:
           name: openshift-service-ca.crt
-      # API cache and report history; lost on pod restart
       - name: cache
         emptyDir:
           sizeLimit: 5Gi

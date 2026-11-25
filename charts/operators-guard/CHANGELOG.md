@@ -5,6 +5,10 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.1] - 2026-11-25
+
+- Remove explanatory comments from the rendered Deployment, ClusterRole, Role and PrometheusRule; the rationale is in the README.
+
 ## [0.11.0] - 2026-11-25
 
 - Rename alerts from `Operator*` to `OperatorsGuard*` and scope their expressions to the release namespace.
