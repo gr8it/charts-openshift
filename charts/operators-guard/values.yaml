@@ -1,0 +1,41 @@
+## uses following global values => do not set here
+# global:
+#   apc:
+#     proxy:
+#     noProxy:
+#     proxyCIDRs:
+
+image:
+  # image.repository: <string> - readiness-engine image repository (ghcr.io is private: mirror it to a registry the cluster can pull from)
+  repository: ghcr.io/gr8it/operators-guard
+  # image.tag: <string> - image tag, empty = Chart appVersion
+  tag: ""
+# imagePullSecrets: <list> - names of existing kubernetes.io/dockerconfigjson Secrets used to pull the image
+imagePullSecrets: []
+# interval: <duration> - how often the collector gathers inventory, graph, catalogs and Lifecycle API data
+interval: 1h
+# historyKeep: <integer> - local report copies retained in the cache (0 disables; emptyDir is lost on pod restart)
+historyKeep: 24
+
+# policy: <object> - mandatory, readiness policy rendered as-is into ConfigMap
+#   strategy (required) eus | next-minor | pinned
+#   lockstep, graph.conditionalRisks, unsupportedWindow.allow, exceptions, lifecycleProducts, catalogSources,
+#   helmOperators are used by the engine
+#   minVersions (package -> minimum installed version), drift.maxDaysBehind / drift.supportWarnDays
+#   owners (package -> owner) and defaultOwner (default: unassigned) label operator and drift results
+#   other keys are passed unchanged
+#   brief and workflow are rejected: work orders are generated locally (engine brief --policy --workflow)
+policy: {}
+
+snapshot:
+  # repository: <string> - optional, OCI repository in hub Quay where the snapshot is pushed (consumed by conf repo CI);
+  #   without it nothing is pushed and the snapshot stays in the pod cache
+  repository: ~
+  # pushSecret: <string> - mandatory when repository is set, existing kubernetes.io/dockerconfigjson Secret with Quay robot push credentials
+  pushSecret: ~
+
+grafanaDashboard:
+  # enabled: <bool> - creates GrafanaDashboard CR for grafana-operator
+  enabled: true
+  # instanceName: <string> - value of the `dashboards` label on the Grafana instance
+  instanceName: apc-grafana

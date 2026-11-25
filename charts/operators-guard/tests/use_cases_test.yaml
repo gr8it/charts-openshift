@@ -1,0 +1,418 @@
+suite: Use cases
+values:
+  - ../values.example.yaml
+release:
+  name: operators-guard
+  namespace: apc-operators-guard
+
+tests:
+  - it: routes operator alerts to the package owner
+    template: templates/prometheusRule.yaml
+    asserts:
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardUnsupportedNow")].labels.owner
+          value: "{{ $labels.owner }}"
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardUnsupportedNow")].annotations.owner
+          value: "{{ $labels.owner }}"
+      - notExists:
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardReadinessCollectStale")].labels.owner
+
+  - it: alerts before and after exception expiry
+    template: templates/prometheusRule.yaml
+    asserts:
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardExceptionExpiring")].alert
+          value: OperatorsGuardExceptionExpiring
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardExceptionExpiring")].labels.owner
+          value: "{{ $labels.owner }}"
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardExceptionExpired")].alert
+          value: OperatorsGuardExceptionExpired
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardExceptionExpired")].labels.severity
+          value: warning
+
+  - it: alerts on a prediction mismatch and keeps the owner
+    template: templates/prometheusRule.yaml
+    asserts:
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardPredictionMismatch")].alert
+          value: OperatorsGuardPredictionMismatch
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardPredictionMismatch")].expr
+          value: operator_prediction_mismatch{namespace="apc-operators-guard"} == 1
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardPredictionMismatch")].labels.owner
+          value: "{{ $labels.owner }}"
+
+  - it: alerts on a stale pending plan older than 14 days
+    template: templates/prometheusRule.yaml
+    asserts:
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardStalePendingInstallPlan")].labels.owner
+          value: "{{ $labels.owner }}"
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardStalePendingInstallPlan")].labels.severity
+          value: info
+      - matchRegex:
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardStalePendingInstallPlan")].expr
+          pattern: '^operator_prediction_stale_plan\{namespace="apc-operators-guard"\} == 1 and on\(cluster, exported_namespace, subscription, package, installed, channel, owner\) operator_prediction_plan_age_days\{namespace="apc-operators-guard"\} > 14$'
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardStalePendingInstallPlan")].for
+          value: 1h
+      - matchRegex:
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardStalePendingInstallPlanNoTimestamp")].expr
+          pattern: '^operator_prediction_stale_plan\{namespace="apc-operators-guard"\} == 1 unless on\(cluster, exported_namespace, subscription, package, installed, channel, owner\) operator_prediction_plan_age_days\{namespace="apc-operators-guard"\}$'
+      - equal:
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardStalePendingInstallPlanNoTimestamp")].for
+          value: 7d
+
+  - it: overrides the image tag
+    template: templates/deployment.yaml
+    set:
+      image.tag: 0.0.1-test
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: registry.example.com/apc/readiness-engine:0.0.1-test
+
+  - it: uses the released engine image with history support
+    template: templates/deployment.yaml
+    chart:
+      appVersion: 9.9.9
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: registry.example.com/apc/readiness-engine:9.9.9
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --history-keep=24
+
+  - it: gets referenced InstallPlans from the hub with read access only
+    template: templates/clusterRole.yaml
+    documentIndex: 0
+    asserts:
+      - contains:
+          path: rules[4].resources
+          content: installplans
+      - equal:
+          path: rules[4].verbs
+          value: [get]
+
+  - it: lists hub PackageManifests by catalog label and name in openshift-marketplace
+    template: templates/packageManifestRole.yaml
+    asserts:
+      - equal:
+          path: metadata.namespace
+          value: openshift-marketplace
+      - equal:
+          path: rules[0].verbs
+          value: [list]
+
+  - it: gets hub CatalogSources in openshift-marketplace for the ClusterCatalog image match
+    template: templates/packageManifestRole.yaml
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: rules[1]
+          value:
+            apiGroups: [operators.coreos.com]
+            resources: [catalogsources]
+            verbs: [get]
+
+  - it: reads ClusterCatalogs and HostedClusters for catalog hop proofs
+    template: templates/clusterRole.yaml
+    documentIndex: 0
+    asserts:
+      - contains:
+          path: rules
+          content:
+            apiGroups: [hypershift.openshift.io]
+            resources: [hostedclusters]
+            verbs: [list]
+      - contains:
+          path: rules
+          content:
+            apiGroups: [olm.operatorframework.io]
+            resources: [clustercatalogs]
+            verbs: [get]
+
+  - it: configures the local history limit
+    template: templates/deployment.yaml
+    set:
+      historyKeep: 3
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --history-keep=3
+
+  - it: does not render GrafanaDashboard when disabled
+    template: templates/grafanaDashboard.yaml
+    set:
+      grafanaDashboard.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: selects the Grafana instance by dashboards label
+    template: templates/grafanaDashboard.yaml
+    set:
+      grafanaDashboard.instanceName: grafana-custom
+    asserts:
+      - equal:
+          path: spec.instanceSelector.matchLabels.dashboards
+          value: grafana-custom
+
+  - it: includes prediction, exception and source panels in the GrafanaDashboard
+    template: templates/grafanaDashboard.yaml
+    asserts:
+      - matchRegex:
+          path: spec.json
+          pattern: '"title": "Prediction mismatches"'
+      - matchRegex:
+          path: spec.json
+          pattern: '"title": "Stale pending InstallPlans"'
+      - matchRegex:
+          path: spec.json
+          pattern: '"title": "Exceptions expiring \(0-29 d\)"'
+      - matchRegex:
+          path: spec.json
+          pattern: '"title": "Expired exceptions"'
+      - matchRegex:
+          path: spec.json
+          pattern: '"title": "Prediction not comparable \(UNKNOWN\)"'
+      - matchRegex:
+          path: spec.json
+          pattern: '"title": "Prediction check \(non-MATCH\)"'
+      - matchRegex:
+          path: spec.json
+          pattern: '"title": "Exceptions \(days left\)"'
+      - matchRegex:
+          path: spec.json
+          pattern: '"title": "Sources"'
+
+  - it: fails without policy.strategy
+    template: templates/policyCm.yaml
+    set:
+      policy: null
+    asserts:
+      - failedTemplate:
+          errorMessage: policy.strategy is required
+
+  - it: pushes no snapshot without a repository
+    template: templates/deployment.yaml
+    set:
+      snapshot.repository: null
+      snapshot.pushSecret: null
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].args
+          content: --snapshot-repository=registry.example.com/apc/operators-guard-snapshot
+      - notExists:
+          path: spec.template.spec.volumes[?(@.name == "snapshot-push")]
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SNAPSHOT_AUTH_FILE
+            value: /run/secrets/snapshot-push/.dockerconfigjson
+
+  - it: fails with a snapshot repository but no push secret
+    template: templates/deployment.yaml
+    set:
+      snapshot.pushSecret: null
+    asserts:
+      - failedTemplate:
+          errorMessage: snapshot.pushSecret is required when snapshot.repository is set
+
+  - it: sets proxy environment variables from global values
+    template: templates/deployment.yaml
+    set:
+      global.apc.proxy: http://proxy.example.com:3128
+      global.apc.noProxy: .example.com
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPS_PROXY
+            value: http://proxy.example.com:3128
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: NO_PROXY
+            value: .example.com,.svc,.cluster.local,$(KUBERNETES_SERVICE_HOST)
+
+  - it: allows egress to configured proxy CIDRs
+    template: templates/networkPolicy.yaml
+    set:
+      global.apc.proxyCIDRs:
+        - 192.0.2.10/32
+    asserts:
+      - equal:
+          path: spec.egress[0].to[0].ipBlock.cidr
+          value: 192.0.2.10/32
+
+  - it: renders no proxy NetworkPolicy without proxy CIDRs
+    template: templates/networkPolicy.yaml
+    set:
+      global.apc.proxyCIDRs: null
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: sets no proxy variables without proxy globals
+    template: templates/deployment.yaml
+    set:
+      global.apc.proxy: null
+      global.apc.noProxy: null
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPS_PROXY
+            value: http://proxy.example.com:3128
+
+  - it: keeps the reports on localhost and exposes only the metrics listener
+    template: templates/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --listen=127.0.0.1:8080
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --metrics-listen=:9090
+      - equal:
+          path: spec.template.spec.containers[0].ports
+          value:
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: metrics
+
+  - it: points the Service and ServiceMonitor at the metrics listener
+    template: templates/service.yaml
+    asserts:
+      - equal:
+          path: spec.ports
+          value:
+            - name: metrics
+              port: 9090
+              targetPort: metrics
+              protocol: TCP
+
+  - it: scrapes metrics every minute
+    template: templates/serviceMonitor.yaml
+    asserts:
+      - equal:
+          path: spec.endpoints[0].interval
+          value: 1m
+
+  - it: keys, filters and shows the non-MATCH table by the operator namespace
+    template: templates/grafanaDashboard.yaml
+    asserts:
+      - notMatchRegex:
+          path: spec.json
+          pattern: '"cluster\\", \\"namespace\\", \\"subscription'
+      - matchRegex:
+          path: spec.json
+          pattern: 'operator_prediction_plan_age_days\{[^}]*\} and on\(cluster, exported_namespace, subscription'
+      - matchRegex:
+          path: spec.json
+          pattern: '"exported_namespace": "namespace"'
+      - matchRegex:
+          path: spec.json
+          pattern: '"endpoint": true,\s*"namespace": true'
+
+  - it: keeps the 3 h stale threshold for the default interval
+    template: templates/prometheusRule.yaml
+    asserts:
+      - matchRegex:
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardReadinessCollectStale")].expr
+          pattern: '> 10800$'
+
+  - it: derives the stale threshold from a 6 h interval in the alert and the dashboard
+    set:
+      interval: 6h
+    asserts:
+      - template: templates/prometheusRule.yaml
+        matchRegex:
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardReadinessCollectStale")].expr
+          pattern: '> 64800$'
+      - template: templates/prometheusRule.yaml
+        matchRegex:
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardReadinessCollectStale")].annotations.description
+          pattern: 'more than 18 hours'
+      - template: templates/grafanaDashboard.yaml
+        matchRegex:
+          path: spec.json
+          pattern: '"value": 64800'
+
+  - it: keeps at least 3 h for a short interval
+    template: templates/prometheusRule.yaml
+    set:
+      interval: 15m
+    asserts:
+      - matchRegex:
+          path: spec.groups[0].rules[?(@.alert == "OperatorsGuardReadinessCollectStale")].expr
+          pattern: '> 10800$'
+
+  - it: passes image pull secrets
+    template: templates/deployment.yaml
+    set:
+      imagePullSecrets: [quay-pull]
+    asserts:
+      - equal:
+          path: spec.template.spec.imagePullSecrets[0].name
+          value: quay-pull
+
+  - it: restarts the collector when policy changes
+    template: templates/deployment.yaml
+    set:
+      policy.strategy: next-minor
+    asserts:
+      - exists:
+          path: spec.template.metadata.annotations["checksum/policy"]
+
+  - it: passes the interval to the collector
+    template: templates/deployment.yaml
+    set:
+      interval: 30m
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --interval=30m
+
+  - it: does not generate work orders in the pod
+    template: templates/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].args
+          content: --brief-out=/var/cache/readiness/brief
+
+  - it: rejects the removed brief value
+    template: templates/deployment.yaml
+    set:
+      brief.enabled: true
+    asserts:
+      - failedTemplate:
+          errorPattern: "brief"
+
+  - it: rejects policy.brief, work-order settings are local only
+    template: templates/policyCm.yaml
+    set:
+      policy.brief.excludeClusters: [cluster-a]
+    asserts:
+      - failedTemplate:
+          errorPattern: "policy"
+
+  - it: rejects policy.workflow, destinations are runtime-only
+    template: templates/policyCm.yaml
+    set:
+      policy.workflow:
+        push: ask
+    asserts:
+      - failedTemplate:
+          errorPattern: "policy"
