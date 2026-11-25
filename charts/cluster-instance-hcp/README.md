@@ -79,7 +79,7 @@ When `backup.enabled` is true, creates a Velero Schedule and resource-policy Con
 
 ### Hosted Control Plane etcd backup
 
-When `etcd.backup.enabled` is true, creates a CronJob and the required scripts ConfigMap, ServiceAccount, Role, RoleBinding, NetworkPolicy, and PrometheusRule for etcd snapshots. Backups are uploaded to an S3-compatible ObjectBucketClaim in the release namespace; by default the claim must already exist and be named `etcd-hcp-<clusterName>-backup`. Set `etcd.backup.objectBucketClaim.create: true` to have the chart create it. The CronJob accesses the Hosted Control Plane etcd StatefulSet in the conventional `<clusterName>-<clusterName>` namespace. The `etcd.backup` settings are independent of the Velero `backup` settings.
+When `etcd.backup.enabled` is true, creates a CronJob and the required scripts ConfigMap, ServiceAccount, Role, RoleBinding, NetworkPolicy, and PrometheusRule for etcd snapshots. All etcd backup resources are created in the conventional Hosted Control Plane namespace `<clusterName>-<clusterName>`, next to the etcd StatefulSet. Backups are uploaded to an S3-compatible ObjectBucketClaim in that namespace; by default the claim must already exist and be named `etcd-hcp-<clusterName>-backup`. Set `etcd.backup.objectBucketClaim.create: true` to have the chart create it. The `etcd.backup` settings are independent of the Velero `backup` settings.
 
 ### `apiServerCert`
 

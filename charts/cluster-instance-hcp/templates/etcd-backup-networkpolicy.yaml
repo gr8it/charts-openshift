@@ -9,10 +9,7 @@ metadata:
 spec:
   ingress:
     - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: {{ .Release.Namespace }}
-          podSelector:
+        - podSelector:
             matchLabels:
               app.kubernetes.io/name: etcd-hcp-backup
               app.kubernetes.io/instance: {{ include "cluster-instance-hcp.etcdBackup.fullname" . }}

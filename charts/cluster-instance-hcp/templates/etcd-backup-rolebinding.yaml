@@ -9,7 +9,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: {{ include "cluster-instance-hcp.etcdBackup.fullname" . }}
-    namespace: {{ .Release.Namespace }}
+    namespace: {{ include "cluster-instance-hcp.etcdBackup.namespace" . }}
 roleRef:
   kind: Role
   name: {{ include "cluster-instance-hcp.etcdBackup.fullname" . }}

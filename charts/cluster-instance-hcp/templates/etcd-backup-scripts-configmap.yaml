@@ -5,7 +5,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "cluster-instance-hcp.etcdBackup.fullname" . }}-scripts
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "cluster-instance-hcp.etcdBackup.namespace" . }}
   labels:
     {{- include "cluster-instance-hcp.etcdBackup.labels" . | nindent 4 }}
 data:
