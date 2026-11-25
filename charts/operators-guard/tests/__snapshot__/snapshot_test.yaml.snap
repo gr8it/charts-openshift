@@ -118,7 +118,7 @@ manifests should match snapshot:
       template:
         metadata:
           annotations:
-            checksum/policy: 9b17cd4563e7f6b32482dd39e00eadfa46f1f4e334505915f467b92db41ada49
+            checksum/policy: 85b2fdde16b77e124ed41cca14c20e947cfc4a53848c0c2440ace709f55ad2de
           labels:
             app.kubernetes.io/instance: operators-guard
             app.kubernetes.io/managed-by: Helm
@@ -135,7 +135,6 @@ manifests should match snapshot:
                 - --snapshot-repository=registry.example.com/apc/operators-guard-snapshot
                 - --cache-dir=/var/cache/readiness
                 - --history-keep=24
-                - --brief-out=/var/cache/readiness/brief
                 - --listen=127.0.0.1:8080
                 - --metrics-listen=:9090
               env:
@@ -1089,8 +1088,6 @@ manifests should match snapshot:
     apiVersion: v1
     data:
       policy.yaml: |
-        brief:
-          excludeClusters: []
         defaultOwner: unassigned
         drift:
           maxDaysBehind: 90

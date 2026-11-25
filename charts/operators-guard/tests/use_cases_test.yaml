@@ -385,37 +385,28 @@ tests:
           path: spec.template.spec.containers[0].args
           content: --interval=30m
 
-  - it: leaves brief output disabled by default
+  - it: does not generate work orders in the pod
     template: templates/deployment.yaml
-    set:
-      brief.enabled: false
     asserts:
       - notContains:
           path: spec.template.spec.containers[0].args
           content: --brief-out=/var/cache/readiness/brief
 
-  - it: writes the brief to the existing data volume when enabled
+  - it: rejects the removed brief value
     template: templates/deployment.yaml
     set:
       brief.enabled: true
     asserts:
-      - contains:
-          path: spec.template.spec.containers[0].args
-          content: --brief-out=/var/cache/readiness/brief
-      - contains:
-          path: spec.template.spec.containers[0].volumeMounts
-          content:
-            name: cache
-            mountPath: /var/cache/readiness
+      - failedTemplate:
+          errorPattern: "brief"
 
-  - it: transports work-order scope in the policy
+  - it: rejects policy.brief, work-order settings are local only
     template: templates/policyCm.yaml
     set:
       policy.brief.excludeClusters: [cluster-a]
     asserts:
-      - matchRegex:
-          path: data["policy.yaml"]
-          pattern: 'excludeClusters:\s+- cluster-a'
+      - failedTemplate:
+          errorPattern: "policy"
 
   - it: rejects policy.workflow, destinations are runtime-only
     template: templates/policyCm.yaml
@@ -425,43 +416,3 @@ tests:
     asserts:
       - failedTemplate:
           errorPattern: "policy"
-
-  - it: rejects a non-boolean brief.enabled
-    template: templates/deployment.yaml
-    set:
-      brief.enabled: "yes"
-    asserts:
-      - failedTemplate:
-          errorPattern: "brief"
-
-  - it: rejects unknown brief keys
-    template: templates/deployment.yaml
-    set:
-      brief.extra: true
-    asserts:
-      - failedTemplate:
-          errorPattern: "extra"
-
-  - it: rejects a non-list policy.brief.excludeClusters
-    template: templates/policyCm.yaml
-    set:
-      policy.brief.excludeClusters: cluster-a
-    asserts:
-      - failedTemplate:
-          errorPattern: "excludeClusters"
-
-  - it: rejects an empty cluster name in policy.brief.excludeClusters
-    template: templates/policyCm.yaml
-    set:
-      policy.brief.excludeClusters: [""]
-    asserts:
-      - failedTemplate:
-          errorPattern: "excludeClusters"
-
-  - it: rejects unknown policy.brief keys
-    template: templates/policyCm.yaml
-    set:
-      policy.brief.extra: true
-    asserts:
-      - failedTemplate:
-          errorPattern: "extra"

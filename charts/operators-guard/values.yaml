@@ -23,8 +23,8 @@ historyKeep: 24
 #   helmOperators are used by the engine
 #   minVersions (package -> minimum installed version), drift.maxDaysBehind / drift.supportWarnDays
 #   owners (package -> owner) and defaultOwner (default: unassigned) label operator and drift results
-#   brief.excludeClusters (default []) is a work-order setting; other keys are passed unchanged
-#   workflow is rejected: work-order destinations are passed at runtime (engine --workflow), never in values
+#   other keys are passed unchanged
+#   brief and workflow are rejected: work orders are generated locally (engine brief --policy --workflow)
 policy: {}
 
 snapshot:
@@ -39,7 +39,3 @@ grafanaDashboard:
   enabled: true
   # instanceName: <string> - value of the `dashboards` label on the Grafana instance
   instanceName: apc-grafana
-
-brief:
-  # enabled: <bool> - write brief.md and pins.yaml to /var/cache/readiness/brief after collection
-  enabled: false

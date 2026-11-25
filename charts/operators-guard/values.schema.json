@@ -34,13 +34,6 @@
       "description": "Collector interval: hours, minutes and seconds in this order, each at most once (e.g. 1h, 30m, 1h30m).",
       "pattern": "^([0-9]+h([0-9]+m)?([0-9]+s)?|[0-9]+m([0-9]+s)?|[0-9]+s)$"
     },
-    "brief": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "enabled": {"type": "boolean", "description": "Write an offline work order alongside the cached snapshot."}
-      }
-    },
     "historyKeep": {
       "type": "integer",
       "minimum": 0,
@@ -48,9 +41,9 @@
     },
     "policy": {
       "type": "object",
-      "description": "Readiness policy passed unchanged; brief scope is validated by the engine too. Work-order workflow destinations are runtime-only (engine --workflow) and rejected here.",
+      "description": "Readiness policy passed unchanged. Work-order settings (brief, workflow) are local only (engine brief --policy --workflow) and rejected here.",
       "additionalProperties": true,
-      "not": {"required": ["workflow"]},
+      "not": {"anyOf": [{"required": ["workflow"]}, {"required": ["brief"]}]},
       "properties": {
         "strategy": {
           "type": "string",
@@ -95,22 +88,6 @@
           "type": ["string", "null"],
           "minLength": 1,
           "description": "Owner for packages without a mapping or exception (default: unassigned)."
-        },
-        "brief": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "excludeClusters": {
-              "type": "array",
-              "uniqueItems": true,
-              "items": {
-                "type": "string",
-                "minLength": 1,
-                "pattern": "\\S"
-              },
-              "description": "Exclude targets and gates only; known installed CSVs remain in work-order versions. Unknown names fail generation."
-            }
-          }
         }
       }
     },
