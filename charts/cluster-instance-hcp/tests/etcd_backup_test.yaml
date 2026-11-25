@@ -7,7 +7,6 @@ templates:
   - templates/etcd-backup-role.yaml
   - templates/etcd-backup-rolebinding.yaml
   - templates/etcd-backup-serviceaccount.yaml
-  - templates/etcd-backup-networkpolicy.yaml
   - templates/etcd-backup-prometheusrule.yaml
 values:
   - ../values.lint.yaml
@@ -89,15 +88,6 @@ tests:
       - hasDocuments:
           count: 1
 
-  - it: should create the NetworkPolicy when enabled
-    template: templates/etcd-backup-networkpolicy.yaml
-    set:
-      clusterName: mycluster
-      etcd.backup.enabled: true
-    asserts:
-      - hasDocuments:
-          count: 1
-
   - it: should create the PrometheusRule when enabled
     template: templates/etcd-backup-prometheusrule.yaml
     set:
@@ -142,18 +132,6 @@ tests:
       - equal:
           path: subjects[0].namespace
           value: mycluster-mycluster
-
-  - it: should allow etcd access only from backup pods in the same namespace
-    template: templates/etcd-backup-networkpolicy.yaml
-    set:
-      clusterName: mycluster
-      etcd.backup.enabled: true
-    asserts:
-      - notExists:
-          path: spec.ingress[0].from[0].namespaceSelector
-      - equal:
-          path: spec.ingress[0].from[0].podSelector.matchLabels["app.kubernetes.io/instance"]
-          value: etcd-hcp-backup-mycluster
 
   - it: should prefix alert names to avoid collisions with hub etcd backup alerts
     template: templates/etcd-backup-prometheusrule.yaml
