@@ -1,0 +1,11 @@
+{{- range .Values.additionalNetworks }}
+---
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata:
+  name: {{ .name }}
+  namespace: openshift-storage
+spec:
+  config: |-
+    {{- .rawCNIConfig | nindent 4 }}
+{{- end }}
