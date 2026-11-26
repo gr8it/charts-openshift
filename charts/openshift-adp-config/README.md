@@ -8,6 +8,8 @@ Helm chart that prepares OpenShift Application Data Protection (OADP) for applic
 - a Kyverno policy that mirrors cloud credentials from `apc-backup` into `openshift-adp`
 - optional ServiceMonitor resources for Velero metrics
 
+Chart version 1.0.4 identifies OADP v1.5.8. The DPA uses nodeAgent with the kopia uploader.
+
 ## Requirements
 
 - OADP operator installed in the cluster

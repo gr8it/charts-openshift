@@ -112,3 +112,41 @@ The oauth.identityProviders  allows you to define and deploy identity provider s
 | `vaultKVmountPlatform` | mount point for platform secrets in vault apc-platform | apc-platform  | apc-platform  |
 | `caCertificates.caCrt` | CA bundle to trust identity provider, see also [apc-global-overrides](https://github.com/gr8it/charts-openshift/tree/main/charts/apc-global-overrides) | ~ | ~ |
 
+## Kubelet configuration
+
+Creates one `KubeletConfig` per list entry for the given machine config pool (`master` or `worker`). Each entry sets the KubeletConfig `name`, the `pool`, optionally `autoSizingReserved` (`spec.autoSizingReserved`) and optionally `kubeletConfig` (`spec.kubeletConfig`, passed as-is).
+
+Set `autoSizingReserved: true` to have system resource reservations calculated automatically from each node's capacity. This is useful when nodes in a pool have different sizes or you want to avoid maintaining fixed `systemReserved` values; use manual reservations (`autoSizingReserved: false` with `kubeletConfig.systemReserved`) when workloads need more specific amounts. OpenShift 4.21 enables automatic reservation by default on newly installed clusters, while clusters upgraded from earlier OpenShift versions may have it disabled, so set `autoSizingReserved` explicitly.
+
+See the [OpenShift node resource configuration documentation](https://docs.redhat.com/en/documentation/openshift_container_platform/4.21/html/nodes/working-with-nodes#nodes-nodes-resources-configuring-setting_nodes-nodes-resources-configuring) and Red Hat's [recommended system reservation values](https://access.redhat.com/solutions/5843241).
+
+|parameter|description|default|type|
+|---|---|---|---|
+|.kubeletConfigs|KubeletConfigs to create|[]|list|
+|.kubeletConfigs[].name|**Required.** KubeletConfig name|-|string|
+|.kubeletConfigs[].pool|**Required.** machine config pool, `master` or `worker`|-|string|
+|.kubeletConfigs[].autoSizingReserved|automatic system reservation, not rendered if omitted|-|boolean|
+|.kubeletConfigs[].kubeletConfig|`spec.kubeletConfig`, see [KubeletConfig](https://docs.redhat.com/en/documentation/openshift_container_platform/4.21/html/machine_configuration/machine-configs-custom)|-|map|
+
+
+```yaml
+kubeletConfigs:
+  - name: max-pods-worker
+    pool: worker
+    kubeletConfig:
+      podsPerCore: 0
+      maxPods: 350
+```
+
+> [!WARNING]
+> MCO does not merge KubeletConfigs of the same pool. Each one renders the full `/etc/kubernetes/kubelet.conf` into its own MachineConfig (`99-<pool>-generated-kubelet[-<n>]`) and the one with the highest suffix wins. Prefer one KubeletConfig per pool for new clusters.
+
+## Container runtime
+
+Creates MachineConfigs `99-crun-default-runtime-master` and `99-crun-default-runtime-worker` with the CRI-O drop-in `/etc/crio/crio.conf.d/99-crun-runtime.conf` setting `[crio.runtime] default_runtime`.
+
+|parameter|default|type|description|
+|---|---|---|---|
+|.defaultContainerRuntime|crun|string|`crun` or `runc`. Set to `""` to leave the runtime unmanaged (OpenShift default applies)|
+
+> [!WARNING] Any change of kubelet or container runtime configuration drains and reboots all nodes of the affected pool. Consider pausing the MachineConfigPool (`spec.paused: true`) and unpausing it in a maintenance window.

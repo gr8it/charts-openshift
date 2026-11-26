@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: cluster-infraenv snapshot
+templates:
+  - templates/*
+values:
+  - ../values.example.yaml
+release:
+  name: cluster-infraenv-prod01
+  namespace: infrastructure-prod01
+
+tests:
+  - it: manifests should match snapshot
+    asserts:
+      - matchSnapshot: {}

@@ -1,0 +1,55 @@
+{{- if or .Values.vault.refPullSecretPath (include "quay-config.hasClusterPullSecretPath" .) }}
+---
+apiVersion: vault.vault.upbound.io/v1alpha1
+kind: Policy
+metadata:
+  name: {{ include "quay-config.objname.vault-policy" . }}
+  labels:
+    {{- include "quay-config.labels" . | nindent 4 }}
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    name: {{ include "quay-config.objname.vault-policy" . }}
+    policy: |2
+
+      {{- $clusterPullSecretPath := default dict .Values.vault.clusterPullSecretPath }}
+
+      {{- $refPathIsClusterPath := false }}
+      {{- range $cluster, $config := $clusterPullSecretPath }}
+      {{- if eq $.Values.vault.refPullSecretPath (include "quay-config.clusterPullSecretPath" (dict "config" $config)) }}
+      {{- $refPathIsClusterPath = true }}
+      {{- end }}
+      {{- end }}
+      {{- if and .Values.vault.refPullSecretPath (not $refPathIsClusterPath) }}
+      {{- $refPullSecretPath := .Values.vault.refPullSecretPath }}
+      path "{{ $refPullSecretPath }}" {
+        capabilities = ["read", "list"]
+      }
+      path "{{ include "quay-config.insertPathSegment" (dict "path" $refPullSecretPath "insert" "data") }}" {
+        capabilities = ["read", "list"]
+      }
+      path "{{ include "quay-config.insertPathSegment" (dict "path" $refPullSecretPath "insert" "metadata") }}" {
+        capabilities = ["read", "list"]
+      }
+      {{- end }}
+
+      {{- range $cluster, $config := $clusterPullSecretPath }}
+      {{- $path := include "quay-config.clusterPullSecretPath" (dict "config" $config) }}
+      {{- if $path }}
+      path "{{ $path }}" {
+        capabilities = ["create", "read", "update", "patch", "list"]
+      }
+      path "{{ include "quay-config.insertPathSegment" (dict "path" $path "insert" "data") }}" {
+        capabilities = ["create", "read", "update", "patch", "list"]
+      }
+      path "{{ include "quay-config.insertPathSegment" (dict "path" $path "insert" "metadata") }}" {
+        capabilities = ["create", "read", "update", "patch", "list"]
+      }
+      {{- end }}
+      {{- end }}
+  initProvider: {}
+  managementPolicies:
+  - '*'
+  providerConfigRef:
+    name: {{ include "apc-global-overrides.require-crossplaneKubeVaultProviderConfigName" . }}
+{{- end }}

@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: cluster-instance-hcp Velero resource policy
+templates:
+  - templates/configmap-velero-resource-policy.yaml
+values:
+  - ../values.lint.yaml
+release:
+  name: cluster-instance-hcp
+  namespace: mycluster
+
+tests:
+  - it: should create the Velero resource policy in the Velero namespace
+    set:
+      clusterName: mycluster
+      backup.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: apiVersion
+          value: v1
+      - equal:
+          path: kind
+          value: ConfigMap
+      - equal:
+          path: metadata.name
+          value: velero-resource-policy-mycluster
+      - equal:
+          path: metadata.namespace
+          value: openshift-adp
+      - equal:
+          path: data["policies.yaml"]
+          value: |
+            version: v1
+            policies:
+              - name: exclude-specific-secrets
+                action: skip
+                target:
+                  - groupResource: secrets
+                    names:
+                      - bootstrap-hub-kubeconfig
+                      - hub-kubeconfig-secret
+                      - "mycluster-import"
+                    namespaces:
+                      - "klusterlet-mycluster"
+                      - "mycluster-mycluster"
+
+  - it: should not create a Velero resource policy when backup is disabled
+    set:
+      clusterName: mycluster
+      backup.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0

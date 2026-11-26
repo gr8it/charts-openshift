@@ -1,0 +1,92 @@
+## uses following global values => do not set here ########
+# global: # to be overridden by helmfile global meta env
+#   apc:
+#     environmentShort:
+#     cluster:
+#       name:
+#       appsDomain:
+#       isHub:
+#     proxy:
+#     noProxy:
+#     proxyCIDRs:
+#     services:
+#       crossplane:
+#         kubeVaultProviderConfigName:
+#       externalSecretsOperator:
+#         defaultClusterSecretStore:
+#       vault:
+#         url:
+#         kubeAuthMountPath:
+###########################################################
+
+nameOverride: apc-registry
+
+dbVolumeSize: 200Gi
+
+quayConfig:
+  tagExpiration: 2w
+  actionLogRetention: 30d
+  registryTitle: APC Quay Registry
+  registryTitleShort: APC Quay
+  localAdminUser: quayadmin
+
+# list of registries to be used for image proxying
+# TODO: deprecated - use apc-global-overrides.imageProxySources
+imageProxyRegistries:
+  - docker.io
+  - quay.io
+  - ghcr.io
+  - registry.connect.redhat.com
+  - registry.redhat.io
+
+vault:
+  # path to vault secret containing credentials for various registries
+  # the secret key name should be "pull-secret" and the value is a dockerconfig.json format
+  # registry credentials found in here will be used for authenticating to the registries listed in imageProxyRegistries
+  refPullSecretPath: ~
+  # map of cluster names to their Vault path and field key
+  # the secret must already exist on the vault side
+  # set path to null to create the robot account without updating that cluster's Vault secret
+  clusterPullSecretPath: ~
+    #cluster-name:
+    #  path: vault/env/path
+    #  key: pull-secret
+    #hub01:
+    #  path: apc-platform/h/cluster-config
+    #  key: pull-secret
+    #dev01:
+    #  path: apc-platform/h/hcp/dev01/pullSecret
+    #  key: .dockerconfigjson
+
+# oc adm release info --image-for=cli
+ocImage: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8bda2b4d186c34f5cc0794037d2704b37731dab71a3a2363511831ec635e3f60
+
+argocd:
+  # forces argocd sync each time the pull-secret (defined in refPullSecretPath) gets updated
+  # this re-creates init job(s) to update the registry credentials
+  syncOnPullSecretUpdate: true
+  appName: ~      # defaults to Chart.name
+  appNamespace: ~ # defaults to apc-gitops
+
+resourcesOverride:
+  mirror:
+    limits:
+      cpu: 1200m
+      memory: 2Gi
+    requests:
+      cpu: 600m
+      memory: 512Mi
+  quay:
+    limits:
+      cpu: 3
+      memory: 10Gi
+    requests:
+      cpu: 2
+      memory: 8Gi
+  postinstall:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 512Mi

@@ -1,0 +1,29 @@
+suite: Project configuration
+templates:
+  - templates/projectConfig.yaml
+tests:
+  - it: does not render cluster project configuration when no request message is set
+    set:
+      projectRequestMessage: ""
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: sets the custom project request message
+    set:
+      projectRequestMessage: Please contact cluster admins to request a new project.
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: apiVersion
+          value: config.openshift.io/v1
+      - equal:
+          path: kind
+          value: Project
+      - equal:
+          path: metadata.name
+          value: cluster
+      - equal:
+          path: spec.projectRequestMessage
+          value: Please contact cluster admins to request a new project.

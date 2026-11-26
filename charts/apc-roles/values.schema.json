@@ -1,0 +1,94 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "apc-roles values",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "global": {
+      "type": "object",
+      "description": "Global values shared with subcharts.",
+      "additionalProperties": true
+    },
+    "apc-global-overrides": {
+      "type": "object",
+      "description": "Values passed to the apc-global-overrides library chart.",
+      "additionalProperties": true
+    },
+    "customer": {
+      "type": "string",
+      "description": "Local override for the global APC customer value."
+    },
+    "environment": {
+      "type": "string",
+      "description": "Local override for the global APC environment value."
+    },
+    "environmentShort": {
+      "type": "string",
+      "description": "Local override for the global APC short environment value."
+    },
+    "releaseServiceOverride": {
+      "type": "string",
+      "description": "Overrides the Helm release service used for managed-by labels."
+    },
+    "ldapGroupPrefix": {
+      "type": "string",
+      "description": "Prefix used for LDAP group names."
+    },
+    "ldapAdminsGroupPrefix": {
+      "type": "string",
+      "description": "Prefix used for the LDAP admins ClusterRoleBinding group."
+    },
+    "adGroupPrefix": {
+      "type": "string",
+      "description": "Prefix used for Active Directory group names."
+    },
+    "roleNamePrefix": {
+      "type": "string",
+      "description": "Prefix used for generated binding names."
+    },
+    "projectRequestMessage": {
+      "type": "string",
+      "description": "Optional message shown when users are denied a project request. Leave empty to keep the cluster default."
+    },
+    "roleBindings": {
+      "type": "object",
+      "description": "Namespace RoleBindings grouped by IdP and user group.",
+      "propertyNames": {
+        "enum": ["ad", "ldap"]
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "clusterRoleBindings": {
+      "type": "object",
+      "description": "ClusterRoleBindings grouped by IdP and user group.",
+      "propertyNames": {
+        "enum": ["ad", "ldap"]
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "nameOverride": {
+      "type": "string",
+      "description": "Overrides the chart name used for app.kubernetes.io/name."
+    },
+    "fullnameOverride": {
+      "type": "string",
+      "description": "Overrides the full resource name."
+    }
+  }
+}

@@ -8,7 +8,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.12.0
+        helm.sh/chart: gitops-bootstrap-2.16.0
       name: global
       namespace: apc-bootstrap
     spec:
@@ -23,7 +23,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.12.0
+        helm.sh/chart: gitops-bootstrap-2.16.0
       name: apc-bootstrap
   3: |
     apiVersion: cluster.open-cluster-management.io/v1beta1
@@ -34,7 +34,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.12.0
+        helm.sh/chart: gitops-bootstrap-2.16.0
       name: gitops-bootstrap
       namespace: apc-bootstrap
     spec:
@@ -54,7 +54,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.12.0
+        helm.sh/chart: gitops-bootstrap-2.16.0
       name: gitops-bootstrap
       namespace: apc-bootstrap
     placementRef:
@@ -76,7 +76,7 @@ manifests should match snapshot:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
-        helm.sh/chart: gitops-bootstrap-2.12.0
+        helm.sh/chart: gitops-bootstrap-2.16.0
       name: gitops-bootstrap
       namespace: apc-bootstrap
     spec:
@@ -352,6 +352,53 @@ manifests should match snapshot:
                             return health_status
                           group: operators.coreos.com
                           kind: Subscription
+                        - check: |
+                            hs = { status = "Progressing", message = "Waiting for NodePool status" }
+
+                            if obj.status == nil then
+                              return hs
+                            end
+
+                            for _, condition in ipairs(obj.status.conditions or {}) do
+                              if condition.type == "Degraded" and condition.status == "True" then
+                                hs.status = "Degraded"
+                                hs.message = condition.message or "NodePool is degraded"
+                                return hs
+                              end
+
+                              if (condition.type == "UpdatingConfig" or condition.type == "UpdatingVersion" or condition.type == "UpdatingPlatformMachineTemplate") and condition.status == "True" then
+                                hs.message = condition.message or "NodePool update is in progress"
+                                return hs
+                              end
+                            end
+
+                            for _, condition in ipairs(obj.status.conditions or {}) do
+                              if condition.type == "Ready" and condition.status == "True" and condition.observedGeneration == obj.metadata.generation then
+                                hs.status = "Healthy"
+                                hs.message = condition.message or "NodePool is ready"
+                                return hs
+                              end
+                            end
+
+                            hs.message = "Waiting for NodePool readiness to reflect its current generation"
+                            return hs
+                          group: hypershift.openshift.io
+                          kind: NodePool
+                        - check: |
+                            hs = {}
+                            hs.status = "Progressing"
+                            hs.message = ""
+                            if obj.status ~= nil then
+                              if obj.status.health ~= nil then
+                                hs.status = obj.status.health.status
+                                if obj.status.health.message ~= nil then
+                                  hs.message = obj.status.health.message
+                                end
+                              end
+                            end
+                            return hs
+                          group: argoproj.io
+                          kind: Application
                       resourceTrackingMethod: annotation
                       server:
                         resources:
@@ -842,7 +889,7 @@ manifests should match snapshot:
         app.kubernetes.io/name: gitops-bootstrap
         app.kubernetes.io/version: v1
         argocd.argoproj.io/secret-type: repo-creds
-        helm.sh/chart: gitops-bootstrap-2.12.0
+        helm.sh/chart: gitops-bootstrap-2.16.0
       name: null
       namespace: apc-bootstrap
     stringData:

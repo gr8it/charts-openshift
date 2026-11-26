@@ -48,3 +48,13 @@ pullSecret:
 
 dedicatedEtcdStorageDevices: []
 
+# default OCI runtime for CRI-O on master and worker pools (crun | runc)
+# set to "" to leave the runtime unmanaged (OpenShift default applies)
+defaultContainerRuntime: crun
+
+# KubeletConfig CRs, each entry:
+#   name: KubeletConfig name
+#   pool: machine config pool (master | worker)
+#   autoSizingReserved: optional, automatic system reservation (spec.autoSizingReserved)
+#   kubeletConfig: optional, spec.kubeletConfig
+kubeletConfigs: []

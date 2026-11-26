@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: ManagedClusterSet
+templates:
+  - templates/managedclusterset.yaml
+values:
+  - ../values.yaml
+release:
+  name: acm-instance
+  namespace: open-cluster-management
+
+tests:
+  - it: creates a ManagedClusterSet for each configured cluster set
+    set:
+      clusterSets:
+        - qa
+        - prod
+    asserts:
+      - hasDocuments:
+          count: 2
+      - equal:
+          path: apiVersion
+          value: cluster.open-cluster-management.io/v1beta2
+      - equal:
+          path: kind
+          value: ManagedClusterSet
+      - equal:
+          path: metadata.name
+          value: qa
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: prod
+        documentIndex: 1
+      - equal:
+          path: metadata.labels["app.kubernetes.io/managed-by"]
+          value: Helm
+      - equal:
+          path: spec.clusterSelector.selectorType
+          value: ExclusiveClusterSetLabel
+
+  - it: does not create a ManagedClusterSet when clusterSets is empty
+    set:
+      clusterSets: []
+    asserts:
+      - hasDocuments:
+          count: 0

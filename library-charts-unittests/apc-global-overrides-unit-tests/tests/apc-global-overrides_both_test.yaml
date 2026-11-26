@@ -94,9 +94,14 @@ tests:
     asserts:
       - equal:
           path: data.sshAuthorizedKeys
-          value: 
-            - ssh-ed25519 AAAA local1-key
-            - ssh-ed25519 AAAA local2-key
+          value:
+            - "ssh-ed25519 AAAA local-key"
+            - "ssh-ed25519 BBBB local-key"
+      - equal:
+          path: data.sshAuthorizedKeysBundle
+          value: |-
+            ssh-ed25519 AAAA local-key
+            ssh-ed25519 BBBB local-key
 
   - it: imageProxy prefer local over global
     asserts:
@@ -106,6 +111,17 @@ tests:
           value:
             - quay.io-local
 
+  - it: identityProviders prefer local over global
+    asserts:
+      - equal:
+          path: data.identityProviders[0].name
+          value: "Local LDAP"
+      - equal:
+          path: data.identityProviders[0].ldap.bindPassword.name
+          value: local-ldap-bind-secret
+      - notExists:
+          path: data.identityProviders[1]
+
   - it: adIntegration prefer local over global with attribute defaults applied
     asserts:
       - equal: { path: data.adIntegration.name, value: "AD Login local" }
@@ -113,7 +129,7 @@ tests:
       - equal: { path: data.adIntegration.mappingMethod, value: "claim" }
       - equal: { path: data.adIntegration.ldap.bindDN, value: "cn=svc-local,dc=local,dc=com" }
       - equal: { path: data.adIntegration.ldap.url, value: "ldaps://ad-local.example.com/dc=local,dc=com" }
-      - equal: { path: data.ldapIntegration.ldap.insecure, value: true }
+      - equal: { path: data.adIntegration.ldap.insecure, value: false }
       - equal:
           path: data.adIntegration.ldap.attributes.email
           value:
@@ -138,7 +154,7 @@ tests:
       - equal: { path: data.ldapIntegration.mappingMethod, value: "claim" }
       - equal: { path: data.ldapIntegration.ldap.bindDN, value: "cn=svc-local,dc=local,dc=com" }
       - equal: { path: data.ldapIntegration.ldap.url, value: "ldaps://ldap-local.example.com/dc=local,dc=com" }
-      - equal: { path: data.ldapIntegration.ldap.insecure, value: true }
+      - equal: { path: data.ldapIntegration.ldap.insecure, value: false }
       - equal:
           path: data.ldapIntegration.ldap.attributes.email
           value:
@@ -184,7 +200,7 @@ tests:
       - equal: { path: data.adIntegration.mappingMethod, value: "claim" }
       - equal: { path: data.adIntegration.ldap.bindDN, value: "cn=svc-local,dc=local,dc=com" }
       - equal: { path: data.adIntegration.ldap.url, value: "ldaps://ad-local.example.com/dc=local,dc=com" }
-      - equal: { path: data.adIntegration.ldap.insecure, value: true }
+      - equal: { path: data.adIntegration.ldap.insecure, value: false }
       - equal:
           path: data.adIntegration.ldap.attributes.email
           value:
@@ -209,7 +225,7 @@ tests:
       - equal: { path: data.ldapIntegration.mappingMethod, value: "claim" }
       - equal: { path: data.ldapIntegration.ldap.bindDN, value: "cn=svc-local,dc=local,dc=com" }
       - equal: { path: data.ldapIntegration.ldap.url, value: "ldaps://ldap-local.example.com/dc=local,dc=com" }
-      - equal: { path: data.ldapIntegration.ldap.insecure, value: true }
+      - equal: { path: data.ldapIntegration.ldap.insecure, value: false }
       - equal:
           path: data.ldapIntegration.ldap.attributes.email
           value:

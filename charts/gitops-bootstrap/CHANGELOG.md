@@ -5,6 +5,36 @@ All notable changes to this component will be documented in this file.
 The format is based on [Common Changelog](https://common-changelog.org/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.16.0] - 2026-11-10
+
+### Changed
+
+- Remove the custom HostedCluster health check so it no longer blocks chart-managed sync ordering.
+
+## [2.15.0] - 2026-11-09
+
+### Added
+
+- Add a NodePool health check that reports updates as Progressing until current-generation readiness.
+
+## [2.14.0] - 2026-11-09
+
+### Fixed
+
+- Gate later Argo CD sync waves on the HostedCluster's requested semantic release version being completed
+- Configure the HostedCluster health check through `resourceHealthChecks`
+- Avoid relying on the unavailable Lua `string` library in the HostedCluster health check
+
+## [2.13.0] - 2026-11-09
+
+### Added
+
+- Configure Argo CD health checks for Applications and HyperShift HostedClusters
+
+### Fixed
+
+- Check the HostedCluster `Available` condition generation instead of comparing incompatible generation counters
+
 ## [2.12.0] - 2026-09-28
 
 ### Changed

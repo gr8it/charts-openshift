@@ -1,0 +1,13 @@
+suite: Self-provisioners
+templates:
+  - templates/selfProvisioners.yaml
+tests:
+  - it: disables automatic restoration of the binding subjects
+    asserts:
+      - equal:
+          path: metadata.annotations
+          value:
+            rbac.authorization.kubernetes.io/autoupdate: "false"
+      - equal:
+          path: subjects
+          value: null
