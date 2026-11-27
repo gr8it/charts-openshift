@@ -13,6 +13,7 @@ Charts are consumed from a separate per-customer **conf repo** via `helmfile` an
 **Don't assume. Don't hide confusion. Surface tradeoffs.**
 
 Before implementing:
+
 - State your assumptions explicitly. If uncertain, ask.
 - If multiple interpretations exist, present them - don't pick silently.
 - If a simpler approach exists, say so. Push back when warranted.
@@ -35,12 +36,14 @@ Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, sim
 **Touch only what you must. Clean up only your own mess.**
 
 When editing existing code:
+
 - Don't "improve" adjacent code, comments, or formatting.
 - Don't refactor things that aren't broken.
 - Match existing style, even if you'd do it differently.
 - If you notice unrelated dead code, mention it - don't delete it.
 
 When your changes create orphans:
+
 - Remove imports/variables/functions that YOUR changes made unused.
 - Don't remove pre-existing dead code unless asked.
 
@@ -51,11 +54,13 @@ The test: Every changed line should trace directly to the user's request.
 **Define success criteria. Loop until verified.**
 
 Transform tasks into verifiable goals:
+
 - "Add validation" → "Write tests for invalid inputs, then make them pass"
 - "Fix the bug" → "Write a test that reproduces it, then make it pass"
 - "Refactor X" → "Ensure tests pass before and after"
 
 For multi-step tasks, state a brief plan:
+
 ```
 1. [Step] → verify: [check]
 2. [Step] → verify: [check]
@@ -89,6 +94,7 @@ For migrations: don't encode every raw diff between the DEV01/TEST01/PROD01 copi
 A chart change is not finished until:
 
 - [ ] `version` bumped in `Chart.yaml` (unchanged versions are skipped by `make build`)
+- [ ] `kubeVersion` set in `Chart.yaml`, matching the OpenShift releases the chart is intended for (see Chart.yaml below)
 - [ ] `values.yaml` is minimal, documented, and global values are commented out, not set (see Values files below)
 - [ ] `values.example.yaml` present with realistic, non-secret values
 - [ ] `values.lint.yaml` present if `helm lint` needs cluster/environment globals not in `values.yaml`
@@ -131,6 +137,30 @@ charts-openshift/
 └── scripts/
 ```
 
+## Chart.yaml
+
+### kubeVersion
+
+[kubeVersion]: https://helm.sh/docs/topics/charts/#the-kubeversion-field
+
+Every chart must declare [`kubeVersion`][kubeVersion], derived from the Kubernetes version of the OpenShift release(s) the chart is intended for:
+
+- There is no repo-wide default — the chart author (DevOps engineer) selects the OpenShift release(s) that fit the chart's use case and translates them to the Kubernetes version (see table below).
+- Lower bound = Kubernetes version of the **oldest OpenShift minor the chart supports**, e.g. `kubeVersion: ">=1.32.0-0"` (OpenShift 4.19).
+- Review feedback must not prescribe a specific OpenShift / Kubernetes version — only flag a missing or malformed `kubeVersion`, or one that contradicts what the chart uses (e.g. an API not available in the declared lower bound), and give values only as examples.
+- Raise the lower bound if the chart needs a newer API / feature / operator release (e.g. a CR only available from OpenShift 4.20 ⇒ `">=1.33.0-0"`).
+- Add an upper bound only if the chart is bound to specific OpenShift minors (e.g. a pinned operator channel `stable-4.19`) ⇒ `">=1.32.0-0 <1.33.0-0"`.
+- Always use the `-0` suffix, otherwise Helm's semver constraint does not match pre-release Kubernetes versions.
+- When the supported OpenShift baseline moves, bump `kubeVersion` (and chart `version`) together.
+
+| OpenShift | Kubernetes | `kubeVersion` lower bound |
+| --------- | ---------- | ------------------------- |
+| 4.18      | 1.31       | `>=1.31.0-0`              |
+| 4.19      | 1.32       | `>=1.32.0-0`              |
+| 4.20      | 1.33       | `>=1.33.0-0`              |
+
+Verify the constraint with `helm template <name> charts/<name> -f charts/<name>/values.example.yaml --kube-version <k8s version>` — rendering must succeed for supported versions and fail for older ones.
+
 ## Values files
 
 ### apc-global-overrides
@@ -156,7 +186,7 @@ charts-openshift/
 - The used `apc-global-overrides` should be set in values.lint.yaml, values.example.yaml or other example values files, but not in values.yaml.
 - Preferably all `apc-global-overrides` should be set in values.example.yaml, including optional ones such as proxy, ca certificates, etc. This ensures that the example values file is a complete example of a working configuration.
 - unittest of the `apc-global-overrides` chart (= a library chart) are located in `library-charts-unittests/apc-global-overrides-unit-tests` directory.
-  - uses values.global.yaml (for global values) and values.local.yaml (for local overrides) 
+  - uses values.global.yaml (for global values) and values.local.yaml (for local overrides)
   - unittests cover usecases with default chart values, global values, local values, and global values with local overrides
 
 ### values.yaml Conventions
@@ -171,7 +201,6 @@ charts-openshift/
 - Security-sensitive defaults must be secure by default: admin APIs must be opt-in (default disabled), `insecureSkipTLSVerify` must default to `false`.
 - Chart default values should reflect the production-ready cluster state, not a QA-specific non-default.
 - Favor convention-over-configuration = don't add a value unless it must be configurable, e.g. do not configure ingress URL - construct it from a convention-based pattern using the cluster's base URL (from apc-global-overrides) and the standard chart helpers, e.g. `application-xy.{{ include "apc-global-overrides.require-clusterAppsDomain" . }}`
-
 
 ### values.example.yaml
 
@@ -235,7 +264,7 @@ Framework: [helm-unittest](https://github.com/helm-unittest/helm-unittest)
 
 ## Secrets
 
-Do not commit secrets to git. Store in a  secret store (e.g., Vault) and reference using ExternalSecrets of External Secret Operator. them in the conf repo.
+Do not commit secrets to git. Store in a secret store (e.g., Vault) and reference using ExternalSecrets of External Secret Operator. them in the conf repo.
 
 If secrets can be generated, prefer generating them dynamically over static secrets. For this PushSecret CR can be used.
 
@@ -265,14 +294,14 @@ General Contributing rules are covered in [CONTRIBUTING.md][contributing rules].
 
 ## Build & Release Workflow
 
-| Command | What it does |
-|---|---|
-| `make lint` | Lints all charts (uses `values.lint.yaml` if present) |
-| `make build` | Lint + package all charts → `packaged_charts/` + update `index.yaml` |
-| `make unittest` | Run helm-unittest on all charts with a `tests/` dir |
-| `make publish` | Push packaged chart to OCI registry (optional) |
-| `make clean` | Remove decommissioned chart artifacts |
-| `make reindex` | Rebuild `index.yaml` from scratch |
+| Command         | What it does                                                         |
+| --------------- | -------------------------------------------------------------------- |
+| `make lint`     | Lints all charts (uses `values.lint.yaml` if present)                |
+| `make build`    | Lint + package all charts → `packaged_charts/` + update `index.yaml` |
+| `make unittest` | Run helm-unittest on all charts with a `tests/` dir                  |
+| `make publish`  | Push packaged chart to OCI registry (optional)                       |
+| `make clean`    | Remove decommissioned chart artifacts                                |
+| `make reindex`  | Rebuild `index.yaml` from scratch                                    |
 
 > [!NOTE]  
 > Prepend every make `CHARTFOLDER=<name>` to scope to one particular chart, e.g. `CHARTFOLDER=apc-keycloak make build`.

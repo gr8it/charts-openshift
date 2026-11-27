@@ -32,7 +32,7 @@ charts/<name>/
     snapshot_test.yaml
 ```
 
-- `Chart.yaml`: `apiVersion: v2`, `type: application`, `version: 1.0.0`. Add the `apc-global-overrides` dependency if the chart uses any of its helpers — check `charts/apc-global-overrides/Chart.yaml` for the current version to pin, don't assume.
+- `Chart.yaml`: `apiVersion: v2`, `type: application`, `version: 1.0.0`, `kubeVersion` derived from the oldest OpenShift release the chart targets — the OpenShift release is selected by the chart author to fit the use case; ask if it isn't stated, don't pick one (example: `">=1.32.0-0"` for OpenShift 4.19; see `kubeVersion` in CLAUDE.md). Add the `apc-global-overrides` dependency if the chart uses any of its helpers — check `charts/apc-global-overrides/Chart.yaml` for the current version to pin, don't assume.
 - `values.yaml`: only the minimal per-environment values identified in step 1. Document every global value the chart relies on as a comment block (`## uses following global values => do not set here`), never set it.
 - `values.example.yaml`: realistic, non-secret values — just the overrides needed to render, plus whatever globals `values.lint.yaml`/test rendering requires.
 - `values.schema.json`: schema for everything in `values.yaml` — this is a hard requirement, not optional, even though you'll find it missing on most existing charts.
